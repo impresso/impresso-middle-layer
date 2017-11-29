@@ -2,3 +2,10 @@
 *.pyc
 *__/
 *.sqlite3
+
+node_modules/
+package-lock.json
+.env
+
+config/default.json
+config/production.json
