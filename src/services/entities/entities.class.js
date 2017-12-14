@@ -1,15 +1,14 @@
-require('dotenv').config();
 
 /* eslint-disable no-unused-vars */
-const neo4j    = require('neo4j-driver').v1;
-      driver   = neo4j.driver(process.env.NEO4J_HOST, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASS)),
-      queries  = require('decypher')(__dirname + '/queries.cyp');
+// const neo4j         = require('neo4j-driver').v1;
+//       driver        = neo4j.driver(process.env.NEO4J_HOST, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASS)),
+const      queries       = require('decypher')(__dirname + '/queries.cyp');
 
 //       
 class Service {
   constructor (options) {
     this.options = options || {};
-    this.session  = driver.session();
+    this.session  = options.session;
   }
 
   find (params) {

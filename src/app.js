@@ -21,6 +21,7 @@ const appHooks = require('./app.hooks');
 const authentication = require('./authentication');
 
 const sequelize = require('./sequelize');
+const neo4j     = require('./neo4j');
 
 const app = feathers();
 
@@ -39,6 +40,7 @@ app.use('/', feathers.static(app.get('public')));
 // Set up Plugins and providers
 app.configure(hooks());
 app.configure(sequelize);
+app.configure(neo4j);
 app.configure(rest());
 app.configure(socketio());
 
