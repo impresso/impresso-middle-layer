@@ -1,10 +1,11 @@
-require('dotenv').config();
 const Sequelize = require('sequelize');
 
 module.exports = function () {
   const app = this;
-  const connectionString = `postgres://${process.env.PGNAME}:${process.env.PGPASS}@localhost:${process.env.PGPORT}/${process.env.PGNAME}`;
-  const sequelize = new Sequelize(connectionString, {
+  const config = app.get('postgres');
+  // const connectionString = `postgres://${process.env.PGNAME}:${process.env.PGPASS}@localhost:${process.env.PGPORT}/${process.env.PGNAME}`;
+  const sequelize = new Sequelize(config.database, config.auth.user, config.auth.pass, {
+    host: config.host,
     dialect: 'postgres',
     logging: false,
     define: {
