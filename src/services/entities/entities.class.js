@@ -1,33 +1,31 @@
 
 /* eslint-disable no-unused-vars */
-// const neo4j         = require('neo4j-driver').v1;
-//       driver        = neo4j.driver(process.env.NEO4J_HOST, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASS)),
 const      queries       = require('decypher')(__dirname + '/queries.cyp');
 
-//       
+
 class Service {
   constructor (options) {
     this.options = options || {};
     this.session  = options.session;
+    this.project = this.options.project || '!';
+    
+  }
+
+  _run (cypherQuery, params) {
+    return this.session.run(cypherQuery, {
+      Project: this.project,
+      ... params
+    })
   }
 
   find (params) {
-    return this.session.run(queries.find, {
-      limit: 10
-    }).then(res => {
-      // console.log(_gr('    v '), _bb('success.'), res.records.length, _bb('records found.'));
-      return res.records
-    }).catch(err => {
-      throw err
-    });
-
-    // return Promise.resolve([]);
+    return this._run(queries.find_entities, params.sanitized)
   }
 
   get (id, params) {
-    return Promise.resolve({
-      id, text: `A new message with ID: ${id}!`
-    });
+    return this._run(queries.get_entity, {
+      uid: id
+    })
   }
 
   create (data, params) {

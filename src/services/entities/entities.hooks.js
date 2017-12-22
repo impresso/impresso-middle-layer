@@ -1,8 +1,15 @@
 const { authenticate } = require('feathers-authentication').hooks;
 
+const {sanitize, normalize, finalize, finalizeMany} = require('../../hooks/neo4j');
+
+
+
+
 module.exports = {
   before: {
-    all: [ ],//authenticate('jwt') ],
+    all: [ 
+      sanitize()
+    ],//authenticate('jwt') ],
     find: [],
     get: [],
     create: [],
@@ -12,9 +19,15 @@ module.exports = {
   },
 
   after: {
-    all: [],
-    find: [],
-    get: [],
+    all: [
+      normalize()
+    ],
+    find: [
+      finalizeMany()
+    ],
+    get: [
+      finalize()
+    ],
     create: [],
     update: [],
     patch: [],

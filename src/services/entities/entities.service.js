@@ -10,7 +10,8 @@ module.exports = function () {
   const options = {
     name: 'entities',
     paginate,
-    session: app.get('neo4jSession')
+    session: app.get('neo4jSession'),
+    project: app.get('neo4jProject')
   };
 
   // Initialize our service with any options it requires
