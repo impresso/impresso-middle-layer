@@ -6,17 +6,29 @@
 
 
 const neo4jToInt = neo4jInteger => {
-  return typeof neo4jInteger == 'object'? neo4jInteger.low : null
+  return typeof neo4jInteger == 'object'? neo4jInteger.low : neo4jInteger
 }
 
 // will normalize neo4j results (after hooks)
 const normalize = () => {
   return async context => {
-    console.log(context.result)
+    // console.log(context.result)
     context.result.normalized =  context.result.records.map(record => {
       return {
         ...record._fields[0].properties,
         df: neo4jToInt(record._fields[0].properties.df)
+      }
+    })
+  }
+}
+
+
+const normalizeTimeline = () => {
+  return async context => {
+    context.result = context.result.records.map(record => {
+      return {
+        t: neo4jToInt(record._fields[0]),
+        w: neo4jToInt(record._fields[1]),
       }
     })
   }
@@ -56,6 +68,14 @@ const sanitize = ( options ) => {
       ... options
     };
 
+    // :: order by
+    if(context.params.query.order) {
+      // split commas, then filter useless stuffs.
+      let orders = context.params.query.order.split(/\s*,\s*/)
+      params.orders = orders; 
+      // console.log()
+    }
+
     // num of results expected, 0 to 500
     if(context.params.query.limit) {
       let limit = parseInt(context.params.query.limit);
@@ -77,9 +97,12 @@ const sanitize = ( options ) => {
   }
 }
 
+
+
 module.exports = {
   sanitize,
   normalize,
+  normalizeTimeline,
   finalize,
   finalizeMany
 }
