@@ -6,6 +6,7 @@ WITH count(n) as total
 MATCH (ent:entity {Project:{Project}})
 RETURN ent, total
 ORDER BY ent.df DESC
+SKIP {skip}
 LIMIT {limit}
 
 // name: get_entity
