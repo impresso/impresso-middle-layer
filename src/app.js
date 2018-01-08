@@ -5,13 +5,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
 
-const feathers = require('feathers');
-const configuration = require('feathers-configuration');
-const hooks = require('feathers-hooks');
-const rest = require('feathers-rest');
-const socketio = require('feathers-socketio');
+const feathers = require('@feathersjs/feathers');
+const express = require('@feathersjs/express');
+const configuration = require('@feathersjs/configuration');
+const rest = require('@feathersjs/express/rest');
+const socketio = require('@feathersjs/socketio');
 
-const handler = require('feathers-errors/handler');
+const handler = require('@feathersjs/express/errors');
 const notFound = require('feathers-errors/not-found');
 
 const middleware = require('./middleware');
@@ -23,7 +23,7 @@ const authentication = require('./authentication');
 const sequelize = require('./sequelize');
 const neo4j     = require('./neo4j');
 
-const app = feathers();
+const app = express(feathers());
 
 // Load app configuration
 app.configure(configuration());
@@ -35,10 +35,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Host the public folder
-app.use('/', feathers.static(app.get('public')));
+app.use('/', express.static(app.get('public')));
 
-// Set up Plugins and providers
-app.configure(hooks());
 app.configure(sequelize);
 app.configure(neo4j);
 app.configure(rest());
@@ -51,8 +49,46 @@ app.configure(authentication);
 app.configure(services);
 // Configure a middleware for 404s and the error handler
 app.use(notFound());
-app.use(handler());
+// app.configure(handler({
+//   // html: {
+//   //   // strings should point to html files
+//   //   404: 'path/to/custom-404.html',
+//   //   default: 'path/to/generic/error-page.html'
+//   // },
+//   json: {
+//     404: (err, req, res, next) => {
+//       // make sure to strip off the stack trace in production
+//       if (process.env.NODE_ENV === 'production') {
+//         delete err.stack;
+//       }
+//       res.json({ message: 'Not found' });
+//     },
+//     default: (err, req, res, next) => {
+//       // handle all other errors
+//       res.json({ message: 'Oh no! Something went wrong' });
+//     }
+//   }
+// }));
 
+app.use(handler({
+  json: {
+    404: (err, req, res, next) => {
+      // make sure to strip off the stack trace in production
+      if (process.env.NODE_ENV === 'production') {
+        delete err.stack;
+      }
+      res.json({ message: 'Not found' });
+    },
+    500: (err, req, res, next) => {
+      console.log(err.toJSON())
+      res.json({ message: 'service unavailable'})
+    },
+    default: (err, req, res, next) => {
+      // handle all other errors
+      res.json({ message: 'Oh no! Something went wrong' });
+    }
+  }
+}));
 app.hooks(appHooks);
 
 module.exports = app;

@@ -12,6 +12,7 @@ const neo4jToInt = neo4jInteger => {
 // will normalize neo4j results (after hooks)
 const normalize = () => {
   return async context => {
+    console.log(context.result)
     context.result.normalized =  context.result.records.map(record => {
       return {
         ...record._fields[0].properties,
@@ -72,7 +73,7 @@ const sanitize = ( options ) => {
 
     // add sanitized dict to context params.
     context.params.sanitized = params;
-    // console.log(context.params.sanitized)
+    console.log(context.params.sanitized)
   }
 }
 

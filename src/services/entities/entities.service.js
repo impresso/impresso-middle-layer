@@ -1,7 +1,6 @@
 // Initializes the `entities` service on path `/entities`
 const createService = require('./entities.class.js');
 const hooks = require('./entities.hooks');
-const filters = require('./entities.filters');
 
 module.exports = function () {
   const app = this;
@@ -10,8 +9,7 @@ module.exports = function () {
   const options = {
     name: 'entities',
     paginate,
-    session: app.get('neo4jSession'),
-    project: app.get('neo4jProject')
+    run: app.get('neo4jSessionRunner'),
   };
 
   // Initialize our service with any options it requires
@@ -21,8 +19,4 @@ module.exports = function () {
   const service = app.service('entities');
 
   service.hooks(hooks);
-
-  if (service.filter) {
-    service.filter(filters);
-  }
 };

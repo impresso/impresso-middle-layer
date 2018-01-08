@@ -1,23 +1,17 @@
-
 /* eslint-disable no-unused-vars */
-const      queries       = require('decypher')(__dirname + '/queries.cyp');
-
-
 class Service {
   constructor (options) {
     this.options = options || {};
-    this._run  = options.run;
-    this.project = this.options.project || '!';
   }
 
   find (params) {
-    return this._run(queries.find_entities, params.sanitized)
+    return Promise.resolve([]);
   }
 
   get (id, params) {
-    return this._run(queries.get_entity, {
-      uid: id
-    })
+    return Promise.resolve({
+      id, text: `A new message with ID: ${id}!`
+    });
   }
 
   create (data, params) {
@@ -39,6 +33,9 @@ class Service {
   remove (id, params) {
     return Promise.resolve({ id });
   }
+
+
+
 }
 
 module.exports = function (options) {
