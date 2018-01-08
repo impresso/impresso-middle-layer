@@ -8,7 +8,8 @@ module.exports = function () {
 
   const options = {
     name: 'timeline',
-    paginate
+    paginate,
+    run: app.get('neo4jSessionRunner')
   };
 
   // Initialize our service with any options it requires

@@ -1,4 +1,5 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
+const { normalizeTimeline } = require('../../hooks/neo4j');
 
 module.exports = {
   before: {
@@ -12,7 +13,9 @@ module.exports = {
   },
 
   after: {
-    all: [],
+    all: [
+      normalizeTimeline()
+    ],
     find: [],
     get: [],
     create: [],

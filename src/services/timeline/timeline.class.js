@@ -1,17 +1,24 @@
 /* eslint-disable no-unused-vars */
+const queries = require('decypher')(__dirname + '/queries.cyp');
+
+
 class Service {
   constructor (options) {
     this.options = options || {};
+    this._run  = options.run;
   }
 
   find (params) {
-    return Promise.resolve([]);
+   return this._run(queries.find_entities, params.sanitized)
   }
 
   get (id, params) {
-    return Promise.resolve({
-      id, text: `A new message with ID: ${id}!`
-    });
+
+
+    return this._run(queries.timeline_by_month, {
+      uid: id,
+      ... params.sanitized
+    })
   }
 
   create (data, params) {
