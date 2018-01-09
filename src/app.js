@@ -21,7 +21,7 @@ const appHooks = require('./app.hooks');
 const authentication = require('./authentication');
 
 const sequelize = require('./sequelize');
-const neo4j     = require('./neo4j');
+const neo4j   = require('./neo4j');
 
 const app = express(feathers());
 
