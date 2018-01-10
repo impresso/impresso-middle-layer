@@ -83,6 +83,16 @@ app.use(handler({
       console.log(err.toJSON())
       res.json({ message: 'service unavailable'})
     },
+    // bad request
+    400 : (err, req, res, next) => {
+      // console.log(err)
+      res.json({ 
+        message: 'Please check request params', 
+        name: err.name, 
+        code: err.code,
+        errors: err.data
+      });
+    },
     default: (err, req, res, next) => {
       // handle all other errors
       res.json({ message: 'Oh no! Something went wrong' });
