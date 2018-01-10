@@ -1,9 +1,12 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
+const { sanitize } = require('../../hooks/validator');
 const { normalizeTimeline } = require('../../hooks/neo4j');
 
 module.exports = {
   before: {
-    all: [],// authenticate('jwt') ],
+    all: [
+      sanitize()
+    ],// authenticate('jwt') ],
     find: [],
     get: [],
     create: [],

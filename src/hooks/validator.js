@@ -20,8 +20,8 @@ const _validate = (params, rules) => {
     if(rules[key].regex && !rules[key].regex.test(params[key])) {
       _errors[key] =  {
         code: 'NotValidRegex',
-        regex: rules[key].regex,
-        message: rules[key].message || key + ' not valid'
+        regex: rules[key].regex.toString(),
+        message: rules[key].message || key + ' param is not valid'
       };
       break;
     }
@@ -38,10 +38,50 @@ const _validate = (params, rules) => {
   return _params
 }
 
+/*
+  Clean params before sending them to the actual function.
+  "Sanitized" params will be available as
+  `context.params.sanitized`
+
+  usage in service "before" hooks:
+
+  ```
+  before: {
+    all: [ 
+      sanitize({
+        validators: {
+          newspaper: {
+            required: false,
+            regex: /^[a-z0-9_\-]+$/
+          }
+        },
+      })
+    ], //authenticate('jwt') ],
+    find: [],
+    get: [],
+  }
+  ```
+  Then in the Service class:
+  ````
+  class Service {
+    constructor (options) {
+    }
+
+    find (params) {
+      return this.dosomething(params.sanitized)
+    }
+  ```
+*/
 const sanitize = ( options ) => {
   return async context => {
+    let _options = options || {};
+
     // initialize with common validators plus optional validators. Ignore page and offsets (those are warnings)
     let validated = _validate(context.params.query, {
+      uid: {
+        required: false,
+        regex: /^[A-Za-z0-9_\-]+$/
+      }, 
       newspaper: {
         required: false,
         regex: /^[A-Za-z0-9_\-]+$/
@@ -51,8 +91,7 @@ const sanitize = ( options ) => {
         regex: /^[A-Za-z0-9_\-,]+$/,
         transform: (d) => d.split(/\s*,\s*/)
       },
-
-      ... options.validators || {}
+      ... _options.validators
     });
 
     // write params to current result
@@ -62,8 +101,6 @@ const sanitize = ( options ) => {
       max_limit: 500,
       ... validated
     };
-    
-
 
     // :: order by
     if(context.params.query.order) {
