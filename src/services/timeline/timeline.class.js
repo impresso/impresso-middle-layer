@@ -8,14 +8,23 @@ class Service {
     this._run  = options.run;
   }
 
+  // 
+  _query (label, suffix) {
+    console.log('QUERY:', [label, suffix].join('_'));
+    return queries[[label, suffix].join('_')]
+  }
+
+  // tuimeline for classes of objects
   find (params) {
-   return this._run(queries.find_entities, params.sanitized)
+    // optional uid, compulsory "label"...
+    // validate against labels, cannot be called directly (/timeline) @todo
+    let q = this._query(params.query.label, 'timeline_by_year')
+    return this._run(q, {...params.sanitized, uid: params.query.uid})
   }
 
   get (id, params) {
-
-
-    return this._run(queries.timeline_by_month, {
+    console.log('oh my goooood')
+    return this._run(this._query(params.query.label, 'timeline_by_year'), {
       uid: id,
       ... params.sanitized
     })
