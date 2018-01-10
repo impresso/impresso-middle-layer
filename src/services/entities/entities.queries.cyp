@@ -1,23 +1,18 @@
 
-// name: find_entities
-// useless :)
-MATCH (n:entity {Project:{Project}})
-WITH count(n) as total
+// name: find
+// 
+MATCH (pro:Project {uid:{Project}})
+WITH pro.count_entity as total
 MATCH (ent:entity {Project:{Project}})
 RETURN ent, total
 ORDER BY ent.df DESC
 SKIP {skip}
 LIMIT {limit}
 
-// name: get_entity
+// name: get
 //
 MATCH (ent:entity {Project:{Project}, uid:{uid}})
 RETURN ent
-
-// name: get_location
-//
-MATCH (loc:entity:location {Project:{Project}, uid:{uid}})
-RETURN loc
 
 
 // name: set_df
