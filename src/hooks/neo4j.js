@@ -10,15 +10,36 @@ const neo4jToInt = neo4jInteger => {
 }
 
 // will normalize neo4j results (after hooks)
-const normalize = () => {
+// _field[0] is the obiect to be normalized.
+const normalize = ( mapper ) => {
+  if(!mapper){
+    mapper = record => {
+      // OUR cypher output can be a complex json object.
+      // console.log(record)
+      let props =  Array.isArray(record._fields)? record._fields[0].properties? record._fields[0].properties: record._fields[0] : record.properties? record.properties: record;
+      // console.log(props)
+      for (let k in props){
+        
+        if(Array.isArray(props[k])){
+          console.log(props[k])
+          props[k] = props[k].map(mapper)
+        }
+        if(props[k] && props[k].constructor && props[k].constructor.name == 'Integer')
+          props[k] = neo4jToInt(props[k])
+      }
+      // remap _field[0] properties!
+
+      return props
+
+      //{
+      //  ...props
+        // df: neo4jToInt(props.df)
+      //}
+    }
+  }
   return async context => {
     // console.log(context.result)
-    context.result.normalized =  context.result.records.map(record => {
-      return {
-        ...record._fields[0].properties,
-        df: neo4jToInt(record._fields[0].properties.df)
-      }
-    })
+    context.result.normalized =  context.result.records.map(mapper)
   }
 }
 
@@ -73,7 +94,8 @@ const sanitize = ( options ) => {
       // split commas, then filter useless stuffs.
       let orders = context.params.query.order.split(/\s*,\s*/)
       params.orders = orders; 
-      // console.log()
+      console.log(params)
+    
     }
 
     // num of results expected, 0 to 500
