@@ -27,6 +27,13 @@ const _validate = (params, rules) => {
       };
       break;
     }
+    if(rules[key].choices && rules[key].choices.indexOf(params[key]) === -1) {
+      _errors[key] =  {
+        code: 'NotInArray',
+        message: rules[key].message || key + ' param is not valid'
+      };
+      break;
+    }
 
     if(rules[key].regex && !rules[key].regex.test(params[key])) {
       _errors[key] =  {
@@ -106,6 +113,7 @@ const sanitize = ( options ) => {
       ... _options.validators
     });
 
+    console.log(context.params.query.filters)
     // write params to current result
     let params = {
       limit: 10,
@@ -113,6 +121,31 @@ const sanitize = ( options ) => {
       max_limit: 500,
       ... validated
     };
+
+    // filter parameters!
+    if(context.params.query.filters && Array.isArray(context.params.query.filters)){
+      params.filters = [];
+      for (let k in context.params.query.filters) {
+        console.log(context.params.query.filters[k])
+      
+        let valid = _validate(context.params.query.filters[k], {
+          context: {
+            required: false,
+            choices: ['include','exclude']
+          },
+          query: {
+            required: false,
+            max_length: 1000
+          },
+          type: {
+            required: true,
+            choices: ['String']
+          }
+        });
+        params.filters.push(valid)
+      }
+
+    }
 
     // :: q
     if(params.q) {
