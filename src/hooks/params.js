@@ -27,6 +27,13 @@ const _validate = (params, rules) => {
       };
       break;
     }
+    if(rules[key].min_length && params[key].length < rules[key].min_length) {
+      _errors[key] =  {
+        code: 'NotValidLength',
+        message: rules[key].message || key + ' param is not valid'
+      };
+      break;
+    }
     if(rules[key].choices && rules[key].choices.indexOf(params[key]) === -1) {
       _errors[key] =  {
         code: 'NotInArray',
@@ -52,8 +59,9 @@ const _validate = (params, rules) => {
     }
   }
   // console.log(_errors)
-  if(Object.keys(_errors).length)
+  if(Object.keys(_errors).length){
     throw new errors.BadRequest(_errors);
+  }
   return _params
 }
 
@@ -144,7 +152,6 @@ const sanitize = ( options ) => {
         });
         params.filters.push(valid)
       }
-
     }
 
     // :: q
