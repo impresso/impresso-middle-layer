@@ -1,6 +1,62 @@
 const errors = require('@feathersjs/errors');
+    
+const _toLucene = (query, force_fuzzy=true) => {
+  // @todo excape chars + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 
-const _toLucene = (q, fuzzy=true) => {
+  // replace query
+  var Q = '(:D)', // replace quotes
+      S = '[-_°]', // replace spaces
+      q;
+
+  // understand \sOR\s and \sAND\s stuff.
+  if(query.indexOf(' OR ') !== -1 || query.indexOf(' AND ') !== -1){
+    // this is a real lucene query.
+    return query
+  }
+
+  let _escape = () => {
+
+  }
+  
+   
+
+  // split by quotes.
+
+
+  // console.log('word1 , "word2 , , word3 " , word 5 ", word 6 , "word7 , "word8 }'.split(/("[^"]*?")/))
+  // console.log('ciao "mamma "bella" e ciao'.split(/("[^"]*?")/))
+
+  // avoid lexical error (odd number of quotes for instance)
+  q = query.split(/("[^"]*?")/).map(d => {
+    // trim spaces
+    let _d = d.trim();
+
+    // we find here 
+    if(_d.indexOf('"') === 0 && _d.lastIndexOf('"')){
+      // leave as it is
+      return _d
+    }
+    
+    // trust the user
+    if(_d.indexOf('*') !== -1 && force_fuzzy)
+      force_fuzzy = false;
+
+    // strip quotes
+    _d = _d.replace(/"/g, '')
+
+    // get rid of one letter words, multiple spaces and concatenate with simple space for the moment
+    let _dr = _d.split(/\s+/).filter(k => k.length > 1)
+    
+    // if there is only one word
+    if(_dr.length == 1) {
+      _d = _dr.join(' ');
+      return force_fuzzy? '*'+_d+'*': _d;
+    }
+
+    // _dr contains COMMA? @todo
+    return _dr.join(' AND ');
+  }).join(' AND ')
+
   return q;
 }
 
@@ -202,5 +258,8 @@ const verbose = () => {
 
 module.exports = {
   sanitize,
-  verbose
+  verbose,
+  utils: {
+    toLucene: _toLucene
+  }
 }
