@@ -21,7 +21,6 @@ const appHooks = require('./app.hooks');
 const authentication = require('./authentication');
 
 const sequelize = require('./sequelize');
-const neo4j   = require('./neo4j');
 
 const app = express(feathers());
 
@@ -38,7 +37,6 @@ app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 app.use('/', express.static(app.get('public')));
 
 app.configure(sequelize);
-app.configure(neo4j);
 app.configure(rest());
 app.configure(socketio());
 

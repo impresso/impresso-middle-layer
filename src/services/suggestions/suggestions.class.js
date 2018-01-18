@@ -1,17 +1,9 @@
 /* eslint-disable no-unused-vars */
 const chrono   = require('chrono-node');
 const {neo4jRecordMapper} = require('../neo4j.utils.js');
+const Neo4jService = require('../neo4j.service').Service;
 
-
-
-
-class Service {
-  constructor (options) {
-    this.options = options || {};
-    this._run  = options.run;
-    this.queries = this.options.queries || {};
-  }
-
+class Service extends Neo4jService {
 
   async find (params) {
     let dates = async () => {
@@ -45,8 +37,6 @@ class Service {
     ]).then(function(values) {
       return values[0].concat(values[1])
     });
-
-
   }
 }
 

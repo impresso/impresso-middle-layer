@@ -11,7 +11,7 @@ module.exports = function (app) {
   const options = {
     name: 'suggestions',
     paginate,
-    run: app.get('neo4jSessionRunner'),
+    config: app.get('neo4j'),
     queries: queries
   };
 

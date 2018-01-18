@@ -16,6 +16,8 @@ class Service {
 
   // tuimeline for classes of objects
   find (params) {
+    // we need to add:
+    // http://www.letempsarchives.ch/graph/serie?sources%5B%5D=GDL&sources%5B%5D=JDG&sources%5B%5D=LNQ&term=amsterdam
     // optional uid, compulsory "label"...
     // validate against labels, cannot be called directly (/timeline) @todo
     let q = this._query(params.query.label, 'timeline_by_year')
