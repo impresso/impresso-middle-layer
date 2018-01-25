@@ -50,7 +50,7 @@ const _toLucene = (query, force_fuzzy=true) => {
     // if there is only one word
     if(_dr.length == 1) {
       _d = _dr.join(' ');
-      return force_fuzzy? '*'+_d+'*': _d;
+      return force_fuzzy? _d+'*': _d;
     }
 
     // _dr contains COMMA? @todo
