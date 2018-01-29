@@ -2,6 +2,7 @@
   Load neo4j driver according to current configuration
 */
 const neo4j = require('neo4j-driver').v1;
+const {neo4jPrepare} = require('./neo4j.utils');
 
 class Neo4jService {
   constructor (options) {
@@ -19,8 +20,8 @@ class Neo4jService {
 
   _run(cypherQuery, params) {
     let session = this.driver.session()
-
-    return session.run(cypherQuery, {
+    console.log('Neo4jService _run with:', neo4jPrepare(cypherQuery, params))
+    return session.run(neo4jPrepare(cypherQuery, params), {
       Project: this.config.project,
       ... params
     }).then( res => {
