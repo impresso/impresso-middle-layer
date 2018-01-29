@@ -129,7 +129,7 @@ const sanitize = ( options ) => {
     
     // add sanitized dict to context params.
     context.params.sanitized = params;
-    console.log(context.params.sanitized)
+    // console.log(context.params.sanitized)
   }
 }
 
