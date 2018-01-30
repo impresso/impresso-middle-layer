@@ -7,70 +7,71 @@
         padding: 0;
         box-sizing: border-box;
       }
-
       html, body {
         font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif';
-        font-weight: 400;
-        font-size: 16px;
-        color: #333;
+        font-weight: 300;
+        font-size: 20px;
+        color: #555;
       }
-
       .container {
-        padding: 40px;
+        padding: 2% 8%;
       }
-
-      .center-text {
-        padding: 40px 0;
+      .flex-container {
+        padding: 0;
+        margin: 0;
+        display: flex;
+      }
+      header, footer {
+        align-items:center;
+        justify-content: space-between;
         text-align: center;
       }
-
-      .logo {
-        width: 120px;
-        padding: 10px;
+      footer {
+        align-items:flex-end;
       }
-      .left {
-        float: left;
-      }
+      main .flex-container {
+        padding: 0;
+        margin: 0;
+        display: flex;
 
-      .right {
-        float: right;
+        align-items: baseline;
+        justify-content: center;
       }
-
-      .center {
-        margin: auto;
-        width: 140px;
-        display: block;
-      }
-
-      main {
-        margin-top: 100px;
-        margin-top: 20vh;
-        float: none;
+      .center-text {
+        text-align: center;
         width: 100%;
       }
-
+      .column {
+        padding: 20px;
+        width: 400px;
+      }
+      .logo {
+        width: 140px;
+        padding: 20px;
+      }
+      p {
+        line-height: 1.5;
+        margin-bottom: 1em;
+      }
       a > img {
         filter: gray; /* IE6-9 */
         -webkit-filter: grayscale(1); /* Google Chrome, Safari 6+ & Opera 15+ */
         filter: grayscale(1); /* Microsoft Edge and Firefox 35+ */
         transition: all 0.3s;
       }
-
       a:hover > img {
         filter: none;
         -webkit-filter: none;
         transform: scale(1.1);
       }
-      h2 {
-        font-size: 2em;
-        font-weight: 100;
+      h1 {
+        font-size: 3em;
+        font-weight: 200;
+        margin: 40px 0;
+
       }
       footer {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 20px;
+        margin-top: 20px;
       }
       footer p {
         font-weight: 300;
@@ -79,32 +80,63 @@
       p > a {
         padding: 4px;
         text-decoration: none;
-        border-bottom: 2px solid black;
+        color: black;
+        border-bottom: 2px solid #eee;
+        transition: all .2s ease-in-out;
       }
       p > a:hover,
       p > a:focus {
-        background-color: yellow;
+        background-color: rgb(255,235,120);
+        border-color: black;
+      }
+      @media only screen and (max-width: 600px) {
+          .flex-container {
+            flex-direction: column;
+            align-items: center;
+
+
+          }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <header>
+      <header class="flex-container">
         <a href="https://wwwen.uni.lu/">
-          <img class="logo left" src="https://www.c2dh.uni.lu/sites/all/themes/c2dh/img/unilu-logo.svg">
+          <img class="logo" src="https://www.c2dh.uni.lu/sites/all/themes/c2dh/img/unilu-logo.svg">
+        </a>
+        <a href="http://impresso-project.ch/">
+          <img class="logo" src="http://impresso-project.ch/assets/images/logo.png">
         </a>
         <a href="https://www.c2dh.uni.lu/">
-          <img class="logo right" src="https://www.c2dh.uni.lu/sites/all/themes/c2dh/img/c2dh-logo.svg">
+          <img class="logo" src="https://www.c2dh.uni.lu/sites/all/themes/c2dh/img/c2dh-logo.svg">
         </a>
       </header>
       <main>
-        <a class="" href="http://impresso-project.ch/">
-          <img class="logo center" src="http://impresso-project.ch/assets/images/logo.png">
-        </a>
-        <h2 class="center-text">A REST and realtime API middle layer for Impresso.</h2>
+        <h1 class="center-text">A REST and realtime API <br>Middle layer for Impresso</h1>
+        <div class="flex-container">
+          <div class="column">
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore</p>
+            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore</p>
+            <p><a href="#">Link</a></p>
+            <p><a href="#">Another link</a></p>
+          </div>
+          <div class="column">
+            <p>Ut enim ad minim veniam, <a href="#">Long long long Link</a>  ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore</p>
+          </div>
+        </div>
       </main>
-      <footer>
-        <p class="center-text">Copyright © <a href="https://wwwen.uni.lu/">Université du Luxembourg</a>. All rights reserved. </p>
+      <footer class="flex-container">
+        <div>
+          <img class="logo" src="https://assets-cdn.github.com/images/modules/logos_page/GitHub-Mark.png" alt="Github Impresso">
+          <p><a href="https://github.com/impresso">Github Impresso</a></p>
+        </div>
+        <p class="center-text" style="max-width:500px">Copyright © <a href="https://wwwen.uni.lu/">Université du Luxembourg</a>. All rights reserved. </p>
+        <div>
+          <img class="logo" src="https://assets-cdn.github.com/images/modules/logos_page/GitHub-Mark.png" alt="Github Impresso">
+          <p><a href="https://github.com/impresso/impresso-middle-layer">Github Middle Layer</a></p>
+        </div>
       </footer>
     </div>
   </body>
