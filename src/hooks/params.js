@@ -50,7 +50,7 @@ const _toLucene = (query, force_fuzzy=true) => {
     // if there is only one word
     if(_dr.length == 1) {
       _d = _dr.join(' ');
-      return force_fuzzy? '*'+_d+'*': _d;
+      return force_fuzzy? _d+'*': _d;
     }
 
     // _dr contains COMMA? @todo
@@ -116,6 +116,7 @@ const _validate = (params, rules) => {
   }
   // console.log(_errors)
   if(Object.keys(_errors).length){
+    console.log(_errors)
     throw new errors.BadRequest(_errors);
   }
   return _params
@@ -177,7 +178,7 @@ const sanitize = ( options ) => {
       ... _options.validators
     });
 
-    console.log(context.params.query.filters)
+    // console.log(context.params.query.filters)
     // write params to current result
     let params = {
       limit: 10,
@@ -190,7 +191,7 @@ const sanitize = ( options ) => {
     if(context.params.query.filters && Array.isArray(context.params.query.filters)){
       params.filters = [];
       for (let k in context.params.query.filters) {
-        console.log(context.params.query.filters[k])
+        // console.log(context.params.query.filters[k])
       
         let valid = _validate(context.params.query.filters[k], {
           context: {
