@@ -17,7 +17,6 @@ module.exports = function () {
 
   // follow guideline at
   // https://docs.feathersjs.com/faq/readme.html#how-do-i-create-custom-methods
-  app.use('/entities/timeline', app.service('timeline'))
   app.use('/entities/:entityId/timeline', app.service('timeline'))
 
   // change cypher query. That's simple ;)
@@ -25,21 +24,10 @@ module.exports = function () {
   app.service('/entities/:entityId/timeline').hooks({
     before: {
       all(context) {
-        console.log('HOOOOOK ', '/entities/:entityId/timeline')
         context.params.query.uid   = context.params.route.entityId;
         context.params.query.label = 'entity'
       }
     }  
-  })
-
-  app.service('/entities/timeline').hooks({
-    before: {
-      all(context) {
-        console.log('HOOOOOK ', '/entities/timeline')
-        
-        context.params.query.label = 'entities'
-      }
-    }
   })
 
   

@@ -1,14 +1,10 @@
 /* eslint-disable no-unused-vars */
 const queries = require('decypher')(__dirname + '/queries.cyp');
+const Neo4jService = require('../neo4j.service').Service;
 
 
-class Service {
-  constructor (options) {
-    this.options = options || {};
-    this._run  = options.run;
-  }
-
-  // 
+class Service extends Neo4jService {
+  // return the related cypher query according to label and suffix.
   _query (label, suffix) {
     console.log('QUERY:', [label, suffix].join('_'));
     return queries[[label, suffix].join('_')]
@@ -25,35 +21,11 @@ class Service {
   }
 
   get (id, params) {
-    console.log('oh my goooood')
     return this._run(this._query(params.query.label, 'timeline_by_year'), {
       uid: id,
       ... params.sanitized
     })
   }
-
-  create (data, params) {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(current => this.create(current)));
-    }
-
-    return Promise.resolve(data);
-  }
-
-  update (id, data, params) {
-    return Promise.resolve(data);
-  }
-
-  patch (id, data, params) {
-    return Promise.resolve(data);
-  }
-
-  remove (id, params) {
-    return Promise.resolve({ id });
-  }
-
-
-
 }
 
 module.exports = function (options) {

@@ -20,7 +20,7 @@ class Neo4jService {
 
   _run(cypherQuery, params) {
     let session = this.driver.session()
-    console.log('Neo4jService _run with:', neo4jPrepare(cypherQuery, params))
+    // console.log('Neo4jService _run with:', neo4jPrepare(cypherQuery, params))
     return session.run(neo4jPrepare(cypherQuery, params), {
       Project: this.config.project,
       ... params
