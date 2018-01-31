@@ -192,7 +192,7 @@ const sanitize = ( options ) => {
       params.filters = [];
       for (let k in context.params.query.filters) {
         // console.log(context.params.query.filters[k])
-        
+
         let valid = _validate(context.params.query.filters[k], {
           context: {
             required: false,
@@ -217,9 +217,9 @@ const sanitize = ( options ) => {
     }
 
     // :: order by
-    if(context.params.query.order) {
+    if(context.params.query.order_by) {
       // split commas, then filter useless stuffs.
-      let orders = context.params.query.order.split(/\s*,\s*/)
+      let orders = context.params.query.order_by.split(/\s*,\s*/)
       params.orders = orders;
       // console.log(params)
 
