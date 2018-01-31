@@ -6,7 +6,7 @@ const { normalize, finalize, finalizeMany } = require('../../hooks/neo4j');
 
 module.exports = {
   before: {
-    all: [ 
+    all: [
       sanitize({
         validators:{
           q: {
@@ -14,7 +14,7 @@ module.exports = {
             max_length: 1000
           },
           order_by: {
-            choices: ['-date', 'date', '-relevance', 'relevence']
+            choices: ['-date', 'date', '-relevance', 'relevance']
           }
         }
       })
