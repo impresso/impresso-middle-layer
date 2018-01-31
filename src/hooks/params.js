@@ -198,9 +198,8 @@ const sanitize = ( options ) => {
             required: false,
             choices: ['include','exclude']
           },
-          query: {
-            required: false,
-            max_length: 1000
+          uid: {
+            required: false // should be true in case of type === 'NamedEntity'
           },
           type: {
             required: true,
