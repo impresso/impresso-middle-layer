@@ -1,5 +1,5 @@
 const errors = require('@feathersjs/errors');
-    
+
 const _toLucene = (query, force_fuzzy=true) => {
   // @todo excape chars + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 
@@ -17,8 +17,8 @@ const _toLucene = (query, force_fuzzy=true) => {
   let _escape = () => {
 
   }
-  
-   
+
+
 
   // split by quotes.
 
@@ -31,12 +31,12 @@ const _toLucene = (query, force_fuzzy=true) => {
     // trim spaces
     let _d = d.trim();
 
-    // we find here 
+    // we find here
     if(_d.indexOf('"') === 0 && _d.lastIndexOf('"')){
       // leave as it is
       return _d
     }
-    
+
     // trust the user
     if(_d.indexOf('*') !== -1 && force_fuzzy)
       force_fuzzy = false;
@@ -46,7 +46,7 @@ const _toLucene = (query, force_fuzzy=true) => {
 
     // get rid of one letter words, multiple spaces and concatenate with simple space for the moment
     let _dr = _d.split(/\s+/).filter(k => k.length > 1)
-    
+
     // if there is only one word
     if(_dr.length == 1) {
       _d = _dr.join(' ');
@@ -131,7 +131,7 @@ const _validate = (params, rules) => {
 
   ```
   before: {
-    all: [ 
+    all: [
       sanitize({
         validators: {
           newspaper: {
@@ -165,7 +165,7 @@ const sanitize = ( options ) => {
       uid: {
         required: false,
         regex: /^[A-Za-z0-9_\-]+$/
-      }, 
+      },
       newspaper: {
         required: false,
         regex: /^[A-Za-z0-9_\-]+$/
@@ -192,7 +192,7 @@ const sanitize = ( options ) => {
       params.filters = [];
       for (let k in context.params.query.filters) {
         // console.log(context.params.query.filters[k])
-      
+
         let valid = _validate(context.params.query.filters[k], {
           context: {
             required: false,
@@ -204,7 +204,7 @@ const sanitize = ( options ) => {
           },
           type: {
             required: true,
-            choices: ['String']
+            choices: ['String', 'NamedEntity']
           }
         });
         params.filters.push(valid)
@@ -217,12 +217,12 @@ const sanitize = ( options ) => {
     }
 
     // :: order by
-    if(context.params.query.order) {
+    if(context.params.query.order_by) {
       // split commas, then filter useless stuffs.
-      let orders = context.params.query.order.split(/\s*,\s*/)
-      params.orders = orders; 
+      let orders = context.params.query.order_by.split(/\s*,\s*/)
+      params.orders = orders;
       // console.log(params)
-    
+
     }
 
     // num of results expected, 0 to 500
@@ -239,8 +239,8 @@ const sanitize = ( options ) => {
     } else if(context.params.query.offset) {
       params.skip = Math.max(0, parseInt(context.params.query.offset));
     }
-    
-    
+
+
     // add sanitized dict to context params.
     context.params.sanitized = params;
     // console.log(context.params.sanitized)
