@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-const queries = require('decypher')(__dirname + '/queries.cyp');
 const Neo4jService = require('../neo4j.service').Service;
 
 
@@ -7,7 +6,7 @@ class Service extends Neo4jService {
   // return the related cypher query according to label and suffix.
   _query (label, suffix) {
     console.log('QUERY:', [label, suffix].join('_'));
-    return queries[[label, suffix].join('_')]
+    return this.queries[[label, suffix].join('_')]
   }
 
   // tuimeline for classes of objects
