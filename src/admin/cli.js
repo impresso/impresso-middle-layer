@@ -31,7 +31,7 @@ async.waterfall([
   },
 ].concat(tasks), (err) => {
   if(err)
-    console.log('errore maggiore', tasks)
+    console.log(_err('error'), err)
   else
     console.log(`\n---\nthat's all folks!\n---`);
 })
