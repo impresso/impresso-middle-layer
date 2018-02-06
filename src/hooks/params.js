@@ -1,4 +1,7 @@
 const errors = require('@feathersjs/errors');
+const crypto = require('crypto');
+const configuration  = require('@feathersjs/configuration')()();
+
 
 const _toLucene = (query, force_fuzzy=true) => {
   // @todo excape chars + - && || ! ( ) { } [ ] ^ " ~ * ? : \
@@ -63,7 +66,7 @@ const _toLucene = (query, force_fuzzy=true) => {
 const _validate = (params, rules) => {
   let _params = {},
       _errors = {};
-
+  
   for(let key in rules){
     // it is required
     if(rules[key].required === true && typeof params[key] == 'undefined'){
@@ -122,6 +125,74 @@ const _validate = (params, rules) => {
   return _params
 }
 
+const VALIDATE_EMAIL = {
+  email: {
+    required: true,
+    regex: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  }
+}
+
+const VALIDATE_OPTIONAL_GITHUB_ID = {
+  githubId: {
+    required: false,
+    regex: /^\d+$/
+  }
+}
+
+const VALIDATE_OPTIONAL_EMAIL = {
+  email: {
+    required: false,
+    regex: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  }
+}
+
+const VALIDATE_PASSWORD = {
+  password: {
+    required: true,
+    regex: /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/,
+    // transform: function(password) {
+    //   let configs = {
+    //     secret: configuration.authentication.secret,
+    //     salt: crypto.randomBytes(16).toString('hex'),
+    //     iterations: 4096,
+    //     length: 256,
+    //     digest: 'sha256'
+    //   };
+    //   console.log(configs)
+      
+    //   return {
+    //     salt: configs.salt,
+    //     key: crypto.pbkdf2Sync(
+    //       configs.secret,
+    //       configs.salt + '::' + password,
+    //       configs.iterations,
+    //       configs.length,
+    //       configs.digest
+    //     ).toString('hex')
+    //   };
+    // }
+  }
+}
+
+const VALIDATE_OPTIONAL_PASSWORD = {
+  password: {
+    required: false,
+    regex: /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/,
+  }
+}
+
+/*
+  Validate data field for POST request.
+  Note: it creates context.data.sanitized.
+*/
+const validate = ( validators ) => {
+  return async context => {
+    if(!validators)
+      return;
+    context.data.sanitized = _validate(context.data, validators)
+  }
+}
+
 /*
   Clean params before sending them to the actual function.
   "Sanitized" params will be available as
@@ -159,7 +230,10 @@ const _validate = (params, rules) => {
 const sanitize = ( options ) => {
   return async context => {
     let _options = options || {};
-
+    if(!context.params.query) {
+      console.log('there is nothing here!');
+      return
+    }
     // initialize with common validators plus optional validators. Ignore page and offsets (those are warnings)
     let validated = _validate(context.params.query, {
       uid: {
@@ -246,6 +320,16 @@ const sanitize = ( options ) => {
   }
 }
 
+
+/*
+  forward strategy to handle params correctly
+*/
+const forwardStrategy = () => {
+  return async context => {
+
+
+  }
+}
 /*
   Add sanitized parameter to context result.
 */
@@ -256,9 +340,20 @@ const verbose = () => {
   }
 }
 
+
+
+
 module.exports = {
+  forwardStrategy,
   sanitize,
   verbose,
+  validate,
+  
+  VALIDATE_OPTIONAL_GITHUB_ID,
+  VALIDATE_OPTIONAL_EMAIL,
+  VALIDATE_EMAIL,
+  VALIDATE_PASSWORD,
+
   utils: {
     toLucene: _toLucene
   }

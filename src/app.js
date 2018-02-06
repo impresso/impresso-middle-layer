@@ -20,8 +20,6 @@ const appHooks = require('./app.hooks');
 
 const authentication = require('./authentication');
 
-const sequelize = require('./sequelize');
-
 const app = express(feathers());
 
 // Load app configuration
@@ -36,7 +34,6 @@ app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Host the public folder
 app.use('/', express.static(app.get('public')));
 
-app.configure(sequelize);
 app.configure(rest());
 app.configure(socketio());
 

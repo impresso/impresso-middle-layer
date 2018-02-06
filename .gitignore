@@ -1,6 +1,7 @@
 *.log
 *.pyc
 *__/
+__*/
 *.sqlite3
 
 node_modules/

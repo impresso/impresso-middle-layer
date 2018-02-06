@@ -1,8 +1,16 @@
 const mustache = require('mustache');
+const moment   = require('moment');
 
-const neo4jToInt = neo4jInteger => {
-  return typeof neo4jInteger == 'object'? neo4jInteger.low : neo4jInteger
-}
+
+const neo4jNow = () => {
+  const now = moment.utc();
+
+  return {
+    _exec_date: now.format(),
+    _exec_time: +now.format('X')
+  };
+};
+
 
 
 const neo4jPrepare = (cypherQuery, params) => {
@@ -36,9 +44,15 @@ const neo4jRecordMapper = (record) => {
   return props
 }
 
+const neo4jToInt = neo4jInteger => {
+  return typeof neo4jInteger == 'object'? neo4jInteger.low : neo4jInteger
+}
+
+
 module.exports = {
-  neo4jToInt,
+  neo4jNow,
+  neo4jPrepare,
   neo4jRecordMapper,
-  neo4jPrepare
+  neo4jToInt,
 }
 

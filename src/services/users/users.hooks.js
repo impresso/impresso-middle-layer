@@ -1,37 +1,39 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const commonHooks = require('feathers-hooks-common');
-const { restrictToOwner } = require('feathers-authentication-hooks');
+const { forwardStrategy, sanitize, validate, VALIDATE_OPTIONAL_GITHUB_ID, VALIDATE_OPTIONAL_EMAIL, VALIDATE_OPTIONAL_PASSWORD } = require('../../hooks/params');
 
-const { hashPassword } = require('@feathersjs/authentication-local').hooks;
-const restrict = [
-  authenticate('jwt'),
-  restrictToOwner({
-    idField: 'id',
-    ownerField: 'id'
-  })
-];
-
-const gravatar = require('../../hooks/gravatar');
+const { hashPassword, protect } = require('@feathersjs/authentication-local').hooks;
 
 module.exports = {
   before: {
-    all: [],
-    find: [  ],
-    get: [ ...restrict ],
-    create: [authenticate('jwt'), hashPassword(), gravatar()],
-    update: [ ...restrict, hashPassword() ],
-    patch: [ ...restrict, hashPassword() ],
-    remove: [ ...restrict ]
+    all: [ sanitize() ],
+    find: [
+      sanitize({
+        validators:{
+          ...VALIDATE_OPTIONAL_EMAIL,
+          ...VALIDATE_OPTIONAL_GITHUB_ID
+        }
+      }), authenticate('jwt') 
+    ],
+    get: [ authenticate('jwt') ],
+    create: [ hashPassword(), validate({
+      ...VALIDATE_OPTIONAL_EMAIL, 
+      ...VALIDATE_OPTIONAL_PASSWORD,
+      ...VALIDATE_OPTIONAL_GITHUB_ID
+    })],
+    update: [ hashPassword(),  authenticate('jwt') ],
+    patch: [ hashPassword(),  authenticate('jwt') ],
+    remove: [ authenticate('jwt') ]
   },
 
   after: {
-    all: [
-      commonHooks.when(
-        hook => hook.params.provider,
-        commonHooks.discard('password')
-      )
+    all: [ 
+      // Make sure the password field is never sent to the client
+      // Always must be the last hook
+      protect('password')
     ],
-    find: [],
+    find: [
+      
+    ],
     get: [],
     create: [],
     update: [],

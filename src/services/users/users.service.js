@@ -1,17 +1,17 @@
 // Initializes the `users` service on path `/users`
-const createService = require('feathers-sequelize');
-const createModel = require('../../models/users.model');
+const createService = require('./users.class.js');
 const hooks = require('./users.hooks');
+const queries = require('decypher')(__dirname + '/users.queries.cyp');
 
-module.exports = function () {
-  const app = this;
-  const Model = createModel(app);
+module.exports = function (app) {
+  
   const paginate = app.get('paginate');
 
   const options = {
     name: 'users',
-    Model,
-    paginate
+    paginate,
+    config: app.get('neo4j'),
+    queries: queries
   };
 
   // Initialize our service with any options it requires
