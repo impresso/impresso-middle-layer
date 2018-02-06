@@ -1,9 +1,5 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { sanitize } = require('../../hooks/validator');
-const { normalize, finalize, finalizeMany } = require('../../hooks/neo4j');
-
-
-
+const { sanitize } = require('../../hooks/params');
 
 module.exports = {
   before: {
@@ -20,13 +16,13 @@ module.exports = {
 
   after: {
     all: [
-      normalize()
+      // normalize()
     ],
     find: [
-      finalizeMany()
+      // finalizeMany()
     ],
     get: [
-      finalize()
+      // finalize()
     ],
     create: [],
     update: [],

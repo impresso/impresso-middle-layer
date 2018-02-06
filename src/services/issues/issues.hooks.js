@@ -1,5 +1,4 @@
-const { sanitize } = require('../../hooks/validator');
-const { normalize, finalize, finalizeMany } = require('../../hooks/neo4j');
+const { sanitize } = require('../../hooks/params');
 
 module.exports = {
   before: {
@@ -15,15 +14,9 @@ module.exports = {
   },
 
   after: {
-    all: [
-      normalize()
-    ],
-    find: [
-      finalizeMany()
-    ],
-    get: [
-      finalize()
-    ],
+    all: [],
+    find: [],
+    get: [],
     create: [],
     update: [],
     patch: [],

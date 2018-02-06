@@ -1,5 +1,4 @@
 const { sanitize } = require('../../hooks/params');
-const { normalize, finalize, finalizeMany } = require('../../hooks/neo4j');
 
 module.exports = {
   before: {
@@ -9,15 +8,9 @@ module.exports = {
   },
 
   after: {
-    all: [
-      normalize()
-    ],
-    find: [
-      finalizeMany()
-    ],
-    get: [
-      finalize()
-    ]
+    all: [],
+    find: [],
+    get: []
   },
 
   error: {
