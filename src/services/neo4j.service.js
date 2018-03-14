@@ -7,12 +7,12 @@ const errors = require('@feathersjs/errors');
 
 class Neo4jService {
   constructor (options) {
-    
+
     this.options = options || {};
     this.config  = options.config;
 
-    console.log('Configuring neo4j service: ', this.options.name);
-    
+    console.log(`Configuring neo4j service: ${this.options.name}`);
+
     this._id = this.id = options.idField || options.id || 'id';
     this._uId = options.startId || 0;
 
@@ -44,7 +44,7 @@ class Neo4jService {
     }
     if(typeof count != 'undefined'){
       return {
-        params: params,
+        // params: params,
         count: count,
         records: res.records.map(neo4jRecordMapper)
       }
@@ -62,11 +62,7 @@ class Neo4jService {
     return this._run(this.queries.get, {
       uid: id,
       ... params.sanitized
-    }).then(res => {
-      if(res.length)
-        return res[0]
-      throw new errors.NotFound();
-    })
+    }).then(this._finalize)
   }
 }
 

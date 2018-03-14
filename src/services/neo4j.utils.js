@@ -31,8 +31,19 @@ const neo4jRecordMapper = (record) => {
     if(Array.isArray(props[k])){
       props[k] = props[k].map(neo4jRecordMapper)
     }
-    if(props[k] && props[k].constructor && props[k].constructor.name == 'Integer')
-      props[k] = neo4jToInt(props[k])
+    if(props[k] && props[k].constructor){
+      switch(props[k].constructor.name) {
+        case 'Integer':
+          props[k] = neo4jToInt(props[k])
+          break;
+        case 'Node':
+          props[k] = neo4jRecordMapper(props[k])
+          break;
+        default:
+          // none
+          continue
+      }
+    }
   }
   // remap _field[0] properties!
   if(labels)
@@ -55,4 +66,3 @@ module.exports = {
   neo4jRecordMapper,
   neo4jToInt,
 }
-
