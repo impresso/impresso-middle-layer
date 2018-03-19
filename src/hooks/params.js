@@ -66,7 +66,7 @@ const _toLucene = (query, force_fuzzy=true) => {
 const _validate = (params, rules) => {
   let _params = {},
       _errors = {};
-  
+
   for(let key in rules){
     // it is required
     if(rules[key].required === true && typeof params[key] == 'undefined'){
@@ -159,7 +159,7 @@ const VALIDATE_PASSWORD = {
     //     digest: 'sha256'
     //   };
     //   console.log(configs)
-      
+
     //   return {
     //     salt: configs.salt,
     //     key: crypto.pbkdf2Sync(
@@ -293,7 +293,7 @@ const sanitize = ( options ) => {
     if(context.params.query.order_by) {
       // split commas, then filter useless stuffs.
       let orders = context.params.query.order_by.split(/\s*,\s*/)
-      params.orders = orders;
+      // params.orders = orders;
       // console.log(params)
 
     }
@@ -348,7 +348,7 @@ module.exports = {
   sanitize,
   verbose,
   validate,
-  
+
   VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL,
   VALIDATE_EMAIL,
