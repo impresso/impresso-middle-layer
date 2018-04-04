@@ -1,20 +1,23 @@
 // name: find
 // we use the property count_article STORED on current Project. @todo: check if user has access to the project.
+//
+// {{#order_by}}
+// ORDER BY {order_by}
+// {{/order_by}}
+//
 MATCH (pro:Project {uid:{Project}})
 WITH pro.count_article as total
 MATCH (art:article {Project:{Project}})
+
 WITH art, total
-{{#order_by}}
-ORDER BY {order_by}
-{{/order_by}}
 
 SKIP {skip}
 LIMIT {limit}
 
 WITH art, total
-MATCH (art)-[:appears_at]->(pag:page)
+OPTIONAL MATCH (art)-[:appears_at]->(pag:page)
 WITH art, total, collect(pag) as pages
-MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
+OPTIONAL MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
 WITH art, total, pages, collect(iss) as issues
 RETURN {
   uid: art.uid,
