@@ -52,7 +52,7 @@
     "feathers-hooks-common": "^3.10.0",
     "feathers-memory": "^2.1.0",
     "feathers-sequelize": "^2.4.0",
-    "feathers-solr": "^1.1.4",
+    "feathers-solr": "^1.1.5",
     "helmet": "^3.12.0",
     "moment": "^2.21.0",
     "mustache": "^2.3.0",
@@ -61,7 +61,7 @@
     "passport-github": "^1.1.0",
     "pg": "^7.4.1",
     "pg-hstore": "^2.3.2",
-    "sequelize": "^4.35.2",
+    "sequelize": "^4.37.5",
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0"
   },

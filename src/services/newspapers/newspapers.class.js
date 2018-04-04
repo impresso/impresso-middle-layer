@@ -1,12 +1,54 @@
-/* eslint-disable no-unused-vars */
+const {neo4jRecordMapper} = require('../neo4j.utils');
+const {sequelizeRecordMapper} = require('../sequelize.utils');
+
+// "proper" service
+const Neo4jService = require('../neo4j.service').Service;
+
+
 class Service {
+  // extends Neo4jService {
+  constructor (options) {
+    this.options = options || {};
+    this.neo4j = new Neo4jService(options);
+    // SHOULD BE: this.sequelize = new SequelizeService({})
+    this.sequelize = this.options.model.sequelize;
+  }
+
+  async find (params) {
+    // get the list
+    // let value = await
+    this.sequelize.findAndCountAll({
+      limit: 3
+    }).then(res => {
+      console.log(res.count, res.rows.map(sequelizeRecordMapper))
+      return 'ooocococ'
+    });
+
+
+
+    return this.neo4j.find(params);
+  }
+
+  async get (id, params) {
+    return this.neo4j.get(id, params);
+  }
+
+}
+
+module.exports = function (options) {
+  return new Service(options);
+};
+
+module.exports.Service = Service;
+
+
+/* eslint-disable no-unused-vars */
+class __Service {
   constructor (options) {
     this.options = options || {};
   }
 
-  async find (params) {
-    return [];
-  }
+
 
   async get (id, params) {
     return {
@@ -35,8 +77,8 @@ class Service {
   }
 }
 
-module.exports = function (options) {
-  return new Service(options);
-};
+// module.exports = function (options) {
+//   return new Service(options);
+// };
 
-module.exports.Service = Service;
+//module.exports.Service = Service;

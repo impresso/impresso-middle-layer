@@ -20,6 +20,9 @@ const appHooks = require('./app.hooks');
 
 const authentication = require('./authentication');
 
+const sequelize = require('./sequelize');
+const neo4j     = require('./neo4j');
+
 const app = express(feathers());
 
 // Load app configuration
@@ -36,6 +39,10 @@ app.use('/', express.static(app.get('public')));
 
 app.configure(rest());
 app.configure(socketio());
+
+// configure database adapters
+app.configure(sequelize);
+app.configure(neo4j);
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
@@ -81,9 +88,9 @@ app.use(handler({
     // bad request
     400 : (err, req, res, next) => {
       // console.log(err)
-      res.json({ 
-        message: 'Please check request params', 
-        name: err.name, 
+      res.json({
+        message: 'Please check request params',
+        name: err.name,
         code: err.code,
         errors: err.data
       });
