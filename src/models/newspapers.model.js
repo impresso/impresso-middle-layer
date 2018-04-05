@@ -22,7 +22,7 @@ module.exports = function (app) {
       allowNull: false
     }
   }, {
-    tableName: 'impressodjango_newspaper',
+    tableName: 'impresso_newspaper',
     hooks: {
       beforeCount(options) {
         options.raw = true;
