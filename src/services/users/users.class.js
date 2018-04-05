@@ -11,7 +11,7 @@ class Service extends Neo4jService {
     // get github id!
     // console.log('create user:',data, params)
     let user = {};
-    
+
     if(params.oauth && params.oauth.provider == 'github' && data.github) {
       // github oauth success, the github object is filled with interesting data.
       user.uid           = `github-${data.githubId}`;
@@ -35,7 +35,7 @@ class Service extends Neo4jService {
       ...data.sanitized,
       ...user
     })
-  
+
     // return data;
   }
 
@@ -58,14 +58,15 @@ class Service extends Neo4jService {
       uid = `github-${params.sanitized.githubId}`;
     } else if(params.sanitized.email) {
       uid = params.sanitized.email;
-    } 
+    }
 
     return this._run(this.queries.find, {
       ...params.sanitized,
       uid
     }).then(res => {
+      // console.log(res, uid)
       // add id field for oauth2. @todo change somewhere in config
-      return res._records.map(d => {
+      return res.records.map(d => {
         d.id = d.uid;
         return d
       })
@@ -95,7 +96,7 @@ module.exports.Service = Service;
 //     };
 //   }
 
-  
+
 
 //   async update (id, data, params) {
 //     return data;
