@@ -6,11 +6,13 @@ const newspapers = require('./newspapers/newspapers.service.js');
 const issues = require('./issues/issues.service.js');
 const suggestions = require('./suggestions/suggestions.service.js');
 const projects = require('./projects/projects.service.js');
+const buckets = require('./buckets/buckets.service.js');
 
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(users);
   app.configure(timeline);
+  app.configure(buckets);
   app.configure(articles);
   app.configure(entities);
 
