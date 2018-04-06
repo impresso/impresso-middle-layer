@@ -19,8 +19,9 @@ class Neo4jService {
     this.driver = neo4j.driver(this.config.host, neo4j.auth.basic(this.config.auth.user, this.config.auth.pass),{
       connectionPoolSize: 0
     });
+
     this.project = this.options.project || '!';
-    this.queries = this.options.queries || {};
+    this.queries = this.options.queries || require('decypher')(`${__dirname}/${this.options.name}/${this.options.name}.queries.cyp`);
   }
 
   _run(cypherQuery, params) {
@@ -54,11 +55,11 @@ class Neo4jService {
     }
   }
 
-  find (params) {
+  async find (params) {
     return this._run(this.queries.find, params.sanitized).then(this._finalize)
   }
 
-  get (id, params) {
+  async get (id, params) {
     return this._run(this.queries.get, {
       uid: id,
       ... params.sanitized
