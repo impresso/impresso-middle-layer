@@ -125,6 +125,14 @@ const _validate = (params, rules) => {
   return _params
 }
 
+const VALIDATE_UIDS = {
+  uids: {
+    required: true,
+    regex: /^[A-Za-z0-9_\-,]+$/,
+    transform: (d) => d.split(',')
+  }
+}
+
 const VALIDATE_EMAIL = {
   email: {
     required: true,
@@ -353,6 +361,7 @@ module.exports = {
   VALIDATE_OPTIONAL_EMAIL,
   VALIDATE_EMAIL,
   VALIDATE_PASSWORD,
+  VALIDATE_UIDS,
 
   utils: {
     toLucene: _toLucene
