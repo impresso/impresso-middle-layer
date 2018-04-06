@@ -97,7 +97,9 @@ app.use(handler({
     },
     default: (err, req, res, next) => {
       // handle all other errors
-      res.json({ message: 'Oh no! Something went wrong' });
+      // console.log(err)
+      delete err.stack;
+      res.json({ message: err.message });
     }
   }
 }));

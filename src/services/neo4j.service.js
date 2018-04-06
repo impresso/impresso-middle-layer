@@ -34,6 +34,11 @@ class Neo4jService {
     }).then( res => {
       session.close();
       return res
+    }).catch( err => {
+      console.log('ERROR',err)
+      if(err.code == 'Neo.ClientError.Schema.ConstraintValidationFailed')
+        throw new errors.Conflict('ConstraintValidationFailed')
+      return err
     });
   }
 
