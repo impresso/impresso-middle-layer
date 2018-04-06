@@ -1,5 +1,5 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { sanitize } = require('../../hooks/validator');
+const { sanitize } = require('../../hooks/params');
 const { normalizeTimeline } = require('../../hooks/neo4j');
 
 module.exports = {
