@@ -125,10 +125,13 @@ const _validate = (params, rules) => {
   return _params
 }
 
+const REGEX_UID  = /^[A-Za-z0-9_\-]+$/;
+const REGEX_UIDS = /^[A-Za-z0-9_\-,]+$/;
+
 const VALIDATE_UIDS = {
   uids: {
     required: true,
-    regex: /^[A-Za-z0-9_\-,]+$/,
+    regex: REGEX_UIDS,
     transform: (d) => d.split(',')
   }
 }
@@ -190,14 +193,18 @@ const VALIDATE_OPTIONAL_PASSWORD = {
 }
 
 /*
-  Validate data field for POST request.
+  Validate data field for POST and GET request.
   Note: it creates context.data.sanitized.
 */
 const validate = ( validators ) => {
   return async context => {
     if(!validators)
       return;
-    context.data.sanitized = _validate(context.data, validators)
+    if(context.data)
+      context.data.sanitized = _validate(context.data, validators)
+    else {
+      Object.assign(context.params.sanitized, _validate(context.params.query, validators))
+    }
   }
 }
 
@@ -239,7 +246,6 @@ const sanitize = ( options ) => {
   return async context => {
     let _options = options || {};
     if(!context.params.query) {
-      console.log('there is nothing here!');
       return
     }
     // initialize with common validators plus optional validators. Ignore page and offsets (those are warnings)
@@ -362,6 +368,9 @@ module.exports = {
   VALIDATE_EMAIL,
   VALIDATE_PASSWORD,
   VALIDATE_UIDS,
+
+  REGEX_UID,
+  REGEX_UIDS,
 
   utils: {
     toLucene: _toLucene
