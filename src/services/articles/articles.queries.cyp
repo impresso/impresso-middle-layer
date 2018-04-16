@@ -6,7 +6,7 @@
 // {{/order_by}}
 //
 MATCH (pro:Project {uid:{Project}})
-WITH pro.count_article as total
+WITH COALESCE(pro.count_article, 0) as total
 MATCH (art:article {Project:{Project}})
 
 WITH art, total
