@@ -1,18 +1,47 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
-const {sanitize, validate, VALIDATE_UIDS } = require('../../hooks/params');
+const auth = require('@feathersjs/authentication');
+const { authenticate } = auth.hooks;
+
+const {sanitize, validate, VALIDATE_UIDS, REGEX_UID } = require('../../hooks/params');
 
 module.exports = {
   before: {
-    all: [ sanitize() ], // authenticate('jwt') ],
-    find: [],
-    get: [],
+    all: [
+      authenticate('jwt'),
+      sanitize()
+    ], // authenticate('jwt') ],
+    find: [
+      validate({
+        // the bucket owner uid
+        owner_uid: {
+          required: false,
+          min_length: 3,
+          regex: REGEX_UID
+        },
+      })
+    ],
+    get: [
+      validate({
+        // the bucket owner uid
+        owner_uid: {
+          required: false,
+          min_length: 3,
+          regex: REGEX_UID
+        },
+      })
+    ],
     create: [
       validate({
-        // must contain a name - from which we will create a UID
+        // request must contain a name - from which we will create a UID
         name: {
           required: true,
           min_length: 3,
           max_length : 50
+        },
+        // the bucket owner uid, optional. Default to current authenticated user.
+        owner_uid: {
+          required: false,
+          min_length: 3,
+          regex: REGEX_UID
         },
         // optionally
         description: {
