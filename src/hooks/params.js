@@ -70,12 +70,14 @@ const _validate = (params, rules) => {
   for(let key in rules){
     // it is required
     if(rules[key].required === true && typeof params[key] == 'undefined'){
+
       _errors[key] =  {
         code: 'NotFound',
         message: key + ' required'
       };
       break;
     } else if(typeof params[key] == 'undefined'){
+
       continue;
     }
 
@@ -117,7 +119,6 @@ const _validate = (params, rules) => {
       _params[key] = params[key]
     }
   }
-  // console.log(_errors)
   if(Object.keys(_errors).length){
     console.log(_errors)
     throw new errors.BadRequest(_errors);
@@ -125,8 +126,12 @@ const _validate = (params, rules) => {
   return _params
 }
 
-const REGEX_UID  = /^[A-Za-z0-9_\-]+$/;
-const REGEX_UIDS = /^[A-Za-z0-9_\-,]+$/;
+const REGEX_EMAIL    = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/;
+const REGEX_SLUG     = /^[a-z0-9\-]+$/;
+const REGEX_UID      = /^[A-Za-z0-9_\-]+$/;
+const REGEX_UIDS     = /^[A-Za-z0-9_\-,]+$/;
+const REGEX_NUMERIC  = /^\d+$/;
 
 const VALIDATE_UIDS = {
   uids: {
@@ -139,14 +144,14 @@ const VALIDATE_UIDS = {
 const VALIDATE_EMAIL = {
   email: {
     required: true,
-    regex: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    regex: REGEX_EMAIL
   }
 }
 
 const VALIDATE_OPTIONAL_GITHUB_ID = {
   githubId: {
     required: false,
-    regex: /^\d+$/
+    regex: REGEX_NUMERIC
   }
 }
 
@@ -160,35 +165,14 @@ const VALIDATE_OPTIONAL_EMAIL = {
 const VALIDATE_PASSWORD = {
   password: {
     required: true,
-    regex: /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/,
-    // transform: function(password) {
-    //   let configs = {
-    //     secret: configuration.authentication.secret,
-    //     salt: crypto.randomBytes(16).toString('hex'),
-    //     iterations: 4096,
-    //     length: 256,
-    //     digest: 'sha256'
-    //   };
-    //   console.log(configs)
-
-    //   return {
-    //     salt: configs.salt,
-    //     key: crypto.pbkdf2Sync(
-    //       configs.secret,
-    //       configs.salt + '::' + password,
-    //       configs.iterations,
-    //       configs.length,
-    //       configs.digest
-    //     ).toString('hex')
-    //   };
-    // }
+    regex: REGEX_PASSWORD
   }
 }
 
 const VALIDATE_OPTIONAL_PASSWORD = {
   password: {
     required: false,
-    regex: /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/,
+    regex: REGEX_PASSWORD,
   }
 }
 
@@ -365,10 +349,16 @@ module.exports = {
 
   VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL,
+  VALIDATE_OPTIONAL_PASSWORD,
   VALIDATE_EMAIL,
   VALIDATE_PASSWORD,
   VALIDATE_UIDS,
 
+  // common regex
+  REGEX_EMAIL,
+  REGEX_NUMERIC,
+  REGEX_PASSWORD,
+  REGEX_SLUG,
   REGEX_UID,
   REGEX_UIDS,
 
