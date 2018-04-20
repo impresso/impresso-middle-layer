@@ -44,7 +44,9 @@ OPTIONAL MATCH (u)-[:subscribed_to]->(pro:Project {uid: {Project}})
 {{/uid}}
 
 {{^uid}}
-MATCH (staff:user {uid:{user_uid}}), (u:user)-[:subscribed_to]->(pro:Project {uid: {Project}})
+MATCH (staff:user {uid:{user_uid}})
+WITH staff
+MATCH (u:user)-[:subscribed_to]->(pro:Project {uid: {Project}})
 {{/uid}}
 WITH u, pro, 1 as total
 RETURN u, total
