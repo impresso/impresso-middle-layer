@@ -4,7 +4,7 @@ const hooks = require('./users.hooks');
 const queries = require('decypher')(__dirname + '/users.queries.cyp');
 
 module.exports = function (app) {
-  
+
   const paginate = app.get('paginate');
 
   const options = {

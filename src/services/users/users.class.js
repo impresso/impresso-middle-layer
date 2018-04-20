@@ -1,7 +1,17 @@
 const {neo4jRecordMapper} = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
+const errors = require('@feathersjs/errors');
+const {encrypt} = require('../../crypto');
 
 class Service extends Neo4jService {
+  // async get (id, params) {
+  //   // console.log(params)
+  //   return {
+  //     id,
+  //     text: `A new message with ID: ${id}!`
+  //   };
+  // }
+  //
 
   async create (data, params) {
     // create multiple only if user is admin @todo!
@@ -21,19 +31,26 @@ class Service extends Neo4jService {
       user.displayname   = data.github.profile.displayName;
       user.picture       = data.github.profile.photos.map(d => d.value);
 
-    } else if(data.sanitized.email) {
+    } else if(data.sanitized.email && data.sanitized.password && data.sanitized.username) {
       user.uid = data.sanitized.email
       user.provider = 'local'
-      user.username = data.sanitized.email
+      user.username = data.sanitized.username
+      Object.assign(user, encrypt(data.sanitized.password))
     } else {
-      // badRequest.
-
+      throw new errors.BadRequest({
+        message:'MissingParameters'
+      })
     }
 
-    console.log('create user:', user)
     return this._run(this.queries.create, {
       ...data.sanitized,
       ...user
+    }).then(res => {
+      console.log(res.records, res)
+      return res.records.map(neo4jRecordMapper).map(d => {
+        d.id = d.uid;
+        return d
+      })
     })
 
     // return data;
@@ -44,7 +61,11 @@ class Service extends Neo4jService {
   }
 
   async patch (id, data, params) {
-    return data;
+    console.log('pathc', id, data);
+    console.log('PATCH provider:', params.oauth.provider)
+    return {
+      id
+    };
   }
 
   async remove (id, params) {
@@ -52,23 +73,27 @@ class Service extends Neo4jService {
   }
 
   async find (params) {
-    console.log(params)
-    let uid;
+    const user_uid = params.authenticated? params.user.uid: undefined;
+
+    let uid = undefined;
+
     if(params.sanitized.githubId) {
       uid = `github-${params.sanitized.githubId}`;
     } else if(params.sanitized.email) {
       uid = params.sanitized.email;
     }
-
+    // console.log(params.sanitized, params)
     return this._run(this.queries.find, {
       ...params.sanitized,
-      uid
+      uid,
+      user_uid
     }).then(res => {
       // console.log(res, uid)
       // add id field for oauth2. @todo change somewhere in config
-      return res.records.map(d => {
-        d.id = d.uid;
-        return d
+      return res.records.map(neo4jRecordMapper).map(user => {
+        // console.log(user)
+        user.id = user.uid;
+        return user
       })
     })
   }
