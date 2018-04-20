@@ -35,10 +35,12 @@ class Neo4jService {
       session.close();
       return res
     }).catch( err => {
-      console.log('ERROR',err)
+      // console.log('ERROR',err)
       if(err.code == 'Neo.ClientError.Schema.ConstraintValidationFailed')
         throw new errors.Conflict('ConstraintValidationFailed')
-      return err
+      if(err.code == 'Neo.ClientError.Statement.ParameterMissing')
+        throw new errors.BadRequest('ParameterMissing')
+      throw new errors.BadRequest()
     });
   }
 
@@ -52,13 +54,14 @@ class Neo4jService {
       return {
         // params: params,
         count: count,
-        records: res.records.map(neo4jRecordMapper)
+        records: count > 0 ? res.records.map(neo4jRecordMapper): []
       }
     } else {
       console.log('no count has been found.')
       return res.records.map(neo4jRecordMapper);
     }
   }
+
 
   async find (params) {
     return this._run(this.queries.find, params.sanitized).then(this._finalize)
@@ -68,7 +71,12 @@ class Neo4jService {
     return this._run(this.queries.get, {
       uid: id,
       ... params.sanitized
-    }).then(this._finalize)
+    }).then(this._finalize).then(records => {
+      if(!records.length) {
+        throw new errors.NotFound()
+      }
+      return records[0]
+    })
   }
 }
 
