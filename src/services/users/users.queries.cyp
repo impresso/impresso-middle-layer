@@ -59,6 +59,8 @@ LIMIT {limit}
 MATCH (u:user {uid:{uid}})
 RETURN {
   uid: u.uid,
+  displayname: u.displayname,
+  picture: u.picture,
   username: u.username,
   is_staff: u.is_staff
 }
