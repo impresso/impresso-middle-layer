@@ -2,42 +2,29 @@
 // for more of what you can do here.
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
+const users = require(./users.models);
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const users = sequelizeClient.define('users', {
+  const queries = sequelizeClient.define('queries', {
     uid: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
     },
-    email: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
     },
-    password: {
+    description: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    salt: {
-      type: DataTypes.STRING,
+    data: {
+      type: DataTypes.JSON,
       allowNull: false
-    },
-    firstname: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    lastname: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
     }
-
   }, {
     hooks: {
       beforeCount(options) {
@@ -46,10 +33,12 @@ module.exports = function (app) {
     }
   });
 
-  users.associate = function (models) { // eslint-disable-line no-unused-vars
+  queries.associate = function (models) { // eslint-disable-line no-unused-vars
     // Define associations here
     // See http://docs.sequelizejs.com/en/latest/docs/associations/
+    queries.hasMany(users, { foreignKey: 'uid' })
+    queries.hasOne(queries, { foreignKey: 'uid' }) // the parent query.
   };
 
-  return users;
+  return queries;
 };
