@@ -11,7 +11,20 @@ const normalizeTimeline = () => {
   }
 }
 
+const normalizeEmptyRecords = () => {
+  return async context => {
+    // only when empty array are given
+    console.log('ooooo', context.result)
+    if(Array.isArray(context.result) && !context.result.length) {
+      context.result = {
+        count: 0,
+        records : []
+      }
+    }
+  }
+}
 
 module.exports = {
-  normalizeTimeline
+  normalizeTimeline,
+  normalizeEmptyRecords
 }
