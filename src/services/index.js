@@ -8,6 +8,8 @@ const suggestions = require('./suggestions/suggestions.service.js');
 const projects = require('./projects/projects.service.js');
 const buckets = require('./buckets/buckets.service.js');
 
+const queries = require('./queries/queries.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(users);
@@ -20,4 +22,5 @@ module.exports = function () {
   app.configure(issues);
   app.configure(suggestions);
   app.configure(projects);
+  app.configure(queries);
 };
