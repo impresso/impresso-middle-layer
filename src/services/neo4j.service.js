@@ -2,6 +2,7 @@
   Load neo4j driver according to current configuration
 */
 const neo4j = require('neo4j-driver').v1;
+const debug = require('debug')('impresso/services:Neo4jService');
 const {neo4jPrepare, neo4jRecordMapper, neo4jNow, neo4jToInt} = require('./neo4j.utils');
 const errors = require('@feathersjs/errors');
 
@@ -11,7 +12,7 @@ class Neo4jService {
     this.options = options || {};
     this.config  = options.config;
 
-    console.log(`Configuring neo4j service: ${this.options.name}`);
+    debug(`Configuring neo4j service: ${this.options.name}`);
 
     this._id = this.id = options.idField || options.id || 'id';
     this._uId = options.startId || 0;
@@ -35,11 +36,15 @@ class Neo4jService {
       session.close();
       return res
     }).catch( err => {
-      // console.log('ERROR',err)
-      if(err.code == 'Neo.ClientError.Schema.ConstraintValidationFailed')
+      if(err.code == 'Neo.ClientError.Schema.ConstraintValidationFailed'){
+        debug(`Neo.ClientError.Statement.ParameterMissing: ${err}`);
         throw new errors.Conflict('ConstraintValidationFailed')
-      if(err.code == 'Neo.ClientError.Statement.ParameterMissing')
+      } else if(err.code == 'Neo.ClientError.Statement.ParameterMissing'){
+        debug('Neo.ClientError.Statement.ParameterMissing:',err)
         throw new errors.BadRequest('ParameterMissing')
+      } else {
+        console.error(err);
+      }
       throw new errors.BadRequest()
     });
   }
@@ -57,25 +62,44 @@ class Neo4jService {
         records: count > 0 ? res.records.map(neo4jRecordMapper): []
       }
     } else {
-      console.log('no count has been found.')
+      debug('_finalize: no count has been found.')
       return res.records.map(neo4jRecordMapper);
     }
   }
 
 
   async find (params) {
-    return this._run(this.queries.find, params.sanitized).then(this._finalize)
+    debug(`find: with params.isSafe:${params.isSafe} and params.query:`,  params.query);
+    return this._run(this.queries.find, params.isSafe? params.query: params.sanitized).then(this._finalize)
   }
 
   async get (id, params) {
+    debug(`get: with id:${id} and params.query ${params.query} and params.isSafe:${params.isSafe}`);
     return this._run(this.queries.get, {
       uid: id,
-      ... params.sanitized
+      ... params.isSafe? params.query: params.sanitized
     }).then(this._finalize).then(records => {
+
       if(!records.length) {
         throw new errors.NotFound()
       }
       return records[0]
+    })
+  }
+
+  async remove (id, params) {
+    debug(`remove: with id:${id}`, id);
+    return this._run(this.queries.remove, {
+      uid: id,
+      ... params.isSafe? params.query: params.sanitized
+    }).then(res => {
+      debug('remove: neo4j response', res)
+      // console.log(res.summary.counters);
+      // if(!records.length) {
+      //   throw new errors.NotFound()
+      // }
+      // return records[0]
+      return res.summary.counters._stats
     })
   }
 }
