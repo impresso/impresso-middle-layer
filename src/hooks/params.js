@@ -112,6 +112,14 @@ const _validate = (params, rules) => {
       break;
     }
 
+    if(rules[key].fn && rules[key].fn(params[key]) !== true) {
+      _errors[key] =  {
+        code: 'NotValidCustomFunction',
+        message: rules[key].message || key + ' param is not valid'
+      };
+      break;
+    }
+
     // sanitize/transform params
     if(typeof rules[key].transform == 'function'){
       _params[key] = rules[key].transform(params[key]);
@@ -140,6 +148,7 @@ const VALIDATE_UIDS = {
     transform: (d) => d.split(',')
   }
 }
+
 
 const VALIDATE_EMAIL = {
   email: {
@@ -309,6 +318,8 @@ const sanitize = ( options ) => {
       params.page = page;
     } else if(context.params.query.offset) {
       params.skip = Math.max(0, parseInt(context.params.query.offset));
+    } else if(context.params.query.skip) {
+      params.skip = Math.max(0, parseInt(context.params.query.skip));
     }
 
 
@@ -318,6 +329,42 @@ const sanitize = ( options ) => {
   }
 }
 
+/*
+  Prepare common query parameters, adding them to context.params.sanitized.
+  Use it as BEFORE hook
+*/
+const queryWithCommonParams = () => {
+  return async context => {
+    let params = {
+      limit: 10,
+      skip: 0,
+      max_limit: 500
+    }
+
+    // num of results expected, 0 to 500
+    if(context.params.query.limit) {
+      let limit = parseInt(context.params.query.limit);
+      params.limit = +Math.min(Math.max(0, limit), params.max_limit || 500)
+    }
+    // transform page in corresponding SKIP. Page is 1-n.
+    if(context.params.query.page) {
+      let page = Math.max(1, parseInt(context.params.query.page));
+      // transform in skip and offsets. E.G page=4 when limit = 10 results in skip=30 page=2 in skip=10, page=1 in skip=0
+      params.skip = (page-1) * params.limit;
+      params.page = page;
+    } else if(context.params.query.offset) {
+      params.skip = Math.max(0, parseInt(context.params.query.offset));
+    } else if(context.params.query.skip) {
+      params.skip = Math.max(0, parseInt(context.params.query.skip));
+    }
+
+    context.params.isSafe = true;
+    context.params.query = {
+      ... context.params.sanitized || {}, // add validated params, if any
+      ... params
+    }
+  }
+}
 
 /*
   forward strategy to handle params correctly
@@ -346,6 +393,7 @@ module.exports = {
   sanitize,
   verbose,
   validate,
+  queryWithCommonParams,
 
   VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL,
