@@ -4,38 +4,35 @@ CREATE CONSTRAINT ON (buc:bucket) ASSERT buc.uid IS UNIQUE
 
 // name: find
 //
-MATCH (pro:Project {uid: {Project}})<-[:subscribed_to]-(u:user {uid:{user_uid}})
-WITH u, COALESCE(u.count_buckets, 0) as total
-OPTIONAL MATCH (u)-[r:is_creator_of]->(buc:bucket {Project:{Project}})
-RETURN buc, total
+MATCH (pro:Project {uid: {Project}})<-[:subscribed_to]-(u:user {uid:{user__uid}})
+WITH u, COALESCE(u.count_buckets, 0) as _total
+MATCH (u)-[r:is_creator_of]->(buc:bucket {Project:{Project}})
+WITH buc, _total
 SKIP {skip}
 LIMIT {limit}
-
+WITH buc, _total
+MATCH (buc)-[:contains]->(item)
+RETURN buc, collect(item)[..10] as _related_items,  _total
 
 
 // name: get
 //
 MATCH (buc:bucket {uid:{uid}})
-WITH (u:user {uid:{user_uid}})-[r:is_creator_of]->(buc)-[:contains]->(n)
-WITH buc, collect(n) as collected
-RETURN {
-  uid: buc.uid,
-  name: buc.name,
-  description: buc.description,
-  collected: collected
-}
+WITH (u:user {uid:{user__uid}})-[r:is_creator_of]->(buc)-[:contains]->(n)
+WITH buc, collect(n) as _links
+RETURN buc, _links
 
 
 // name: article_create
 // create bucket and add relationships with articles
 MATCH (art:article) WHERE art.uid IN {uids}
 WITH art
-MATCH (u:user {uid:{user_uid}})
+MATCH (u:user {uid:{user__uid}})
 WITH u, art
 CREATE (buc:bucket {uid:{uid}, Project:{Project}, name:{name}})
 SET
   {{#description}}
-  description = {description},
+  buc.description = {description},
   {{/description}}
   buc.creation_time = {_exec_time},
   buc.creation_date = {_exec_date}
@@ -43,4 +40,12 @@ SET
 WITH u, art, buc
 MERGE (u)-[r:is_creator_of]->(buc)
 MERGE (buc)-[:contains]->(art)
+WITH u, buc
+MATCH (u)-[r:is_creator_of]->()
+WITH u, buc, count(r) as _created
+SET u.count_buckets = _created
+WITH buc
+MATCH (buc)-[r:contains]->()
+WITH buc, count(r) as _contained
+SET buc.count_items = _contained
 RETURN buc

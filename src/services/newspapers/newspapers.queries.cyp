@@ -1,10 +1,9 @@
 // name: find
-// 
+//
 MATCH (pro:Project {uid:{Project}})
-WITH pro.count_newspaper as total
+WITH COALESCE(pro.count_newspaper,0) as _total
 MATCH (news:newspaper {Project:{Project}})
-RETURN news, total
-ORDER BY news.df DESC
+RETURN news, _total
 SKIP {skip}
 LIMIT {limit}
 
@@ -15,9 +14,9 @@ RETURN news
 
 
 // name: count
-// 
+//
 MATCH (news:newspaper {Project:{Project}})
-WITH count(news) as count_newspaper 
+WITH count(news) as count_newspaper
 MATCH (pro:Project {uid:{Project}})
 SET pro.count_newspaper = count_newspaper
 RETURN count_newspaper

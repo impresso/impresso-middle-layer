@@ -6,26 +6,20 @@
 // {{/order_by}}
 //
 MATCH (pro:Project {uid:{Project}})
-WITH COALESCE(pro.count_article, 0) as total
+WITH COALESCE(pro.count_article, 0) as _total
 MATCH (art:article {Project:{Project}})
 
-WITH art, total
+WITH art, _total
 
 SKIP {skip}
 LIMIT {limit}
 
-WITH art, total
+WITH art, _total
 OPTIONAL MATCH (art)-[:appears_at]->(pag:page)
-WITH art, total, collect(pag) as pages
+WITH art, _total, collect(pag) as _related_pages
 OPTIONAL MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
-WITH art, total, pages, collect(iss) as issues
-RETURN {
-  uid: art.uid,
-  title: art.title,
-  dl: art.dl,
-  pages: pages,
-  issue: head(issues)
-} as art, total
+WITH art, _total, _related_pages, collect(iss) as _related_issues
+RETURN art, _related_pages, _related_issues, _total
 
 
 // name: get

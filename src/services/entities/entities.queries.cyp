@@ -1,16 +1,16 @@
 
 // name: find
-// 
+//
 MATCH (pro:Project {uid:{Project}})
-WITH pro.count_entity as total
+WITH COALESCE(pro.count_entity, 0) as _total
 MATCH (ent:entity {Project:{Project}})
-RETURN ent, total
+RETURN ent, _total
 ORDER BY ent.df DESC
 SKIP {skip}
 LIMIT {limit}
 
 // name: find_as_q
-// // if a parameter _q is found. 
+// // if a parameter _q is found.
 
 
 // name: get
@@ -23,7 +23,7 @@ RETURN ent
 // store count_entity in current Project node.
 // TASK=run_query QUERIES=./src/services/entities/entities.queries.cyp NAME=count npm run cli
 MATCH (ent:entity {Project:{Project}})
-WITH count(ent) as count_entity 
+WITH count(ent) as count_entity
 MATCH (pro:Project {uid:{Project}})
 SET pro.count_entity = count_entity
 RETURN count_entity

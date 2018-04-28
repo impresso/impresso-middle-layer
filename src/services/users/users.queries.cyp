@@ -48,8 +48,8 @@ MATCH (staff:user {uid:{user_uid}})
 WITH staff
 MATCH (u:user)-[:subscribed_to]->(pro:Project {uid: {Project}})
 {{/uid}}
-WITH u, pro, 1 as total
-RETURN u, total
+WITH u, pro, 1 as _total
+RETURN u, _total
 SKIP {skip}
 LIMIT {limit}
 
@@ -57,10 +57,4 @@ LIMIT {limit}
 // name: get
 // find an user given the email, optionally is connected to the project
 MATCH (u:user {uid:{uid}})
-RETURN {
-  uid: u.uid,
-  displayname: u.displayname,
-  picture: u.picture,
-  username: u.username,
-  is_staff: u.is_staff
-}
+RETURN u

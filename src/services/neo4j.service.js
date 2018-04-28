@@ -28,38 +28,69 @@ class Neo4jService {
   _run(cypherQuery, params) {
     let session = this.driver.session()
     // console.log('Neo4jService _run with:', neo4jPrepare(cypherQuery, params))
-    return session.run(neo4jPrepare(cypherQuery, params), {
+    const preparedQuery = neo4jPrepare(cypherQuery, params);
+
+    debug('_run: with cypher query:', preparedQuery);
+
+    const queryParams = {
       Project: this.config.project,
       ... neo4jNow(),
       ... params
-    }).then( res => {
+    }
+
+    debug('_run: with cypher params:', queryParams);
+
+    return session.run(preparedQuery, queryParams).then(res => {
       session.close();
+      debug('_run: success! n. records:', res.records.length);
       return res
     }).catch( err => {
       if(err.code == 'Neo.ClientError.Schema.ConstraintValidationFailed'){
-        debug(`Neo.ClientError.Statement.ParameterMissing: ${err}`);
+        debug(`_run failed. Neo.ClientError.Statement.ParameterMissing: ${err}`);
         throw new errors.Conflict('ConstraintValidationFailed')
       } else if(err.code == 'Neo.ClientError.Statement.ParameterMissing'){
-        debug('Neo.ClientError.Statement.ParameterMissing:',err)
+        debug('_run failed. Neo.ClientError.Statement.ParameterMissing:',err)
         throw new errors.BadRequest('ParameterMissing')
-      } else {
+      } else if(err.code == 'Neo.ClientError.Statement.SyntaxError'){
+        debug('_run failed. Neo.ClientError.Statement.SyntaxError:',err);
+        throw new errors.BadGateway('SyntaxError')
+      }else {
+        debug('_run failed. Check error below.');
         console.error(err);
       }
       throw new errors.BadRequest()
     });
   }
 
+  _finalizeOne (res){
+    return res.records.map(neo4jRecordMapper);
+  }
+
   _finalize (res) {
     // add "total" field to extra. This enables next and prev.
+    // console.log(res.records, res.records[0])
     let count;
-    if(res.records.length && res.records[0]._fieldLookup.total && res.records[0]._fields[res.records[0]._fieldLookup.total]) {
-      count = neo4jToInt(res.records[0]._fields[res.records[0]._fieldLookup.total]);
+    
+    debug('_finalize: resultAvailableAfter', neo4jToInt(res.summary.resultAvailableAfter),'ms')
+    if(Array.isArray(res.records) && res.records.length) {
+      const record = res.records[0];
+      debug('_finalize: record._fieldLookup:', record._fieldLookup)
+      if(record._fieldLookup) {
+        const countidx = record._fieldLookup._total;
+
+        if(typeof countidx == 'number'){
+          count = neo4jToInt(record._fields[countidx]);
+        }
+      }
     }
+
     if(typeof count != 'undefined'){
+      debug('_finalize: count property has been found, <count>:', count)
       return {
         // params: params,
+        verbose: res.summary.counters._stats,
         count: count,
-        records: count > 0 ? res.records.map(neo4jRecordMapper): []
+        records: res.records.map(neo4jRecordMapper)
       }
     } else {
       debug('_finalize: no count has been found.')
@@ -74,7 +105,7 @@ class Neo4jService {
   }
 
   async get (id, params) {
-    debug(`get: with id:${id} and params.query ${params.query} and params.isSafe:${params.isSafe}`);
+    debug(`get: with id:${id} and params.isSafe:${params.isSafe} and params.query:`,  params.query);
     return this._run(this.queries.get, {
       uid: id,
       ... params.isSafe? params.query: params.sanitized
@@ -83,7 +114,11 @@ class Neo4jService {
       if(!records.length) {
         throw new errors.NotFound()
       }
-      return records[0]
+      if(records.length == 1) {
+        return records[0]
+      }
+
+      return records
     })
   }
 
