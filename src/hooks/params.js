@@ -145,7 +145,7 @@ const VALIDATE_UIDS = {
   uids: {
     required: true,
     regex: REGEX_UIDS,
-    transform: (d) => d.split(',')
+    transform: (d) => Array.isArray(d)? d: d.split(',')
   }
 }
 
