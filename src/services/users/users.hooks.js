@@ -37,7 +37,8 @@ module.exports = {
     all: [
       // Make sure the password field is never sent to the client
       // Always must be the last hook
-      protect('password')
+      protect('password'),
+      protect('salt')
     ],
     find: [
 

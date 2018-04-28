@@ -1,33 +1,38 @@
 const auth = require('@feathersjs/authentication');
 const { authenticate } = auth.hooks;
-
-const {sanitize, validate, VALIDATE_UIDS, REGEX_UID } = require('../../hooks/params');
+const { queryWithCurrentUser } = require('feathers-authentication-hooks');
+const { queryWithCommonParams, validate, VALIDATE_UIDS, REGEX_UID } = require('../../hooks/params');
 
 module.exports = {
   before: {
     all: [
       authenticate('jwt'),
-      sanitize()
+      queryWithCommonParams(),
+      queryWithCurrentUser({
+        idField: 'uid',
+        as: 'user__uid'
+      }),
     ], // authenticate('jwt') ],
     find: [
-      validate({
-        // the bucket owner uid
-        owner_uid: {
-          required: false,
-          min_length: 3,
-          regex: REGEX_UID
-        },
-      })
+      // queryWithCurrentUser()
+      // validate({
+      //   // the bucket owner uid
+      //   // owner_uid: {
+      //   //   required: false,
+      //   //   min_length: 3,
+      //   //   regex: REGEX_UID
+      //   // },
+      // })
     ],
     get: [
-      validate({
-        // the bucket owner uid
-        owner_uid: {
-          required: false,
-          min_length: 3,
-          regex: REGEX_UID
-        },
-      })
+      // validate({
+      //   // the bucket owner uid
+      //   // owner_uid: {
+      //   //   required: false,
+      //   //   min_length: 3,
+      //   //   regex: REGEX_UID
+      //   // },
+      // })
     ],
     create: [
       validate({

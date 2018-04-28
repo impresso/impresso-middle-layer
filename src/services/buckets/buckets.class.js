@@ -5,28 +5,6 @@ const slugify = require('slugify')
 class Service extends Neo4jService {
 
 
-  async find (params) {
-    // list buckets available for the authentified user.
-    let user_uid = params.user.uid;
-
-    //
-    // console.log('USER IS', params.user);
-
-    if(params.sanitized.owner_uid && params.user.id != params.sanitized.owner_uid) {
-      if(params.user.is_staff){
-        user_uid = params.sanitized.owner_uid
-      } else {
-        // raise error...
-      }
-    }
-     // we should be sure that authentication create service points to the correct
-
-    return this._run(this.queries.find, {
-      user_uid,
-      skip: params.sanitized.skip,
-      limit: params.sanitized.limit
-    }).then(this._finalize);
-  }
 
   async create (data, params) {
     if (Array.isArray(data)) {
@@ -34,7 +12,7 @@ class Service extends Neo4jService {
       return await Promise.all(data.map(current => this.create(current)));
     }
 
-    let user_uid = params.user.id;
+    // let user__uid = params.user.uid;
     const bucket_uid = slugify(data.sanitized.name);
 
     // owner_uid is optional.
@@ -47,15 +25,15 @@ class Service extends Neo4jService {
     //const label =owner_uid
     const query = this.queries[[data.sanitized.label, 'create'].join('_')]
 
-    return this._run(query, {
-      uid: `${user_uid}-${bucket_uid}`, // buckets are user specific unique
-      name: data.sanitized.name,
+    const queryParams = {
+      user__uid: params.user.uid,
+      uid: `${params.user.uid}-${bucket_uid}`,
       description: data.sanitized.description,
-      user_uid: user_uid,
+      name: data.sanitized.name,
       uids: data.sanitized.uids
-    }).then(this._finalize)
-    // super.create(data, params)
-    //
+    }
+
+    return this._run(query, queryParams).then(this._finalize);
   }
 
   async update (id, data, params) {
