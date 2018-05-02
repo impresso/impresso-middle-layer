@@ -83,6 +83,8 @@ const neo4jFieldMapper = (field) => {
     return neo4jPathMapper(field);
   if(field.constructor.name == 'Array')
     return field.map(neo4jFieldMapper)
+  if(field.constructor.name == 'Number')
+    return field
 
   debug('neo4jFieldMapper: unknown neo4j constructor:', field.constructor.name);
   // return _field;
