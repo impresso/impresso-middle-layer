@@ -1,7 +1,7 @@
 const errors = require('@feathersjs/errors');
 const crypto = require('crypto');
 const configuration  = require('@feathersjs/configuration')()();
-
+const debug = require('debug')('impresso/hooks:params');
 
 const _toLucene = (query, force_fuzzy=true) => {
   // @todo excape chars + - && || ! ( ) { } [ ] ^ " ~ * ? : \
@@ -193,9 +193,13 @@ const validate = ( validators ) => {
   return async context => {
     if(!validators)
       return;
-    if(context.data)
+    debug('validate: <validators keys>', Object.keys(validators));
+
+    if(context.data){
       context.data.sanitized = _validate(context.data, validators)
-    else {
+      debug('validate: POST data');
+    } else {
+      debug('validate: GET data');
       Object.assign(context.params.sanitized, _validate(context.params.query, validators))
     }
   }
@@ -333,7 +337,7 @@ const sanitize = ( options ) => {
   Prepare common query parameters, adding them to context.params.sanitized.
   Use it as BEFORE hook
 */
-const queryWithCommonParams = () => {
+const queryWithCommonParams = (replaceQuery=true) => {
   return async context => {
     let params = {
       limit: 10,
@@ -358,10 +362,20 @@ const queryWithCommonParams = () => {
       params.skip = Math.max(0, parseInt(context.params.query.skip));
     }
 
-    context.params.isSafe = true;
-    context.params.query = {
-      ... context.params.sanitized || {}, // add validated params, if any
-      ... params
+    debug("queryWithCommonParams: <params>", params);
+
+    if(replaceQuery) {
+      context.params.isSafe = true;
+
+      context.params.query = {
+        ... context.params.sanitized || {}, // add validated params, if any
+        ... params
+      }
+    } else {
+
+      context.params.sanitized = params
+      debug("queryWithCommonParams: do not replace context.params.query.");
+
     }
   }
 }
