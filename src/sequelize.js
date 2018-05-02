@@ -39,7 +39,7 @@ const operatorsAliases = {
 };
 
 module.exports = function (app) {
-  const config = app.get('postgres');
+  const config = app.get('sequelize');
   const sequelize = new Sequelize({
     host: config.host,
     port: config.port,
@@ -47,7 +47,7 @@ module.exports = function (app) {
     username: config.auth.user,
     password: config.auth.pass,
 
-    dialect: 'postgres',
+    dialect: config.dialect,
 
     logging: false,
     operatorsAliases,
