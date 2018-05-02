@@ -1,4 +1,4 @@
-const { queryWithCommonParams, validate } = require('../../hooks/params');
+const { queryWithCommonParams, validate, utils } = require('../../hooks/params');
 
 
 module.exports = {
@@ -11,7 +11,8 @@ module.exports = {
         q: {
           required: true,
           min_length: 2,
-          max_length: 1000
+          max_length: 1000,
+          transform: utils.toLucene
         }
       })
     ],

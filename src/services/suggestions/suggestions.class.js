@@ -26,7 +26,7 @@ class Service extends Neo4jService {
 
     let entities = () => this._run(this.queries.find, params.sanitized)
       .then(result => result.records.map(neo4jRecordMapper).map(record => {
-        console.log(record)
+        // console.log(record)
         return {
           type: 'entity',
           entity: record
