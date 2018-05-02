@@ -7,6 +7,7 @@ const {neo4jPrepare, neo4jRecordMapper, neo4jNow, neo4jToInt} = require('./neo4j
 const errors = require('@feathersjs/errors');
 
 class Neo4jService {
+
   constructor (options) {
 
     this.options = options || {};
@@ -43,6 +44,7 @@ class Neo4jService {
     return session.run(preparedQuery, queryParams).then(res => {
       session.close();
       debug('_run: success! n. records:', res.records.length);
+      res.queryParams = queryParams
       return res
     }).catch( err => {
       if(err.code == 'Neo.ClientError.Schema.ConstraintValidationFailed'){
@@ -66,11 +68,24 @@ class Neo4jService {
     return res.records.map(neo4jRecordMapper);
   }
 
+  // add
+  static wrap(data, limit, skip, total, info) {
+    return {
+      data,
+      limit,
+      skip,
+      total,
+      info
+    }
+  }
+
   _finalize (res) {
     // add "total" field to extra. This enables next and prev.
     // console.log(res.records, res.records[0])
     let count;
-    
+
+
+
     debug('_finalize: resultAvailableAfter', neo4jToInt(res.summary.resultAvailableAfter),'ms')
     if(Array.isArray(res.records) && res.records.length) {
       const record = res.records[0];
@@ -86,12 +101,14 @@ class Neo4jService {
 
     if(typeof count != 'undefined'){
       debug('_finalize: count property has been found, <count>:', count)
-      return {
-        // params: params,
-        verbose: res.summary.counters._stats,
-        count: count,
-        records: res.records.map(neo4jRecordMapper)
-      }
+
+      return Neo4jService.wrap(
+        res.records.map(neo4jRecordMapper),
+        res.queryParams? res.queryParams.limit: null,
+        res.queryParams? res.queryParams.skip: null,
+        count,
+        res.summary.counters._stats
+      )
     } else {
       debug('_finalize: no count has been found.')
       return res.records.map(neo4jRecordMapper);
@@ -124,6 +141,10 @@ class Neo4jService {
 
   async remove (id, params) {
     debug(`remove: with id:${id}`, id);
+    if(!this.queries.remove) {
+      throw new errors.NotImplemented();
+    }
+
     return this._run(this.queries.remove, {
       uid: id,
       ... params.isSafe? params.query: params.sanitized
