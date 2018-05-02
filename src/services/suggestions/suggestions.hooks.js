@@ -1,25 +1,24 @@
-const { sanitize, verbose } = require('../../hooks/params');
+const { queryWithCommonParams, validate } = require('../../hooks/params');
+
 
 module.exports = {
   before: {
     all: [
-      sanitize({
-        validators:{
-          q: {
-            required: true,
-            min_length: 2,
-            max_length: 1000
-          }, 
+      queryWithCommonParams(false)
+    ],
+    find: [
+      validate({
+        q: {
+          required: true,
+          min_length: 2,
+          max_length: 1000
         }
       })
     ],
-    find: [],
   },
 
   after: {
-    all: [
-      verbose()
-    ],
+    all: [],
     find: [],
     get: [],
     create: [],
@@ -30,7 +29,7 @@ module.exports = {
 
   error: {
     all: [
-      
+
     ],
     find: [],
     get: [],

@@ -6,6 +6,7 @@ const Neo4jService = require('../neo4j.service').Service;
 class Service extends Neo4jService {
 
   async find (params) {
+    const self = this;
     let dates = async () => {
         let asdate = chrono.parse(params.sanitized.q)
         // if a date has been recognized.
@@ -24,18 +25,22 @@ class Service extends Neo4jService {
       };
 
     let entities = () => this._run(this.queries.find, params.sanitized)
-      .then(result => result.records.map(neo4jRecordMapper).map(d => {
+      .then(result => result.records.map(neo4jRecordMapper).map(record => {
+        console.log(record)
         return {
           type: 'entity',
-          entity: d
+          entity: record
         }
       }));
-    
+
+    // let newspapers = () => this._run()
+
     return await Promise.all([
       dates(),
-      entities()
+      entities(),
+      // newspapers()
     ]).then(function(values) {
-      return values[0].concat(values[1])
+      return Neo4jService.wrap(values[0].concat(values[1]))
     });
   }
 }
