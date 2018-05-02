@@ -14,6 +14,7 @@ const _toLucene = (query, force_fuzzy=true) => {
   // understand \sOR\s and \sAND\s stuff.
   if(query.indexOf(' OR ') !== -1 || query.indexOf(' AND ') !== -1){
     // this is a real lucene query.
+    debug('toLucene: actual <lucene query>', query)
     return query
   }
 
@@ -59,7 +60,7 @@ const _toLucene = (query, force_fuzzy=true) => {
     // _dr contains COMMA? @todo
     return _dr.join(' AND ');
   }).join(' AND ')
-
+  debug('toLucene: <natural query>', query, 'to <lucene query>', q)
   return q;
 }
 
