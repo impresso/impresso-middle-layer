@@ -75,7 +75,7 @@ const neo4jPathSegmentMapper = (segment) => {
 }
 
 const neo4jFieldMapper = (field) => {
-  if(typeof field == 'undefined')
+  if(typeof field == 'undefined' || field === null)
     return null;
   if(field.constructor.name == 'Integer')
     return neo4jToInt(field);
