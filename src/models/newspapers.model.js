@@ -6,23 +6,36 @@ const Sequelize = require('sequelize');
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
+  const config = app.get('sequelize');
   const newspaper = sequelizeClient.define('newspaper', {
     id:{
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true
     },
-    uid: {
+    title: {
       type: Sequelize.STRING,
       allowNull: false,
       unique: true,
     },
-    name: {
+    full_title: {
       type: Sequelize.STRING,
-      allowNull: false
-    }
+      allowNull: true
+    },
+    start_year:{
+      type: Sequelize.SMALLINT
+    },
+    end_year:{
+      type: Sequelize.SMALLINT
+    },
+    country_code:{
+      type: Sequelize.CHAR
+    },
+    province_code:{
+      type: Sequelize.CHAR
+    },
   }, {
-    tableName: 'impresso_newspaper',
+    tableName: config.tables.newspapers,
     hooks: {
       beforeCount(options) {
         options.raw = true;
