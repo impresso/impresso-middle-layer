@@ -137,7 +137,7 @@ const neo4jRecordMapper = (record) => {
   const extras = keys.filter(d => d.indexOf('_') === 0);
   let result = results[identities[0]];
   for(key of extras){
-    result[key] = results[key];
+    result[key.replace('_related_', '')] = results[key];
   }
   return result
 }

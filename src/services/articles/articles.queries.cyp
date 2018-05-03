@@ -24,19 +24,13 @@ RETURN art, _related_pages, _related_issues, _total
 
 // name: get
 //
-MATCH (art:article {Project:{Project}, uid:{uid}})-[:appears_at]->(pag:page)
+MATCH (art:article {Project:{Project}, uid:{uid}})
+OPTIONAL MATCH (art)-[:appears_at]->(pag:page)
 WITH art, collect(pag) as pages
-MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
+OPTIONAL MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
 WITH art, pages, iss
 LIMIT 1
-WITH art, pages, iss
-RETURN {
-  uid: art.uid,
-  title: art.title,
-  dl: art.dl,
-  pages: pages,
-  issue: iss
-} as art
+RETURN art, pages as _related_pages, iss as _related_issue
 
 
 // name: APOC_set_article__dl
