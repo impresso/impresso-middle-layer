@@ -18,8 +18,8 @@ WITH art, _total
 OPTIONAL MATCH (art)-[:appears_at]->(pag:page)
 WITH art, _total, collect(pag) as _related_pages
 OPTIONAL MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
-WITH art, _total, _related_pages, collect(iss) as _related_issues
-RETURN art, _related_pages, _related_issues, _total
+WITH art, _total, _related_pages, head(collect(iss)) as _related_issue
+RETURN art, _related_pages, _related_issue, _total
 
 
 // name: get
