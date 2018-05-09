@@ -4,6 +4,7 @@ const compress = require('compression');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser')
 
 const feathers = require('@feathersjs/feathers');
 const express = require('@feathersjs/express');
@@ -33,6 +34,7 @@ app.use(helmet());
 app.use(compress());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser())
 app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Host the public folder
 app.use('/', express.static(app.get('public')));
@@ -44,11 +46,14 @@ app.configure(socketio());
 app.configure(sequelize);
 app.configure(neo4j);
 
+
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
 app.configure(authentication);
 // Set up our services (see `services/index.js`)
 app.configure(services);
+
+
 // Configure a middleware for 404s and the error handler
 app.use(notFound());
 // app.configure(handler({

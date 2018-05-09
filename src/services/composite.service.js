@@ -8,8 +8,10 @@ class CompositeService extends Neo4jService {
   }
 
   async get (id, params) {
+    // neo4j
     const result = await super.get(id, params)
     return result;
+    // complete with information from a secondary database
   }
 }
 
