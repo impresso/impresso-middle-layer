@@ -1,18 +1,15 @@
 // Initializes the `issues` service on path `/issues`
 const createService = require('../neo4j.service');
 const hooks = require('./issues.hooks');
-const queries = require('decypher')(__dirname + '/issues.queries.cyp');
-
 
 module.exports = function (app) {
-  
+
   const paginate = app.get('paginate');
 
   const options = {
     name: 'issues',
     paginate,
-    config: app.get('neo4j'),
-    queries: queries
+    config: app.get('neo4j')
   };
 
   // Initialize our service with any options it requires

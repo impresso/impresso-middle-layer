@@ -1,9 +1,13 @@
 const logger = require('winston');
 const debug = require('debug')('impresso/proxy');
 const proxy = require('http-proxy-middleware');
+const modifyResponse = require('node-http-proxy-json');
+const nodePath = require('path');
 
 module.exports = function (app) {
   const config = app.get('proxy');
+  const proxyhost = app.get('proxy').host;
+
   const authentication = app.get('authentication');
 
   logger.info(`configuring proxy ...`)
@@ -38,7 +42,17 @@ module.exports = function (app) {
     })
   }, proxy({
     target: config.iiif.epfl.endpoint, // https://dhlabsrv17.epfl.ch/iiif_impresso/"GDL-1900-01-10-a-p0002/full/full/0/default.jpg
-    pathRewrite: {'^/proxy/iiif' : '/'},
+    pathRewrite: (path, req) => {
+      const extension = nodePath.extname(path);
+      console.log('extension', extension)
+      if(!extension.length){
+        console.log('REWRITE');
+        return nodePath.join(path.replace('/proxy/iiif', '/'), 'info.json')
+      }
+
+      // console.log('REPLACING', typeof );
+      return path.replace('/proxy/iiif', '/');
+    },
     changeOrigin: true,
     logProvider: provider => {
         return logger;
@@ -57,9 +71,20 @@ module.exports = function (app) {
       proxyReq.setHeader('Authorization', `Basic ${credentials}`);
     },
     onProxyRes: (proxyRes, req, res) => {
-      debug('proxy: @onProxyRes <res.statusCode>:', proxyRes.statusCode);
-      if(proxyRes.statusCode > 400) {
+      debug('proxy: @onProxyRes <res.statusCode>:', proxyRes.statusCode, proxyRes.headers['content-type']);
+      if(proxyRes.statusCode == 401) {
         res.redirect('/images/notAuthorized.jpg');
+      } else if(proxyRes.headers['content-type'] == 'application/json'){
+        // modify HOST in every IIIF fields, when needed.
+        modifyResponse(res, proxyRes, (iiif) => {
+          if (iiif) {
+            // modify some information, deeper and deeper...?
+            // We probably need just the very first level (for the moment).
+            iiif['@id'] = iiif['@id'].replace(/^.*?\/iiif_impresso\//, `${proxyhost}/proxy/iiif/`);
+          }
+          return iiif; // return value can be a promise
+        });
+
       }
     }
   }));
