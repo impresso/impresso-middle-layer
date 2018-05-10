@@ -1,3 +1,8 @@
+// name: setup
+//
+CREATE CONSTRAINT ON (iss:issue) ASSERT iss.uid IS UNIQUE
+CREATE INDEX ON :issue(year)
+
 // name: find
 //
 MATCH (n:issue {Project:{Project}})

@@ -23,6 +23,22 @@ module.exports = function (app) {
 
   // Initialize our service with any options it requires
   app.use('/newspapers', createService(options));
+  // only if we want to enrich it.
+  app.use('/newspapers/:uid/timeline', {
+    find(params) {
+      return this.app.service('timeline').find({
+        query: {
+          using: 'newspaper_issues_by_year',
+          uid: params.route.uid
+        }
+      });
+    },
+    setup(app) {
+      this.app = app;
+    }
+  });
+
+
 
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('newspapers');

@@ -1,29 +1,11 @@
 /* eslint-disable no-unused-vars */
 const Neo4jService = require('../neo4j.service').Service;
-
+const debug = require('debug')('impresso/services:Timeline.class');
 
 class Service extends Neo4jService {
-  // return the related cypher query according to label and suffix.
-  _query (label, suffix) {
-    console.log('QUERY:', [label, suffix].join('_'));
-    return this.queries[[label, suffix].join('_')]
-  }
-
-  // tuimeline for classes of objects
   find (params) {
-    // we need to add:
-    // http://www.letempsarchives.ch/graph/serie?sources%5B%5D=GDL&sources%5B%5D=JDG&sources%5B%5D=LNQ&term=amsterdam
-    // optional uid, compulsory "label"...
-    // validate against labels, cannot be called directly (/timeline) @todo
-    let q = this._query(params.query.label, 'timeline_by_year')
-    return this._run(q, {...params.sanitized, uid: params.query.uid})
-  }
-
-  get (id, params) {
-    return this._run(this._query(params.query.label, 'timeline_by_year'), {
-      uid: id,
-      ... params.sanitized
-    })
+    debug(`find: with query params <using>: ${params.sanitized.using}, uid: ${params.sanitized.uid}`);
+    return this._run(this.queries[params.sanitized.using], params.sanitized);
   }
 }
 

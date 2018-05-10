@@ -1,13 +1,25 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
-const { sanitize } = require('../../hooks/params');
+const { validate } = require('../../hooks/params');
 const { normalizeTimeline } = require('../../hooks/neo4j');
 
 module.exports = {
   before: {
     all: [
-      sanitize()
+      validate({
+        // request must contain a label - from which we will create a UID
+        using:{
+          required: true,
+          choices: [
+            'article',
+            'newspaper_issues_by_year',
+            'newspaper_articles_by_year',
+            'entity'
+          ]
+        },
+      })
     ],// authenticate('jwt') ],
-    find: [],
+    find: [
+
+    ],
     get: [],
     create: [],
     update: [],

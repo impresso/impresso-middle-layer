@@ -1,18 +1,15 @@
 // Initializes the `timeline` service on path `/timeline`
 const createService = require('./timeline.class.js');
 const hooks = require('./timeline.hooks');
-const queries = require('decypher')(__dirname + '/queries.cyp');
-
 
 module.exports = function (app) {
-  
+
   const paginate = app.get('paginate');
 
   const options = {
     name: 'timeline',
     paginate,
     config: app.get('neo4j'),
-    queries: queries
   };
 
   // Initialize our service with any options it requires
