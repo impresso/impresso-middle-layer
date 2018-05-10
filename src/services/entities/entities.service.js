@@ -17,24 +17,36 @@ module.exports = function () {
 
   // follow guideline at
   // https://docs.feathersjs.com/faq/readme.html#how-do-i-create-custom-methods
-  app.use('/entities/:entityId/timeline', app.service('timeline'))
+  // app.use('/entities/:entityId/timeline', app.service('timeline'))
+  //
+  // // change cypher query. That's simple ;)
+  // // cfr. entities/queries.cyp
+  // app.service('/entities/:entityId/timeline').hooks({
+  //   before: {
+  //     all(context) {
+  //       context.params.query.uid   = context.params.route.entityId;
+  //       context.params.query.label = 'entity'
+  //     }
+  //   }
+  // })
 
-  // change cypher query. That's simple ;)
-  // cfr. entities/queries.cyp
-  app.service('/entities/:entityId/timeline').hooks({
-    before: {
-      all(context) {
-        context.params.query.uid   = context.params.route.entityId;
-        context.params.query.label = 'entity'
-      }
-    }  
-  })
 
-  
 
   // Initialize our service with any options it requires
   app.use('/entities', createService(options));
-
+  app.use('/entities/:uid/timeline', {
+    find(params) {
+      return this.app.service('timeline').find({
+        query: {
+          label: 'entity',
+          uid: params.route.uid
+        }
+      });
+    },
+    setup(app) {
+      this.app = app;
+    }
+  });
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('entities');
 

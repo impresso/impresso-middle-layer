@@ -5,7 +5,7 @@ const queries = require('decypher')(__dirname + '/articles.queries.cyp');
 
 
 module.exports = function (app) {
-  
+
   const paginate = app.get('paginate');
 
   const options = {
@@ -16,19 +16,19 @@ module.exports = function (app) {
     queries: queries
   };
 
-  
+
   // add specific hooks
-  app.use('/articles/timeline', app.service('timeline'))
-  app.service('/articles/timeline').hooks({
-    before: {
-      all(context) {
-        context.params.query.label = 'article'
-      }
-    }  
-  })
+  // app.use('/articles/timeline', app.service('timeline'))
+  // app.service('/articles/timeline').hooks({
+  //   before: {
+  //     all(context) {
+  //       context.params.query.label = 'article'
+  //     }
+  //   }
+  // })
   // Initialize our service with any options it requires
   app.use('/articles', createService(options));
-  
+
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('articles');
 
