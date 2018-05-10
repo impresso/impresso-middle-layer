@@ -33,6 +33,18 @@ LIMIT 1
 RETURN art, pages as _related_pages, iss as _related_issue
 
 
+// name:setup
+//
+CREATE INDEX ON :article(newspaper_uid)
+
+
+// name: APOC_set_article__newspaper_uid
+// Given the art.uid, get the newspaper UID
+CALL apoc.periodic.iterate(
+  "MATCH (art:article {Project:{Project}}) RETURN art",
+  "WITH art SET art.newspaper_uid = head(split(art.uid, '-'))",
+  {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})
+
 // name: APOC_set_article__dl
 // calculate and store number of different entities per article:
 // TASK=run_query QUERIES=./src/services/articles/articles.queries.cyp NAME=APOC_set_article__dl npm run cli
