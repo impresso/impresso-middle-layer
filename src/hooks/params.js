@@ -200,8 +200,12 @@ const validate = ( validators ) => {
       context.data.sanitized = _validate(context.data, validators)
       debug('validate: POST data');
     } else {
-      debug('validate: GET data');
-      Object.assign(context.params.sanitized, _validate(context.params.query, validators))
+      debug('validate: GET data', context.params.query);
+      const validated = _validate(context.params.query, validators);
+      if(!context.params.sanitized)
+        context.params.sanitized = validated
+      else
+        Object.assign(context.params.sanitized, validated)
     }
   }
 }
