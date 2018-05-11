@@ -1,4 +1,4 @@
-const { validate } = require('../../hooks/params');
+const { validate, REGEX_UID } = require('../../hooks/params');
 const { normalizeTimeline } = require('../../hooks/neo4j');
 
 module.exports = {
@@ -15,6 +15,10 @@ module.exports = {
             'entity'
           ]
         },
+        uid:{
+          required: true,
+          regex: REGEX_UID
+        }
       })
     ],// authenticate('jwt') ],
     find: [
