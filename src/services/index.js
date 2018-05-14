@@ -10,6 +10,7 @@ const buckets = require('./buckets/buckets.service.js');
 const queries = require('./queries/queries.service.js');
 const pages = require('./pages/pages.service.js');
 const tags = require('./tags/tags.service.js');
+const version = require('./version/version.service.js');
 
 const proxy     = require('./proxy.js');
 
@@ -30,4 +31,5 @@ module.exports = function () {
   app.configure(tags);
 
   app.configure(proxy);
+  app.configure(version);
 };
