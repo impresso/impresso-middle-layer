@@ -1,3 +1,5 @@
+const { queryWithCommonParams } = require('../../hooks/params');
+
 const proxyIIIF = () => {
   return async context => {
     if(context.result && context.result.pages) {
@@ -13,7 +15,7 @@ const proxyIIIF = () => {
 module.exports = {
   before: {
     all: [
-      // sanitize()
+      queryWithCommonParams()
     ],
     find: [],
     get: [],
