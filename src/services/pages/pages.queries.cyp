@@ -1,7 +1,7 @@
 // name: setup
 // constraints
 CREATE CONSTRAINT ON (p:page) ASSERT p.uid IS UNIQUE
-
+CREATE INDEX ON :issue(year)
 // name: find
 // all pages related to one issue or a generic list of pages
 {{#issue__uid}}
@@ -34,3 +34,19 @@ ORDER BY r.ntf DESC
 SKIP 0
 LIMIT 10
 return p, _related_articles, P as _related_entities
+
+
+// name: merge
+//
+MERGE (pag:page {Project:{Project}, uid:{uid}})
+  ON CREATE SET
+    pag.num  = toInteger({page_number})
+WITH pag
+MATCH (iss:issue {Project:{Project}, uid:{issue_uid}})
+MERGE (pag)-[r:belongs_to]->(iss)
+RETURN pag
+
+
+// name: count
+//
+RETURN 0

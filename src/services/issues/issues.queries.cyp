@@ -3,6 +3,19 @@
 CREATE CONSTRAINT ON (iss:issue) ASSERT iss.uid IS UNIQUE
 CREATE INDEX ON :issue(year)
 
+// name: merge
+// optionally merge with a newspaper_uid
+MERGE (iss:issue {Project:{Project}, uid:{uid}})
+SET
+  iss.year = {year},
+  iss.date = {date}
+WITH iss
+{{#newspaper_uid}}
+MATCH (news:newspaper {Project:{Project}, uid:{newspaper_uid}})
+MERGE (iss)-[r:belongs_to]->(news)
+{{/newspaper_uid}}
+RETURN iss
+
 // name: find
 //
 MATCH (n:issue {Project:{Project}})
