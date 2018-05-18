@@ -4,37 +4,42 @@
 // for more of what you can do here.
 const Sequelize = require('sequelize');
 
-module.exports = function (app) {
-  const sequelizeClient = app.get('sequelizeClient');
-  const config = app.get('sequelize');
-  const newspaper = sequelizeClient.define('newspaper', {
-    id:{
-      type: Sequelize.INTEGER,
+const model = (client, options = {}) => {
+  const newspaper = client.define('newspaper', {
+    uid:{
+      type: Sequelize.STRING,
       primaryKey: true,
-      autoIncrement: true
+      unique: true,
+      field: 'id',
     },
     title: {
       type: Sequelize.STRING,
       allowNull: false,
-      unique: true,
-    },
-    full_title: {
-      type: Sequelize.STRING,
-      allowNull: true
     },
     start_year:{
-      type: Sequelize.SMALLINT
+      type: Sequelize.SMALLINT,
     },
     end_year:{
-      type: Sequelize.SMALLINT
-    },
-    country_code:{
-      type: Sequelize.CHAR
-    },
-    province_code:{
-      type: Sequelize.CHAR
+      type: Sequelize.SMALLINT,
     },
   }, {
+    ... options,
+  });
+
+  // newspaper.associate = function()
+  // page.associate = function (models) { // eslint-disable-line no-unused-vars
+  //   // Define associations here
+  //   // See http://docs.sequelizejs.com/en/latest/docs/associations/
+  //   // page.hasOne(Issue, { foreignKey: 'issue_id' });
+  //   page.hasOne(Newspaper, { foreignKey: 'newspaper_id' });
+  // };
+
+  return newspaper;
+}
+
+module.exports = function (app) {
+  const config = app.get('sequelize');
+  const newspaper = model(app.get('sequelizeClient'), {
     tableName: config.tables.newspapers,
     hooks: {
       beforeCount(options) {
@@ -43,12 +48,9 @@ module.exports = function (app) {
     }
   });
 
-  newspaper.associate = function (models) { // eslint-disable-line no-unused-vars
-    // Define associations here
-    // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  };
-
   return {
     sequelize: newspaper
   };
 };
+
+module.exports.model = model
