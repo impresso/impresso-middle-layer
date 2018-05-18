@@ -27,7 +27,10 @@
     "start": "node src/",
     "dev": "nodemon src/",
     "mocha": "mocha test/ --recursive --exit",
-    "cli": "node src/admin/cli.js"
+    "cli": "node src/admin/cli.js",
+    "import-pages": "node scripts/import-pages.js",
+    "import-issues": "node scripts/import-issues.js",
+    "import-newspapers": "node scripts/import-newspapers.js"
   },
   "dependencies": {
     "@feathersjs/authentication": "^2.1.5",
