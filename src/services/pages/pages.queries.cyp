@@ -2,6 +2,7 @@
 // constraints
 CREATE CONSTRAINT ON (p:page) ASSERT p.uid IS UNIQUE
 CREATE INDEX ON :issue(year)
+
 // name: find
 // all pages related to one issue or a generic list of pages
 {{#issue__uid}}
@@ -34,12 +35,19 @@ OPTIONAL MATCH (pag)<-[:appears_at]-(art:article)
 WITH pag, _related_regions, collect(art) as _related_articles
 OPTIONAL MATCH (pag)<-[:appears_at]-(art:article)
 WITH pag, _related_regions, _related_articles, art
-OPTIONAL MATCH P=(art)<-[r:appears_in]-(ent:entity)
-WITH pag, _related_regions, _related_articles, P
+OPTIONAL MATCH (art)<-[r:appears_in]-(ent:entity)
+WITH pag, _related_regions, _related_articles, r, art, ent
 ORDER BY r.ntf DESC
 SKIP 0
 LIMIT 10
-return pag, _related_regions, _related_articles, P as _related_entities
+WITH pag, _related_regions, _related_articles,
+CASE WHEN r IS NOT NULL THEN collect({
+  properties: properties(r),
+  type: type(r),
+  article_uid: art.uid,
+  entity_uid: ent.uid
+}) ELSE [] END as _related_links, collect(ent) as _related_entities
+RETURN pag, _related_regions, _related_articles, _related_links, _related_entities
 
 
 // name: merge
