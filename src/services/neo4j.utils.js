@@ -1,6 +1,7 @@
 const mustache = require('mustache');
 const moment   = require('moment');
 const debug = require('debug')('impresso/services:neo4j.utils');
+const verbose = require('debug')('verbose:impresso/services:neo4j.utils');
 
 const neo4jNow = () => {
   const now = moment.utc();
@@ -79,6 +80,9 @@ const neo4jFieldMapper = (field) => {
     return null;
   if(field.constructor.name == 'Integer')
     return neo4jToInt(field);
+  if(field.constructor.name == 'Object'){
+    return field
+  }
   if(field.constructor.name == 'Node')
     return neo4jNodeMapper(field);
   if(field.constructor.name == 'Path')
@@ -98,7 +102,7 @@ const neo4jRecordMapper = (record) => {
   if(!record._fieldLookup){
     debug('neo4jRecordMapper: NO _fieldLookup present, record:', record)
   } else {
-    debug('neo4jRecordMapper: _fieldLookup:', record._fieldLookup)
+    verbose('neo4jRecordMapper: _fieldLookup:', record._fieldLookup)
   }
 
   let results = {},
@@ -116,7 +120,7 @@ const neo4jRecordMapper = (record) => {
     }
   }
 
-  debug('neo4jRecordMapper: results expected <Keys>:', keys);
+  verbose('neo4jRecordMapper: results expected <Keys>:', keys);
   //
 
   if(keys.length == 1) {
@@ -128,12 +132,12 @@ const neo4jRecordMapper = (record) => {
 
 
   if(identities.length != 1){
-    debug('neo4jRecordMapper: more than one items in list <identities>:', identities);
+    verbose('neo4jRecordMapper: more than one items in list <identities>:', identities);
     // nothing to do, the query is like this.
     return results;
   }
 
-  debug('neo4jRecordMapper: merging fields in remaining <identities> item:', identities);
+  verbose('neo4jRecordMapper: merging fields in remaining <identities> item:', identities);
 
   // apply related as _links
   const extras = keys.filter(d => d.indexOf('_') === 0);

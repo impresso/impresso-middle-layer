@@ -24,16 +24,22 @@ RETURN p, _total
 
 // name: get
 //
-MATCH (p:page {uid:{uid}})<-[:appears_at]-(art:article)
-WITH p, collect(art) as _related_articles
-MATCH (p)<-[:appears_at]-(art:article)
-WITH p,_related_articles, art
+MATCH (pag:page {uid:{uid}})
+OPTIONAL MATCH (pag)<-[r:appears_at]-(art:article)
+WITH pag, CASE WHEN r IS NOT NULL THEN collect({
+  regions: r.properties.regions,
+  article_uid: art.uid
+}) ELSE [] END as _related_regions
+OPTIONAL MATCH (pag)<-[:appears_at]-(art:article)
+WITH pag, _related_regions, collect(art) as _related_articles
+OPTIONAL MATCH (pag)<-[:appears_at]-(art:article)
+WITH pag, _related_regions, _related_articles, art
 OPTIONAL MATCH P=(art)<-[r:appears_in]-(ent:entity)
-WITH p, _related_articles, P
+WITH pag, _related_regions, _related_articles, P
 ORDER BY r.ntf DESC
 SKIP 0
 LIMIT 10
-return p, _related_articles, P as _related_entities
+return pag, _related_regions, _related_articles, P as _related_entities
 
 
 // name: merge
