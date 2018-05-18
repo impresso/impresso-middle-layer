@@ -38,17 +38,14 @@ const operatorsAliases = {
   $col: Op.col
 };
 
-module.exports = function (app) {
-  const config = app.get('sequelize');
-  const sequelize = new Sequelize({
+const getSequelizeClient = (config) => {
+  return new Sequelize({
     host: config.host,
     port: config.port,
     database: config.database,
     username: config.auth.user,
     password: config.auth.pass,
-
     dialect: config.dialect,
-
     logging: false,
     operatorsAliases,
 
@@ -60,6 +57,11 @@ module.exports = function (app) {
     //   freezeTableName: true
     // }
   });
+}
+
+module.exports = function (app) {
+  const config = app.get('sequelize');
+  const sequelize = getSequelizeClient(config);
   logger.info('connection to postgres database ...');
   //const oldSetup = app.setup;
   // test connection
@@ -92,3 +94,5 @@ module.exports = function (app) {
   //   return result;
   // };
 };
+
+module.exports.client = getSequelizeClient;
