@@ -21,6 +21,16 @@ const neo4jPrepare = (cypherQuery, params) => {
   return mustache.render(cypherQuery, params);
 }
 
+// @param res: a transaction result
+const neo4jSummary = (res) => {
+  return {
+    statement: res.summary.statement.text,
+    params: res.summary.statement.parameters,
+    resultAvailableAfter: res.summary.resultAvailableAfter.low,
+    _stats: res.summary.counters._stats,
+  }
+}
+
 const neo4jNodeMapper = (node) => {
   let props = {}
 
@@ -157,5 +167,6 @@ module.exports = {
   neo4jNow,
   neo4jPrepare,
   neo4jRecordMapper,
+  neo4jSummary,
   neo4jToInt,
 }
