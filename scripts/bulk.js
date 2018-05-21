@@ -1,10 +1,10 @@
 const config = require('@feathersjs/configuration')()();
 const debug = require('debug')('impresso/scripts:bulk');
-const verbose = require('debug')('impresso/scripts:bulk-verbose');
+const verbose = require('debug')('verbose:impresso/scripts:bulk');
 
 const sequelize = require('../src/sequelize').client(config.sequelize);
 const neo4j = require('../src/neo4j').client(config.neo4j);
-const {neo4jPrepare} = require('../src/services/neo4j.utils');
+const { neo4jPrepare, neo4jSummary } = require('../src/services/neo4j.utils');
 const session = neo4j.session();
 
 const merge = (modelName, modelMapper, limit = 100) => {
@@ -43,10 +43,35 @@ const merge = (modelName, modelMapper, limit = 100) => {
 const count = (modelName, params) => {
   const queries = require('decypher')(`${__dirname}/../src/services/${modelName}/${modelName}.queries.cyp`);
 
+  debug(`count: ${modelName} using query 'count'`);
+
   return session.writeTransaction((tx) => {
-    tx.run(queries.count, {
+
+    return tx.run(queries.count, {
       Project: 'impresso',
       ... params
+    }).then(res => {
+      debug(`count: ${modelName} using query 'count' success!`);
+      verbose('count: <summary>', neo4jSummary(res));
+      return res;
+    }) ;
+  });
+}
+
+// execute custom APOC call
+const apoc = (modelName, queryName, params) => {
+  const queries = require('decypher')(`${__dirname}/../src/services/${modelName}/${modelName}.queries.cyp`);
+
+  debug(`apoc: ${modelName} using query: ${queryName}.`);
+
+  return session.writeTransaction((tx) => {
+    return tx.run(queries[queryName], {
+      Project: 'impresso',
+      ... params
+    }).then(res => {
+      debug(`apoc: ${modelName} using query: ${queryName} success!`);
+      verbose('apoc: <summary>', neo4jSummary(res));
+      return res;
     });
   });
 }
@@ -54,4 +79,5 @@ const count = (modelName, params) => {
 module.exports = {
   merge,
   count,
+  apoc
 };
