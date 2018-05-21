@@ -50,3 +50,20 @@ ORDER BY r.tf DESC
 LIMIT 20
 
 RETURN iss, _related_pages, _related_newspaper, collect(ent) as _related_entities
+
+
+// name: count
+// all issues in the project
+MATCH (iss:issue {Project:{Project}})
+WITH count(iss) as count_issues
+MATCH (pro:Project {uid: {Project}})
+SET pro.count_issues = count_issues
+RETURN pro.count_issues
+
+
+// name: APOC_set_newspaper__count_issues
+// n of issues per newspaper.
+CALL apoc.periodic.iterate(
+  "MATCH (iss:issue)-[:belongs_to]->(news:newspaper {Project:{Project}}) RETURN news, count(iss) as count_issues",
+  "SET news.count_issues = count_issues",
+  {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})

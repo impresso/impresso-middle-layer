@@ -63,4 +63,29 @@ RETURN pag
 
 // name: count
 //
-RETURN 0
+MATCH (pag:page {Project:{Project}})
+WITH count(pag) as count_pages
+MATCH (pro:Project {uid: {Project}})
+SET pro.count_pages = count_pages
+RETURN pro.count_pages
+
+// name: APOC_set_issue__count_pages
+//
+CALL apoc.periodic.iterate(
+  "MATCH (pag:page)-[:belongs_to]->(iss:issue {Project:{Project}}) RETURN iss, count(pag) as count_pages",
+  "SET iss.count_pages = count_pages",
+  {batchSize:500, iterateList:true, parallel:true, params:{Project:{Project}}})
+
+// name: APOC_set_newspaper__count_pages
+// AFTER APOC_set_issue__count_pages :D
+CALL apoc.periodic.iterate(
+  "MATCH (iss:issue)-[:belongs_to]->(news:newspaper {Project:{Project}}) RETURN news, sum(COALESCE(iss.count_pages, 0)) as count_pages",
+  "SET news.count_pages = count_pages",
+  {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})
+
+// name: APOC_set_page__uid_as_canonical
+// used only once.
+CALL apoc.periodic.iterate(
+  "MATCH (pag:page {Project:{Project}}) WHERE pag.uid  =~ '.*-[0-9]{4}$' RETURN pag",
+  "SET pag.uid = apoc.text.replace(pag.uid, '-([0-9]{4})$', '-p$1')",
+  {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})
