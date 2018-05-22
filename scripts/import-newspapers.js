@@ -1,4 +1,4 @@
-const {merge, count} = require('./bulk');
+const {merge, count } = require('./bulk');
 const debug = require('debug')('impresso/scripts:import-newspapers');
 
 debug('start!');
@@ -12,6 +12,7 @@ async function waterfall() {
       start_year: item.start_year,
       end_year: item.end_year,
       delta_year: item.end_year - item.start_year,
+      languages: item.languages.map(d => d.code),
     }
   }, 500);
   debug('merge newspapers done.');
