@@ -130,9 +130,16 @@ const neo4jPathSegmentMapper = (segment) => {
 const neo4jFieldMapper = (field) => {
   if(typeof field == 'undefined' || field === null)
     return null;
+  if(field.constructor.name == 'String')
+    return field;
   if(field.constructor.name == 'Integer')
     return neo4jToInt(field);
   if(field.constructor.name == 'Object'){
+    for(var key in field) {
+      if(field.hasOwnProperty(key)) {
+        field[key] = neo4jFieldMapper(field[key]);
+      }
+    }
     return field
   }
   if(field.constructor.name == 'Node')
@@ -198,6 +205,16 @@ const neo4jRecordMapper = (record) => {
     result[key.replace('_related_', '')] = results[key];
   }
   return result
+}
+
+const neo4jRecords = (res) => {
+  let _records = {}
+  debug(`find '${this.name}': neo4j success`, neo4jSummary(res));
+  for(let rec of res.records) {
+    rec = neo4jRecordMapper(rec);
+    _records[rec.uid] = rec;
+  }
+  return _records;
 }
 
 const neo4jToInt = neo4jInteger => {

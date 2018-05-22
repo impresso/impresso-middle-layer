@@ -28,7 +28,7 @@ RETURN p, _total
 MATCH (pag:page {uid:{uid}})
 OPTIONAL MATCH (pag)<-[r:appears_at]-(art:article)
 WITH pag, CASE WHEN r IS NOT NULL THEN collect({
-  regions: r.properties.regions,
+  regions: properties(r).regions,
   article_uid: art.uid
 }) ELSE [] END as _related_regions
 OPTIONAL MATCH (pag)<-[:appears_at]-(art:article)
