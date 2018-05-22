@@ -26,7 +26,7 @@ const model = (client, options = {}) => {
   }, {
     ... options,
     scopes: {
-      standalone: {
+      findAll: {
         include: [
           {
             model: newspaper,

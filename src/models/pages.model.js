@@ -27,16 +27,16 @@ const model = (client, options = {}) => {
   }, {
     ... options,
     scopes: {
-      standalone: {
+      findAll: {
         include: [
           {
             model: newspaper,
-            as: 'newspaper',
+            as: 'newspaper'
           },
           {
             model: issue,
-            as: 'issue',
-          },
+            as: 'issue'
+          }
         ]
       },
     },
