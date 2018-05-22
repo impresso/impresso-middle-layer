@@ -7,6 +7,12 @@ RETURN news, _total
 SKIP {skip}
 LIMIT {limit}
 
+// name: findAll
+// find all matching uids
+MATCH (news:newspaper)
+WHERE news.uid IN {uids} AND news.Project = {Project}
+RETURN news
+
 // name: get
 //
 MATCH (news:newspaper {Project:{Project}, uid:{uid}})

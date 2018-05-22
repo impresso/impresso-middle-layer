@@ -1,9 +1,9 @@
-const { sanitize } = require('../../hooks/params');
+const { queryWithCommonParams } = require('../../hooks/params');
 
 module.exports = {
   before: {
     all: [
-      sanitize()
+      queryWithCommonParams()
     ],
     find: [],
     get: [],
