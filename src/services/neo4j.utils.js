@@ -2,6 +2,7 @@ const mustache = require('mustache');
 const moment   = require('moment');
 const debug = require('debug')('impresso/services:neo4j.utils');
 const verbose = require('debug')('verbose:impresso/services:neo4j.utils');
+const {Conflict, BadRequest, BadGateway} = require('@feathersjs/errors');
 
 const neo4jNow = () => {
   const now = moment.utc();
@@ -21,13 +22,54 @@ const neo4jPrepare = (cypherQuery, params) => {
   return mustache.render(cypherQuery, params);
 }
 
+
+const neo4jRun = (session, cypherQuery, params) => {
+  const preparedQuery = neo4jPrepare(cypherQuery, params);
+
+  debug('neo4jRun: with cypher query:', preparedQuery);
+
+  const queryParams = {
+    ... neo4jNow(),
+    ... params
+  }
+
+  debug('neo4jRun: with cypher params:', queryParams);
+
+  return session.run(preparedQuery, queryParams).then(res => {
+    session.close();
+    debug('neo4jRun: success! n. records:', res.records.length);
+    res.queryParams = queryParams
+    return res
+  }).catch( err => {
+    if(err.code == 'Neo.ClientError.Schema.ConstraintValidationFailed'){
+      debug(`neo4jRun failed. Neo.ClientError.Statement.ParameterMissing: ${err}`);
+      throw new Conflict('ConstraintValidationFailed')
+    } else if(err.code == 'Neo.ClientError.Statement.ParameterMissing'){
+      debug('neo4jRun failed. Neo.ClientError.Statement.ParameterMissing:',err)
+      throw new BadRequest('ParameterMissing')
+    } else if(err.code == 'Neo.ClientError.Statement.SyntaxError'){
+      debug('neo4jRun failed. Neo.ClientError.Statement.SyntaxError:',err);
+      throw new BadGateway('SyntaxError')
+    }else {
+      debug('neo4jRun failed. Check error below.');
+      debug(err);
+    }
+    throw new BadRequest()
+  });
+}
+
 // @param res: a transaction result
-const neo4jSummary = (res) => {
+const neo4jSummary = (res, verbose=false) => {
+  if(verbose) {
+    return {
+      statement: res.summary.statement.text,
+      params: res.summary.statement.parameters,
+      resultAvailableAfter: res.summary.resultAvailableAfter.low,
+      _stats: res.summary.counters._stats,
+    }
+  }
   return {
-    statement: res.summary.statement.text,
-    params: res.summary.statement.parameters,
     resultAvailableAfter: res.summary.resultAvailableAfter.low,
-    _stats: res.summary.counters._stats,
   }
 }
 
@@ -162,11 +204,11 @@ const neo4jToInt = neo4jInteger => {
   return typeof neo4jInteger == 'object'? neo4jInteger.low : neo4jInteger
 }
 
-
 module.exports = {
   neo4jNow,
   neo4jPrepare,
   neo4jRecordMapper,
+  neo4jRun,
   neo4jSummary,
   neo4jToInt,
 }
