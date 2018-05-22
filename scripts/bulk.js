@@ -18,15 +18,17 @@ const merge = (modelName, modelMapper, limit = 100) => {
     const steps = Math.ceil(total / limit);
 
     for(let i=0;i < steps;i++) {
-      const items = await Klass.findAll({ offset: i*limit, limit: limit });
+
+      const items =  await Klass.scope('findAll').findAll({ offset: i*limit, limit: limit });
       debug(`tx starting - offset:` , i*limit, '- total:', total, '- limit:', limit);
+
       await session.writeTransaction((tx) => {
         for(item of items) {
           const params = {
             Project: 'impresso',
-            ... modelMapper(item)
+            ...  modelMapper(item)
           }
-          verbose(`adding ${modelName} - uid: ${params.uid} - offset:` , i*limit, '- total:', total);
+          verbose(`adding ${modelName} - uid: ${params.uid} - offset:` , i*limit, '- total:', total, params);
           tx.run(neo4jPrepare(queries.merge, params), params);
         }
       }).then(res => {
@@ -79,5 +81,5 @@ const apoc = (modelName, queryName, params) => {
 module.exports = {
   merge,
   count,
-  apoc
+  apoc,
 };
