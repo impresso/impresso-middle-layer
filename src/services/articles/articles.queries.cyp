@@ -61,3 +61,18 @@ CALL apoc.periodic.iterate(
   "MATCH (art:article {Project:{Project}}) RETURN art",
   "MATCH (art)<-[r:appears_in]-() WITH art, sum(r.tf) as sum_of_tfs SET art._stfs = sum_of_tfs",
   {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})
+
+
+// name: APOC_set_issue__count_articles
+// n. of articles in a issue.
+CALL apoc.periodic.iterate(
+  "MATCH (art:article)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue {Project:{Project}}) RETURN iss, count(DISTINCT art) as count_articles",
+  "SET iss.count_articles = count_articles",
+  {batchSize:500, iterateList:true, parallel:true, params:{Project:{Project}}})
+
+// name: APOC_set_newspaper__count_articles
+// n of articles per newspaper. Please call AFTER APOC_set_issue__count_articles :D
+CALL apoc.periodic.iterate(
+  "MATCH (iss:issue)-[:belongs_to]->(news:newspaper {Project:{Project}}) RETURN news, sum(COALESCE(iss.count_articles, 0)) as count_articles",
+  "SET news.count_articles = count_articles",
+  {batchSize:10, iterateList:true, parallel:true, params:{Project:{Project}}})
