@@ -67,7 +67,6 @@ const _toLucene = (query, force_fuzzy=true) => {
 const _validate = (params, rules) => {
   let _params = {},
       _errors = {};
-
   for(let key in rules){
     // it is required
     if(rules[key].required === true && typeof params[key] == 'undefined'){
@@ -78,7 +77,6 @@ const _validate = (params, rules) => {
       };
       break;
     } else if(typeof params[key] == 'undefined'){
-
       continue;
     }
 
@@ -341,6 +339,19 @@ const sanitize = ( options ) => {
 /*
   Prepare common query parameters, adding them to context.params.sanitized.
   Use it as BEFORE hook
+
+  If used in conjunciton with validate(), this hook should be placed last in order:
+  ```
+    validate({
+      q: {
+        required: false,
+        min_length: 2,
+        max_length: 100,
+        transform: utils.toLucene
+      }
+    }),
+    queryWithCommonParams();
+  ```
 */
 const queryWithCommonParams = (replaceQuery=true) => {
   return async context => {
