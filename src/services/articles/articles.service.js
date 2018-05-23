@@ -12,20 +12,9 @@ module.exports = function (app) {
     name: 'articles',
     paginate,
     // need to pass config and queries to neo4j.service
-    config: app.get('neo4j'),
-    queries: queries
+    config: app.get('neo4j')
   };
 
-
-  // add specific hooks
-  // app.use('/articles/timeline', app.service('timeline'))
-  // app.service('/articles/timeline').hooks({
-  //   before: {
-  //     all(context) {
-  //       context.params.query.label = 'article'
-  //     }
-  //   }
-  // })
   // Initialize our service with any options it requires
   app.use('/articles', createService(options));
 
