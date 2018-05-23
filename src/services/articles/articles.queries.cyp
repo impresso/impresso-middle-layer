@@ -36,14 +36,16 @@ RETURN art, pages as _related_pages, iss as _related_issue
 // name:setup
 //
 CREATE INDEX ON :article(newspaper_uid)
-
+CREATE INDEX ON :article(date)
+CREATE INDEX ON :article(time)
 
 // name: APOC_set_article__newspaper_uid
-// Given the art.uid, get the newspaper UID
+// Given the art.uid, SET the art.newspaper_uid
 CALL apoc.periodic.iterate(
   "MATCH (art:article {Project:{Project}}) RETURN art",
   "WITH art SET art.newspaper_uid = head(split(art.uid, '-'))",
   {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})
+
 
 // name: APOC_set_article__dl
 // calculate and store number of different entities per article:
@@ -76,3 +78,17 @@ CALL apoc.periodic.iterate(
   "MATCH (iss:issue)-[:belongs_to]->(news:newspaper {Project:{Project}}) RETURN news, sum(COALESCE(iss.count_articles, 0)) as count_articles",
   "SET news.count_articles = count_articles",
   {batchSize:10, iterateList:true, parallel:true, params:{Project:{Project}}})
+
+// name: APOC_set_article__date
+// Given the art.uid, SET the art.date
+CALL apoc.periodic.iterate(
+  "MATCH (art:article {Project:{Project}}) RETURN art",
+  "SET art.date = apoc.text.replace(art.uid, '.*-([0-9]{4}-[0-9]{2}-[0-9]{2})-.*$', '$1')",
+  {batchSize:50, iterateList:true, parallel:true, params:{Project:{Project}}})
+
+// name: APOC_set_article__time
+// given the art.date, SET art.time
+CALL apoc.periodic.iterate(
+  "MATCH (art:article {Project:{Project}}) RETURN art",
+  "SET art.time = apoc.date.parse(art.date,'s','yyyy-MM-dd')",
+  {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})
