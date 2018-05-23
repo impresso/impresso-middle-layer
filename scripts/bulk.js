@@ -42,6 +42,35 @@ const merge = (modelName, modelMapper, limit = 100) => {
   return waterfall();
 }
 
+const query = (modelName, queryName, items, limit = 100) => {
+  const queries = require('decypher')(`${__dirname}/../src/services/${modelName}/${modelName}.queries.cyp`);
+
+  debug(`query: executing ${modelName}/${queryName}...`);
+  async function waterfall () {
+    const total = items.length;
+    const steps = Math.ceil(total / limit);
+
+    for(let i=0;i < steps;i++) {
+      debug(`query: tx starting - offset:` , i*limit, '- total:', total, '- limit:', limit);
+
+      await session.writeTransaction((tx) => {
+        for(item of items) {
+          const params = {
+            Project: 'impresso',
+            ...  item
+          }
+          verbose(`query: adding ${modelName} - uid: ${params.uid} - offset:` , i*limit, '- total:', total, params);
+          tx.run(neo4jPrepare(queries[queryName], params), params);
+        }
+      }).then(res => {
+        debug(`query: tx success! - offset:` , i*limit, '- total:', total, '- limit:', limit);
+      });
+    }
+  }
+
+  return waterfall()
+}
+
 const count = (modelName, params) => {
   const queries = require('decypher')(`${__dirname}/../src/services/${modelName}/${modelName}.queries.cyp`);
 
@@ -82,4 +111,5 @@ module.exports = {
   merge,
   count,
   apoc,
+  query,
 };
