@@ -1,15 +1,24 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
-const { normalizeEmptyRecords, raiseErrorIfEmpty, parseJsonProperty } = require('../../hooks/neo4j');
-const { validate, queryWithCommonParams, REGEX_SLUG } = require('../../hooks/params');
+const { validate, queryWithCommonParams, utils } = require('../../hooks/params');
 
 
 module.exports = {
   before: {
     all: [
+
+    ],
+    find: [
+      validate({
+        q: {
+          required: false,
+          min_length: 2,
+          max_length: 100,
+          transform: utils.toLucene
+        }
+      }),
       queryWithCommonParams()
     ],
-    find: [],
     get: [],
     create: [
       authenticate('jwt') // and is staff

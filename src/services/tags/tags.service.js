@@ -3,12 +3,13 @@ const createService = require('./tags.class.js');
 const hooks = require('./tags.hooks');
 
 module.exports = function (app) {
-  
+
   const paginate = app.get('paginate');
 
   const options = {
     name: 'tags',
-    paginate
+    paginate,
+    config: app.get('neo4j'),
   };
 
   // Initialize our service with any options it requires

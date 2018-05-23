@@ -1,18 +1,7 @@
 /* eslint-disable no-unused-vars */
-class Service {
-  constructor (options) {
-    this.options = options || {};
-  }
+const Neo4jService = require('../neo4j.service').Service;
 
-  async find (params) {
-    return [];
-  }
-
-  async get (id, params) {
-    return {
-      id, text: `A new message with ID: ${id}!`
-    };
-  }
+class Service extends Neo4jService {
 
   async create (data, params) {
     if (Array.isArray(data)) {
@@ -20,18 +9,6 @@ class Service {
     }
 
     return data;
-  }
-
-  async update (id, data, params) {
-    return data;
-  }
-
-  async patch (id, data, params) {
-    return data;
-  }
-
-  async remove (id, params) {
-    return { id };
   }
 }
 
