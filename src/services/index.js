@@ -14,14 +14,16 @@ const version = require('./version/version.service.js');
 
 const proxy     = require('./proxy.js');
 
+const articlesTags = require('./articles-tags/articles-tags.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(users);
   app.configure(timeline);
   app.configure(buckets);
   app.configure(articles);
+  app.configure(articlesTags);
   app.configure(entities);
-
   app.configure(newspapers);
   app.configure(issues);
   app.configure(suggestions);
@@ -29,7 +31,7 @@ module.exports = function () {
   app.configure(queries);
   app.configure(pages);
   app.configure(tags);
+  app.configure(version);
 
   app.configure(proxy);
-  app.configure(version);
 };
