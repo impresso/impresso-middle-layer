@@ -57,15 +57,24 @@ class Neo4jService {
 
 
     debug('_finalize: resultAvailableAfter', neo4jToInt(res.summary.resultAvailableAfter),'ms')
-    if(Array.isArray(res.records) && res.records.length) {
-      const record = res.records[0];
-      debug('_finalize: record._fieldLookup:', record._fieldLookup)
-      if(record._fieldLookup) {
-        const countidx = record._fieldLookup._total;
+    if(Array.isArray(res.records)){
+      if(res.records.length) {
+        const record = res.records[0];
+        debug('_finalize: record._fieldLookup:', record._fieldLookup)
+        if(record._fieldLookup) {
+          const countidx = record._fieldLookup._total;
 
-        if(typeof countidx == 'number'){
-          count = neo4jToInt(record._fields[countidx]);
+          if(typeof countidx == 'number'){
+            count = neo4jToInt(record._fields[countidx]);
+          }
         }
+      } else {
+        return Neo4jService.wrap(
+          [],
+          res.queryParams? res.queryParams.limit: null,
+          res.queryParams? res.queryParams.skip: null,
+          0
+        )
       }
     }
 
@@ -76,8 +85,8 @@ class Neo4jService {
         res.records.map(neo4jRecordMapper),
         res.queryParams? res.queryParams.limit: null,
         res.queryParams? res.queryParams.skip: null,
-        count,
-        res.summary.counters._stats
+        count
+        //res.summary.counters._stats
       )
     } else {
       debug('_finalize: no count has been found.')
