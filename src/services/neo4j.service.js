@@ -13,6 +13,9 @@ class Neo4jService {
     this.options = options || {};
     this.config  = options.config;
 
+    // camelcase in options name
+    // this.options.path = this.options.name.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase()
+
     debug(`Configuring neo4j service: ${this.options.name}`);
 
     this._id = this.id = options.idField || options.id || 'id';
@@ -46,6 +49,16 @@ class Neo4jService {
       skip,
       total,
       info
+    }
+  }
+
+  _finalizeCreate (res) {
+    return {
+      data: res.records.map(neo4jRecordMapper),
+      info: {
+        resultAvailableAfter: res.summary.resultAvailableAfter.low,
+        _stats: res.summary.counters._stats,
+      }
     }
   }
 
