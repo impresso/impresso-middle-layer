@@ -3,7 +3,7 @@
 */
 const neo4j = require('neo4j-driver').v1;
 const debug = require('debug')('impresso/services:Neo4jService');
-const {neo4jPrepare, neo4jRecordMapper, neo4jNow, neo4jToInt} = require('./neo4j.utils');
+const {neo4jPrepare, neo4jRecordMapper, neo4jNow, neo4jRun, neo4jToInt} = require('./neo4j.utils');
 const errors = require('@feathersjs/errors');
 
 class Neo4jService {
@@ -27,40 +27,10 @@ class Neo4jService {
   }
 
   _run(cypherQuery, params) {
-    let session = this.driver.session()
-    // console.log('Neo4jService _run with:', neo4jPrepare(cypherQuery, params))
-    const preparedQuery = neo4jPrepare(cypherQuery, params);
-
-    debug('_run: with cypher query:', preparedQuery);
-
-    const queryParams = {
-      Project: this.config.project,
-      ... neo4jNow(),
-      ... params
-    }
-
-    debug('_run: with cypher params:', queryParams);
-
-    return session.run(preparedQuery, queryParams).then(res => {
-      session.close();
-      debug('_run: success! n. records:', res.records.length);
-      res.queryParams = queryParams
-      return res
-    }).catch( err => {
-      if(err.code == 'Neo.ClientError.Schema.ConstraintValidationFailed'){
-        debug(`_run failed. Neo.ClientError.Statement.ParameterMissing: ${err}`);
-        throw new errors.Conflict('ConstraintValidationFailed')
-      } else if(err.code == 'Neo.ClientError.Statement.ParameterMissing'){
-        debug('_run failed. Neo.ClientError.Statement.ParameterMissing:',err)
-        throw new errors.BadRequest('ParameterMissing')
-      } else if(err.code == 'Neo.ClientError.Statement.SyntaxError'){
-        debug('_run failed. Neo.ClientError.Statement.SyntaxError:',err);
-        throw new errors.BadGateway('SyntaxError')
-      }else {
-        debug('_run failed. Check error below.');
-        console.error(err);
-      }
-      throw new errors.BadRequest()
+    let session = this.driver.session();
+    return neo4jRun(session, cypherQuery, {
+      ... params,
+      Project: this.config.project
     });
   }
 
