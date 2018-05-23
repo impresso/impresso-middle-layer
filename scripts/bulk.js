@@ -77,7 +77,7 @@ const count = (modelName, params) => {
   debug(`count: ${modelName} using query 'count'`);
 
   return session.writeTransaction((tx) => {
-
+    verbose('count: <query>', queries.count);
     return tx.run(queries.count, {
       Project: 'impresso',
       ... params
