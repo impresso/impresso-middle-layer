@@ -20,7 +20,13 @@ const proxyIIIF = () => {
     } else if (context.result.data) {
       debug(`proxyIIIF: with result.data <length>: ${context.result.data.length}`);
       for (let page of context.result.data) {
-        page.iiif = _getIIIF(context, page.uid)
+        if(page.labels.indexOf('page') !== -1) {
+          page.iiif = _getIIIF(context, page.uid)
+        } else if(Array.isArray(page.pages)) {
+          for (let relatedpage of page.pages) {
+            relatedpage.iiif = _getIIIF(context, relatedpage.uid);
+          }
+        }
       }
     } else {
       debug('proxyIIIF: unable to find an UID to generate the IIIF')
