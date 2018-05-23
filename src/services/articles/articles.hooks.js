@@ -1,5 +1,6 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { sanitize } = require('../../hooks/params');
+const { proxyIIIF } = require('../../hooks/iiif');
 
 
 module.exports = {
@@ -27,8 +28,10 @@ module.exports = {
 
   after: {
     all: [
+
     ],
     find: [
+      proxyIIIF()
     ],
     get: [
     ],
