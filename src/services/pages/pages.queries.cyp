@@ -35,23 +35,31 @@ OPTIONAL MATCH (pag)<-[:appears_at]-(art:article)
 WITH pag, _related_regions, collect(art) as _related_articles
 OPTIONAL MATCH (pag)<-[:appears_at]-(art:article)
 WITH pag, _related_regions, _related_articles, art
+// collect top 20 entities
 OPTIONAL MATCH (art)<-[r:appears_in]-(ent:entity)
 WITH pag, _related_regions, _related_articles, r, art, ent
 ORDER BY r.ntf DESC
 SKIP 0
-LIMIT 10
+LIMIT 20
 WITH pag, _related_regions, _related_articles,
 CASE WHEN r IS NOT NULL THEN collect({
   properties: properties(r),
   type: type(r),
   article_uid: art.uid,
   entity_uid: ent.uid
-}) ELSE [] END as _related_links, collect(ent) as _related_entities
-WITH pag, _related_regions, _related_articles, _related_links, _related_entities
+}) ELSE [] END as _related_articles_entities, collect(ent) as _related_entities
+WITH pag, _related_regions, _related_articles, _related_articles_entities, _related_entities
+// collect tags
 OPTIONAL MATCH (t:tag)-[r:describes]->(art:article)-[:appears_at]->(pag)
+WITH pag, _related_regions, _related_articles, _related_articles_entities, _related_entities,
+CASE WHEN r IS NOT NULL THEN collect({
+  properties: properties(r),
+  type: type(r),
+  article_uid: art.uid,
+  tag_uid: t.uid
+}) ELSE [] END as _related_articles_tags, collect(DISTINCT t) as _related_tags
 
-WITH pag, _related_regions, _related_articles, _related_links, _related_entities, collect(t) as _related_tags
-RETURN pag, _related_regions, _related_articles, _related_links, _related_entities, _related_tags
+RETURN pag, _related_regions, _related_articles, _related_articles_entities, _related_entities, _related_articles_tags, _related_tags
 
 
 // name: merge
