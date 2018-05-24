@@ -60,7 +60,7 @@ CASE WHEN r IS NOT NULL THEN collect({
 }) ELSE [] END as _related_articles_tags, collect(DISTINCT t) as _related_tags
 
 RETURN pag, _related_regions, _related_articles, _related_articles_entities, _related_entities, _related_articles_tags, _related_tags
-
+LIMIT 1
 
 // name: merge
 //
