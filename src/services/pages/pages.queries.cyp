@@ -47,7 +47,11 @@ CASE WHEN r IS NOT NULL THEN collect({
   article_uid: art.uid,
   entity_uid: ent.uid
 }) ELSE [] END as _related_links, collect(ent) as _related_entities
-RETURN pag, _related_regions, _related_articles, _related_links, _related_entities
+WITH pag, _related_regions, _related_articles, _related_links, _related_entities
+OPTIONAL MATCH (t:tag)-[r:describes]->(art:article)-[:appears_at]->(pag)
+
+WITH pag, _related_regions, _related_articles, _related_links, _related_entities, collect(t) as _related_tags
+RETURN pag, _related_regions, _related_articles, _related_links, _related_entities, _related_tags
 
 
 // name: merge
