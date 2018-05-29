@@ -7,7 +7,30 @@
 //
 MATCH (pro:Project {uid:{Project}})
 WITH COALESCE(pro.count_article, 0) as _total
-MATCH (art:article {Project:{Project}})
+WITH _total
+
+{{#filters}}
+  {{#_isIssue}}
+  MATCH (art:article)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
+  WHERE iss.uid IN ['{{uids}}']
+  WITH art, _total
+  {{/_isIssue}}
+  {{#_isNewspaper}}
+  MATCH (art:article)
+  WHERE art.newspaper_uid IN ['{{uids}}']
+  WITH art, _total
+  // MATCH (art:article)-[*3]->(news:newspaper {uid:'GDL'}) RETURN art LIMIT 10
+  {{/_isNewspaper}}
+{{/filters}}
+{{^filters}}
+
+  MATCH (art:article)
+  WHERE
+  {{#uids}}
+    art.uid IN {uids}
+  {{/uids}}
+  art.Project = {Project:{Project}})
+{{/filters}}
 
 WITH art, _total
 
@@ -19,8 +42,16 @@ OPTIONAL MATCH (art)-[:appears_at]->(pag:page)
 WITH art, _total, collect(pag) as _related_pages
 OPTIONAL MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
 WITH art, _total, _related_pages, head(collect(iss)) as _related_issue
-RETURN art, _related_pages, _related_issue, _total
+OPTIONAL MATCH (tag:tag)-[:describes]->(art)
+WITH art, _total, _related_pages, _related_issue, collect(tag) as _related_tags
+{{#user__uid}}
+// add personal collections / buckets
+{{/user__uid}}
+RETURN art, _related_pages, _related_issue, _related_tags, _total
 
+
+// name: find_filtered
+// filter based on issue uid for the moment
 
 // name: get
 //
@@ -32,6 +63,23 @@ WITH art, pages, iss
 LIMIT 1
 RETURN art, pages as _related_pages, iss as _related_issue
 
+// name: merge
+//
+MERGE (art:article {Project:{Project}, uid:{uid}})
+SET
+  art.date = {date},
+  {{#title}}
+  art.title = {title},
+  {{/title}}
+  {{#excerpt}}
+  art.excerpt = {excerpt},
+  {{/excerpt}}
+  art.newspaper_uid = {newspaper__uid}
+WITH art
+MATCH (pag:page {Project:{Project}, uid:{page__uid}})
+MERGE (art)-[r:appears_at]->(pag)
+SET r.regions = {regions}
+RETURN art
 
 // name:setup
 //

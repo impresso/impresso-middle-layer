@@ -1,24 +1,42 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { sanitize } = require('../../hooks/params');
+const { validate, validateEach, queryWithCommonParams, REGEX_UIDS} = require('../../hooks/params');
 const { proxyIIIF } = require('../../hooks/iiif');
 
 
 module.exports = {
   before: {
     all: [
-      sanitize({
-        validators:{
-          q: {
-            min_length: 2,
-            max_length: 1000
-          },
-          order_by: {
-            choices: ['-date', 'date', '-relevance', 'relevance']
-          }
+
+      validate({
+        q: {
+          required: false,
+          min_length: 2,
+          max_length: 1000
+        },
+        order_by: {
+          choices: ['-date', 'date', '-relevance', 'relevance']
         }
       })
     ],//authenticate('jwt') ],
-    find: [],
+    find: [
+      validateEach('filters', {
+        context: {
+          choices: ['include', 'exclude'],
+          required: true,
+        },
+        type: {
+          choices: ['String', 'NamedEntity', 'Issue', 'Newspaper'],
+          required: true,
+        },
+        uids: {
+          regex: REGEX_UIDS,
+          required: false,
+          // we cannot transform since Mustache is render the filters...
+          // transform: d => d.split(',')
+        }
+      }),
+      queryWithCommonParams()
+    ],
     get: [],
     create: [],
     update: [],
