@@ -442,14 +442,30 @@ const validateEach = (paramName, validators) => {
   }
 }
 
+const displayQueryParams = (paramNames = []) => {
+  return async context => {
+    if (context.type !== 'after') {
+      throw new Error(`The 'displayQueryParams' hook should only be used as a 'after' hook.`);
+    }
+    console.log(context.result);
+    if(!context.result.info) {
+      context.result.info = {}
+    }
+    paramNames.forEach(p => {
+      context.result.info[p] = context.params.sanitized[p];
+    });
+  }
+}
 
 module.exports = {
+  displayQueryParams,
   forwardStrategy,
   sanitize,
   verbose,
   validate,
   validateEach,
   queryWithCommonParams,
+
 
   VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL,
