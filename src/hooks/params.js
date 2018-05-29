@@ -447,7 +447,7 @@ const displayQueryParams = (paramNames = []) => {
     if (context.type !== 'after') {
       throw new Error(`The 'displayQueryParams' hook should only be used as a 'after' hook.`);
     }
-    console.log(context.result);
+    debug(`displayQueryParams: ${paramNames}`);
     if(!context.result.info) {
       context.result.info = {}
     }
