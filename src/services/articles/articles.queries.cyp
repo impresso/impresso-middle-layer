@@ -21,6 +21,12 @@ WITH _total
   WITH art, _total
   // MATCH (art:article)-[*3]->(news:newspaper {uid:'GDL'}) RETURN art LIMIT 10
   {{/_isNewspaper}}
+  {{#_isString}}
+  MATCH (art:article)
+  WHERE art.Project = {Project}
+  WITH art, _total
+  // MATCH (art:article)-[*3]->(news:newspaper {uid:'GDL'}) RETURN art LIMIT 10
+  {{/_isString}}
 {{/filters}}
 {{^filters}}
   MATCH (art:article)
