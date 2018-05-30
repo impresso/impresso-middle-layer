@@ -23,13 +23,13 @@ WITH _total
   {{/_isNewspaper}}
 {{/filters}}
 {{^filters}}
-
   MATCH (art:article)
-  WHERE
   {{#uids}}
-    art.uid IN {uids}
+  WHERE art.uid IN {uids}
   {{/uids}}
-  art.Project = {Project:{Project}})
+  {{^uids}}
+  WHERE art.Project = {Project}
+  {{/uids}}
 {{/filters}}
 
 WITH art, _total
