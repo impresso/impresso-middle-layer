@@ -420,10 +420,11 @@ const validateEach = (paramName, validators) => {
     if (context.type !== 'before') {
       throw new Error(`The 'validateFilters' hook should only be used as a 'before' hook.`);
     }
-    console.log(context.params.query.filters)
+    // console.log(context.params.query.filters)
     if(!Array.isArray(context.params.query[paramName])) {
-      debug(`validateEach: ${paramName} not found in "context.params.query" or is not an Array.`);
-      throw new Error(`The param ${paramName} should exist and be an array.`);
+      debug(`validateEach: ${paramName} not found in "context.params.query" or is not an Array. Ignore.`);
+      // throw new Error(`The param ${paramName} should exist and be an array.`);
+      return;
     }
     debug(`validateEach: ${paramName}`);
     //_validate(context.query, validators)
