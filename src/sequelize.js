@@ -35,7 +35,7 @@ const operatorsAliases = {
   $any: Op.any,
   $all: Op.all,
   $values: Op.values,
-  $col: Op.col
+  $col: Op.col,
 };
 
 const getSequelizeClient = (config) => {
@@ -51,19 +51,19 @@ const getSequelizeClient = (config) => {
 
     // do not look for dummy created_at or updated_at
     define: {
-        timestamps: false
-    }
+      timestamps: false,
+    },
     // define: {
     //   freezeTableName: true
     // }
   });
-}
+};
 
-module.exports = function (app) {
+module.exports = function(app) {
   const config = app.get('sequelize');
   const sequelize = getSequelizeClient(config);
   logger.info('connection to postgres database ...');
-  //const oldSetup = app.setup;
+  // const oldSetup = app.setup;
   // test connection
   sequelize
     .authenticate()
