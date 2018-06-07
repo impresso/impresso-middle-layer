@@ -14,21 +14,21 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
     all: [],
     find: [
-      proxyIIIF()
+      proxyIIIF(),
     ],
     get: [
-      proxyIIIF()
+      proxyIIIF(),
     ],
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -38,6 +38,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

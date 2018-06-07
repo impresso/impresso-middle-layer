@@ -11,13 +11,13 @@ module.exports = {
         q: {
           required: false,
           min_length: 2,
-          max_length: 1000
+          max_length: 1000,
         },
         order_by: {
-          choices: ['-date', 'date', '-relevance', 'relevance']
-        }
-      })
-    ],//authenticate('jwt') ],
+          choices: ['-date', 'date', '-relevance', 'relevance'],
+        },
+      }),
+    ], // authenticate('jwt') ],
     find: [
       validateEach('filters', {
         context: {
@@ -33,15 +33,15 @@ module.exports = {
           required: false,
           // we cannot transform since Mustache is render the filters...
           // transform: d => d.split(',')
-        }
+        },
       }),
-      queryWithCommonParams()
+      queryWithCommonParams(),
     ],
     get: [],
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
@@ -57,7 +57,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -67,6 +67,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

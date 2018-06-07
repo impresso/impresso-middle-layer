@@ -13,24 +13,24 @@ module.exports = {
           required: false,
           min_length: 2,
           max_length: 100,
-          transform: utils.toLucene
-        }
+          transform: utils.toLucene,
+        },
       }),
-      queryWithCommonParams()
+      queryWithCommonParams(),
     ],
     get: [],
     create: [
-      authenticate('jwt') // and is staff
+      authenticate('jwt'), // and is staff
     ],
     update: [
-      authenticate('jwt') // and is staff
+      authenticate('jwt'), // and is staff
     ],
     patch: [
-      authenticate('jwt') // and is staff
+      authenticate('jwt'), // and is staff
     ],
     remove: [
-      authenticate('jwt') // and is staff
-    ]
+      authenticate('jwt'), // and is staff
+    ],
   },
 
   after: {
@@ -42,7 +42,7 @@ module.exports = {
     ],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -52,6 +52,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

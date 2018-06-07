@@ -6,21 +6,21 @@ module.exports = {
     all: [
       validate({
         // request must contain a label - from which we will create a UID
-        using:{
+        using: {
           required: true,
           choices: [
             'article',
             'newspaper_issues_by_year',
             'newspaper_articles_by_year',
-            'entity'
-          ]
+            'entity',
+          ],
         },
-        uid:{
+        uid: {
           required: true,
-          regex: REGEX_UID
-        }
-      })
-    ],// authenticate('jwt') ],
+          regex: REGEX_UID,
+        },
+      }),
+    ], // authenticate('jwt') ],
     find: [
 
     ],
@@ -28,19 +28,19 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
     all: [
-      normalizeTimeline()
+      normalizeTimeline(),
     ],
     find: [],
     get: [],
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -50,6 +50,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

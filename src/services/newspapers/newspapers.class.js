@@ -4,7 +4,7 @@ class Service extends FusionService{
 
 }
 
-module.exports = function (options) {
+module.exports = function(options) {
   return new Service(options);
 };
 module.exports.Service = Service;

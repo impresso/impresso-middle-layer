@@ -12,11 +12,11 @@ const pages = require('./pages/pages.service.js');
 const tags = require('./tags/tags.service.js');
 const version = require('./version/version.service.js');
 
-const proxy     = require('./proxy.js');
+const proxy = require('./proxy.js');
 
 const articlesTags = require('./articles-tags/articles-tags.service.js');
 
-module.exports = function () {
+module.exports = function() {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(users);
   app.configure(timeline);

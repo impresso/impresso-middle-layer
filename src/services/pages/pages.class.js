@@ -2,10 +2,10 @@
 const CompositeService = require('../neo4j.service').Service;
 
 class Service extends CompositeService {
-  
+
 }
 
-module.exports = function (options) {
+module.exports = function(options) {
   return new Service(options);
 };
 

@@ -4,7 +4,7 @@ const hooks = require('./articles.hooks');
 const queries = require('decypher')(__dirname + '/articles.queries.cyp');
 
 
-module.exports = function (app) {
+module.exports = function(app) {
 
   const paginate = app.get('paginate');
 
@@ -12,7 +12,7 @@ module.exports = function (app) {
     name: 'articles',
     paginate,
     // need to pass config and queries to neo4j.service
-    config: app.get('neo4j')
+    config: app.get('neo4j'),
   };
 
   // Initialize our service with any options it requires

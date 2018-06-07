@@ -4,7 +4,7 @@ const { queryWithCommonParams, validate, utils } = require('../../hooks/params')
 module.exports = {
   before: {
     all: [
-      queryWithCommonParams(false)
+      queryWithCommonParams(false),
     ],
     find: [
       validate({
@@ -12,9 +12,9 @@ module.exports = {
           required: true,
           min_length: 2,
           max_length: 1000,
-          transform: utils.toLucene
-        }
-      })
+          transform: utils.toLucene,
+        },
+      }),
     ],
   },
 
@@ -25,7 +25,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -37,6 +37,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

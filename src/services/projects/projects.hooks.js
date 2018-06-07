@@ -3,14 +3,14 @@ const { sanitize } = require('../../hooks/params');
 module.exports = {
   before: {
     all: [
-      sanitize()
-    ]
+      sanitize(),
+    ],
   },
 
   after: {
     all: [],
     find: [],
-    get: []
+    get: [],
   },
 
   error: {
@@ -20,6 +20,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

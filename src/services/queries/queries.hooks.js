@@ -13,55 +13,55 @@ module.exports = {
 
       queryWithCurrentUser({
         idField: 'uid',
-        as: 'user__uid'
+        as: 'user__uid',
       }),
     ],
     find: [],
     get: [],
     create: [
       validate({
-        name:{
+        name: {
           required: true,
-          max_length: 100
+          max_length: 100,
         },
-        data:{
+        data: {
           required: true,
           max_length: 2000,
           fn: (d) => {
-            if(typeof d != 'object')
+            if (typeof d !== 'object')
               return false;
-            return true
+            return true;
           },
-          transform: (d) => JSON.stringify(d)
+          transform: (d) => JSON.stringify(d),
         },
-        parent__uid:{
-          required:false,
-          regex: REGEX_SLUG
-        }
-      })
+        parent__uid: {
+          required: false,
+          regex: REGEX_SLUG,
+        },
+      }),
     ],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
     all: [],
     find: [
       normalizeEmptyRecords(),
-      parseJsonProperty()
+      parseJsonProperty(),
     ],
     get: [
-      parseJsonProperty()
+      parseJsonProperty(),
     ],
     create: [
       raiseErrorIfEmpty({
-        "explanation": "Can't create query object, please check your parent__uid value"
-      })
+        explanation: "Can't create query object, please check your parent__uid value",
+      }),
     ],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -71,6 +71,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

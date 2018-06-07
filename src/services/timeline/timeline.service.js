@@ -2,7 +2,7 @@
 const createService = require('./timeline.class.js');
 const hooks = require('./timeline.hooks');
 
-module.exports = function (app) {
+module.exports = function(app) {
 
   const paginate = app.get('paginate');
 

@@ -5,7 +5,7 @@ class Service extends Neo4jService {
 
 }
 
-module.exports = function (options) {
+module.exports = function(options) {
   return new Service(options);
 };
 

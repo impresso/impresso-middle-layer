@@ -4,7 +4,7 @@ const hooks = require('./entities.hooks');
 const queries = require('decypher')(__dirname + '/entities.queries.cyp');
 
 
-module.exports = function () {
+module.exports = function() {
   const app = this;
   const paginate = app.get('paginate');
 
@@ -12,7 +12,7 @@ module.exports = function () {
     name: 'entities',
     paginate,
     config: app.get('neo4j'),
-    queries: queries
+    queries: queries,
   };
 
   // follow guideline at
@@ -31,7 +31,6 @@ module.exports = function () {
   // })
 
 
-
   // Initialize our service with any options it requires
   app.use('/entities', createService(options));
   app.use('/entities/:uid/timeline', {
@@ -39,13 +38,13 @@ module.exports = function () {
       return this.app.service('timeline').find({
         query: {
           label: 'entity',
-          uid: params.route.uid
-        }
+          uid: params.route.uid,
+        },
       });
     },
     setup(app) {
       this.app = app;
-    }
+    },
   });
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('entities');

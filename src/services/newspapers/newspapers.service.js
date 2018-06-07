@@ -6,7 +6,7 @@ const hooks = require('./newspapers.hooks');
 // const queries = require('decypher')(__dirname + '/newspapers.queries.cyp');
 
 
-module.exports = function (app) {
+module.exports = function(app) {
 
   const paginate = app.get('paginate');
 

@@ -2,7 +2,7 @@
 const createService = require('./tags.class.js');
 const hooks = require('./tags.hooks');
 
-module.exports = function (app) {
+module.exports = function(app) {
 
   const paginate = app.get('paginate');
 

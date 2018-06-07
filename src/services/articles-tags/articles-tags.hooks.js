@@ -10,7 +10,7 @@ module.exports = {
     create: [
       queryWithCurrentUser({
         idField: 'uid',
-        as: 'user__uid'
+        as: 'user__uid',
       }),
       validate({
         article__uid: {
@@ -20,12 +20,12 @@ module.exports = {
         tag__uid: {
           required: true,
           regex: REGEX_UID,
-        }
-      })
+        },
+      }),
     ],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
@@ -35,7 +35,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -45,6 +45,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

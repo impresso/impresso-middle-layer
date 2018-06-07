@@ -2,7 +2,7 @@
 const createService = require('./queries.class.js');
 const hooks = require('./queries.hooks');
 
-module.exports = function (app) {
+module.exports = function(app) {
 
   const paginate = app.get('paginate');
 

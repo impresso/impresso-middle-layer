@@ -10,11 +10,10 @@ const sequelizeRecordMapper = (record) => {
     ...
    ]
   */
-  return record.toJSON()
-}
-
+  return record.toJSON();
+};
 
 
 module.exports = {
-  sequelizeRecordMapper
-}
+  sequelizeRecordMapper,
+};

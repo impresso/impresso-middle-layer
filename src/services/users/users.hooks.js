@@ -8,9 +8,9 @@ module.exports = {
     all: [ ],
     find: [
       sanitize({
-        validators:{
-          ...VALIDATE_OPTIONAL_EMAIL,
-          ...VALIDATE_OPTIONAL_GITHUB_ID
+        validators: {
+          ... VALIDATE_OPTIONAL_EMAIL,
+          ... VALIDATE_OPTIONAL_GITHUB_ID
         }
       }), authenticate('jwt')
     ],

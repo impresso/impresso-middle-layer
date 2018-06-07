@@ -2,14 +2,14 @@
 const createService = require('./articles-tags.class.js');
 const hooks = require('./articles-tags.hooks.js');
 
-module.exports = function (app) {
+module.exports = function(app) {
 
   const paginate = app.get('paginate');
 
   const options = {
     name: 'articles-tags',
     paginate,
-    config: app.get('neo4j')
+    config: app.get('neo4j'),
   };
 
   // Initialize our service with any options it requires
