@@ -4,7 +4,7 @@ const compress = require('compression');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 
 const feathers = require('@feathersjs/feathers');
 const express = require('@feathersjs/express');
@@ -22,7 +22,7 @@ const appHooks = require('./app.hooks');
 const authentication = require('./authentication');
 
 const sequelize = require('./sequelize');
-const neo4j     = require('./neo4j');
+const neo4j = require('./neo4j');
 
 const app = express(feathers());
 
@@ -34,7 +34,7 @@ app.use(helmet());
 app.use(compress());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Host the public folder
 app.use('/', express.static(app.get('public')));
@@ -87,17 +87,17 @@ app.use(handler({
       res.json({ message: 'Not found' });
     },
     500: (err, req, res, next) => {
-      console.log(err.toJSON())
-      res.json({ message: 'service unavailable'})
+      console.log(err.toJSON());
+      res.json({ message: 'service unavailable'});
     },
     // bad request
-    400 : (err, req, res, next) => {
+    400: (err, req, res, next) => {
       // console.log(err)
       res.json({
         message: 'Please check request params',
         name: err.name,
         code: err.code,
-        errors: err.data
+        errors: err.data,
       });
     },
     default: (err, req, res, next) => {
@@ -105,8 +105,8 @@ app.use(handler({
       // console.log(err)
       delete err.stack;
       res.json({ message: err.message });
-    }
-  }
+    },
+  },
 }));
 app.hooks(appHooks);
 
