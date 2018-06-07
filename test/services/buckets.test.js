@@ -12,11 +12,11 @@ describe('\'buckets\' service', () => {
     const service = app.service('buckets');
 
     service.find({limit: 10}).then(res => {
-      console.log(res)
+      console.log(res);
       assert.ok(service, 'Registered the service');
     }).catch(err => {
       assert.empty(err, 'Registered the service');
-    })
+    });
 
   });
 });

@@ -3,6 +3,6 @@ const { sanitize, normalize, finalize, finalizeMany } = require('../../src/hooks
 
 describe('\'neo4j\' hook', () => {
   it('runs sanitize', (done) => {
-    done()
+    done();
   });
 });

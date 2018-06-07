@@ -10,9 +10,9 @@ describe('\'suggestions\' service', () => {
 
   it('say hello', (done) => {
     app.service('suggestions').find({q: ''}).then(result => {
-      assert.ok()
+      assert.ok();
       done();
     }).catch(done);
 
-  })
+  });
 });

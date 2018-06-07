@@ -23,8 +23,8 @@ describe('Feathers application tests', () => {
       return rp({
         url: 'http://localhost:3030/path/to/nowhere',
         headers: {
-          'Accept': 'text/html'
-        }
+          Accept: 'text/html',
+        },
       }).catch(res => {
         assert.equal(res.statusCode, 404);
         assert.ok(res.error.indexOf('<html>') !== -1);
@@ -34,7 +34,7 @@ describe('Feathers application tests', () => {
     it('shows a 404 JSON error without stack trace', () => {
       return rp({
         url: 'http://localhost:3030/path/to/nowhere',
-        json: true
+        json: true,
       }).catch(res => {
         assert.equal(res.statusCode, 404);
         assert.equal(res.error.code, 404);
