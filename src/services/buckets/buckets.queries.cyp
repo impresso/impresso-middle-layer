@@ -36,7 +36,6 @@ SET
   {{/description}}
   buc.creation_time = {_exec_time},
   buc.creation_date = {_exec_date}
-
 WITH u, art, buc
 MERGE (u)-[r:is_creator_of]->(buc)
 MERGE (buc)-[:contains]->(art)
@@ -45,7 +44,41 @@ MATCH (u)-[r:is_creator_of]->()
 WITH u, buc, count(r) as _created
 SET u.count_buckets = _created
 WITH buc
-MATCH (buc)-[r:contains]->()
+MATCH (buc)-[r:contains]->(art:article)
 WITH buc, count(r) as _contained
-SET buc.count_items = _contained
+SET buc.count_articles = _contained
 RETURN buc
+
+
+// name: page_create
+// create bucket and add relationships with pages
+MATCH (pag:page)
+WHERE pag.uid IN {uids} AND Project = {Project}
+WITH pag
+MATCH (u:user {uid:{user__uid}})
+WITH u, pag
+CREATE (buc:bucket {uid:{uid}, Project:{Project}, name:{name}})
+SET
+  {{#description}}
+  buc.description = {description},
+  {{/description}}
+  buc.creation_time = {_exec_time},
+  buc.creation_date = {_exec_date}
+WITH u, pag, buc
+MERGE (u)-[r:is_creator_of]->(buc)
+MERGE (buc)-[:contains]->(pag)
+WITH u, buc
+MATCH (u)-[r:is_creator_of]->()
+WITH u, buc, count(r) as _created
+SET u.count_buckets = _created
+WITH buc
+MATCH (buc)-[r:contains]->(pag:page)
+WITH buc, count(r) as _contained
+SET buc.count_pages = _contained
+RETURN buc
+
+
+
+CALL apoc.index.addAllNodes('bucket_suggestions',{
+  bucket: ["name"]
+})
