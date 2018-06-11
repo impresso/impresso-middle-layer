@@ -1,5 +1,6 @@
+const debug = require('debug')('impresso/services:buckets');
 const Neo4jService = require('../neo4j.service').Service;
-const slugify = require('slugify')
+const slugify = require('slugify');
 
 
 class Service extends Neo4jService {
@@ -22,6 +23,8 @@ class Service extends Neo4jService {
       // user_uid = data.sanitized.owner_uid;
     }
 
+    debug(`${this.name} create: `, data.sanitized);
+
     //const label =owner_uid
     const query = this.queries[[data.sanitized.label, 'create'].join('_')]
 
@@ -36,16 +39,37 @@ class Service extends Neo4jService {
     return this._run(query, queryParams).then(this._finalize);
   }
 
-  async update (id, data, params) {
-    return data;
-  }
-
+  /**
+   * async patch - description
+   *
+   * @param  {string} id    uid
+   * @param  {object} data   description and name if any to be changed.
+   * @param  {type} params description
+   * @return {type}        description
+   */
   async patch (id, data, params) {
+    const queryParams = {
+      user__uid: params.user.uid,
+      uid: uid,
+      description: data.sanitized.description,
+      name: data.sanitized.name,
+      uids: data.sanitized.uids
+    }
+    const query = this.queries[[data.sanitized.label, 'patch'].join('_')]
+    return this._run(query, queryParams).then(this._finalize);
     return data;
   }
 
   async remove (id, params) {
-    return { id };
+    const queryParams = {
+      user__uid: params.user.uid,
+      uid: uid
+    }
+
+
+
+    return {id}
+
   }
 }
 

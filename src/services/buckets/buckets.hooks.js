@@ -1,19 +1,32 @@
 const auth = require('@feathersjs/authentication');
 const { authenticate } = auth.hooks;
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
-const { queryWithCommonParams, validate, VALIDATE_UIDS, REGEX_UID } = require('../../hooks/params');
+const { queryWithCommonParams, validate, REGEX_UIDS, VALIDATE_UIDS, REGEX_UID, utils } = require('../../hooks/params');
+
+const ORDER_BY = {
+  'date': 'buc.creation_time',
+  'latest': 'buc.last_modified_time',
+  'name': 'buc.name',
+}
 
 module.exports = {
   before: {
     all: [
-      authenticate('jwt'),
-      queryWithCommonParams(),
-      queryWithCurrentUser({
-        idField: 'uid',
-        as: 'user__uid'
-      }),
-    ], // authenticate('jwt') ],
+      authenticate('jwt')
+    ],
     find: [
+      validate({
+        q: {
+          required: false,
+          min_length: 2,
+          max_length: 1000,
+          transform: utils.toLucene,
+        },
+        order_by: {
+          choices: ['-date', 'date', '-latest', 'latest', '-name', 'name'],
+          transform: (d) => utils.toOrderBy(d, ORDER_BY)
+        },
+      }),
       // queryWithCurrentUser()
       // validate({
       //   // the bucket owner uid
@@ -23,16 +36,18 @@ module.exports = {
       //   //   regex: REGEX_UID
       //   // },
       // })
+      queryWithCommonParams(),
+      queryWithCurrentUser({
+        idField: 'uid',
+        as: 'user__uid'
+      }),
     ],
     get: [
-      // validate({
-      //   // the bucket owner uid
-      //   // owner_uid: {
-      //   //   required: false,
-      //   //   min_length: 3,
-      //   //   regex: REGEX_UID
-      //   // },
-      // })
+      queryWithCommonParams(),
+      queryWithCurrentUser({
+        idField: 'uid',
+        as: 'user__uid'
+      }),
     ],
     create: [
       validate({
@@ -56,11 +71,14 @@ module.exports = {
         // MUST contain a service label
         label:{
           required: true,
-          choices: ['article']
+          choices: ['article', 'page']
         },
         // MUST contain uids for the given label
-        ... VALIDATE_UIDS
-      })
+        uids: {
+          required: true,
+          regex: REGEX_UIDS
+        }
+      }, 'POST')
     ],
     update: [],
     patch: [],
