@@ -25,7 +25,7 @@ module.exports = {
           required: true,
         },
         type: {
-          choices: ['String', 'NamedEntity', 'Issue', 'Newspaper'],
+          choices: ['string', 'namedEntity', 'issue', 'newspaper'],
           required: true,
         },
         uids: {
