@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const configuration  = require('@feathersjs/configuration')()();
 const debug = require('debug')('impresso/hooks:params');
 
-const _toLucene = (query, force_fuzzy=true) => {
+const toLucene = (query, force_fuzzy=true) => {
   // @todo excape chars + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 
   // replace query
@@ -64,66 +64,86 @@ const _toLucene = (query, force_fuzzy=true) => {
   return q;
 }
 
+
+const toOrderBy = (ordering, translateTable) => { 
+  if(ordering.indexOf('-') === 0) {
+    const _ordering = translateTable[ordering.substr(1)];
+    return `${_ordering} DESC`
+  }
+  const _ordering = translateTable[ordering];
+  return `${_ordering} ASC`
+}
+
+const _validateOne = (key, item, rule) => {
+  let _errors = {};
+  // it is required
+  if(rule.required === true && typeof item == 'undefined'){
+    _errors[key] =  {
+      code: 'NotFound',
+      message: key + ' required'
+    };
+  } else if(typeof item == 'undefined'){
+    return
+  }
+
+  if(rule.max_length && item.length > rule.max_length) {
+    _errors[key] =  {
+      code: 'NotValidLength',
+      message: rule.message || key + ' param is not valid'
+    };
+  }
+  if(rule.min_length && item.length < rule.min_length) {
+    _errors[key] =  {
+      code: 'NotValidLength',
+      message: rule.message || key + ' param is not valid'
+    };
+  }
+  if(rule.choices && rule.choices.indexOf(item) === -1) {
+    _errors[key] =  {
+      code: 'NotInArray',
+      ref: rule.choices,
+      message: rule.message || key + ' param is not valid'
+    };
+  }
+
+  if(rule.regex && !rule.regex.test(item)) {
+    _errors[key] =  {
+      code: 'NotValidRegex',
+      regex: rule.regex.toString(),
+      message: rule.message || key + ' param is not valid'
+    };
+  }
+
+  if(rule.fn && rule.fn(item) !== true) {
+    _errors[key] =  {
+      code: 'NotValidCustomFunction',
+      message: rule.message || key + ' param is not valid'
+    };
+  }
+
+  // sanitize/transform params
+  if(typeof rule.transform == 'function') {
+    item = rule.transform(item);
+  }
+
+  if(Object.keys(_errors).length) {
+    debug('_validateOne: errors:', _errors)
+    throw new errors.BadRequest(_errors);
+  }
+
+  return item;
+}
+
 const _validate = (params, rules) => {
   let _params = {},
       _errors = {};
-  for(let key in rules){
-    // it is required
-    if(rules[key].required === true && typeof params[key] == 'undefined'){
 
-      _errors[key] =  {
-        code: 'NotFound',
-        message: key + ' required'
-      };
-      break;
-    } else if(typeof params[key] == 'undefined'){
-      continue;
-    }
-
-    if(rules[key].max_length && params[key].length > rules[key].max_length) {
-      _errors[key] =  {
-        code: 'NotValidLength',
-        message: rules[key].message || key + ' param is not valid'
-      };
-      break;
-    }
-    if(rules[key].min_length && params[key].length < rules[key].min_length) {
-      _errors[key] =  {
-        code: 'NotValidLength',
-        message: rules[key].message || key + ' param is not valid'
-      };
-      break;
-    }
-    if(rules[key].choices && rules[key].choices.indexOf(params[key]) === -1) {
-      _errors[key] =  {
-        code: 'NotInArray',
-        message: rules[key].message || key + ' param is not valid'
-      };
-      break;
-    }
-
-    if(rules[key].regex && !rules[key].regex.test(params[key])) {
-      _errors[key] =  {
-        code: 'NotValidRegex',
-        regex: rules[key].regex.toString(),
-        message: rules[key].message || key + ' param is not valid'
-      };
-      break;
-    }
-
-    if(rules[key].fn && rules[key].fn(params[key]) !== true) {
-      _errors[key] =  {
-        code: 'NotValidCustomFunction',
-        message: rules[key].message || key + ' param is not valid'
-      };
-      break;
-    }
-
-    // sanitize/transform params
-    if(typeof rules[key].transform == 'function'){
-      _params[key] = rules[key].transform(params[key]);
+  for(let key in rules) {
+    // it is an Array of values
+    if(Array.isArray(params[key])) {
+      _params[key] = params[key].map(d => _validateOne(key, d, rules[key]))
     } else {
-      _params[key] = params[key]
+      _params[key] = _validateOne(key, params[key], rules[key]);
     }
   }
   if(Object.keys(_errors).length){
@@ -148,6 +168,13 @@ const VALIDATE_UIDS = {
   }
 }
 
+const VALIDATE_OPTIONAL_UIDS = {
+  uids: {
+    required: false,
+    regex: REGEX_UIDS,
+    transform: (d) => d.split(',')
+  }
+}
 
 const VALIDATE_EMAIL = {
   email: {
@@ -188,22 +215,23 @@ const VALIDATE_OPTIONAL_PASSWORD = {
   Validate data field for POST and GET request.
   Note: it creates context.data.sanitized.
 */
-const validate = ( validators ) => {
+const validate = ( validators, method='GET') => {
   return async context => {
     if(!validators)
       return;
     debug('validate: <validators keys>', Object.keys(validators));
 
-    if(context.data){
-      context.data.sanitized = _validate(context.data, validators)
-      debug('validate: POST data');
-    } else {
+    if(method === 'GET') {
       debug('validate: GET data', context.params.query);
       const validated = _validate(context.params.query, validators);
       if(!context.params.sanitized)
         context.params.sanitized = validated
       else
         Object.assign(context.params.sanitized, validated)
+      return;
+    } else {
+      debug('validate: POST data');
+      context.data.sanitized = _validate(context.data, validators)
     }
   }
 }
@@ -361,6 +389,9 @@ const queryWithCommonParams = (replaceQuery=true) => {
       max_limit: 500
     }
 
+    if(params.user){
+      console.log(params.user)
+    }
     // num of results expected, 0 to 500
     if(context.params.query.limit) {
       let limit = parseInt(context.params.query.limit);
@@ -473,6 +504,7 @@ module.exports = {
   VALIDATE_OPTIONAL_PASSWORD,
   VALIDATE_EMAIL,
   VALIDATE_PASSWORD,
+  VALIDATE_OPTIONAL_UIDS,
   VALIDATE_UIDS,
 
   // common regex
@@ -484,6 +516,7 @@ module.exports = {
   REGEX_UIDS,
 
   utils: {
-    toLucene: _toLucene
+    toOrderBy,
+    toLucene
   }
 }
