@@ -1,5 +1,5 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UIDS} = require('../../hooks/params');
+const { validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UIDS } = require('../../hooks/params');
 const { proxyIIIF } = require('../../hooks/iiif');
 
 
@@ -28,7 +28,7 @@ module.exports = {
           choices: ['string', 'entity', 'issue', 'newspaper'],
           required: true,
         },
-        uids: {
+        uid: {
           regex: REGEX_UIDS,
           required: false,
           // we cannot transform since Mustache is render the filters...
