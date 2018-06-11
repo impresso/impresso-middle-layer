@@ -23,7 +23,7 @@
   },
   "scripts": {
     "test": "npm run eslint && npm run mocha",
-    "eslint": "eslint src/. test/. --config .eslintrc.json",
+    "eslint": "eslint src/. test/. --config .eslintrc.json --fix",
     "start": "node src/",
     "dev": "nodemon src/",
     "mocha": "mocha test/ --recursive --exit",
@@ -63,6 +63,8 @@
     "feathers-solr": "^1.1.5",
     "helmet": "^3.12.0",
     "http-proxy-middleware": "^0.18.0",
+    "lodash.groupby": "^4.6.0",
+    "lodash.map": "^4.6.0",
     "moment": "^2.22.1",
     "mustache": "^2.3.0",
     "mysql2": "^1.5.3",
@@ -80,8 +82,9 @@
   },
   "devDependencies": {
     "eslint": "^4.19.1",
+    "eslint-config-strongloop": "^2.1.0",
     "mocha": "^4.1.0",
-    "request": "^2.85.0",
+    "request": "^2.87.0",
     "request-promise": "^4.2.2"
   }
 }
