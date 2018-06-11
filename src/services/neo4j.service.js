@@ -12,7 +12,7 @@ class Neo4jService {
 
     this.options = options || {};
     this.config  = options.config;
-
+    this.name = options.name;
     // camelcase in options name
     // this.options.path = this.options.name.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase()
 
@@ -114,19 +114,37 @@ class Neo4jService {
   }
 
   async get (id, params) {
-    debug(`get: with id:${id} and params.isSafe:${params.isSafe} and params.query:`,  params.query);
-    return this._run(this.queries.get, {
-      uid: id,
-      ... params.isSafe? params.query: params.sanitized
-    }).then(this._finalize).then(records => {
+    debug(`get: ${this.name} with id:${id} and params.isSafe:${params.isSafe} and params.query:`, params.query);
 
+    const uids = id.split(',')
+
+    // query params
+    let query;
+    let qp = {
+      ... params.isSafe? params.query: params.sanitized
+    };
+    
+    if(uids.length > 1) {
+      qp.uids = uids
+      query = this.queries.findAll
+    } else if(id == '*') {
+      query = this.queries.findAllWildcard
+    } else {
+      query = this.queries.get
+      qp.uid = id
+    }
+
+    if(!query) {
+      throw new errors.NotImplemented()
+    }
+
+    return this._run(query, qp).then(this._finalize).then(records => {
       if(!records.length) {
         throw new errors.NotFound()
       }
       if(records.length == 1) {
         return records[0]
       }
-
       return records
     })
   }
