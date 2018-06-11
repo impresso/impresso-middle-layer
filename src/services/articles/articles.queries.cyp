@@ -10,23 +10,23 @@ WITH COALESCE(pro.count_article, 0) as _total
 WITH _total
 
 {{#filters}}
-  {{#_isIssue}}
+  {{#_isissue}}
   MATCH (art:article)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
   WHERE iss.uid IN ['{{uids}}']
   WITH art, _total
-  {{/_isIssue}}
-  {{#_isNewspaper}}
+  {{/_isissue}}
+  {{#_isnewspaper}}
   MATCH (art:article)
   WHERE art.newspaper_uid IN ['{{uids}}']
   WITH art, _total
   // MATCH (art:article)-[*3]->(news:newspaper {uid:'GDL'}) RETURN art LIMIT 10
-  {{/_isNewspaper}}
-  {{#_isString}}
+  {{/_isnewspaper}}
+  {{#_isstring}}
   MATCH (art:article)
   WHERE art.Project = {Project}
   WITH art, _total
   // MATCH (art:article)-[*3]->(news:newspaper {uid:'GDL'}) RETURN art LIMIT 10
-  {{/_isString}}
+  {{/_isstring}}
 {{/filters}}
 {{^filters}}
   MATCH (art:article)
