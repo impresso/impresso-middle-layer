@@ -3,6 +3,8 @@
 *__/
 __*/
 *.sqlite3
+__*.js
+out/
 
 node_modules/
 package-lock.json
