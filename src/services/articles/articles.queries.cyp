@@ -55,6 +55,22 @@ WITH art, _total, _related_pages, _related_issue, collect(tag) as _related_tags
 {{/user__uid}}
 RETURN art, _related_pages, _related_issue, _related_tags, _total
 
+// name:findAll
+// find all matching uids
+MATCH (art:article)
+WHERE art.uid IN {uids} AND art.Project = {Project}
+WITH art
+OPTIONAL MATCH (art)-[:appears_at]->(pag:page)
+WITH art, collect(pag) as _related_pages
+OPTIONAL MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
+WITH art, _related_pages, head(collect(iss)) as _related_issue
+OPTIONAL MATCH (tag:tag)-[:describes]->(art)
+WITH art, _related_pages, _related_issue, collect(tag) as _related_tags
+{{#user__uid}}
+// add personal collections / buckets
+{{/user__uid}}
+RETURN art, _related_pages, _related_issue, _related_tags
+
 
 // name: find_filtered
 // filter based on issue uid for the moment

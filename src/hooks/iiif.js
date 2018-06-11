@@ -20,6 +20,10 @@ const proxyIIIF = () => {
     } else if (context.result.data) {
       debug(`proxyIIIF: with result.data <length>: ${context.result.data.length}`);
       for (let page of context.result.data) {
+        if(!page.labels) {
+          // not a neo4j
+          continue;
+        }
         if(page.labels.indexOf('page') !== -1) {
           page.iiif = _getIIIF(context, page.uid)
         } else if(Array.isArray(page.pages)) {

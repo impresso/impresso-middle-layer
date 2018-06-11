@@ -16,6 +16,8 @@ const proxy = require('./proxy.js');
 
 const articlesTags = require('./articles-tags/articles-tags.service.js');
 
+const search = require('./search/search.service.js');
+
 module.exports = function() {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(users);
@@ -34,4 +36,5 @@ module.exports = function() {
   app.configure(version);
 
   app.configure(proxy);
+  app.configure(search);
 };
