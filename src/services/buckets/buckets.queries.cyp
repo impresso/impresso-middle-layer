@@ -25,7 +25,7 @@ ORDER BY {{order_by}}
 SKIP {skip}
 LIMIT {limit}
 WITH buc, _total
-MATCH (buc)-[:contains]->(item)
+OPTIONAL MATCH (buc)-[:contains]->(item)
 RETURN buc, collect(item)[..10] as _related_items,  _total
 {{#order_by}}
 ORDER BY {{order_by}}
@@ -124,10 +124,15 @@ RETURN buc
 //
 MATCH (u:user {uid:{user__uid}})
 WITH u
-CREATE (buc:bucket {uid:{uid}})
+CALL apoc.create.uuids(1)
+YIELD uuid
+WITH u, uuid
+CREATE (buc:bucket)
 SET
+  buc.uid = uuid,
   buc.Project = {Project},
   buc.name = {name},
+  buc.slug = {slug},
   {{#description}}
   buc.description = {description},
   {{/description}}

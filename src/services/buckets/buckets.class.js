@@ -3,7 +3,6 @@ const Neo4jService = require('../neo4j.service').Service;
 const slugify = require('slugify');
 const { NotImplemented } = require('@feathersjs/errors');
 
-
 class Service extends Neo4jService {
 
   async create (data, params) {
@@ -14,9 +13,9 @@ class Service extends Neo4jService {
 
     const queryParams = {
       user__uid: params.user.uid,
-      uid: `${params.user.uid}-${slugify(data.sanitized.name)}`,
       description: data.sanitized.description,
       name: data.sanitized.name,
+      slug: slugify(data.sanitized.name).toLowerCase()
     }
 
     // owner_uid is optional.
