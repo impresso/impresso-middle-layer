@@ -120,7 +120,7 @@ SET buc.count_pages = _contained
 RETURN buc
 
 // name: create
-// create an empty bucket
+// create an empty bucket and link to the current user.
 //
 MATCH (u:user {uid:{user__uid}})
 WITH u
@@ -143,7 +143,7 @@ SET
   buc.count_pages = 0,
   buc.count_articles = 0,
   buc.count_issues = 0,
-  buc.count_issues = 0
+  buc.count_entities = 0
 WITH u, buc
 MERGE (u)-[r:is_creator_of]->(buc)
 WITH u, buc
