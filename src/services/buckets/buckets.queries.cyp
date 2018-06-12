@@ -58,6 +58,7 @@ WITH buc
 DETACH DELETE buc
 
 
+
 // name: article_create
 // create bucket and add relationships with articles
 MATCH (art:article) WHERE art.uid IN {uids}
@@ -118,6 +119,33 @@ WITH buc, count(r) as _contained
 SET buc.count_pages = _contained
 RETURN buc
 
+// name: create
+// create an empty bucket
+//
+MATCH (u:user {uid:{user__uid}})
+WITH u
+CREATE (buc:bucket {uid:{uid}})
+SET
+  buc.Project = {Project},
+  buc.name = {name},
+  {{#description}}
+  buc.description = {description},
+  {{/description}}
+  buc.creation_time = {_exec_time},
+  buc.creation_date = {_exec_date},
+  buc.last_modified_time = {_exec_time},
+  buc.last_modified_date = {_exec_date},
+  buc.count_pages = 0,
+  buc.count_articles = 0,
+  buc.count_issues = 0,
+  buc.count_issues = 0
+WITH u, buc
+MERGE (u)-[r:is_creator_of]->(buc)
+WITH u, buc
+MATCH (u)-[r:is_creator_of]->(_buc:bucket)
+WITH u, buc, count(r) as _created
+SET u.count_buckets = _created
+RETURN buc
 
 // name: APOC_set_lucene_index
 //

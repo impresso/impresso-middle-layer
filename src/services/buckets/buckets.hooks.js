@@ -70,12 +70,12 @@ module.exports = {
         },
         // MUST contain a service label
         label:{
-          required: true,
+          required: false,
           choices: ['article', 'page']
         },
         // MUST contain uids for the given label
         uids: {
-          required: true,
+          required: false,
           regex: REGEX_UIDS
         }
       }, 'POST')
