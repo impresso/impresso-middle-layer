@@ -91,6 +91,23 @@ WITH u, buc, count(r) as _created
 SET u.count_buckets = _created
 RETURN buc
 
+
+// name: patch
+// modify an already existing bucket if created by current auth user uid
+MATCH (u:user {uid:{user__uid}})-[r:is_creator_of]->(buc:bucket {uid:{uid}})
+WITH buc
+SET
+  {{#name}}
+  buc.name = {name},
+  {{/name}}
+  {{#description}}
+  buc.description = {description},
+  {{/description}}
+  buc.last_modified_time = {_exec_time},
+  buc.last_modified_date = {_exec_date}
+RETURN buc
+
+//
 // name: APOC_set_lucene_index
 //
 CALL apoc.index.addAllNodes('bucket_suggestions',{

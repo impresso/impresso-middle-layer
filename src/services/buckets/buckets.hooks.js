@@ -81,7 +81,25 @@ module.exports = {
       }, 'POST')
     ],
     update: [],
-    patch: [],
+    patch: [
+      queryWithCurrentUser({
+        idField: 'uid',
+        as: 'user__uid'
+      }),
+      validate({
+        // request must contain a name - from which we will create a UID
+        name: {
+          required: false,
+          min_length: 3,
+          max_length : 50
+        },
+        description: {
+          required: false,
+          min_length: 3,
+          max_length : 500
+        },
+      }, 'POST')
+    ],
     remove: []
   },
 

@@ -38,16 +38,14 @@ class Service extends Neo4jService {
    * @return {type}        description
    */
   async patch (id, data, params) {
-    const queryParams = {
-      user__uid: params.user.uid,
-      uid: uid,
+    const result = await this._run(this.queries.patch, {
+      user__uid: params.query.user__uid,
+      uid: id,
       description: data.sanitized.description,
-      name: data.sanitized.name,
-      uids: data.sanitized.uids
-    }
-    const query = this.queries[[data.sanitized.label, 'patch'].join('_')]
-    return this._run(query, queryParams).then(this._finalize);
-    return data;
+      name: data.sanitized.name
+    })
+
+    return this._finalizeCreateOne(result);
   }
 
   async remove (id, params) {
