@@ -26,20 +26,7 @@ class Service extends Neo4jService {
     }
 
     debug(`${this.name} create: `, data.sanitized);
-
-    // if there's no label create a simple empty bucket.
-    if(!data.sanitized.label || !Array.isArray(data.sanitized.uids)) {
-      return this._run(this.queries.create, queryParams).then(this._finalize);
-    }
-
-    //const label =owner_uid
-    const query = this.queries[[data.sanitized.label, 'create'].join('_')]
-
-    return this._run(query, {
-      ... queryParams,
-      uids: data.sanitized.uids,
-
-    }).then(this._finalize);
+    return this._run(this.queries.create, queryParams).then(this._finalizeCreateOne);
   }
 
   /**
