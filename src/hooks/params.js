@@ -449,7 +449,10 @@ const verbose = () => {
 
 /**
  * Before hook to validate
- * @param {string} paramName -
+ *
+ * @param {string} paramName
+ * @param {array} validators
+ * @param {object} options optional, with `required` and `method`
  */
 const validateEach = (paramName, validators, options={}) => {
   const opts = {
@@ -463,34 +466,41 @@ const validateEach = (paramName, validators, options={}) => {
       throw new Error(`The 'validateEach' hook should only be used as a 'before' hook.`);
     }
     // console.log(context.params.query.filters)
-    if(!Array.isArray(context.params.query[paramName])) {
+    const toBeValidated = opts.method == 'GET'? context.params.query[paramName]: context.data[paramName];
+
+    if(!Array.isArray(toBeValidated) || !toBeValidated.length) {
       if(opts.required) {
         let _error = {};
         _error[paramName] = {
           code: 'NotFound',
-          message: `param '${paramName}' is required`
+          message: `param '${paramName}' is required and shouldn't be empty.`
         }
-
         throw new errors.BadRequest(_error);
       }
-      debug(`validateEach: ${paramName} not found in "context.params.query" or is not an Array. Ignore.`);
+      debug(`validateEach: ${paramName} not found in '${opts.method}' or is not an Array or it is empty. Received:`, toBeValidated);
       // throw new Error(`The param ${paramName} should exist and be an array.`);
       return;
     }
-    debug(`validateEach: ${paramName}`);
+    debug(`validateEach: '${paramName}' in '${opts.method}'. Received:`, toBeValidated);
     //_validate(context.query, validators)
-    const validated = context.params.query[paramName].map((d) => {
+    const validated = toBeValidated.map((d) => {
       let _d = _validate(d, validators, opts.method);
       // add mustache friendly conditionals based on type. e.g; isIssue or isNewspaper
       _d[`_is${d.type}`] = true;
       return _d;
     });
 
-    if (!context.params.sanitized) {
-      context.params.sanitized = {}
+    if (opts.method == 'GET') {
+      if(!context.params.sanitized) {
+        context.params.sanitized = {}
+      }
+      context.params.sanitized[paramName] = validated;
+    } else {
+      if(!context.data.sanitized) {
+        context.data.sanitized = {}
+      }
+      context.data.sanitized[paramName] = validated;
     }
-
-    context.params.sanitized[paramName] = validated;
   }
 }
 
