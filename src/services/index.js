@@ -15,6 +15,7 @@ const version = require('./version/version.service.js');
 const proxy = require('./proxy.js');
 
 const articlesTags = require('./articles-tags/articles-tags.service.js');
+const bucketsItems = require('./buckets-items/buckets-items.service.js');
 
 const search = require('./search/search.service.js');
 
@@ -23,6 +24,7 @@ module.exports = function() {
   app.configure(users);
   app.configure(timeline);
   app.configure(buckets);
+  app.configure(bucketsItems);
   app.configure(articles);
   app.configure(articlesTags);
   app.configure(entities);
