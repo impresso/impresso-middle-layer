@@ -50,14 +50,6 @@ MATCH (buc)-[:contains]->(n)
 WITH buc, collect(n) as _related_items
 RETURN buc, _related_items
 
-
-// name: remove
-// permanently remove a bucket
-MATCH (u:user {uid:{user__uid}})-[r:is_creator_of]->(buc:bucket {uid:{uid}})
-WITH buc
-DETACH DELETE buc
-
-
 // name: create
 // create an empty bucket and link to the current user.
 //
@@ -106,6 +98,17 @@ SET
   buc.last_modified_time = {_exec_time},
   buc.last_modified_date = {_exec_date}
 RETURN buc
+
+
+// name: remove
+// permanently remove a bucket
+MATCH (u:user {uid:{user__uid}})-[r:is_creator_of]->(buc:bucket {uid:{uid}})
+WITH u, buc
+DETACH DELETE buc
+WITH u
+MATCH (u)-[r:is_creator_of]->(_buc:bucket)
+WITH u, count(r) as _count_buckets
+SET u.count_buckets = _count_buckets
 
 //
 // name: APOC_set_lucene_index

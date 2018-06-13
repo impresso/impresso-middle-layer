@@ -100,7 +100,12 @@ module.exports = {
         },
       }, 'POST')
     ],
-    remove: []
+    remove: [
+      queryWithCurrentUser({
+        idField: 'uid',
+        as: 'user__uid'
+      }),
+    ]
   },
 
   after: {

@@ -48,16 +48,21 @@ class Service extends Neo4jService {
     return this._finalizeCreateOne(result);
   }
 
+
+  /**
+   * async remove - Remove a bucket permanently using neo4j DETACH DELETE
+   *
+   * @param  {string} id     bucket uuid
+   * @param  {object} params (not used directly)
+   * @return {Promise}        description
+   */
   async remove (id, params) {
-    const queryParams = {
-      user__uid: params.user.uid,
-      uid: uid
-    }
+    const result = await this._run(this.queries.remove, {
+      user__uid: params.query.user__uid,
+      uid: id,
+    });
 
-
-
-    return {id}
-
+    return this._finalizeRemove(result);
   }
 }
 

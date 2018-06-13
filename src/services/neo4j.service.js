@@ -63,6 +63,22 @@ class Neo4jService {
     }
   }
 
+
+  /**
+   * _finalizeRemove - callback of _run method for remove() service method.
+   *
+   * @param  {object} res Neo4j response
+   * @return {object}     description
+   */
+  _finalizeRemove (res) {
+    return {
+      info: {
+        resultAvailableAfter: res.summary.resultAvailableAfter.low,
+        _stats: res.summary.counters._stats,
+      }
+    }
+  }
+
   // add
   static wrap(data, limit, skip, total, info) {
     return {
