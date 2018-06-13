@@ -65,7 +65,7 @@ const toLucene = (query, force_fuzzy=true) => {
 }
 
 
-const toOrderBy = (ordering, translateTable) => { 
+const toOrderBy = (ordering, translateTable) => {
   if(ordering.indexOf('-') === 0) {
     const _ordering = translateTable[ordering.substr(1)];
     return `${_ordering} DESC`
@@ -446,13 +446,33 @@ const verbose = () => {
   }
 }
 
-const validateEach = (paramName, validators) => {
+
+/**
+ * Before hook to validate
+ * @param {string} paramName -
+ */
+const validateEach = (paramName, validators, options={}) => {
+  const opts = {
+    required: false,
+    method: 'GET',
+    ... options
+  }
+
   return async context => {
     if (context.type !== 'before') {
-      throw new Error(`The 'validateFilters' hook should only be used as a 'before' hook.`);
+      throw new Error(`The 'validateEach' hook should only be used as a 'before' hook.`);
     }
     // console.log(context.params.query.filters)
     if(!Array.isArray(context.params.query[paramName])) {
+      if(opts.required) {
+        let _error = {};
+        _error[paramName] = {
+          code: 'NotFound',
+          message: `param '${paramName}' is required`
+        }
+
+        throw new errors.BadRequest(_error);
+      }
       debug(`validateEach: ${paramName} not found in "context.params.query" or is not an Array. Ignore.`);
       // throw new Error(`The param ${paramName} should exist and be an array.`);
       return;
@@ -460,7 +480,7 @@ const validateEach = (paramName, validators) => {
     debug(`validateEach: ${paramName}`);
     //_validate(context.query, validators)
     const validated = context.params.query[paramName].map((d) => {
-      let _d = _validate(d, validators);
+      let _d = _validate(d, validators, opts.method);
       // add mustache friendly conditionals based on type. e.g; isIssue or isNewspaper
       _d[`_is${d.type}`] = true;
       return _d;
