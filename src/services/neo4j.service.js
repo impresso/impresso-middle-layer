@@ -37,8 +37,30 @@ class Neo4jService {
     });
   }
 
-  _finalizeOne (res){
+  _finalizeOne (res) {
     return res.records.map(neo4jRecordMapper);
+  }
+
+
+  /**
+   * _finalizeCreateOne - used as callback of _run for create() service method
+   * Note that the `data` property in the returned obejct can be undefined.
+   *
+   * @param  {object} res Neo4j response
+   * @return {object} custom response containing `data` and `info`.
+   */
+  _finalizeCreateOne (res) {
+    let data;
+    if(res.records.length) {
+      data = neo4jRecordMapper(res.records[0]);
+    }
+    return {
+      data,
+      info: {
+        resultAvailableAfter: res.summary.resultAvailableAfter.low,
+        _stats: res.summary.counters._stats,
+      }
+    }
   }
 
   // add
@@ -109,7 +131,7 @@ class Neo4jService {
 
 
   async find (params) {
-    debug(`find: with params.isSafe:${params.isSafe} and params.query:`,  params.query);
+    debug(`find: with params.isSafe:${params.isSafe} and params.query:`,  params.query, params);
     return this._run(this.queries.find, params.isSafe? params.query: params.sanitized).then(this._finalize)
   }
 
@@ -123,7 +145,7 @@ class Neo4jService {
     let qp = {
       ... params.isSafe? params.query: params.sanitized
     };
-    
+
     if(uids.length > 1) {
       qp.uids = uids
       query = this.queries.findAll
