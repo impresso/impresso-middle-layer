@@ -2,7 +2,7 @@ const mustache = require('mustache');
 const moment   = require('moment');
 const debug = require('debug')('impresso/services:neo4j.utils');
 const verbose = require('debug')('verbose:impresso/services:neo4j.utils');
-const {Conflict, BadRequest, BadGateway} = require('@feathersjs/errors');
+const {Conflict, BadRequest, BadGateway, Unavailable} = require('@feathersjs/errors');
 
 const neo4jNow = () => {
   const now = moment.utc();
@@ -50,9 +50,12 @@ const neo4jRun = (session, cypherQuery, params) => {
     } else if(err.code == 'Neo.ClientError.Statement.SyntaxError'){
       debug('neo4jRun failed. Neo.ClientError.Statement.SyntaxError:',err);
       throw new BadGateway('SyntaxError')
-    }else {
+    } else if(err.code == 'ServiceUnavailable') {
+      debug('neo4jRun failed. ServiceUnavailable:',err);
+      throw new Unavailable()
+    } else {
       debug('neo4jRun failed. Check error below.');
-      debug(err);
+      debug(err.code, err);
     }
     throw new BadRequest()
   });
