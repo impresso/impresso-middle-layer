@@ -44,6 +44,7 @@ class Service {
 
     debug(`find '${this.name}': SOLR q:`,  `content_txt_fr:${params.query.q}`, params.query);
 
+
     // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
       q: `content_txt_fr:${params.query.q}`,
@@ -53,6 +54,7 @@ class Service {
     });
 
     const total = _solr.response.numFound;
+
 
     debug(`find '${this.name}': SOLR found ${total} using params.query:`,  params.query);
 
@@ -73,6 +75,9 @@ class Service {
         _records[rec.uid] = rec;
       }
       return _records;
+    }).catch(err => {
+      console.log(err);
+      return {}
     })
 
     // merge results maintaining solr ordering.
@@ -83,7 +88,12 @@ class Service {
       }
     });
 
-    return Service.wrap(results, params.query.limit, params.query.skip, total);
+    return Service.wrap(results, params.query.limit, params.query.skip, total, {
+      responseTime: {
+        solr: _solr.responseHeader.QTime
+      },
+      facets: _solr.facets
+    });
   }
 
 

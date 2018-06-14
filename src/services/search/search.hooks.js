@@ -1,6 +1,23 @@
 const { validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils} = require('../../hooks/params');
 const { proxyIIIF } = require('../../hooks/iiif');
 
+const SOLR_FACETS = {
+  year : {
+    type : 'terms',
+    field : 'meta_year_i',
+    mincount : 1
+  },
+  date: {
+    type: 'terms',
+    field: 'meta_date_dt',
+    mincount : 1
+  },
+  language : {
+    type : 'terms',
+    field : 'lg_s',
+    mincount : 1
+  },
+}
 
 module.exports = {
   before: {
@@ -21,7 +38,15 @@ module.exports = {
           choices: ['-date', 'date', '-relevance', 'relevance'],
         },
         facets: {
-          choices: ['language', 'year']
+          before: d => d.split(','),
+          choices: Object.keys(SOLR_FACETS),
+          after: (fields) => {
+            let _facets ={}
+            for(let i in fields){
+              _facets[fields[i]] = SOLR_FACETS[fields[i]];
+            }
+            return JSON.stringify(_facets);
+          }
         }
       }),
       validateEach('filters', {

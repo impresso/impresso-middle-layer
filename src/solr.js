@@ -21,57 +21,29 @@ const findAll = (config, params={}) => {
     q: params.q,
     start: params.skip,
     rows: params.limit,
-    wt: 'json'
+    wt: 'json',
     //wt: 'xml'
   }
 
   // transform facets if any
   //
   if(params.facets) {
-    qs['json.facet'] = JSON.stringify({
-      years : {
-        type : 'terms',
-        field : 'meta_year_i',
-        mincount : 1
-      },
-      language : {
-        type : 'terms',
-        field : 'lg_s',
-        mincount : 1
-      },
-      date : {
-        type : 'terms',
-        field : 'meta_day_i',
-        mincount : 1
-      }
-    })
-    // qs.facet = true;
-    // qs['facet.field'] = 'meta_year_i'
-    // //, 'lg_s']
-    // qs['facet.mincount'] = 1
+    qs['json.facet'] = params.facets
   }
 
-  console.log(qs);
+  debug(`'findAll' request with 'qs':`, qs);
 
   return rp({
     url: `${config.endpoint}`,
     auth: config.auth,
     qs: qs,
-    //json: true
+    // json: true REMOVED because of duplicate keys
   }).then((res) => {
     // dummy handle dupes keys
     const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
-    // res.lastIndexOf('"highlighting":{')
-    //console.log(result);
-    // throw new Unavailable();
-    console.log(result.highlighting);
-
+    // console.log(result)
     // map doc array to get proper highlights and pages in document itself.
-    const docs = result.response.docs.map((d) => {
-      console.log();
-      //
-      console.log(Object.keys(d))//.name);
-
+    result.response.docs = result.response.docs.map((d) => {
       let doc = {
         uid: d.id,
         language: d.lg_s,
@@ -79,116 +51,43 @@ const findAll = (config, params={}) => {
         year: d.meta_year_i,
       };
 
+      // parse
       const _fragments = result.fragments[doc.uid].content_txt_fr;
       const _highlights = result.highlighting[doc.uid].content_txt_fr;
-
       const _content_boxes_plain = JSON.parse(d.content_boxes_plain);
 
-      console.log(_highlights, _fragments)
       doc.excerpt = d.content_txt_fr.split(' ', params.excerptLength)
         .slice(0, params.excerptLength-1).join(' ');
 
       // align highlights and fragments
-      doc.matches = _highlights.positions.map(pos => {
+      doc.matches = _highlights.offsets.map((pos, i) => {
         let _p = {}
 
-        for(var i in _content_boxes_plain) {
-          let pag = _content_boxes_plain[i];
+        for(let j in _content_boxes_plain) {
+          let pag = _content_boxes_plain[j];
           let pagId = pag.id.replace('.json','');
 
-          let regions = pag.regions.filter((reg) => {
-            return pos >= reg.start && pos <= reg.start + reg.length
-          }).map((reg) => {
-
-            reg.iiif =  `https://api-impresso.uni.lu/proxy/iiif/${pagId}/${reg.coords.join(',')}/full/0/default.jpg`
-
-            return reg
-          });
-
-          if(regions.length) {
-            _p = {
-              n: pag.n,
-              pos: pos,
-              page_uid: pagId,
-              fragment: _fragments[i],
-              regions
+          for(let l=pag.regions.length, ii=0; ii < l; ii++) {
+            if(pos[0] == pag.regions[ii].start) {
+              _p = {
+                n: pag.n,
+                pos: pos[0],
+                page_uid: pagId,
+                fragment: _fragments[i],
+                coords: pag.regions[ii].coords,
+                _iiif: `https://api-impresso.uni.lu/proxy/iiif/${pagId}/${pag.regions[ii].coords.join(',')}/full/0/default.jpg`
+              }
+              break;
             }
-            break;
           }
         }
         return _p;
 
-      })
-      // console.log(tokens)
-      //
-      // const _fragments = fragments
-      //   .filter(fra => fra.name == doc.uid)
-      //   .reduce((flat, fra) => flat.concat(fra.arr.str),[]);
-      //
-      //
-      // doc.matches = highlights
-      //   .filter(hig => hig.name == doc.uid)
-      //   .map(hig => {
-      //     // lst[0] should be the one named 'content_txt_fr'.
-      //     let positions = hig.lst[0].arr[1].int;
-      //     // console.log(hig.name, hig.lst[2])
-      //     if(!Array.isArray(positions)) {
-      //       positions = [ positions ];
-      //     }
-      //
-      //     positions = positions.map((p, i) => {
-      //       // search position in cbp. Positions are calculated on the whole article
-      //       //  enven if it spans on more than 1 page.
-      //       let _p = {}
-      //
-      //       cbp.forEach(pag => {
-      //         const regions = pag.regions.filter(reg => p >= reg.start && p <= reg.start + reg.length);
-      //         if(regions.length) {
-      //           _p = {
-      //             n: pag.n,
-      //             id: pag.id,
-      //             fragment: _fragments[i],
-      //             regions
-      //           }
-      //         }
-      //       });
-      //
-      //       return _p;
-      //     });
-      //
-      //
-      //     return positions;
-      //   })
-      //   .reduce((flat, match) => flat.concat(match),[]);
-
-
-      // fragments.forEach(f => {
-      //
-      //   if(f.name == doc.uid){
-      //     // console.log(f.arr);
-      //     // { name: 'content_txt_fr',
-      //     // str:
-      //     //  [ 'La lettre du jour „ , A PROPOS DE MÉDECINS-DENTISTES DE SERVICE &lt;em&gt;Monsieur&lt;/em&gt; le Rédacteur , En réponse',
-      //     //    'Veuillez agréer . &lt;em&gt;Monsieur&lt;/em&gt; le Rédac- t * ur , l\'assurance de nos sentiments dis- tingués Le Comité' ] }
-      //     // and yes, apparently str it can be either a str or an array ... :D
-      //     if(Array.isArray(f.arr.str)) {
-      //       doc.matches = doc.matches.concat(f.arr.str);
-      //     } else {
-      //        doc.matches.push(f.arr.str);
-      //     }
-      //   }
-      // });
-
-      // console.log(doc)
+      });
       return doc
     });
 
-    return {
-      response: {
-        numFound: parseInt(result.response.numFound),
-        docs: docs
-      }
-    }
+    return result;
   }).catch((err) => {
     console.log(err);
     throw new NotImplemented();
