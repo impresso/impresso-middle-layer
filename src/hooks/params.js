@@ -139,11 +139,20 @@ const _validate = (params, rules) => {
       _errors = {};
 
   for(let key in rules) {
+    // special before hook (e.g; split comma separated values before applying a rule)
+    if(typeof rules[key].before == 'function') {
+      params[key] = rules[key].before(params[key])
+    }
     // it is an Array of values
     if(Array.isArray(params[key])) {
       _params[key] = params[key].map(d => _validateOne(key, d, rules[key]))
     } else {
       _params[key] = _validateOne(key, params[key], rules[key]);
+    }
+
+    // special after hook
+    if(typeof rules[key].after == 'function') {
+      _params[key] = rules[key].after(_params[key])
     }
   }
   if(Object.keys(_errors).length){
