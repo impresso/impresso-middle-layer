@@ -12,14 +12,14 @@ const findAll = (config, params={}) => {
   params = {
     q: '*:*',
     limit: 10,
-    offset: 0,
+    skip: 0,
     excerptLength: 30,
     ... params
   }
 
   let qs = {
     q: params.q,
-    start: params.offset,
+    start: params.skip,
     rows: params.limit,
     wt: 'json'
     //wt: 'xml'
@@ -94,15 +94,22 @@ const findAll = (config, params={}) => {
 
         for(var i in _content_boxes_plain) {
           let pag = _content_boxes_plain[i];
+          let pagId = pag.id.replace('.json','');
+
           let regions = pag.regions.filter((reg) => {
             return pos >= reg.start && pos <= reg.start + reg.length
+          }).map((reg) => {
+
+            reg.iiif =  `https://api-impresso.uni.lu/proxy/iiif/${pagId}/${reg.coords.join(',')}/full/0/default.jpg`
+
+            return reg
           });
 
           if(regions.length) {
             _p = {
               n: pag.n,
               pos: pos,
-              page_uid: pag.id.replace('.json',''),
+              page_uid: pagId,
               fragment: _fragments[i],
               regions
             }

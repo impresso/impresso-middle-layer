@@ -42,13 +42,14 @@ class Service {
     let results = [];
     let uids = [];
 
-    debug(`find '${this.name}': SOLR q:`,  `content_txt_fr:${params.query.q}`, params);
+    debug(`find '${this.name}': SOLR q:`,  `content_txt_fr:${params.query.q}`, params.query);
 
     // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
       q: `content_txt_fr:${params.query.q}`,
       facets: params.query.facets,
-      limit: params.query.limit
+      limit: params.query.limit,
+      skip: params.query.skip
     });
 
     const total = _solr.response.numFound;
