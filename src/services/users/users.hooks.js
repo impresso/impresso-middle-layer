@@ -1,5 +1,5 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { forwardStrategy, sanitize, validate, VALIDATE_OPTIONAL_GITHUB_ID, VALIDATE_OPTIONAL_EMAIL, VALIDATE_OPTIONAL_PASSWORD, REGEX_SLUG } = require('../../hooks/params');
+const { forwardStrategy, validate, VALIDATE_OPTIONAL_GITHUB_ID, VALIDATE_OPTIONAL_EMAIL, VALIDATE_OPTIONAL_PASSWORD, REGEX_SLUG } = require('../../hooks/params');
 
 const { hashPassword, protect } = require('@feathersjs/authentication-local').hooks;
 
@@ -7,11 +7,9 @@ module.exports = {
   before: {
     all: [ ],
     find: [
-      sanitize({
-        validators: {
-          ... VALIDATE_OPTIONAL_EMAIL,
-          ... VALIDATE_OPTIONAL_GITHUB_ID
-        }
+      validate({
+        ... VALIDATE_OPTIONAL_EMAIL,
+        ... VALIDATE_OPTIONAL_GITHUB_ID
       }), authenticate('jwt')
     ],
     get: [ authenticate('jwt') ],

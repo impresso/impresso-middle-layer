@@ -56,6 +56,7 @@
     "debug": "^3.1.0",
     "decypher": "^0.13.0",
     "dotenv": "^4.0.0",
+    "fast-xml-parser": "^3.11.1",
     "feathers-authentication-hooks": "^0.1.7",
     "feathers-hooks-common": "^3.10.0",
     "feathers-memory": "^2.1.1",
@@ -63,7 +64,10 @@
     "feathers-solr": "^1.1.5",
     "helmet": "^3.12.0",
     "http-proxy-middleware": "^0.18.0",
+    "lodash": "^4.17.10",
+    "lodash.first": "^3.0.0",
     "lodash.groupby": "^4.6.0",
+    "lodash.keyby": "^4.6.0",
     "lodash.map": "^4.6.0",
     "moment": "^2.22.1",
     "mustache": "^2.3.0",
@@ -78,7 +82,8 @@
     "serve-favicon": "^2.5.0",
     "short-hash": "^1.0.0",
     "slugify": "^1.2.9",
-    "winston": "^2.4.2"
+    "winston": "^2.4.2",
+    "xml2js": "^0.4.19"
   },
   "devDependencies": {
     "eslint": "^4.19.1",

@@ -42,11 +42,13 @@ class Service {
     let results = [];
     let uids = [];
 
-    debug(`find '${this.name}': SOLR q:`,  `content_txt_fr:${params.query.q}`);
+    debug(`find '${this.name}': SOLR q:`,  `content_txt_fr:${params.query.q}`, params);
 
     // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
-      q: `content_txt_fr:${params.query.q}`
+      q: `content_txt_fr:${params.query.q}`,
+      facets: params.query.facets,
+      limit: params.query.limit
     });
 
     const total = _solr.response.numFound;
@@ -61,7 +63,7 @@ class Service {
 
     const itemsFromNeo4j = await neo4jRun(session, this.neo4jQueries[params.query.group_by].findAll, {
       Project: 'impresso',
-      uids: _solr.response.docs.map(d => d.id)
+      uids: _solr.response.docs.map(d => d.uid)
     }).then((res) => {
       let _records = {}
       debug(`find '${this.name}': neo4j success`, neo4jSummary(res));
@@ -74,11 +76,9 @@ class Service {
 
     // merge results maintaining solr ordering.
     results = _solr.response.docs.map(d => {
-
-
       return {
-        ... itemsFromNeo4j[d.id] || {},
-        uid: d.id
+        ... d,
+        ... itemsFromNeo4j[d.uid] || {},
       }
     });
 

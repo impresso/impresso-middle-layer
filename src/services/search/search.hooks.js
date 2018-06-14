@@ -1,4 +1,4 @@
-const { validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UIDS, utils} = require('../../hooks/params');
+const { validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils} = require('../../hooks/params');
 const { proxyIIIF } = require('../../hooks/iiif');
 
 
@@ -20,6 +20,9 @@ module.exports = {
         order_by: {
           choices: ['-date', 'date', '-relevance', 'relevance'],
         },
+        facets: {
+          choices: ['language', 'year']
+        }
       }),
       validateEach('filters', {
         context: {
@@ -33,7 +36,13 @@ module.exports = {
         uids: {
           regex: REGEX_UIDS,
           required: false,
-          // we cannot transform since Mustache is render the filters...
+          // we cannot transform since Mustache is rendering the filters...
+          // transform: d => d.split(',')
+        },
+        uid: {
+          regex: REGEX_UID,
+          required: false,
+          // we cannot transform since Mustache is rendering the filters...
           // transform: d => d.split(',')
         },
       }),

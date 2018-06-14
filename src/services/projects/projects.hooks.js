@@ -1,10 +1,7 @@
-const { sanitize } = require('../../hooks/params');
 
 module.exports = {
   before: {
-    all: [
-      sanitize(),
-    ],
+    all: [],
   },
 
   after: {
