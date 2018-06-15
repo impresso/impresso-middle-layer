@@ -42,12 +42,12 @@ class Service {
     let results = [];
     let uids = [];
 
-    debug(`find '${this.name}': SOLR q:`,  `content_txt_fr:${params.query.q}`, params.query);
+    debug(`find '${this.name}': query:`, params.query);
 
 
     // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
-      q: `content_txt_fr:${params.query.q}`,
+      q: params.query.sq,
       facets: params.query.facets,
       limit: params.query.limit,
       skip: params.query.skip

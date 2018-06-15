@@ -1,4 +1,5 @@
 const { validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils} = require('../../hooks/params');
+const { filtersToSolrQuery } = require('../../hooks/search');
 const { proxyIIIF } = require('../../hooks/iiif');
 
 const SOLR_FACETS = {
@@ -7,6 +8,12 @@ const SOLR_FACETS = {
     field : 'meta_year_i',
     mincount : 1,
     limit: 400
+  },
+  newspaper:{
+    type: 'terms',
+    field: 'meta_journal_s',
+    mincount: 1,
+    maxcount: 750
   },
   date: {
     type: 'terms',
@@ -21,16 +28,16 @@ const SOLR_FACETS = {
   },
 }
 
+
 module.exports = {
   before: {
     all: [],
     find: [
       validate({
         q: {
-          required: true,
+          required: false,
           min_length: 2,
           max_length: 1000,
-          transform: utils.toLucene,
         },
         group_by: {
           required: true,
@@ -40,7 +47,12 @@ module.exports = {
           choices: ['-date', 'date', '-relevance', 'relevance'],
         },
         facets: {
-          before: d => d.split(','),
+          before: (d) => {
+            if(typeof d == 'string') {
+              return d.split(',');
+            }
+            return d;
+          },
           choices: Object.keys(SOLR_FACETS),
           after: (fields) => {
             let _facets ={}
@@ -60,6 +72,11 @@ module.exports = {
           choices: ['string', 'entity', 'newspaper'],
           required: true,
         },
+        q: {
+          required: false,
+          min_length: 2,
+          max_length: 500
+        },
         uids: {
           regex: REGEX_UIDS,
           required: false,
@@ -72,8 +89,12 @@ module.exports = {
           // we cannot transform since Mustache is rendering the filters...
           // transform: d => d.split(',')
         },
+      },{
+        required: false
       }),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
+
     ],
     get: [],
     create: [],
