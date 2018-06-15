@@ -5,12 +5,14 @@ const SOLR_FACETS = {
   year : {
     type : 'terms',
     field : 'meta_year_i',
-    mincount : 1
+    mincount : 1,
+    limit: 400
   },
   date: {
     type: 'terms',
     field: 'meta_date_dt',
-    mincount : 1
+    mincount : 1,
+    limit: 100
   },
   language : {
     type : 'terms',
