@@ -107,7 +107,7 @@ module.exports = {
     all: [],
     find: [
       proxyIIIF(),
-      displayQueryParams(['q', 'filters']),
+      displayQueryParams(['toSq', 'filters']),
     ],
     get: [],
     create: [],

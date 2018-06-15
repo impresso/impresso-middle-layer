@@ -29,7 +29,7 @@ const filtersToSolrQuery = (fields=['content_txt_fr']) => {
          q: context.params.sanitized.q
       });
     }
-    
+
     if(!queries.length) {
       debug(`'filtersToSolrQuery' cannot find any {type:string} filter:`, context.params.sanitized)
       return;
@@ -84,6 +84,7 @@ const filtersToSolrQuery = (fields=['content_txt_fr']) => {
 
     debug(`'filtersToSolrQuery' with 'solr query':`, sq);
     context.params.sanitized.sq = sq
+    context.params.sanitized.toSq = queries
   }
 }
 
