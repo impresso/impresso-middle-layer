@@ -14,8 +14,9 @@ describe('\'search\' service', () => {
   it('loaded solr content', (done) => {
     service.find({
       query:{
-        q: 'monsieur',
-        group_by: 'articles'
+        q: 'avion accident',
+        group_by: 'articles',
+        facets: [ 'year' ]
       }
     }).then(res => {
       assert.ok(res.data.length);
