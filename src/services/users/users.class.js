@@ -82,9 +82,8 @@ class Service extends Neo4jService {
     } else if(params.sanitized.email) {
       uid = params.sanitized.email;
     }
-    // console.log(params.sanitized, params)
     return this._run(this.queries.find, {
-      ...params.sanitized,
+      ...params.query,
       uid,
       user_uid
     }).then(res => {
