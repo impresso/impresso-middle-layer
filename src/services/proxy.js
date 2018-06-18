@@ -4,7 +4,7 @@ const proxy = require('http-proxy-middleware');
 const modifyResponse = require('node-http-proxy-json');
 const nodePath = require('path');
 
-module.exports = function(app) {
+module.exports = function (app) {
   const config = app.get('proxy');
   const proxyhost = app.get('proxy').host;
 
@@ -31,12 +31,12 @@ module.exports = function(app) {
 
     app.passport.verifyJWT(accessToken, {
       secret: authentication.secret,
-    }).then(payload => {
+    }).then((payload) => {
       debug('middleware: auth found, payload OK. <userId>:', payload.userId);
       req.proxyAuthorization = config.iiif.epflsafe.auth;
       // check authorization level in user service.
       next();
-    }).catch(err => {
+    }).catch((err) => {
       debug('middleware: auth found, INVALID payload.');
       next();
     });
@@ -45,7 +45,7 @@ module.exports = function(app) {
     pathRewrite: (path, req) => {
       const extension = nodePath.extname(path);
       console.log('extension', extension);
-      if (!extension.length){
+      if (!extension.length) {
         console.log('REWRITE');
         return nodePath.join(path.replace('/proxy/iiif', '/'), 'info.json');
       }
@@ -54,9 +54,7 @@ module.exports = function(app) {
       return path.replace('/proxy/iiif', '/');
     },
     changeOrigin: true,
-    logProvider: provider => {
-      return logger;
-    },
+    logProvider: provider => logger,
     logLevel: 'info',
     onProxyReq: (proxyReq, req, res) => {
       debug('proxy: @onProxyReq <path>', proxyReq.path);
@@ -74,7 +72,7 @@ module.exports = function(app) {
       debug('proxy: @onProxyRes <res.statusCode>:', proxyRes.statusCode, proxyRes.headers['content-type']);
       if (proxyRes.statusCode == 401) {
         res.redirect('/images/notAuthorized.jpg');
-      } else if (proxyRes.headers['content-type'] == 'application/json'){
+      } else if (proxyRes.headers['content-type'] == 'application/json') {
         // modify HOST in every IIIF fields, when needed.
         modifyResponse(res, proxyRes, (iiif) => {
           if (iiif) {
@@ -84,7 +82,6 @@ module.exports = function(app) {
           }
           return iiif; // return value can be a promise
         });
-
       }
     },
   }));

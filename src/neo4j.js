@@ -8,7 +8,7 @@ const getNeo4jClient = (config) => {
   return driver;
 };
 
-module.exports = function(app) {
+module.exports = function (app) {
   logger.info('connection to neo4j host ...');
   const driver = getNeo4jClient(app.get('neo4j'));
   // create a session

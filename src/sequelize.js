@@ -1,5 +1,6 @@
 const logger = require('winston');
 const Sequelize = require('sequelize');
+
 const { Op } = Sequelize;
 const operatorsAliases = {
   $eq: Op.eq,
@@ -38,28 +39,26 @@ const operatorsAliases = {
   $col: Op.col,
 };
 
-const getSequelizeClient = (config) => {
-  return new Sequelize({
-    host: config.host,
-    port: config.port,
-    database: config.database,
-    username: config.auth.user,
-    password: config.auth.pass,
-    dialect: config.dialect,
-    logging: false,
-    operatorsAliases,
+const getSequelizeClient = config => new Sequelize({
+  host: config.host,
+  port: config.port,
+  database: config.database,
+  username: config.auth.user,
+  password: config.auth.pass,
+  dialect: config.dialect,
+  logging: false,
+  operatorsAliases,
 
-    // do not look for dummy created_at or updated_at
-    define: {
-      timestamps: false,
-    },
-    // define: {
-    //   freezeTableName: true
-    // }
-  });
-};
+  // do not look for dummy created_at or updated_at
+  define: {
+    timestamps: false,
+  },
+  // define: {
+  //   freezeTableName: true
+  // }
+});
 
-module.exports = function(app) {
+module.exports = function (app) {
   const config = app.get('sequelize');
   const sequelize = getSequelizeClient(config);
   logger.info('connection to postgres database ...');
@@ -70,7 +69,7 @@ module.exports = function(app) {
     .then(() => {
       logger.info('connection to postgres database ok!');
     })
-    .catch(err => {
+    .catch((err) => {
       logger.error('Unable to connect to the postgres database:', err);
     });
 

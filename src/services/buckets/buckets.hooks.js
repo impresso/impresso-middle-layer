@@ -1,18 +1,21 @@
 const auth = require('@feathersjs/authentication');
+
 const { authenticate } = auth.hooks;
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
-const { queryWithCommonParams, validate, REGEX_UIDS, VALIDATE_UIDS, REGEX_UID, utils } = require('../../hooks/params');
+const {
+  queryWithCommonParams, validate, REGEX_UIDS, VALIDATE_UIDS, REGEX_UID, utils,
+} = require('../../hooks/params');
 
 const ORDER_BY = {
-  'date': 'buc.creation_time',
-  'latest': 'buc.last_modified_time',
-  'name': 'buc.name',
-}
+  date: 'buc.creation_time',
+  latest: 'buc.last_modified_time',
+  name: 'buc.name',
+};
 
 module.exports = {
   before: {
     all: [
-      authenticate('jwt')
+      authenticate('jwt'),
     ],
     find: [
       validate({
@@ -24,7 +27,7 @@ module.exports = {
         },
         order_by: {
           choices: ['-date', 'date', '-latest', 'latest', '-name', 'name'],
-          transform: (d) => utils.toOrderBy(d, ORDER_BY)
+          transform: d => utils.toOrderBy(d, ORDER_BY),
         },
       }),
       // queryWithCurrentUser()
@@ -39,14 +42,14 @@ module.exports = {
       queryWithCommonParams(),
       queryWithCurrentUser({
         idField: 'uid',
-        as: 'user__uid'
+        as: 'user__uid',
       }),
     ],
     get: [
       queryWithCommonParams(),
       queryWithCurrentUser({
         idField: 'uid',
-        as: 'user__uid'
+        as: 'user__uid',
       }),
     ],
     create: [
@@ -55,57 +58,57 @@ module.exports = {
         name: {
           required: true,
           min_length: 3,
-          max_length : 50
+          max_length: 50,
         },
         // the bucket owner uid, optional. Default to current authenticated user.
         owner_uid: {
           required: false,
           min_length: 3,
-          regex: REGEX_UID
+          regex: REGEX_UID,
         },
         // optionally
         description: {
           required: false,
-          max_length : 500
+          max_length: 500,
         },
         // MUST contain a service label
-        label:{
+        label: {
           required: false,
-          choices: ['article', 'page']
+          choices: ['article', 'page'],
         },
         // MUST contain uids for the given label
         uids: {
           required: false,
-          regex: REGEX_UIDS
-        }
-      }, 'POST')
+          regex: REGEX_UIDS,
+        },
+      }, 'POST'),
     ],
     update: [],
     patch: [
       queryWithCurrentUser({
         idField: 'uid',
-        as: 'user__uid'
+        as: 'user__uid',
       }),
       validate({
         // request must contain a name - from which we will create a UID
         name: {
           required: false,
           min_length: 3,
-          max_length : 50
+          max_length: 50,
         },
         description: {
           required: false,
           min_length: 3,
-          max_length : 500
+          max_length: 500,
         },
-      }, 'POST')
+      }, 'POST'),
     ],
     remove: [
       queryWithCurrentUser({
         idField: 'uid',
-        as: 'user__uid'
+        as: 'user__uid',
       }),
-    ]
+    ],
   },
 
   after: {
@@ -115,7 +118,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -125,6 +128,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

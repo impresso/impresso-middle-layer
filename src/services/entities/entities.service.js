@@ -1,10 +1,10 @@
 // Initializes the `entities` service on path `/entities`
 const createService = require('../neo4j.service');
 const hooks = require('./entities.hooks');
-const queries = require('decypher')(__dirname + '/entities.queries.cyp');
+const queries = require('decypher')(`${__dirname}/entities.queries.cyp`);
 
 
-module.exports = function() {
+module.exports = function () {
   const app = this;
   const paginate = app.get('paginate');
 
@@ -12,7 +12,7 @@ module.exports = function() {
     name: 'entities',
     paginate,
     config: app.get('neo4j'),
-    queries: queries,
+    queries,
   };
 
   // follow guideline at

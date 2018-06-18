@@ -41,7 +41,7 @@ class HashedPasswordVerifier extends Verifier {
   }
 }
 
-module.exports = function() {
+module.exports = function () {
   const app = this;
   const config = app.get('authentication');
   console.log('creating authentication sercice');

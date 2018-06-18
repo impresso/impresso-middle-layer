@@ -1,11 +1,10 @@
 // Initializes the `articles` service on path `/articles`
 const createService = require('./articles.class.js');
 const hooks = require('./articles.hooks');
-const queries = require('decypher')(__dirname + '/articles.queries.cyp');
+const queries = require('decypher')(`${__dirname}/articles.queries.cyp`);
 
 
-module.exports = function(app) {
-
+module.exports = function (app) {
   const paginate = app.get('paginate');
 
   const options = {

@@ -2,8 +2,7 @@
 const createService = require('../neo4j.service');
 const hooks = require('./issues.hooks');
 
-module.exports = function(app) {
-
+module.exports = function (app) {
   const paginate = app.get('paginate');
 
   const options = {

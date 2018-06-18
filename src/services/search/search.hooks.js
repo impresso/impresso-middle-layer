@@ -1,32 +1,34 @@
-const { validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils} = require('../../hooks/params');
+const {
+  validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
+} = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { proxyIIIF } = require('../../hooks/iiif');
 
 const SOLR_FACETS = {
-  year : {
-    type : 'terms',
-    field : 'meta_year_i',
-    mincount : 1,
-    limit: 400
+  year: {
+    type: 'terms',
+    field: 'meta_year_i',
+    mincount: 1,
+    limit: 400,
   },
-  newspaper:{
+  newspaper: {
     type: 'terms',
     field: 'meta_journal_s',
     mincount: 1,
-    maxcount: 750
+    maxcount: 750,
   },
   date: {
     type: 'terms',
     field: 'meta_date_dt',
-    mincount : 1,
-    limit: 100
+    mincount: 1,
+    limit: 100,
   },
-  language : {
-    type : 'terms',
-    field : 'lg_s',
-    mincount : 1
+  language: {
+    type: 'terms',
+    field: 'lg_s',
+    mincount: 1,
   },
-}
+};
 
 
 module.exports = {
@@ -48,20 +50,20 @@ module.exports = {
         },
         facets: {
           before: (d) => {
-            if(typeof d == 'string') {
+            if (typeof d === 'string') {
               return d.split(',');
             }
             return d;
           },
           choices: Object.keys(SOLR_FACETS),
           after: (fields) => {
-            let _facets ={}
-            for(let i in fields){
+            const _facets = {};
+            for (const i in fields) {
               _facets[fields[i]] = SOLR_FACETS[fields[i]];
             }
             return JSON.stringify(_facets);
-          }
-        }
+          },
+        },
       }),
       validateEach('filters', {
         context: {
@@ -75,7 +77,7 @@ module.exports = {
         q: {
           required: false,
           min_length: 2,
-          max_length: 500
+          max_length: 500,
         },
         uids: {
           regex: REGEX_UIDS,
@@ -89,8 +91,8 @@ module.exports = {
           // we cannot transform since Mustache is rendering the filters...
           // transform: d => d.split(',')
         },
-      },{
-        required: false
+      }, {
+        required: false,
       }),
       filtersToSolrQuery(),
       queryWithCommonParams(),
@@ -100,7 +102,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
@@ -113,7 +115,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -123,6 +125,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

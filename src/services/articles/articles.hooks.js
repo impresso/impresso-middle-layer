@@ -1,5 +1,7 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UIDS } = require('../../hooks/params');
+const {
+  validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UIDS,
+} = require('../../hooks/params');
 const { proxyIIIF } = require('../../hooks/iiif');
 
 

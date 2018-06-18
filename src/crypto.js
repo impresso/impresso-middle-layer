@@ -16,17 +16,15 @@ const encrypt = (password, options) => {
     salt: configs.salt,
     password: crypto.pbkdf2Sync(
       configs.secret,
-      configs.salt + '::' + password,
+      `${configs.salt}::${password}`,
       configs.iterations,
       configs.length,
-      configs.digest
+      configs.digest,
     ).toString('hex'),
   };
 };
 
-const comparePassword = (password, encrypted, salt, secret) => {
-  return encrypt(password, { salt, secret }).password == encrypted;
-};
+const comparePassword = (password, encrypted, salt, secret) => encrypt(password, { salt, secret }).password == encrypted;
 
 module.exports = {
   encrypt,

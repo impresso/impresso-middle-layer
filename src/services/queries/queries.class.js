@@ -4,8 +4,8 @@ const crypto = require('crypto');
 const { NotImplemented } = require('@feathersjs/errors');
 
 class Service extends Neo4jService {
-  async get (id, params) {
-    const result = await super.get(id, params)
+  async get(id, params) {
+    const result = await super.get(id, params);
     return result;
   }
 
@@ -16,7 +16,7 @@ class Service extends Neo4jService {
   "parent__uid": "github-1181642-cc0a89e5da3d0c8aa783de2837826b9d"
 }
   */
-  async create (data, params) {
+  async create(data, params) {
     if (Array.isArray(data)) {
       // return not available
       throw new NotImplemented('create method not available with data type: Array');
@@ -31,16 +31,15 @@ class Service extends Neo4jService {
       user__uid: params.user.uid,
       uid: `${params.user.uid}-${hash}`,
       data: data.sanitized.data,
-      name: data.sanitized.name
-    }
-    if(data.sanitized.parent__uid){
-      queryParams.parent__uid = data.sanitized.parent__uid
+      name: data.sanitized.name,
+    };
+    if (data.sanitized.parent__uid) {
+      queryParams.parent__uid = data.sanitized.parent__uid;
     }
 
     // debug creation params!
     console.log(queryParams);
-    return this._run(this.queries.create, queryParams).then(this._finalize)
-
+    return this._run(this.queries.create, queryParams).then(this._finalize);
   }
 }
 

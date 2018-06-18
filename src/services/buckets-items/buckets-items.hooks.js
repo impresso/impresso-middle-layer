@@ -1,12 +1,14 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { validate, validateEach, REGEX_UID, queryWithCommonParams } = require('../../hooks/params');
+const {
+  validate, validateEach, REGEX_UID, queryWithCommonParams,
+} = require('../../hooks/params');
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 
 
 module.exports = {
   before: {
     all: [
-       authenticate('jwt'),
+      authenticate('jwt'),
     ],
     find: [
       queryWithCommonParams(),
@@ -38,12 +40,12 @@ module.exports = {
         },
       }, {
         required: true,
-        method: 'POST'
+        method: 'POST',
       }),
     ],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
@@ -53,7 +55,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -63,6 +65,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

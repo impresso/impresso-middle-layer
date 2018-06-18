@@ -95,6 +95,7 @@ RETURN art, pages as _related_pages, iss as _related_issue
 MERGE (art:article {Project:{Project}, uid:{uid}})
 SET
   art.date = {date},
+  art.year = {year},
   {{#title}}
   art.title = {title},
   {{/title}}
@@ -103,7 +104,8 @@ SET
   {{/excerpt}}
   art.newspaper_uid = {newspaper__uid}
 WITH art
-MATCH (pag:page {Project:{Project}, uid:{page__uid}})
+MATCH (pag:page)
+WHERE pag.uid IN {page__uids} AND pag.Project = {Project}
 MERGE (art)-[r:appears_at]->(pag)
 SET r.regions = {regions}
 RETURN art
@@ -167,3 +169,29 @@ CALL apoc.periodic.iterate(
   "MATCH (art:article {Project:{Project}}) RETURN art",
   "SET art.time = apoc.date.parse(art.date,'s','yyyy-MM-dd')",
   {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})
+
+
+// name: APOC_create_issue_from_article
+// Special apoc query to deal with orphelins
+MATCH (pag:page)
+WHERE NOT (pag)-[:belongs_to]->()
+  AND pag.Project = 'impresso'
+WITH pag,
+apoc.text.replace(pag.uid, '([A-Z]+)-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z].*$', '$1') as newspaper_uid,
+apoc.text.replace(pag.uid, '([A-Z]+)-([0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z]).*$', '$1-$2') as issue_uid,
+apoc.text.replace(pag.uid, '[A-Z]+-([0-9]{4}-[0-9]{2}-[0-9]{2})-[a-z].*$', '$1') as issue_date,
+apoc.text.replace(pag.uid, '[A-Z]+-([0-9]{4})-[0-9]{2}-[0-9]{2}-[a-z].*$', '$1') as issue_year
+WITH pag, issue_uid, issue_date, toInteger(issue_year) as year, newspaper_uid
+LIMIT 1000
+MATCH (news:newspaper {uid: newspaper_uid})
+WITH pag, issue_uid, issue_date, year, news
+MERGE (iss:issue {uid:issue_uid, Project:'impresso'})
+ON CREATE SET
+  iss.count_articles = -1,
+  iss.count_pages = -1,
+  iss.date = issue_date,
+  iss.year = year
+WITH iss, pag, news
+MERGE (pag)-[:belongs_to]->(iss)
+MERGE (iss)-[:belongs_to]->(news)
+RETURN pag.uid, iss.uid, news.uid

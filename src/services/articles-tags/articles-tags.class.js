@@ -4,8 +4,7 @@ const shash = require('short-hash');
 const { NotImplemented } = require('@feathersjs/errors');
 
 class Service extends Neo4jService {
-
-  async create (data, params) {
+  async create(data, params) {
     const _type = 'create-articles-tags';
     const _uid = shash(`${params.query.user__uid}:${_type}:${data.sanitized.article__uid}:${data.sanitized.tag__uid}`);
 
@@ -14,13 +13,13 @@ class Service extends Neo4jService {
       article__uid: data.sanitized.article__uid,
       tag__uid: data.sanitized.tag__uid,
       type: _type,
-      _uid: _uid
+      _uid,
     });
-    
+
     return this._finalizeCreate(result);
   }
 
-  async find (params) {
+  async find(params) {
     throw new NotImplemented();
   }
 }

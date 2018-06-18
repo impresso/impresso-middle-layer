@@ -6,7 +6,7 @@ const Sequelize = require('sequelize');
 
 const model = (client, options = {}) => {
   const language = client.define('language', {
-    id:{
+    id: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       unique: true,
@@ -16,12 +16,12 @@ const model = (client, options = {}) => {
       length: 2,
       allowNull: false,
     },
-    uri:{
+    uri: {
       type: Sequelize.STRING,
-      field: 'lexvo_uri'
+      field: 'lexvo_uri',
     },
   }, {
-    ... options,
+    ...options,
   });
 
   // language.associate = function()
@@ -33,7 +33,7 @@ const model = (client, options = {}) => {
   // };
 
   return language;
-}
+};
 
 module.exports = function (app) {
   const config = app.get('sequelize');
@@ -42,13 +42,13 @@ module.exports = function (app) {
     hooks: {
       beforeCount(options) {
         options.raw = true;
-      }
-    }
+      },
+    },
   });
 
   return {
-    sequelize: language
+    sequelize: language,
   };
 };
 
-module.exports.model = model
+module.exports.model = model;

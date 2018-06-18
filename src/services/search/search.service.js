@@ -3,7 +3,6 @@ const createService = require('./search.class.js');
 const hooks = require('./search.hooks');
 
 module.exports = function (app) {
-
   const paginate = app.get('paginate');
 
   const options = {

@@ -4,27 +4,27 @@ const Newspaper = require('./newspapers.model').model;
 const model = (client, options = {}) => {
   const newspaper = Newspaper(client);
   const issue = client.define('issue', {
-    uid:{
+    uid: {
       type: Sequelize.STRING,
       primaryKey: true,
       field: 'id',
       unique: true,
     },
-    newspaper_uid:{
+    newspaper_uid: {
       type: Sequelize.STRING,
       field: 'newspaper_id',
     },
-    year:{
+    year: {
       type: Sequelize.SMALLINT,
     },
-    month:{
+    month: {
       type: Sequelize.SMALLINT,
     },
-    day:{
+    day: {
       type: Sequelize.SMALLINT,
     },
   }, {
-    ... options,
+    ...options,
     scopes: {
       findAll: {
         include: [
@@ -32,7 +32,7 @@ const model = (client, options = {}) => {
             model: newspaper,
             as: 'newspaper',
           },
-        ]
+        ],
       },
     },
   });
@@ -42,15 +42,15 @@ const model = (client, options = {}) => {
   });
 
   return issue;
-}
+};
 
 module.exports = function (app) {
   const config = app.get('sequelize');
   const issue = model(app.get('sequelizeClient'), {});
 
   return {
-    sequelize: issue
+    sequelize: issue,
   };
 };
 
-module.exports.model = model
+module.exports.model = model;

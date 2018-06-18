@@ -4,8 +4,7 @@ const slugify = require('slugify');
 const { NotImplemented } = require('@feathersjs/errors');
 
 class Service extends Neo4jService {
-
-  async create (data, params) {
+  async create(data, params) {
     if (Array.isArray(data)) {
       throw new NotImplemented();
       // return await Promise.all(data.map(current => this.create(current)));
@@ -15,11 +14,11 @@ class Service extends Neo4jService {
       user__uid: params.user.uid,
       description: data.sanitized.description,
       name: data.sanitized.name,
-      slug: slugify(data.sanitized.name).toLowerCase()
-    }
+      slug: slugify(data.sanitized.name).toLowerCase(),
+    };
 
     // owner_uid is optional.
-    if(data.sanitized.owner_uid && params.user.id != data.sanitized.owner_uid) {
+    if (data.sanitized.owner_uid && params.user.id != data.sanitized.owner_uid) {
       // if it is not qn admin cannot create :(
       // params.user.is_staff?
       // user_uid = data.sanitized.owner_uid;
@@ -37,13 +36,13 @@ class Service extends Neo4jService {
    * @param  {type} params description
    * @return {type}        description
    */
-  async patch (id, data, params) {
+  async patch(id, data, params) {
     const result = await this._run(this.queries.patch, {
       user__uid: params.query.user__uid,
       uid: id,
       description: data.sanitized.description,
-      name: data.sanitized.name
-    })
+      name: data.sanitized.name,
+    });
 
     return this._finalizeCreateOne(result);
   }
@@ -56,7 +55,7 @@ class Service extends Neo4jService {
    * @param  {object} params (not used directly)
    * @return {Promise}        description
    */
-  async remove (id, params) {
+  async remove(id, params) {
     const result = await this._run(this.queries.remove, {
       user__uid: params.query.user__uid,
       uid: id,

@@ -10,9 +10,9 @@ describe('\'suggestions\' service', () => {
 
   it('say hello', (done) => {
     app.service('suggestions').find({
-      query:{
-        q: 'pau'
-      }
+      query: {
+        q: 'pau',
+      },
     }).then((result) => {
       assert.ok(result.data, 'should contain a list of stuffs');
       done();

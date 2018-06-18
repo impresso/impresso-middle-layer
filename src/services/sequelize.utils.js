@@ -1,5 +1,5 @@
 
-const sequelizeRecordMapper = (record) => {
+const sequelizeRecordMapper = record =>
   /*
    transform an array of sequelize model isntance to a nice Object
    [ newspaper {
@@ -10,10 +10,7 @@ const sequelizeRecordMapper = (record) => {
     ...
    ]
   */
-  return record.toJSON();
-};
-
-
+  record.toJSON();
 module.exports = {
   sequelizeRecordMapper,
 };

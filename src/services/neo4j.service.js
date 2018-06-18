@@ -3,15 +3,15 @@
 */
 const neo4j = require('neo4j-driver').v1;
 const debug = require('debug')('impresso/services:Neo4jService');
-const {neo4jPrepare, neo4jRecordMapper, neo4jNow, neo4jRun, neo4jToInt} = require('./neo4j.utils');
+const {
+  neo4jPrepare, neo4jRecordMapper, neo4jNow, neo4jRun, neo4jToInt,
+} = require('./neo4j.utils');
 const errors = require('@feathersjs/errors');
 
 class Neo4jService {
-
-  constructor (options) {
-
+  constructor(options) {
     this.options = options || {};
-    this.config  = options.config;
+    this.config = options.config;
     this.name = options.name;
     // camelcase in options name
     // this.options.path = this.options.name.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase()
@@ -21,8 +21,8 @@ class Neo4jService {
     this._id = this.id = options.idField || options.id || 'id';
     this._uId = options.startId || 0;
 
-    this.driver = neo4j.driver(this.config.host, neo4j.auth.basic(this.config.auth.user, this.config.auth.pass),{
-      connectionPoolSize: 0
+    this.driver = neo4j.driver(this.config.host, neo4j.auth.basic(this.config.auth.user, this.config.auth.pass), {
+      connectionPoolSize: 0,
     });
 
     this.project = this.options.project || '!';
@@ -30,14 +30,14 @@ class Neo4jService {
   }
 
   _run(cypherQuery, params) {
-    let session = this.driver.session();
+    const session = this.driver.session();
     return neo4jRun(session, cypherQuery, {
-      ... params,
-      Project: this.config.project
+      ...params,
+      Project: this.config.project,
     });
   }
 
-  _finalizeOne (res) {
+  _finalizeOne(res) {
     return res.records.map(neo4jRecordMapper);
   }
 
@@ -49,9 +49,9 @@ class Neo4jService {
    * @param  {object} res Neo4j response
    * @return {object} custom response containing `data` and `info`.
    */
-  _finalizeCreateOne (res) {
+  _finalizeCreateOne(res) {
     let data;
-    if(res.records.length) {
+    if (res.records.length) {
       data = neo4jRecordMapper(res.records[0]);
     }
     return {
@@ -59,8 +59,8 @@ class Neo4jService {
       info: {
         resultAvailableAfter: res.summary.resultAvailableAfter.low,
         _stats: res.summary.counters._stats,
-      }
-    }
+      },
+    };
   }
 
 
@@ -70,13 +70,13 @@ class Neo4jService {
    * @param  {object} res Neo4j response
    * @return {object}     description
    */
-  _finalizeRemove (res) {
+  _finalizeRemove(res) {
     return {
       info: {
         resultAvailableAfter: res.summary.resultAvailableAfter.low,
         _stats: res.summary.counters._stats,
-      }
-    }
+      },
+    };
   }
 
   // add
@@ -86,125 +86,123 @@ class Neo4jService {
       limit,
       skip,
       total,
-      info
-    }
+      info,
+    };
   }
 
-  _finalizeCreate (res) {
+  _finalizeCreate(res) {
     return {
       data: res.records.map(neo4jRecordMapper),
       info: {
         resultAvailableAfter: res.summary.resultAvailableAfter.low,
         _stats: res.summary.counters._stats,
-      }
-    }
+      },
+    };
   }
 
-  _finalize (res) {
+  _finalize(res) {
     // add "total" field to extra. This enables next and prev.
     // console.log(res.records, res.records[0])
     let count;
 
 
-
-    debug('_finalize: resultAvailableAfter', neo4jToInt(res.summary.resultAvailableAfter),'ms')
-    if(Array.isArray(res.records)){
-      if(res.records.length) {
+    debug('_finalize: resultAvailableAfter', neo4jToInt(res.summary.resultAvailableAfter), 'ms');
+    if (Array.isArray(res.records)) {
+      if (res.records.length) {
         const record = res.records[0];
-        debug('_finalize: record._fieldLookup:', record._fieldLookup)
-        if(record._fieldLookup) {
+        debug('_finalize: record._fieldLookup:', record._fieldLookup);
+        if (record._fieldLookup) {
           const countidx = record._fieldLookup._total;
 
-          if(typeof countidx == 'number'){
+          if (typeof countidx === 'number') {
             count = neo4jToInt(record._fields[countidx]);
           }
         }
       } else {
         return Neo4jService.wrap(
           [],
-          res.queryParams? res.queryParams.limit: null,
-          res.queryParams? res.queryParams.skip: null,
-          0
-        )
+          res.queryParams ? res.queryParams.limit : null,
+          res.queryParams ? res.queryParams.skip : null,
+          0,
+        );
       }
     }
 
-    if(typeof count != 'undefined'){
-      debug('_finalize: count property has been found, <count>:', count)
+    if (typeof count !== 'undefined') {
+      debug('_finalize: count property has been found, <count>:', count);
 
       return Neo4jService.wrap(
         res.records.map(neo4jRecordMapper),
-        res.queryParams? res.queryParams.limit: null,
-        res.queryParams? res.queryParams.skip: null,
-        count
-        //res.summary.counters._stats
-      )
-    } else {
-      debug('_finalize: no count has been found.')
-      return res.records.map(neo4jRecordMapper);
+        res.queryParams ? res.queryParams.limit : null,
+        res.queryParams ? res.queryParams.skip : null,
+        count,
+        // res.summary.counters._stats
+      );
     }
+    debug('_finalize: no count has been found.');
+    return res.records.map(neo4jRecordMapper);
   }
 
 
-  async find (params) {
-    debug(`find: with params.isSafe:${params.isSafe} and params.query:`,  params.query, params);
-    return this._run(this.queries.find, params.isSafe? params.query: params.sanitized).then(this._finalize)
+  async find(params) {
+    debug(`find: with params.isSafe:${params.isSafe} and params.query:`, params.query, params);
+    return this._run(this.queries.find, params.isSafe ? params.query : params.sanitized).then(this._finalize);
   }
 
-  async get (id, params) {
+  async get(id, params) {
     debug(`get: ${this.name} with id:${id} and params.isSafe:${params.isSafe} and params.query:`, params.query);
 
-    const uids = id.split(',')
+    const uids = id.split(',');
 
     // query params
     let query;
-    let qp = {
-      ... params.isSafe? params.query: params.sanitized
+    const qp = {
+      ...params.isSafe ? params.query : params.sanitized,
     };
 
-    if(uids.length > 1) {
-      qp.uids = uids
-      query = this.queries.findAll
-    } else if(id == '*') {
-      query = this.queries.findAllWildcard
+    if (uids.length > 1) {
+      qp.uids = uids;
+      query = this.queries.findAll;
+    } else if (id == '*') {
+      query = this.queries.findAllWildcard;
     } else {
-      query = this.queries.get
-      qp.uid = id
+      query = this.queries.get;
+      qp.uid = id;
     }
 
-    if(!query) {
-      throw new errors.NotImplemented()
+    if (!query) {
+      throw new errors.NotImplemented();
     }
 
-    return this._run(query, qp).then(this._finalize).then(records => {
-      if(!records.length) {
-        throw new errors.NotFound()
+    return this._run(query, qp).then(this._finalize).then((records) => {
+      if (!records.length) {
+        throw new errors.NotFound();
       }
-      if(records.length == 1) {
-        return records[0]
+      if (records.length == 1) {
+        return records[0];
       }
-      return records
-    })
+      return records;
+    });
   }
 
-  async remove (id, params) {
+  async remove(id, params) {
     debug(`remove: with id:${id}`, id);
-    if(!this.queries.remove) {
+    if (!this.queries.remove) {
       throw new errors.NotImplemented();
     }
 
     return this._run(this.queries.remove, {
       uid: id,
-      ... params.isSafe? params.query: params.sanitized
-    }).then(res => {
-      debug('remove: neo4j response', res)
+      ...params.isSafe ? params.query : params.sanitized,
+    }).then((res) => {
+      debug('remove: neo4j response', res);
       // console.log(res.summary.counters);
       // if(!records.length) {
       //   throw new errors.NotFound()
       // }
       // return records[0]
-      return res.summary.counters._stats
-    })
+      return res.summary.counters._stats;
+    });
   }
 }
 

@@ -88,7 +88,7 @@ app.use(handler({
     },
     500: (err, req, res, next) => {
       console.log(err.toJSON());
-      res.json({ message: 'service unavailable'});
+      res.json({ message: 'service unavailable' });
     },
     // bad request
     400: (err, req, res, next) => {

@@ -20,7 +20,7 @@ class Service extends Neo4jService {
    * @param  {object} params access to user__uid and other query params
    * @return {object}        object
    */
-  async create (data, params) {
+  async create(data, params) {
     const result = await this._run(this.queries.create, {
       user__uid: params.query.user__uid,
       bucket_uid: data.sanitized.bucket_uid,
@@ -31,9 +31,9 @@ class Service extends Neo4jService {
     return this._finalizeCreate(result);
   }
 
-  async remove (id, params) {
-    console.log(arguments)
-    return {ok:true}
+  async remove(id, params) {
+    console.log(arguments);
+    return { ok: true };
     //
     // const result = await this._run(this.queries.remove, {
     //   user__uid: params.query.user__uid,

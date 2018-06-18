@@ -6,38 +6,38 @@ const model = (client, options = {}) => {
   const newspaper = Newspaper(client);
   const issue = Issue(client);
   const page = client.define('page', {
-    uid:{
+    uid: {
       type: Sequelize.STRING,
       primaryKey: true,
       field: 'id',
       unique: true,
     },
-    issue_uid:{
+    issue_uid: {
       type: Sequelize.STRING,
       field: 'issue_id',
     },
-    newspaper_uid:{
+    newspaper_uid: {
       type: Sequelize.STRING,
       field: 'newspaper_id',
     },
-    page_number:{
+    page_number: {
       type: Sequelize.SMALLINT,
-      field: 'page_number'
+      field: 'page_number',
     },
   }, {
-    ... options,
+    ...options,
     scopes: {
       findAll: {
         include: [
           {
             model: newspaper,
-            as: 'newspaper'
+            as: 'newspaper',
           },
           {
             model: issue,
-            as: 'issue'
-          }
-        ]
+            as: 'issue',
+          },
+        ],
       },
     },
   });
@@ -57,7 +57,7 @@ const model = (client, options = {}) => {
   // };
 
   return page;
-}
+};
 
 module.exports = function (app) {
   const config = app.get('sequelize');
@@ -66,14 +66,14 @@ module.exports = function (app) {
     hooks: {
       beforeCount(options) {
         options.raw = true;
-      }
-    }
+      },
+    },
   });
 
 
   return {
-    sequelize: issue
+    sequelize: issue,
   };
 };
 
-module.exports.model = model
+module.exports.model = model;

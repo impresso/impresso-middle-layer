@@ -28,11 +28,10 @@ module.exports = {
           required: true,
           max_length: 2000,
           fn: (d) => {
-            if (typeof d !== 'object')
-              return false;
+            if (typeof d !== 'object') { return false; }
             return true;
           },
-          transform: (d) => JSON.stringify(d),
+          transform: d => JSON.stringify(d),
         },
         parent__uid: {
           required: false,

@@ -2,8 +2,7 @@
 const createService = require('./pages.class.js');
 const hooks = require('./pages.hooks');
 
-module.exports = function(app) {
-
+module.exports = function (app) {
   const paginate = app.get('paginate');
 
   const options = {

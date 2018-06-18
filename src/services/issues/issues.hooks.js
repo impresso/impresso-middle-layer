@@ -1,28 +1,26 @@
 const { queryWithCommonParams } = require('../../hooks/params');
 
-const proxyIIIF = () => {
-  return async context => {
-    if(context.result && context.result.pages) {
-      const proxyhost = context.app.get('proxy').host;
-      for(let i in context.result.pages) {
-        context.result.pages[i].iiif = `${proxyhost}/proxy/iiif/${context.result.pages[i].uid}/info.json`
-      }
+const proxyIIIF = () => async (context) => {
+  if (context.result && context.result.pages) {
+    const proxyhost = context.app.get('proxy').host;
+    for (const i in context.result.pages) {
+      context.result.pages[i].iiif = `${proxyhost}/proxy/iiif/${context.result.pages[i].uid}/info.json`;
     }
   }
-}
+};
 
 
 module.exports = {
   before: {
     all: [
-      queryWithCommonParams()
+      queryWithCommonParams(),
     ],
     find: [],
     get: [],
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
@@ -30,12 +28,12 @@ module.exports = {
     find: [],
     get: [
       // change count_pages
-      proxyIIIF()
+      proxyIIIF(),
     ],
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -45,6 +43,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };

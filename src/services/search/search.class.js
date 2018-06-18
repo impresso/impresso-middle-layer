@@ -9,7 +9,7 @@ class Service {
    * Add solr
    * @param  {object} options pass the current app in options.app
    */
-  constructor (options) {
+  constructor(options) {
     this.solr = require('../../solr').client(options.app.get('solr'));
     this.neo4j = require('../../neo4j').client(options.app.get('neo4j'));
     this.name = options.name;
@@ -26,8 +26,8 @@ class Service {
       limit,
       skip,
       total,
-      info
-    }
+      info,
+    };
   }
 
 
@@ -37,10 +37,10 @@ class Service {
    *
    * @param  {object} params query params. Check hhooks
    */
-  async find (params) {
+  async find(params) {
     // mapped objects
     let results = [];
-    let uids = [];
+    const uids = [];
 
     debug(`find '${this.name}': query:`, params.query);
 
@@ -50,53 +50,49 @@ class Service {
       q: params.query.sq,
       facets: params.query.facets,
       limit: params.query.limit,
-      skip: params.query.skip
+      skip: params.query.skip,
     });
 
     const total = _solr.response.numFound;
 
 
-    debug(`find '${this.name}': SOLR found ${total} using params.query:`,  params.query);
+    debug(`find '${this.name}': SOLR found ${total} using params.query:`, params.query);
 
-    if(!total) {
+    if (!total) {
       return Service.wrap([], params.query.limit, params.query.skip, total);
     }
 
-    const session = this.neo4j.session()
+    const session = this.neo4j.session();
 
     const itemsFromNeo4j = await neo4jRun(session, this.neo4jQueries[params.query.group_by].findAll, {
       Project: 'impresso',
-      uids: _solr.response.docs.map(d => d.uid)
+      uids: _solr.response.docs.map(d => d.uid),
     }).then((res) => {
-      let _records = {}
+      const _records = {};
       debug(`find '${this.name}': neo4j success`, neo4jSummary(res));
-      for(let rec of res.records) {
+      for (let rec of res.records) {
         rec = neo4jRecordMapper(rec);
         _records[rec.uid] = rec;
       }
       return _records;
-    }).catch(err => {
+    }).catch((err) => {
       console.log(err);
-      return {}
-    })
+      return {};
+    });
 
     // merge results maintaining solr ordering.
-    results = _solr.response.docs.map(d => {
-      return {
-        ... d,
-        ... itemsFromNeo4j[d.uid] || {},
-      }
-    });
+    results = _solr.response.docs.map(d => ({
+      ...d,
+      ...itemsFromNeo4j[d.uid] || {},
+    }));
 
     return Service.wrap(results, params.query.limit, params.query.skip, total, {
       responseTime: {
-        solr: _solr.responseHeader.QTime
+        solr: _solr.responseHeader.QTime,
       },
-      facets: _solr.facets
+      facets: _solr.facets,
     });
   }
-
-
 }
 
 module.exports = function (options) {

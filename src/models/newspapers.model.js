@@ -12,7 +12,7 @@ const model = (client, options = {}) => {
   const prop = Property(client);
 
   const newspaper = client.define('newspaper', {
-    uid:{
+    uid: {
       type: Sequelize.STRING,
       primaryKey: true,
       unique: true,
@@ -22,55 +22,55 @@ const model = (client, options = {}) => {
       type: Sequelize.STRING,
       allowNull: false,
     },
-    start_year:{
+    start_year: {
       type: Sequelize.SMALLINT,
     },
-    end_year:{
+    end_year: {
       type: Sequelize.SMALLINT,
     },
   }, {
-    ... options,
+    ...options,
     scopes: {
       findAll: {
         include: [
           {
             model: language,
-            as: 'languages'
+            as: 'languages',
           },
           {
             model: prop,
-            as: 'properties'
-          }
-        ]
+            as: 'properties',
+          },
+        ],
       },
       get: {
         include: [
           {
             model: language,
-            as: 'languages'
-          }
-        ]
-      }
-    }
+            as: 'languages',
+          },
+        ],
+      },
+    },
   });
 
-  newspaper.prototype.toJSON = function() {
-    let item = this.get()
+  newspaper.prototype.toJSON = function () {
+    const item = this.get();
     // flatten languages
-    if(item.languages && Array.isArray(item.languages)) {
+    if (item.languages && Array.isArray(item.languages)) {
       item.languages = item.languages.map(d => d.code);
     }
-    if(item.properties && Array.isArray(item.properties)) {
-      item.properties.forEach( d => {
+    if (item.properties && Array.isArray(item.properties)) {
+      item.properties.forEach((d) => {
         item[d.name] = d.newspapers_metadata.value;
       });
       delete item.properties;
     }
-    return item
-  }
+    return item;
+  };
   const newspaperMetadata = client.define('newspapers_metadata', {
-    value: Sequelize.STRING
-  })
+    value: Sequelize.STRING,
+  });
 
   newspaper.belongsToMany(language, {
     as: 'languages',
@@ -101,7 +101,7 @@ const model = (client, options = {}) => {
   //   ]
   // })
   return newspaper;
-}
+};
 
 module.exports = function (app) {
   const config = app.get('sequelize');
@@ -110,13 +110,13 @@ module.exports = function (app) {
     hooks: {
       beforeCount(options) {
         options.raw = true;
-      }
-    }
+      },
+    },
   });
 
   return {
-    sequelize: newspaper
+    sequelize: newspaper,
   };
 };
 
-module.exports.model = model
+module.exports.model = model;
