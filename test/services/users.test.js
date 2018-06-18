@@ -9,17 +9,17 @@ describe('\'users\' service', () => {
   });
   it('find users', (done) => {
     service.find({
-      query:{
+      query: {
         email: 'thijs.vanbeek@uni.lu',
         githubId: undefined,
         uid: 'thijs.vanbeek@uni.lu',
         user_uid: undefined,
-      }
-    }).then(res => {
-      console.log(res.data);
+      },
+    }).then((res) => {
       assert.ok(res.data.length);
+      console.log(res.data);
       done();
-    }).catch(err => {
+    }).catch((err) => {
       console.log(err);
       done();
     });

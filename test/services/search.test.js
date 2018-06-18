@@ -13,23 +13,23 @@ describe('\'search\' service', () => {
   });
   it('loaded solr content', (done) => {
     service.find({
-      query:{
+      query: {
         q: 'avion accident',
         group_by: 'articles',
-        facets: [ 'year' ]
-      }
-    }).then(res => {
+        facets: ['year'],
+      },
+    }).then((res) => {
       assert.ok(res.data.length);
       done();
-    }).catch(err => {
+    }).catch((err) => {
       assert.empty(err);
       done();
-    })
+    });
   });
 
   it('loaded solr content with filters and facets', (done) => {
     service.find({
-      query:{
+      query: {
         q: 'ambassad*',
         group_by: 'articles',
         limit: 1,
@@ -40,24 +40,24 @@ describe('\'search\' service', () => {
           {
             type: 'string',
             context: 'include',
-            q: 'avion accident'
+            q: 'avion accident',
           },
           {
             type: 'string',
             context: 'exclude',
-            q: 'suisse'
-          }
-        ]
-      }
-    }).then(res => {
+            q: 'suisse',
+          },
+        ],
+      },
+    }).then((res) => {
       // console.log(res.data);
       assert.ok(res.data.length);
       assert.ok(res.data[0].matches.length);
       done();
-    }).catch(err => {
+    }).catch((err) => {
       console.log(err.data);
       done();
-    })
+    });
     assert.ok(service, 'Registered the service');
   });
 });

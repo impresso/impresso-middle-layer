@@ -6,24 +6,20 @@ describe('\'articles\' service', () => {
     const service = app.service('articles');
     service.find({
       query: {
-        filters:[
+        filters: [
           {
             type: 'entity',
-            context: 'include'
-          }
-        ]
-      }
-    }).then(res => {
-      assert.ok(res.data)
-      assert.ok(res.total)
+            context: 'include',
+          },
+        ],
+      },
+    }).then((res) => {
+      assert.ok(res.data);
+      assert.ok(res.total);
       done();
-    }).catch(err => {
+    }).catch((err) => {
       console.log(err.data);
-      done()
-    }) //[type]=entity&filters[0][context]=include
-
-
+      done();
+    }); // [type]=entity&filters[0][context]=include
   });
-
-
 });

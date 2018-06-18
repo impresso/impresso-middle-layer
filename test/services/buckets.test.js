@@ -11,12 +11,11 @@ describe('\'buckets\' service', () => {
   it('get correctly a test bucket for a test user (both in the db)', () => {
     const service = app.service('buckets');
 
-    service.find({limit: 10}).then(res => {
+    service.find({ limit: 10 }).then((res) => {
       console.log(res);
       assert.ok(service, 'Registered the service');
-    }).catch(err => {
+    }).catch((err) => {
       assert.empty(err, 'Registered the service');
     });
-
   });
 });
