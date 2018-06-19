@@ -5,9 +5,11 @@ const { proxyIIIF } = require('../../hooks/iiif');
 module.exports = {
   before: {
     all: [
+
+    ],
+    find: [
       queryWithCommonParams(),
     ],
-    find: [],
     get: [
 
     ],
