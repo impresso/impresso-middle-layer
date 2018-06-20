@@ -27,10 +27,10 @@ const neo4jPrepare = (cypherQuery, params) =>
   mustache.render(cypherQuery, params);
 
 
-const neo4jRun = (session, cypherQuery, params) => {
+const neo4jRun = (session, cypherQuery, params, queryname) => {
   const preparedQuery = neo4jPrepare(cypherQuery, params);
 
-  debug('neo4jRun: with cypher query:', preparedQuery);
+  debug('neo4jRun: with cypher query:', queryname?queryname:preparedQuery);
 
   const queryParams = {
     ...neo4jNow(),

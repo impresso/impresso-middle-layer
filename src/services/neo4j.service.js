@@ -29,12 +29,12 @@ class Neo4jService {
     this.queries = this.options.queries || require('decypher')(`${__dirname}/${this.options.name}/${this.options.name}.queries.cyp`);
   }
 
-  _run(cypherQuery, params) {
+  _run(cypherQuery, params, queryname) {
     const session = this.driver.session();
     return neo4jRun(session, cypherQuery, {
       ...params,
       Project: this.config.project,
-    });
+    }, queryname);
   }
 
   _finalizeOne(res) {
@@ -156,6 +156,8 @@ class Neo4jService {
 
     // query params
     let query;
+    let queryname;
+
     const qp = {
       ...params.isSafe ? params.query : params.sanitized,
     };
@@ -163,10 +165,13 @@ class Neo4jService {
     if (uids.length > 1) {
       qp.uids = uids;
       query = this.queries.findAll;
+      queryname = `${this.name}.queries.cyp:findAll`
     } else if (id == '*') {
       query = this.queries.findAllWildcard;
+      queryname = `${this.name}.queries.cyp:findAllWildcard`
     } else {
       query = this.queries.get;
+      queryname = `${this.name}.queries.cyp:get`
       qp.uid = id;
     }
 
@@ -174,7 +179,7 @@ class Neo4jService {
       throw new errors.NotImplemented();
     }
 
-    return this._run(query, qp).then(this._finalize).then((records) => {
+    return this._run(query, qp, queryname).then(this._finalize).then((records) => {
       if (!records.length) {
         throw new errors.NotFound();
       }
