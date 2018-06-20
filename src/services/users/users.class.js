@@ -3,6 +3,7 @@ const { neo4jRecordMapper } = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
 const errors = require('@feathersjs/errors');
 const { encrypt } = require('../../crypto');
+const shorthash = require('short-hash');
 
 class Service extends Neo4jService {
   async create(data, params) {
@@ -23,7 +24,7 @@ class Service extends Neo4jService {
       user.displayname = data.github.profile.displayName;
       user.picture = data.github.profile.photos.map(d => d.value);
     } else if (data.sanitized.email && data.sanitized.password && data.sanitized.username) {
-      user.uid = data.sanitized.email;
+      user.uid = `local-${shorthash(data.sanitized.username)}`; // uid is enforced
       user.provider = 'local';
       user.username = data.sanitized.username;
       Object.assign(user, encrypt(data.sanitized.password));

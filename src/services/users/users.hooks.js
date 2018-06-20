@@ -30,7 +30,7 @@ module.exports = {
         ...VALIDATE_OPTIONAL_EMAIL,
         ...VALIDATE_OPTIONAL_PASSWORD,
         ...VALIDATE_OPTIONAL_GITHUB_ID,
-      }),
+      }, 'POST'),
     ],
     update: [hashPassword(), authenticate('jwt')],
     patch: [hashPassword(), authenticate('jwt')],
