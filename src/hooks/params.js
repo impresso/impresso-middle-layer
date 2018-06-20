@@ -1,15 +1,13 @@
 const errors = require('@feathersjs/errors');
-const crypto = require('crypto');
-const configuration = require('@feathersjs/configuration')()();
 const debug = require('debug')('impresso/hooks:params');
 
-const toLucene = (query, force_fuzzy = true) => {
+const toLucene = (query, forceFuzzy = true) => {
   // @todo excape chars + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 
   // replace query
-  let Q = '(:D)', // replace quotes
-    S = '[-_°]', // replace spaces
-    q;
+  // const Q = '(:D)'; // replace quotes
+  // const S = '[-_°]'; // replace spaces
+  let q;
 
   // understand \sOR\s and \sAND\s stuff.
   if (query.indexOf(' OR ') !== -1 || query.indexOf(' AND ') !== -1) {
@@ -17,16 +15,11 @@ const toLucene = (query, force_fuzzy = true) => {
     debug('toLucene: actual <lucene query>', query);
     return query;
   }
-
-  const _escape = () => {
-
-  };
-
-
   // split by quotes.
 
 
-  // console.log('word1 , "word2 , , word3 " , word 5 ", word 6 , "word7 , "word8 }'.split(/("[^"]*?")/))
+  // console.log('word1 , "word2 , , word3 " , word 5 ",
+  // word 6 , "word7 , "word8 }'.split(/("[^"]*?")/))
   // console.log('ciao "mamma "bella" e ciao'.split(/("[^"]*?")/))
 
   // avoid lexical error (odd number of quotes for instance)
@@ -41,7 +34,7 @@ const toLucene = (query, force_fuzzy = true) => {
     }
 
     // trust the user
-    if (_d.indexOf('*') !== -1 && force_fuzzy) { force_fuzzy = false; }
+    if (_d.indexOf('*') !== -1 && forceFuzzy) { forceFuzzy = false; }
 
     // strip quotes
     _d = _d.replace(/"/g, '');
@@ -50,9 +43,9 @@ const toLucene = (query, force_fuzzy = true) => {
     const _dr = _d.split(/\s+/).filter(k => k.length > 1);
 
     // if there is only one word
-    if (_dr.length == 1) {
+    if (_dr.length === 1) {
       _d = _dr.join(' ');
-      return force_fuzzy ? `${_d}*` : _d;
+      return forceFuzzy ? `${_d}*` : _d;
     }
 
     // _dr contains COMMA? @todo
@@ -120,8 +113,11 @@ const _validateOne = (key, item, rule) => {
   }
 
   // sanitize/transform params
+  let _item;
   if (typeof rule.transform === 'function') {
-    item = rule.transform(item);
+    _item = rule.transform(item);
+  } else {
+    _item = item;
   }
 
   if (Object.keys(_errors).length) {
@@ -129,7 +125,7 @@ const _validateOne = (key, item, rule) => {
     throw new errors.BadRequest(_errors);
   }
 
-  return item;
+  return _item;
 };
 
 const _validate = (params, rules) => {
@@ -261,9 +257,20 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
     max_limit: 500,
   };
 
-  if (params.user) {
-    console.log(params.user);
+  if (!context.params) {
+    context.params = {};
   }
+
+  if (!context.params.query) {
+    context.params.query = {};
+  }
+
+  if (context.params.user) {
+    debug(`queryWithCommonParams: adding '_exec_user_uid' to the query ${context.params.user.uid}`);
+    params._exec_user_uid = context.params.user.uid;
+  }
+
+
   // num of results expected, 0 to 500
   if (context.params.query.limit) {
     const limit = parseInt(context.params.query.limit);
