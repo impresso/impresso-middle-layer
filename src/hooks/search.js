@@ -17,7 +17,7 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
     throw new Error('The \'filtersToSolrQuery\' hook should be used with a \'filters\' param or \'q\'!', context.params.sanitized);
   }
 
-  const queries = (context.params.sanitized.filters || []).filter(d => d.type == 'string');
+  const queries = (context.params.sanitized.filters || []).filter(d => d.type === 'string');
   // if there is a q parameter, let's add it to the very beginning of the query as include.
   if (context.params.sanitized.q) {
     queries.unshift({
@@ -38,14 +38,14 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
   debug('\'filtersToSolrQuery\' with \'queries\':', queries);
 
   // reduce the queries in filters to final SOLR query `sq`
-  const sq = queries.reduce((sq, query) => {
-    const specialchars = '+ - && || ! ( ) { } [ ] ^ " ~ * ? : \\'.split(' ');
+  const sq = queries.reduce((_sq, query) => {
+    // const specialchars = '+ - && || ! ( ) { } [ ] ^ " ~ * ? : \\'.split(' ');
     // operator
     let op = 'AND';
-    const field = fields[0];
+    // const field = fields[0];
     // solarized query is the initial query
     let _q = query.q.trim();
-    const _isExact = /^"[^"]+"$/.test(_q);
+    // const _isExact = /^"[^"]+"$/.test(_q);
     const _hasSpaces = _q.split(' ').length > 1;
 
     if (!query.standalone) {
@@ -70,14 +70,14 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
 
 
     // console.log('prevuois loop:', sq)
-    if (sq === false) {
+    if (_sq === false) {
       return _q;
     }
 
-    if (query.context == 'exclude') {
+    if (query.context === 'exclude') {
       op = 'AND NOT';
     }
-    return `${sq} ${op} ${_q}`;
+    return `${_sq} ${op} ${_q}`;
   }, false);
 
   debug('\'filtersToSolrQuery\' with \'solr query\':', sq);

@@ -2,9 +2,9 @@
 
 const debug = require('debug')('impresso/hooks:iiif');
 
-const _getIIIF = (context, page__uid) => {
+const _getIIIF = (context, pageUid) => {
   const proxyhost = context.app.get('proxy').host;
-  return `${proxyhost}/proxy/iiif/${page__uid}/info.json`;
+  return `${proxyhost}/proxy/iiif/${pageUid}/info.json`;
 };
 
 // use this hook to add IIIF endpoints that go well with IIIF proxy.
@@ -18,6 +18,7 @@ const proxyIIIF = () => async (context) => {
     context.result.iiif = _getIIIF(context, context.result.uid);
   } else if (context.result.data) {
     debug(`proxyIIIF: with result.data <length>: ${context.result.data.length}`);
+
     for (const page of context.result.data) {
       if (!page.labels) {
         // not a neo4j
