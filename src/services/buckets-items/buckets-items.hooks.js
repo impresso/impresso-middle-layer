@@ -31,7 +31,7 @@ module.exports = {
       }, 'POST'),
       validateEach('items', {
         label: {
-          choices: ['article', 'entity', 'page'],
+          choices: ['article', 'entity', 'page', 'issue'],
           required: true,
         },
         uid: {
