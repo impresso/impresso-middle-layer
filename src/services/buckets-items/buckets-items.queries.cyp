@@ -34,14 +34,14 @@ OPTIONAL MATCH (buc)-[r:contains]->(n:page)
 WITH u, buc, _count_buckets, _count_articles, _count_entities,
   count(r) as _count_pages
 OPTIONAL MATCH (buc)-[r:contains]->(n:issue)
-WITH u, buc, _count_buckets, _count_articles, _count_entities,
+WITH u, buc, _count_buckets, _count_articles, _count_entities, _count_pages,
   count(r) as _count_issues
 SET
   buc.count_articles = _count_articles,
   buc.count_entities = _count_entities,
   buc.count_pages = _count_pages,
   buc.count_issues = _count_issues,
-  buc.count_items = _count_articles + _count_entities + _count_pages,
+  buc.count_items = _count_articles + _count_entities + _count_pages + _count_issues,
   u.count_buckets = _count_buckets
 
 RETURN buc as bucket
