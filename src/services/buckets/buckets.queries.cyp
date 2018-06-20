@@ -44,9 +44,9 @@ RETURN buc, collect(n) as _related_items
 
 // name: get
 //
-MATCH (u:user {uid:{user__uid}})-[r:is_creator_of]->(buc:bucket {uid:{uid}})
+MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket {uid:{uid}})
 WITH buc
-MATCH (buc)-[:contains]->(n)
+OPTIONAL MATCH (buc)-[:contains]->(n)
 WITH buc, collect(n) as _related_items
 RETURN buc, _related_items
 
