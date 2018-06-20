@@ -59,9 +59,8 @@ WITH u
 CALL apoc.create.uuids(1)
 YIELD uuid
 WITH u, uuid
-CREATE (buc:bucket)
+CREATE (buc:bucket {uid: uuid})
 SET
-  buc.uid = uuid,
   buc.Project = {Project},
   buc.name = {name},
   buc.slug = {slug},
