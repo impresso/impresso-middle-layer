@@ -24,9 +24,10 @@ ORDER BY {{order_by}}
 {{/order_by}}
 SKIP {skip}
 LIMIT {limit}
-WITH buc, _total
-OPTIONAL MATCH (buc)-[:contains]->(item)
-RETURN buc, collect(item)[..10] as _related_items,  _total
+RETURN buc, _total
+// WITH buc, _total
+// OPTIONAL MATCH (buc)-[:contains]->(item)
+// RETURN buc, collect(item)[..10] as _related_items,  _total
 {{#order_by}}
 ORDER BY {{order_by}}
 {{/order_by}}
