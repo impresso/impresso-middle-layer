@@ -6,7 +6,12 @@
       "func-names": "off",
       "class-methods-use-this": "off",
       "no-console": "off",
-      "prefer-destructuring": "off"
+      "prefer-destructuring": "off",
+      "no-param-reassign": ["error",
+        {
+          "props": false 
+        }
+      ]
     },
     "env": {
       "mocha": true,
