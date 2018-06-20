@@ -11,7 +11,7 @@ module.exports = {
       queryWithCommonParams(),
     ],
     get: [
-
+      queryWithCommonParams(),
     ],
     create: [],
     update: [],

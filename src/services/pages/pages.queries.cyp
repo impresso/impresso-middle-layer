@@ -59,8 +59,29 @@ CASE WHEN r IS NOT NULL THEN collect({
   tag_uid: t.uid
 }) ELSE [] END as _related_articles_tags, collect(DISTINCT t) as _related_tags
 
+// collect buckets if connected to the page if theres a specific creator
+{{#_exec_user_uid}}
+WITH pag, _related_regions, _related_articles, _related_articles_entities, _related_entities, _related_articles_tags, _related_tags
+OPTIONAL MATCH (u:user {uid:{user__uid}})-[:is_creator_of]->(buc:bucket)-[:contains]->(pag)
+
+WITH pag,
+    _related_regions, _related_articles,
+    _related_articles_entities, _related_entities,
+    _related_articles_tags, _related_tags,
+    collect(buc) as _related_buckets
+
+RETURN pag,
+    _related_regions, _related_articles,
+    _related_articles_entities, _related_entities,
+    _related_articles_tags, _related_tags,
+    _related_buckets
+
+{{/_exec_user_uid}}
+{{^_exec_user_uid}}
 RETURN pag, _related_regions, _related_articles, _related_articles_entities, _related_entities, _related_articles_tags, _related_tags
+{{/_exec_user_uid}}
 LIMIT 1
+
 
 // name: merge
 //
