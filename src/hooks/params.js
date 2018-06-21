@@ -337,8 +337,17 @@ const validateEach = (paramName, validators, options = {}) => {
       throw new Error('The \'validateEach\' hook should only be used as a \'before\' hook.');
     }
     // console.log(context.params.query.filters)
-    const toBeValidated = opts.method == 'GET' ? context.params.query[paramName] : context.data[paramName];
+    let toBeValidated;
 
+    switch(opts.method) {
+      case 'GET':
+        toBeValidated = context.params.query[paramName]
+        break;
+      case 'POST':
+        toBeValidated = context.data[paramName]
+        break;
+    }
+    
     if (!Array.isArray(toBeValidated) || !toBeValidated.length) {
       if (opts.required) {
         const _error = {};
@@ -346,6 +355,7 @@ const validateEach = (paramName, validators, options = {}) => {
           code: 'NotFound',
           message: `param '${paramName}' is required and shouldn't be empty.`,
         };
+        console.log(_error);
         throw new errors.BadRequest(_error);
       }
       debug(`validateEach: ${paramName} not found in '${opts.method}' or is not an Array or it is empty. Received:`, toBeValidated);
