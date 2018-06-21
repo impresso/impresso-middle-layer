@@ -65,8 +65,10 @@ class Service {
     const session = this.neo4j.session();
 
     const itemsFromNeo4j = await neo4jRun(session, this.neo4jQueries[params.query.group_by].findAll, {
+      _exec_user_uid: params.query._exec_user_uid,
       Project: 'impresso',
       uids: _solr.response.docs.map(d => d.uid),
+
     }).then((res) => {
       const _records = {};
       debug(`find '${this.name}': neo4j success`, neo4jSummary(res));

@@ -71,10 +71,14 @@ OPTIONAL MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
 WITH art, _related_pages, head(collect(iss)) as _related_issue
 OPTIONAL MATCH (tag:tag)-[:describes]->(art)
 WITH art, _related_pages, _related_issue, collect(tag) as _related_tags
-{{#user__uid}}
-// add personal collections / buckets
-{{/user__uid}}
-RETURN art, _related_pages, _related_issue, _related_tags
+{{^_exec_user_uid}}
+RETURN art, _related_pages, _related_issue, _related_tags, [] as _related_buckets
+{{/_exec_user_uid}}
+{{#_exec_user_uid}}
+OPTIONAL MATCH (u:user {uid: {_exec_user_uid}})-[:is_creator_of]->(buc:bucket)-[:contains]->(art)
+RETURN art, _related_pages, _related_issue, _related_tags, collect(buc) as _related_buckets
+{{/_exec_user_uid}}
+
 
 
 // name: find_filtered
@@ -182,7 +186,7 @@ apoc.text.replace(pag.uid, '([A-Z]+)-([0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z]).*$', '$1
 apoc.text.replace(pag.uid, '[A-Z]+-([0-9]{4}-[0-9]{2}-[0-9]{2})-[a-z].*$', '$1') as issue_date,
 apoc.text.replace(pag.uid, '[A-Z]+-([0-9]{4})-[0-9]{2}-[0-9]{2}-[a-z].*$', '$1') as issue_year
 WITH pag, issue_uid, issue_date, toInteger(issue_year) as year, newspaper_uid
-LIMIT 1000
+LIMIT 5000
 MATCH (news:newspaper {uid: newspaper_uid})
 WITH pag, issue_uid, issue_date, year, news
 MERGE (iss:issue {uid:issue_uid, Project:'impresso'})

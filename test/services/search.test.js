@@ -27,8 +27,8 @@ describe('\'search\' service', () => {
     });
   });
 
-  it('loaded solr content with filters and facets', (done) => {
-    service.find({
+  it('loaded solr content with filters and facets, with current user having a bucket ;)', async () => {
+    const res = await service.find({
       query: {
         q: 'ambassad*',
         group_by: 'articles',
@@ -49,15 +49,18 @@ describe('\'search\' service', () => {
           },
         ],
       },
-    }).then((res) => {
-      // console.log(res.data);
-      assert.ok(res.data.length);
-      assert.ok(res.data[0].matches.length);
-      done();
+      user: {
+        uid: 'local-user-test-only',
+      },
     }).catch((err) => {
       console.log(err.data);
-      done();
     });
-    assert.ok(service, 'Registered the service');
+
+    // console.log(res.data[0].uid, res.data[0].buckets);
+    assert.ok(res.data.length);
+    assert.ok(res.data[0].matches.length);
+    assert.equal(res.data[0].buckets.length, 1);
+
+    // assert.ok(service, 'Registered the service');
   });
 });
