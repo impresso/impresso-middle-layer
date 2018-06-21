@@ -51,11 +51,11 @@ LIMIT 20
 {{#_exec_user_uid}}
 WITH iss, _related_pages, _related_newspaper, collect(ent) as _related_entities
 OPTIONAL MATCH (u:user {uid: {_exec_user_uid}})-[:is_creator_of]->(buc:bucket)-[:contains]->(iss)
-WITH iss, _related_pages, _related_newspaper, _related_entities, collect(buc) as _related_buckets
-RETURN iss, _related_pages, _related_newspaper, _related_buckets
+WITH iss, _related_pages, _related_newspaper, _related_entities, buc
+RETURN iss, _related_pages, _related_newspaper, _related_entities, collect(buc) as _related_buckets
 {{/_exec_user_uid}}
 {{^_exec_user_uid}}
-RETURN iss, _related_pages, _related_newspaper, collect(ent) as _related_entities,
+RETURN iss, _related_pages, _related_newspaper, collect(ent) as _related_entities
 {{/_exec_user_uid}}
 
 
