@@ -45,7 +45,22 @@ module.exports = {
     ],
     update: [],
     patch: [],
-    remove: [],
+    remove: [
+      validateEach('items', {
+        label: {
+          choices: ['article', 'entity', 'page', 'issue'],
+          required: true,
+        },
+        uid: {
+          regex: REGEX_UID,
+          required: true,
+        },
+      }, {
+        required: true,
+        method: 'GET',
+      }),
+      queryWithCommonParams()
+    ],
   },
 
   after: {

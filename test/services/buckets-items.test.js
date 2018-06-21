@@ -44,4 +44,32 @@ describe('\'buckets-items\' service', () => {
 
     console.log(result);
   });
+
+  it('add a page to the bucket then get rid of it.', async () => {
+    const created = await service.create({
+      bucket_uid: 'local-bucket-test-only',
+      items: [{
+        label: 'page',
+        uid: 'GDL-1798-02-05-a-p0001',
+      }],
+    }, {
+      user: {
+        uid: 'local-user-test-only',
+      },
+    });
+
+    assert.ok(created.data[0].uid);
+
+    const removed = await service.remove(created.data[0].uid, {
+      query: {
+        items: [{
+          label: 'page',
+          uid: 'GDL-1798-02-05-a-p0001',
+        }],
+      },
+    }).catch((err) => {
+      console.log(err);
+    });
+    console.log(removed);
+  });
 });
