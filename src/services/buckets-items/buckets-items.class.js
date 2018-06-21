@@ -32,17 +32,14 @@ class Service extends Neo4jService {
   }
 
   async remove(id, params) {
-    console.log(arguments);
-    return { ok: true };
     //
-    // const result = await this._run(this.queries.remove, {
-    //   user__uid: params.query.user__uid,
-    //   bucket_uid: data.sanitized.bucket_uid,
-    //   items: data.sanitized.items,
-    //   // _type: 'add-buckets-items'
-    // });
-    //
-    // return this._finalizeCreate(result);
+    const result = await this._run(this.queries.remove, {
+      _exec_user_uid: params.user.uid,
+      bucket_uid: id,
+      items: params.query.items,
+    });
+
+    return this._finalizeCreate(result);
   }
 }
 

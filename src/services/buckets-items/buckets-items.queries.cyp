@@ -54,3 +54,38 @@ WITH item, collect(buc) as _related_buckets, COALESCE(u.count_items, 0) as _tota
 SKIP {skip}
 LIMIT {limit}
 RETURN item, _related_buckets, _total
+
+
+// name: remove
+//
+MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket)
+WITH u, buc
+{{! let us loop with mustache }}
+{{#items}}
+  OPTIONAL MATCH (buc)-[r:contains]->(item:{{label}} {uid:"{{uid}}"})
+  DELETE r
+  WITH u, buc
+{{/items}}
+WITH u
+MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket)
+WITH u, buc, count(r) as _count_buckets
+OPTIONAL MATCH (buc)-[r:contains]->(n:article)
+WITH u, buc, _count_buckets,
+  count(r) as _count_articles
+OPTIONAL MATCH (buc)-[r:contains]->(n:entity)
+WITH u, buc, _count_buckets, _count_articles,
+  count(r) as _count_entities
+OPTIONAL MATCH (buc)-[r:contains]->(n:page)
+WITH u, buc, _count_buckets, _count_articles, _count_entities,
+  count(r) as _count_pages
+OPTIONAL MATCH (buc)-[r:contains]->(n:issue)
+WITH u, buc, _count_buckets, _count_articles, _count_entities, _count_pages,
+  count(r) as _count_issues
+SET
+  buc.count_articles = _count_articles,
+  buc.count_entities = _count_entities,
+  buc.count_pages = _count_pages,
+  buc.count_issues = _count_issues,
+  buc.count_items = _count_articles + _count_entities + _count_pages + _count_issues,
+  u.count_buckets = _count_buckets
+RETURN buc

@@ -57,8 +57,11 @@ describe('\'buckets-items\' service', () => {
         uid: 'local-user-test-only',
       },
     });
-
+    // console.log(created);
     assert.ok(created.data[0].uid);
+
+    const countItems = created.data[0].count_items;
+    const countPages = created.data[0].count_pages;
 
     const removed = await service.remove(created.data[0].uid, {
       query: {
@@ -67,9 +70,33 @@ describe('\'buckets-items\' service', () => {
           uid: 'GDL-1798-02-05-a-p0001',
         }],
       },
+      user: {
+        uid: 'local-user-test-only',
+      },
     }).catch((err) => {
       console.log(err);
     });
-    console.log(removed);
+
+    assert.equal(removed.data[0].count_items, countItems - 1);
+    assert.equal(removed.data[0].count_pages, countPages - 1);
+    assert.equal(removed.info._stats.relationshipsDeleted, 1);
+    //
+    const alreadyremoved = await service.remove(created.data[0].uid, {
+      query: {
+        items: [{
+          label: 'page',
+          uid: 'GDL-1798-02-05-a-p0001',
+        }],
+      },
+      user: {
+        uid: 'local-user-test-only',
+      },
+    }).catch((err) => {
+      console.log(err);
+    });
+
+    assert.equal(removed.data[0].count_pages, countPages - 1);
+    assert.equal(alreadyremoved.info._stats.relationshipsDeleted, 0);
+    // console.log(alreadyremoved);
   });
 });
