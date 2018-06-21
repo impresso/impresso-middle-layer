@@ -58,7 +58,7 @@ RETURN item, _related_buckets, _total
 
 // name: remove
 //
-MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket)
+MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket {uid:{bucket_uid}})
 WITH u, buc
 {{! let us loop with mustache }}
 {{#items}}
