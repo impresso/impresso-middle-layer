@@ -12,3 +12,6 @@ package-lock.json
 
 config/default.json
 config/production.json
+
+.marker
+.keyWithErrors

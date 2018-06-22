@@ -18,7 +18,7 @@ const s3 = new aws.S3({
   secretAccessKey: config.s3.secretKey
 });
 const BUCKET = 'original-canonical-data';
-const LIMIT = 3;
+const LIMIT = 1000;
 
 debug(`s3.listObjects of BUCKET : '${BUCKET}' using host: ${config.s3.host}.`);
 
@@ -28,7 +28,7 @@ fs.readFile('./.marker', (err, marker) => {
     Bucket: BUCKET,
     MaxKeys: LIMIT,
     Marker: marker ? marker.toString(): undefined,
-    Prefix: 'GDL'
+    Prefix: 'GDL/195'
   }, async (err, data) => {
     if (err) {
       console.log('err', err);
@@ -37,8 +37,12 @@ fs.readFile('./.marker', (err, marker) => {
     debug(`s3.listObjects of BUCKET : '${BUCKET}' success! Marker: ${marker}, next marker: ${data.NextMarker}.`);
 
     // console.log('data', data.NextMarker, data);
+    let i = 0;
+    let l = data.Contents.length;
+    let keyWithErrors = [];
     eachSeries(data.Contents,  (d, cb) => {
       // console.log('give me', d);
+      i = i + 1;
       s3.getObject({
         Bucket: BUCKET,
         Key: d.Key
@@ -46,9 +50,14 @@ fs.readFile('./.marker', (err, marker) => {
         if (err) {
           return cb(err);
         }
-
-        const body = JSON.parse(res.Body.toString());
-
+        let body;
+        try{
+           body = JSON.parse(res.Body.toString());
+        } catch(e) {
+          keyWithErrors.push(d.Key);
+          // console.log(d.Key,'body:', res.Body.toString());
+          return cb();
+        }
         if (!body.r) {
           return cb();
         }
@@ -56,7 +65,7 @@ fs.readFile('./.marker', (err, marker) => {
         const versionId = res.VersionId;
         const pageUid = d.Key.match(/\/([^.\/]+?)\.json$/)[1];
 
-        debug(`s3.listObjects eachSeries.getObject version: '${versionId}', pageUid:'${pageUid}'`);
+        debug(`s3.listObjects eachSeries.getObject version: '${versionId}', pageUid:'${pageUid}', ${i}/${l}`);
 
         const pagesToArticles = _(body.r).groupBy('pOf').map((sections, articleUid) => {
           // concatenate all regions in sections { c: [ 122, 1367, 953, 600 ],}
@@ -65,7 +74,7 @@ fs.readFile('./.marker', (err, marker) => {
           }, []);
           return {
             page_uid: pageUid,
-            version: versionId,
+            versionId: versionId,
             uid: articleUid,
             regions
           }
@@ -86,8 +95,15 @@ fs.readFile('./.marker', (err, marker) => {
         console.log('err', err);
       else {
         // write marker to disk
+        if(!data.NextMarker) {
+          //console.log(data)
+          throw 'no next marker';
+        }
         fs.writeFileSync('./.marker', data.NextMarker);
-        console.log('all good.');
+        if(keyWithErrors.length) {
+          fs.appendFileSync('./.keyWithErrors', `${keyWithErrors.join('\n')}\n`);
+        }
+        console.log('all good, next marker:', data.NextMarker);
       }
       process.exit();
     })
