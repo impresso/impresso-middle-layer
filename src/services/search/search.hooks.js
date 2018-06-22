@@ -30,6 +30,10 @@ const SOLR_FACETS = {
   },
 };
 
+const SOLR_ORDER_BY = {
+  date: 'meta_date_dt',
+  relevance: 'score',
+};
 
 module.exports = {
   before: {
@@ -46,7 +50,20 @@ module.exports = {
           choices: ['articles', 'pages'],
         },
         order_by: {
+          before: (d) => {
+            if (typeof d === 'string') {
+              return d.split(',');
+            }
+            return d;
+          },
           choices: ['-date', 'date', '-relevance', 'relevance'],
+          transform: d => utils.toOrderBy(d, SOLR_ORDER_BY, true),
+          after: (d) => {
+            if (Array.isArray(d)) {
+              return d.join(',')
+            }
+            return d;
+          }
         },
         facets: {
           before: (d) => {

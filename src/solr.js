@@ -4,6 +4,7 @@ const debug = require('debug')('impresso/solr');
 
 /**
  * request wrapper to get results from solr.
+ * TODO Check grouping: https://lucene.apache.org/solr/guide/6_6/result-grouping.html
  * @param {object} config - config object for solr
  * @param {object} params - `q` with lucene search query; `limit` and `offset`
  */
@@ -24,6 +25,11 @@ const findAll = (config, params = {}) => {
     wt: 'json',
     // wt: 'xml'
   };
+
+  // transform order by if any
+  if (_params.order_by) {
+    qs['sort'] = _params.order_by;
+  }
 
   // transform facets if any
   //
