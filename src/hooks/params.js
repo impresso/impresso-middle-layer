@@ -56,13 +56,14 @@ const toLucene = (query, forceFuzzy = true) => {
 };
 
 
-const toOrderBy = (ordering, translateTable) => {
+const toOrderBy = (ordering, translateTable, lower=false) => {
+  // TODO if ordering is array;
   if (ordering.indexOf('-') === 0) {
     const _ordering = translateTable[ordering.substr(1)];
-    return `${_ordering} DESC`;
+    return lower? `${_ordering} desc`: `${_ordering} DESC`;
   }
   const _ordering = translateTable[ordering];
-  return `${_ordering} ASC`;
+  return lower? `${_ordering} asc`: `${_ordering} ASC`;
 };
 
 const _validateOne = (key, item, rule) => {
@@ -347,7 +348,7 @@ const validateEach = (paramName, validators, options = {}) => {
         toBeValidated = context.data[paramName]
         break;
     }
-    
+
     if (!Array.isArray(toBeValidated) || !toBeValidated.length) {
       if (opts.required) {
         const _error = {};
