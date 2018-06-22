@@ -1,6 +1,7 @@
 const {query, count, apoc, config} = require('./bulk');
 const debug = require('debug')('impresso/scripts:import-articles');
 const fs = require('fs');
+const _ = require('lodash');
 const _groupby = require('lodash/groupby');
 const _map = require('lodash/map');
 const solr = require('../src/solr').client(config.solr);
@@ -20,15 +21,37 @@ async function waterfall() {
   });
 
   const total = _solr.response.numFound;
-  const steps = 0;//Math.ceil(total / limit);
+  const steps = Math.ceil(total / limit);
 
   for(let i=0;i < steps;i++) {
     _solr = await solr.findAll({
       q: '*:*',
       fl: 'id,page_id_ss,page_nb_is,meta_journal_s,meta_year_i,meta_month_i,lg_s,meta_date_dt,title_txt_fr,content_txt_fr',
       limit: limit,
-      skip: i*limit
+      skip: i*limit,
     });
+
+    const pagesUids = _(_solr.response.docs)
+      .map('pages')
+      .flatten().uniq()
+      .value();
+
+    console.log(pagesUids)
+
+    // add missing pages. Longer but safer.
+    await query('pages', 'merge', pagesUids.map((pageUid) => {
+      console.log(pageUid, pageUid.match(/-p0+(\d+)$/)[1]);
+      // console.log(pageUid.match(/^([a-zA-Z\d-]+)-p0+(\d+)$/)[1]);
+      return {
+        'uid': pageUid,
+        'page_number': pageUid.match(/-p0+(\d+)$/)[1],
+        'issue_uid': pageUid.match(/^([a-zA-Z\d-]+)-p0+(\d+)$/)[1]
+      }
+    }), limit);
+
+    // create pages if they do not exist!
+    // _solr.response.docs.map(
+
 
     await query('articles', 'merge', _solr.response.docs.map((d)=>{
       d.date = d.uid.match(/\d{4}-\d{2}-\d{2}/)[0]
@@ -82,17 +105,17 @@ async function waterfall() {
   //   }
   // }), limit = 100);
   //
-  debug('merge articles done.');
-  debug('calling APOC_set_issue__count_articles ...');
-  await apoc('articles', 'APOC_set_issue__count_articles');
-  debug('APOC_set_issue__count_articles done.');
-  debug('calling APOC_set_newspaper__count_articles ...');
-  await apoc('articles', 'APOC_set_newspaper__count_articles');
-  debug('APOC_set_newspaper__count_articles done.');
-  await apoc('pages', 'APOC_set_issue__count_pages');
-  debug('APOC_set_issue__count_pages done.');
-  await apoc('pages', 'APOC_set_newspaper__count_pages');
-  debug('APOC_set_newspaper__count_pages done.');
+  // debug('merge articles done.');
+  // debug('calling APOC_set_issue__count_articles ...');
+  // await apoc('articles', 'APOC_set_issue__count_articles');
+  // debug('APOC_set_issue__count_articles done.');
+  // debug('calling APOC_set_newspaper__count_articles ...');
+  // await apoc('articles', 'APOC_set_newspaper__count_articles');
+  // debug('APOC_set_newspaper__count_articles done.');
+  // await apoc('pages', 'APOC_set_issue__count_pages');
+  // debug('APOC_set_issue__count_pages done.');
+  // await apoc('pages', 'APOC_set_newspaper__count_pages');
+  // debug('APOC_set_newspaper__count_pages done.');
 
 }
 
