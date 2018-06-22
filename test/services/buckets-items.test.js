@@ -24,6 +24,10 @@ describe('\'buckets-items\' service', () => {
         uid: 'GDL-1950-03-29-a-i0138',
       },
       {
+        label: 'article',
+        uid: 'GDL-1950-03-29-a-i0138',
+      },
+      {
         label: 'issue',
         uid: 'GDL-1811-11-22-a',
       }],

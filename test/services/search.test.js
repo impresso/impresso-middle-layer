@@ -27,7 +27,7 @@ describe('\'search\' service', () => {
     });
   });
 
-  it('loaded solr content with filters and facets, with current user having a bucket ;)', async () => {
+  it('loaded solr content, filters & facets, with current user having a bucket ;)', async () => {
     const res = await service.find({
       query: {
         q: 'ambassad*',
@@ -56,11 +56,40 @@ describe('\'search\' service', () => {
       console.log(err.data);
     });
 
-    // console.log(res.data[0].uid, res.data[0].buckets);
+    // console.log(res.data[0]);
     assert.ok(res.data.length);
     assert.ok(res.data[0].matches.length);
-    assert.equal(res.data[0].buckets.length, 1);
+    if (res.data[0].uid === 'GDL-1950-03-29-a-i0138') {
+      assert.equal(res.data[0].buckets.length, 1);
+    }
 
     // assert.ok(service, 'Registered the service');
+  });
+
+  it('load solr content sorted by date', async () => {
+    const res = await service.find({
+      query: {
+        q: 'ambassad*',
+        group_by: 'articles',
+        order_by: '-date,-relevance',
+        limit: 1,
+        facets: [
+          'language',
+        ],
+        filters: [
+          {
+            type: 'string',
+            context: 'include',
+            q: 'avion accident',
+          },
+        ],
+      },
+      user: {
+        uid: 'local-user-test-only',
+      },
+    }).catch((err) => {
+      console.log(err.data);
+    });
+    console.log(res);
   });
 });
