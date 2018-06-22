@@ -48,6 +48,7 @@ class Service {
     // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
       q: params.query.sq,
+      order_by: params.query.order_by,
       facets: params.query.facets,
       limit: params.query.limit,
       skip: params.query.skip,
@@ -55,8 +56,7 @@ class Service {
 
     const total = _solr.response.numFound;
 
-
-    debug(`find '${this.name}': SOLR found ${total} using params.query:`, params.query);
+    debug(`find '${this.name}': SOLR found ${total} using SOLR params:`, _solr.responseHeader.params);
 
     if (!total) {
       return Service.wrap([], params.query.limit, params.query.skip, total);
