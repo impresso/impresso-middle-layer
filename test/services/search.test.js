@@ -56,7 +56,7 @@ describe('\'search\' service', () => {
       console.log(err.data);
     });
 
-    // console.log(res.data[0]);
+    console.log(res.data[0]);
     assert.ok(res.data.length);
     assert.ok(res.data[0].matches.length);
     if (res.data[0].uid === 'GDL-1950-03-29-a-i0138') {

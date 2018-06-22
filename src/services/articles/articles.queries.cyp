@@ -67,16 +67,23 @@ WHERE art.uid IN {uids} AND art.Project = {Project}
 WITH art
 OPTIONAL MATCH (art)-[:appears_at]->(pag:page)
 WITH art, collect(pag) as _related_pages
+OPTIONAL MATCH (art)-[r:appears_at]->(pag:page)
+WITH art, _related_pages, pag, CASE WHEN r IS NOT NULL THEN collect({
+  regions: properties(r).regions,
+  article_uid: art.uid,
+  page_uid: pag.uid
+}) ELSE [] END as _related_regions
+WITH art, _related_pages, _related_regions
 OPTIONAL MATCH (art)-[:appears_at]->(pag:page)-[:belongs_to]->(iss:issue)
-WITH art, _related_pages, head(collect(iss)) as _related_issue
+WITH art, _related_pages, _related_regions, head(collect(iss)) as _related_issue
 OPTIONAL MATCH (tag:tag)-[:describes]->(art)
-WITH art, _related_pages, _related_issue, collect(tag) as _related_tags
+WITH art, _related_pages, _related_regions, _related_issue, collect(tag) as _related_tags
 {{^_exec_user_uid}}
-RETURN art, _related_pages, _related_issue, _related_tags, [] as _related_buckets
+RETURN art, _related_pages, _related_regions, _related_issue, _related_tags, [] as _related_buckets
 {{/_exec_user_uid}}
 {{#_exec_user_uid}}
 OPTIONAL MATCH (u:user {uid: {_exec_user_uid}})-[:is_creator_of]->(buc:bucket)-[:contains]->(art)
-RETURN art, _related_pages, _related_issue, _related_tags, collect(buc) as _related_buckets
+RETURN art, _related_pages, _related_regions, _related_issue, _related_tags, collect(buc) as _related_buckets
 {{/_exec_user_uid}}
 
 
