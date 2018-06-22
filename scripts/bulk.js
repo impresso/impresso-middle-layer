@@ -64,6 +64,12 @@ const query = (modelName, queryName, items, limit = 100) => {
         }
       }).then(res => {
         debug(`query: tx success! - offset:` , i*limit, '- total:', total, '- limit:', limit);
+
+      }).catch(err => {
+        console.log(err)
+
+        debug(`query: tx ERROR! - offset:` , i*limit, '- total:', total, '- limit:', limit);
+        throw 'error in neo4j transaction'
       });
     }
   }
@@ -112,4 +118,5 @@ module.exports = {
   count,
   apoc,
   query,
+  config
 };

@@ -114,6 +114,17 @@ MERGE (art)-[r:appears_at]->(pag)
 SET r.regions = {regions}
 RETURN art
 
+// name: merge_regions
+//
+MATCH (art:article {uid:{uid}}),(pag:page {uid:{page_uid}})
+WHERE art.Project = {Project} AND pag.Project = {Project}
+WITH art, pag
+MERGE (art)-[r:appears_at]->(pag)
+SET
+  r.regions = {regions},
+  pag._vid = {versionId}
+RETURN r
+
 // name:setup
 //
 CREATE INDEX ON :article(newspaper_uid)
