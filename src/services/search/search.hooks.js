@@ -88,7 +88,7 @@ module.exports = {
           required: true,
         },
         type: {
-          choices: ['string', 'entity', 'newspaper'],
+          choices: ['string', 'entity', 'newspaper', 'daterange'],
           required: true,
         },
         q: {
@@ -96,6 +96,16 @@ module.exports = {
           min_length: 2,
           max_length: 500,
         },
+        // compatible only with type daterange, unused elsewhere.
+        // If it is an array, an OR will be used to JOIN the array items..
+        // ex: ['* TO 1950-12-01', '1960-01-01 TO 1940-12-01']
+        // q= ... AND (date_e:[* TO 1950-12-01] OR date_s:[1960-01-01 TO 1940-12-01])
+        daterange: {
+          regex: /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) TO (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/,
+          required: false,
+          transform: (d) => `meta_date_dt:[${d}]`
+        },
+
         uids: {
           regex: REGEX_UIDS,
           required: false,

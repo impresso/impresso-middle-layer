@@ -1,5 +1,5 @@
 const debug = require('debug')('impresso/hooks:search');
-
+const _ = require('lodash');
 
 /**
  * filtersToSolrQuery transform string filters
@@ -17,7 +17,11 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
     throw new Error('The \'filtersToSolrQuery\' hook should be used with a \'filters\' param or \'q\'!', context.params.sanitized);
   }
 
+  const dateranges = (context.params.sanitized.filters || []).filter(d => d.type === 'daterange' && d.daterange);
   const queries = (context.params.sanitized.filters || []).filter(d => d.type === 'string');
+
+
+
   // if there is a q parameter, let's add it to the very beginning of the query as include.
   if (context.params.sanitized.q) {
     queries.unshift({
@@ -28,14 +32,31 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
       q: context.params.sanitized.q,
     });
   }
-
-  if (!queries.length) {
+  // context.params.sanitized.sq = 'NOT meta_date_dt:[1950-01-01T23:59:59Z TO 1952-12-31T23:59:59Z] AND meta_date_dt:[1950-01-01T23:59:59Z TO 1960-12-31T23:59:59Z]';
+  // return;
+  if (!queries.length && !dateranges.length) {
+    // context.params.sanitized.sq = 'NOT meta_date_dt:[1950-01-01T23:59:59Z TO 1952-12-31T23:59:59Z]';
     debug('\'filtersToSolrQuery\' cannot find any {type:string} filter:', context.params.sanitized);
     return;
   }
 
-
-  debug('\'filtersToSolrQuery\' with \'queries\':', queries);
+  // dateranges query
+  const dq = dateranges.reduce((_sq, query) => {
+    let _q;
+    let neg = '';
+    if (query.context === 'exclude') {
+      neg = 'NOT ';
+    }
+    if(Array.isArray(query.daterange)) {
+      _q = `(${query.daterange.join('OR')})`;
+    } else {
+      _q = query.daterange;
+    }
+    if (_sq === false) {
+      return `${neg}${_q}`;
+    }
+    return `${_sq} AND ${neg}${_q}`;
+  }, false);
 
   // reduce the queries in filters to final SOLR query `sq`
   const sq = queries.reduce((_sq, query) => {
@@ -80,9 +101,10 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
     return `${_sq} ${op} ${_q}`;
   }, false);
 
-  debug('\'filtersToSolrQuery\' with \'solr query\':', sq);
-  context.params.sanitized.sq = sq;
-  context.params.sanitized.toSq = queries;
+  const solrQuery = [dq, sq].filter(d => d.length).join(' AND ');
+  debug('\'filtersToSolrQuery\' with \'solr query\':', solrQuery);
+  context.params.sanitized.sq = solrQuery;
+  context.params.sanitized.toSq = [].concat(dateranges || [], queries || []);
 };
 
 module.exports = {

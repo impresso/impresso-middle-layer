@@ -11,6 +11,27 @@ describe('\'search\' service', () => {
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });
+  it('get search results with daterange filters', async () => {
+    const result = await service.find({
+      query: {
+        group_by: 'articles',
+        facets: ['year'],
+        filters: [{
+            type: 'daterange',
+            context: 'exclude',
+            daterange: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
+          },
+          {
+            type: 'daterange',
+            context: 'include',
+            daterange: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+          }
+        ],
+      },
+    });
+    // console.log(result.info)
+    assert.ok(result.info.facets.year);
+  });
   it('loaded solr content', (done) => {
     service.find({
       query: {
