@@ -8,14 +8,50 @@ describe('\'suggestions\' service', () => {
     assert.ok(service, 'Registered the service');
   });
 
-  it('say hello', (done) => {
-    app.service('suggestions').find({
+  // it('say hello', async () => {
+  //   const suggestions = app.service('suggestions').find({
+  //     query: {
+  //       q: 'pau',
+  //     },
+  //   })
+  //
+  //   assert.ok(suggestions);
+  // });
+  it('only one year', async () => {
+    const suggestions = await app.service('suggestions').find({
       query: {
-        q: 'pau',
+        q: '1947',
       },
-    }).then((result) => {
-      assert.ok(result.data, 'should contain a list of stuffs');
-      done();
-    }).catch(done);
+    });
+
+    assert.equal(suggestions.data[0].daterange, '1947-01-01T00:00:00Z TO 1947-12-31T23:59:59Z');
+  });
+
+  it('two years', async () => {
+    const suggestions = await app.service('suggestions').find({
+      query: {
+        q: '1950-1951',
+      },
+    });
+    assert.equal(suggestions.data[0].daterange, '1950-01-01T00:00:00Z TO 1951-12-31T23:59:59Z');
+  });
+
+  it('one year', async () => {
+    const suggestions = await app.service('suggestions').find({
+      query: {
+        q: 'october 1950 to october 1951',
+      },
+    });
+    assert.equal(suggestions.data[0].daterange, '1950-10-01T10:00:00Z TO 1951-10-01T23:59:59Z');
+  });
+
+  it('one month', async () => {
+    const suggestions = await app.service('suggestions').find({
+      query: {
+        q: 'october 1956',
+      },
+    });
+
+    assert.equal(suggestions.data[0].daterange, '1956-10-01T10:00:00Z TO 1956-10-31T23:59:59Z');
   });
 });

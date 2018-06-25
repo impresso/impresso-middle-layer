@@ -74,3 +74,10 @@ CALL apoc.periodic.iterate(
   "MATCH (iss:issue)-[:belongs_to]->(news:newspaper {Project:{Project}}) RETURN news, count(iss) as count_issues",
   "SET news.count_issues = count_issues",
   {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})
+
+// name: APOC_set_issue__cover
+// get the page id of the issue to be used for IIIF and store it to the issue object
+CALL apoc.periodic.iterate(
+  "MATCH (pag:page {num:1})--(iss: issue) RETURN iss, pag",
+  "MERGE (pag)-[:is_cover_of]-(iss)",
+  {batchSize:100, iterateList:true, parallel:true, params:{Project:{Project}}})

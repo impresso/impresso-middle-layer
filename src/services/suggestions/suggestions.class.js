@@ -1,27 +1,74 @@
 /* eslint-disable no-unused-vars */
 const chrono = require('chrono-node');
+const moment = require('moment');
 const { neo4jRecordMapper } = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
+const { utils } = require('../../hooks/params');
+
+const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
 
 class Service extends Neo4jService {
   async find(params) {
     const self = this;
-    const dates = async () => {
-      const asdate = chrono.parse(params.query.q);
-      // if a date has been recognized.
-      if (asdate.length) {
+
+    const articletitles = async() => {
+
+    }
+
+    const dateranges = async() => {
+      const myears = params.query.q.match(MULTI_YEAR_RANGE);
+
+      if(myears) {
+        const start = moment.utc(`${myears[1]}-01-01`).format();
+        const end = moment.utc(myears[4]? `${myears[4]}-12-31`: `${myears[1]}-12-31`).endOf('day').format();
+
         return [{
-          type: 'DateRange',
-          values: asdate.map(d => ({
+          type: 'daterange',
+          context: 'include',
+          daterange: `${start} TO ${end}`,
+        }]
+      }
+      // if a date hasnt been recognized by our basic regex.
+      const asdate = chrono.parse(params.query.q);
+
+      if (asdate.length) {
+        return asdate.filter(d => d.start).map((d) => {
+          // values: asdate.map(d => ({
+          //   text: d.text,
+          //   start: d.start ? d.start.knownValues : null,
+          //   end: d.end ? d.end.knownValues : null,
+          // })
+          const start = moment.utc(d.start.date()).format();
+          let end;
+          if (d.end) {
+            end = moment.utc(d.end.date()).endOf('day').format();
+          } else if(d.start.knownValues.day) {
+            //console.log(d.start)
+            end = moment.utc(d.start.date()).endOf('day').format();
+          } else if(d.start.knownValues.month) {
+            end = moment.utc(d.start.date()).endOf('month').format();
+          } else if(d.start.knownValues.year) {
+            end = moment.utc(d.start.date()).endOf('year').format();
+          }
+
+          return {
+            type: 'daterange',
             text: d.text,
-            start: d.start ? d.start.knownValues : null,
-            end: d.end ? d.end.knownValues : null,
-          })),
-        }];
-      } return [];
+            context: 'include',
+            daterange: `${start} TO ${end}`,
+          };
+        });
+      }
+
+      return [];
     };
 
-    const entities = () => this._run(this.queries.find, params.query)
+
+
+    const entities = async () => this._run(this.queries.find, {
+      ... params.query,
+      q: utils.toLucene(params.query.q)
+    })
       .then(result => result.records.map(neo4jRecordMapper).map(record =>
         // console.log(record)
         ({
@@ -32,7 +79,7 @@ class Service extends Neo4jService {
     // let newspapers = () => this._run()
 
     return await Promise.all([
-      dates(),
+      dateranges(),//dates(),
       entities(),
       // newspapers()
     ]).then(values => Neo4jService.wrap(values[0].concat(values[1])));

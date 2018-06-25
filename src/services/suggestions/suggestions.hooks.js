@@ -12,7 +12,6 @@ module.exports = {
           required: true,
           min_length: 2,
           max_length: 1000,
-          transform: utils.toLucene,
         },
       }),
       queryWithCommonParams(),
