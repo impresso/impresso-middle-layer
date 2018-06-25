@@ -42,7 +42,7 @@ describe('\'suggestions\' service', () => {
         q: 'october 1950 to october 1951',
       },
     });
-    assert.equal(suggestions.data[0].daterange, '1950-10-01T10:00:00Z TO 1951-10-01T23:59:59Z');
+    assert.equal(suggestions.data[0].daterange, '1950-10-01T10:00:00Z TO 1951-10-31T23:59:59Z');
   });
 
   it('one month', async () => {

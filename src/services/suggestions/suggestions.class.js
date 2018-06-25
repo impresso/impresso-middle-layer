@@ -40,10 +40,13 @@ class Service extends Neo4jService {
           // })
           const start = moment.utc(d.start.date()).format();
           let end;
-          if (d.end) {
+          if (d.end && d.end.knownValues.day) {
             end = moment.utc(d.end.date()).endOf('day').format();
+          } else if (d.end && d.end.knownValues.month) {
+            end = moment.utc(d.end.date()).endOf('month').format();
+          } else if (d.end && d.end.knownValues.month) {
+            end = moment.utc(d.end.date()).endOf('year').format();
           } else if(d.start.knownValues.day) {
-            //console.log(d.start)
             end = moment.utc(d.start.date()).endOf('day').format();
           } else if(d.start.knownValues.month) {
             end = moment.utc(d.start.date()).endOf('month').format();
