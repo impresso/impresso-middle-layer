@@ -32,12 +32,10 @@ class Service extends Neo4jService {
       const asdate = chrono.parse(params.query.q);
 
       if (asdate.length) {
-        return asdate.filter(d => d.start).map((d) => {
-          // values: asdate.map(d => ({
-          //   text: d.text,
-          //   start: d.start ? d.start.knownValues : null,
-          //   end: d.end ? d.end.knownValues : null,
-          // })
+        return asdate.map((d) => {
+          if(!d.start) {
+            return false;
+          }
           const start = moment.utc(d.start.date()).format();
           let end;
           if (d.end && d.end.knownValues.day) {
@@ -54,13 +52,16 @@ class Service extends Neo4jService {
             end = moment.utc(d.start.date()).endOf('year').format();
           }
 
+          if(!end) {
+            return false;
+          }
           return {
             type: 'daterange',
             text: d.text,
             context: 'include',
             daterange: `${start} TO ${end}`,
           };
-        });
+        }).filter(d => d !== false);
       }
 
       return [];
