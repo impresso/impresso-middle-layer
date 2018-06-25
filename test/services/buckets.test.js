@@ -14,6 +14,7 @@ describe('\'buckets\' service', () => {
         uid: 'local-user-test-only',
       },
     });
+    console.log(result);
     assert.equal(result.labels[0], 'bucket');
     assert.equal(result.uid, 'local-bucket-test-only');
   });

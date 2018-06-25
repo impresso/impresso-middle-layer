@@ -2,6 +2,7 @@ const auth = require('@feathersjs/authentication');
 
 const { authenticate } = auth.hooks;
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
+const { proxyIIIFWithMapper } = require('../../hooks/iiif');
 const {
   queryWithCommonParams, validate, REGEX_UIDS, VALIDATE_UIDS, REGEX_UID, utils,
 } = require('../../hooks/params');
@@ -114,7 +115,22 @@ module.exports = {
   after: {
     all: [],
     find: [],
-    get: [],
+    get: [
+      proxyIIIFWithMapper('items', (prefixer)=> (d) => {
+        const _d = {
+          ...d,
+        }
+        if(d.labels) {
+          if(d.labels.indexOf('page') !== -1) {
+            _d.iiif = `${prefixer}/${d.uid}/info.json`;
+          } else if (d.labels.indexOf('issue') !== -1) {
+            _d.iiif = `${prefixer}/${d.cover}/info.json`;
+          }
+        }
+        // _d[toKey] = _getIIIF(context, d[fromKey]);
+        return _d
+      }),
+    ],
     create: [],
     update: [],
     patch: [],
