@@ -18,7 +18,7 @@ class Service extends Neo4jService {
     };
 
     // owner_uid is optional.
-    if (data.sanitized.owner_uid && params.user.id != data.sanitized.owner_uid) {
+    if (data.sanitized.owner_uid && params.user.id !== data.sanitized.owner_uid) {
       // if it is not qn admin cannot create :(
       // params.user.is_staff?
       // user_uid = data.sanitized.owner_uid;

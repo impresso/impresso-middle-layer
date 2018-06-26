@@ -1,6 +1,12 @@
 const assert = require('assert');
 const app = require('../../src/app');
 
+
+/**
+ * use with
+ * DEBUG=impresso/* ./node_modules/.bin/eslint test/services/buckets.test.js \
+ *  src/services/buckets --fix && DEBUG=impresso/* mocha test/services/buckets.test.js
+ */
 describe('\'buckets\' service', () => {
   const service = app.service('buckets');
 
@@ -14,8 +20,10 @@ describe('\'buckets\' service', () => {
         uid: 'local-user-test-only',
       },
     });
-    console.log(result);
+    // console.log(result);
     assert.equal(result.labels[0], 'bucket');
+
+    assert.ok(result.items[1].cover);
     assert.equal(result.uid, 'local-bucket-test-only');
   });
   //

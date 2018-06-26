@@ -4,7 +4,7 @@ const { authenticate } = auth.hooks;
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 const { proxyIIIFWithMapper } = require('../../hooks/iiif');
 const {
-  queryWithCommonParams, validate, REGEX_UIDS, VALIDATE_UIDS, REGEX_UID, utils,
+  queryWithCommonParams, validate, REGEX_UIDS, REGEX_UID, utils,
 } = require('../../hooks/params');
 
 const ORDER_BY = {
@@ -116,19 +116,21 @@ module.exports = {
     all: [],
     find: [],
     get: [
-      proxyIIIFWithMapper('items', (prefixer)=> (d) => {
+      proxyIIIFWithMapper('items', prefixer => (d) => {
         const _d = {
           ...d,
-        }
-        if(d.labels) {
-          if(d.labels.indexOf('page') !== -1) {
+        };
+        if (d.labels) {
+          if (d.labels.indexOf('page') !== -1) {
             _d.iiif = `${prefixer}/${d.uid}/info.json`;
+            _d.cover = `${prefixer}/${d.uid}/full/150,/0/default.png`;
           } else if (d.labels.indexOf('issue') !== -1) {
             _d.iiif = `${prefixer}/${d.cover}/info.json`;
+            _d.cover = `${prefixer}/${d.cover}/full/150,/0/default.png`;
           }
         }
         // _d[toKey] = _getIIIF(context, d[fromKey]);
-        return _d
+        return _d;
       }),
     ],
     create: [],
