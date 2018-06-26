@@ -84,6 +84,7 @@
     "serve-favicon": "^2.5.0",
     "short-hash": "^1.0.0",
     "slugify": "^1.2.9",
+    "truncatise": "0.0.7",
     "winston": "^2.4.2",
     "xml2js": "^0.4.19"
   },

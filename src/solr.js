@@ -1,7 +1,7 @@
 const rp = require('request-promise');
 const { NotImplemented } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/solr');
-
+const truncatise = require('truncatise');
 /**
  * request wrapper to get results from solr.
  * TODO Check grouping: https://lucene.apache.org/solr/guide/6_6/result-grouping.html
@@ -67,8 +67,7 @@ const findAll = (config, params = {}) => {
       const _highlights = result.highlighting[doc.uid].content_txt_fr;
 
       if (d.content_txt_fr) {
-        doc.excerpt = d.content_txt_fr.split(' ', params.excerptLength)
-          .slice(0, params.excerptLength - 1).join(' ');
+        doc.excerpt = truncatise(d.content_txt_fr);
       }
       if (!d.content_boxes_plain) {
         return doc;
