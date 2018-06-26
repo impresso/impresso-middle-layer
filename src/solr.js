@@ -92,7 +92,7 @@ const findAll = (config, params = {}) => {
                 page_uid: pagId,
                 fragment: _fragments[i],
                 coords: pag.regions[ii].coords,
-                _iiif: `https://api-impresso.uni.lu/proxy/iiif/${pagId}/${pag.regions[ii].coords.join(',')}/full/0/default.jpg`,
+                iiif: `https://api-impresso.uni.lu/proxy/iiif/${pagId}/${pag.regions[ii].coords.join(',')}/full/0/default.jpg`,
               };
               break;
             }
