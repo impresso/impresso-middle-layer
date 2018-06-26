@@ -67,7 +67,9 @@ const findAll = (config, params = {}) => {
       const _highlights = result.highlighting[doc.uid].content_txt_fr;
 
       if (d.content_txt_fr) {
-        doc.excerpt = truncatise(d.content_txt_fr);
+        doc.excerpt = truncatise(d.content_txt_fr, {
+          TruncateLength: _params.excerptLength,
+        });
       }
       if (!d.content_boxes_plain) {
         return doc;
