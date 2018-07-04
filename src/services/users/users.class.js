@@ -34,7 +34,7 @@ class Service extends Neo4jService {
       });
     }
 
-    return this._run(this.queries.create, {
+    const result = this._run(this.queries.create, {
       ...data.sanitized,
       ...user,
     }).then((res) => {
@@ -45,6 +45,7 @@ class Service extends Neo4jService {
       }));
     });
 
+    return result;
     // return data;
   }
 

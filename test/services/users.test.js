@@ -4,6 +4,15 @@ const app = require('../../src/app');
 describe('\'users\' service', () => {
   const service = app.service('users');
 
+  it('create a nice user', async () => {
+    const result = await service.create({
+      username: 'guest-test-2',
+      password: 'Apitchapong!87',
+      email: 'guest-test-2@impresso-project.ch',
+    });
+    console.log(result);
+    assert.ok(result);
+  });
   // it('registered the service', () => {
   //   assert.ok(service, 'Registered the service');
   // });

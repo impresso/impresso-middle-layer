@@ -31,9 +31,27 @@ SET
   u.creation_date = {_exec_date}
 
 
-WITH u, pro
+WITH u, pro, u.uid + "-FAV" AS fav_bucket_uid
 MERGE (u)-[:subscribed_to]->(pro)
-RETURN u
+// favourites!
+WITH u, fav_bucket_uid
+CREATE (buc:bucket {uid: fav_bucket_uid})
+SET
+  buc.Project = {Project},
+  buc.is_fixed = true,
+  buc.name = 'FAVOURITES',
+  buc.slug = 'favourites',
+  buc.creation_time = {_exec_time},
+  buc.creation_date = {_exec_date},
+  buc.last_modified_time = {_exec_time},
+  buc.last_modified_date = {_exec_date},
+  buc.count_pages = 0,
+  buc.count_articles = 0,
+  buc.count_issues = 0,
+  buc.count_entities = 0
+WITH u, buc
+MERGE (u)-[r:is_creator_of]->(buc)
+RETURN u, buc as _related_favourites
 
 
 // name: find
