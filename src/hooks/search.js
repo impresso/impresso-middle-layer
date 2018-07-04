@@ -43,19 +43,22 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
   // dateranges query
   const dq = dateranges.reduce((_sq, query) => {
     let _q;
-    let neg = '';
-    if (query.context === 'exclude') {
-      neg = 'NOT ';
-    }
+
     if(Array.isArray(query.daterange)) {
       _q = `(${query.daterange.join('OR')})`;
     } else {
       _q = query.daterange;
     }
     if (_sq === false) {
-      return `${neg}${_q}`;
+      if (query.context === 'exclude') {
+        return `NOT (${_q})`; // first negation!
+      }
+      return _q;
     }
-    return `${_sq} AND ${neg}${_q}`;
+    if (query.context === 'exclude') {
+      return `${_sq} AND NOT ${_q}`;
+    }
+    return `${_sq} AND ${_q}`;
   }, false);
 
   // reduce the queries in filters to final SOLR query `sq`
@@ -92,6 +95,9 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
 
     // console.log('prevuois loop:', sq)
     if (_sq === false) {
+      if (query.context === 'exclude') {
+        return `NOT (${_q})`; // first negation!
+      }
       return _q;
     }
 
