@@ -46,13 +46,13 @@ const neo4jRun = (session, cypherQuery, params, queryname) => {
     return res;
   }).catch((err) => {
     if (err.code === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
-      debug(`neo4jRun failed. Neo.ClientError.Statement.ParameterMissing: ${err}`);
+      debug(`neo4jRun failed. ConstraintValidationFailed: ${err}`);
       throw new Conflict('ConstraintValidationFailed');
     } else if (err.code === 'Neo.ClientError.Statement.ParameterMissing') {
-      debug('neo4jRun failed. Neo.ClientError.Statement.ParameterMissing:', err);
+      debug('neo4jRun failed. ParameterMissing:', err);
       throw new BadRequest('ParameterMissing');
     } else if (err.code === 'Neo.ClientError.Statement.SyntaxError') {
-      debug('neo4jRun failed. Neo.ClientError.Statement.SyntaxError:', err);
+      debug('neo4jRun failed. SyntaxError:', err);
       throw new BadGateway('SyntaxError');
     } else if (err.code === 'ServiceUnavailable') {
       debug('neo4jRun failed. ServiceUnavailable:', err);
