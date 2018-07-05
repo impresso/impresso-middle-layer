@@ -1,18 +1,34 @@
 const assert = require('assert');
 const app = require('../../src/app');
 
-describe('\'users\' service', () => {
+describe('\'users\' service', function() {
   const service = app.service('users');
+  this.timeout(5000);
 
-  it('create a nice user', async () => {
-    const result = await service.create({
-      username: 'guest-test-2',
-      password: 'Apitchapong!87',
-      email: 'guest-test-2@impresso-project.ch',
-    });
-    console.log(result);
-    assert.ok(result);
+  it('registered the service', () => {
+    assert.ok(service, 'Registered the service');
   });
+
+  const user = {
+    username: 'guest-test-2',
+    password: 'impresso',
+    email: 'guest-test-2@impresso-project.ch',
+  };
+
+  // it('create a nice user', async () => {
+  //   const result = await service.create({
+  //     username: 'guest-test-2',
+  //     password: 'Apitchapong!87',
+  //     email: 'guest-test-2@impresso-project.ch',
+  //   });
+  //   console.log(result);
+  //   assert.ok(result);
+  // });
+  //
+  // it('delete the randomly created users and its bucket', async() => {
+  //
+  // })
+  //
   // it('registered the service', () => {
   //   assert.ok(service, 'Registered the service');
   // });
@@ -25,15 +41,15 @@ describe('\'users\' service', () => {
   //   console.log(result);
   //   assert.ok(result);
   // });
-  // it('find users', async () => {
-  //   const users = await service.find({
-  //     query: {
-  //       email: 'email@not.found',
-  //       githubId: undefined,
-  //       user_uid: undefined,
-  //     },
-  //   });
-  //   // should be an empty array. No errors
-  //   assert.equal(users.length, 0);
-  // });
+  it('find users', async () => {
+    const users = await service.find({
+      query: {
+        email: 'email@not.found',
+        githubId: undefined,
+        user_uid: undefined,
+      },
+    });
+    // should be an empty array. No errors
+    assert.equal(users.length, 0);
+  });
 });
