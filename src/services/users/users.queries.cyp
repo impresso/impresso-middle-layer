@@ -57,7 +57,10 @@ RETURN u, buc as _related_favourites
 // name: find
 // find an user given the email, optionally is connected to the project
 {{#uid}}
-MATCH (u:user {uid:{uid}})
+MATCH (u:user)
+WHERE  u.uid = {uid} OR u.username = {uid} OR u.email = {uid}
+WITH u LIMIT 1
+WITH u
 OPTIONAL MATCH (u)-[:subscribed_to]->(pro:Project {uid: {Project}})
 {{/uid}}
 
