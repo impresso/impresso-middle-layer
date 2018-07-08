@@ -30,7 +30,7 @@ const neo4jPrepare = (cypherQuery, params) =>
 const neo4jRun = (session, cypherQuery, params, queryname) => {
   const preparedQuery = neo4jPrepare(cypherQuery, params);
 
-  debug('neo4jRun: with cypher query:', queryname?queryname:preparedQuery);
+  debug('neo4jRun: with cypher query:', queryname || preparedQuery);
 
   const queryParams = {
     ...neo4jNow(),
@@ -57,6 +57,9 @@ const neo4jRun = (session, cypherQuery, params, queryname) => {
     } else if (err.code === 'ServiceUnavailable') {
       debug('neo4jRun failed. ServiceUnavailable:', err);
       throw new Unavailable();
+    } else if (err.code === 'Neo.ClientError.Procedure.ProcedureCallFailed') {
+      debug('neo4jRun failed. ProcedureCallFailed:', err);
+      throw new BadRequest('ProcedureCallFailed');
     } else {
       debug('neo4jRun failed. Check error below.');
       debug(err.code, err);
@@ -219,6 +222,31 @@ const neo4jPathMapper = (path) => {
   };
 };
 
+
+/**
+ * Transform a natural language query to suitable lucene query string for apoc.index.search
+ * used for suggestion only, this implies incomplete queries.
+ */
+const neo4jToLucene = (q) => {
+  let _q = q.trim();
+  // contains odd
+  const isExactLeft = _q.indexOf('"') === 0;
+
+  // replace characters
+  _q = _q.replace(/[*"]/g, '');
+
+  // split on spaces
+  _q = _q.split(/\s/).map((d) => {
+    if (isExactLeft) {
+      return `"${d}"`;
+    }
+    return `${d}*`;
+  }).join(' AND ');
+
+  debug('neo4jToLucene: <natural query>', q, 'to <lucene query>', _q);
+  return _q;
+};
+
 module.exports = {
   neo4jNow,
   neo4jPrepare,
@@ -226,4 +254,5 @@ module.exports = {
   neo4jRun,
   neo4jSummary,
   neo4jToInt,
+  neo4jToLucene,
 };

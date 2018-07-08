@@ -54,4 +54,18 @@ describe('\'suggestions\' service', () => {
 
     assert.equal(suggestions.data[0].daterange, '1956-10-01T10:00:00Z TO 1956-10-31T23:59:59Z');
   });
+
+  it('exact match with partial q', async () => {
+    const suggestions = await app.service('suggestions').find({
+      query: {
+        q: '"louis',
+      },
+    }).catch((err) => {
+      console.log(err);
+      throw err;
+    });
+    console.log(suggestions);
+    assert.ok(suggestions.data.length);
+    // assert.equal(suggestions.data[0].daterange, '1956-10-01T10:00:00Z TO 1956-10-31T23:59:59Z');
+  });
 });

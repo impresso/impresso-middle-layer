@@ -1,9 +1,8 @@
 /* eslint-disable no-unused-vars */
 const chrono = require('chrono-node');
 const moment = require('moment');
-const { neo4jRecordMapper } = require('../neo4j.utils.js');
+const { neo4jRecordMapper, neo4jToLucene } = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
-const { utils } = require('../../hooks/params');
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
 
@@ -67,11 +66,11 @@ class Service extends Neo4jService {
       return [];
     };
 
-
+    const qToLucene = neo4jToLucene(params.query.q);
 
     const entities = async () => this._run(this.queries.find, {
       ... params.query,
-      q: utils.toLucene(params.query.q)
+      q: qToLucene
     })
       .then(result => result.records.map(neo4jRecordMapper).map(record =>
         // console.log(record)
