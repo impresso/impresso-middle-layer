@@ -15,6 +15,9 @@ class Neo4jService {
     this.name = options.name;
     // camelcase in options name
     // this.options.path = this.options.name.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase()
+    if(options.app) {
+      this.app = options.app;
+    }
 
     debug(`Configuring neo4j service: ${this.options.name}`);
 
@@ -162,7 +165,12 @@ class Neo4jService {
       ...params.isSafe ? params.query : params.sanitized,
     };
 
-    if (uids.length > 1) {
+    if(params.user) {
+      qp._exec_user_uid = params.user.uid;
+      qp._exec_user_is_staff = params.user.is_staff;
+    }
+
+    if (uids.length > 1 || params.findAll) {
       qp.uids = uids;
       query = this.queries.findAll;
       queryname = `${this.name}.queries.cyp:findAll`
@@ -183,7 +191,7 @@ class Neo4jService {
       if (!records.length) {
         throw new errors.NotFound();
       }
-      if (records.length == 1) {
+      if (records.length == 1 && !params.findAll) {
         return records[0];
       }
       return records;
@@ -191,14 +199,17 @@ class Neo4jService {
   }
 
   async remove(id, params) {
-    debug(`remove: with id:${id}`, id);
     if (!this.queries.remove) {
       throw new errors.NotImplemented();
+    } else if (!params.user.uid) {
+      throw new errors.NotAuthenticated();
     }
+    debug(`remove: ${this.name} with id: ${id}`, id);
 
     return this._run(this.queries.remove, {
       uid: id,
       ...params.isSafe ? params.query : params.sanitized,
+      _exec_user_uid: params.user.uid,
     }).then((res) => {
       debug('remove: neo4j response', res);
       // console.log(res.summary.counters);
