@@ -1,8 +1,7 @@
 // name: create
 // create action item and add relationships with articles
-MATCH (u:user {uid:{user__uid}})-[r:is_creator_of]->(buc:bucket {uid:{bucket_uid}})
+MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket {uid:{bucket_uid}})
 WITH u, buc
-
 {{! let us loop with mustache }}
 {{#items}}
   MATCH (item:{{label}} {uid:"{{uid}}"})
@@ -21,7 +20,7 @@ WITH u, buc
 {{#query_uid}}
 {{/query_uid}}
 // update bucket count for user
-MATCH (u)-[r:is_creator_of]->(_buc:bucket)
+MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket)
 WITH u, buc,
   count(r) as _count_buckets
 OPTIONAL MATCH (buc)-[r:contains]->(n:article)
@@ -44,16 +43,21 @@ SET
   buc.count_items = _count_articles + _count_entities + _count_pages + _count_issues,
   u.count_buckets = _count_buckets
 
+WITH buc
 RETURN buc as bucket
 
 // name: find
 //
-MATCH (u:user {uid:{user__uid}})-[r:is_creator_of]->(buc:bucket)-[r2:contains]->(item)
-ORDER BY buc.last_modified_time DESC,
-WITH item, collect(buc) as _related_buckets, COALESCE(u.count_items, 0) as _total
+MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket)-[r2:contains]->(item)
+{{#bucket_uids}}
+WHERE buc.uid in {bucket_uids}
+{{/bucket_uids}}
+WITH u, buc, item
+ORDER BY buc.last_modified_time DESC
+WITH DISTINCT item, COALESCE(u.count_items, 0) as _total
 SKIP {skip}
 LIMIT {limit}
-RETURN item, _related_buckets, _total
+RETURN item, _total
 
 
 // name: remove

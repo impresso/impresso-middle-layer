@@ -11,20 +11,20 @@ class Service extends Neo4jService {
     }
 
     const queryParams = {
-      user__uid: params.user.uid,
+      ... params.query,
+
       description: data.sanitized.description,
       name: data.sanitized.name,
       slug: slugify(data.sanitized.name).toLowerCase(),
     };
 
-    // owner_uid is optional.
-    if (data.sanitized.owner_uid && params.user.id !== data.sanitized.owner_uid) {
-      // if it is not qn admin cannot create :(
-      // params.user.is_staff?
-      // user_uid = data.sanitized.owner_uid;
+    // only staff can create buckets with specific uid
+    if(params.user.is_staff && data.sanitized.bucket_uid) {
+      debug(`create: staff user required bucket uid: "${data.sanitized.bucket_uid}"`);
+      queryParams.bucket_uid = data.sanitized.bucket_uid
     }
 
-    debug(`${this.name} create: `, data.sanitized);
+    debug(`${this.name} create: `, queryParams);
     return this._run(this.queries.create, queryParams).then(this._finalizeCreateOne);
   }
 
@@ -47,22 +47,6 @@ class Service extends Neo4jService {
     return this._finalizeCreateOne(result);
   }
 
-
-  /**
-   * async remove - Remove a bucket permanently using neo4j DETACH DELETE
-   *
-   * @param  {string} id     bucket uuid
-   * @param  {object} params (not used directly)
-   * @return {Promise}        description
-   */
-  async remove(id, params) {
-    const result = await this._run(this.queries.remove, {
-      user__uid: params.query.user__uid,
-      uid: id,
-    });
-
-    return this._finalizeRemove(result);
-  }
 }
 
 module.exports = function (options) {

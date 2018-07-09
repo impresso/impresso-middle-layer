@@ -12,17 +12,9 @@ module.exports = {
     ],
     find: [
       queryWithCommonParams(),
-      queryWithCurrentUser({
-        idField: 'uid',
-        as: 'user__uid',
-      }),
     ],
     get: [],
     create: [
-      queryWithCurrentUser({
-        idField: 'uid',
-        as: 'user__uid',
-      }),
       validate({
         bucket_uid: {
           required: true,
@@ -42,6 +34,7 @@ module.exports = {
         required: true,
         method: 'POST',
       }),
+      queryWithCommonParams(),
     ],
     update: [],
     patch: [],

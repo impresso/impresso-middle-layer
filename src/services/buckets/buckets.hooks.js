@@ -4,7 +4,7 @@ const { authenticate } = auth.hooks;
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 const { proxyIIIFWithMapper } = require('../../hooks/iiif');
 const {
-  queryWithCommonParams, validate, REGEX_UIDS, REGEX_UID, utils,
+  queryWithCommonParams, validate, REGEX_UIDS, REGEX_UID, utils, queryWithCurrentExecUser
 } = require('../../hooks/params');
 
 const ORDER_BY = {
@@ -72,17 +72,13 @@ module.exports = {
           required: false,
           max_length: 500,
         },
-        // MUST contain a service label
-        label: {
+        // used only if params.user.is_staff
+        bucket_uid: {
           required: false,
-          choices: ['article', 'page'],
-        },
-        // MUST contain uids for the given label
-        uids: {
-          required: false,
-          regex: REGEX_UIDS,
+          regex: REGEX_UID,
         },
       }, 'POST'),
+      queryWithCurrentExecUser(),
     ],
     update: [],
     patch: [
@@ -104,12 +100,7 @@ module.exports = {
         },
       }, 'POST'),
     ],
-    remove: [
-      queryWithCurrentUser({
-        idField: 'uid',
-        as: 'user__uid',
-      }),
-    ],
+    remove: [],
   },
 
   after: {
@@ -128,6 +119,7 @@ module.exports = {
             _d.iiif = `${prefixer}/${d.cover}/info.json`;
             _d.cover = `${prefixer}/${d.cover}/full/150,/0/default.png`;
           }
+
         }
         // _d[toKey] = _getIIIF(context, d[fromKey]);
         return _d;

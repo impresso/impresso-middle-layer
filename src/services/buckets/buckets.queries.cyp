@@ -43,6 +43,7 @@ WITH buc
 MATCH (buc)-[:contains]->(n)
 RETURN buc, collect(n) as _related_items
 
+
 // name: get
 //
 MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket {uid:{uid}})
@@ -54,12 +55,18 @@ RETURN buc, _related_items
 // name: create
 // create an empty bucket and link to the current user.
 //
-MATCH (u:user {uid:{user__uid}})
+MATCH (u:user {uid:{_exec_user_uid}})
+{{^bucket_uid}}
 WITH u
 CALL apoc.create.uuids(1)
 YIELD uuid
 WITH u, uuid
 CREATE (buc:bucket {uid: uuid})
+{{/bucket_uid}}
+{{#bucket_uid}}
+WITH u
+CREATE (buc:bucket {uid: {bucket_uid}})
+{{/bucket_uid}}
 SET
   buc.Project = {Project},
   buc.name = {name},
@@ -102,13 +109,16 @@ RETURN buc
 
 // name: remove
 // permanently remove a bucket
-MATCH (u:user {uid:{user__uid}})-[r:is_creator_of]->(buc:bucket {uid:{uid}})
+MATCH (u:user {uid:{_exec_user_uid}})-[r:is_creator_of]->(buc:bucket {uid:{uid}})
 WITH u, buc
 DETACH DELETE buc
 WITH u
-MATCH (u)-[r:is_creator_of]->(_buc:bucket)
+OPTIONAL MATCH (u)-[r:is_creator_of]->(_buc:bucket)
 WITH u, count(r) as _count_buckets
-SET u.count_buckets = _count_buckets
+SET
+  u.count_buckets = _count_buckets,
+  u.last_activity_time = {_exec_time},
+  u.last_activity_date = {_exec_date}
 
 //
 // name: APOC_set_lucene_index
