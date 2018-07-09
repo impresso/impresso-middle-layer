@@ -23,6 +23,26 @@ SKIP {skip}
 LIMIT {limit}
 RETURN p, _total
 
+
+// name:findAll
+// find all matching uids
+MATCH (pag:page)
+WHERE pag.uid IN {uids} AND pag.Project = {Project}
+WITH pag
+MATCH (pag)-[r:belongs_to]->(iss:issue)
+WITH pag, head(collect(iss)) as _related_issue
+
+{{#_exec_user_uid}}
+  OPTIONAL MATCH (u:user {uid:{_exec_user_uid}})-[:is_creator_of]->(buc:bucket)-[:contains]->(pag)
+  WITH pag, _related_issue, collect(buc) as _related_buckets
+{{/_exec_user_uid}}
+
+{{^_exec_user_uid}}
+  WITH pag, _related_issue, [] as _related_buckets
+{{/_exec_user_uid}}
+
+RETURN pag, _related_issue, _related_buckets
+
 // name: get
 //
 MATCH (pag:page {uid:{uid}})

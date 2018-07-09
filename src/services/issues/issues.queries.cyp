@@ -31,10 +31,30 @@ WITH iss, _total, head(collect(pag)) as cover
 RETURN iss, cover as _related_cover, _total
 ORDER BY iss.date DESC
 
+// name:findAll
+// find all matching uids
+MATCH (iss:issue)
+WHERE iss.uid IN {uids} AND iss.Project = {Project}
+WITH iss
+MATCH (iss)-[:belongs_to]->(news:newspaper)
+WITH iss, news as _related_newspaper
+
+{{#_exec_user_uid}}
+  OPTIONAL MATCH (u:user {uid:{_exec_user_uid}})-[:is_creator_of]->(buc:bucket)-[:contains]->(iss)
+  WITH iss, _related_newspaper, collect(iss) as _related_buckets
+{{/_exec_user_uid}}
+
+{{^_exec_user_uid}}
+  WITH iss, _related_newspaper, [] as _related_buckets
+{{/_exec_user_uid}}
+
+MATCH (pag:page)-[:is_cover_of]->(iss)
+RETURN iss, _related_newspaper, _related_buckets, head(collect(pag)) as _related_cover
+
 
 // name: get
 //
-MATCH (iss:issue {Project:{Project}, uid:{uid}})
+MATCH (iss:issue {uid:{uid}})
 WHERE iss.Project = 'impresso'
 WITH iss
 OPTIONAL MATCH (iss)<-[:belongs_to]-(pag:page {Project:{Project}})
