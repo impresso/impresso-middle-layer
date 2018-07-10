@@ -9,6 +9,7 @@ module.exports = function (app) {
     name: 'buckets',
     config: app.get('neo4j'),
     paginate,
+    app: app,
   };
 
   // Initialize our service with any options it requires
