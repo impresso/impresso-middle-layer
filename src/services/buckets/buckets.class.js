@@ -71,8 +71,7 @@ class Service extends Neo4jService {
       groups[d.labels[0]].uids.push(d.uid);
     });
 
-    console.log('uuuuuuuu', groups);
-
+    debug(`${this.name} get:users`, params.user)
     // if articles
     return Promise.all(lodash(groups)
       .filter(d => d.uids.length)
