@@ -115,11 +115,7 @@ module.exports = {
           if (d.labels.indexOf('page') !== -1) {
             _d.iiif = `${prefixer}/${d.uid}/info.json`;
             _d.cover = `${prefixer}/${d.uid}/full/150,/0/default.png`;
-          } else if (d.labels.indexOf('issue') !== -1) {
-            _d.iiif = `${prefixer}/${d.cover}/info.json`;
-            _d.cover = `${prefixer}/${d.cover}/full/150,/0/default.png`;
           }
-
         }
         // _d[toKey] = _getIIIF(context, d[fromKey]);
         return _d;
