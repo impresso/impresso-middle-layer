@@ -123,7 +123,7 @@ module.exports = {
           } else if (d.labels.indexOf('article') !== -1) {
             _d.pages = d.pages.map(p => ({
               ...p,
-              iiif: `${prefixer}/${d.uid}/info.json`,
+              iiif: `${prefixer}/${p.uid}/info.json`,
             }));
           }
         }
