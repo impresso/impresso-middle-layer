@@ -118,11 +118,16 @@ module.exports = {
           } else if (d.labels.indexOf('issue') !== -1) {
             _d.iiif = `${prefixer}/${d.cover.uid}/info.json`;
             // _d.cover = `${prefixer}/${d.cover.uid}/full/150,/0/default.png`;
-            console.log('ejzoefjozifjozeifjzoiejfoizejfoziefjozief', _d)
+            // console.log('ejzoefjozifjozeifjzoiejfoizejfoziefjozief', _d)
 
+          } else if (d.labels.indexOf('article') !== -1) {
+            _d.pages = d.pages.map(p => ({
+              ...p,
+              iiif: `${prefixer}/${d.uid}/info.json`,
+            }));
           }
-
         }
+        // console.log('ejzoefjozifjozeifjzoiejfoizejfoziefjozief', _d)
         // _d[toKey] = _getIIIF(context, d[fromKey]);
         return _d;
       }),
