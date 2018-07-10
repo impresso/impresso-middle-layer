@@ -148,13 +148,12 @@ class Neo4jService {
 
 
   async find(params) {
-    debug(`find: with params.isSafe:${params.isSafe} and params.query:`, params.query, params);
+    debug(`find: with params.isSafe:${params.isSafe} and params.query:`, params.query);
     return this._run(this.queries.find, params.isSafe ? params.query : params.sanitized).then(this._finalize);
   }
 
   async get(id, params) {
     debug(`get: ${this.name} with id:${id} and params.isSafe:${params.isSafe} and params.query:`, params.query);
-    debug(`get: ${this.name} user`, params.user);
     const uids = id.split(',');
 
     // query params
