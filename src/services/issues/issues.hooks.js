@@ -2,7 +2,6 @@ const { queryWithCommonParams } = require('../../hooks/params');
 
 const proxyIIIF = () => async (context) => {
   const proxyhost = context.app.get('proxy').host;
-
   // for findAll
   if(Array.isArray(context.result)) {
     context.result = context.result.map((d) => ({
@@ -16,7 +15,9 @@ const proxyIIIF = () => async (context) => {
   } else if (context.result && context.result.cover) {
     context.result.iiif = `${proxyhost}/proxy/iiif/${context.result.cover.uid}/info.json`;
     context.result.cover.iiif = context.result.iiif;
-  } else if (context.result && context.result.pages) {
+  }
+
+  if (context.result && context.result.pages) {
     for (const i in context.result.pages) {
       context.result.pages[i].iiif = `${proxyhost}/proxy/iiif/${context.result.pages[i].uid}/info.json`;
     }
