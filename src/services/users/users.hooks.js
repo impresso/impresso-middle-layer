@@ -25,7 +25,7 @@ module.exports = {
         username: {
           required: false,
           regex: REGEX_SLUG,
-          max_length: 20,
+          max_length: 100,
         },
         ...VALIDATE_OPTIONAL_EMAIL,
         ...VALIDATE_OPTIONAL_PASSWORD,
@@ -34,7 +34,10 @@ module.exports = {
     ],
     update: [hashPassword(), authenticate('jwt')],
     patch: [hashPassword(), authenticate('jwt')],
-    remove: [authenticate('jwt')],
+    remove: [
+      authenticate('jwt'),
+      queryWithCommonParams(),
+    ],
   },
 
   after: {

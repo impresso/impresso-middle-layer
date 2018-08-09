@@ -63,6 +63,7 @@ class Service extends Neo4jService {
   }
 
   async remove(id, params) {
+    // only if params.user is staff
     return { id };
   }
 

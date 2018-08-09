@@ -10,11 +10,17 @@ describe('\'users\' service', function() {
   });
 
   const user = {
-    username: 'guest-test-2',
-    password: 'impresso',
-    email: 'guest-test-2@impresso-project.ch',
+    username: 'local-user-test-only',
+    password: 'Impresso2018!',
+    email: 'local-user-test-only@impresso-project.ch',
   };
 
+  it('create a test user.', async () => {
+
+    const result = await service.create(user);
+    console.log(result);
+    assert.ok(result);
+  });
   // it('create a nice user', async () => {
   //   const result = await service.create({
   //     username: 'guest-test-2',
