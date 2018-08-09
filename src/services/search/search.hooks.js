@@ -60,10 +60,10 @@ module.exports = {
           transform: d => utils.toOrderBy(d, SOLR_ORDER_BY, true),
           after: (d) => {
             if (Array.isArray(d)) {
-              return d.join(',')
+              return d.join(',');
             }
             return d;
-          }
+          },
         },
         facets: {
           before: (d) => {
@@ -75,9 +75,9 @@ module.exports = {
           choices: Object.keys(SOLR_FACETS),
           after: (fields) => {
             const _facets = {};
-            for (const i in fields) {
-              _facets[fields[i]] = SOLR_FACETS[fields[i]];
-            }
+            fields.forEach((field) => {
+              _facets[field] = SOLR_FACETS[field];
+            });
             return JSON.stringify(_facets);
           },
         },
@@ -103,7 +103,6 @@ module.exports = {
         daterange: {
           regex: /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) TO (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/,
           required: false,
-          transform: (d) => `meta_date_dt:[${d}]`
         },
 
         uids: {
@@ -136,7 +135,7 @@ module.exports = {
     all: [],
     find: [
       proxyIIIF(),
-      displayQueryParams(['toSq', 'filters']),
+      displayQueryParams(['queryComponents', 'filters']),
     ],
     get: [],
     create: [],

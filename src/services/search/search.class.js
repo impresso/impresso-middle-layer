@@ -1,5 +1,8 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:search');
+const solr = require('../../solr');
+const neo4j = require('../../neo4j');
+const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
 
 class Service {
@@ -10,12 +13,12 @@ class Service {
    * @param  {object} options pass the current app in options.app
    */
   constructor(options) {
-    this.solr = require('../../solr').client(options.app.get('solr'));
-    this.neo4j = require('../../neo4j').client(options.app.get('neo4j'));
+    this.solr = solr.client(options.app.get('solr'));
+    this.neo4j = neo4j.client(options.app.get('neo4j'));
     this.name = options.name;
     this.neo4jQueries = {};
-    this.neo4jQueries.articles = require('decypher')(`${__dirname}/../articles/articles.queries.cyp`);
-    this.neo4jQueries.pages = require('decypher')(`${__dirname}/../pages/pages.queries.cyp`);
+    this.neo4jQueries.articles = decypher(`${__dirname}/../articles/articles.queries.cyp`);
+    this.neo4jQueries.pages = decypher(`${__dirname}/../pages/pages.queries.cyp`);
 
     this.options = options || {};
   }
@@ -63,8 +66,8 @@ class Service {
     }
 
     const session = this.neo4j.session();
-
-    const itemsFromNeo4j = await neo4jRun(session, this.neo4jQueries[params.query.group_by].findAll, {
+    const neo4jQueries = this.neo4jQueries[params.query.group_by].findAll;
+    const itemsFromNeo4j = await neo4jRun(session, neo4jQueries, {
       _exec_user_uid: params.query._exec_user_uid,
       Project: 'impresso',
       uids: _solr.response.docs.map(d => d.uid),
@@ -72,10 +75,12 @@ class Service {
     }).then((res) => {
       const _records = {};
       debug(`find '${this.name}': neo4j success`, neo4jSummary(res));
-      for (let rec of res.records) {
-        rec = neo4jRecordMapper(rec);
-        _records[rec.uid] = rec;
-      }
+
+      res.records.forEach((rec) => {
+        const _rec = neo4jRecordMapper(rec);
+        _records[_rec.uid] = _rec;
+      });
+
       return _records;
     }).catch((err) => {
       console.log(err);

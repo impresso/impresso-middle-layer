@@ -1,5 +1,5 @@
 const debug = require('debug')('impresso/hooks:search');
-const _ = require('lodash');
+// const _ = require('lodash');
 
 /**
  * filtersToSolrQuery transform string filters
@@ -14,12 +14,15 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
     throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
   }
   if (!Array.isArray(context.params.sanitized.filters) && !context.params.sanitized.q) {
-    throw new Error('The \'filtersToSolrQuery\' hook should be used with a \'filters\' param or \'q\'!', context.params.sanitized);
+    // nothing is give, wildcard then.
+    debug('\'filtersToSolrQuery\' with \'solr query\':', '*:*');
+    context.params.sanitized.sq = '*:*';
+    context.params.sanitized.queryComponents = [];
+    return;
   }
 
   const dateranges = (context.params.sanitized.filters || []).filter(d => d.type === 'daterange' && d.daterange);
   const queries = (context.params.sanitized.filters || []).filter(d => d.type === 'string');
-
 
 
   // if there is a q parameter, let's add it to the very beginning of the query as include.
@@ -32,19 +35,19 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
       q: context.params.sanitized.q,
     });
   }
-  // context.params.sanitized.sq = 'NOT meta_date_dt:[1950-01-01T23:59:59Z TO 1952-12-31T23:59:59Z] AND meta_date_dt:[1950-01-01T23:59:59Z TO 1960-12-31T23:59:59Z]';
-  // return;
+
   if (!queries.length && !dateranges.length) {
-    // context.params.sanitized.sq = 'NOT meta_date_dt:[1950-01-01T23:59:59Z TO 1952-12-31T23:59:59Z]';
     debug('\'filtersToSolrQuery\' cannot find any {type:string} filter:', context.params.sanitized);
     return;
   }
-
   // dateranges query
-  const dq = dateranges.reduce((_sq, query) => {
+  const dq = dateranges.map(d => ({
+    ...d,
+    daterange: `meta_date_dt:[${d.daterange}]`,
+  })).reduce((_sq, query) => {
     let _q;
 
-    if(Array.isArray(query.daterange)) {
+    if (Array.isArray(query.daterange)) {
       _q = `(${query.daterange.join('OR')})`;
     } else {
       _q = query.daterange;
@@ -56,7 +59,7 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
       return _q;
     }
     if (query.context === 'exclude') {
-      return `${_sq} AND NOT ${_q}`;
+      return `${_sq} AND NOT (${_q})`;
     }
     return `${_sq} AND ${_q}`;
   }, false);
@@ -110,8 +113,9 @@ const filtersToSolrQuery = (fields = ['content_txt_fr']) => async (context) => {
   const solrQuery = [dq, sq].filter(d => d.length).join(' AND ');
   debug('\'filtersToSolrQuery\' with \'solr query\':', solrQuery);
   context.params.sanitized.sq = solrQuery;
-  context.params.sanitized.toSq = [].concat(dateranges || [], queries || []);
+  context.params.sanitized.queryComponents = [].concat(dateranges || [], queries || []);
 };
+
 
 module.exports = {
   filtersToSolrQuery,
