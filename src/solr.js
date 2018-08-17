@@ -70,6 +70,10 @@ const findAll = (config, params = {}) => {
         doc.excerpt = truncatise(d.content_txt_fr, {
           TruncateLength: _params.excerptLength,
         });
+
+        if(qs.fl) {
+          doc.contents = d.content_txt_fr;
+        }
       }
       if (!d.content_boxes_plain) {
         return doc;
