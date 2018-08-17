@@ -1,14 +1,16 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
+// const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UIDS,
 } = require('../../hooks/params');
-const { proxyIIIF } = require('../../hooks/iiif');
+const { assignIIIF } = require('../../hooks/iiif');
 
 
 module.exports = {
   before: {
     all: [
 
+    ], // authenticate('jwt') ],
+    find: [
       validate({
         q: {
           required: false,
@@ -19,8 +21,6 @@ module.exports = {
           choices: ['-date', 'date', '-relevance', 'relevance'],
         },
       }),
-    ], // authenticate('jwt') ],
-    find: [
       validateEach('filters', {
         context: {
           choices: ['include', 'exclude'],
@@ -51,10 +51,11 @@ module.exports = {
 
     ],
     find: [
-      proxyIIIF(),
+      assignIIIF('pages', 'issue'),
       displayQueryParams(['filters']),
     ],
     get: [
+      assignIIIF('pages', 'issue'),
     ],
     create: [],
     update: [],
