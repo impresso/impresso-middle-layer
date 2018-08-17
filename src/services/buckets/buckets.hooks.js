@@ -4,7 +4,7 @@ const { authenticate } = auth.hooks;
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 const { proxyIIIFWithMapper } = require('../../hooks/iiif');
 const {
-  queryWithCommonParams, validate, REGEX_UIDS, REGEX_UID, utils, queryWithCurrentExecUser
+  queryWithCommonParams, validate, REGEX_UID, utils, queryWithCurrentExecUser,
 } = require('../../hooks/params');
 
 const ORDER_BY = {
@@ -119,7 +119,6 @@ module.exports = {
             _d.iiif = `${prefixer}/${d.cover.uid}/info.json`;
             // _d.cover = `${prefixer}/${d.cover.uid}/full/150,/0/default.png`;
             // console.log('ejzoefjozifjozeifjzoiejfoizejfoziefjozief', _d)
-
           } else if (d.labels.indexOf('article') !== -1) {
             _d.pages = d.pages.map(p => ({
               ...p,

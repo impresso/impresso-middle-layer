@@ -52,7 +52,7 @@ module.exports = {
         required: true,
         method: 'GET',
       }),
-      queryWithCommonParams()
+      queryWithCommonParams(),
     ],
   },
 
