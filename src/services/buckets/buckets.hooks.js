@@ -2,7 +2,7 @@ const auth = require('@feathersjs/authentication');
 
 const { authenticate } = auth.hooks;
 const { queryWithCurrentUser } = require('feathers-authentication-hooks');
-const { proxyIIIFWithMapper } = require('../../hooks/iiif');
+const { assignIIIF } = require('../../hooks/iiif');
 const {
   queryWithCommonParams, validate, REGEX_UID, utils, queryWithCurrentExecUser,
 } = require('../../hooks/params');
@@ -107,29 +107,7 @@ module.exports = {
     all: [],
     find: [],
     get: [
-      proxyIIIFWithMapper('items', prefixer => (d) => {
-        const _d = {
-          ...d,
-        };
-        if (d.labels) {
-          if (d.labels.indexOf('page') !== -1) {
-            _d.iiif = `${prefixer}/${d.uid}/info.json`;
-            _d.cover = `${prefixer}/${d.uid}/full/150,/0/default.png`;
-          } else if (d.labels.indexOf('issue') !== -1) {
-            _d.iiif = `${prefixer}/${d.cover.uid}/info.json`;
-            // _d.cover = `${prefixer}/${d.cover.uid}/full/150,/0/default.png`;
-            // console.log('ejzoefjozifjozeifjzoiejfoizejfoziefjozief', _d)
-          } else if (d.labels.indexOf('article') !== -1) {
-            _d.pages = d.pages.map(p => ({
-              ...p,
-              iiif: `${prefixer}/${p.uid}/info.json`,
-            }));
-          }
-        }
-        // console.log('ejzoefjozifjozeifjzoiejfoizejfoziefjozief', _d)
-        // _d[toKey] = _getIIIF(context, d[fromKey]);
-        return _d;
-      }),
+      assignIIIF('items'),
     ],
     create: [],
     update: [],
