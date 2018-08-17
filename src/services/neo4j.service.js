@@ -15,7 +15,7 @@ class Neo4jService {
     this.name = options.name;
     // camelcase in options name
     // this.options.path = this.options.name.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase()
-    if(options.app) {
+    if (options.app) {
       this.app = options.app;
     }
 
@@ -164,7 +164,7 @@ class Neo4jService {
       ...params.isSafe ? params.query : params.sanitized,
     };
 
-    if(params.user) {
+    if (params.user) {
       qp._exec_user_uid = params.user.uid;
       qp._exec_user_is_staff = params.user.is_staff;
     }
@@ -172,13 +172,13 @@ class Neo4jService {
     if (uids.length > 1 || params.findAll) {
       qp.uids = uids;
       query = this.queries.findAll;
-      queryname = `${this.name}.queries.cyp:findAll`
+      queryname = `${this.name}.queries.cyp:findAll`;
     } else if (id == '*') {
       query = this.queries.findAllWildcard;
-      queryname = `${this.name}.queries.cyp:findAllWildcard`
+      queryname = `${this.name}.queries.cyp:findAllWildcard`;
     } else {
       query = this.queries.get;
-      queryname = `${this.name}.queries.cyp:get`
+      queryname = `${this.name}.queries.cyp:get`;
       qp.uid = id;
     }
 
@@ -190,7 +190,7 @@ class Neo4jService {
       if (!records.length) {
         throw new errors.NotFound();
       }
-      if (records.length == 1 && !params.findAll) {
+      if (records.length == 1 && uids.length === 1 ) {
         return records[0];
       }
       return records;
