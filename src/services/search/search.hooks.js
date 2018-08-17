@@ -2,7 +2,7 @@ const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
-const { proxyIIIF } = require('../../hooks/iiif');
+const { assignIIIF } = require('../../hooks/iiif');
 
 const SOLR_FACETS = {
   year: {
@@ -134,7 +134,7 @@ module.exports = {
   after: {
     all: [],
     find: [
-      proxyIIIF(),
+      assignIIIF('pages', 'matches'),
       displayQueryParams(['queryComponents', 'filters']),
     ],
     get: [],
