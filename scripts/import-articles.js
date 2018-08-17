@@ -1,4 +1,6 @@
-const {query, count, apoc, config} = require('./bulk');
+const {
+  query, count, apoc, config,
+} = require('./bulk');
 const debug = require('debug')('impresso/scripts:import-articles');
 const fs = require('fs');
 const _ = require('lodash');
@@ -7,8 +9,7 @@ const _map = require('lodash/map');
 const solr = require('../src/solr').client(config.solr);
 
 
-
-debug(`start! '__dirname':`,__dirname);
+debug('start! \'__dirname\':', __dirname);
 async function waterfall() {
   // load first 1000 ids directly from solr.
   //
@@ -17,18 +18,18 @@ async function waterfall() {
     q: '*:*',
     fl: 'id',
     limit: 1,
-    skip: 0
+    skip: 0,
   });
 
   const total = _solr.response.numFound;
   const steps = Math.ceil(total / limit);
 
-  for(let i=0;i < steps;i++) {
+  for (let i = 0; i < steps; i++) {
     _solr = await solr.findAll({
       q: '*:*',
       fl: 'id,page_id_ss,page_nb_is,meta_journal_s,meta_year_i,meta_month_i,lg_s,meta_date_dt,title_txt_fr,content_txt_fr',
-      limit: limit,
-      skip: i*limit,
+      limit,
+      skip: i * limit,
     });
 
     const pagesUids = _(_solr.response.docs)
@@ -36,35 +37,34 @@ async function waterfall() {
       .flatten().uniq()
       .value();
 
-    console.log(pagesUids)
+    console.log(pagesUids);
 
     // add missing pages. Longer but safer.
     await query('pages', 'merge', pagesUids.map((pageUid) => {
       console.log(pageUid, pageUid.match(/-p0+(\d+)$/)[1]);
       // console.log(pageUid.match(/^([a-zA-Z\d-]+)-p0+(\d+)$/)[1]);
       return {
-        'uid': pageUid,
-        'page_number': pageUid.match(/-p0+(\d+)$/)[1],
-        'issue_uid': pageUid.match(/^([a-zA-Z\d-]+)-p0+(\d+)$/)[1]
-      }
+        uid: pageUid,
+        page_number: pageUid.match(/-p0+(\d+)$/)[1],
+        issue_uid: pageUid.match(/^([a-zA-Z\d-]+)-p0+(\d+)$/)[1],
+      };
     }), limit);
 
     // create pages if they do not exist!
     // _solr.response.docs.map(
 
 
-    await query('articles', 'merge', _solr.response.docs.map((d)=>{
-      d.date = d.uid.match(/\d{4}-\d{2}-\d{2}/)[0]
+    await query('articles', 'merge', _solr.response.docs.map((d) => {
+      d.date = d.uid.match(/\d{4}-\d{2}-\d{2}/)[0];
       d.page__uids = d.pages;
       d.newspaper__uid = d.newspaper_uid;
-      d.regions = []
-      d.Project = 'impresso'
+      d.regions = [];
+      d.Project = 'impresso';
       console.log(d.uid);
       return d;
     }), limit);
 
-    debug(`'waterfall': start:${_solr.responseHeader.params.start}, rows:${_solr.responseHeader.params.rows}, numFound:${_solr.response.numFound}`)
-
+    debug(`'waterfall': start:${_solr.responseHeader.params.start}, rows:${_solr.responseHeader.params.rows}, numFound:${_solr.response.numFound}`);
   }
   // console.log(_solr.response.numFound);
   //
@@ -116,13 +116,12 @@ async function waterfall() {
   // debug('APOC_set_issue__count_pages done.');
   // await apoc('pages', 'APOC_set_newspaper__count_pages');
   // debug('APOC_set_newspaper__count_pages done.');
-
 }
 
-waterfall().then(res => {
-  debug('done, exit.');  // prints 60 after 2 seconds.
+waterfall().then((res) => {
+  debug('done, exit.'); // prints 60 after 2 seconds.
   process.exit();
-}).catch(err => {
+}).catch((err) => {
   console.log(err);
   process.exit();
 });

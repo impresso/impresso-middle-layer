@@ -12,13 +12,13 @@ describe('\'buckets\' service', () => {
   const user = {
     uid: 'local-user-test-only',
     is_staff: true,
-  }
+  };
 
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });
 
-  it('creates an empty bucket uid',  async() => {
+  it('creates an empty bucket uid', async () => {
     const customBucket = await service.create({
       bucket_uid: 'local-bucket-test-only',
       name: 'local-bucket-test-only',
@@ -39,17 +39,18 @@ describe('\'buckets\' service', () => {
         },
         {
           label: 'article',
-          uid: 'GDL-1811-11-22-a-0002-3624301',
+          uid: 'GDL-1954-06-29-a-i0084',
         },
         {
           label: 'issue',
           uid: 'GDL-1811-11-22-a',
-        }
+        },
       ],
     }, {
       user,
     });
-    // console.log(results);
+
+    assert.equal(results.info._stats.relationshipsCreated, 3);
     assert.ok(results.data);
   });
 
@@ -77,7 +78,7 @@ describe('\'buckets\' service', () => {
     assert.ok(results.total);
   });
 
-  it('delete the created bucket uid ...',  async() => {
+  it('delete the created bucket uid ...', async () => {
     const removedBucket = await app.service('buckets').remove('local-bucket-test-only', {
       user,
     });

@@ -8,7 +8,7 @@ const app = require('../../src/app');
  * ./node_modules/.bin/eslint src/services/search --fix && DEBUG=impresso/* mocha test/services/search.test.js
  * ```
  */
-describe('\'search\' service', function(){
+describe('\'search\' service', () => {
   const service = app.service('search');
   const staff = {
     uid: 'local-user-test-only',
@@ -37,19 +37,19 @@ describe('\'search\' service', function(){
         group_by: 'articles',
         facets: ['year'],
         filters: [{
-            type: 'daterange',
-            context: 'exclude',
-            daterange: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
-          },
-          {
-            type: 'daterange',
-            context: 'include',
-            daterange: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
-          }
+          type: 'daterange',
+          context: 'exclude',
+          daterange: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
+        },
+        {
+          type: 'daterange',
+          context: 'include',
+          daterange: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+        },
         ],
       },
     });
-    //console.log(result.info)
+    // console.log(result.info)
     assert.ok(result.info.facets.year);
   });
 
@@ -66,7 +66,6 @@ describe('\'search\' service', function(){
     });
 
     assert.ok(results.data.length);
-
   });
 
   it('loaded solr content, filters & facets, with current user having a bucket ;)', async () => {
@@ -78,11 +77,11 @@ describe('\'search\' service', function(){
 
     // create a bucket for the user staff. Beign staff allows to create buckets with a given name.
     const createBucket = await app.service('buckets').create({
-        bucket_uid: 'local-bucket-test-only',
-        name: 'local-bucket-test-only',
-      }, {
-        user: staff,
-      });
+      bucket_uid: 'local-bucket-test-only',
+      name: 'local-bucket-test-only',
+    }, {
+      user: staff,
+    });
 
     assert.equal(createBucket.data.uid, 'local-bucket-test-only');
     assert.equal(createBucket.data.name, 'local-bucket-test-only');
@@ -95,10 +94,10 @@ describe('\'search\' service', function(){
         uid: 'GDL-1950-03-29-a-i0138',
       }],
     }, {
-      user: staff
-    }).catch(d => {
+      user: staff,
+    }).catch((d) => {
       console.log(d);
-      throw 'stop'
+      throw 'stop';
     });
     // save article to buckets
 
@@ -130,7 +129,7 @@ describe('\'search\' service', function(){
       console.log(err.data);
     });
 
-    //console.log(res.data[0]);
+    // console.log(res.data[0]);
     assert.ok(res.data.length);
     assert.ok(res.data[0].matches.length);
     if (res.data[0].uid === 'GDL-1950-03-29-a-i0138') {

@@ -6,13 +6,13 @@ describe('\'buckets-items\' service', () => {
   const user = {
     uid: 'local-user-test-only',
     is_staff: true,
-  }
+  };
 
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });
 
-  it('creates an empty bucket uid',  async() => {
+  it('creates an empty bucket uid', async () => {
     const customBucket = await app.service('buckets').create({
       bucket_uid: 'local-bucket-test-only',
       name: 'local-bucket-test-only',
@@ -51,7 +51,7 @@ describe('\'buckets-items\' service', () => {
         {
           label: 'issue',
           uid: 'GDL-1811-11-22-a',
-        }
+        },
       ],
     }, {
       user,
@@ -61,7 +61,6 @@ describe('\'buckets-items\' service', () => {
   });
 
   it('checks that the issue endpoint mentions the bucket', async () => {
-
     const result = await app.service('issues').get('GDL-1811-11-22-a', {
       user: {
         uid: 'local-user-test-only',
@@ -70,8 +69,7 @@ describe('\'buckets-items\' service', () => {
     assert.ok(result.buckets);
   });
 
-  it('get complete list of items', async ()=> {
-
+  it('get complete list of items', async () => {
     const finder = await service.find({
       user: {
         uid: 'local-user-test-only',
@@ -79,12 +77,10 @@ describe('\'buckets-items\' service', () => {
     });
 
     // console.log(finder);
-    assert.ok(finder)
-  })
+    assert.ok(finder);
+  });
 
   it('add a page to the bucket then get rid of it.', async () => {
-
-
     const created = await service.create({
       bucket_uid: 'local-bucket-test-only',
       items: [{
@@ -139,7 +135,7 @@ describe('\'buckets-items\' service', () => {
     // console.log(alreadyremoved);
   });
 
-  it('delete the created bucket uid ...',  async() => {
+  it('delete the created bucket uid ...', async () => {
     const removedBucket = await app.service('buckets').remove('local-bucket-test-only', {
       user,
     });

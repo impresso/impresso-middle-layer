@@ -28,7 +28,7 @@ const findAll = (config, params = {}) => {
 
   // transform order by if any
   if (_params.order_by) {
-    qs['sort'] = _params.order_by;
+    qs.sort = _params.order_by;
   }
 
   // transform facets if any
@@ -71,7 +71,7 @@ const findAll = (config, params = {}) => {
           TruncateLength: _params.excerptLength,
         });
 
-        if(qs.fl) {
+        if (qs.fl) {
           doc.contents = d.content_txt_fr;
         }
       }
@@ -97,7 +97,6 @@ const findAll = (config, params = {}) => {
                 page_uid: pagId,
                 fragment: _fragments[i],
                 coords: pag.regions[ii].coords,
-                iiif: `https://api-impresso.uni.lu/proxy/iiif/${pagId}/${pag.regions[ii].coords.join(',')}/full/0/default.jpg`,
               };
               break;
             }

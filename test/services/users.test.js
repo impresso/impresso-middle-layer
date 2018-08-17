@@ -1,7 +1,7 @@
 const assert = require('assert');
 const app = require('../../src/app');
 
-describe('\'users\' service', function() {
+describe('\'users\' service', function () {
   const service = app.service('users');
   this.timeout(5000);
 

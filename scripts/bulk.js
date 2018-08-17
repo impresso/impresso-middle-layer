@@ -5,6 +5,7 @@ const verbose = require('debug')('verbose:impresso/scripts:bulk');
 const sequelize = require('../src/sequelize').client(config.sequelize);
 const neo4j = require('../src/neo4j').client(config.neo4j);
 const { neo4jPrepare, neo4jSummary } = require('../src/services/neo4j.utils');
+
 const session = neo4j.session();
 
 const merge = (modelName, modelMapper, limit = 100) => {
@@ -13,26 +14,25 @@ const merge = (modelName, modelMapper, limit = 100) => {
 
   debug(`merge: starting ${modelName}...`);
 
-  async function waterfall () {
+  async function waterfall() {
     const total = await Klass.count();
     const steps = Math.ceil(total / limit);
 
-    for(let i=0;i < steps;i++) {
-
-      const items =  await Klass.scope('findAll').findAll({ offset: i*limit, limit: limit });
-      debug(`tx starting - offset:` , i*limit, '- total:', total, '- limit:', limit);
+    for (let i = 0; i < steps; i++) {
+      const items = await Klass.scope('findAll').findAll({ offset: i * limit, limit });
+      debug('tx starting - offset:', i * limit, '- total:', total, '- limit:', limit);
 
       await session.writeTransaction((tx) => {
-        for(item of items) {
+        for (item of items) {
           const params = {
             Project: 'impresso',
-            ...  modelMapper(item)
-          }
-          verbose(`adding ${modelName} - uid: ${params.uid} - offset:` , i*limit, '- total:', total, params);
+            ...modelMapper(item),
+          };
+          verbose(`adding ${modelName} - uid: ${params.uid} - offset:`, i * limit, '- total:', total, params);
           tx.run(neo4jPrepare(queries.merge, params), params);
         }
-      }).then(res => {
-        debug(`tx success! - offset:` , i*limit, '- total:', total, '- limit:', limit);
+      }).then((res) => {
+        debug('tx success! - offset:', i * limit, '- total:', total, '- limit:', limit);
       });
     }
   }
@@ -40,42 +40,41 @@ const merge = (modelName, modelMapper, limit = 100) => {
   debug(`merge: ${modelName} done.`);
 
   return waterfall();
-}
+};
 
 const query = (modelName, queryName, items, limit = 100) => {
   const queries = require('decypher')(`${__dirname}/../src/services/${modelName}/${modelName}.queries.cyp`);
 
   debug(`query: executing ${modelName}/${queryName}...`);
-  async function waterfall () {
+  async function waterfall() {
     const total = items.length;
     const steps = Math.ceil(total / limit);
 
-    for(let i=0;i < steps;i++) {
-      debug(`query: tx starting - offset:` , i*limit, '- total:', total, '- limit:', limit);
+    for (let i = 0; i < steps; i++) {
+      debug('query: tx starting - offset:', i * limit, '- total:', total, '- limit:', limit);
 
       await session.writeTransaction((tx) => {
-        for(item of items) {
+        for (item of items) {
           const params = {
             Project: 'impresso',
-            ...  item
-          }
-          verbose(`query: adding ${modelName} - uid: ${params.uid} - offset:` , i*limit, '- total:', total, params);
+            ...item,
+          };
+          verbose(`query: adding ${modelName} - uid: ${params.uid} - offset:`, i * limit, '- total:', total, params);
           tx.run(neo4jPrepare(queries[queryName], params), params);
         }
-      }).then(res => {
-        debug(`query: tx success! - offset:` , i*limit, '- total:', total, '- limit:', limit);
+      }).then((res) => {
+        debug('query: tx success! - offset:', i * limit, '- total:', total, '- limit:', limit);
+      }).catch((err) => {
+        console.log(err);
 
-      }).catch(err => {
-        console.log(err)
-
-        debug(`query: tx ERROR! - offset:` , i*limit, '- total:', total, '- limit:', limit);
-        throw 'error in neo4j transaction'
+        debug('query: tx ERROR! - offset:', i * limit, '- total:', total, '- limit:', limit);
+        throw 'error in neo4j transaction';
       });
     }
   }
 
-  return waterfall()
-}
+  return waterfall();
+};
 
 const count = (modelName, params) => {
   const queries = require('decypher')(`${__dirname}/../src/services/${modelName}/${modelName}.queries.cyp`);
@@ -86,14 +85,14 @@ const count = (modelName, params) => {
     verbose('count: <query>', queries.count);
     return tx.run(queries.count, {
       Project: 'impresso',
-      ... params
-    }).then(res => {
+      ...params,
+    }).then((res) => {
       debug(`count: ${modelName} using query 'count' success!`);
       verbose('count: <summary>', neo4jSummary(res));
       return res;
-    }) ;
+    });
   });
-}
+};
 
 // execute custom APOC call
 const apoc = (modelName, queryName, params) => {
@@ -101,22 +100,20 @@ const apoc = (modelName, queryName, params) => {
 
   debug(`apoc: ${modelName} using query: ${queryName}.`);
 
-  return session.writeTransaction((tx) => {
-    return tx.run(queries[queryName], {
-      Project: 'impresso',
-      ... params
-    }).then(res => {
-      debug(`apoc: ${modelName} using query: ${queryName} success!`);
-      verbose('apoc: <summary>', neo4jSummary(res));
-      return res;
-    });
-  });
-}
+  return session.writeTransaction(tx => tx.run(queries[queryName], {
+    Project: 'impresso',
+    ...params,
+  }).then((res) => {
+    debug(`apoc: ${modelName} using query: ${queryName} success!`);
+    verbose('apoc: <summary>', neo4jSummary(res));
+    return res;
+  }));
+};
 
 module.exports = {
   merge,
   count,
   apoc,
   query,
-  config
+  config,
 };
