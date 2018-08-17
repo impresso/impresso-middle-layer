@@ -9,6 +9,12 @@ class Service extends Neo4jService {
   }
 
   async get(id, params) {
+    const uids = id.split(',');
+
+    if (uids.length > 1) {
+      return super.get(id, params);
+    }
+
     const results = await Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
