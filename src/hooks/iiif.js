@@ -17,9 +17,11 @@ const IiifMapper = (d) => {
   };
   if (d.labels.indexOf('page') !== -1) {
     _d.iiif = `${config.proxy.host}/proxy/iiif/${d.uid}`;
+    _d.iiif_thumbnail = `${config.proxy.host}/proxy/iiif/${d.uid}/full/150,/0/default.png`;
   }
   if (d.labels.indexOf('issue') !== -1 && typeof d.cover === 'string') {
     _d.iiif = `${config.proxy.host}/proxy/iiif/${d.cover}`;
+    _d.iiif_thumbnail = `${config.proxy.host}/proxy/iiif/${d.cover}/full/150,/0/default.png`;
   }
   return _d;
 };
@@ -30,12 +32,15 @@ const assignIIIF = (...props) => async (context) => {
   }
 
   const _recursiveReplace = (d) => {
-    const _d = { ...d };
+    const _d = IiifMapper(d);
+    
     props.forEach((key) => {
-      if (Array.isArray(_d[key])) {
-        _d[key] = _d[key].map(IiifMapper);
-      } else if (_d[key] && _d[key].constructor.name === 'Object') {
-        _d[key] = IiifMapper(_d[key]);
+      if(_d[key]) {
+        if (Array.isArray(_d[key])) {
+          _d[key] = _d[key].map(IiifMapper);
+        } else if (_d[key].constructor.name === 'Object') {
+          _d[key] = IiifMapper(_d[key]);
+        }
       }
     });
     return _d;
