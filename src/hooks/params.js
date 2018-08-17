@@ -56,14 +56,14 @@ const toLucene = (query, forceFuzzy = true) => {
 };
 
 
-const toOrderBy = (ordering, translateTable, lower=false) => {
+const toOrderBy = (ordering, translateTable, lower = false) => {
   // TODO if ordering is array;
   if (ordering.indexOf('-') === 0) {
     const _ordering = translateTable[ordering.substr(1)];
-    return lower? `${_ordering} desc`: `${_ordering} DESC`;
+    return lower ? `${_ordering} desc` : `${_ordering} DESC`;
   }
   const _ordering = translateTable[ordering];
-  return lower? `${_ordering} asc`: `${_ordering} ASC`;
+  return lower ? `${_ordering} asc` : `${_ordering} ASC`;
 };
 
 const _validateOne = (key, item, rule) => {
@@ -161,7 +161,7 @@ const REGEX_EMAIL = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/;
 const REGEX_SLUG = /^[a-z0-9\-]+$/;
 const REGEX_UID = /^[A-Za-z0-9_\-]+$/;
-const REGEX_UIDS = /^[A-Za-z0-9_\-,]+$/;
+const REGEX_UIDS = /^[A-Za-z0-9_\-,]+[A-Za-z0-9_\-]+$/;
 const REGEX_NUMERIC = /^\d+$/;
 
 const VALIDATE_UIDS = {
@@ -226,12 +226,24 @@ const validate = (validators, method = 'GET') => async (context) => {
   if (method === 'GET') {
     debug('validate: GET data', context.params.query);
     const validated = _validate(context.params.query, validators);
-    if (!context.params.sanitized) { context.params.sanitized = validated; } else { Object.assign(context.params.sanitized, validated); }
+    if (!context.params.sanitized) {
+      context.params.sanitized = validated;
+    } else {
+      Object.assign(context.params.sanitized, validated);
+    }
   } else {
     debug('validate: POST data');
     context.data.sanitized = _validate(context.data, validators);
   }
 };
+
+const validateRouteId = () => async (context) => {
+  if(context.id && !REGEX_UIDS.test(context.id)){
+    debug('validateRouteId: context.id not matching REGEX_UIDS');
+    throw new errors.NotFound();
+  }
+}
+
 
 const queryWithCurrentExecUser = () => async (context) => {
   if (!context.params) {
@@ -358,12 +370,12 @@ const validateEach = (paramName, validators, options = {}) => {
     // console.log(context.params.query.filters)
     let toBeValidated;
 
-    switch(opts.method) {
+    switch (opts.method) {
       case 'GET':
-        toBeValidated = context.params.query[paramName]
+        toBeValidated = context.params.query[paramName];
         break;
       case 'POST':
-        toBeValidated = context.data[paramName]
+        toBeValidated = context.data[paramName];
         break;
     }
 
@@ -425,6 +437,8 @@ module.exports = {
   validateEach,
   queryWithCommonParams,
   queryWithCurrentExecUser,
+
+  validateRouteId,
 
   VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL,
