@@ -132,7 +132,7 @@ const _validate = (params, rules) => {
   const _params = {};
   const _errors = {};
 
-  rules.forEach((key) => {
+  Object.keys(rules).forEach((key) => {
     // special before hook (e.g; split comma separated values before applying a rule)
     if (typeof rules[key].before === 'function') {
       params[key] = rules[key].before(params[key]);

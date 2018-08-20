@@ -4,9 +4,12 @@ const app = require('../../src/app');
 
 /**
  * Test for search endpoint. Usage:
- * ```
- * ./node_modules/.bin/eslint src/services/search --fix && DEBUG=impresso/* mocha test/services/search.test.js
- * ```
+ *
+
+ ./node_modules/.bin/eslint test/services/search.test.js  \
+ src/services/search src/hooks --fix && mocha test/services/search.test.js
+
+
  */
 describe('\'search\' service', () => {
   const service = app.service('search');
@@ -20,7 +23,7 @@ describe('\'search\' service', () => {
   });
 
   it('get search results when no filters is given', async () => {
-    return;
+    // return;
     const result = await service.find({
       query: {
         group_by: 'articles',
@@ -61,8 +64,7 @@ describe('\'search\' service', () => {
         facets: ['year'],
       },
     }).catch((err) => {
-      assert.empty(err);
-      done();
+      assert.fail(err);
     });
 
     assert.ok(results.data.length);
@@ -95,11 +97,9 @@ describe('\'search\' service', () => {
       }],
     }, {
       user: staff,
-    }).catch((d) => {
-      console.log(d);
-      throw 'stop';
-    });
+    }).catch(assert.fail);
     // save article to buckets
+    assert.ok(createBucketsItems);
 
     const res = await service.find({
       query: {
