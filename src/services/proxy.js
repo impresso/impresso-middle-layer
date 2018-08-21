@@ -15,7 +15,8 @@ module.exports = function (app) {
   const proxyPublicAuthorization = config.iiif.epfl.auth;
 
   app.use('/proxy/iiif', (req, res, next) => {
-    // console.log('Request URL:', req.originalUrl, authentication.cookie.name, req.cookies, req.isAuthenticated());
+    // console.log('Request URL:', req.originalUrl,
+    //  authentication.cookie.name, req.cookies, req.isAuthenticated());
     // access token from cookies
     let accessToken = req.headers.authorization;
 
@@ -24,29 +25,30 @@ module.exports = function (app) {
     }
 
     if (!accessToken) {
-      debug('middleware: no auth found, return public contents only.');
+      debug('proxy: no auth found, return public contents only.');
       // do nothing, we're going for the "public" endpoint
-      return next();
+      next();
+      return;
     }
 
     app.passport.verifyJWT(accessToken, {
       secret: authentication.secret,
     }).then((payload) => {
-      debug('middleware: auth found, payload OK. <userId>:', payload.userId);
+      debug('proxy: auth found, payload OK. <userId>:', payload.userId);
       req.proxyAuthorization = config.iiif.epflsafe.auth;
       // check authorization level in user service.
       next();
     }).catch((err) => {
-      debug('middleware: auth found, INVALID payload.');
+      debug('proxy: auth found, INVALID payload.', err);
       next();
     });
   }, proxy({
     target: config.iiif.epfl.endpoint, // https://dhlabsrv17.epfl.ch/iiif_impresso/"GDL-1900-01-10-a-p0002/full/full/0/default.jpg
-    pathRewrite: (path, req) => {
+    pathRewrite: (path) => {
       const extension = nodePath.extname(path);
-      console.log('extension', extension);
+      debug('proxy: <extension>:', extension);
       if (!extension.length) {
-        console.log('REWRITE');
+        debug('proxy: rewrite empty extension to \'info.json\'');
         return nodePath.join(path.replace('/proxy/iiif', '/'), 'info.json');
       }
 
@@ -54,28 +56,30 @@ module.exports = function (app) {
       return path.replace('/proxy/iiif', '/');
     },
     changeOrigin: true,
-    logProvider: provider => logger,
+    logProvider: () => logger,
     logLevel: 'info',
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq, req) => {
       debug('proxy: @onProxyReq <path>', proxyReq.path);
       let credentials;
       if (req.proxyAuthorization) {
         debug('proxy: @onProxyReq using PRIVATE credentials');
-        credentials = new Buffer(`${req.proxyAuthorization.user}:${req.proxyAuthorization.pass}`).toString('base64');
+        credentials = Buffer.from(`${req.proxyAuthorization.user}:${req.proxyAuthorization.pass}`).toString('base64');
       } else {
         debug('proxy: @onProxyReq using PUBLIC credentials.');
-        credentials = new Buffer(`${proxyPublicAuthorization.user}:${proxyPublicAuthorization.pass}`).toString('base64');
+        credentials = Buffer.from(`${proxyPublicAuthorization.user}:${proxyPublicAuthorization.pass}`).toString('base64');
       }
       proxyReq.setHeader('Authorization', `Basic ${credentials}`);
     },
     onProxyRes: (proxyRes, req, res) => {
       debug('proxy: @onProxyRes <res.statusCode>:', proxyRes.statusCode, proxyRes.headers['content-type']);
-      if (proxyRes.statusCode == 401) {
+      if (proxyRes.statusCode === 401) {
         res.redirect('/images/notAuthorized.jpg');
-      } else if (proxyRes.headers['content-type'] == 'application/json') {
+      } else if (proxyRes.statusCode === 200 && proxyRes.headers['content-type'] === 'application/json') {
+
         // modify HOST in every IIIF fields, when needed.
         modifyResponse(res, proxyRes, (iiif) => {
           if (iiif) {
+            debug('proxy: @onProxyRes modifyResponse', iiif['@id']);
             // modify some information, deeper and deeper...?
             // We probably need just the very first level (for the moment).
             iiif['@id'] = iiif['@id'].replace(/^.*?\/iiif_impresso\//, `${proxyhost}/proxy/iiif/`);
