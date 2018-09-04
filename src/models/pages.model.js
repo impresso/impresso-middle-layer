@@ -60,7 +60,7 @@ const model = (client, options = {}) => {
 };
 
 module.exports = function (app) {
-  const config = app.get('sequelize');
+  // const config = app.get('sequelize');
   const page = model(app.get('sequelizeClient'), {
     // tableName: config.tables.pages,
     hooks: {
@@ -72,7 +72,7 @@ module.exports = function (app) {
 
 
   return {
-    sequelize: issue,
+    sequelize: page,
   };
 };
 
