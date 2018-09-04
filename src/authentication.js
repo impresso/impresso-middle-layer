@@ -29,7 +29,7 @@ class HashedPasswordVerifier extends Verifier {
       const isValid = comparePassword(password, encrypted, salt, '');
       if (!isValid) {
         // debug('Login incorrect');
-        return reject(false);
+        return reject(new Error('Login incorrect'));// false);
       }
       // debug('Password correct');
       return resolve(entity);
