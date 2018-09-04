@@ -19,15 +19,8 @@ const bucketsItems = require('./buckets-items/buckets-items.service.js');
 
 const search = require('./search/search.service.js');
 
-const { validateRouteId } = require('../hooks/params');
-
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
-
-  // setup global hook
-  app.hooks({
-    before: [validateRouteId()],
-  });
 
   app.configure(users);
   app.configure(timeline);

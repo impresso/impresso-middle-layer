@@ -1,9 +1,10 @@
 // Application hooks that run for every service
 const logger = require('./hooks/logger');
+const { validateRouteId } = require('./hooks/params');
 
 module.exports = {
   before: {
-    all: [],
+    all: [validateRouteId()],
     find: [],
     get: [],
     create: [],
