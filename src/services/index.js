@@ -26,7 +26,7 @@ module.exports = function () {
 
   // setup global hook
   app.hooks({
-    before: [ validateRouteId() ]
+    before: [validateRouteId()],
   });
 
   app.configure(users);

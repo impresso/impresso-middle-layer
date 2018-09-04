@@ -45,7 +45,7 @@ const model = (client, options = {}) => {
 };
 
 module.exports = function (app) {
-  const config = app.get('sequelize');
+  // const config = app.get('sequelize');
   const issue = model(app.get('sequelizeClient'), {});
 
   return {
