@@ -59,6 +59,7 @@
     "dotenv": "^4.0.0",
     "fast-xml-parser": "^3.11.1",
     "feathers-authentication-hooks": "^0.1.7",
+    "feathers-errors": "^2.9.2",
     "feathers-hooks-common": "^3.10.0",
     "feathers-memory": "^2.1.1",
     "feathers-sequelize": "^2.4.0",
