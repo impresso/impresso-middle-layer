@@ -80,12 +80,13 @@ class Service extends Neo4jService {
         })));
 
     // let newspapers = () => this._run()
-
-    return await Promise.all([
+    const results = await Promise.all([
       dateranges(), // dates(),
       entities(),
       // newspapers()
     ]).then(values => Neo4jService.wrap(values[0].concat(values[1])));
+
+    return results;
   }
 }
 

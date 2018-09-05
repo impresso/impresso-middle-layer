@@ -4,7 +4,8 @@ const Neo4jService = require('../neo4j.service').Service;
 class Service extends Neo4jService {
   async create(data, params) {
     if (Array.isArray(data)) {
-      return await Promise.all(data.map(current => this.create(current)));
+      const results = await Promise.all(data.map(current => this.create(current)));
+      return results;
     }
 
     return data;

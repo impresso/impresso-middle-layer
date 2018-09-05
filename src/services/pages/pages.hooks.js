@@ -1,4 +1,3 @@
-const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 const { queryWithCommonParams } = require('../../hooks/params');
 const { assignIIIF } = require('../../hooks/iiif');
 

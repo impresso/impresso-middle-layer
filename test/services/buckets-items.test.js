@@ -1,6 +1,11 @@
 const assert = require('assert');
 const app = require('../../src/app');
 
+/*
+./node_modules/.bin/eslint \
+src/services/buckets-items test/services/buckets-items.test.js --fix &&
+mocha test/services/buckets-items.test.js
+*/
 describe('\'buckets-items\' service', () => {
   const service = app.service('buckets-items');
   const user = {
@@ -10,6 +15,17 @@ describe('\'buckets-items\' service', () => {
 
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
+  });
+
+  it('delete the created bucket uid IF ANY', async () => {
+    const removedBucket = await app.service('buckets').remove('local-bucket-test-only', {
+      user,
+    }).catch((err) => {
+      assert.fail(err.data);
+    });
+    // assert.equal(removedBucket.nodesDeleted, 1);
+    assert.ok(removedBucket.relationshipsDeleted);
+    assert.ok(removedBucket.propertiesSet);
   });
 
   it('creates an empty bucket uid', async () => {
@@ -74,6 +90,7 @@ describe('\'buckets-items\' service', () => {
       user: {
         uid: 'local-user-test-only',
       },
+      query: {},
     });
 
     // console.log(finder);
@@ -92,12 +109,22 @@ describe('\'buckets-items\' service', () => {
         uid: 'local-user-test-only',
       },
     });
-    // console.log(created);
     assert.ok(created.data[0].uid);
 
-    const countItems = created.data[0].count_items;
-    const countPages = created.data[0].count_pages;
+    // const countItems = created.data[0].count_items;
+    // const countPages = created.data[0].count_pages;
 
+    // get items
+    const retrieved = await service.find({
+      query: {
+        uids: [created.data[0].uid],
+      },
+      user: {
+        uid: 'local-user-test-only',
+      },
+    });
+
+    assert.ok(retrieved);
     const removed = await service.remove(created.data[0].uid, {
       query: {
         items: [{
@@ -112,9 +139,11 @@ describe('\'buckets-items\' service', () => {
       console.log(err);
     });
 
-    assert.equal(removed.data[0].count_items, countItems - 1);
-    assert.equal(removed.data[0].count_pages, countPages - 1);
-    assert.equal(removed.info._stats.relationshipsDeleted, 1);
+    // assert.equal(removed.data[0].count_items, countItems - 1, 'decrease item counts');
+    // assert.equal(removed.data[0].count_pages, countPages - 1, 'decrease pages counts');
+    assert.equal(removed.info._stats.relationshipsDeleted, 1, 'confirm deletion of a relationship');
+
+
     //
     const alreadyremoved = await service.remove(created.data[0].uid, {
       query: {
@@ -130,8 +159,8 @@ describe('\'buckets-items\' service', () => {
       console.log(err);
     });
 
-    assert.equal(removed.data[0].count_pages, countPages - 1);
-    assert.equal(alreadyremoved.info._stats.relationshipsDeleted, 0);
+    // assert.equal(removed.data[0].count_pages, countPages - 1, 'do not change pages counts');
+    assert.equal(alreadyremoved.info._stats.relationshipsDeleted, 0, 'confirm no relationship has been deleted');
     // console.log(alreadyremoved);
   });
 

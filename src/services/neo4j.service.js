@@ -193,7 +193,7 @@ class Neo4jService {
     }
 
     return this._run(query, qp, queryname).then(this._finalize).then((records) => {
-      if(params.findAll) {
+      if (params.findAll) {
         return records;
         // even if it is empy. Check for instance buckets-items service
       }

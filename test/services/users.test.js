@@ -15,6 +15,7 @@ describe('\'users\' service', function () {
     email: 'guest-test-2@impresso-project.ch',
   };
 
+  assert.ok(user);
   // it('create a nice user', async () => {
   //   const result = await service.create({
   //     username: 'guest-test-2',

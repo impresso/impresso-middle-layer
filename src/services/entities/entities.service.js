@@ -35,16 +35,14 @@ module.exports = function () {
   app.use('/entities', createService(options));
   app.use('/entities/:uid/timeline', {
     find(params) {
-      return this.app.service('timeline').find({
+      return app.service('timeline').find({
         query: {
           label: 'entity',
           uid: params.route.uid,
         },
       });
     },
-    setup(app) {
-      this.app = app;
-    },
+
   });
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('entities');

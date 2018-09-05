@@ -1,10 +1,22 @@
 const assert = require('assert');
-const { sanitize, utils } = require('../../src/hooks/params');
+const { validateRouteId, utils } = require('../../src/hooks/params');
 // usage from cli:
 // mocha test/hooks/params.test.js
 describe('\'params\' hook', () => {
-  it('should runs sanitize filter correctly with custom filter', (done) => {
-    done();
+  it('should throw an exception if the id does not respect the rule', async () => {
+    await validateRouteId()({
+      id: 'not a good one',
+    }).catch((err) => {
+      assert.equal(err.name, 'BadRequest');
+    });
+  });
+
+  it('should runs validateRouteId global hook', async () => {
+    await validateRouteId()({
+      id: 'this-is-a-good-one',
+    }).catch((err) => {
+      assert.fail(err);
+    });
   });
 
   [
@@ -12,7 +24,7 @@ describe('\'params\' hook', () => {
     ['amsterdam OR paris', 'amsterdam OR paris'],
     ['*amsterdam* paris', '*amsterdam* AND paris'],
     // @todo ['amsterdam*, roma', 'amsterdam* OR roma']
-  ].map((d) => {
+  ].forEach((d) => {
     it(`should transform: /${d[0]}/ to lucene query: /${d[1]}/`, (done) => {
       assert.equal(utils.toLucene(d[0]), d[1]);
       done();

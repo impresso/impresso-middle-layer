@@ -1,10 +1,21 @@
 const assert = require('assert');
 const app = require('../../src/app');
+/**
+ *
+./node_modules/.bin/eslint \
+src/services/version test/services/version.test.js --fix &&
+mocha test/services/version.test.js
 
+*/
 describe('\'version\' service', () => {
-  it('registered the service', () => {
-    const service = app.service('version');
+  const service = app.service('version');
 
+  it('registered the service', () => {
     assert.ok(service, 'Registered the service');
+  });
+
+  it('get the current git version', async () => {
+    const result = await app.service('version').find();
+    assert.ok(result.version, 'check git log');
   });
 });

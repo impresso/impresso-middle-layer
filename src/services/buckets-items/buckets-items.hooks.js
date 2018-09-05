@@ -2,8 +2,7 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   validate, validateEach, REGEX_UID, queryWithCommonParams,
 } = require('../../hooks/params');
-const { queryWithCurrentUser } = require('feathers-authentication-hooks');
-
+const { assignIIIF } = require('../../hooks/iiif');
 
 module.exports = {
   before: {
@@ -11,6 +10,12 @@ module.exports = {
       authenticate('jwt'),
     ],
     find: [
+      validate({
+        bucket_uids: {
+          required: false,
+          before: d => (Array.isArray(d) ? d : d.split(',')),
+        },
+      }, 'GET'),
       queryWithCommonParams(),
     ],
     get: [],
@@ -58,7 +63,9 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
+    find: [
+      assignIIIF('pages', 'issue'),
+    ],
     get: [],
     create: [],
     update: [],
