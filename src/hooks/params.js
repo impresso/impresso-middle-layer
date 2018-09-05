@@ -133,18 +133,17 @@ const _validate = (params, rules) => {
   const _errors = {};
 
   Object.keys(rules).forEach((key) => {
-    if(typeof params[key] === 'undefined'){
+    if (typeof params[key] === 'undefined') {
       if (rules[key] && rules[key].required) {
         // required!
         _errors[key] = {
           code: 'NotFound',
           message: `${key} required`,
-        }
+        };
       }
     } else {
       // special before hook (e.g; split comma separated values before applying a rule)
       if (typeof rules[key].before === 'function') {
-        console.log(params, rules)
         params[key] = rules[key].before(params[key]);
       }
       // it is an Array of values
@@ -161,7 +160,7 @@ const _validate = (params, rules) => {
     }
   });
   if (Object.keys(_errors).length) {
-    console.log(_errors);
+    debug('_validate: got errors', _errors);
     throw new errors.BadRequest(_errors);
   }
   return _params;
@@ -388,7 +387,7 @@ const validateEach = (paramName, validators, options = {}) => {
           code: 'NotFound',
           message: `param '${paramName}' is required and shouldn't be empty.`,
         };
-        console.log(_error);
+        // console.log(_error);
         throw new errors.BadRequest(_error);
       }
       debug(`validateEach: ${paramName} not found in '${opts.method}' or is not an Array or it is empty. Received:`, toBeValidated);
