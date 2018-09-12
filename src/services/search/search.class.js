@@ -2,8 +2,10 @@
 const debug = require('debug')('impresso/services:search');
 const solr = require('../../solr');
 const neo4j = require('../../neo4j');
+const sequelize = require('../../sequelize');
 const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
+const { resolveAsync } = require('../sequelize.utils');
 
 class Service {
   /**
@@ -14,6 +16,7 @@ class Service {
    */
   constructor(options) {
     this.solr = solr.client(options.app.get('solr'));
+    this.sequelize = sequelize.client(options.app.get('sequelize'));
     this.neo4j = neo4j.client(options.app.get('neo4j'));
     this.name = options.name;
     this.neo4jQueries = {};
@@ -87,6 +90,37 @@ class Service {
       return {};
     });
 
+    const resolveFacetItems = [];
+    const facets = _solr.facets;
+    // load from facets
+    Object.keys(_solr.facets).forEach((facet) => {
+      if (facet === 'newspaper') {
+        resolveFacetItems.push({
+          // the facet key to merge later
+          facet,
+          service: 'newspapers',
+          // enrich bucket with service identifier, uid.
+          // SOLR gives it as `val` property of the facet.
+          items: _solr.facets.newspaper.buckets.map(d => ({
+            ...d,
+            uid: d.val,
+          })),
+        });
+      }
+    });
+
+    if (resolveFacetItems.length) {
+      // resolve uids with the appropriate service
+      await resolveAsync(this.sequelize, resolveFacetItems);
+    }
+    // substitute solr.facets buckets the with the facets.
+    resolveFacetItems.forEach((resolved) => {
+      facets[resolved.facet] = {
+        ...facets[resolved.facet],
+        buckets: resolved.items,
+      };
+    });
+
     // merge results maintaining solr ordering.
     results = _solr.response.docs.map(d => ({
       ...d,
@@ -97,7 +131,7 @@ class Service {
       responseTime: {
         solr: _solr.responseHeader.QTime,
       },
-      facets: _solr.facets,
+      facets,
     });
   }
 }
