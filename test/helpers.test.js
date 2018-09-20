@@ -10,6 +10,7 @@ const lineBreaks = [33, 60, 88, 131, 154, 189, 222, 264, 301, 337, 371, 409, 447
 const paragraphBreaks = [33, 60, 88, 154, 337, 993, 1810, 2045, 2129, 2282, 2301, 2529, 2774, 3123];
 const regionBreaks = [131, 966, 1775, 2194, 2753];
 const pageBreaks = [967];
+
 /*
 
 ./node_modules/.bin/eslint \
@@ -21,18 +22,19 @@ with debug
 */
 
 const lines = sliceAtSplitpoints(fulltext, lineBreaks);
-const splitted = sliceAtSplitpoints(fulltext, paragraphBreaks);
+const paragraphs = sliceAtSplitpoints(fulltext, paragraphBreaks);
+const regions = sliceAtSplitpoints(fulltext, regionBreaks);
 
 describe('should cut a text', () => {
 
   it('according to simple splitpoints', () => {
     assert.equal(lines[16].t, 'Khan les détails sur le départ de ce ', 'verify corresponding segments in lines')
     // verify specific point
-    assert.equal(splitted[10].t, 'Paris, 22 janvier. ', 'verify corresponding segments');
+    assert.equal(paragraphs[10].t, 'Paris, 22 janvier. ', 'verify corresponding segments');
     paragraphBreaks.forEach((p,i) => {
-      assert.equal(splitted[i].r, p);
+      assert.equal(paragraphs[i].r, p);
     })
-    assert.equal(splitted.length, paragraphBreaks.length + 1, 'count splitpoints and generated chunks');
+    assert.equal(paragraphs.length, paragraphBreaks.length + 1, 'count splitpoints and generated chunks');
   });
 
   it('... respecting the initial offset', () => {
@@ -84,22 +86,24 @@ describe('should annotate a tokenized text', () => {
 
   it ('renderRefs annotations on line 5 and 6, overlapping', () => {
     const md = renderRefs(lines);
-    console.log(md);
+    // console.log(md);
     assert.equal(md[8],'<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ');
-
+    assert.equal(md[15],'avait obtenu de la secrétaire de l\'<span ref="aga-khan">Aga </span>',);
     assert.equal(renderRefs([lines[7], lines[8]])[1],'<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ', 'the same');
-
-
   });
   //
 
-  // it('with one hierarchical level', () => {
-  //   const results = toHierarchy(splitted, regionBreaks);
-  //   assert.equal(results[1].g[0].t, splitted[3].t, 'get corret paragraph at the beginning of a region');
-  //   assert.ok(results);
-  // });
+  it('with one hierarchical level', () => {
+    const results = toHierarchy(lines, regionBreaks);
+    //console.log(results)
+    console.log(JSON.stringify(results))
+    console.log(paragraphs);
+    console.log(regions);
+    // assert.equal(results[1].g[0].t, paragraphs[3].t, 'get corret paragraph at the beginning of a region');
+    // assert.ok(results);
+  });
   // it('with two hierarchical levels', () => {
-  //   const results = toHierarchy(splitted, regionBreaks, pageBreaks);
+  //   const results = toHierarchy(paragraphs, regionBreaks, pageBreaks);
   //   console.log(results[0])
   //   console.log(results[1])
   //   assert.ok(results[0]);

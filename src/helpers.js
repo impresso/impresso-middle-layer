@@ -44,6 +44,7 @@ const seek = (tokens, splitpoints) => {
           g: tokens.slice(offsetIndex, j),
           r: tokens[j - 1].r,
         });
+        // console.log(tokens.slice(offsetIndex, j));
         offsetIndex = j;
         break;
       }
