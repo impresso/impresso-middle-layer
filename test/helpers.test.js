@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {
-  toHierarchy, sliceAtSplitpoints, annotate, renderRefs,
+  toHierarchy, sliceAtSplitpoints, annotate, render,
 } = require('../src/helpers');
 
 const fulltext = "L'AFFAIRE DES BIJOUX DE LA BEGUM L'interrogatoire de Watson un des principaux complices II se prétend le filleul de M. Churchill / Marseille, 22 janvier. " +
@@ -17,11 +17,10 @@ const lineBreaks = [
   2301, 2334, 2369, 2407, 2442, 2477, 2506, 2529, 2564, 2602, 2638, 2673,
   2711, 2753, 2774, 2808, 2845, 2883, 2921, 2965, 3005, 3040, 3079, 3116,
   3123, 3152, 3194, 3229, 3263, 3304, 3334, 3376, 3414];
-// const paragraphBreaks = [33, 60, 88, 154, 337, 993, 1810, 2045, 2129, 2282, 2301, 2529, 2774, 3123];
-const paragraphBreaks = [39, 74, 108, 586, 964, 1522, 1932, 2355, 3185, 3524, 3536, 3628, 4438, 5028, 5658, 6023],
-// const regionBreaks = [131, 966, 1775, 2194, 2753];
-const regionBreaks = [39, 74, 964, 1932, 2355, 3524, 4438, 5028, 5658];
-// const pageBreaks = [967];
+const paragraphBreaks = [33, 60, 88, 154, 337, 993, 1810, 2045,
+  2129, 2282, 2301, 2529, 2774, 3123];
+const regionBreaks = [131, 966, 1775, 2194, 2753];
+// const regionBreaks = [39, 74, 964, 1932, 2355, 3524, 4438, 5028, 5658];
 
 
 /*
@@ -36,7 +35,7 @@ with debug
 
 const lines = sliceAtSplitpoints(fulltext, lineBreaks);
 const paragraphs = sliceAtSplitpoints(fulltext, paragraphBreaks);
-const regions = sliceAtSplitpoints(fulltext, regionBreaks);
+
 
 describe('should cut a text', () => {
   it('according to simple splitpoints', () => {
@@ -96,33 +95,54 @@ describe('should annotate a tokenized text', () => {
     assert.equal(!!lines[7].ref, false);
   });
 
-  it('renderRefs annotations on line 5 and 6, overlapping', () => {
-    const md = renderRefs(lines);
+  it('render annotations on line 5 and 6, overlapping', () => {
+    const md = render(lines);
     // console.log(md);
     assert.equal(md[8], '<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ');
     assert.equal(md[15], 'avait obtenu de la secrétaire de l\'<span ref="aga-khan">Aga </span>');
-    assert.equal(renderRefs([lines[7], lines[8]])[1], '<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ', 'the same');
+    assert.equal(render([lines[7], lines[8]])[1], '<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ', 'the same');
   });
   //
 
-  it('with one hierarchical level', () => {
+  it('check grouping by regions', () => {
     const results = toHierarchy(lines, regionBreaks);
-    // console.log(results)
-    console.log(JSON.stringify(results));
-    console.log(paragraphs);
-    console.log(regions);
-    // assert.equal(results[1].g[0].t, paragraphs[3].t,
-    // 'get corret paragraph at the beginning of a region');
-    // assert.ok(results);
+    const lastLineFirstRegion = results[0].g[results[0].g.length - 1];
+    const firstLineSecondRegion = results[1].g[0];
+
+    assert.equal(lastLineFirstRegion.t, 'II se prétend le filleul de M. Churchill / ');
+    assert.equal(firstLineSecondRegion.t, 'Marseille, 22 janvier. ');
   });
-  // it('with two hierarchical levels', () => {
-  //   const results = toHierarchy(paragraphs, regionBreaks, pageBreaks);
-  //   console.log(results[0])
-  //   console.log(results[1])
-  //   assert.ok(results[0]);
-  // });
 });
 //
-// describe('should cut a text into pieces (toHierarchy)', () => {
-//
-// });
+describe('should cut a text into pieces', () => {
+  const ft = "APRÈS L'ACCIDENT DE LA SWISSAIR Le commandant de bord et son co-pilote ont été licenciés Au cours de sa séance du 28 juin, le Conseil d'administration de la Swissair a été informé de l'accident du 19 juin et en a discuté tous les aspects. Après entente avec l'Office fédéral de l'air, il communique : « Les enquêtes introduites par les autorités aéronautiques anglaise et suisse concernant l'amerrissage forcé d'un avion de la Swissair en vue de Folkeslone ne sont pas encore formellement terminées. Dès maintenant, cependant, il est établi que cet accident est dû uniquement à une grave défaillance humaine. L'avion en cause, venu à Genève de Londres où il devait retourner, était en parfait état de vol, mais le plein d'essence n'a pas été effectué avant le départ de Genève. Le commandant de bord et son co-pilote se sont rendus coupables d'une grave infraction aux instructions claires et précises contenues dans leur cahier des charges. Suspendus du service de vol " +
+  "immédiatement après l'accident, ils viennent d'être licenciés sans délai par la Swissair. Le Conseil d'administration rend hommage à la mémoire des victimes de ce tragique accident et exprime ses profonds regrets. »--\"}. »--\"";
+
+  const lb = [16, 31, 53, 70, 88, 122, 156, 193, 229, 266, 300, 335, 371, 409, 445,
+    480, 511, 548, 581, 616, 648, 684, 719, 756, 788, 824, 861, 897, 932, 965,
+    1001, 1040, 1076, 1109, 1141, 1174, 1187];
+
+  const title = "APRÈS L'ACCIDENT DE LA SWISSAIR Le commandant de bord et son co-pilote ont été licenciés";
+
+  const rb = [89, 549];
+
+  it('annotate title in regions and verify printed results', () => {
+    const ls = sliceAtSplitpoints(ft, lb);
+    const results = toHierarchy(ls, rb);
+
+    // console.log(ps);
+    const lastLineFirstRegion = results[0].g[results[0].g.length - 1];
+    const firstLineSecondRegion = results[1].g[0];
+
+    // then annotate
+    annotate(ls, 'title', 0, title.length, 'class');
+
+    assert.equal(lastLineFirstRegion.t, ' ont été licenciés');
+    assert.equal(firstLineSecondRegion.t, ' Au cours de sa séance du 28 juin,');
+    // console.log(rs);
+    const rendered = render(results);
+
+    assert.equal(rendered[0], '<span class="title">APRÈS L\'ACCIDENT</span>');
+    assert.equal(rendered[5], ' Au cours de sa séance du 28 juin,');
+  });
+});
