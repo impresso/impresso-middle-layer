@@ -30,6 +30,8 @@ const SOLR_FACETS = {
   },
 };
 
+const SOLR_FILTER_TYPES = ['string', 'entity', 'newspaper', 'daterange', 'year', 'language', 'type'];
+
 const SOLR_ORDER_BY = {
   date: 'meta_date_dt',
   relevance: 'score',
@@ -88,7 +90,7 @@ module.exports = {
           required: true,
         },
         type: {
-          choices: ['string', 'entity', 'newspaper', 'daterange'],
+          choices: SOLR_FILTER_TYPES,
           required: true,
         },
         q: {
@@ -120,9 +122,8 @@ module.exports = {
       }, {
         required: false,
       }),
-      filtersToSolrQuery(),
+      filtersToSolrQuery(SOLR_FILTER_TYPES),
       queryWithCommonParams(),
-
     ],
     get: [],
     create: [],
