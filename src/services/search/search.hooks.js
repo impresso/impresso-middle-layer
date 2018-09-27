@@ -3,7 +3,7 @@ const {
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { assignIIIF } = require('../../hooks/iiif');
-const {protect} = require('@feathersjs/authentication-local').hooks;
+const { protect } = require('@feathersjs/authentication-local').hooks;
 
 const SOLR_FACETS = {
   year: {

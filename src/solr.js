@@ -36,7 +36,7 @@ const findAll = (config, params = {}, factory) => {
     qs['json.facet'] = _params.facets;
   }
   if (_params.fl) {
-    qs.fl = Array.isArray(_params.fl)? _params.fl.join(','): _params.fl;
+    qs.fl = Array.isArray(_params.fl) ? _params.fl.join(',') : _params.fl;
   } else {
     // default values for fields
 
@@ -52,10 +52,10 @@ const findAll = (config, params = {}, factory) => {
   }).then((res) => {
     // dummy handle dupes keys
     const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
-    if(factory) {
+    if (factory) {
       result.response.docs = result.response.docs.map(factory(result));
     } else {
-      console.log("NO SOLR FACTORY")
+      console.log('NO SOLR FACTORY');
     }
     return result;
   }).catch((err) => {
