@@ -46,20 +46,20 @@ const model = (client, options = {}) => {
 
 class Issue {
   constructor({
-    collections = [],
-    countArticles = 0,
-    countPages = 0,
-    date = new Date(),
-    entities = [],
-    newspaper = new Newspaper.Model(),
-    pages = [],
+    // collections = [],
+    // countArticles = 0,
+    // countPages = 0,
+    // date = new Date(),
+    // entities = [],
+    // newspaper = new Newspaper.Model(),
+    // pages = [],
     uid = '',
-    year = 0,
+    // year = 0,
     labels = ['newspaper'],
   } = {}, complete = false) {
     this.uid = String(uid);
     this.labels = labels;
-    if(complete) {
+    if (complete) {
       // TODO: fill
     }
   }
