@@ -1,8 +1,8 @@
 const Sequelize = require('sequelize');
-const Newspaper = require('./newspapers.model').model;
+const Newspaper = require('./newspapers.model');
 
 const model = (client, options = {}) => {
-  const newspaper = Newspaper(client);
+  const newspaper = Newspaper.model(client);
   const issue = client.define('issue', {
     uid: {
       type: Sequelize.STRING,
@@ -44,6 +44,27 @@ const model = (client, options = {}) => {
   return issue;
 };
 
+class Issue {
+  constructor({
+    collections = [],
+    countArticles = 0,
+    countPages = 0,
+    date = new Date(),
+    entities = [],
+    newspaper = new Newspaper.Model(),
+    pages = [],
+    uid = '',
+    year = 0,
+    labels = ['newspaper'],
+  } = {}, complete = false) {
+    this.uid = String(uid);
+    this.labels = labels;
+    if(complete) {
+      // TODO: fill
+    }
+  }
+}
+
 module.exports = function (app) {
   // const config = app.get('sequelize');
   const issue = model(app.get('sequelizeClient'), {});
@@ -54,3 +75,4 @@ module.exports = function (app) {
 };
 
 module.exports.model = model;
+module.exports.Model = Issue;

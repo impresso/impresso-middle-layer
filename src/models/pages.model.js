@@ -2,6 +2,27 @@ const Sequelize = require('sequelize');
 const Newspaper = require('./newspapers.model').model;
 const Issue = require('./issues.model').model;
 
+class Page{
+  constructor({
+    articles = [],
+    articlesEntities = [],
+    articlesTags = [],
+    collections = [],
+    entities = [],
+    iiif = '',
+    labels = ['page'],
+    num = 0,
+    regions = [],
+    tags = [],
+    uid = '',
+  } = {}, complete = false) {
+    this.uid = String(uid);
+    this.num = parseInt(num, 10);
+    this.iiif = String(iiif);
+    this.labels = labels;
+  }
+}
+
 const model = (client, options = {}) => {
   const newspaper = Newspaper(client);
   const issue = Issue(client);
@@ -77,3 +98,4 @@ module.exports = function (app) {
 };
 
 module.exports.model = model;
+module.exports.Model = Page;
