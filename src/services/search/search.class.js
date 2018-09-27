@@ -6,6 +6,7 @@ const sequelize = require('../../sequelize');
 const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
 const { resolveAsync } = require('../sequelize.utils');
+const article = require('../../models/articles.model');
 
 class Service {
   /**
@@ -58,7 +59,8 @@ class Service {
       facets: params.query.facets,
       limit: params.query.limit,
       skip: params.query.skip,
-    });
+      fl: article.ARTICLE_SOLR_FL_SEARCH,
+    }, article.solrFactory);
 
     const total = _solr.response.numFound;
 
