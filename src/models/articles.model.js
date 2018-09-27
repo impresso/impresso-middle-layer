@@ -95,7 +95,7 @@ class ArticleRegion {
   } = {}) {
     this.pageUid = String(pageUid);
     this.c = c;
-    if(g.length) {
+    if (g.length) {
       this.g = render(g);
     }
   }
@@ -276,7 +276,7 @@ const solrFactory = res => (doc) => {
     rc: doc.pp_plain,
   });
 
-  if(!doc.pp_plain) {
+  if (!doc.pp_plain) {
     return art;
   }
   // get text matches
