@@ -12,19 +12,18 @@ class Service extends Neo4jService {
   async get(id, params) {
     const uids = id.split(',');
 
-    if (uids.length > 1) {
-      return super.get(id, params);
-    }
-
     const results = await Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
       this.solr.findAll({
-        q: `id:${id}`,
-        fl: article.ARTICLE_SOLR_FL,
+        q: `id:${uids.join(' OR ')}`,
+        fl: uids.length > 1? article.ARTICLE_SOLR_FL_LITE : article.ARTICLE_SOLR_FL,
       }, article.solrFactory),
       // at the same time, we use the neo4jService get to get article instance from our graph db
-      super.get(id, params),
+      super.get(id, {
+        ... params,
+        findAll: true,
+      }),
     ]);
 
     if (results[0].response.numFound !== 1) {

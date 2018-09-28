@@ -55,7 +55,7 @@ module.exports = {
       displayQueryParams(['filters']),
     ],
     get: [
-      assignIIIF('pages', 'issue'),
+      assignIIIF('pages', 'issue', 'regions'),
     ],
     create: [],
     update: [],

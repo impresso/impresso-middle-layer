@@ -94,7 +94,7 @@ class ArticleRegion {
     c = [],
   } = {}) {
     this.pageUid = String(pageUid);
-    this.c = c;
+    this.coords = c;
     if (g.length) {
       this.g = render(g);
     }
