@@ -31,17 +31,14 @@ class Service extends Neo4jService {
     }
 
     // if params findall was true or when multiple ids are given, results[1] is an array.
-    if (Array.isArray(results[1])) {
+    if (Array.isArray(results[1].data) && results[1].data.length) {
       return {
         ...results[0].response.docs[0],
-        ...results[1][0],
+        ...results[1].data[0],
       };
     }
 
-    return {
-      ...results[0].response.docs[0],
-      ...results[1],
-    };
+    return results[0].response.docs[0];
   }
 }
 
