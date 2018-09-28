@@ -12,7 +12,8 @@ const app = require('../../src/app');
   src/services/articles test/services/articles.test.js --fix &&
   mocha test/services/articles.test.js
 */
-describe('\'articles\' service', () => {
+describe('\'articles\' service', function () {
+  this.timeout(5000);
   const service = app.service('articles');
   it('registered the service', () => {
     assert.ok(service);
@@ -36,7 +37,7 @@ describe('\'articles\' service', () => {
     });
     assert.equal(result.uid, 'GDL-1954-06-29-a-i0084');
     assert.ok(result.regions, 'Check image regions');
-    assert.ok(result.contents, 'Check property contents');
+    assert.ok(result.content, 'Check property content');
     assert.ok(result.excerpt, 'Check property excerpt');
     assert.ok(result.title, 'Check property title');
     // assert.ok(res.total);

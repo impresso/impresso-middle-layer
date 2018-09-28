@@ -1,6 +1,7 @@
 const Neo4jService = require('../neo4j.service').Service;
 const solr = require('../../solr');
 const { NotFound } = require('@feathersjs/errors');
+const article = require('../../models/articles.model');
 
 class Service extends Neo4jService {
   constructor(options) {
@@ -20,8 +21,8 @@ class Service extends Neo4jService {
       // the full text, regions of the specified article
       this.solr.findAll({
         q: `id:${id}`,
-        fl: 'id,page_nb_is,title_txt_fr,content_txt_fr',
-      }),
+        fl: article.ARTICLE_SOLR_FL,
+      }, article.solrFactory),
       // at the same time, we use the neo4jService get to get article instance from our graph db
       super.get(id, params),
     ]);
