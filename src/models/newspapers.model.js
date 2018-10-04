@@ -17,12 +17,14 @@ class Newspaper {
     name = '',
     startYear = -1,
     uid = '',
+    labels = ['newspaper'],
   } = {}, complete = false) {
     this.uid = String(uid);
 
     this.acronym = String(acronym);
     this.name = String(name);
-
+    this.labels = labels;
+    
     if (complete) {
       this.countArticles = parseInt(countArticles, 10);
       this.countIssues = parseInt(countIssues, 10);

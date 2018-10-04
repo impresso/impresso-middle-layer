@@ -55,7 +55,7 @@ class Issue {
     // pages = [],
     uid = '',
     // year = 0,
-    labels = ['newspaper'],
+    labels = ['issue'],
   } = {}, complete = false) {
     this.uid = String(uid);
     this.labels = labels;
