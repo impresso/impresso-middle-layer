@@ -1,9 +1,9 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UIDS,
+  protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
 } = require('../../hooks/params');
 const { assignIIIF } = require('../../hooks/iiif');
-
+const { filtersToSolrQuery } = require('../../hooks/search');
 
 module.exports = {
   before: {
@@ -12,31 +12,25 @@ module.exports = {
     ], // authenticate('jwt') ],
     find: [
       validate({
-        q: {
-          required: false,
-          min_length: 2,
-          max_length: 1000,
-        },
         order_by: {
           choices: ['-date', 'date', '-relevance', 'relevance'],
         },
       }),
       validateEach('filters', {
-        context: {
-          choices: ['include', 'exclude'],
-          required: true,
-        },
         type: {
-          choices: ['string', 'entity', 'issue', 'newspaper'],
+          choices: ['uid', 'issue', 'page', 'newspaper'],
           required: true,
         },
-        uid: {
-          regex: REGEX_UIDS,
-          required: false,
+        q: {
+          regex: REGEX_UID,
+          required: true,
           // we cannot transform since Mustache is render the filters...
           // transform: d => d.split(',')
         },
+      }, {
+        required: false,
       }),
+      filtersToSolrQuery(['issue', 'page']),
       queryWithCommonParams(),
     ],
     get: [],
@@ -53,6 +47,7 @@ module.exports = {
     find: [
       assignIIIF('pages', 'issue'),
       displayQueryParams(['filters']),
+      protect('content'),
     ],
     get: [
       assignIIIF('pages', 'issue', 'regions'),
