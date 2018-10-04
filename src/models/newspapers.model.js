@@ -24,7 +24,7 @@ class Newspaper {
     this.acronym = String(acronym);
     this.name = String(name);
     this.labels = labels;
-    
+
     if (complete) {
       this.countArticles = parseInt(countArticles, 10);
       this.countIssues = parseInt(countIssues, 10);

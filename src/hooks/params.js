@@ -432,8 +432,8 @@ const displayQueryParams = (paramNames = []) => async (context) => {
 
 const protect = (...fields) => async (context) => {
   fields.forEach((p) => {
-    if(Array.isArray(context.result.data)) {
-      context.result.data = context.result.data.map(d => {
+    if (Array.isArray(context.result.data)) {
+      context.result.data = context.result.data.map((d) => {
         delete d[p];
         return d;
       });
@@ -441,7 +441,7 @@ const protect = (...fields) => async (context) => {
       delete context.result[p];
     }
   });
-}
+};
 
 module.exports = {
   displayQueryParams,

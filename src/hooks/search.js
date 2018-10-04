@@ -3,7 +3,7 @@ const lodash = require('lodash');
 
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
-  if(Array.isArray(filter.q)) {
+  if (Array.isArray(filter.q)) {
     sq.push(filter.q.map(value => `${field}:${value}`).join(' OR '));
   } else {
     sq.push(`${field}:${filter.q}`);
