@@ -430,8 +430,23 @@ const displayQueryParams = (paramNames = []) => async (context) => {
   });
 };
 
+const protect = (...fields) => async (context) => {
+  fields.forEach((p) => {
+    if(Array.isArray(context.result.data)) {
+      context.result.data = context.result.data.map(d => {
+        delete d[p];
+        return d;
+      });
+    } else {
+      delete context.result[p];
+    }
+  });
+}
+
 module.exports = {
   displayQueryParams,
+
+  protect,
 
   verbose,
   validate,
