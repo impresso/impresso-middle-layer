@@ -65,7 +65,7 @@ const ARTICLE_SOLR_FL_LITE = [
   'page_nb_is',
   'item_type_s',
   // 'page_nb_pagei'
-
+  'nb_pages_i',
   'doc_type_s',
 
   'meta_journal_s', // 'GDL',
@@ -188,6 +188,8 @@ class Article {
     this.isFront = !!isFront;
     this.isCC = !!isCC;
 
+    // TODO: based on type!
+    this.labels = ['article'];
     this.enrich(rc, lb, rb);
   }
 
