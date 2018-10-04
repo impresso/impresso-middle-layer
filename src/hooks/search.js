@@ -3,7 +3,11 @@ const lodash = require('lodash');
 
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
-  sq.push(filter.q.map(value => `${field}:${value}`).join(' OR '));
+  if(Array.isArray(filter.q)) {
+    sq.push(filter.q.map(value => `${field}:${value}`).join(' OR '));
+  } else {
+    sq.push(`${field}:${filter.q}`);
+  }
   return sq;
 }, []).map(d => `(${d})`).join(' AND ');
 
@@ -70,7 +74,7 @@ const reduceStringFiltersToSolr = filters =>
 
 
 const filtersToSolr = (type, filters) => {
-  // console.log('filtersToSolr', type, filters.length);
+  // console.log('filtersToSolr', type, filters);
   switch (type) {
     case 'string':
       return reduceStringFiltersToSolr(filters);
@@ -78,6 +82,10 @@ const filtersToSolr = (type, filters) => {
       return reduceDaterangeFiltersToSolr(filters);
     case 'language':
       return reduceFiltersToSolr(filters, 'lg_s');
+    case 'page':
+      return reduceFiltersToSolr(filters, 'page_id_ss');
+    case 'issue':
+      return reduceFiltersToSolr(filters, 'meta_issue_id_s');
     case 'newspaper':
       return reduceFiltersToSolr(filters, 'meta_journal_s');
     case 'year':
@@ -143,7 +151,8 @@ const filtersToSolrQuery = () => async (context) => {
     filters.daterange,
     filters.type,
     filters.string,
-
+    filters.issue,
+    filters.page,
   ).filter(d => d && d.length);
 };
 
