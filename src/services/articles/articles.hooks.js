@@ -45,7 +45,7 @@ module.exports = {
 
     ],
     find: [
-      assignIIIF('pages', 'issue'),
+      assignIIIF('pages', 'issue', 'regions'),
       displayQueryParams(['filters']),
       protect('content'),
     ],
