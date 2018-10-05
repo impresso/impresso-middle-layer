@@ -11,8 +11,20 @@ class Service extends Neo4jService {
 
 
   async find(params) {
-    const fl = article.ARTICLE_SOLR_FL_LITE;
+    let fl = article.ARTICLE_SOLR_FL_LITE;
+    let pageUids = [];
 
+    if (params.isSafe) {
+      pageUids = params.query.filters
+        .filter(d => d.type === 'page')
+        .map(d => d.q);
+      // As we requested a page,
+      // we have to calculate regions for that page.
+      if (pageUids.length === 1) {
+        fl = article.ARTICLE_SOLR_FL;
+      }
+    }
+    // if(params.isSafe query.filters)
     const results = await this.solr.findAll({
       q: params.query.sq,
       limit: params.query.limit,
@@ -25,6 +37,16 @@ class Service extends Neo4jService {
     }
 
     const total = results.response.numFound;
+
+    // calculate regions etc...
+    if (pageUids.length === 1) {
+      // console.log(results.response.docs[0]);
+      results.response.docs = results.response.docs.map(d => ({
+        ...d,
+        regions: d.regions
+          .filter(r => pageUids.indexOf(r.pageUid) !== -1),
+      }));
+    }
 
     return Service.wrap(
       results.response.docs,
