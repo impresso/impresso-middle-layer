@@ -291,7 +291,7 @@ const solrFactory = res => (doc) => {
 
   art.matches = highlights.offsets.map((pos, i) => {
     // for each offset
-    let match;
+    let match = false;
     // find in page
     doc.pp_plain.forEach((pag) => {
       for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
@@ -309,7 +309,7 @@ const solrFactory = res => (doc) => {
       }
     });
     return match;
-  });
+  }).filter(d => d);
   return art;
 };
 
