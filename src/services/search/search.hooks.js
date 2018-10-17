@@ -3,6 +3,7 @@ const {
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { assignIIIF } = require('../../hooks/iiif');
+const { protect } = require('@feathersjs/authentication-local').hooks;
 
 const SOLR_FACETS = {
   year: {
@@ -29,6 +30,8 @@ const SOLR_FACETS = {
     mincount: 1,
   },
 };
+
+const SOLR_FILTER_TYPES = ['string', 'entity', 'newspaper', 'daterange', 'year', 'language', 'type'];
 
 const SOLR_ORDER_BY = {
   date: 'meta_date_dt',
@@ -88,7 +91,7 @@ module.exports = {
           required: true,
         },
         type: {
-          choices: ['string', 'entity', 'newspaper', 'daterange'],
+          choices: SOLR_FILTER_TYPES,
           required: true,
         },
         q: {
@@ -120,9 +123,8 @@ module.exports = {
       }, {
         required: false,
       }),
-      filtersToSolrQuery(),
+      filtersToSolrQuery(SOLR_FILTER_TYPES),
       queryWithCommonParams(),
-
     ],
     get: [],
     create: [],
@@ -136,6 +138,7 @@ module.exports = {
     find: [
       assignIIIF('pages', 'matches'),
       displayQueryParams(['queryComponents', 'filters']),
+      protect('content'),
     ],
     get: [],
     create: [],

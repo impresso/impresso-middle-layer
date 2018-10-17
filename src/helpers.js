@@ -1,5 +1,5 @@
 const debug = require('debug')('impresso/helpers');
-
+const verbose = require('debug')('verbose:impresso/helpers');
 /**
  * Compare two tokens and check if they overlap
  * @param {Token} a in b
@@ -15,7 +15,8 @@ const hasOverlaps = (a, b) => !(a.r <= b.l || a.l >= b.r);
  * @param {string} uid text to cut
  *
  */
-const annotate = (tokens, uid, left, right) => {
+const annotate = (tokens, uid, left, right, attr = 'ref') => {
+  debug(`annotate: ${attr}=${uid} (${left}, ${right})`);
   for (let i = 0, l = tokens.length; i < l; i += 1) {
     // is included, continue on the next line
 
@@ -23,6 +24,7 @@ const annotate = (tokens, uid, left, right) => {
       if (!tokens[i].ref) {
         tokens[i].ref = [];
       }
+      tokens[i].attr = attr;
       tokens[i].ref.push({
         uid,
         l: left,
@@ -70,7 +72,7 @@ const sliceAtSplitpoints = (text, splitpoints, origin = 0) => {
   if (!Array.isArray(splitpoints) || !splitpoints.length) {
     throw new Error('sliceAtIndices: the list of splitpoints is empty!');
   }
-  debug(`sliceAtIndices: text length of ${text.length} chars with ${splitpoints.length} splitpoints`);
+  verbose(`sliceAtIndices: text length of ${text.length} chars with ${splitpoints.length} splitpoints`);
 
   // initialize chunks with first splitpoint
   const chunks = [{
@@ -114,43 +116,49 @@ const getSplitpointsFromRefs = (refs, leftLimit, rightLimit) => {
  * @param {Array} tokens
  * @return tokens with merged annotations
  */
-const renderRefs = (tokens) => {
-  const md = [];
+const render = (tokens) => {
+  let md = [];
   // for each tockens, get all sliceAtSplitpoints
   for (let i = 0, l = tokens.length; i < l; i += 1) {
-    if (tokens[i].ref) {
-      // console.log('renderRefs', tokens[i]);
+    if (tokens[i].g) {
+      md = md.concat(render(tokens[i].g));
+    } else if (tokens[i].ref) {
       // get all possible splitpoints based on REFS
       const splitpoints = getSplitpointsFromRefs(tokens[i].ref, tokens[i].l, tokens[i].r);
-      // chunk text based on those splitpoints
-      const chunks = sliceAtSplitpoints(tokens[i].t, splitpoints, tokens[i].l);
+      // console.log('render', tokens[i].t, splitpoints, tokens[i].l);
+      if (splitpoints.length) {
+        // chunk text based on those splitpoints
+        const chunks = sliceAtSplitpoints(tokens[i].t, splitpoints, tokens[i].l);
 
-      // loop chunks in REFS to check which chunk contains exactly which ref
-      for (let ii = 0, ll = chunks.length; ii < ll; ii += 1) {
-        // console.log('... chunk: ', `'${chunks[ii].t}'`, chunks[ii].l, chunks[ii].r);
+        // loop chunks in REFS to check which chunk contains exactly which ref
+        for (let ii = 0, ll = chunks.length; ii < ll; ii += 1) {
+          // console.log('... chunk: ', `'${chunks[ii].t}'`, chunks[ii].l, chunks[ii].r);
 
-        for (let iii = 0, lll = tokens[i].ref.length; iii < lll; iii += 1) {
-          if (hasOverlaps(tokens[i].ref[iii], chunks[ii])) {
-            // console.log('      => found', tokens[i].ref[iii].l, tokens[i].ref[iii].r);
-            if (!chunks[ii].ref) {
-              chunks[ii].ref = [];
+          for (let iii = 0, lll = tokens[i].ref.length; iii < lll; iii += 1) {
+            if (hasOverlaps(tokens[i].ref[iii], chunks[ii])) {
+              // console.log('      => found', tokens[i].ref[iii].l, tokens[i].ref[iii].r);
+              if (!chunks[ii].ref) {
+                chunks[ii].ref = [];
+              }
+              chunks[ii].attr = tokens[i].attr;
+              chunks[ii].ref.push(tokens[i].ref[iii]);
             }
-            chunks[ii].ref.push(tokens[i].ref[iii].uid);
           }
         }
+
+        md.push(chunks
+          .map((c) => {
+            if (!c.ref) {
+              return c.t;
+            }
+            return `<span ${c.attr}="${c.ref.map(d => d.uid).join(' ')}">${c.t}</span>`;
+          })
+          .join(''));
+      } else {
+        // no splitpoints, no internal chunks.
+        md.push(`<span ${tokens[i].attr}="${tokens[i].ref.map(d => d.uid).join(' ')}">${tokens[i].t}</span>`);
       }
-      // tokens[i].md =
-      // get all unique splitpoints, then split.
-      // console.log(chunks);
-      md.push(chunks
-        .map((c) => {
-          if (!c.ref) {
-            return c.t;
-          }
-          return `<span ref="${c.ref.join(',')}">${c.t}</span>`;
-        })
-        .join(''));
-    } else {
+    } else if (tokens[i].t) {
       md.push(tokens[i].t);
     }
   }
@@ -184,5 +192,5 @@ module.exports = {
   toHierarchy,
   sliceAtSplitpoints,
   annotate,
-  renderRefs,
+  render,
 };

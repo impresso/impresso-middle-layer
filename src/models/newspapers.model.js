@@ -6,6 +6,35 @@ const Sequelize = require('sequelize');
 const Language = require('./languages.model').model;
 const Property = require('./properties.model').model;
 
+class Newspaper {
+  constructor({
+    acronym = '',
+    countArticles = -1,
+    countIssues = -1,
+    countPages = -1,
+    deltaYear = -1,
+    endYear = -1,
+    name = '',
+    startYear = -1,
+    uid = '',
+    labels = ['newspaper'],
+  } = {}, complete = false) {
+    this.uid = String(uid);
+
+    this.acronym = String(acronym);
+    this.name = String(name);
+    this.labels = labels;
+
+    if (complete) {
+      this.countArticles = parseInt(countArticles, 10);
+      this.countIssues = parseInt(countIssues, 10);
+      this.countPages = parseInt(countPages, 10);
+      this.deltaYear = parseInt(deltaYear, 10);
+      this.endYear = parseInt(endYear, 10);
+      this.startYear = parseInt(startYear, 10);
+    }
+  }
+}
 
 const model = (client, options = {}) => {
   const language = Language(client);
@@ -103,6 +132,7 @@ const model = (client, options = {}) => {
   return newspaper;
 };
 
+
 module.exports = function (app) {
   const config = app.get('sequelize');
   const newspaper = model(app.get('sequelizeClient'), {
@@ -120,3 +150,4 @@ module.exports = function (app) {
 };
 
 module.exports.model = model;
+module.exports.Model = Newspaper;
