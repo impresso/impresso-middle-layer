@@ -77,6 +77,28 @@ const ARTICLE_SOLR_FL_LITE = [
   'content_length_i',
 ];
 
+const ARTICLE_SOLR_FL_TO_CSV = [
+  'id',
+  'lg_s', // 'fr',
+
+  'title_txt_fr',
+  // coordinates ok
+  'front_b',
+  'page_id_ss',
+  'page_nb_is',
+  'item_type_s',
+  // 'page_nb_pagei'
+  'nb_pages_i',
+  'doc_type_s',
+  'meta_journal_s', // 'GDL',
+  'meta_year_i', // 1900,
+  'meta_date_dt', // '1900-08-09T00:00:00Z',
+  'meta_issue_id_s', // 'GDL-1900-08-09-a',
+  'meta_country_code_s', // 'CH',
+  'meta_province_code_s', // 'VD',
+  'content_length_i',
+];
+
 const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat([
   'pp_plain:[json]',
 ]);
@@ -193,6 +215,23 @@ class Article {
     this.enrich(rc, lb, rb);
   }
 
+  toCSV() {
+    return {
+      uid: this.uid,
+      title: this.title,
+      language: this.language,
+      labels: this.labels.join(','),
+      year: this.year,
+      date: this.date.toISOString(),
+      size: this.size,
+      isFront: this.isFront,
+      nbPages: this.nbPages,
+      pages: this.pages.map(d => d.uid).join(','),
+      issue: this.issue.uid,
+      newspaper: this.newspaper.uid,
+      country: this.country,
+    };
+  }
   enrich(rc, lb, rb) {
     // get regions from rc field:
     // rc is a list of page objects, containing a r property
@@ -329,3 +368,4 @@ module.exports.Model = Article;
 module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL;
 module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE;
 module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH;
+module.exports.ARTICLE_SOLR_FL_TO_CSV = ARTICLE_SOLR_FL_TO_CSV;
