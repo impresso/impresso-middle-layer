@@ -19,6 +19,8 @@ const bucketsItems = require('./buckets-items/buckets-items.service.js');
 
 const search = require('./search/search.service.js');
 
+const searchExporter = require('./search-exporter/search-exporter.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -40,4 +42,5 @@ module.exports = function () {
 
   app.configure(proxy);
   app.configure(search);
+  app.configure(searchExporter);
 };
