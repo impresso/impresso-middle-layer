@@ -1,42 +1,12 @@
 const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
 } = require('../../hooks/params');
-const { filtersToSolrQuery } = require('../../hooks/search');
+const {
+  filtersToSolrQuery, SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS,
+} = require('../../hooks/search');
 const { assignIIIF } = require('../../hooks/iiif');
 const { protect } = require('@feathersjs/authentication-local').hooks;
 
-const SOLR_FACETS = {
-  year: {
-    type: 'terms',
-    field: 'meta_year_i',
-    mincount: 1,
-    limit: 400,
-  },
-  newspaper: {
-    type: 'terms',
-    field: 'meta_journal_s',
-    mincount: 1,
-    maxcount: 750,
-  },
-  date: {
-    type: 'terms',
-    field: 'meta_date_dt',
-    mincount: 1,
-    limit: 100,
-  },
-  language: {
-    type: 'terms',
-    field: 'lg_s',
-    mincount: 1,
-  },
-};
-
-const SOLR_FILTER_TYPES = ['string', 'entity', 'newspaper', 'daterange', 'year', 'language', 'type'];
-
-const SOLR_ORDER_BY = {
-  date: 'meta_date_dt',
-  relevance: 'score',
-};
 
 module.exports = {
   before: {
