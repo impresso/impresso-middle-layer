@@ -16,7 +16,7 @@ const findAll = (config, params = {}, factory) => {
     ...params,
   };
 
-  const qs = {
+  let qs = {
     q: _params.q,
 
     start: _params.skip,
@@ -30,11 +30,24 @@ const findAll = (config, params = {}, factory) => {
     qs.sort = _params.order_by;
   }
 
+
   // transform facets if any
   //
   if (_params.facets) {
     qs['json.facet'] = _params.facets;
   }
+
+  if (_params.group_by && _params.group_by !== 'id') {
+    qs = {
+      ...qs,
+      group: true,
+      'group.field': _params.group_by,
+      // 'group.main': true,
+      'group.limit': 3, // top 3
+      'group.ngroups': true,
+    };
+  }
+
   if (_params.fl) {
     qs.fl = Array.isArray(_params.fl) ? _params.fl.join(',') : _params.fl;
   } else {
@@ -52,10 +65,18 @@ const findAll = (config, params = {}, factory) => {
   }).then((res) => {
     // dummy handle dupes keys
     const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
+
+    if (result.grouped) {
+      result.response = {
+        numFound: result.grouped[_params.group_by].ngroups,
+        docs: result.grouped[_params.group_by].groups,
+      };
+    }
+
+    debug(`'findAll' success in ${result.responseHeader.QTime}ms`, factory ? 'with factory' : 'but no factory specified');
+
     if (factory) {
       result.response.docs = result.response.docs.map(factory(result));
-    } else {
-      console.log('NO SOLR FACTORY');
     }
     return result;
   }).catch((err) => {

@@ -65,6 +65,8 @@ const toOrderBy = (ordering, translateTable, lower = false) => {
   return lower ? `${_ordering} asc` : `${_ordering} ASC`;
 };
 
+const translate = (key, dict) => dict[key];
+
 const _validateOne = (key, item, rule) => {
   const _errors = {};
   // it is required
@@ -475,5 +477,6 @@ module.exports = {
   utils: {
     toOrderBy,
     toLucene,
+    translate,
   },
 };

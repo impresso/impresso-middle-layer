@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:search');
 const solr = require('../../solr');
+const { SOLR_INVERTED_GROUP_BY } = require('../../hooks/search');
 const neo4j = require('../../neo4j');
 const sequelize = require('../../sequelize');
 const decypher = require('decypher');
@@ -70,8 +71,9 @@ class Service {
       return Service.wrap([], params.query.limit, params.query.skip, total);
     }
 
+    const groupBy = SOLR_INVERTED_GROUP_BY[params.query.group_by];
     const session = this.neo4j.session();
-    const neo4jQueries = this.neo4jQueries[params.query.group_by].findAll;
+    const neo4jQueries = this.neo4jQueries[groupBy].findAll;
     const itemsFromNeo4j = await neo4jRun(session, neo4jQueries, {
       _exec_user_uid: params.query._exec_user_uid,
       Project: 'impresso',
