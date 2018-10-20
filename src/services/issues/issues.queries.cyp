@@ -7,7 +7,10 @@ CREATE INDEX ON :issue(year)
 // optionally merge with a newspaper_uid
 MERGE (iss:issue {Project:{Project}, uid:{uid}})
 SET
-  iss.year = {year},
+  {{#count_articles}}
+  iss.count_articles = toInteger({count_articles}),
+  {{/count_articles}}
+  iss.year = toInteger({year}),
   iss.date = {date}
 WITH iss
 {{#newspaper_uid}}

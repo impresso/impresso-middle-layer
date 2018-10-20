@@ -147,7 +147,9 @@ WITH art
 MATCH (pag:page)
 WHERE pag.uid IN {page__uids} AND pag.Project = {Project}
 MERGE (art)-[r:appears_at]->(pag)
+{{#regions}}
 SET r.regions = {regions}
+{{/regions}}
 RETURN art
 
 // name: merge_regions
