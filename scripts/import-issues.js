@@ -11,7 +11,7 @@ debug('start!');
 async function waterfall() {
   debug('merging issues...');
   const limit = 100;
-  const consumed = 214;
+  const consumed = 0;
 
   let _solr = await solr.findAll({
     q: '*:*',
