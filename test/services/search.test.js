@@ -11,7 +11,8 @@ const app = require('../../src/app');
 
 
  */
-describe('\'search\' service', () => {
+describe('\'search\' service', function () {
+  this.timeout(10000);
   const service = app.service('search');
   const staff = {
     uid: 'local-user-test-only',
