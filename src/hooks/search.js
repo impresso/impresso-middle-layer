@@ -169,6 +169,16 @@ module.exports = {
     relevance: 'score',
   },
 
+  SOLR_GROUP_BY: {
+    issues: 'meta_issue_id_s',
+    articles: 'id',
+  },
+
+  SOLR_INVERTED_GROUP_BY: {
+    meta_issue_id_s: 'issues',
+    id: 'articles',
+  },
+
   SOLR_FACETS: {
     year: {
       type: 'terms',
