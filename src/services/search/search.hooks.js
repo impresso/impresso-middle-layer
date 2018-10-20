@@ -2,7 +2,7 @@ const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
 } = require('../../hooks/params');
 const {
-  filtersToSolrQuery, SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS,
+  filtersToSolrQuery, SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
 } = require('../../hooks/search');
 const { assignIIIF } = require('../../hooks/iiif');
 const { protect } = require('@feathersjs/authentication-local').hooks;
@@ -20,7 +20,8 @@ module.exports = {
         },
         group_by: {
           required: true,
-          choices: ['articles', 'pages'],
+          choices: ['articles'],
+          transform: d => utils.translate(d, SOLR_GROUP_BY),
         },
         order_by: {
           before: (d) => {
