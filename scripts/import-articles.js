@@ -4,8 +4,6 @@ const {
 const debug = require('debug')('impresso/scripts:import-articles');
 const fs = require('fs');
 const _ = require('lodash');
-const _groupby = require('lodash/groupby');
-const _map = require('lodash/map');
 const solr = require('../src/solr').client(config.solr);
 const Eta = require('node-eta');
 
