@@ -13,7 +13,7 @@ async function waterfall() {
   // load first 1000 ids directly from solr.
   //
   const limit = 100;
-  const consumed = 0;
+  const consumed = process.env.START_AT || 0;
   let _solr = await solr.findAll({
     q: '*:*',
     fl: 'id',
@@ -44,11 +44,11 @@ async function waterfall() {
     await query('pages', 'merge', pagesUids.map((uid) => {
       const parts = uid.match(/^([a-zA-Z\d-]+)-p0+(\d+)$/);
 
-      console.log({
-        uid: uid,
-        page_number: parseInt(parts[2], 10),
-        issue_uid: parts[1],
-      });
+      // console.log({
+      //   uid: uid,
+      //   page_number: parseInt(parts[2], 10),
+      //   issue_uid: parts[1],
+      // });
       // console.log(pageUid.match(/^([a-zA-Z\d-]+)-p0+(\d+)$/)[1]);
       return {
         uid: uid,
