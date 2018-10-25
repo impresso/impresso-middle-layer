@@ -30,6 +30,7 @@ class Service extends Neo4jService {
       limit: params.query.limit,
       skip: params.query.skip,
       fl,
+      order_by: 'id asc', // default ordering TODO
     }, article.solrFactory);
 
     if (results.response.numFound === 0) {
