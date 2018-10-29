@@ -49,40 +49,43 @@ describe('\'articles\' service', function () {
   });
 
   it('find given a single page filter', async () => {
+    const pageUid = 'GDL-1902-05-13-a-p0001';
     const result = await service.find({
       query: {
         filters: [{
           type: 'page',
-          q: 'GDL-1902-05-12-a-p0002',
+          q: pageUid,
         }],
       },
     }).catch((err) => {
       assert.fail(err.data);
     });
+    // console.log(result);
     assert.ok(result.total);
     assert.ok(result.data[0].uid);
     assert.equal(result.data[0].labels[0], 'article');
-    assert.equal(result.data[0].regions[0].pageUid, 'GDL-1902-05-12-a-p0002');
+    assert.equal(result.data[0].regions[0].pageUid, pageUid);
     assert.ok(result.data[0].regions[0].coords);
     assert.ok(result.data[0].regions[0].iiif_fragment);
   });
 
   it('get an article contents given an article id', async () => {
-    const result = await service.get('GDL-1954-06-29-a-i0084').catch((err) => {
+    const result = await service.get('GDL-1902-05-13-a-i0006').catch((err) => {
       assert.fail(err.data);
     });
-    assert.equal(result.uid, 'GDL-1954-06-29-a-i0084');
+    assert.equal(result.uid, 'GDL-1902-05-13-a-i0006');
     assert.ok(result.regions, 'Check image regions');
     assert.ok(result.content, 'Check property content');
     assert.ok(result.excerpt, 'Check property excerpt');
     assert.ok(result.title, 'Check property title');
     // assert.ok(res.total);
   });
-
+  //
   it('get multiple articles given a article ids', async () => {
-    const results = await service.get('GDL-1954-06-29-a-i0084,GDL-1951-04-23-a-i0096').catch((err) => {
-      assert.fail(err.data);
-    }); // [type]=entity&filters[0][context]=include
+    const results = await service.get('GDL-1954-06-29-a-i0084,GDL-1951-04-23-a-i0096')
+      .catch((err) => {
+        assert.fail(err.data);
+      }); // [type]=entity&filters[0][context]=include
     // console.log(results);
     assert.ok(results.length);
 

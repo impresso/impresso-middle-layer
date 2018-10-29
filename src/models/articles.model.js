@@ -47,6 +47,7 @@
 
 const truncatise = require('truncatise');
 const Newspaper = require('./newspapers.model');
+const Collection = require('./collections.model');
 const Issue = require('./issues.model');
 const Page = require('./pages.model');
 const {
@@ -151,12 +152,11 @@ class Article {
     // labels = [],
 
     newspaper = new Newspaper.Model(),
-    //
 
     pages = [],
     // regions = [],
-    // collections = [],
-    // tags = [],
+    collections = [],
+    tags = [],
     // matches = [],
     // time = 0,
 
@@ -200,6 +200,7 @@ class Article {
     this.newspaper = newspaper;
     // this.issue =
     this.pages = pages;
+    this.collections = collections;
 
     this.country = String(country);
     this.year = parseInt(year, 10);
