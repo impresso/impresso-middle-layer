@@ -108,6 +108,10 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'meta_year_i');
     case 'type':
       return reduceFiltersToSolr(filters, 'item_type_s');
+    case 'person':
+      return reduceFiltersToSolr(filters, 'item_type_s');
+    case 'location':
+      return reduceFiltersToSolr(filters, 'item_type_s');
     case 'regex':
       return reduceRegexFiltersToSolr(filters);
     default:
@@ -180,7 +184,10 @@ module.exports = {
   reduceFiltersToSolr,
 
 
-  SOLR_FILTER_TYPES: ['string', 'entity', 'newspaper', 'daterange', 'year', 'language', 'type', 'regex'],
+  SOLR_FILTER_TYPES: [
+    'string', 'entity', 'newspaper', 'daterange',
+    'year', 'language', 'type', 'regex', 'person', 'location'
+  ],
 
   SOLR_ORDER_BY: {
     date: 'meta_date_dt',
