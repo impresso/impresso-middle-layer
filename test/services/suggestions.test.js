@@ -84,10 +84,10 @@ describe('\'suggestions\' service', () => {
     });
     assert.equal(suggestions.data.length, 0);
   });
-  it('recognizes a valid regexp', async () => {
+  it('recognizes a valid regexp and split on spaces', async () => {
     const suggestions = await app.service('suggestions').find({
       query: {
-        q: '/*.*/',
+        q: '/go[uû]t.*parfait.*/',
       },
     });
     assert.equal(suggestions.data[0].type, 'regex');
