@@ -74,12 +74,23 @@ RETURN u, _total
 SKIP {skip}
 LIMIT {limit}
 
+// name: remove
+// permanently remove an user. Staff only.
+MATCH (u:user)
+WHERE u.uid = {uid} OR u.username = {uid}
+WITH u LIMIT 1
+MATCH (u)-[:subscribed_to]->(pro:Project {uid:{Project}})
+WITH u
+OPTIONAL MATCH (u)-[r:is_creator_of]->(n)
+DETACH DELETE n
+DETACH DELETE u
 
 
 // name: patch
 // modify a given user
-MATCH (u:user {uid: {uid}})
-WITH u
+MATCH (u:user)
+WHERE u.uid = {uid} OR u.username = {uid}
+WITH u LIMIT 1
 MATCH (u)-[:subscribed_to]->(pro:Project {uid:{Project}})
 WITH u
 SET
