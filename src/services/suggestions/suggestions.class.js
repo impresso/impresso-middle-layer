@@ -3,12 +3,32 @@ const chrono = require('chrono-node');
 const moment = require('moment');
 const { neo4jRecordMapper, neo4jToLucene } = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
+const lodash = require('lodash');
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
 
 class Service extends Neo4jService {
   async find(params) {
     const self = this;
+
+    const asregex = async () => {
+      if (params.query.q.indexOf('/') === 0) {
+        try {
+          const a = RegExp(params.query.q);
+        } catch (e) {
+          return [];
+        }
+
+        return [
+          {
+            type: 'regex',
+            q: params.query.q,
+            context: 'include',
+          },
+        ];
+      }
+      return [];
+    };
 
     const articletitles = async () => {
 
@@ -72,19 +92,21 @@ class Service extends Neo4jService {
       ...params.query,
       q: qToLucene,
     })
-      .then(result => result.records.map(neo4jRecordMapper).map(record =>
-        // console.log(record)
-        ({
+      .then(result => result.records
+        .map(neo4jRecordMapper)
+        .map(record => ({
           type: 'entity',
           entity: record,
-        })));
+        })))
+      .catch(err => []);
 
     // let newspapers = () => this._run()
     const results = await Promise.all([
+      asregex(),
       dateranges(), // dates(),
       entities(),
       // newspapers()
-    ]).then(values => Neo4jService.wrap(values[0].concat(values[1])));
+    ]).then(values => Neo4jService.wrap(lodash.flatten(values.filter(d => !!d.length))));
 
     return results;
   }

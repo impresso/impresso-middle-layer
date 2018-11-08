@@ -4,7 +4,7 @@ const {
   VALIDATE_OPTIONAL_EMAIL, VALIDATE_OPTIONAL_PASSWORD, REGEX_SLUG,
 } = require('../../hooks/params');
 
-const { hashPassword, protect } = require('@feathersjs/authentication-local').hooks;
+const { protect } = require('@feathersjs/authentication-local').hooks;
 
 module.exports = {
   before: {
@@ -32,8 +32,18 @@ module.exports = {
         ...VALIDATE_OPTIONAL_GITHUB_ID,
       }, 'POST'),
     ],
-    update: [hashPassword(), authenticate('jwt')],
-    patch: [hashPassword(), authenticate('jwt')],
+    update: [
+      // hashPassword(),
+      authenticate('jwt'),
+    ],
+    patch: [
+      // hashPassword(),
+      //
+      authenticate('jwt'),
+      validate({
+        ...VALIDATE_OPTIONAL_PASSWORD,
+      }, 'POST'),
+    ],
     remove: [authenticate('jwt')],
   },
 
@@ -43,9 +53,10 @@ module.exports = {
       // Always must be the last hook
       protect('password'),
       protect('salt'),
+
+
     ],
     find: [
-
     ],
     get: [],
     create: [],

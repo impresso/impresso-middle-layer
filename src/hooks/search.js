@@ -24,6 +24,22 @@ const reduceDaterangeFiltersToSolr = filters => filters
     return sq;
   }, []).join(' AND ');
 
+const reduceRegexFiltersToSolr = filters =>
+  filters.reduce((reduced, query) => {
+    // cut regexp at any . not preceded by an escape sign.
+    console.log('reduceRegexFiltersToSolr', query);
+    const q = query.q
+      // get rid of first / and last /
+      .replace(/^\/|\/$/g, '')
+      // split on point or spaces
+      .split(/\\?\.[*+]/)
+      // filterout empty stuff
+      .filter(d => d.length)
+      // rebuild;
+      .map(d => `content_txt_fr:/${d}/`);
+    return reduced.concat(q);
+  }, []).join(' AND ');
+
 
 const reduceStringFiltersToSolr = filters =>
   // reduce the string in filters to final SOLR query `sq`
@@ -92,6 +108,8 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'meta_year_i');
     case 'type':
       return reduceFiltersToSolr(filters, 'item_type_s');
+    case 'regex':
+      return reduceRegexFiltersToSolr(filters);
     default:
       throw new Error(`reduceFilterToSolr: filter function for '${type}' not found`);
   }
@@ -162,7 +180,7 @@ module.exports = {
   reduceFiltersToSolr,
 
 
-  SOLR_FILTER_TYPES: ['string', 'entity', 'newspaper', 'daterange', 'year', 'language', 'type'],
+  SOLR_FILTER_TYPES: ['string', 'entity', 'newspaper', 'daterange', 'year', 'language', 'type', 'regex'],
 
   SOLR_ORDER_BY: {
     date: 'meta_date_dt',
