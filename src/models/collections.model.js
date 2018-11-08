@@ -10,15 +10,23 @@ class Collection {
     this.uid = String(uid);
     this.labels = labels;
     this.name = String(name);
+    this.description = String(description);
+
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate);
-    this.lastModifiedDate = lastModifiedDate instanceof Date ? lastModifiedDate : new Date(lastModifiedDate);
+
+    if (lastModifiedDate instanceof Date) {
+      this.lastModifiedDate = lastModifiedDate;
+    } else {
+      this.lastModifiedDate = new Date(lastModifiedDate);
+    }
+
     if (complete) {
       // TODO: fill
     }
   }
 }
 
-module.exports = function () { //app) {
+module.exports = function () { // app) {
   // const config = app.get('sequelize');
   // const issue = model(app.get('sequelizeClient'), {});
   //
