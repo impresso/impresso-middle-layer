@@ -38,13 +38,12 @@ class Service extends Neo4jService {
     const result = this._run(this.queries.create, {
       ...data.sanitized,
       ...user,
-    }).then((res) => {
-      console.log(res.records, res);
-      return res.records.map(neo4jRecordMapper).map(d => ({
+    }).then(res =>
+      // console.log(res.records, res);
+      res.records.map(neo4jRecordMapper).map(d => ({
         ...d,
         id: d.id,
-      }));
-    });
+      })));
 
     return result;
     // return data;

@@ -3,9 +3,7 @@ const { validate, queryWithCommonParams, utils } = require('../../hooks/params')
 
 module.exports = {
   before: {
-    all: [
-
-    ],
+    all: [],
     find: [
       validate({
         q: {
