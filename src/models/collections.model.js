@@ -3,7 +3,7 @@ class Collection {
     uid = '',
     name = '',
     description = '',
-    labels = ['bucket'],
+    labels = ['bucket', 'collection'],
     creationDate = new Date(),
     lastModifiedDate = new Date(),
   } = {}, complete = false) {
