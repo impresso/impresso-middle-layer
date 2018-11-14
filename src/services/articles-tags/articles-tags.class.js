@@ -1,22 +1,37 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services:articles-tags');
 const Neo4jService = require('../neo4j.service').Service;
 const shash = require('short-hash');
 const { NotImplemented } = require('@feathersjs/errors');
 
 class Service extends Neo4jService {
   async create(data, params) {
-    const _type = 'create-articles-tags';
-    const _uid = shash(`${params.query.user__uid}:${_type}:${data.sanitized.article__uid}:${data.sanitized.tag__uid}`);
+    const tagUid = [
+      params.user.uid,
+      shash(`${data.sanitized.tag}`),
+    ].join('-');
+
+    debug(`create: tag '${tagUid}' by user '${params.user.uid}'`);
 
     const result = await this._run(this.queries.merge, {
-      user__uid: params.query.user__uid,
-      article__uid: data.sanitized.article__uid,
-      tag__uid: data.sanitized.tag__uid,
-      type: _type,
-      _uid,
+      user_uid: params.user.uid,
+      article_uid: data.sanitized.article_uid,
+      tag_uid: tagUid,
+      tag_name: data.sanitized.tag,
     });
 
-    return this._finalizeCreate(result);
+    return this._finalizeCreateOne(result);
+  }
+
+  async remove(id, params) {
+    //
+    const result = await this._run(this.queries.remove, {
+      user_uid: params.user.uid,
+      article_uid: id,
+      tag_uid: params.query.tag_uid,
+    });
+    debug('remove:', id, 'stats:', result.summary.counters._stats);
+    return this._finalizeRemove(result);
   }
 
   async find(params) {

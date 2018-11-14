@@ -2,13 +2,13 @@ const Neo4jService = require('../neo4j.service').Service;
 const solr = require('../../solr');
 const { NotFound } = require('@feathersjs/errors');
 const article = require('../../models/articles.model');
+const Tag = require('../../models/tags.model').Model;
 
 class Service extends Neo4jService {
   constructor(options) {
     super(options);
     this.solr = solr.client(options.app.get('solr'));
   }
-
 
   async find(params) {
     let fl = article.ARTICLE_SOLR_FL_LITE;
@@ -86,7 +86,12 @@ class Service extends Neo4jService {
     if (uids.length > 1) {
       return results[0].response.docs;
     }
-    return results[0].response.docs[0];
+    // enrich with neo4j results
+    return {
+      ...results[0].response.docs[0],
+      // add tags
+      tags: results[1] ? results[1].tags.map(d => new Tag(d)) : [],
+    };
 
     // // if params findall was true or when multiple ids are given, results[1] is an array.
     // if (Array.isArray(results[1].data) && results[1].data.length) {
