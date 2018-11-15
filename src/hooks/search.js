@@ -186,7 +186,9 @@ module.exports = {
 
   SOLR_FILTER_TYPES: [
     'string', 'entity', 'newspaper', 'daterange',
-    'year', 'language', 'type', 'regex', 'person', 'location'
+    'year', 'language', 'type', 'regex',
+    // mention allows to find both mentions of type person and location
+    'mention', 'person', 'location',
   ],
 
   SOLR_ORDER_BY: {
