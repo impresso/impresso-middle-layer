@@ -13,8 +13,12 @@ const findAll = (config, params = {}, factory) => {
     limit: 10,
     skip: 0,
     excerptLength: 30,
+    namespace: 'search',
     ...params,
   };
+  // you can have multiple namespace for the same solr
+  // configuration corresponding to  different solr on the same machine.
+  const endpoint = `${config[params.namespace].endpoint}`;
 
   let qs = {
     q: _params.q,
@@ -55,10 +59,11 @@ const findAll = (config, params = {}, factory) => {
 
   }
 
-  debug('\'findAll\' request with \'qs\':', qs);
+
+  debug(`findAll: request to '${params.namespace}' endpoint. With 'qs':`, qs);
 
   return rp({
-    url: `${config.endpoint}`,
+    url: endpoint,
     auth: config.auth,
     qs,
     // json: true REMOVED because of duplicate keys
