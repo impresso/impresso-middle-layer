@@ -47,7 +47,6 @@
 
 const truncatise = require('truncatise');
 const Newspaper = require('./newspapers.model');
-const Collection = require('./collections.model');
 const Issue = require('./issues.model');
 const Page = require('./pages.model');
 const {
@@ -201,6 +200,7 @@ class Article {
     // this.issue =
     this.pages = pages;
     this.collections = collections;
+    this.tags = tags;
 
     this.country = String(country);
     this.year = parseInt(year, 10);

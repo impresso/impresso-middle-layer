@@ -104,7 +104,7 @@ const neo4jFieldMapper = (field) => {
   if (field.constructor.name === 'Path') { return neo4jPathMapper(field); }
   if (field.constructor.name === 'Array') { return field.map(neo4jFieldMapper); }
   if (field.constructor.name === 'Number') { return field; }
-
+  if (field.constructor.name === 'Relationship') { return neo4jRelationshipMapper(field); }
   debug('neo4jFieldMapper: unknown neo4j constructor:', field.constructor.name);
   return null;
 };
@@ -203,6 +203,12 @@ const neo4jNodeMapper = (node) => {
   };
 };
 
+const neo4jRelationshipMapper = relationship => ({
+  relationship: {
+    type: relationship.type,
+    ...relationship.properties,
+  },
+});
 
 const neo4jPathSegmentMapper = segment => ({
   start: neo4jNodeMapper(segment.start),

@@ -175,7 +175,7 @@ const filtersToSolrQuery = () => async (context) => {
     filters.string,
     filters.issue,
     filters.page,
-  ).filter(d => d && d.length);
+  ).filter(d => typeof d !== 'undefined');
 };
 
 

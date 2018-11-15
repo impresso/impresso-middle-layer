@@ -42,7 +42,6 @@ describe('\'search\' service', function () {
     // console.log(result)
     assert.ok(result.info.facets.year);
   });
-  return;
 
   it('get search results when no filters is given', async () => {
     // return;

@@ -1,6 +1,5 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { validate, REGEX_UID } = require('../../hooks/params');
-const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 
 module.exports = {
   before: {
@@ -8,24 +7,29 @@ module.exports = {
     find: [],
     get: [],
     create: [
-      queryWithCurrentUser({
-        idField: 'uid',
-        as: 'user__uid',
-      }),
       validate({
-        article__uid: {
+        article_uid: {
           required: true,
           regex: REGEX_UID,
         },
-        tag__uid: {
+        tag: {
           required: true,
-          regex: REGEX_UID,
+          max_length: 100,
+          // check unicode table order: https://unicode-table.com/en/
+          regex: /^[0-9A-zÀ-ÿ\s,:;?!]+$/,
         },
-      }),
+      }, 'POST'),
     ],
     update: [],
     patch: [],
-    remove: [],
+    remove: [
+      validate({
+        tag_uid: {
+          required: true,
+          regex: REGEX_UID,
+        },
+      }, 'GET'),
+    ],
   },
 
   after: {

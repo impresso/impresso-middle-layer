@@ -1,18 +1,21 @@
-class Collection {
+class Tag {
   constructor({
     uid = '',
     name = '',
-    description = '',
-    labels = ['bucket', 'collection'],
+    labels = ['bucket', 'tag'],
     creationDate = new Date(),
     lastModifiedDate = new Date(),
+    articles = [],
   } = {}, complete = false) {
     this.uid = String(uid);
     this.labels = labels;
     this.name = String(name);
-    this.description = String(description);
 
-    this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate);
+    if (creationDate instanceof Date) {
+      this.creationDate = creationDate;
+    } else {
+      this.creationDate = new Date(creationDate);
+    }
 
     if (lastModifiedDate instanceof Date) {
       this.lastModifiedDate = lastModifiedDate;
@@ -21,7 +24,7 @@ class Collection {
     }
 
     if (complete) {
-      // TODO: fill
+      this.articles = articles;
     }
   }
 }
@@ -36,4 +39,4 @@ module.exports = function () { // app) {
 };
 
 // module.exports.model = model;
-module.exports.Model = Collection;
+module.exports.Model = Tag;

@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services:users');
 const { neo4jRecordMapper } = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
 const errors = require('@feathersjs/errors');
@@ -37,13 +38,12 @@ class Service extends Neo4jService {
     const result = this._run(this.queries.create, {
       ...data.sanitized,
       ...user,
-    }).then((res) => {
-      console.log(res.records, res);
-      return res.records.map(neo4jRecordMapper).map(d => ({
+    }).then(res =>
+      // console.log(res.records, res);
+      res.records.map(neo4jRecordMapper).map(d => ({
         ...d,
         id: d.id,
-      }));
-    });
+      })));
 
     return result;
     // return data;
@@ -54,16 +54,29 @@ class Service extends Neo4jService {
   }
 
   async patch(id, data, params) {
-    // e.g we can change here the picture
-    console.log('pathc', id, data);
-    console.log('PATCH provider:', params.oauth.provider);
+    // e.g we can change here the picture or the password
+    if (data.sanitized.password && params.user.is_staff) {
+      // change password directly.
+      debug(`change password requested for user:${id}`);
+      return this._run(this.queries.patch, {
+        uid: id,
+        ...encrypt(data.sanitized.password),
+      }).then(res => this._finalize(res));
+    }
     return {
       id,
     };
   }
 
   async remove(id, params) {
-    return { id };
+    if (!params.user.is_staff) {
+      return { id };
+    }
+    const result = await this._run(this.queries.remove, {
+      uid: id,
+    });
+    debug('remove:', id, 'stats:', result.summary.counters._stats);
+    return this._finalizeRemove(result);
   }
 
   async find(params) {

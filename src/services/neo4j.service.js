@@ -12,7 +12,7 @@ const errors = require('@feathersjs/errors');
 class Neo4jService {
   constructor(options) {
     this.options = options || {};
-    this.config = options.config;
+    this.config = options.config || options.app.get('neo4j');
     this.name = options.name;
     // camelcase in options name
     // this.options.path = this.options.name.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase()
@@ -59,6 +59,7 @@ class Neo4jService {
    */
   _finalizeCreateOne(res) {
     let data;
+
     if (res.records.length) {
       data = neo4jRecordMapper(res.records[0]);
     }
