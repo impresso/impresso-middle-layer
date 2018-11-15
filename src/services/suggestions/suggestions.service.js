@@ -12,6 +12,7 @@ module.exports = function (app) {
     paginate,
     config: app.get('neo4j'),
     queries,
+    app,
   };
 
   // Initialize our service with any options it requires
