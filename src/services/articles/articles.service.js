@@ -1,8 +1,6 @@
 // Initializes the `articles` service on path `/articles`
 const createService = require('./articles.class.js');
 const hooks = require('./articles.hooks');
-const queries = require('decypher')(`${__dirname}/articles.queries.cyp`);
-
 
 module.exports = function (app) {
   const paginate = app.get('paginate');
@@ -12,6 +10,7 @@ module.exports = function (app) {
     paginate,
     // need to pass config and queries to neo4j.service
     config: app.get('neo4j'),
+    app,
   };
 
   // Initialize our service with any options it requires

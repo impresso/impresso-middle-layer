@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services/bucket-items');
 const Neo4jService = require('../neo4j.service').Service;
 const { NotImplemented } = require('@feathersjs/errors');
 const lodash = require('lodash');
@@ -32,7 +33,9 @@ class Service extends Neo4jService {
     return this._finalizeCreate(result);
   }
 
+  // resolve bucket-items based on ther own label
   async find(params) {
+    // neo4j service find method, perform cypher query
     const results = await super.find(params);
 
     const groups = {
@@ -60,19 +63,23 @@ class Service extends Neo4jService {
         uid: d.uid,
       };
     });
-
+    debug('find: <uids>:', uids);
     // if articles
     return Promise.all(lodash(groups)
       .filter(d => d.uids.length)
       .map(d => this.app.service(d.service).get(d.uids.join(','), {
         query: {},
         user: params.user,
-        findAll: true,
+        findAll: true, // this makes "findall" explicit, thus forcing the result as array
       })).value()).then((values) => {
       const flattened = lodash(values).flatten().keyBy('uid').value();
-      // enrich
+      // console.log('VALUES', results.data.map(d => ({
+      //   ...d,
+      //   ...flattened[d.uid],
+      // })));
+      // enrich with received data
       return results.data.map(d => ({
-        d,
+        ...d,
         ...flattened[d.uid],
       }));
     });
@@ -85,7 +92,7 @@ class Service extends Neo4jService {
       bucket_uid: id,
       items: params.query.items,
     });
-
+    debug('remove:', id, 'stats:', result.summary.counters._stats);
     return this._finalizeCreate(result);
   }
 }

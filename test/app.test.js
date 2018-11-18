@@ -34,4 +34,15 @@ describe('Feathers application tests', () => {
       assert.equal(res.error.message, 'Not found');
     }));
   });
+
+  describe('app hooks', () => {
+    it('deny access to bad URLS', () => app.service('/articles')
+      .get('orororo r').catch((err) => {
+        assert.equal(err.code, 400);
+      }));
+    it('allow access to good URLS', () => app.service('/articles')
+      .get('not-found').catch((err) => {
+        assert.equal(err.code, 404);
+      }));
+  });
 });

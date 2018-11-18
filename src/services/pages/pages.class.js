@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
-const CompositeService = require('../neo4j.service').Service;
+const Neo4jService = require('../neo4j.service').Service;
 
-class Service extends CompositeService {
+class Service extends Neo4jService {
 
 }
 

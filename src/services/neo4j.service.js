@@ -2,34 +2,39 @@
   Load neo4j driver according to current configuration
 */
 const neo4j = require('neo4j-driver').v1;
+const decypher = require('decypher');
 const debug = require('debug')('impresso/services:Neo4jService');
 const {
-  neo4jPrepare, neo4jRecordMapper, neo4jNow, neo4jRun, neo4jToInt,
+  neo4jRecordMapper, neo4jRun, neo4jToInt,
 } = require('./neo4j.utils');
 const errors = require('@feathersjs/errors');
 
 class Neo4jService {
   constructor(options) {
     this.options = options || {};
-    this.config = options.config;
+    this.config = options.config || options.app.get('neo4j');
     this.name = options.name;
     // camelcase in options name
     // this.options.path = this.options.name.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase()
-    if(options.app) {
+    if (options.app) {
       this.app = options.app;
     }
 
     debug(`Configuring neo4j service: ${this.options.name}`);
 
-    this._id = this.id = options.idField || options.id || 'id';
+    this._id = options.idField || options.id || 'id';
+    this.id = this._id;
     this._uId = options.startId || 0;
 
-    this.driver = neo4j.driver(this.config.host, neo4j.auth.basic(this.config.auth.user, this.config.auth.pass), {
-      connectionPoolSize: 0,
-    });
+    this.driver = neo4j.driver(
+      this.config.host,
+      neo4j.auth.basic(this.config.auth.user, this.config.auth.pass), {
+        connectionPoolSize: 0,
+      },
+    );
 
     this.project = this.options.project || '!';
-    this.queries = this.options.queries || require('decypher')(`${__dirname}/${this.options.name}/${this.options.name}.queries.cyp`);
+    this.queries = this.options.queries || decypher(`${__dirname}/${this.options.name}/${this.options.name}.queries.cyp`);
   }
 
   _run(cypherQuery, params, queryname) {
@@ -54,6 +59,7 @@ class Neo4jService {
    */
   _finalizeCreateOne(res) {
     let data;
+
     if (res.records.length) {
       data = neo4jRecordMapper(res.records[0]);
     }
@@ -149,7 +155,8 @@ class Neo4jService {
 
   async find(params) {
     debug(`find: with params.isSafe:${params.isSafe} and params.query:`, params.query);
-    return this._run(this.queries.find, params.isSafe ? params.query : params.sanitized).then(this._finalize);
+    return this._run(this.queries.find, params.isSafe ? params.query : params.sanitized)
+      .then(this._finalize);
   }
 
   async get(id, params) {
@@ -164,7 +171,7 @@ class Neo4jService {
       ...params.isSafe ? params.query : params.sanitized,
     };
 
-    if(params.user) {
+    if (params.user) {
       qp._exec_user_uid = params.user.uid;
       qp._exec_user_is_staff = params.user.is_staff;
     }
@@ -172,13 +179,13 @@ class Neo4jService {
     if (uids.length > 1 || params.findAll) {
       qp.uids = uids;
       query = this.queries.findAll;
-      queryname = `${this.name}.queries.cyp:findAll`
-    } else if (id == '*') {
+      queryname = `${this.name}.queries.cyp:findAll`;
+    } else if (id === '*') {
       query = this.queries.findAllWildcard;
-      queryname = `${this.name}.queries.cyp:findAllWildcard`
+      queryname = `${this.name}.queries.cyp:findAllWildcard`;
     } else {
       query = this.queries.get;
-      queryname = `${this.name}.queries.cyp:get`
+      queryname = `${this.name}.queries.cyp:get`;
       qp.uid = id;
     }
 
@@ -187,10 +194,14 @@ class Neo4jService {
     }
 
     return this._run(query, qp, queryname).then(this._finalize).then((records) => {
+      if (params.findAll) {
+        return records;
+        // even if it is empy. Check for instance buckets-items service
+      }
       if (!records.length) {
         throw new errors.NotFound();
       }
-      if (records.length == 1 && !params.findAll) {
+      if (records.length === 1 && uids.length === 1) {
         return records[0];
       }
       return records;

@@ -1,16 +1,21 @@
+const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
+  validate, validateEach, queryWithCommonParams, REGEX_UID, REGEX_UIDS, utils,
 } = require('../../hooks/params');
-const {
-  filtersToSolrQuery, SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
-} = require('../../hooks/search');
-const { assignIIIF } = require('../../hooks/iiif');
-const { protect } = require('@feathersjs/authentication-local').hooks;
+const { filtersToSolrQuery, SOLR_FILTER_TYPES, SOLR_ORDER_BY } = require('../../hooks/search');
 
 
 module.exports = {
   before: {
-    all: [],
+    all: [
+      authenticate('jwt'),
+      validate({
+        format: {
+          required: true,
+          choices: ['csv', 'text/plain'],
+        },
+      }),
+    ],
     find: [
       validate({
         q: {
@@ -21,7 +26,6 @@ module.exports = {
         group_by: {
           required: true,
           choices: ['articles'],
-          transform: d => utils.translate(d, SOLR_GROUP_BY),
         },
         order_by: {
           before: (d) => {
@@ -37,22 +41,6 @@ module.exports = {
               return d.join(',');
             }
             return d;
-          },
-        },
-        facets: {
-          before: (d) => {
-            if (typeof d === 'string') {
-              return d.split(',');
-            }
-            return d;
-          },
-          choices: Object.keys(SOLR_FACETS),
-          after: (fields) => {
-            const _facets = {};
-            fields.forEach((field) => {
-              _facets[field] = SOLR_FACETS[field];
-            });
-            return JSON.stringify(_facets);
           },
         },
       }),
@@ -97,7 +85,7 @@ module.exports = {
       filtersToSolrQuery(SOLR_FILTER_TYPES),
       queryWithCommonParams(),
     ],
-    get: [],
+
     create: [],
     update: [],
     patch: [],
@@ -107,9 +95,7 @@ module.exports = {
   after: {
     all: [],
     find: [
-      assignIIIF('pages', 'matches'),
-      displayQueryParams(['queryComponents', 'filters']),
-      protect('content'),
+
     ],
     get: [],
     create: [],

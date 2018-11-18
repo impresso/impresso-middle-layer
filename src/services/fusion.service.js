@@ -1,21 +1,31 @@
+/* eslint global-require: "off" */
+/* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/services:FusionService');
+const decypher = require('decypher');
+const neo4j = require('../neo4j');
+const sequelize = require('../sequelize');
+
 const { NotFound } = require('@feathersjs/errors');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('./neo4j.utils');
 
 class FusionService {
   constructor(options) {
-    this.sequelize = require('../sequelize').client(options.app.get('sequelize'));
-    this.neo4j = require('../neo4j').client(options.app.get('neo4j'));
-
+    this.neo4j = neo4j.client(options.app.get('neo4j'));
+    this.sequelize = sequelize.client(options.app.get('sequelize'));
     // then solr when is ready.
-    this.neo4jQueries = require('decypher')(`${__dirname}/${options.name}/${options.name}.queries.cyp`);
-    this.sequelizeKlass = require(`../models/${options.name}.model`).model(this.sequelize);
+    this.neo4jQueries = decypher(`${__dirname}/${options.name}/${options.name}.queries.cyp`);
+
+    const modelKlass = `../models/${options.name}.model`;
+
+    this.sequelizeKlass = require(modelKlass)
+      .model(this.sequelize);
+
 
     this.name = options.name;
     debug(`Configuring service: ${options.name}`);
   }
 
-  async get(id, params) {
+  async get(id) {
     // neo4j
     // get newspaper, purely.
     const itemFromSequelize = await this.sequelizeKlass.scope('get').findById(id);
@@ -26,6 +36,7 @@ class FusionService {
     }
     const session = this.neo4j.session();
 
+    // TODO: replace with neo4jService.get ...
     const itemFromNeo4j = await neo4jRun(session, this.neo4jQueries.get, {
       Project: 'impresso',
       uid: itemFromSequelize.uid,
@@ -37,6 +48,7 @@ class FusionService {
       return neo4jRecordMapper(res.records[0]);
     });
 
+    // put the two together
     return {
       ...itemFromSequelize.toJSON(),
       ...itemFromNeo4j,
@@ -61,10 +73,9 @@ class FusionService {
     }).then((res) => {
       const _records = {};
       debug(`find '${this.name}': neo4j success`, neo4jSummary(res));
-      for (let rec of res.records) {
-        rec = neo4jRecordMapper(rec);
-        _records[rec.uid] = rec;
-      }
+      res.records.forEach((rec) => {
+        _records[rec.uid] = neo4jRecordMapper(rec);
+      });
       return _records;
     });
 

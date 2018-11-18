@@ -24,7 +24,10 @@ const encrypt = (password, options) => {
   };
 };
 
-const comparePassword = (password, encrypted, salt, secret) => encrypt(password, { salt, secret }).password == encrypted;
+const comparePassword = (password, encrypted, salt, secret) => {
+  const enc = encrypt(password, { salt, secret });
+  return enc.password === encrypted;
+};
 
 module.exports = {
   encrypt,

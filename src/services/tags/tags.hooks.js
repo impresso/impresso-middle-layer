@@ -1,12 +1,9 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 const { validate, queryWithCommonParams, utils } = require('../../hooks/params');
 
 module.exports = {
   before: {
-    all: [
-
-    ],
+    all: [],
     find: [
       validate({
         q: {

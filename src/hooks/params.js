@@ -7,7 +7,6 @@ const toLucene = (query, forceFuzzy = true) => {
   // replace query
   // const Q = '(:D)'; // replace quotes
   // const S = '[-_°]'; // replace spaces
-  let q;
 
   // understand \sOR\s and \sAND\s stuff.
   if (query.indexOf(' OR ') !== -1 || query.indexOf(' AND ') !== -1) {
@@ -16,14 +15,14 @@ const toLucene = (query, forceFuzzy = true) => {
     return query;
   }
   // split by quotes.
-
+  let _forceFuzzy = forceFuzzy;
 
   // console.log('word1 , "word2 , , word3 " , word 5 ",
   // word 6 , "word7 , "word8 }'.split(/("[^"]*?")/))
   // console.log('ciao "mamma "bella" e ciao'.split(/("[^"]*?")/))
 
   // avoid lexical error (odd number of quotes for instance)
-  q = query.split(/("[^"]*?")/).map((d) => {
+  const q = query.split(/("[^"]*?")/).map((d) => {
     // trim spaces
     let _d = d.trim();
 
@@ -34,7 +33,7 @@ const toLucene = (query, forceFuzzy = true) => {
     }
 
     // trust the user
-    if (_d.indexOf('*') !== -1 && forceFuzzy) { forceFuzzy = false; }
+    if (_d.indexOf('*') !== -1 && _forceFuzzy) { _forceFuzzy = false; }
 
     // strip quotes
     _d = _d.replace(/"/g, '');
@@ -45,7 +44,7 @@ const toLucene = (query, forceFuzzy = true) => {
     // if there is only one word
     if (_dr.length === 1) {
       _d = _dr.join(' ');
-      return forceFuzzy ? `${_d}*` : _d;
+      return _forceFuzzy ? `${_d}*` : _d;
     }
 
     // _dr contains COMMA? @todo
@@ -56,15 +55,17 @@ const toLucene = (query, forceFuzzy = true) => {
 };
 
 
-const toOrderBy = (ordering, translateTable, lower=false) => {
+const toOrderBy = (ordering, translateTable, lower = false) => {
   // TODO if ordering is array;
   if (ordering.indexOf('-') === 0) {
     const _ordering = translateTable[ordering.substr(1)];
-    return lower? `${_ordering} desc`: `${_ordering} DESC`;
+    return lower ? `${_ordering} desc` : `${_ordering} DESC`;
   }
   const _ordering = translateTable[ordering];
-  return lower? `${_ordering} asc`: `${_ordering} ASC`;
+  return lower ? `${_ordering} asc` : `${_ordering} ASC`;
 };
+
+const translate = (key, dict) => dict[key];
 
 const _validateOne = (key, item, rule) => {
   const _errors = {};
@@ -75,7 +76,7 @@ const _validateOne = (key, item, rule) => {
       message: `${key} required`,
     };
   } else if (typeof item === 'undefined') {
-    return;
+    return null;
   }
 
   if (rule.max_length && item.length > rule.max_length) {
@@ -130,38 +131,48 @@ const _validateOne = (key, item, rule) => {
 };
 
 const _validate = (params, rules) => {
-  let _params = {},
-    _errors = {};
+  const _params = {};
+  const _errors = {};
 
-  for (const key in rules) {
-    // special before hook (e.g; split comma separated values before applying a rule)
-    if (typeof rules[key].before === 'function') {
-      params[key] = rules[key].before(params[key]);
-    }
-    // it is an Array of values
-    if (Array.isArray(params[key])) {
-      _params[key] = params[key].map(d => _validateOne(key, d, rules[key]));
+  Object.keys(rules).forEach((key) => {
+    if (typeof params[key] === 'undefined') {
+      if (rules[key] && rules[key].required) {
+        // required!
+        _errors[key] = {
+          code: 'NotFound',
+          message: `${key} required`,
+        };
+      }
     } else {
-      _params[key] = _validateOne(key, params[key], rules[key]);
-    }
+      // special before hook (e.g; split comma separated values before applying a rule)
+      if (typeof rules[key].before === 'function') {
+        params[key] = rules[key].before(params[key]);
+      }
+      // it is an Array of values
+      if (Array.isArray(params[key])) {
+        _params[key] = params[key].map(d => _validateOne(key, d, rules[key]));
+      } else {
+        _params[key] = _validateOne(key, params[key], rules[key]);
+      }
 
-    // special after hook
-    if (typeof rules[key].after === 'function') {
-      _params[key] = rules[key].after(_params[key]);
+      // special after hook
+      if (typeof rules[key].after === 'function') {
+        _params[key] = rules[key].after(_params[key]);
+      }
     }
-  }
+  });
   if (Object.keys(_errors).length) {
-    console.log(_errors);
+    debug('_validate: got errors', _errors);
     throw new errors.BadRequest(_errors);
   }
   return _params;
 };
 
-const REGEX_EMAIL = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const REGEX_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/;
-const REGEX_SLUG = /^[a-z0-9\-]+$/;
-const REGEX_UID = /^[A-Za-z0-9_\-]+$/;
-const REGEX_UIDS = /^[A-Za-z0-9_\-,]+$/;
+const REGEX_SLUG = /^[a-z0-9-]+$/;
+const REGEX_UID = /^[A-Za-z0-9_-]+$/;
+const REGEX_UIDS = /^[A-Za-z0-9_\-,]+[A-Za-z0-9_-]+$/;
 const REGEX_NUMERIC = /^\d+$/;
 
 const VALIDATE_UIDS = {
@@ -197,7 +208,7 @@ const VALIDATE_OPTIONAL_GITHUB_ID = {
 const VALIDATE_OPTIONAL_EMAIL = {
   email: {
     required: false,
-    regex: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+    regex: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
   },
 };
 
@@ -226,12 +237,24 @@ const validate = (validators, method = 'GET') => async (context) => {
   if (method === 'GET') {
     debug('validate: GET data', context.params.query);
     const validated = _validate(context.params.query, validators);
-    if (!context.params.sanitized) { context.params.sanitized = validated; } else { Object.assign(context.params.sanitized, validated); }
+    if (!context.params.sanitized) {
+      context.params.sanitized = validated;
+    } else {
+      Object.assign(context.params.sanitized, validated);
+    }
   } else {
     debug('validate: POST data');
     context.data.sanitized = _validate(context.data, validators);
   }
 };
+
+const validateRouteId = () => async (context) => {
+  if (context.id && !REGEX_UIDS.test(context.id)) {
+    debug('validateRouteId: context.id not matching REGEX_UIDS');
+    throw new errors.BadRequest('route id is not valid');
+  }
+};
+
 
 const queryWithCurrentExecUser = () => async (context) => {
   if (!context.params) {
@@ -292,19 +315,20 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
 
   // num of results expected, 0 to 500
   if (context.params.query.limit) {
-    const limit = parseInt(context.params.query.limit);
+    const limit = parseInt(context.params.query.limit, 10);
     params.limit = +Math.min(Math.max(0, limit), params.max_limit || 500);
   }
   // transform page in corresponding SKIP. Page is 1-n.
   if (context.params.query.page) {
-    const page = Math.max(1, parseInt(context.params.query.page));
-    // transform in skip and offsets. E.G page=4 when limit = 10 results in skip=30 page=2 in skip=10, page=1 in skip=0
+    const page = Math.max(1, parseInt(context.params.query.page, 10));
+    // transform in skip and offsets. E.G page=4 when limit = 10
+    // results in skip=30 page=2 in skip=10, page=1 in skip=0
     params.skip = (page - 1) * params.limit;
     params.page = page;
   } else if (context.params.query.offset) {
-    params.skip = Math.max(0, parseInt(context.params.query.offset));
+    params.skip = Math.max(0, parseInt(context.params.query.offset, 10));
   } else if (context.params.query.skip) {
-    params.skip = Math.max(0, parseInt(context.params.query.skip));
+    params.skip = Math.max(0, parseInt(context.params.query.skip, 10));
   }
 
   debug('queryWithCommonParams: <params>', params);
@@ -322,13 +346,7 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
   }
 };
 
-/*
-  forward strategy to handle params correctly
-*/
-const forwardStrategy = () => async (context) => {
 
-
-};
 /*
   Add sanitized parameter to context result.
 */
@@ -358,13 +376,10 @@ const validateEach = (paramName, validators, options = {}) => {
     // console.log(context.params.query.filters)
     let toBeValidated;
 
-    switch(opts.method) {
-      case 'GET':
-        toBeValidated = context.params.query[paramName]
-        break;
-      case 'POST':
-        toBeValidated = context.data[paramName]
-        break;
+    if (opts.method === 'GET') {
+      toBeValidated = context.params.query[paramName];
+    } else if (opts.method === 'POST') {
+      toBeValidated = context.data[paramName];
     }
 
     if (!Array.isArray(toBeValidated) || !toBeValidated.length) {
@@ -374,7 +389,7 @@ const validateEach = (paramName, validators, options = {}) => {
           code: 'NotFound',
           message: `param '${paramName}' is required and shouldn't be empty.`,
         };
-        console.log(_error);
+        // console.log(_error);
         throw new errors.BadRequest(_error);
       }
       debug(`validateEach: ${paramName} not found in '${opts.method}' or is not an Array or it is empty. Received:`, toBeValidated);
@@ -390,7 +405,7 @@ const validateEach = (paramName, validators, options = {}) => {
       return _d;
     });
 
-    if (opts.method == 'GET') {
+    if (opts.method === 'GET') {
       if (!context.params.sanitized) {
         context.params.sanitized = {};
       }
@@ -417,14 +432,31 @@ const displayQueryParams = (paramNames = []) => async (context) => {
   });
 };
 
+const protect = (...fields) => async (context) => {
+  fields.forEach((p) => {
+    if (Array.isArray(context.result.data)) {
+      context.result.data = context.result.data.map((d) => {
+        delete d[p];
+        return d;
+      });
+    } else {
+      delete context.result[p];
+    }
+  });
+};
+
 module.exports = {
   displayQueryParams,
-  forwardStrategy,
+
+  protect,
+
   verbose,
   validate,
   validateEach,
   queryWithCommonParams,
   queryWithCurrentExecUser,
+
+  validateRouteId,
 
   VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL,
@@ -445,5 +477,6 @@ module.exports = {
   utils: {
     toOrderBy,
     toLucene,
+    translate,
   },
 };

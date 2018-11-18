@@ -79,19 +79,19 @@ app.use(notFound());
 
 app.use(handler({
   json: {
-    404: (err, req, res, next) => {
+    404: (err, req, res) => {
       // make sure to strip off the stack trace in production
       if (process.env.NODE_ENV === 'production') {
         delete err.stack;
       }
       res.json({ message: 'Not found' });
     },
-    500: (err, req, res, next) => {
+    500: (err, req, res) => {
       console.log(err.toJSON());
       res.json({ message: 'service unavailable' });
     },
     // bad request
-    400: (err, req, res, next) => {
+    400: (err, req, res) => {
       // console.log(err)
       res.json({
         message: 'Please check request params',
@@ -100,7 +100,7 @@ app.use(handler({
         errors: err.data,
       });
     },
-    default: (err, req, res, next) => {
+    default: (err, req, res) => {
       // handle all other errors
       // console.log(err)
       delete err.stack;

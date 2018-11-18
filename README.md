@@ -1,26 +1,52 @@
-# boomerang
+# impresso-middle-layer
 
-> 
+>
 
 ## About
 
 This project uses [Feathers](http://feathersjs.com). An open source web framework for building modern real-time applications.
+We also use: SOlR, mysql, neo4j, redis.
 
 ## Getting Started
 
-Getting up and running is as easy as 1, 2, 3.
+Getting up and running is as easy as 1, 2, 3, 4, 5.
 
 1. Make sure you have [NodeJS](https://nodejs.org/) and [npm](https://www.npmjs.com/) installed.
-2. Install your dependencies
+1. Install your dependencies
 
     ```
-    cd path/to/boomerang; npm install
+    git clone impresso-middle-layer
+    cd path/to/impresso-middle-layer && npm install
     ```
 
-3. Start your app
+1. Check that neo4J is running
+1. Configure your mysql tunnelling, e.g. in with config stored in  `~/.ssh/config`:
 
     ```
-    npm start
+    Host cli-mysql-tunnel
+    HostName      host_secret
+    User          host_user
+    Port          host_port
+    IdentityFile  /path/to/private/key
+    LocalForward  3307 127.0.0.1:3306
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    ```
+
+    then run the tunnelling with autossh (note the name  `cli-mysql-tunnel`)
+
+    ```
+    nohup autossh -M 0 -T -N cli-mysql-tunnel &
+    ```
+
+    ref. [SSH TUNNELLING FOR FUN AND PROFIT: AUTOSSH](https://www.everythingcli.org/ssh-tunnelling-for-fun-and-profit-autossh/)
+
+1. Configure the `config/default.json` according to your dbs
+
+1. Start your app (not the debug)
+
+    ```
+    DEBUG=impresso* npm run dev
     ```
 
 ## Testing

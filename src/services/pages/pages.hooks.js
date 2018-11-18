@@ -1,6 +1,5 @@
-const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 const { queryWithCommonParams } = require('../../hooks/params');
-const { proxyIIIF } = require('../../hooks/iiif');
+const { assignIIIF } = require('../../hooks/iiif');
 
 module.exports = {
   before: {
@@ -22,10 +21,10 @@ module.exports = {
   after: {
     all: [],
     find: [
-      proxyIIIF(),
+      assignIIIF(),
     ],
     get: [
-      proxyIIIF(),
+      assignIIIF(),
     ],
     create: [],
     update: [],

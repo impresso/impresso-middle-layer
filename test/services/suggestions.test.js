@@ -1,6 +1,13 @@
 const assert = require('assert');
 const app = require('../../src/app');
 
+/*
+
+ ./node_modules/.bin/eslint test/services/suggestions.test.js  \
+ src/services/suggestions --fix && mocha test/services/suggestions.test.js
+
+*/
+
 describe('\'suggestions\' service', () => {
   it('registered the service', () => {
     const service = app.service('suggestions');
@@ -67,5 +74,22 @@ describe('\'suggestions\' service', () => {
     console.log(suggestions);
     assert.ok(suggestions.data.length);
     // assert.equal(suggestions.data[0].daterange, '1956-10-01T10:00:00Z TO 1956-10-31T23:59:59Z');
+  });
+
+  it('recognizes an invalid regexp', async () => {
+    const suggestions = await app.service('suggestions').find({
+      query: {
+        q: '/*.*[/',
+      },
+    });
+    assert.equal(suggestions.data.length, 0);
+  });
+  it('recognizes a valid regexp and split on spaces', async () => {
+    const suggestions = await app.service('suggestions').find({
+      query: {
+        q: '/go[uû]t.*parfait.*/',
+      },
+    });
+    assert.equal(suggestions.data[0].type, 'regex');
   });
 });

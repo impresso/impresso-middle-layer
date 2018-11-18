@@ -1,14 +1,13 @@
 const rp = require('request-promise');
 const { NotImplemented } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/solr');
-const truncatise = require('truncatise');
 /**
  * request wrapper to get results from solr.
  * TODO Check grouping: https://lucene.apache.org/solr/guide/6_6/result-grouping.html
  * @param {object} config - config object for solr
  * @param {object} params - `q` with lucene search query; `limit` and `offset`
  */
-const findAll = (config, params = {}) => {
+const findAll = (config, params = {}, factory) => {
   const _params = {
     q: '*:*',
     limit: 10,
@@ -17,7 +16,7 @@ const findAll = (config, params = {}) => {
     ...params,
   };
 
-  const qs = {
+  let qs = {
     q: _params.q,
 
     start: _params.skip,
@@ -28,16 +27,32 @@ const findAll = (config, params = {}) => {
 
   // transform order by if any
   if (_params.order_by) {
-    qs['sort'] = _params.order_by;
+    qs.sort = _params.order_by;
   }
+
 
   // transform facets if any
   //
   if (_params.facets) {
     qs['json.facet'] = _params.facets;
   }
+
+  if (_params.group_by && _params.group_by !== 'id') {
+    qs = {
+      ...qs,
+      group: true,
+      'group.field': _params.group_by,
+      // 'group.main': true,
+      'group.limit': 3, // top 3
+      'group.ngroups': true,
+    };
+  }
+
   if (_params.fl) {
-    qs.fl = _params.fl;
+    qs.fl = Array.isArray(_params.fl) ? _params.fl.join(',') : _params.fl;
+  } else {
+    // default values for fields
+
   }
 
   debug('\'findAll\' request with \'qs\':', qs);
@@ -50,60 +65,19 @@ const findAll = (config, params = {}) => {
   }).then((res) => {
     // dummy handle dupes keys
     const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
-    // console.log(result)
-    // map doc array to get proper highlights and pages in document itself.
-    result.response.docs = result.response.docs.map((d) => {
-      const doc = {
-        uid: d.id,
-        language: d.lg_s,
-        title: d.title_txt_fr,
-        year: d.meta_year_i,
-        newspaper_uid: d.meta_journal_s,
-        pages: d.page_id_ss,
+
+    if (result.grouped) {
+      result.response = {
+        numFound: result.grouped[_params.group_by].ngroups,
+        docs: result.grouped[_params.group_by].groups,
       };
+    }
 
-      // parse
-      const _fragments = result.fragments[doc.uid].content_txt_fr;
-      const _highlights = result.highlighting[doc.uid].content_txt_fr;
+    debug(`'findAll' success in ${result.responseHeader.QTime}ms`, factory ? 'with factory' : 'but no factory specified');
 
-      if (d.content_txt_fr) {
-        doc.excerpt = truncatise(d.content_txt_fr, {
-          TruncateLength: _params.excerptLength,
-        });
-      }
-      if (!d.content_boxes_plain) {
-        return doc;
-      }
-
-      const _contentBoxesPlain = JSON.parse(d.content_boxes_plain);
-
-      // align highlights and fragments
-      doc.matches = _highlights.offsets.map((pos, i) => {
-        let _p = {};
-
-        for (let jl = _contentBoxesPlain.length, j = 0; j < jl; j += 1) {
-          const pag = _contentBoxesPlain[j];
-          const pagId = pag.id.replace('.json', '');
-
-          for (let l = pag.regions.length, ii = 0; ii < l; ii += 1) {
-            if (pos[0] === pag.regions[ii].start) {
-              _p = {
-                n: pag.n,
-                pos: pos[0],
-                page_uid: pagId,
-                fragment: _fragments[i],
-                coords: pag.regions[ii].coords,
-                iiif: `https://api-impresso.uni.lu/proxy/iiif/${pagId}/${pag.regions[ii].coords.join(',')}/full/0/default.jpg`,
-              };
-              break;
-            }
-          }
-        }
-        return _p;
-      });
-      return doc;
-    });
-
+    if (factory) {
+      result.response.docs = result.response.docs.map(factory(result));
+    }
     return result;
   }).catch((err) => {
     debug(err);
@@ -114,7 +88,7 @@ const findAll = (config, params = {}) => {
 
 
 const getSolrClient = config => ({
-  findAll: params => findAll(config, params),
+  findAll: (params, factory) => findAll(config, params, factory),
 });
 
 module.exports = function (app) {

@@ -8,13 +8,13 @@ module.exports = function (app) {
   const options = {
     name: 'tags',
     paginate,
-    config: app.get('neo4j'),
+    app,
   };
 
   // Initialize our service with any options it requires
   app.use('/tags', createService(options));
 
-  // Get our initialized service so that we can register hooks and filters
+  // Get our initialized service so that we can register hooks
   const service = app.service('tags');
 
   service.hooks(hooks);

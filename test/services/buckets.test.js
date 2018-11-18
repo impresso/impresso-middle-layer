@@ -4,21 +4,21 @@ const app = require('../../src/app');
 
 /**
  * use with
- * DEBUG=impresso/* ./node_modules/.bin/eslint test/services/buckets.test.js \
- *  src/services/buckets --fix && DEBUG=impresso/* mocha test/services/buckets.test.js
+  ./node_modules/.bin/eslint test/services/buckets.test.js \
+  src/services/buckets --fix && DEBUG=impresso/* mocha test/services/buckets.test.js
  */
 describe('\'buckets\' service', () => {
   const service = app.service('buckets');
   const user = {
     uid: 'local-user-test-only',
     is_staff: true,
-  }
+  };
 
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });
 
-  it('creates an empty bucket uid',  async() => {
+  it('creates an empty bucket uid', async () => {
     const customBucket = await service.create({
       bucket_uid: 'local-bucket-test-only',
       name: 'local-bucket-test-only',
@@ -39,17 +39,18 @@ describe('\'buckets\' service', () => {
         },
         {
           label: 'article',
-          uid: 'GDL-1811-11-22-a-0002-3624301',
+          uid: 'GDL-1954-06-29-a-i0084',
         },
         {
           label: 'issue',
           uid: 'GDL-1811-11-22-a',
-        }
+        },
       ],
     }, {
       user,
     });
-    // console.log(results);
+
+    assert.equal(results.info._stats.relationshipsCreated, 3);
     assert.ok(results.data);
   });
 
@@ -57,12 +58,23 @@ describe('\'buckets\' service', () => {
     const result = await service.get('local-bucket-test-only', {
       user,
     }).catch((err) => {
-      console.log(err);
+      assert.fail(err);
     });
-    console.log('\n\n\n------------------------------------------', result);
+
+    result.items.forEach((d) => {
+      if (d.labels.indexOf('page') !== -1) {
+        assert.ok(d.iiif_thumbnail, 'page item should have a IIIF thumbnail');
+      } else if (d.labels.indexOf('issue') !== -1) {
+        assert.ok(d.iiif_thumbnail, 'issue item should have a IIIF thumbnail');
+        assert.ok(d.cover.iiif_thumbnail, 'issue cover item should have a IIIF thumbnail');
+        assert.ok(d.cover.iiif, 'issue cover item should have a IIIF thumbnail');
+      } else if (d.labels.indexOf('article') !== -1) {
+        assert.ok(d.pages[0].iiif_thumbnail, 'issue item should have a IIIF thumbnail');
+      }
+    });
+
     assert.equal(result.labels[0], 'bucket');
 
-    assert.ok(result.items[1].cover);
     assert.equal(result.uid, 'local-bucket-test-only');
   });
   //
@@ -77,7 +89,7 @@ describe('\'buckets\' service', () => {
     assert.ok(results.total);
   });
 
-  it('delete the created bucket uid ...',  async() => {
+  it('delete the created bucket uid ...', async () => {
     const removedBucket = await app.service('buckets').remove('local-bucket-test-only', {
       user,
     });
