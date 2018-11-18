@@ -108,10 +108,12 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'meta_year_i');
     case 'type':
       return reduceFiltersToSolr(filters, 'item_type_s');
+    case 'mention':
+      return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions'])
     case 'person':
-      return reduceFiltersToSolr(filters, 'item_type_s');
+      return reduceFiltersToSolr(filters, 'pers_mentions');
     case 'location':
-      return reduceFiltersToSolr(filters, 'item_type_s');
+      return reduceFiltersToSolr(filters, 'loc_mentions');
     case 'regex':
       return reduceRegexFiltersToSolr(filters);
     default:
