@@ -26,7 +26,9 @@ class HashedPasswordVerifier extends Verifier {
 
     // debug('Verifying password');
     return new Promise((resolve, reject) => {
-      const isValid = comparePassword(password, encrypted, salt, '');
+      const isValid = comparePassword(password, encrypted, {
+        salt
+      });
       if (!isValid) {
         // debug('Login incorrect');
         return reject(new Error('Login incorrect'));// false);

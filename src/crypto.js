@@ -1,32 +1,41 @@
 const crypto = require('crypto');
 
+const parseBase64EncryptedPassword = (encrypted) => {
+  const parts = encrypted.split('$');
+
+  
+}
+
+const comparePassword = (password, encrypted, options) => {
+  const enc = encrypt(password, options);
+  return enc.password === encrypted;
+}
+
 const encrypt = (password, options) => {
   const configs = {
-    secret: '',
     salt: crypto.randomBytes(16).toString('hex'),
     iterations: 4096,
     length: 256,
     digest: 'sha256',
+    encoding: 'hex',
+    ...options,
   };
-  if (options) {
-    Object.assign(configs, options || {});
+
+  if (typeof configs.formatPassword !== 'function') {
+    // default concatenation with double column
+    configs.formatPassword = (p, c) => `${c.secret}::${c.salt}::${p}`;
   }
 
   return {
     salt: configs.salt,
     password: crypto.pbkdf2Sync(
-      configs.secret,
-      `${configs.salt}::${password}`,
+      configs.formatPassword(password, configs),
+      configs.salt,
       configs.iterations,
       configs.length,
       configs.digest,
-    ).toString('hex'),
+    ).toString(configs.encoding),
   };
-};
-
-const comparePassword = (password, encrypted, salt, secret) => {
-  const enc = encrypt(password, { salt, secret });
-  return enc.password === encrypted;
 };
 
 module.exports = {
