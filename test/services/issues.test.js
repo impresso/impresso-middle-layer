@@ -19,8 +19,8 @@ describe('\'issues\' service', () => {
       console.log(err);
     });
     assert.ok(result);
-    assert.ok(result.iiif);
-    assert.ok(result.iiif_thumbnail);
+    assert.ok(result.pages[0].iiif, 'pages[0] contains IIIF');
+    assert.ok(result.pages[0].iiif_thumbnail, 'pages[0] contains IIIF thumb');
     assert.ok(!result.buckets.length);
   });
 });
