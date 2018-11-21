@@ -53,6 +53,12 @@ const {
   toHierarchy, sliceAtSplitpoints, render,
 } = require('../helpers');
 
+const ARTICLE_SOLR_FL_MINIMAL = [
+  'id',
+  'item_type_s',
+  'doc_type_s',
+];
+
 const ARTICLE_SOLR_FL_LITE = [
   'id',
   'lg_s', // 'fr',
@@ -370,3 +376,4 @@ module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL;
 module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE;
 module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH;
 module.exports.ARTICLE_SOLR_FL_TO_CSV = ARTICLE_SOLR_FL_TO_CSV;
+module.exports.ARTICLE_SOLR_FL_MINIMAL = ARTICLE_SOLR_FL_MINIMAL;
