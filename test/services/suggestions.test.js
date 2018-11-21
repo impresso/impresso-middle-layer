@@ -1,6 +1,6 @@
 const assert = require('assert');
 const app = require('../../src/app');
-
+const { getMentions } = require('../../src/services/suggestions/suggestions.class.js').utils;
 /*
 
  ./node_modules/.bin/eslint test/services/suggestions.test.js  \
@@ -8,13 +8,40 @@ const app = require('../../src/app');
 
 */
 
-describe('\'suggestions\' service', () => {
+describe('\'suggestions\' service', function () {
+  this.timeout(10000);
   it('registered the service', () => {
     const service = app.service('suggestions');
 
     assert.ok(service, 'Registered the service');
   });
 
+  it('test getMentions sub service', async () => {
+    const results = await getMentions({
+      config: app.get('solr'),
+      params: {
+        query: {
+          q: 'suiss',
+        },
+      },
+    });
+    assert.ok(results);
+    assert.ok(results[0].type, 'Contains a Mention suggestion object');
+  });
+
+  it('test getMentions sub service', async () => {
+    const results = await getMentions({
+      config: app.get('solr'),
+      params: {
+        query: {
+          q: '/go[uû]t.*parfait.*',
+        },
+      },
+    });
+
+    assert.equal(results.length, 0);
+    // assert.ok(results[0].type, 'Contains a Mention suggestion object');
+  });
   // it('say hello', async () => {
   //   const suggestions = app.service('suggestions').find({
   //     query: {

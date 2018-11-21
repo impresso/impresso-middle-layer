@@ -108,6 +108,12 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'meta_year_i');
     case 'type':
       return reduceFiltersToSolr(filters, 'item_type_s');
+    case 'mention':
+      return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions']);
+    case 'person':
+      return reduceFiltersToSolr(filters, 'pers_mentions');
+    case 'location':
+      return reduceFiltersToSolr(filters, 'loc_mentions');
     case 'regex':
       return reduceRegexFiltersToSolr(filters);
     default:
@@ -180,7 +186,12 @@ module.exports = {
   reduceFiltersToSolr,
 
 
-  SOLR_FILTER_TYPES: ['string', 'entity', 'newspaper', 'daterange', 'year', 'language', 'type', 'regex'],
+  SOLR_FILTER_TYPES: [
+    'string', 'entity', 'newspaper', 'daterange',
+    'year', 'language', 'type', 'regex',
+    // mention allows to find both mentions of type person and location
+    'mention', 'person', 'location',
+  ],
 
   SOLR_ORDER_BY: {
     date: 'meta_date_dt',

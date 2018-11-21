@@ -46,5 +46,22 @@
       "user": "postgres",
       "pass": "postgres"
     }
+  },
+  "solr": {
+    "host": "localhost",
+    "port": 8080,
+    "auth": {
+      "user": "solr user",
+      "pass": "solr pass"
+    },
+    "search": {
+      "endpoint": "https://solr/search/select",
+    },
+    "articles": {
+      "endpoint": "https://solr/articles/select",
+    },
+    "mentions": {
+      "endpoint": "https://solr/mentions/select",
+    }
   }
 }

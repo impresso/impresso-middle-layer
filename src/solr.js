@@ -13,8 +13,14 @@ const findAll = (config, params = {}, factory) => {
     limit: 10,
     skip: 0,
     excerptLength: 30,
+    namespace: 'search',
     ...params,
   };
+  debug(`findAll: request to '${_params.namespace}' endpoint.`);
+
+  // you can have multiple namespace for the same solr
+  // configuration corresponding to  different solr on the same machine.
+  const endpoint = `${config[_params.namespace].endpoint}`;
 
   let qs = {
     q: _params.q,
@@ -55,10 +61,11 @@ const findAll = (config, params = {}, factory) => {
 
   }
 
-  debug('\'findAll\' request with \'qs\':', qs);
+
+  debug(`findAll: request to '${_params.namespace}' endpoint. With 'qs':`, qs);
 
   return rp({
-    url: `${config.endpoint}`,
+    url: endpoint,
     auth: config.auth,
     qs,
     // json: true REMOVED because of duplicate keys
@@ -73,7 +80,10 @@ const findAll = (config, params = {}, factory) => {
       };
     }
 
-    debug(`'findAll' success in ${result.responseHeader.QTime}ms`, factory ? 'with factory' : 'but no factory specified');
+    debug(
+      `'findAll' success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
+      factory ? 'with factory' : 'but no factory specified'
+    );
 
     if (factory) {
       result.response.docs = result.response.docs.map(factory(result));
