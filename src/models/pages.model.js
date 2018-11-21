@@ -2,24 +2,33 @@ const Sequelize = require('sequelize');
 const Newspaper = require('./newspapers.model').model;
 const Issue = require('./issues.model').model;
 
+
 class Page {
   constructor({
-    // articles = [],
-    // articlesEntities = [],
-    // articlesTags = [],
-    // collections = [],
-    // entities = [],
     iiif = '',
     labels = ['page'],
     num = 0,
-    // regions = [],
+
+    // number of articles
+    countArticles = 0,
+
+    // entities = [],
     // tags = [],
+    // collections = [],
     uid = '',
   } = {}, complete = false) {
     this.uid = String(uid);
-    this.num = parseInt(num, 10);
+
+    // if default is 0, then get page number from uid
+    if (num === 0) {
+      this.num = this.uid.match(/p0*([0-9]+)$/)[1];
+    } else {
+      this.num = parseInt(num, 10);
+    }
+    // if any is provided
     this.iiif = String(iiif);
     this.labels = labels;
+    this.countArticles = parseInt(countArticles, 10);
     if (complete) {
       // // TODO:
     }
@@ -83,21 +92,21 @@ const model = (client, options = {}) => {
   return page;
 };
 
-module.exports = function (app) {
-  // const config = app.get('sequelize');
-  const page = model(app.get('sequelizeClient'), {
-    // tableName: config.tables.pages,
-    hooks: {
-      beforeCount(options) {
-        options.raw = true;
-      },
-    },
-  });
-
-
-  return {
-    sequelize: page,
-  };
+module.exports = function () {
+  // // const config = app.get('sequelize');
+  // const page = model(app.get('sequelizeClient'), {
+  //   // tableName: config.tables.pages,
+  //   hooks: {
+  //     beforeCount(options) {
+  //       options.raw = true;
+  //     },
+  //   },
+  // });
+  //
+  //
+  // return {
+  //   sequelize: page,
+  // };
 };
 
 module.exports.model = model;
