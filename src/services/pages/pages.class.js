@@ -30,17 +30,18 @@ class Service extends Neo4jService {
     ]);
 
     if (results[0].response.numFound === 0) {
+      debug(`get: no articles found for page id ${id}`);
       throw new NotFound();
     }
     // initialize page after solr
-    const pag = new Page.Model({
+    return Page({
       uid: id,
       countArticles: results[0].response.numFound,
-    });
+    }, true);
 
 
     return {
-      ...pag,
+      ...page,
     };
   }
 }
