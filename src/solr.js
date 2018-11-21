@@ -80,7 +80,10 @@ const findAll = (config, params = {}, factory) => {
       };
     }
 
-    debug(`'findAll' success in ${result.responseHeader.QTime}ms`, factory ? 'with factory' : 'but no factory specified');
+    debug(
+      `'findAll' success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
+      factory ? 'with factory' : 'but no factory specified'
+    );
 
     if (factory) {
       result.response.docs = result.response.docs.map(factory(result));
