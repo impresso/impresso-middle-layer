@@ -1,3 +1,4 @@
+const debug = require('debug')('impresso/sequelize');
 const logger = require('winston');
 const Sequelize = require('sequelize');
 
@@ -56,6 +57,9 @@ const getSequelizeClient = config => new Sequelize({
   // define: {
   //   freezeTableName: true
   // }
+  logging: function (str) {
+    debug(str);
+  }
 });
 
 module.exports = function (app) {
