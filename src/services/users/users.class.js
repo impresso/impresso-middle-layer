@@ -43,38 +43,52 @@ class Service extends Neo4jService {
     // }
     // get github id!
     // console.log('create user:',data, params)
-    const user = {};
-
-    if (params.oauth && params.oauth.provider === 'github' && data.github) {
-      // github oauth success, the github object is filled with interesting data.
-      user.uid = `github-${data.githubId}`;
-      user.provider = 'github';
-      user.username = data.github.profile.username;
-      user.password = '';
-      user.displayname = data.github.profile.displayName;
-      user.picture = data.github.profile.photos.map(d => d.value);
-    } else if (data.sanitized.email && data.sanitized.password && data.sanitized.username) {
-      user.uid = `local-${shorthash(data.sanitized.username)}`; // uid is enforced
-      user.provider = 'local';
-      user.username = data.sanitized.username;
-      Object.assign(user, encrypt(data.sanitized.password));
-    } else {
-      throw new BadRequest({
-        message: 'MissingParameters',
-      });
+    const user = new User();
+    if(data.sanitized.email && data.sanitized.password && data.sanitized.username) {
+      user.password = User.buildPassword(data.sanitized.password);
+      console.log(user);
+      const created = await this.sequelizeKlass.create(user);
+      //
+      //   .then(function(u) {
+  		// user = u;
+      //
+  		// return Profile.create({
+  		// 	someData: 'data here'
+  		// });
+    	// }).then(function(profile) {
+    	// 	user.setProfile(profile)
+    	// })
     }
-
-    const result = this._run(this.queries.create, {
-      ...data.sanitized,
-      ...user,
-    }).then(res =>
-      // console.log(res.records, res);
-      res.records.map(neo4jRecordMapper).map(d => ({
-        ...d,
-        id: d.id,
-      })));
-
-    return result;
+    // if (params.oauth && params.oauth.provider === 'github' && data.github) {
+    //   // github oauth success, the github object is filled with interesting data.
+    //   user.uid = `github-${data.githubId}`;
+    //   user.provider = 'github';
+    //   user.username = data.github.profile.username;
+    //   user.password = '';
+    //   user.displayname = data.github.profile.displayName;
+    //   user.picture = data.github.profile.photos.map(d => d.value);
+    // } else if (data.sanitized.email && data.sanitized.password && data.sanitized.username) {
+    //   user.uid = `local-${shorthash(data.sanitized.username)}`; // uid is enforced
+    //   user.provider = 'local';
+    //   user.username = data.sanitized.username;
+    //   Object.assign(user, encrypt(data.sanitized.password));
+    // } else {
+    //   throw new BadRequest({
+    //     message: 'MissingParameters',
+    //   });
+    // }
+    //
+    // const result = this._run(this.queries.create, {
+    //   ...data.sanitized,
+    //   ...user,
+    // }).then(res =>
+    //   // console.log(res.records, res);
+    //   res.records.map(neo4jRecordMapper).map(d => ({
+    //     ...d,
+    //     id: d.id,
+    //   })));
+    //
+    // return result;
     // return data;
   }
 
@@ -124,12 +138,12 @@ class Service extends Neo4jService {
     let sequelizeParams = {};
 
     // e.g. during authentication process
-    if(uid) {
-      const sequelizeParams = {
+    if (uid) {
+      sequelizeParams = {
         where: {
-          $or: [{ email: uid,},{username: uid,},{'$profile.uid$': uid,},],
+          $or: [{ email: uid }, { username: uid }, { '$profile.uid$': uid }],
         },
-      }
+      };
     }
 
     return this.sequelizeKlass.scope('isActive', 'find')
