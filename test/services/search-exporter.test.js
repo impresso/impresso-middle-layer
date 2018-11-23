@@ -18,6 +18,8 @@ describe('\'search-exporter\' service', function () {
   });
 
   it('given a search, return the metadata', async () => {
+    const skip = 12500;
+    const limit = 500;
     const results = await service.find({
       user: {
         is_staff: true,
@@ -25,7 +27,7 @@ describe('\'search-exporter\' service', function () {
       query: {
         format: 'csv',
         group_by: 'articles',
-        skip: 0,
+        skip,
         filters: [
           {
             type: 'string',
@@ -48,7 +50,7 @@ describe('\'search-exporter\' service', function () {
       header: true,
     });
 
-    fs.writeFileSync('./results-1000.csv', csv);
+    fs.writeFileSync(`./results-${skip}-${limit}.csv`, csv);
 
     // limit should be the default one, even if the user has set 30000
     // console.log(csv);

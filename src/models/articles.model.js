@@ -58,6 +58,7 @@ const ARTICLE_SOLR_FL_LITE = [
   'lg_s', // 'fr',
   'content_txt_fr',
   'title_txt_fr',
+
   // coordinates ok
   'cc_b',
   'front_b',
@@ -220,6 +221,7 @@ class Article {
     return {
       uid: this.uid,
       title: this.title,
+      content: this.content,
       language: this.language,
       labels: this.labels.join(','),
       year: this.year,
@@ -328,6 +330,9 @@ const solrFactory = res => (doc) => {
   // console.log('fragments!!', res.fragments, '--', fragments);
   // console.log('highlights!!', res.highlighting, '--', highlights);
   // console.log(doc.pp_plain);
+  if(!highlights) {
+    return art;
+  }
 
   art.matches = highlights.offsets.map((pos, i) => {
     // for each offset
