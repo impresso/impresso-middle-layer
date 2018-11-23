@@ -77,6 +77,22 @@ describe('\'search\' service', function () {
     assert.ok(result.info.facets.year);
   });
 
+  it.only('get search results with newspaper filters', async() => {
+    const result = await service.find({
+      query: {
+        "filters":[
+          {"context":"include","type":"daterange","daterange":"1777-10-30T00:00:00Z TO 1999-03-04T00:00:00Z"},
+          {"context":"include","type":"newspaper","q":["NZZ"]}
+        ],
+        "facets":["newspaper","language"],
+        "group_by":"articles",
+        "page":1,
+        "limit":12,
+        "order_by":"-relevance"
+      }
+    });
+    console.log(result);
+  })
   it('loaded solr content', async () => {
     const results = await service.find({
       query: {

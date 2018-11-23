@@ -175,12 +175,13 @@ const REGEX_UID = /^[A-Za-z0-9_-]+$/;
 const REGEX_UIDS = /^[A-Za-z0-9_\-,]+[A-Za-z0-9_-]+$/;
 const REGEX_NUMERIC = /^\d+$/;
 
+
 const VALIDATE_OPTIONAL_UID = {
   uid: {
     required: false,
     regex: REGEX_UID,
   },
-}
+};
 
 const VALIDATE_UIDS = {
   uids: {
