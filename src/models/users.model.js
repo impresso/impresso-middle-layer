@@ -2,6 +2,8 @@ const { DataTypes } = require('sequelize');
 const Profile = require('./profiles.model');
 const { encrypt } = require('../crypto');
 
+const CRYPTO_ITERATIONS = 120000;
+
 class User {
   constructor({
     uid = '',
@@ -35,12 +37,24 @@ class User {
     }
   }
 
+  static buildPassword({
+    password, salt, iterations,
+  } = {}) {
+    const pwd = User.encryptPassword({
+      password, salt, iterations,
+    });
+    return [
+      'pbkdf2_sha256', iterations || CRYPTO_ITERATIONS,
+      pwd.salt, pwd.password,
+    ].join('$');
+  }
+
   static encryptPassword({
     password, salt, iterations,
   } = {}) {
     return encrypt(password, {
       salt,
-      iterations: iterations || 120000,
+      iterations: iterations || CRYPTO_ITERATIONS,
       length: 32,
       formatPassword: p => p, // identity, do not format
       encoding: 'base64',
