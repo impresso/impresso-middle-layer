@@ -1,15 +1,17 @@
 const assert = require('assert');
 const app = require('../../src/app');
-
+const User = require('../../src/models/users.model');
 /**
  * use with
   ./node_modules/.bin/eslint test/services/users.test.js  \
+  src/models/users.model.js  \
+  src/models/profiles.model.js  \
   src/services/users src/hooks --fix \
   && DEBUG=impresso/* mocha test/services/users.test.js
  */
 describe('\'users\' service', function () {
   const service = app.service('users');
-  this.timeout(5000);
+  this.timeout(10000);
 
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
@@ -20,6 +22,38 @@ describe('\'users\' service', function () {
     password: 'Impresso2018!',
     email: 'local-user-test-only@impresso-project.ch',
   };
+  //
+  it('encrypt password as django does by default', async () => {
+    const result = User.encryptPassword({
+      salt: 'tdhWFyUPmubt',
+      password: user.password,
+    });
+    assert.equal('dxdsTpCg+uC0lStatlWdn/NyeQb0ogwfNRqbqxexxCQ=', result.password);
+  });
+
+  it('compare password with django ones', async () => {
+    const result = User.comparePassword({
+      encrypted: 'pbkdf2_sha256$120000$tdhWFyUPmubt$dxdsTpCg+uC0lStatlWdn/NyeQb0ogwfNRqbqxexxCQ=',
+      password: user.password,
+    });
+    assert.ok(result);
+  });
+
+
+  it('get user', async () => {
+    const result = await service.get('local-user-test-only');
+    console.log(result);
+    assert.ok(result);
+  });
+
+  it.only('create the user', async () => {
+    const created = await service.create({
+      username: 'guest-test-2',
+      password: 'Apitchapong!87',
+      email: 'guest-test-2@impresso-project.ch',
+    });
+    console.log(created);
+  });
 
   it('remove then create the user', async () => {
     const removed = await service.remove(user.username, {
