@@ -25,7 +25,7 @@ describe('\'search\' service', function () {
     assert.ok(service, 'Registered the service');
   });
 
-  it('get search results with regex queries', async () => {
+  it.only('get search results with regex queries', async () => {
     const result = await service.find({
       query: {
         group_by: 'articles',
@@ -77,7 +77,7 @@ describe('\'search\' service', function () {
     assert.ok(result.info.facets.year);
   });
 
-  it.only('get search results with newspaper filters', async() => {
+  it('get search results with newspaper filters, without searching for text', async() => {
     const result = await service.find({
       query: {
         "filters":[
