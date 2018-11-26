@@ -34,15 +34,10 @@ class Service extends Neo4jService {
       throw new NotFound();
     }
     // initialize page after solr
-    return Page({
+    return new Page({
       uid: id,
       countArticles: results[0].response.numFound,
     }, true);
-
-
-    return {
-      ...page,
-    };
   }
 }
 

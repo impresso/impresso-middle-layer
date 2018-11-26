@@ -311,7 +311,7 @@ const solrFactory = res => (doc) => {
     country: doc.meta_country_code_s,
     year: doc.meta_year_i,
     date: new Date(doc.meta_date_dt),
-    pages: doc.page_id_ss.map((d, i) => new Page.Model({
+    pages: doc.page_id_ss.map((d, i) => new Page({
       uid: d,
       num: doc.page_nb_is[i],
     })),
@@ -337,7 +337,7 @@ const solrFactory = res => (doc) => {
   // console.log('fragments!!', res.fragments, '--', fragments);
   // console.log('highlights!!', res.highlighting, '--', highlights);
   // console.log(doc.pp_plain);
-  if(!highlights) {
+  if (!highlights) {
     return art;
   }
 
