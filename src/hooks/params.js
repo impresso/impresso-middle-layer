@@ -172,7 +172,7 @@ const REGEX_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))
 const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/;
 const REGEX_SLUG = /^[a-z0-9-]+$/;
 const REGEX_UID = /^[A-Za-z0-9_-]+$/;
-const REGEX_UIDS = /^[A-Za-z0-9_\-,]+[A-Za-z0-9_-]+$/;
+const REGEX_UIDS = /^[A-Za-z0-9_\-,]+[A-Za-z0-9_.-]+$/;
 const REGEX_NUMERIC = /^\d+$/;
 
 
