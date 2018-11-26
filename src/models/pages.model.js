@@ -1,34 +1,63 @@
 const Sequelize = require('sequelize');
-const Newspaper = require('./newspapers.model').model;
-const Issue = require('./issues.model').model;
+const Newspaper = require('./newspapers.model');
+const Issue = require('./issues.model');
+const ArticleEntity = require('./articles-entities.model')
+const ArticleTag = require('./articles-tags.model')
+
 
 class Page {
   constructor({
-    // articles = [],
-    // articlesEntities = [],
-    // articlesTags = [],
-    // collections = [],
-    // entities = [],
+    uid = '',
     iiif = '',
     labels = ['page'],
     num = 0,
-    // regions = [],
-    // tags = [],
-    uid = '',
+
+    // number of articles
+    countArticles = 0,
+
+    // All user ArticleTag instances on this pages
+    articlesTags = [],
+
+    // top 20 ArticleEntity intances
+    articlesEntities = [],
+
+     // All collections for this page
+    collections = [],
   } = {}, complete = false) {
     this.uid = String(uid);
-    this.num = parseInt(num, 10);
+
+    // if default is 0, then get page number from uid
+    if (num === 0) {
+      this.num = this.uid.match(/p0*([0-9]+)$/)[1];
+    } else {
+      this.num = parseInt(num, 10);
+    }
+    // if any is provided
     this.iiif = String(iiif);
     this.labels = labels;
+    this.countArticles = parseInt(countArticles, 10);
+
     if (complete) {
-      // // TODO:
+      this.articlesEntities = articlesEntities.map(d => {
+        if (d instanceof ArticleEntity)
+          return d;
+        return new ArticleEntity(d);
+      });
+
+      this.articlesTags = articlesTags.map(d => {
+        if (d instanceof ArticleEntity)
+          return d;
+        return new ArticleEntity(d);
+      });
+
+      this.collections = collections;
     }
   }
 }
 
 const model = (client, options = {}) => {
-  const newspaper = Newspaper(client);
-  const issue = Issue(client);
+  const newspaper = Newspaper.model(client);
+  const issue = Issue.model(client);
   const page = client.define('page', {
     uid: {
       type: Sequelize.STRING,
@@ -83,21 +112,22 @@ const model = (client, options = {}) => {
   return page;
 };
 
-module.exports = function (app) {
-  // const config = app.get('sequelize');
-  const page = model(app.get('sequelizeClient'), {
-    // tableName: config.tables.pages,
-    hooks: {
-      beforeCount(options) {
-        options.raw = true;
-      },
-    },
-  });
-
-
-  return {
-    sequelize: page,
-  };
+module.exports = function (params, complete=false) {
+  return new Page(params, complete);
+  // // const config = app.get('sequelize');
+  // const page = model(app.get('sequelizeClient'), {
+  //   // tableName: config.tables.pages,
+  //   hooks: {
+  //     beforeCount(options) {
+  //       options.raw = true;
+  //     },
+  //   },
+  // });
+  //
+  //
+  // return {
+  //   sequelize: page,
+  // };
 };
 
 module.exports.model = model;

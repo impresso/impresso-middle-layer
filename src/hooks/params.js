@@ -175,6 +175,14 @@ const REGEX_UID = /^[A-Za-z0-9_-]+$/;
 const REGEX_UIDS = /^[A-Za-z0-9_\-,]+[A-Za-z0-9_-]+$/;
 const REGEX_NUMERIC = /^\d+$/;
 
+
+const VALIDATE_OPTIONAL_UID = {
+  uid: {
+    required: false,
+    regex: REGEX_UID,
+  },
+};
+
 const VALIDATE_UIDS = {
   uids: {
     required: true,
@@ -458,6 +466,7 @@ module.exports = {
 
   validateRouteId,
 
+  VALIDATE_OPTIONAL_UID,
   VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL,
   VALIDATE_OPTIONAL_PASSWORD,

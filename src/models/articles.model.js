@@ -53,11 +53,18 @@ const {
   toHierarchy, sliceAtSplitpoints, render,
 } = require('../helpers');
 
+const ARTICLE_SOLR_FL_MINIMAL = [
+  'id',
+  'item_type_s',
+  'doc_type_s',
+];
+
 const ARTICLE_SOLR_FL_LITE = [
   'id',
   'lg_s', // 'fr',
   'content_txt_fr',
   'title_txt_fr',
+
   // coordinates ok
   'cc_b',
   'front_b',
@@ -122,6 +129,7 @@ class ArticleRegion {
     }
   }
 }
+
 
 class ArticleMatch {
   constructor({
@@ -220,6 +228,7 @@ class Article {
     return {
       uid: this.uid,
       title: this.title,
+      content: this.content,
       language: this.language,
       labels: this.labels.join(','),
       year: this.year,
@@ -328,6 +337,9 @@ const solrFactory = res => (doc) => {
   // console.log('fragments!!', res.fragments, '--', fragments);
   // console.log('highlights!!', res.highlighting, '--', highlights);
   // console.log(doc.pp_plain);
+  if(!highlights) {
+    return art;
+  }
 
   art.matches = highlights.offsets.map((pos, i) => {
     // for each offset
@@ -370,3 +382,4 @@ module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL;
 module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE;
 module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH;
 module.exports.ARTICLE_SOLR_FL_TO_CSV = ARTICLE_SOLR_FL_TO_CSV;
+module.exports.ARTICLE_SOLR_FL_MINIMAL = ARTICLE_SOLR_FL_MINIMAL;

@@ -1,56 +1,179 @@
-// See http://docs.sequelizejs.com/en/latest/docs/models-definition/
-// for more of what you can do here.
-const Sequelize = require('sequelize');
+const { DataTypes } = require('sequelize');
+const Profile = require('./profiles.model');
+const { encrypt } = require('../crypto');
 
-const DataTypes = Sequelize.DataTypes;
+const CRYPTO_ITERATIONS = 120000;
 
-module.exports = function (app) {
-  const sequelizeClient = app.get('sequelizeClient');
-  const users = sequelizeClient.define('users', {
-    uid: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    salt: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    firstname: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    lastname: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
+class User {
+  constructor({
+    uid = '',
+    firstname = '',
+    lastname = '',
+    // encrypted password
+    password = '',
+    username = '',
+    isStaff = false,
+    isActive = false,
+    isSuperuser = false,
+    profile = new Profile(),
+  } = {}) {
+    this.username = String(username);
+    this.firstname = String(firstname);
+    this.lastname = String(lastname);
+    this.password = String(password);
 
-  }, {
-    hooks: {
-      beforeCount(options) {
-        options.raw = true;
+    this.isStaff = Boolean(isStaff);
+    this.isActive = Boolean(isActive);
+    this.isSuperuser = Boolean(isSuperuser);
+
+    if (profile instanceof Profile) {
+      this.profile = profile;
+    } else {
+      this.profile = new Profile(profile);
+    }
+
+    if (this.profile.isValid()) {
+      this.uid = this.profile.uid;
+    } else {
+      this.uid = String(uid);
+    }
+  }
+
+  static buildPassword({
+    password, salt, iterations,
+  } = {}) {
+    const pwd = User.encryptPassword({
+      password, salt, iterations,
+    });
+    return [
+      'pbkdf2_sha256', iterations || CRYPTO_ITERATIONS,
+      pwd.salt, pwd.password,
+    ].join('$');
+  }
+
+  static encryptPassword({
+    password, salt, iterations,
+  } = {}) {
+    return encrypt(password, {
+      salt,
+      iterations: iterations || CRYPTO_ITERATIONS,
+      length: 32,
+      formatPassword: p => p, // identity, do not format
+      encoding: 'base64',
+      digest: 'sha256',
+    });
+  }
+  // true or false.
+  static comparePassword({
+    encrypted = '',
+    password = '',
+  } = {}) {
+    if (!encrypted.length) {
+      return false;
+    }
+
+    const parts = encrypted.split('$');
+
+    if (parts.length !== 4) {
+      return false;
+    }
+
+    const result = User.encryptPassword({
+      salt: parts[2],
+      iterations: parseInt(parts[1], 10),
+      password,
+    });
+    return result.password === parts[3];
+  }
+
+  static sequelize(client, config, options = {}) {
+    const profile = Profile.sequelize(client, config);
+    // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
+    // for more of what you can do here.
+    const user = client.define('user', {
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
       },
-    },
-  });
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      firstname: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: '',
+        field: 'first_name',
+      },
+      lastname: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: '',
+        field: 'last_name',
+      },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'is_active',
+      },
+      isStaff: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'is_staff',
+      },
+      isSuperuser: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'is_superuser',
+      },
+      creationDate: {
+        type: DataTypes.DATE,
+        field: 'date_joined',
+        defaultValue: DataTypes.NOW,
+      },
+    }, {
+      tableName: config.tables.users,
+      scopes: {
+        isActive: {
+          where: {
+            isActive: true,
+          },
+        },
+        get: {
+          include: [
+            {
+              model: profile,
+              as: 'profile',
+            },
+          ],
+        },
+        find: {
+          include: [
+            {
+              model: profile,
+              as: 'profile',
+            },
+          ],
+        },
+      },
+      ...options,
+    });
 
-  users.associate = function (models) { // eslint-disable-line no-unused-vars
-    // Define associations here
-    // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  };
 
-  return users;
-};
+    user.hasOne(profile, {
+      foreignKey: {
+        fieldName: 'user_id',
+      },
+    });
+
+    return user;
+  }
+}
+
+module.exports = User;

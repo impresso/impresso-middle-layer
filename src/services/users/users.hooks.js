@@ -1,6 +1,6 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  queryWithCommonParams, validate, VALIDATE_OPTIONAL_GITHUB_ID,
+  queryWithCommonParams, validate, VALIDATE_OPTIONAL_UID, VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL, VALIDATE_OPTIONAL_PASSWORD, REGEX_SLUG,
 } = require('../../hooks/params');
 
@@ -11,6 +11,7 @@ module.exports = {
     all: [],
     find: [
       validate({
+        ...VALIDATE_OPTIONAL_UID,
         ...VALIDATE_OPTIONAL_EMAIL,
         ...VALIDATE_OPTIONAL_GITHUB_ID,
       }),
@@ -18,14 +19,17 @@ module.exports = {
       // last not to be bothered with unvalid parameters
       authenticate('jwt'),
     ],
-    get: [authenticate('jwt')],
+    get: [
+      authenticate('jwt'),
+
+    ],
     create: [
       authenticate('jwt'), // comment to activate public subscriptions
       validate({
         username: {
           required: false,
           regex: REGEX_SLUG,
-          max_length: 20,
+          max_length: 100,
         },
         ...VALIDATE_OPTIONAL_EMAIL,
         ...VALIDATE_OPTIONAL_PASSWORD,

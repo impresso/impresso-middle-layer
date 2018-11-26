@@ -1,3 +1,4 @@
+const debug = require('debug')('impresso/authentication');
 const authentication = require('@feathersjs/authentication');
 const jwt = require('@feathersjs/authentication-jwt');
 const local = require('@feathersjs/authentication-local');
@@ -5,34 +6,31 @@ const oauth2 = require('@feathersjs/authentication-oauth2');
 const GithubStrategy = require('passport-github').Strategy;
 const { Verifier } = require('@feathersjs/authentication-local');
 const { comparePassword } = require('./crypto');
-
+const User = require('./models/users.model');
+const { BadRequest } = require('@feathersjs/errors');
 /**
  * Custom verifier to compare SALT in db
  *
  * @returns
  */
 class HashedPasswordVerifier extends Verifier {
-  _comparePassword(entity, password) {
-    // select entity password field - take entityPasswordField over passwordField
-    const passwordField = this.options.entityPasswordField || this.options.passwordField;
-    const saltField = this.options.entitySaltField || this.options.saltField || 'salt';
-
-    if (!entity || !entity[passwordField] || !entity[saltField]) {
-      return Promise.reject(new Error(`'${this.options.entity}' record in the database is missing a '${passwordField}' or a '${saltField}'`));
-    }
-
-    const encrypted = entity[passwordField];
-    const salt = entity[saltField];
-
-    // debug('Verifying password');
+  _comparePassword(user, password) {
     return new Promise((resolve, reject) => {
-      const isValid = comparePassword(password, encrypted, salt, '');
-      if (!isValid) {
-        // debug('Login incorrect');
-        return reject(new Error('Login incorrect'));// false);
+      if(!user instanceof User) {
+        debug('_comparePassword: user is not valid', user);
+        return reject(new BadRequest('Login incorrect'));
       }
-      // debug('Password correct');
-      return resolve(entity);
+
+      const isValid = User.comparePassword({
+        encrypted: user.password,
+        password,
+      });
+
+      if (!isValid) {
+        return reject(new BadRequest('Login incorrect'));
+      }
+
+      return resolve(user);
     });
   }
 
