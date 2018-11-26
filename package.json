@@ -56,7 +56,7 @@
     "crypto": "^1.0.1",
     "csv-stringify": "^4.3.1",
     "csv-stringify-as-promised": "^2.0.3",
-    "debug": "^3.1.0",
+    "debug": "^3.2.6",
     "decypher": "^0.13.0",
     "dotenv": "^4.0.0",
     "fast-xml-parser": "^3.11.1",
