@@ -5,27 +5,26 @@ const Neo4jService = require('../neo4j.service').Service;
 const { BadRequest, NotFound } = require('@feathersjs/errors');
 const { encrypt } = require('../../crypto');
 const shorthash = require('short-hash');
+const nanoid = require('nanoid');
 const sequelize = require('../../sequelize');
+const { sequelizeErrorHandler } = require('../../services/sequelize.utils');
 const User = require('../../models/users.model');
-
+const Profile = require('../../models/profiles.model');
 
 class Service extends Neo4jService {
   constructor(options) {
     super(options);
-    const sequelizeConfig = options.app.get('sequelize');
+    const config = options.app.get('sequelize');
     // sequelize
-    this.sequelize = sequelize.client(sequelizeConfig);
-    this.sequelizeKlass = User.sequelize(this.sequelize, {
-      tableName: sequelizeConfig.tables.users,
-    });
-    console.log(this.sequelizeKlass);
+    this.sequelize = sequelize.client(config);
+    this.sequelizeKlass = User.sequelize(this.sequelize, config);
   }
 
   async get(id, params) {
     // if you're staff; otherwise get your own.
     const user = await this.sequelizeKlass.scope('isActive', 'get').findOne({
       where: {
-        '$profile.uid$': id,
+        $or: [{ username: id }, { '$profile.uid$': id }],
       },
     });
     if (!user) {
@@ -37,27 +36,34 @@ class Service extends Neo4jService {
   }
 
   async create(data, params) {
-    // create multiple only if user is admin @todo!
-    // if (Array.isArray(data)) {
-    //   return await Promise.all(data.map(current => this.create(current)));
-    // }
-    // get github id!
-    // console.log('create user:',data, params)
+    // prepare empty user.
     const user = new User();
-    if(data.sanitized.email && data.sanitized.password && data.sanitized.username) {
-      user.password = User.buildPassword(data.sanitized.password);
-      console.log(user);
-      const created = await this.sequelizeKlass.create(user);
-      //
-      //   .then(function(u) {
-  		// user = u;
-      //
-  		// return Profile.create({
-  		// 	someData: 'data here'
-  		// });
-    	// }).then(function(profile) {
-    	// 	user.setProfile(profile)
-    	// })
+    // case 1:
+    if (data.sanitized.email && data.sanitized.password && data.sanitized.username) {
+      user.password = User.buildPassword({
+        password: data.sanitized.password,
+      });
+      user.email = data.sanitized.email;
+      user.username = data.sanitized.username;
+      user.isActive = !!(params && params.user && params.user.is_staff);
+
+      // create user
+      const createdUser = await this.sequelizeKlass
+        .create(user)
+        .catch(sequelizeErrorHandler);
+
+      // N.B. sequelize profile uid is the user uid.
+      user.profile.provider = 'local';
+      user.profile.uid = `local-${nanoid(8)}`; //= > "7hy8hvrX"
+      user.uid = user.profile.uid;
+
+      await Profile.sequelize(this.sequelize)
+        .create({
+          ...user.profile,
+          user_id: createdUser.id,
+        })
+        .catch(sequelizeErrorHandler);
+      debug(`create user: ${user.uid} success`);
     }
     // if (params.oauth && params.oauth.provider === 'github' && data.github) {
     //   // github oauth success, the github object is filled with interesting data.
@@ -90,6 +96,7 @@ class Service extends Neo4jService {
     //
     // return result;
     // return data;
+    return user;
   }
 
   async update(id, data, params) {
@@ -115,11 +122,41 @@ class Service extends Neo4jService {
     if (!params.user.is_staff) {
       return { id };
     }
-    const result = await this._run(this.queries.remove, {
-      uid: id,
+
+    // get user to be removed
+    const user = await this.sequelizeKlass.scope('get').findOne({
+      where: {
+        $or: [{ username: id }, { '$profile.uid$': id }],
+      },
     });
-    debug('remove:', id, 'stats:', result.summary.counters._stats);
-    return this._finalizeRemove(result);
+    if (!user) {
+      return {
+        id,
+      };
+    }
+    debug(`remove: profile for ${user.username}`);
+    if (user.profile) {
+      await user.profile.destroy();
+    }
+    // no way, should be a cascade...
+    debug(`remove: user ${user.username}`);
+    const results = await Promise.all([
+      // remove from mysql
+      user.destroy().catch(sequelizeErrorHandler),
+      // remove from neo4j
+      this._run(this.queries.remove, {
+        uid: id,
+      }),
+    ]);
+
+    debug(`remove: ${user.username} success,
+      sequelize: ${results[0]},
+      neo4j: ${results[1].summary.counters._stats.nodesDeleted}`);
+    return {
+      ...this._finalizeRemove(results[1]),
+      removed: results[0],
+      id,
+    };
   }
 
   async find(params) {

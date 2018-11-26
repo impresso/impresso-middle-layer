@@ -46,43 +46,36 @@ describe('\'users\' service', function () {
     assert.ok(result);
   });
 
-  it.only('create the user', async () => {
-    const created = await service.create({
-      username: 'guest-test-2',
-      password: 'Apitchapong!87',
-      email: 'guest-test-2@impresso-project.ch',
-    });
-    console.log(created);
-  });
-
-  it('remove then create the user', async () => {
+  it('create the user', async () => {
     const removed = await service.remove(user.username, {
       user: {
         is_staff: true,
       },
     });
-    assert.ok(removed.info._stats);
-
-    const created = await service.create({
-      username: 'guest-test-2',
-      password: 'Apitchapong!87',
-      email: 'guest-test-2@impresso-project.ch',
-    });
-    assert.ok(created);
-  });
-
-  it('change password', async () => {
-    const result = await service.patch(user.username, {
-      password: 'Apitchapong!84',
-    }, {
+    assert.ok(removed);
+    const created = await service.create(user, {
       user: {
         is_staff: true,
       },
     });
-    assert.ok(result);
+    assert.ok(created instanceof User);
+    assert.ok(created.profile);
+    assert.ok(created.isActive);
   });
 
-  it('find user guest-test-2', async () => {
+
+  // it('change password', async () => {
+  //   const result = await service.patch(user.username, {
+  //     password: 'Apitchapong!84',
+  //   }, {
+  //     user: {
+  //       is_staff: true,
+  //     },
+  //   });
+  //   assert.ok(result);
+  // });
+
+  it(`find user ${user.username}`, async () => {
     const users = await service.find({
       query: {
         email: user.email,
