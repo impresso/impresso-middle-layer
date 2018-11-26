@@ -1,4 +1,7 @@
 const debug = require('debug')('impresso/services:sequelize.utils');
+const {
+  Conflict, BadRequest, BadGateway, Unavailable,
+} = require('@feathersjs/errors');
 
 const Newspapers = require('../models/newspapers.model');
 
@@ -6,20 +9,19 @@ const models = {
   newspapers: Newspapers,
 };
 
-const sequelizeRecordMapper = record =>
-  /*
-   transform an array of sequelize model isntance to a nice Object
-   [ newspaper {
-     dataValues: { id: 1, uid: 'GDL', name: 'Journal de Geneve' },
-     _previousDataValues: { id: 1, uid: 'GDL', name: 'Journal de Geneve' },
-     _changed: {},
-     _modelOptions:
-    ...
-   ]
-  */
-  record.toJSON();
+const sequelizeErrorHandler = (err) => {
+  if (err.name === 'SequelizeUniqueConstraintError') {
+    debug(`sequelize failed. ConstraintValidationFailed: ${err}`);
+    throw new Conflict(`ConstraintValidationFailed: ${err.errors.map(d => d.message)}`);
+  } else {
+    debug('sequelize failed. Check error below.');
+    debug(err);
+  }
+  throw new BadRequest();
+};
 
 /**
+ * given goups od uids and services names, get db data
  * @param {Sequelize}
  * @param  {Array} groups
  * @return {object} object resolved
@@ -60,16 +62,10 @@ const resolveAsync = async (client, groups) => {
   });
   console.log(groups[0].items);
   return groups;
-  //   .filter(d => d.uids.length)
-  //   .map(d => this.app.service(d.service).get(d.uids.join(','), {
-  //     query: {},
-  //     user: params.user,
-  //     findAll: true, // this makes "findall" explicit, thus forcing the result as array
-  //   })).value())
 };
 
 module.exports = {
-  sequelizeRecordMapper,
+  sequelizeErrorHandler,
   resolveAsync,
   models,
 };
