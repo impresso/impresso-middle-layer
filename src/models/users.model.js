@@ -14,15 +14,17 @@ class User {
     username = '',
     isStaff = false,
     isActive = false,
+    isSuperuser = false,
     profile = new Profile(),
   } = {}) {
     this.username = String(username);
-    this.fisrtname = String(firstname);
+    this.firstname = String(firstname);
     this.lastname = String(lastname);
     this.password = String(password);
 
     this.isStaff = Boolean(isStaff);
     this.isActive = Boolean(isActive);
+    this.isSuperuser = Boolean(isSuperuser);
 
     if (profile instanceof Profile) {
       this.profile = profile;
@@ -84,8 +86,8 @@ class User {
     return result.password === parts[3];
   }
 
-  static sequelize(client, options = {}) {
-    const profile = Profile.sequelize(client);
+  static sequelize(client, config, options = {}) {
+    const profile = Profile.sequelize(client, config);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     const user = client.define('user', {
@@ -100,12 +102,14 @@ class User {
       },
       firstname: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: '',
         field: 'first_name',
       },
       lastname: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: '',
         field: 'last_name',
       },
       username: {
@@ -113,17 +117,28 @@ class User {
         allowNull: false,
         unique: true,
       },
-      isStaff: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-        field: 'is_staff',
-      },
       isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         field: 'is_active',
       },
+      isStaff: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'is_staff',
+      },
+      isSuperuser: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'is_superuser',
+      },
+      creationDate: {
+        type: DataTypes.DATE,
+        field: 'date_joined',
+        defaultValue: DataTypes.NOW,
+      },
     }, {
+      tableName: config.tables.users,
       scopes: {
         isActive: {
           where: {
@@ -150,11 +165,13 @@ class User {
       ...options,
     });
 
+
     user.hasOne(profile, {
       foreignKey: {
         fieldName: 'user_id',
       },
     });
+
     return user;
   }
 }
