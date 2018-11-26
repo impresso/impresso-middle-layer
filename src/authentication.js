@@ -5,7 +5,6 @@ const local = require('@feathersjs/authentication-local');
 const oauth2 = require('@feathersjs/authentication-oauth2');
 const GithubStrategy = require('passport-github').Strategy;
 const { Verifier } = require('@feathersjs/authentication-local');
-const { comparePassword } = require('./crypto');
 const User = require('./models/users.model');
 const { BadRequest } = require('@feathersjs/errors');
 /**
@@ -16,7 +15,7 @@ const { BadRequest } = require('@feathersjs/errors');
 class HashedPasswordVerifier extends Verifier {
   _comparePassword(user, password) {
     return new Promise((resolve, reject) => {
-      if(!user instanceof User) {
+      if (!(user instanceof User)) {
         debug('_comparePassword: user is not valid', user);
         return reject(new BadRequest('Login incorrect'));
       }
@@ -29,8 +28,9 @@ class HashedPasswordVerifier extends Verifier {
       if (!isValid) {
         return reject(new BadRequest('Login incorrect'));
       }
-
-      return resolve(user);
+      return resolve({
+        ...user,
+      });
     });
   }
 
@@ -60,6 +60,17 @@ module.exports = function () {
     before: {
       create: [
         authentication.hooks.authenticate(config.strategies),
+
+        // modify payload params
+        (context) => {
+          // enrich payload with staff and groups
+          context.params.payload = {
+            ...context.params.payload,
+            userId: context.params.user.uid,
+            isStaff: context.params.user.isStaff,
+            g: ['nda'],
+          };
+        },
       ],
       remove: [
         authentication.hooks.authenticate('jwt'),
