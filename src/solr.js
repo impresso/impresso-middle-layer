@@ -82,7 +82,7 @@ const findAll = (config, params = {}, factory) => {
 
     debug(
       `'findAll' success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
-      factory ? 'with factory' : 'but no factory specified'
+      factory ? 'with factory' : 'but no factory specified',
     );
 
     if (factory) {

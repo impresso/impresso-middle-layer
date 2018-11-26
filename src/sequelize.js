@@ -47,7 +47,7 @@ const getSequelizeClient = config => new Sequelize({
   username: config.auth.user,
   password: config.auth.pass,
   dialect: config.dialect,
-  logging: false,
+
   operatorsAliases,
 
   // do not look for dummy created_at or updated_at
@@ -57,9 +57,9 @@ const getSequelizeClient = config => new Sequelize({
   // define: {
   //   freezeTableName: true
   // }
-  logging: function (str) {
+  logging(str) {
     debug(str);
-  }
+  },
 });
 
 module.exports = function (app) {

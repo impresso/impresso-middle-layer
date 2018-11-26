@@ -1,10 +1,5 @@
 const crypto = require('crypto');
 
-const comparePassword = (password, encrypted, options) => {
-  const enc = encrypt(password, options);
-  return enc.password === encrypted;
-}
-
 const encrypt = (password, options) => {
   const configs = {
     iterations: 4096,
@@ -13,10 +8,10 @@ const encrypt = (password, options) => {
     encoding: 'hex',
     ...options,
   };
-  if( typeof configs.salt !== 'string') {
+  if (typeof configs.salt !== 'string') {
     configs.salt = crypto.randomBytes(16).toString(configs.encoding);
   }
-  
+
   if (typeof configs.formatPassword !== 'function') {
     // default concatenation with double column
     configs.formatPassword = (p, c) => `${c.secret}::${c.salt}::${p}`;
@@ -34,8 +29,12 @@ const encrypt = (password, options) => {
   };
 };
 
+const comparePassword = (password, encrypted, options) => {
+  const enc = encrypt(password, options);
+  return enc.password === encrypted;
+};
+
 module.exports = {
   encrypt,
   comparePassword,
-  // parseBase64EncryptedPassword,
 };

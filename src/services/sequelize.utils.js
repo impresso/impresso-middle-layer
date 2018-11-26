@@ -1,6 +1,6 @@
 const debug = require('debug')('impresso/services:sequelize.utils');
 const {
-  Conflict, BadRequest, BadGateway, Unavailable,
+  Conflict, BadRequest,
 } = require('@feathersjs/errors');
 
 const Newspapers = require('../models/newspapers.model');
