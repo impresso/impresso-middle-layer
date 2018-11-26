@@ -63,6 +63,18 @@ class Service extends Neo4jService {
           user_id: createdUser.id,
         })
         .catch(sequelizeErrorHandler);
+
+      await this._run(this.queries.create, {
+        ...data.sanitized,
+        ...user,
+        provider: user.profile.provider,
+      }).then(res =>
+      // console.log(res.records, res);
+        res.records.map(neo4jRecordMapper).map(d => ({
+          ...d,
+          id: d.id,
+        })));
+
       debug(`create user: ${user.uid} success`);
     }
     // if (params.oauth && params.oauth.provider === 'github' && data.github) {
@@ -84,15 +96,8 @@ class Service extends Neo4jService {
     //   });
     // }
     //
-    // const result = this._run(this.queries.create, {
-    //   ...data.sanitized,
-    //   ...user,
-    // }).then(res =>
-    //   // console.log(res.records, res);
-    //   res.records.map(neo4jRecordMapper).map(d => ({
-    //     ...d,
-    //     id: d.id,
-    //   })));
+
+
     //
     // return result;
     // return data;

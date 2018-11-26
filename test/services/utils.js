@@ -11,7 +11,7 @@ const removeGeneratedUser = async (user) => {
 const generateUser = async (user) => {
   await removeGeneratedUser(user);
   const result = await app.service('users').create(user);
-  return result[0];
+  return result;
 };
 
 
