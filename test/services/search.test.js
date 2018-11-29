@@ -49,6 +49,9 @@ describe('\'search\' service', function () {
       query: {
         group_by: 'articles',
         facets: ['year'],
+        page:2,
+        limit:12,
+        order_by:'-relevance',
       },
     });
     assert.ok(result.info.queryComponents);
