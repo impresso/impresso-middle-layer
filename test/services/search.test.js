@@ -16,10 +16,10 @@ const app = require('../../src/app');
 describe('\'search\' service', function () {
   this.timeout(10000);
   const service = app.service('search');
-  const staff = {
-    uid: 'local-user-test-only',
-    is_staff: true,
-  };
+  // const staff = {
+  //   uid: 'local-user-test-only',
+  //   is_staff: true,
+  // };
 
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
@@ -49,9 +49,9 @@ describe('\'search\' service', function () {
       query: {
         group_by: 'articles',
         facets: ['year'],
-        page:2,
-        limit:12,
-        order_by:'-relevance',
+        page: 2,
+        limit: 12,
+        order_by: '-relevance',
       },
     });
     assert.ok(result.info.queryComponents);
@@ -110,72 +110,73 @@ describe('\'search\' service', function () {
     assert.ok(results.data.length);
   });
 
-  it('loaded solr content, filters & facets, with current user having a bucket ;)', async () => {
-    // remove the bucket if any
-    const removedBucket = await app.service('buckets').remove('local-bucket-test-only', {
-      user: staff,
-    });
-    assert.ok(removedBucket);
-
-    // create a bucket for the user staff. Beign staff allows to create buckets with a given name.
-    const createBucket = await app.service('buckets').create({
-      bucket_uid: 'local-bucket-test-only',
-      name: 'local-bucket-test-only',
-    }, {
-      user: staff,
-    });
-
-    assert.equal(createBucket.data.uid, 'local-bucket-test-only');
-    assert.equal(createBucket.data.name, 'local-bucket-test-only');
-    assert.equal(createBucket.info._stats.nodesCreated, 1);
-
-    const createBucketsItems = await app.service('buckets-items').create({
-      bucket_uid: createBucket.data.uid,
-      items: [{
-        label: 'article',
-        uid: 'GDL-1950-03-29-a-i0138',
-      }],
-    }, {
-      user: staff,
-    }).catch(assert.fail);
-    // save article to buckets
-    assert.ok(createBucketsItems);
-
-    const res = await service.find({
-      query: {
-        q: 'ambassad*',
-        group_by: 'articles',
-        limit: 3,
-        facets: [
-          'language',
-        ],
-        filters: [
-          {
-            type: 'string',
-            context: 'include',
-            q: 'avion accident',
-          },
-          {
-            type: 'string',
-            context: 'exclude',
-            q: 'suisse',
-          },
-        ],
-      },
-      user: {
-        uid: 'local-user-test-only',
-      },
-    }).catch((err) => {
-      console.log(err.data);
-    });
-
-    // console.log(res.data[0]);
-    assert.ok(res.data.length);
-    assert.ok(res.data[0].matches.length);
-    if (res.data[0].uid === 'GDL-1950-03-29-a-i0138') {
-      assert.equal(res.data[0].buckets.length > 0, true);
-    }
-  });
+  // it('loaded solr content, filters & facets, with current user having a bucket ;)', async () => {
+  //   // remove the bucket if any
+  //   const removedBucket = await app.service('buckets').remove('local-bucket-test-only', {
+  //     user: staff,
+  //   });
+  //   assert.ok(removedBucket);
+  //
+  //   // create a bucket for the user staff.
+  //   // Beign staff allows to create buckets with a given name.
+  //   const createBucket = await app.service('buckets').create({
+  //     bucket_uid: 'local-bucket-test-only',
+  //     name: 'local-bucket-test-only',
+  //   }, {
+  //     user: staff,
+  //   });
+  //
+  //   assert.equal(createBucket.data.uid, 'local-bucket-test-only');
+  //   assert.equal(createBucket.data.name, 'local-bucket-test-only');
+  //   assert.equal(createBucket.info._stats.nodesCreated, 1);
+  //
+  //   const createBucketsItems = await app.service('buckets-items').create({
+  //     bucket_uid: createBucket.data.uid,
+  //     items: [{
+  //       label: 'article',
+  //       uid: 'GDL-1950-03-29-a-i0138',
+  //     }],
+  //   }, {
+  //     user: staff,
+  //   }).catch(assert.fail);
+  //   // save article to buckets
+  //   assert.ok(createBucketsItems);
+  //
+  //   const res = await service.find({
+  //     query: {
+  //       q: 'ambassad*',
+  //       group_by: 'articles',
+  //       limit: 3,
+  //       facets: [
+  //         'language',
+  //       ],
+  //       filters: [
+  //         {
+  //           type: 'string',
+  //           context: 'include',
+  //           q: 'avion accident',
+  //         },
+  //         {
+  //           type: 'string',
+  //           context: 'exclude',
+  //           q: 'suisse',
+  //         },
+  //       ],
+  //     },
+  //     user: {
+  //       uid: 'local-user-test-only',
+  //     },
+  //   }).catch((err) => {
+  //     console.log(err.data);
+  //   });
+  //
+  //   // console.log(res.data[0]);
+  //   assert.ok(res.data.length);
+  //   assert.ok(res.data[0].matches.length);
+  //   if (res.data[0].uid === 'GDL-1950-03-29-a-i0138') {
+  //     assert.equal(res.data[0].buckets.length > 0, true);
+  //   }
+  // });
 
   it('load solr content sorted by date', async () => {
     const res = await service.find({

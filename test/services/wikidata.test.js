@@ -11,11 +11,10 @@ src/services/wikidata.js --fix \
 describe('test wikidata', function () {
   this.timeout(5000);
 
-  it.only('get wikidata Q42', async () => {
+  it('get wikidata Q42', async () => {
     const entity = await wikidata.resolve({
       ids: ['Q42'],
     });
-    console.log(entity);
     assert.ok(entity);
   });
 });

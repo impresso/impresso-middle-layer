@@ -40,12 +40,6 @@ describe('\'users\' service', function () {
   });
 
 
-  it('get user', async () => {
-    const result = await service.get('local-user-test-only');
-    console.log(result);
-    assert.ok(result);
-  });
-
   it('create the user', async () => {
     const removed = await service.remove(user.username, {
       user: {
@@ -61,6 +55,12 @@ describe('\'users\' service', function () {
     assert.ok(created instanceof User);
     assert.ok(created.profile);
     assert.ok(created.isActive);
+  });
+
+  it('get user', async () => {
+    const result = await service.get(user.username);
+    assert.ok(result.uid);
+    assert.ok(result.id);
   });
 
 
