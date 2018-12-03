@@ -37,8 +37,8 @@ class NamedEntity {
   }
 
   resolvePendings(entities) {
-    console.log('RESOLVE', entities, this.getPendings());
-    // console.log(`resolvePendings for ${this.id}`);
+    // console.log('RESOLVE', entities, this.getPendings());
+    debug(`resolvePendings for ${this.id}`);
     this.getPendings().forEach((id) => {
       if (entities[id]) {
         this._pendings[id].forEach((property) => {
