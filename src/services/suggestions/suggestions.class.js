@@ -56,7 +56,12 @@ const getMentions = async ({ config = {}, params = {} } = {}) => {
     q,
   }, Mention.solrFactory);
   // apply limit
-  return lodash.take(results, 5);
+  return lodash.take(results, 5).map(d => ({
+    q: d.name,
+    type: 'mention',
+    itme: d,
+    context: 'include',
+  }));
 };
 /**
  * Retrieve a list of mention filters for the autocomplete function
