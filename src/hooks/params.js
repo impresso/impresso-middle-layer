@@ -1,6 +1,27 @@
 const errors = require('@feathersjs/errors');
 const debug = require('debug')('impresso/hooks:params');
 
+const toSequelizeLike = (query) => {
+  // replace all non nice characters.
+  // for a two spaces word like "accent octoup", outputs:
+  // {
+  //   $and: [
+  //     {$like: '%accen%',}
+  //     {$like: '%octoup%',}
+  //   ],
+  // },
+  const escapeds = query.split(/\s+/).map(d => ({
+    $like: `%${d.replace(/[%()]/g, '')}%`,
+  }));
+
+  if (escapeds.length > 1) {
+    return {
+      $and: escapeds,
+    };
+  }
+  return escapeds.pop();
+};
+
 const toLucene = (query, forceFuzzy = true) => {
   // @todo excape chars + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 
@@ -69,14 +90,19 @@ const translate = (key, dict) => dict[key];
 
 const _validateOne = (key, item, rule) => {
   const _errors = {};
+  let _item;
   // it is required
-  if (rule.required === true && typeof item === 'undefined') {
-    _errors[key] = {
-      code: 'NotFound',
-      message: `${key} required`,
-    };
-  } else if (typeof item === 'undefined') {
-    return null;
+  if (typeof item === 'undefined') {
+    if (rule.required === true) {
+      _errors[key] = {
+        code: 'NotFound',
+        message: `${key} required`,
+      };
+    } else if (rule.defaultValue) {
+      _item = rule.defaultValue;
+    } else {
+      return null;
+    }
   }
 
   if (rule.max_length && item.length > rule.max_length) {
@@ -114,18 +140,18 @@ const _validateOne = (key, item, rule) => {
     };
   }
 
+  if (Object.keys(_errors).length) {
+    debug('_validateOne: errors:', _errors);
+    throw new errors.BadRequest(_errors);
+  }
+
   // sanitize/transform params
-  let _item;
   if (typeof rule.transform === 'function') {
     _item = rule.transform(item);
   } else {
     _item = item;
   }
 
-  if (Object.keys(_errors).length) {
-    debug('_validateOne: errors:', _errors);
-    throw new errors.BadRequest(_errors);
-  }
 
   return _item;
 };
@@ -142,6 +168,8 @@ const _validate = (params, rules) => {
           code: 'NotFound',
           message: `${key} required`,
         };
+      } else if (typeof rules[key].defaultValue !== 'undefined') {
+        _params[key] = _validateOne(key, rules[key].defaultValue, rules[key]);
       }
     } else {
       // special before hook (e.g; split comma separated values before applying a rule)
@@ -276,7 +304,9 @@ const queryWithCurrentExecUser = () => async (context) => {
   if (context.params.user) {
     debug(`queryWithCurrentExecUser: add '_exec_user_uid':'${context.params.user.uid}' to the query `);
     context.params.query._exec_user_uid = context.params.user.uid;
-    context.params.query._exec_user_is_staff = context.params.user.is_staff;
+    context.params.query._exec_user_is_staff =
+      context.params.user.is_staff ||
+      context.params.user.isStaff;
   } else {
     debug('queryWithCurrentExecUser: cannot add \'_exec_user_uid\', no user found in \'context.params\'');
   }
@@ -487,5 +517,6 @@ module.exports = {
     toOrderBy,
     toLucene,
     translate,
+    toSequelizeLike,
   },
 };
