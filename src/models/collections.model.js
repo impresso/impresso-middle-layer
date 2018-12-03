@@ -1,3 +1,10 @@
+const nanoid = require('nanoid');
+const { DataTypes } = require('sequelize');
+const User = require('./users.model');
+
+const STATUS_PUBLIC = 'PUB';
+const STATUS_PRIVATE = 'PRI';
+
 class Collection {
   constructor({
     uid = '',
@@ -6,12 +13,14 @@ class Collection {
     labels = ['bucket', 'collection'],
     creationDate = new Date(),
     lastModifiedDate = new Date(),
+    creator = new User(),
+    countItems = 0,
   } = {}, complete = false) {
     this.uid = String(uid);
     this.labels = labels;
     this.name = String(name);
     this.description = String(description);
-
+    this.countItems = parseInt(countItems, 10);
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate);
 
     if (lastModifiedDate instanceof Date) {
@@ -20,20 +29,106 @@ class Collection {
       this.lastModifiedDate = new Date(lastModifiedDate);
     }
 
+    if (creator instanceof User) {
+      this.creator = creator;
+    } else {
+      this.creator = new User(creator);
+    }
+
+    if (!this.uid.length) {
+      this.uid = `${this.creator.uid}-${nanoid(8)}`; //= > "local-useruid-7hy8hvrX"
+    }
+
     if (complete) {
       // TODO: fill
     }
   }
+
+  static sequelize(client) {
+    const creator = User.sequelize(client);
+    // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
+    // for more of what you can do here.
+    const collection = client.define('collection', {
+      uid: {
+        type: DataTypes.STRING(50),
+        primaryKey: true,
+        unique: true,
+        field: 'id',
+      },
+      name: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+        defaultValue: '',
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        defaultValue: '',
+      },
+      status: {
+        type: DataTypes.TEXT('tiny'),
+        defaultValue: STATUS_PRIVATE,
+      },
+      creationDate: {
+        type: DataTypes.DATE,
+        field: 'date_created',
+        defaultValue: DataTypes.NOW,
+      },
+      lastModifiedDate: {
+        type: DataTypes.DATE,
+        field: 'date_last_modified',
+        defaultValue: DataTypes.NOW,
+      },
+      countItems: {
+        type: DataTypes.INTEGER,
+        field: 'count_items',
+        defaultValue: 0,
+      },
+      creator_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+    }, {
+      defaultScope: {
+        include: [
+          {
+            model: creator,
+            as: 'creator',
+          },
+        ],
+      },
+
+      scopes: {
+        findAll: {
+          include: [
+            {
+              model: creator,
+              as: 'creator',
+            },
+          ],
+        },
+        get: {
+          include: [
+            {
+              model: creator,
+              as: 'creator',
+            },
+          ],
+        },
+      },
+    });
+
+    collection.belongsTo(creator, {
+      as: 'creator',
+      foreignKey: {
+        fieldName: 'creator_id',
+      },
+      onDelete: 'CASCADE',
+    });
+    return collection;
+  }
 }
 
-module.exports = function () { // app) {
-  // const config = app.get('sequelize');
-  // const issue = model(app.get('sequelizeClient'), {});
-  //
-  // return {
-  //   sequelize: issue,
-  // };
-};
-
-// module.exports.model = model;
-module.exports.Model = Collection;
+module.exports = Collection;
+module.exports.STATUS_PUBLIC = STATUS_PUBLIC;
+module.exports.STATUS_PRIVATE = STATUS_PRIVATE;

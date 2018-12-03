@@ -1,11 +1,14 @@
+const config = require('@feathersjs/configuration')()();
 const { DataTypes } = require('sequelize');
-const Profile = require('./profiles.model');
 const { encrypt } = require('../crypto');
+
+const Profile = require('./profiles.model');
 
 const CRYPTO_ITERATIONS = 120000;
 
 class User {
   constructor({
+    id = 0,
     uid = '',
     firstname = '',
     lastname = '',
@@ -17,6 +20,7 @@ class User {
     isSuperuser = false,
     profile = new Profile(),
   } = {}) {
+    this.id = parseInt(id, 10);
     this.username = String(username);
     this.firstname = String(firstname);
     this.lastname = String(lastname);
@@ -86,11 +90,17 @@ class User {
     return result.password === parts[3];
   }
 
-  static sequelize(client, config, options = {}) {
-    const profile = Profile.sequelize(client, config);
+  static sequelize(client) {
+    const profile = Profile.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     const user = client.define('user', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        unique: true,
+      },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -138,7 +148,15 @@ class User {
         defaultValue: DataTypes.NOW,
       },
     }, {
-      tableName: config.tables.users,
+      tableName: config.sequelize.tables.users,
+      defaultScope: {
+        include: [
+          {
+            model: profile,
+            as: 'profile',
+          },
+        ],
+      },
       scopes: {
         isActive: {
           where: {
@@ -162,7 +180,6 @@ class User {
           ],
         },
       },
-      ...options,
     });
 
 

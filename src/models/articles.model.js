@@ -155,10 +155,10 @@ class Article {
     content = '',
     size = 0,
     // dl = 0,
-    issue = new Issue.Model(),
+    issue = new Issue(),
     // labels = [],
 
-    newspaper = new Newspaper.Model(),
+    newspaper = new Newspaper(),
 
     pages = [],
     // regions = [],
@@ -195,7 +195,8 @@ class Article {
       this.excerpt = String(excerpt);
     } else if (this.content.length) {
       this.excerpt = truncatise(this.content, {
-        TruncateLength: 100,
+        TruncateBy: 'words',
+        TruncateLength: 50,
       });
     } else {
       this.excerpt = '';
@@ -301,20 +302,20 @@ const solrFactory = res => (doc) => {
     content: doc[`content_txt_${doc.lg_s}`],
     size: doc.content_length_i,
 
-    newspaper: new Newspaper.Model({
+    newspaper: new Newspaper({
       uid: doc.meta_journal_s,
     }),
-    issue: new Issue.Model({
+    issue: new Issue({
       uid: doc.meta_issue_id_s,
     }),
 
     country: doc.meta_country_code_s,
     year: doc.meta_year_i,
     date: new Date(doc.meta_date_dt),
-    pages: doc.page_id_ss.map((d, i) => new Page({
+    pages: Array.isArray(doc.page_id_ss) ? doc.page_id_ss.map((d, i) => new Page({
       uid: d,
       num: doc.page_nb_is[i],
-    })),
+    })) : [],
     nbPages: doc.nb_pages_i,
     // front_b
     isFront: doc.front_b,
