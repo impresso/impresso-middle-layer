@@ -56,6 +56,7 @@ class Service extends Neo4jService {
       user.profile.provider = 'local';
       user.profile.uid = `local-${nanoid(8)}`; //= > "7hy8hvrX"
       user.uid = user.profile.uid;
+      user.id = createdUser.id;
 
       await Profile.sequelize(this.sequelize)
         .create({
