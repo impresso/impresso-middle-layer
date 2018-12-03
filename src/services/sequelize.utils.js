@@ -30,7 +30,7 @@ const resolveAsync = async (client, groups) => {
   debug('resolveAsync: ', groups);
 
   const promises = groups.map((g, k) => {
-    const klass = models[g.service].model(client);
+    const klass = models[g.service].sequelize(client);
 
 
     const idxs = {};

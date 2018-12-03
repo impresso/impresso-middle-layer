@@ -17,8 +17,8 @@ class FusionService {
 
     const modelKlass = `../models/${options.name}.model`;
 
-    this.sequelizeKlass = require(modelKlass)
-      .model(this.sequelize);
+    this.Klass = require(modelKlass);
+    this.sequelizeKlass = this.Klass.sequelize(this.sequelize);
 
 
     this.name = options.name;

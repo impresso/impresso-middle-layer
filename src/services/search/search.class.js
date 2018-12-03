@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const lodash = require('lodash');
 const debug = require('debug')('impresso/services:search');
 const solr = require('../../solr');
 const { SOLR_INVERTED_GROUP_BY } = require('../../hooks/search');
@@ -8,6 +9,7 @@ const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
 const { resolveAsync } = require('../sequelize.utils');
 const article = require('../../models/articles.model');
+const Newspaper = require('../../models/newspapers.model');
 
 class Service {
   /**
@@ -126,10 +128,22 @@ class Service {
     });
 
     // merge results maintaining solr ordering.
-    results = _solr.response.docs.map(d => ({
-      ...d,
-      ...itemsFromNeo4j[d.uid] || {},
-    }));
+    results = _solr.response.docs.map((d) => {
+      let newspaper = d.newspaper;
+
+      if (facets.newspaper && facets.newspaper.buckets) {
+        const facetedNewspaper = facets.newspaper.buckets.find(n => n.uid === d.newspaper.uid);
+        if (facetedNewspaper.item) {
+          newspaper = new Newspaper(facetedNewspaper.item);
+        }
+      }
+
+      return {
+        ...d,
+        ...itemsFromNeo4j[d.uid] || {},
+        newspaper,
+      };
+    });
 
     return Service.wrap(results, params.query.limit, params.query.skip, total, {
       responseTime: {
