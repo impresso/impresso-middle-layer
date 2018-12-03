@@ -9,14 +9,62 @@ const lodash = require('lodash');
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
 
+const isPlainText = q =>
+  // exclude suggestion when there is a complete regexp
+  !q.match(/^\/|\/$/);
 
+const getNewspapers = async ({ app, params = {} } = {}) => {
+  if (!isPlainText(params.query.q)) {
+    return [];
+  }
+  const q = params.query.q // regexp
+    .replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '')
+    .trim();
+  // get newspapers like xy
+  //
+  const results = await app.service('newspapers').find({
+    query: {
+      q,
+      limit: 3,
+    },
+  });
+
+  console.log('getNewspapers', results);
+  return results.data.map(d => ({
+    type: 'newspaper',
+    q: d.uid,
+    uid: d.uid,
+    item: d,
+    context: 'include',
+  }));
+};
+
+const getMentions = async ({ config = {}, params = {} } = {}) => {
+  if (!isPlainText(params.query.q)) {
+    return [];
+  }
+
+  const q = params.query.q // regexp
+    .replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '')
+    .trim();
+
+  // clean fpr get mentions
+  const results = await solr.client(config).suggest({
+    // use solr mention index for that.
+    namespace: 'mentions',
+    // query
+    q,
+  }, Mention.solrFactory);
+  // apply limit
+  return lodash.take(results, 5);
+};
 /**
  * Retrieve a list of mention filters for the autocomplete function
  * @param  {Object}  [config={}] Solr configuration
  * @param  {Object}  [params={}] must contains a search query `params.query.q` and `namespace`
  * @return {Promise}
  */
-const getMentions = async ({ config = {}, params = {} } = {}) => {
+const getOldMentions = async ({ config = {}, params = {} } = {}) => {
   // exclude suggestion when there is a complete regexp
   if (params.query.q.match(/^\/|\/$/)) {
     return [];
@@ -151,7 +199,11 @@ class Service extends Neo4jService {
     const results = await Promise.all([
       asregex(),
       dateranges(), // dates(),
-      entities(),
+      // entities(),
+      getNewspapers({
+        params,
+        app: this.app,
+      }),
       getMentions({
         params,
         config: this.app.get('solr'),

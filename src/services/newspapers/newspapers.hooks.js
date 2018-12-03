@@ -1,11 +1,20 @@
-const { queryWithCommonParams } = require('../../hooks/params');
+const { queryWithCommonParams, validate, utils } = require('../../hooks/params');
 
 module.exports = {
   before: {
     all: [
+
+    ],
+    find: [
+      validate({
+        q: {
+          required: false,
+          max_length: 500,
+          transform: d => utils.toSequelizeLike(d),
+        },
+      }),
       queryWithCommonParams(),
     ],
-    find: [],
     get: [],
     create: [],
     update: [],

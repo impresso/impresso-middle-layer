@@ -15,14 +15,12 @@ class Mention {
   }
 
   static solrFactory() {
-    return doc => new Mention({
-      name: doc.l_s,
-      type: doc.t_s,
-      frequence: doc.fq_i,
+    return suggestion => new Mention({
+      name: suggestion.term,
+      type: suggestion.payload,
+      frequence: suggestion.weight,
     });
   }
 }
 
-
-module.exports.solrFactory = Mention.solrFactory;
-module.exports.Model = Mention;
+module.exports = Mention;
