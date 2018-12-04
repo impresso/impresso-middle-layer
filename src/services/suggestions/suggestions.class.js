@@ -45,7 +45,7 @@ const getNewspapers = async ({ app, params = {} } = {}) => {
 /**
  * Retrieve a list of mention filters for the autocomplete function
  * @param  {Object}  [config={}] Solr configuration
- * @param  {Object}  [params={}] must contains a search query `params.query.q` and `namespace`
+ * @param  {Object}  [params={}] must contains a search query `params.query.q`
  * @return {Promise}
  */
 const getMentions = async ({ config = {}, params = {} } = {}) => {
