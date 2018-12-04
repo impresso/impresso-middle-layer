@@ -1,11 +1,14 @@
 /* eslint-disable no-unused-vars */
 const chrono = require('chrono-node');
-const solr = require('../../solr');
 const moment = require('moment');
+const lodash = require('lodash');
+
+const solr = require('../../solr');
 const { neo4jRecordMapper, neo4jToLucene } = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
+
 const Mention = require('../../models/mentions.model');
-const lodash = require('lodash');
+const Suggestion = require('../../models/suggestions.model');
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
 
@@ -29,7 +32,7 @@ const getNewspapers = async ({ app, params = {} } = {}) => {
     },
   });
 
-  console.log('getNewspapers', results);
+  // console.log('getNewspapers', results);
   return results.data.map(d => ({
     type: 'newspaper',
     q: d.uid,
@@ -39,6 +42,12 @@ const getNewspapers = async ({ app, params = {} } = {}) => {
   }));
 };
 
+/**
+ * Retrieve a list of mention filters for the autocomplete function
+ * @param  {Object}  [config={}] Solr configuration
+ * @param  {Object}  [params={}] must contains a search query `params.query.q` and `namespace`
+ * @return {Promise}
+ */
 const getMentions = async ({ config = {}, params = {} } = {}) => {
   if (!isPlainText(params.query.q)) {
     return [];
@@ -54,56 +63,28 @@ const getMentions = async ({ config = {}, params = {} } = {}) => {
     namespace: 'mentions',
     // query
     q,
-  }, Mention.solrFactory);
-  // apply limit
-  return lodash.take(results, 5).map(d => ({
-    q: d.name,
-    type: d.type,
-    item: d,
-    context: 'include',
-  }));
-};
-/**
- * Retrieve a list of mention filters for the autocomplete function
- * @param  {Object}  [config={}] Solr configuration
- * @param  {Object}  [params={}] must contains a search query `params.query.q` and `namespace`
- * @return {Promise}
- */
-const getOldMentions = async ({ config = {}, params = {} } = {}) => {
-  // exclude suggestion when there is a complete regexp
-  if (params.query.q.match(/^\/|\/$/)) {
-    return [];
-  }
+  }, () => (doc) => {
+    const mention = new Mention({
+      name: doc.term.replace(/<[^>]*>/g, ''),
+      frequence: doc.weight,
+      type: doc.payload,
+    });
 
-  const q = params.query.q
-    // regexp
-    .replace('.*', ' ')
-    .replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '')
-    .trim()
-    .split(/\s/)
-    .map(d => `l_s:${d}*`)
-    .join(' AND ');
-  console.log(`transform ${params.query.q} in ${q}`);
-  const results = await solr.client(config).findAll({
-    // use solr mention index for that.
-    namespace: 'mentions',
-    // top three mentions to be used as exact
-    limit: 3,
-    // sort by frequence
-    order_by: 'fq_i desc',
-    // the super simplified query
-    q,
-  }, Mention.solrFactory);
+    return new Suggestion({
+      q: mention.name,
+      h: doc.term,
+      type: mention.type,
+      item: mention,
+    });
+  });
 
-  if (!results.response.numFound) {
-    return [];
-  }
-
-  return results.response.docs.map(d => ({
-    type: d.type,
-    q: d.name,
-    context: 'include',
-  }));
+  return lodash.take(results, 5);
+  // // apply limit
+  // return lodash.take(results, 5).map(d => new Suggestion({
+  //   h: d.name,
+  //   type: d.type,
+  //   item: d,
+  // }));
 };
 
 
@@ -209,6 +190,10 @@ class Service extends Neo4jService {
         params,
         app: this.app,
       }),
+      // getTopics({
+      //   params,
+      //   config: this.app.get('solr'),
+      // }),
       getMentions({
         params,
         config: this.app.get('solr'),

@@ -25,9 +25,9 @@ describe('\'suggestions\' service', function () {
         },
       },
     });
-    console.log(results);
-    // assert.ok(results);
-    // assert.ok(results[0].type, 'Contains a Mention suggestion object');
+    // console.log(results);
+    assert.ok(results);
+    // assert.ok(results[0]., 'Contains a Mention suggestion object');
   });
 
   it('test getMentions sub service', async () => {
@@ -99,7 +99,7 @@ describe('\'suggestions\' service', function () {
       console.log(err);
       throw err;
     });
-    console.log(suggestions);
+    // console.log(suggestions);
     assert.ok(suggestions.data.length);
     // assert.equal(suggestions.data[0].daterange, '1956-10-01T10:00:00Z TO 1956-10-31T23:59:59Z');
   });
