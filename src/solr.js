@@ -7,7 +7,7 @@ const suggest = (config, params = {}, factory) => {
   const _params = {
     q: '',
     dictionary: 'm_suggester_infix',
-    cfq: 'Person', // or ''
+    cfq: '', // or 'Person' or 'Location'
     limit: 10,
     skip: 0,
     excerptLength: 30,

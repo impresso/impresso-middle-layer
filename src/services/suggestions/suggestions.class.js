@@ -58,8 +58,8 @@ const getMentions = async ({ config = {}, params = {} } = {}) => {
   // apply limit
   return lodash.take(results, 5).map(d => ({
     q: d.name,
-    type: 'mention',
-    itme: d,
+    type: d.type,
+    item: d,
     context: 'include',
   }));
 };
