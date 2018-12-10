@@ -56,10 +56,18 @@ class Service {
       uid: id,
       $or: [
         {
-          status: Collection.STATUS_PUBLIC,
           '$creator.profile.uid$': params.user.uid,
         },
-      ],
+        {
+          '$creator.id$': params.user.id,
+        }
+      ]
+      // $or: [
+      //   {
+      //     status: Collection.STATUS_PUBLIC,
+      //     '$creator.profile.uid$': params.user.uid,
+      //   },
+      // ],
     };
 
     const collection = await this.sequelizeKlass.scope('get').findOne({
