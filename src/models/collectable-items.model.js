@@ -2,19 +2,33 @@ const { DataTypes } = require('sequelize');
 const Collection = require('./collections.model');
 const SearchQuery = require('./searchQueries.model');
 
+const CONTENT_TYPES = {
+  article: 'A',
+  page: 'P',
+  issue: 'I',
+};
+
 class CollectableItem {
   constructor({
+    id = -1,
+    uid = null,
     itemId = '',
     contentType = '',
     collection = null,
     searchQuery = null,
     dateAdded = new Date(),
   } = {}) {
+    this.id = parseInt(id, 10);
+    this.uid = String(uid || this.id);
     this.itemId = String(itemId);
-    this.contentType = String(contentType);
+    this.contentType = String(CONTENT_TYPES[contentType] || '');
     if (collection instanceof Collection) {
       this.collection = collection;
-    } else {
+    } else if (collection) {
+      // note: this avoids sequelize error
+      // ```
+      // cannot destructure property `uid` of 'undefined' or 'null'.
+      // ```
       this.collection = new Collection(collection);
     }
 
@@ -30,12 +44,19 @@ class CollectableItem {
     }
   }
 
+
   static sequelize(client) {
     const collection = Collection.sequelize(client);
     const searchQuery = SearchQuery.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     const collectableItem = client.define('collectableItem', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        unique: true,
+      },
       itemId: {
         type: DataTypes.STRING(50),
         field: 'item_id',
@@ -49,16 +70,39 @@ class CollectableItem {
         field: 'date_added',
         defaultValue: DataTypes.NOW,
       },
+      collectionId: {
+        type: DataTypes.STRING(50),
+        field: 'collection_id',
+      },
     }, {
-      table_name: 'collectable_items',
+      tableName: 'collectable_items',
+      defaultScope: {
+        include: [
+          {
+            model: collection,
+            as: 'collection',
+          },
+        ],
+      },
+      scopes: {
+        simple: {
+          include: [],
+        },
+      },
     });
 
     collectableItem.belongsTo(searchQuery, {
       onDelete: 'SET NULL',
+      foreignKey: {
+        fieldName: 'search_query_id',
+      },
     });
 
     collectableItem.belongsTo(collection, {
       onDelete: 'CASCADE',
+      foreignKey: {
+        fieldName: 'collection_id',
+      },
     });
 
     return collectableItem;
