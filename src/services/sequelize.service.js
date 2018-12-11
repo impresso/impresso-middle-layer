@@ -27,10 +27,6 @@ class SequelizeService {
     return sequelizeErrorHandler(err);
   }
 
-  static wrapMany(results) {
-
-  }
-
   async bulkRemove(where) {
     return this.sequelizeKlass.destroy({
       where,
@@ -47,29 +43,29 @@ class SequelizeService {
       offset: params.query.skip,
       order: params.query.order_by,
     };
-    debug(`'find' ${this.name} with params:`, p);
-    if(params.where) {
+    debug(`'find' ${this.name} with params:`, params);
+
+    if (params.where) {
       p.where = params.where;
     }
-    if(params.distinct) {
+    if (params.distinct) {
       p.distinct = params.distinct;
     }
 
     let fn = this.sequelizeKlass;
 
-    if(params.scope) {
+    if (params.scope) {
       fn = this.sequelizeKlass.scope(params.scope);
     }
 
     return fn.findAndCountAll(p)
       .catch(sequelizeErrorHandler)
-      .then(res => {
-        console.log(res.rows[0].toJSON());
-        return res;
-      })
+      // .then((res) => {
+      //   return res;
+      // })
       .then(res => ({
         data: res.rows.map(d => new this.Model({
-          ... d.toJSON()
+          ...d.toJSON(),
         })),
         total: res.count,
         limit: params.query.limit,

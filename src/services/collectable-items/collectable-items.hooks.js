@@ -1,6 +1,6 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  queryWithCommonParams, validate, validateEach, utils, REGEX_UID,
+  queryWithCommonParams, validate, validateEach, utils, REGEX_UID, REGEX_UIDS,
 } = require('../../hooks/params');
 
 module.exports = {
@@ -8,8 +8,10 @@ module.exports = {
     all: [authenticate('jwt')],
     find: [
       validate({
-        uids: {
+        item_uids: {
           required: false,
+          regex: REGEX_UIDS,
+          after: d => (Array.isArray(d) ? d : d.split(',')),
         },
         order_by: {
           choices: ['-date', 'date'],
@@ -19,8 +21,9 @@ module.exports = {
             '-date': [['date_added', 'DESC']],
           }),
         },
-      }),
-      queryWithCommonParams()],
+      }, 'GET'),
+      queryWithCommonParams(),
+    ],
     get: [],
     create: [
       validate({

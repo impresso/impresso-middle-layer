@@ -1,7 +1,7 @@
 /**
  *
  */
-class Suggestion{
+class Suggestion {
   constructor({
     // the text for the search query, cleaned. E.g, Suiss
     q = '',
@@ -13,12 +13,12 @@ class Suggestion{
     // item content type if any item is present; otherwise
     type = '',
 
-    context =  'include',
+    context = 'include',
     precision = 'normal',
-  } = {}){
+  } = {}) {
     this.q = String(q);
     this.h = String(h);
-    if(item) {
+    if (item) {
       this.item = item;
     }
     this.type = String(type);

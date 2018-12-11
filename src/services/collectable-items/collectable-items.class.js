@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services/collectable-items');
 const { NotFound } = require('@feathersjs/errors');
 
 const SequelizeService = require('../sequelize.service');
@@ -18,17 +19,34 @@ class Service {
   }
 
   async find(params) {
-    const where = {
+    let where = {
       '$collection.creator_id$': params.user.id,
     };
+    debug('find', params);
+    // get all collectableItems by item ids
+    if (params.sanitized.item_uids) {
+      where = {
+        itemId: {
+          $in: params.sanitized.item_uids,
+        },
+        $or: [
+          {
+            '$collection.creator_id$': params.user.id,
+          },
+          {
+            '$collection.status$': 'PUB',
+          },
+        ],
+      };
+    }
 
     const results = await this.SequelizeService.find({
       ...params,
       where,
-      distinct: true,
     });
 
     console.log(results);
+
     return results;
     // const groups = {
     //   article: {
@@ -79,21 +97,13 @@ class Service {
       collectionId: collection.uid,
     }));
 
-    console.log(collection, items);
     const results = await this.SequelizeService.bulkCreate(items);
-    console.log(results);
-
-    //   ...params,
-    //   where,
-    // });
-    //
-    // console.log(results);
-    //
-    // if (Array.isArray(data)) {
-    //   return Promise.all(data.map(current => this.create(current, params)));
-    // }
-
-    return data;
+    return {
+      data: results.map(d => d.toJSON()),
+      info: {
+        created: results.length,
+      },
+    };
   }
 
 
