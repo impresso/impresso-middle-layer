@@ -20,7 +20,13 @@ class Service {
     const where = {
       '$creator.profile.uid$': params.user.uid,
     };
+
     console.log('PARAMS', params.query);
+
+    if (params.query.item_uid) {
+      where.itemId = params.query.item_uid;
+    }
+
     if (params.query.q) {
       where.$or = [
         {
@@ -31,6 +37,8 @@ class Service {
         },
       ];
     }
+
+
     // get list of collections
     const collections = await this.sequelizeKlass.scope('get').findAndCountAll({
       where,
@@ -56,10 +64,18 @@ class Service {
       uid: id,
       $or: [
         {
-          status: Collection.STATUS_PUBLIC,
           '$creator.profile.uid$': params.user.uid,
         },
+        {
+          '$creator.id$': params.user.id,
+        },
       ],
+      // $or: [
+      //   {
+      //     status: Collection.STATUS_PUBLIC,
+      //     '$creator.profile.uid$': params.user.uid,
+      //   },
+      // ],
     };
 
     const collection = await this.sequelizeKlass.scope('get').findOne({

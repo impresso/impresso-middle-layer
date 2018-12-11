@@ -1,6 +1,6 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  queryWithCommonParams, validate, utils,
+  queryWithCommonParams, validate, utils, REGEX_UID,
 } = require('../../hooks/params');
 const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model');
 
@@ -12,6 +12,10 @@ module.exports = {
     ],
     find: [
       validate({
+        item_uid: {
+          required: false,
+          regex: REGEX_UID,
+        },
         q: {
           required: false,
           max_length: 500,
