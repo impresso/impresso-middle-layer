@@ -8,6 +8,7 @@ const { neo4jRecordMapper, neo4jToLucene } = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
 
 const Mention = require('../../models/mentions.model');
+const Topic = require('../../models/topics.model');
 const Suggestion = require('../../models/suggestions.model');
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
@@ -40,6 +41,34 @@ const getNewspapers = async ({ app, params = {} } = {}) => {
     item: d,
     context: 'include',
   }));
+};
+
+const getTopics = async ({ config = {}, params = {} } = {}) => {
+  if (!isPlainText(params.query.q)) {
+    return [];
+  }
+
+  const q = params.query.q // regexp
+    .replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '')
+    .trim();
+
+  // clean fpr get mentions
+  const results = await solr.client(config).suggest({
+    // use solr mention index for that.
+    namespace: 'topics',
+    // query
+    q,
+  }, () => (doc) => {
+    const topic = Topic.solrSuggestFactory()(doc);
+    // console.log(topic);
+    return new Suggestion({
+      q: topic.uid,
+      h: topic.getExcerpt().join(' '),
+      type: 'topic',
+      item: topic,
+    });
+  });
+  return lodash.take(results, 5);
 };
 
 /**
@@ -190,10 +219,10 @@ class Service extends Neo4jService {
         params,
         app: this.app,
       }),
-      // getTopics({
-      //   params,
-      //   config: this.app.get('solr'),
-      // }),
+      getTopics({
+        params,
+        config: this.app.get('solr'),
+      }),
       getMentions({
         params,
         config: this.app.get('solr'),
@@ -212,4 +241,5 @@ module.exports = function (options) {
 module.exports.Service = Service;
 module.exports.utils = {
   getMentions,
+  getTopics,
 };
