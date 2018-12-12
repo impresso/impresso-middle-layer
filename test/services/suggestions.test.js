@@ -1,10 +1,13 @@
 const assert = require('assert');
 const app = require('../../src/app');
-const { getMentions } = require('../../src/services/suggestions/suggestions.class.js').utils;
+const { getMentions, getTopics } = require('../../src/services/suggestions/suggestions.class.js').utils;
 /*
 
- ./node_modules/.bin/eslint test/services/suggestions.test.js  \
- src/services/suggestions --fix && mocha test/services/suggestions.test.js
+ ./node_modules/.bin/eslint \
+ test/services/suggestions.test.js  \
+ src/services/suggestions \
+ --config .eslintrc.json --fix &&
+ mocha test/services/suggestions.test.js
 
 */
 
@@ -14,6 +17,20 @@ describe('\'suggestions\' service', function () {
     const service = app.service('suggestions');
 
     assert.ok(service, 'Registered the service');
+  });
+
+  it.only('test getTopics sub service', async () => {
+    const results = await getTopics({
+      config: app.get('solr'),
+      params: {
+        query: {
+          q: 'suiss',
+        },
+      },
+    });
+    console.log(results);
+    assert.ok(results);
+    // assert.ok(results[0]., 'Contains a Mention suggestion object');
   });
 
   it('test NEW getMentions sub service', async () => {
