@@ -25,6 +25,8 @@ const collections = require('./collections/collections.service.js');
 
 const collectableItems = require('./collectable-items/collectable-items.service.js');
 
+const topics = require('./topics/topics.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -49,4 +51,5 @@ module.exports = function () {
   app.configure(searchExporter);
   app.configure(collections);
   app.configure(collectableItems);
+  app.configure(topics);
 };
