@@ -1,6 +1,18 @@
 const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
 
+const SOLR_FILTER_TYPES = [
+  'string', 'entity', 'newspaper', 'daterange',
+  'year', 'language', 'type', 'regex',
+  // mention allows to find both mentions of type person and location
+  'mention', 'person', 'location',
+  // today's special
+  'topic',
+];
+
+const SOLR_FILTER_DPF = [
+  'topic',
+];
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   if (Array.isArray(filter.q)) {
@@ -11,6 +23,16 @@ const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   return sq;
 }, []).map(d => `(${d})`).join(' AND ');
 
+const reduceFiltersToVars = filters => filters.reduce((sq, filter) => {
+  if (Array.isArray(filter.q)) {
+    filter.q.forEach((q) => {
+      sq.push(q);
+    });
+  } else {
+    sq.push(filter.q);
+  }
+  return sq;
+}, []);
 
 const reduceDaterangeFiltersToSolr = filters => filters
   .reduce((sq, filter) => {
@@ -104,6 +126,8 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'meta_issue_id_s');
     case 'newspaper':
       return reduceFiltersToSolr(filters, 'meta_journal_s');
+    case 'topic':
+      return reduceFiltersToSolr(filters, 'topics_dpf');
     case 'year':
       return reduceFiltersToSolr(filters, 'meta_year_i');
     case 'type':
@@ -146,6 +170,8 @@ const filtersToSolrQuery = () => async (context) => {
 
   const filters = lodash.groupBy(context.params.sanitized.filters, 'type');
   const queries = [];
+  // will contain payload vars, if any.
+  const vars = {};
 
   // if there is a q parameter, let's add it to the very beginning of the query as include.
   if (context.params.sanitized.q) {
@@ -163,11 +189,21 @@ const filtersToSolrQuery = () => async (context) => {
 
   Object.keys(filters).forEach((key) => {
     queries.push(filtersToSolr(key, filters[key]));
+    debug('\'filtersToSolrQuery\' key:', key, filters[key]);
+    if (SOLR_FILTER_DPF.indexOf(key) !== -1) {
+      // add payload variable
+      // payload(topics_dpf,tmGDL_tp04_fr)
+      reduceFiltersToVars(filters[key]).forEach((d) => {
+        const l = Object.keys(vars).length;
+        vars[`v${l}`] = `payload(${key}_dpf,${d})`;
+      });
+    }
   });
 
-  const solrQuery = queries.join(' AND ');
-  debug('\'filtersToSolrQuery\' with \'solr query\':', solrQuery);
-  context.params.sanitized.sq = solrQuery;
+  debug('\'filtersToSolrQuery\' vars =', vars);
+
+  context.params.sanitized.sq = queries.join(' AND ');
+  context.params.sanitized.sv = vars;
   context.params.sanitized.queryComponents = [].concat(
     filters.years,
     filters.newspaper,
@@ -178,6 +214,7 @@ const filtersToSolrQuery = () => async (context) => {
     filters.issue,
     filters.page,
   ).filter(d => typeof d !== 'undefined');
+  debug('\'filtersToSolrQuery\' with \'solr query\':', context.params.sanitized.sq);
 };
 
 
@@ -186,12 +223,8 @@ module.exports = {
   reduceFiltersToSolr,
 
 
-  SOLR_FILTER_TYPES: [
-    'string', 'entity', 'newspaper', 'daterange',
-    'year', 'language', 'type', 'regex',
-    // mention allows to find both mentions of type person and location
-    'mention', 'person', 'location',
-  ],
+  SOLR_FILTER_TYPES,
+  SOLR_FILTER_DPF,
 
   SOLR_ORDER_BY: {
     date: 'meta_date_dt',
@@ -214,6 +247,12 @@ module.exports = {
       field: 'meta_year_i',
       mincount: 1,
       limit: 400,
+    },
+    topic: {
+      // type: 'terms',
+      field: 'topic_dpf',
+      mincount: 1,
+      limit: 20,
     },
     newspaper: {
       type: 'terms',
