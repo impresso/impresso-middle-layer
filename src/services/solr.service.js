@@ -50,8 +50,8 @@ class SolrService {
           solr: results.responseHeader.QTime,
         },
         // solr: results.responseHeader,
-      }
-    }
+      },
+    };
   }
 }
 

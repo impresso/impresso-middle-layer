@@ -6,7 +6,7 @@ const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 
 class Service {
-  constructor ({
+  constructor({
     app = null,
     name = '',
   }) {
@@ -20,20 +20,20 @@ class Service {
       app,
       name,
       namespace: 'topics',
-    })
+    });
   }
 
-  async find (params) {
+  async find(params) {
     return this.solr.find({
-      ... params,
-    })
+      ...params,
+    });
   }
 
-  async get (id, params) {
+  async get(id, params) {
     return this.solr.get(id);
   }
 
-  async create (data, params) {
+  async create(data, params) {
     if (Array.isArray(data)) {
       return Promise.all(data.map(current => this.create(current, params)));
     }
@@ -41,15 +41,15 @@ class Service {
     return data;
   }
 
-  async update (id, data, params) {
+  async update(id, data, params) {
     return data;
   }
 
-  async patch (id, data, params) {
+  async patch(id, data, params) {
     return data;
   }
 
-  async remove (id, params) {
+  async remove(id, params) {
     return { id };
   }
 }
