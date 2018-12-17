@@ -72,7 +72,7 @@ const findAll = (config, params = {}, factory) => {
     namespace: 'search',
     ...params,
   };
-  debug(`findAll: request to '${_params.namespace}' endpoint.`);
+  debug(`findAll: request to '${_params.namespace}' endpoint.`, _params);
 
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
@@ -87,6 +87,9 @@ const findAll = (config, params = {}, factory) => {
     // wt: 'xml'
   };
 
+  if (_params.vars) {
+    Object.assign(qs, _params.vars);
+  }
   // transform order by if any
   if (_params.order_by) {
     qs.sort = _params.order_by;
