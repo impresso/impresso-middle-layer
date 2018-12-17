@@ -10,8 +10,8 @@ node_modules/
 package-lock.json
 .env
 
-config/default.json
-config/production.json
+config/*.json
+!config/*.example.json
 
 .marker
 .keyWithErrors
