@@ -19,7 +19,7 @@ describe('\'suggestions\' service', function () {
     assert.ok(service, 'Registered the service');
   });
 
-  it.only('test getTopics sub service', async () => {
+  it('test getTopics sub service', async () => {
     const results = await getTopics({
       config: app.get('solr'),
       params: {

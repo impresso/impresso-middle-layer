@@ -9,8 +9,11 @@ const app = require('../../src/app');
  ./node_modules/.bin/eslint test/services/search.test.js  \
  src/services/search src/hooks --fix && mocha test/services/search.test.js
 
- ./node_modules/.bin/eslint  \
- src/services/search src/hooks --fix && DEBUG=impresso* mocha test/services/search.test.js
+
+  ./node_modules/.bin/eslint  \
+  src/services/search src/hooks \
+  --config .eslintrc.json --fix \
+  && NODE_ENV=sandbox DEBUG=impresso* mocha test/services/search.test.js
 
  */
 describe('\'search\' service', function () {
@@ -24,7 +27,28 @@ describe('\'search\' service', function () {
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });
-
+  it('get search results for one specific topic', async () => {
+    const result = await service.find({
+      query: {
+        group_by: 'articles',
+        facets: ['year', 'topic'],
+        filters: [
+          {
+            type: 'topic',
+            context: 'include',
+            q: 'tmGDL_tp04_fr',
+          },
+          {
+            type: 'topic',
+            context: 'include',
+            q: 'tmGDL_tp03_fr',
+          },
+        ],
+      },
+    });
+    console.log(result.info.facets.topic);
+    assert.ok(result.info.facets.year);
+  });
   it('get search results with regex queries', async () => {
     const result = await service.find({
       query: {
