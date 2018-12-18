@@ -3,9 +3,12 @@ const Collection = require('./collections.model');
 const SearchQuery = require('./searchQueries.model');
 
 const CONTENT_TYPES = {
-  article: 'A',
-  page: 'P',
-  issue: 'I',
+
+  A: 'article',
+  E: 'entity',
+  P: 'page',
+  I: 'issue',
+
 };
 
 class CollectableItem {
@@ -21,7 +24,8 @@ class CollectableItem {
     this.id = parseInt(id, 10);
     this.uid = String(uid || this.id);
     this.itemId = String(itemId);
-    this.contentType = String(CONTENT_TYPES[contentType] || '');
+    this.contentType = String(contentType);
+
     if (collection instanceof Collection) {
       this.collection = collection;
     } else if (collection) {
@@ -44,6 +48,9 @@ class CollectableItem {
     }
   }
 
+  getContentType() {
+    return CONTENT_TYPES[this.contentType];
+  }
 
   static sequelize(client) {
     const collection = Collection.sequelize(client);
@@ -62,7 +69,7 @@ class CollectableItem {
         field: 'item_id',
       },
       contentType: {
-        type: DataTypes.STRING(500),
+        type: DataTypes.STRING(1),
         field: 'content_type',
       },
       addedDate: {
