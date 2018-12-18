@@ -3,6 +3,39 @@ const { NotImplemented } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/solr');
 const lodash = require('lodash');
 
+const update = (config, params = {}) => {
+  const p = {
+    id: '',
+    namespace: '',
+    add: {},
+    set: {},
+    commit: true,
+    ...params,
+  };
+
+
+  const url = `${config[p.namespace].update}?commit=${!!p.commit}`;
+  const body = [{
+    id: p.id,
+    ...p.set,
+    ...p.add,
+    // commit: true,
+  }];
+
+  debug('update url:', url);
+  debug('update body:', body);
+  return rp.post({
+    url,
+    auth: config.auth.write,
+    json: true,
+    body,
+    // json: true REMOVED because of duplicate keys
+  }).then((res) => {
+    console.log(res);
+    return 'ok';
+  });
+};
+
 const suggest = (config, params = {}, factory) => {
   const _params = {
     q: '',
@@ -122,7 +155,7 @@ const findAll = (config, params = {}, factory) => {
 
 
   debug(`findAll: request to '${_params.namespace}' endpoint. With 'qs':`, qs);
-
+  debug('\'findAll\': url', endpoint);
   return rp({
     url: endpoint,
     auth: config.auth,
@@ -158,6 +191,7 @@ const findAll = (config, params = {}, factory) => {
 
 const getSolrClient = config => ({
   findAll: (params, factory) => findAll(config, params, factory),
+  update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
 });
 
