@@ -12,6 +12,10 @@ module.exports = {
           required: false,
           regex: REGEX_UID,
         },
+        item_uid: {
+          required: false,
+          regex: REGEX_UID,
+        },
         item_uids: {
           required: false,
           regex: REGEX_UIDS,
