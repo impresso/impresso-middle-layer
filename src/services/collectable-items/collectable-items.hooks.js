@@ -8,6 +8,10 @@ module.exports = {
     all: [authenticate('jwt')],
     find: [
       validate({
+        collection_uid: {
+          required: false,
+          regex: REGEX_UID,
+        },
         item_uids: {
           required: false,
           regex: REGEX_UIDS,

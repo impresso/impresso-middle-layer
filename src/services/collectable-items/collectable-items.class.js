@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const lodash = require('lodash');
 const debug = require('debug')('impresso/services/collectable-items');
 const { NotFound } = require('@feathersjs/errors');
 
@@ -22,13 +23,11 @@ class Service {
     let where = {
       '$collection.creator_id$': params.user.id,
     };
-    debug('find', params);
-    // get all collectableItems by item ids
-    if (params.sanitized.item_uids) {
+    // it can also be used for PUBlic collections.
+    if (params.sanitized.collection_uid ||
+        params.sanitized.item_uid ||
+        params.sanitized.items_uid) {
       where = {
-        itemId: {
-          $in: params.sanitized.item_uids,
-        },
         $or: [
           {
             '$collection.creator_id$': params.user.id,
@@ -40,39 +39,61 @@ class Service {
       };
     }
 
+    if (params.sanitized.collection_uid) {
+      where.collectionId = params.sanitized.collection_uid;
+    }
+    if (params.sanitized.item_uids) {
+      where.itemId = {
+        $in: params.sanitized.item_uids,
+      };
+    }
+
+    debug('\'find\'', params, where);
+
     const results = await this.SequelizeService.find({
       ...params,
       where,
     });
 
-    console.log(results);
+    // console.log(results);
+    const groups = {
+      article: {
+        service: 'articles',
+        uids: [],
+      },
+      page: {
+        service: 'pages',
+        uids: [],
+      },
+      issue: {
+        service: 'issues',
+        uids: [],
+      },
+    };
 
-    return results;
-    // const groups = {
-    //   article: {
-    //     service: 'articles',
-    //     uids: [],
-    //   },
-    //   page: {
-    //     service: 'pages',
-    //     uids: [],
-    //   },
-    //   issue: {
-    //     service: 'issues',
-    //     uids: [],
-    //   },
-    // };
-    //
-    // // collect items uids
-    // const uids = results.data.map((d, k) => {
-    //   // add uid to list of uid per service.
-    //   groups[d.labels[0]].uids.push(d.uid);
-    //
-    //   return {
-    //     label: d.labels[0],
-    //     uid: d.uid,
-    //   };
-    // });
+    // collect items uids
+    results.data.forEach((d) => {
+      // add uid to list of uid per service.
+      const contentType = d.getContentType();
+      groups[contentType].uids.push(d.itemId);
+    });
+
+    // console.log(groups);
+    return Promise.all(lodash(groups)
+      .filter(d => d.uids.length)
+      .map(d => this.app.service(d.service).get(d.uids.join(','), {
+        query: {},
+        user: params.user,
+        findAll: true, // this makes "findall" explicit, thus forcing the result as array
+      })).value()).then((values) => {
+      const flattened = lodash(values).flatten().keyBy('uid').value();
+
+      return results.data.map(d => ({
+        dateAdded: d.dateAdded,
+        collection: d.collection,
+        item: flattened[d.itemId],
+      }));
+    });
   }
 
   async get(id, params) {
