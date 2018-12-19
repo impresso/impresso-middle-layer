@@ -2,12 +2,15 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   queryWithCommonParams, validate, utils, REGEX_UID,
 } = require('../../hooks/params');
+
+const { protect } = require('@feathersjs/authentication-local').hooks;
+
 const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model');
 
 module.exports = {
   before: {
     all: [
-      authenticate('jwt'),
+
 
     ],
     find: [
@@ -34,6 +37,7 @@ module.exports = {
     ],
     get: [],
     create: [
+      authenticate('jwt'),
       validate({
         // request must contain a name - from which we will create a UID
         name: {
@@ -55,13 +59,19 @@ module.exports = {
       }, 'POST'),
     ],
     update: [],
-    patch: [],
-    remove: [],
+    patch: [
+      authenticate('jwt'),
+    ],
+    remove: [
+      authenticate('jwt'),
+    ],
   },
 
   after: {
     all: [],
-    find: [],
+    find: [
+      protect('creator.password', 'creator.isStaff'),
+    ],
     get: [],
     create: [],
     update: [],

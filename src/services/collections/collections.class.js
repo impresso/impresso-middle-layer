@@ -18,26 +18,32 @@ class Service {
 
   async find(params) {
     const where = {
-      '$creator.profile.uid$': params.user.uid,
-    };
+      $and: [],
+    }
 
-    console.log('PARAMS', params.query);
+    if(params.user) {
+      where.$and.push({ $or: [
+        { creatorId: params.user.id, },
+        { status: Collection.STATUS_PUBLIC,}
+      ]});
+    } else {
+      where.$and.push({
+        status: Collection.STATUS_PUBLIC,
+      });
+    }
 
     if (params.query.item_uid) {
-      where.itemId = params.query.item_uid;
+      where.$and.push({
+        itemId: params.query.item_uid,
+      });
     }
 
     if (params.query.q) {
-      where.$or = [
-        {
-          name: params.query.q,
-        },
-        {
-          description: params.query.q,
-        },
-      ];
+      where.$and.push({ $or: [
+        { name: params.query.q, },
+        { description: params.query.q, },
+      ]});
     }
-
 
     // get list of collections
     const collections = await this.sequelizeKlass.scope('get').findAndCountAll({
@@ -52,10 +58,13 @@ class Service {
     });
 
     return {
-      data: collections.rows.map(c => new Collection(c.toJSON())),
+      data: collections.rows,
       skip: params.query.skip,
       limit: params.query.limit,
       total: collections.count,
+      info: {
+        q: params.query.q,
+      }
     };
   }
 
