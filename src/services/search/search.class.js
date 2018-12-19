@@ -52,7 +52,7 @@ class Service {
     let results = [];
     const uids = [];
 
-    debug(`find '${this.name}': query:`, params.query);
+    debug(`find '${this.name}': query:`, params.query, params.sanitized.sv);
 
 
     // TODO: transform params.query.filters to match solr syntax
@@ -63,6 +63,7 @@ class Service {
       limit: params.query.limit,
       skip: params.query.skip,
       fl: article.ARTICLE_SOLR_FL_SEARCH,
+      vars: params.sanitized.sv,
     }, article.solrFactory);
 
     const total = _solr.response.numFound;

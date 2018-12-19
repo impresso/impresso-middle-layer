@@ -5,7 +5,9 @@ const { generateUser, removeGeneratedUser } = require('./utils');
 /*
   ./node_modules/.bin/eslint \
   test/services/collectable-items.test.js \
-  src/services/collectable-items src/models/collectable-items.model.js --fix \
+  src/services/collectable-items \
+  src/models/collectable-items.model.js \
+  --config .eslintrc.json --fix \
   && DEBUG=impresso* mocha test/services/collectable-items.test.js
 */
 describe('\'collectable-items\' service', function () {
@@ -17,6 +19,16 @@ describe('\'collectable-items\' service', function () {
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });
+
+  // it.only('get the items for a specific collection', async () => {
+  //   const result = await service.find({
+  //     query: {
+  //       collection_uid: 'local-',
+  //     },
+  //     user,
+  //   });
+  //   console.log(result);
+  // });
 
   it('setup the test', async () => {
     const result = await generateUser();
@@ -45,7 +57,7 @@ describe('\'collectable-items\' service', function () {
       collection_uid: collection.uid,
       items: [
         {
-          uid: 'GDL50',
+          uid: 'GDL-1967-04-25-a-i0152',
           content_type: 'article',
         },
       ],
@@ -68,7 +80,7 @@ describe('\'collectable-items\' service', function () {
   it('find all collectableitems for a given set of item uids', async () => {
     const results = await service.find({
       query: {
-        item_uids: ['GDL50'],
+        item_uids: ['GDL-1967-04-25-a-i0152'],
       },
       user,
     });
@@ -91,7 +103,7 @@ describe('\'collectable-items\' service', function () {
         collection_uid: collection.uid,
         items: [
           {
-            uid: 'GDL50',
+            uid: 'GDL-1967-04-25-a-i0152',
           },
         ],
       },

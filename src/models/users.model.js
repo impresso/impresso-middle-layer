@@ -6,6 +6,16 @@ const Profile = require('./profiles.model');
 
 const CRYPTO_ITERATIONS = 120000;
 
+class ObfuscatedUser {
+  constructor({
+    uid = '',
+    username = '',
+  }={}){
+    this.uid = String(uid);
+    this.username = String(username);
+  }
+}
+
 class User {
   constructor({
     id = 0,
@@ -182,6 +192,17 @@ class User {
       },
     });
 
+    user.prototype.toJSON = function({
+      obfuscate = false,
+    } = {}) {
+      if(obfuscate) {
+        return new ObfuscatedUser({
+          uid: this.profile.uid,
+          username: this.username,
+        });
+      }
+      return new User(this.get());
+    }
 
     user.hasOne(profile, {
       foreignKey: {
