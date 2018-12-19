@@ -10,7 +10,7 @@ class ObfuscatedUser {
   constructor({
     uid = '',
     username = '',
-  }={}){
+  } = {}) {
     this.uid = String(uid);
     this.username = String(username);
   }
@@ -192,17 +192,17 @@ class User {
       },
     });
 
-    user.prototype.toJSON = function({
+    user.prototype.toJSON = function ({
       obfuscate = false,
     } = {}) {
-      if(obfuscate) {
+      if (obfuscate) {
         return new ObfuscatedUser({
           uid: this.profile.uid,
           username: this.username,
         });
       }
       return new User(this.get());
-    }
+    };
 
     user.hasOne(profile, {
       foreignKey: {
