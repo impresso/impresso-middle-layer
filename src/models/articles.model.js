@@ -257,7 +257,7 @@ class Article {
       v: {
         type: DataTypes.STRING(50),
         field: 's3_version',
-      }
+      },
     }, {
       tableName: config.sequelize.tables.articles,
       scopes: {
@@ -273,7 +273,7 @@ class Article {
             },
           ],
         },
-      }
+      },
     });
 
     article.belongsTo(newspaper, {

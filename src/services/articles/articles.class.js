@@ -1,11 +1,8 @@
-const Neo4jService = require('../neo4j.service').Service;
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 
-const solr = require('../../solr');
 const { NotFound } = require('@feathersjs/errors');
 const Article = require('../../models/articles.model');
-const Tag = require('../../models/tags.model').Model;
 
 class Service {
   constructor({
@@ -82,19 +79,19 @@ class Service {
     };
 
     // if there's an user, get the private ones as well.
-    if(params.user) {
+    if (params.user) {
       where['$collections.creator_id$'] = params.user.id;
     } else {
       where['$collections.status$'] = {
         $in: ['PUB', 'SHA'],
-      }
+      };
     }
 
     const article = await Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
       this.SolrService.get(id, {
-        fl: Article.ARTICLE_SOLR_FL
+        fl: Article.ARTICLE_SOLR_FL,
       }),
 
       // get the newspaper, then the collections
@@ -109,14 +106,12 @@ class Service {
       // }),
       //
 
-    ]).then(results => {
-      return {
-        ... results[0],
-        v: results[1].v,
-        newspaper: results[1].newspaper,
-        collections: results[1].collections.filter(d => d.status === 'PUB'),
-      }
-    });
+    ]).then(results => ({
+      ...results[0],
+      v: results[1].v,
+      newspaper: results[1].newspaper,
+      collections: results[1].collections.filter(d => d.status === 'PUB'),
+    }));
 
     return article;
     // if (results[0].response.numFound !== 1) {

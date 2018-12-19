@@ -58,7 +58,7 @@ class SequelizeService {
 
   async patch(id, data, params) {
     return this.sequelizeKlass.update({
-      ... data
+      ...data,
     }, {
       // criteria
       where: params.where,

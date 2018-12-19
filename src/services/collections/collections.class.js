@@ -103,10 +103,10 @@ class Service {
 
   async patch(id, data, params) {
     // get the collection
-    return await this.SequelizeService.patch(id, data.sanitized, {
+    return this.SequelizeService.patch(id, data.sanitized, {
       where: {
         creatorId: params.user.id,
-      }
+      },
     });
   }
 
