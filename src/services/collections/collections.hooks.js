@@ -3,8 +3,6 @@ const {
   queryWithCommonParams, validate, utils, REGEX_UID,
 } = require('../../hooks/params');
 
-const { protect } = require('@feathersjs/authentication-local').hooks;
-
 const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model');
 
 module.exports = {
@@ -27,10 +25,12 @@ module.exports = {
         order_by: {
           choices: ['-date', 'date', '-size', 'size'],
           defaultValue: '-date',
-          transform: d => utils.toOrderBy(d, {
-            date: 'date_last_modified',
-            size: 'count_items',
-          }).split(/[,\s]+/),
+          transform: d => utils.translate(d, {
+            date: [['date_last_modified', 'ASC']],
+            '-date': [['date_last_modified', 'DESC']],
+            size: [['count_items', 'ASC']],
+            '-size': [['count_items', 'DESC']],
+          }),
         },
       }),
       queryWithCommonParams(),
@@ -61,6 +61,19 @@ module.exports = {
     update: [],
     patch: [
       authenticate('jwt'),
+      validate({
+        // request must contain a name - from which we will create a UID
+        name: {
+          required: false,
+          min_length: 3,
+          max_length: 50,
+        },
+        description: {
+          required: false,
+          min_length: 3,
+          max_length: 500,
+        },
+      }, 'POST'),
     ],
     remove: [
       authenticate('jwt'),
@@ -70,7 +83,6 @@ module.exports = {
   after: {
     all: [],
     find: [
-      protect('creator.password', 'creator.isStaff'),
     ],
     get: [],
     create: [],
