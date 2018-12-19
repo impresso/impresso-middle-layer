@@ -19,11 +19,12 @@ class SolrService {
     debug(`Configuring service: ${this.name} success`);
   }
 
-  async get(id) {
+  async get(id, params) {
     const results = await this.solr.findAll({
       q: `id:${id}`,
       limit: 1,
       skip: 0,
+      fl: params.fl,
       namespace: this.namespace,
     }, this.Model.solrFactory);
     return lodash.first(results.response.docs);
@@ -31,7 +32,7 @@ class SolrService {
 
   async find(params) {
     const results = await this.solr.findAll({
-      q: params.query.sq || '*:*',
+      q: params.q || params.query.sq || '*:*',
       limit: params.query.limit,
       skip: params.query.skip,
       fl: params.fl,
