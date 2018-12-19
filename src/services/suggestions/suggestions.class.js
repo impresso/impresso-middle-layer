@@ -17,18 +17,19 @@ const isPlainText = q =>
   // exclude suggestion when there is a complete regexp
   !q.match(/^\/|\/$/);
 
+const makePlainText = q =>
+  q.replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '').trim();
+
 const getNewspapers = async ({ app, params = {} } = {}) => {
   if (!isPlainText(params.query.q)) {
     return [];
   }
-  const q = params.query.q // regexp
-    .replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '')
-    .trim();
+  // const q = makePlainText(); // regexp
   // get newspapers like xy
   //
   const results = await app.service('newspapers').find({
     query: {
-      q,
+      q: params.query.q,
       limit: 3,
     },
   });
@@ -43,15 +44,10 @@ const getNewspapers = async ({ app, params = {} } = {}) => {
   }));
 };
 
-const getTopics = async ({ config = {}, params = {} } = {}) => {
-  if (!isPlainText(params.query.q)) {
+const getTopics = async ({ q = '', config = {}, params = {} } = {}) => {
+  if (!q.length) {
     return [];
   }
-
-  const q = params.query.q // regexp
-    .replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '')
-    .trim();
-
   // clean fpr get mentions
   const results = await solr.client(config).suggest({
     // use solr mention index for that.
@@ -71,6 +67,24 @@ const getTopics = async ({ config = {}, params = {} } = {}) => {
   return lodash.take(results, 5);
 };
 
+const getCollections = async ({ q  = '', app, user, params = {} } = {}) => {
+  if (!q.length) {
+    return [];
+  }
+  const results = await app.service('collections').find({
+    query: {
+      q,
+      limit: 3,
+    },
+    user,
+  });
+  return results.data.map(d => new Suggestion({
+    q: d.uid,
+    h: d.name,
+    type: 'collection',
+    item: d,
+  }));
+}
 /**
  * Retrieve a list of mention filters for the autocomplete function
  * @param  {Object}  [config={}] Solr configuration
@@ -210,16 +224,26 @@ class Service extends Neo4jService {
         })))
       .catch(err => []);
 
+    const qPlainText = makePlainText(params.query.q);
+
     // let newspapers = () => this._run()
     const results = await Promise.all([
       asregex(),
       dateranges(), // dates(),
       // entities(),
+      getCollections({
+        q: qPlainText,
+        params,
+        app: this.app,
+        user: params.user,
+      }),
       getNewspapers({
+        q: qPlainText,
         params,
         app: this.app,
       }),
       getTopics({
+        q: qPlainText,
         params,
         config: this.app.get('solr'),
       }),
