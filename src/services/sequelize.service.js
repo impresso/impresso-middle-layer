@@ -2,6 +2,7 @@
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/services:SequelizeService');
 const sequelize = require('../sequelize');
+const errors = require('@feathersjs/errors');
 const { sequelizeErrorHandler } = require('./sequelize.utils');
 
 class SequelizeService {
@@ -33,15 +34,46 @@ class SequelizeService {
     }).catch(this.onError);
   }
 
+  async get(id, params) {
+    let fn = this.sequelizeKlass;
+
+    const where = params.where || {
+      id,
+    };
+
+    if (params.scope) {
+      fn = this.sequelizeKlass.scope(params.scope);
+    }
+    debug(`'get' ${this.name} with params:`, params);
+
+    const result = await fn.findOne({
+      where,
+    });
+
+    if (!result) {
+      throw new errors.NotFound();
+    }
+    return result;
+  }
+
+  async patch(id, data, params) {
+    return this.sequelizeKlass.update({
+      ...data,
+    }, {
+      // criteria
+      where: params.where,
+    });
+  }
+
   async find(params) {
     // we should be sure that ONLY those ones are in place.
     // should you need more, you can use this.sequelizeKlass
     // directly.
     const p = {
       // for paginations.
-      limit: params.query.limit,
-      offset: params.query.skip,
-      order: params.query.order_by,
+      limit: params.limit || params.query.limit,
+      offset: params.skip || params.query.skip,
+      order: params.order_by || params.query.order_by,
     };
     debug(`'find' ${this.name} with params:`, params);
 
@@ -60,16 +92,14 @@ class SequelizeService {
 
     return fn.findAndCountAll(p)
       .catch(sequelizeErrorHandler)
-      // .then((res) => {
-      //   return res;
-      // })
       .then(res => ({
-        data: res.rows.map(d => new this.Model({
-          ...d.toJSON(),
-        })),
+        data: res.rows.map(d => d.toJSON()),
         total: res.count,
         limit: params.query.limit,
         skip: params.query.skip,
+        info: {
+          query: params.query,
+        },
       }));
   }
 }

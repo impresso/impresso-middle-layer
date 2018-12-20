@@ -88,11 +88,13 @@ class Service {
       })).value()).then((values) => {
       const flattened = lodash(values).flatten().keyBy('uid').value();
 
-      return results.data.map(d => ({
+      results.data = results.data.map(d => ({
         dateAdded: d.dateAdded,
         collection: d.collection,
         item: flattened[d.itemId],
       }));
+
+      return results;
     });
   }
 

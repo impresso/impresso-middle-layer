@@ -25,7 +25,10 @@ describe('test solr connection', function () {
     assert.ok(results.response.numFound);
   });
 
-  it.only('test update against a real article id (sandbox only!!)', async () => {
+  it('test update against a real article id (sandbox only!!)', async () => {
+    if (process.env.NODE_ENV !== 'sandbox') {
+      return;
+    }
     const id = 'GDL-1892-10-07-a-i0003';// 'GDL-1967-04-25-a-i0152';
     const results = await solrClient.update({
       id,

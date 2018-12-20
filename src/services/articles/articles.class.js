@@ -1,107 +1,145 @@
-const Neo4jService = require('../neo4j.service').Service;
-const solr = require('../../solr');
-const { NotFound } = require('@feathersjs/errors');
-const article = require('../../models/articles.model');
-const Tag = require('../../models/tags.model').Model;
+const debug = require('debug')('impresso/services:articles');
 
-class Service extends Neo4jService {
-  constructor(options) {
-    super(options);
-    this.solr = solr.client(options.app.get('solr'));
+const SequelizeService = require('../sequelize.service');
+const SolrService = require('../solr.service');
+const Article = require('../../models/articles.model');
+
+class Service {
+  constructor({
+    name = '',
+    app,
+  } = {}) {
+    this.name = String(name);
+    this.app = app;
+    this.SequelizeService = SequelizeService({
+      app,
+      name,
+    });
+    this.SolrService = SolrService({
+      app,
+      name,
+      namespace: 'search',
+    });
   }
 
   async find(params) {
-    let fl = article.ARTICLE_SOLR_FL_LITE;
+    let fl = Article.ARTICLE_SOLR_FL_LITE;
     let pageUids = [];
 
     if (params.isSafe) {
       pageUids = params.query.filters
         .filter(d => d.type === 'page')
         .map(d => d.q);
-      // As we requested a page,
+      // As we requested article in a page,
       // we have to calculate regions for that page.
       if (pageUids.length === 1) {
-        fl = article.ARTICLE_SOLR_FL;
+        fl = Article.ARTICLE_SOLR_FL;
       }
     }
     // if(params.isSafe query.filters)
-    const results = await this.solr.findAll({
-      q: params.query.sq,
-      limit: params.query.limit,
-      skip: params.query.skip,
+    const results = await this.SolrService.find({
+      ...params,
       fl,
-      order_by: 'id asc', // default ordering TODO
-    }, article.solrFactory);
+    });
 
-    if (results.response.numFound === 0) {
-      throw new NotFound();
+    // go out if there's nothing to do.
+    if (results.total === 0) {
+      return results;
     }
 
-    const total = results.response.numFound;
-
-    // calculate regions etc...
-    if (pageUids.length === 1) {
-      // console.log(results.response.docs[0]);
-      results.response.docs = results.response.docs.map(d => ({
-        ...d,
-        regions: d.regions
-          .filter(r => pageUids.indexOf(r.pageUid) !== -1),
-      }));
-    }
-
-    return Service.wrap(
-      results.response.docs,
-      params.query.limit,
-      params.query.skip,
-      total, {
-        responseTime: {
-          solr: results.responseHeader.QTime,
-        },
+    // add collections and other stuff from sequelize
+    const addons = await this.SequelizeService.find({
+      ...params,
+      scope: 'get',
+      where: {
+        uid: { $in: results.data.map(d => d.uid) },
       },
-    );
+      limit: results.data.length,
+      order_by: [['uid', 'DESC']],
+    });
+
+    // calculate regions
+    if (pageUids.length === 1) {
+      results.data = results.data.map((d) => {
+        const addon = addons.data.find(a => d.uid === a.uid);
+        return {
+          ...d,
+          newspaper: addon ? addon.newspaper : d.newspaper,
+          regions: d.regions
+            .filter(r => pageUids.indexOf(r.pageUid) !== -1),
+        };
+      });
+    }
+
+    return results;
   }
 
   async get(id, params) {
     const uids = id.split(',');
+    if (uids.length > 1 && uids.length < 20) {
+      const results = await Promise.all(uids.map(d => this.get(d, params)));
+      return results;
+    } else if (uids.length > 20) {
+      return [];
+    }
+    const where = {
+      uid: id,
+    };
+    debug('articles get:', id, 'user', params.user);
+    // if there's an user, get the private ones as well.
+    if (params.user) {
+      where.$or = [
+        { '$collections.creator_id$': params.user.id },
+        { '$collections.status$': 'PUB' },
+      ];
+    } else {
+      where['$collections.status$'] = { $in: ['PUB', 'SHA'] };
+    }
 
-    const results = await Promise.all([
+    const article = await Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
-      this.solr.findAll({
-        q: `id:${uids.join(' OR ')}`,
-        fl: uids.length > 1 ? article.ARTICLE_SOLR_FL_LITE : article.ARTICLE_SOLR_FL,
-      }, article.solrFactory),
-      // at the same time, we use the neo4jService get to get article instance from our graph db
-      super.get(id, {
-        ...params,
-        findAll: uids.length > 1,
+      this.SolrService.get(id, {
+        fl: Article.ARTICLE_SOLR_FL,
       }),
-    ]);
 
-    if (results[0].response.numFound !== 1) {
-      throw new NotFound();
-    }
+      // get the newspaper and the version,
+      this.SequelizeService.get(id, {
+        scope: 'get',
+        where: {
+          uid: id,
+        },
+      }).catch(() => {
+        debug(`get: no data found for ${id} ...`);
+      }),
+      // then the collections, catch to null;
+      this.SequelizeService.get(id, {
+        scope: 'getCollections',
+        where,
+      }).catch(() => {
+        debug(`get: no collections found for ${id}`, where);
+      }),
+    ]).then((results) => {
+      if (!results[1]) {
+        return results[0];
+      }
 
-    // expect an array indeed
-    if (uids.length > 1) {
-      return results[0].response.docs;
-    }
-    // enrich with neo4j results
-    return {
-      ...results[0].response.docs[0],
-      // add tags
-      tags: results[1] ? results[1].tags.map(d => new Tag(d)) : [],
-    };
+      let collections = [];
 
-    // // if params findall was true or when multiple ids are given, results[1] is an array.
-    // if (Array.isArray(results[1].data) && results[1].data.length) {
-    //   return {
-    //     ...results[0].response.docs[0],
-    //     ...results[1].data[0],
-    //   };
-    // }
-    //
-    // return results[0].response.docs[0];
+      if (results[2]) {
+        collections = results[2].collections;
+        debug(`get: ${collections.length} collections found for ${id}`);
+      }
+
+      return {
+        ...results[0],
+        v: results[1].v,
+        newspaper: results[1].newspaper,
+        collections,
+      };
+    });
+
+    return article;
   }
 }
 

@@ -1,52 +1,10 @@
-// const Sequelize = require('sequelize');
-// const Newspaper = require('./newspapers.model').model;
-//
-// const model = (client, options = {}) => {
-//   const newspaper = Newspaper(client);
-//   const issue = client.define('issue', {
-//     uid: {
-//       type: Sequelize.STRING,
-//       primaryKey: true,
-//       field: 'id',
-//       unique: true,
-//     },
-//     newspaper_uid: {
-//       type: Sequelize.STRING,
-//       field: 'newspaper_id',
-//     },
-//     year: {
-//       type: Sequelize.SMALLINT,
-//     },
-//     month: {
-//       type: Sequelize.SMALLINT,
-//     },
-//     day: {
-//       type: Sequelize.SMALLINT,
-//     },
-//   }, {
-//     ...options,
-//     scopes: {
-//       findAll: {
-//         include: [
-//           {
-//             model: newspaper,
-//             as: 'newspaper',
-//           },
-//         ],
-//       },
-//     },
-//   });
-//
-//   issue.belongsTo(newspaper, {
-//     foreignKey: 'newspaper_id',
-//   });
-//
-//   return issue;
-// };
-
-
 const truncatise = require('truncatise');
+const { DataTypes } = require('sequelize');
+const config = require('@feathersjs/configuration')()();
+
 const Newspaper = require('./newspapers.model');
+const Collection = require('./collections.model');
+const CollectableItem = require('./collectable-items.model');
 const Issue = require('./issues.model');
 const Page = require('./pages.model');
 const {
@@ -282,102 +240,154 @@ class Article {
     }
     // console.log(this.regions);
   }
-  // static
+
+  static sequelize(client) {
+    const newspaper = Newspaper.sequelize(client);
+    const collection = Collection.sequelize(client);
+    const collectableItem = CollectableItem.sequelize(client);
+
+    const article = client.define('article', {
+      uid: {
+        type: DataTypes.STRING(50),
+        primaryKey: true,
+        field: 'id',
+        unique: true,
+      },
+      v: {
+        type: DataTypes.STRING(50),
+        field: 's3_version',
+      },
+    }, {
+      tableName: config.sequelize.tables.articles,
+      scopes: {
+        get: {
+          include: [
+            {
+              model: newspaper,
+              as: 'newspaper',
+            },
+
+          ],
+        },
+        getCollections: {
+          include: [
+            {
+              model: collection,
+              as: 'collections',
+            },
+          ],
+        },
+      },
+    });
+
+    article.prototype.toJSON = function () {
+      return new Article({
+        ...this.get(),
+      });
+    };
+
+    article.belongsTo(newspaper, {
+      foreignKey: {
+        fieldName: 'newspaper_id',
+      },
+    });
+
+    article.belongsToMany(collection, {
+      as: 'collections',
+      through: collectableItem,
+      foreignKey: 'item_id',
+      otherKey: 'collection_id',
+    });
+
+    return article;
+  }
+
+  /**
+   * Return an Article mapper for Solr response document
+   *
+   * @param {Object} res Solr response object
+   * @return {function} {Article} mapper with a single doc.
+   */
+  static solrFactory(res) {
+    return (doc) => {
+      const art = new Article({
+        uid: doc.id,
+        type: doc.item_type_s,
+        language: doc.lg_s,
+
+        title: doc[`title_txt_${doc.lg_s}`],
+        content: doc[`content_txt_${doc.lg_s}`],
+        size: doc.content_length_i,
+
+        newspaper: new Newspaper({
+          uid: doc.meta_journal_s,
+        }),
+        issue: new Issue({
+          uid: doc.meta_issue_id_s,
+        }),
+
+        country: doc.meta_country_code_s,
+        year: doc.meta_year_i,
+        date: new Date(doc.meta_date_dt),
+        pages: Array.isArray(doc.page_id_ss) ? doc.page_id_ss.map((d, i) => new Page({
+          uid: d,
+          num: doc.page_nb_is[i],
+        })) : [],
+        nbPages: doc.nb_pages_i,
+        // front_b
+        isFront: doc.front_b,
+        // has reliable coordinates force as boolean
+        isCC: !!doc.cc_b,
+
+        lb: doc.lb_plain,
+        rb: doc.rb_plain,
+
+        rc: doc.pp_plain,
+      });
+
+      if (!doc.pp_plain) {
+        return art;
+      }
+      // get text matches
+      const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
+      const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
+      //
+      // console.log('fragments!!', res.fragments, '--', fragments);
+      // console.log('highlights!!', res.highlighting, '--', highlights);
+      // console.log(doc.pp_plain);
+      if (!highlights) {
+        return art;
+      }
+
+      art.matches = highlights.offsets.map((pos, i) => {
+        // for each offset
+        let match = false;
+        // find in page
+        doc.pp_plain.forEach((pag) => {
+          for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
+            // if the token start at position and the token length is
+            // the one described in pos. Really complicated.
+            if (pos[0] === pag.t[ii].s && pag.t[ii].l === pos[1] - pos[0]) {
+              // console.log('FFFFOUND', pag.id, pag.t[ii], pos[0]);
+              match = new ArticleMatch({
+                fragment: fragments[i],
+                coords: pag.t[ii].c,
+                pageUid: pag.id,
+              });
+              break;
+            }
+          }
+        });
+        return match;
+      }).filter(d => d);
+      return art;
+    };
+  }
 }
 
-
-/**
- * Return an Article mapper for Solr response document
- *
- * @param {Object} res Solr response object
- * @return {function} {Article} mapper with a single doc.
- */
-const solrFactory = res => (doc) => {
-  const art = new Article({
-    uid: doc.id,
-    type: doc.item_type_s,
-    language: doc.lg_s,
-
-    title: doc[`title_txt_${doc.lg_s}`],
-    content: doc[`content_txt_${doc.lg_s}`],
-    size: doc.content_length_i,
-
-    newspaper: new Newspaper({
-      uid: doc.meta_journal_s,
-    }),
-    issue: new Issue({
-      uid: doc.meta_issue_id_s,
-    }),
-
-    country: doc.meta_country_code_s,
-    year: doc.meta_year_i,
-    date: new Date(doc.meta_date_dt),
-    pages: Array.isArray(doc.page_id_ss) ? doc.page_id_ss.map((d, i) => new Page({
-      uid: d,
-      num: doc.page_nb_is[i],
-    })) : [],
-    nbPages: doc.nb_pages_i,
-    // front_b
-    isFront: doc.front_b,
-    // has reliable coordinates force as boolean
-    isCC: !!doc.cc_b,
-
-    lb: doc.lb_plain,
-    rb: doc.rb_plain,
-
-    rc: doc.pp_plain,
-  });
-
-  if (!doc.pp_plain) {
-    return art;
-  }
-  // get text matches
-  const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
-  const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
-  //
-  // console.log('fragments!!', res.fragments, '--', fragments);
-  // console.log('highlights!!', res.highlighting, '--', highlights);
-  // console.log(doc.pp_plain);
-  if (!highlights) {
-    return art;
-  }
-
-  art.matches = highlights.offsets.map((pos, i) => {
-    // for each offset
-    let match = false;
-    // find in page
-    doc.pp_plain.forEach((pag) => {
-      for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
-        // if the token start at position and the token length is
-        // the one described in pos. Really complicated.
-        if (pos[0] === pag.t[ii].s && pag.t[ii].l === pos[1] - pos[0]) {
-          // console.log('FFFFOUND', pag.id, pag.t[ii], pos[0]);
-          match = new ArticleMatch({
-            fragment: fragments[i],
-            coords: pag.t[ii].c,
-            pageUid: pag.id,
-          });
-          break;
-        }
-      }
-    });
-    return match;
-  }).filter(d => d);
-  return art;
-};
-
-module.exports = function () { // function (app) {
-  // // const config = app.get('sequelize');
-  // const a = model(app.get('sequelizeClient'), {});
-  //
-  // return {
-  //   sequelize: issue,
-  //   solr: article,
-  // };
-};
-
 // module.exports.SequelizeFactory = model;
-module.exports.solrFactory = solrFactory;
+module.exports = Article;
+module.exports.solrFactory = Article.solrFactory;
 module.exports.Model = Article;
 module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL;
 module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE;

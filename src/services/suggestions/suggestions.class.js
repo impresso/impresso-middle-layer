@@ -67,7 +67,9 @@ const getTopics = async ({ q = '', config = {}, params = {} } = {}) => {
   return lodash.take(results, 5);
 };
 
-const getCollections = async ({ q  = '', app, user, params = {} } = {}) => {
+const getCollections = async ({
+  q = '', app, user, params = {},
+} = {}) => {
   if (!q.length) {
     return [];
   }
@@ -84,7 +86,7 @@ const getCollections = async ({ q  = '', app, user, params = {} } = {}) => {
     type: 'collection',
     item: d,
   }));
-}
+};
 /**
  * Retrieve a list of mention filters for the autocomplete function
  * @param  {Object}  [config={}] Solr configuration

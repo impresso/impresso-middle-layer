@@ -20,7 +20,6 @@ class Collection {
     status = STATUS_PRIVATE,
   } = {}, {
     complete = false,
-    obfuscate = false,
   } = {}) {
     this.uid = String(uid);
     this.labels = labels;
@@ -29,7 +28,7 @@ class Collection {
     this.countItems = parseInt(countItems, 10);
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate);
     this.status = String(status);
-    
+
     if (lastModifiedDate instanceof Date) {
       this.lastModifiedDate = lastModifiedDate;
     } else {
@@ -38,7 +37,7 @@ class Collection {
 
     if (creator instanceof User) {
       this.creator = creator;
-    } else if(creator) {
+    } else if (creator) {
       this.creator = new User(creator);
     }
 
@@ -94,7 +93,7 @@ class Collection {
       creatorId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        field: 'creator_id'
+        field: 'creator_id',
       },
     }, {
       defaultScope: {
@@ -134,9 +133,9 @@ class Collection {
       onDelete: 'CASCADE',
     });
 
-    collection.prototype.toJSON = function(){
+    collection.prototype.toJSON = function () {
       return {
-        ... new Collection({
+        ...new Collection({
           uid: this.uid,
           name: this.name,
           description: this.description,
@@ -146,10 +145,10 @@ class Collection {
           countItems: this.countItems,
         }),
         creator: this.creator.toJSON({
-          obfuscate: true
+          obfuscate: true,
         }),
       };
-    }
+    };
 
     return collection;
   }
@@ -158,3 +157,4 @@ class Collection {
 module.exports = Collection;
 module.exports.STATUS_PUBLIC = STATUS_PUBLIC;
 module.exports.STATUS_PRIVATE = STATUS_PRIVATE;
+module.exports.STATUS_SHARED = STATUS_SHARED;

@@ -1,31 +1,31 @@
-const sequelize = require('../../sequelize');
-const { sequelizeErrorHandler } = require('../../services/sequelize.utils');
-const { NotFound } = require('@feathersjs/errors');
-
 const Collection = require('../../models/collections.model');
+const SequelizeService = require('../sequelize.service');
 
 /* eslint-disable no-unused-vars */
 class Service {
-  constructor(options) {
-    this.options = options || {};
-    this.name = options.name;
-    this.configs = {
-      sequelize: options.app.get('sequelize'),
-    };
-    this.sequelize = sequelize.client(this.configs.sequelize);
-    this.sequelizeKlass = Collection.sequelize(this.sequelize);
+  constructor({
+    name = '',
+    app = null,
+  } = {}) {
+    this.name = String(name);
+    this.SequelizeService = SequelizeService({
+      app,
+      name,
+    });
   }
 
   async find(params) {
     const where = {
       $and: [],
-    }
+    };
 
-    if(params.user) {
-      where.$and.push({ $or: [
-        { creatorId: params.user.id, },
-        { status: Collection.STATUS_PUBLIC,}
-      ]});
+    if (params.user) {
+      where.$and.push({
+        $or: [
+          { creatorId: params.user.id },
+          { status: Collection.STATUS_PUBLIC },
+        ],
+      });
     } else {
       where.$and.push({
         status: Collection.STATUS_PUBLIC,
@@ -39,63 +39,40 @@ class Service {
     }
 
     if (params.query.q) {
-      where.$and.push({ $or: [
-        { name: params.query.q, },
-        { description: params.query.q, },
-      ]});
+      where.$and.push({
+        $or: [
+          { name: params.query.q },
+          { description: params.query.q },
+        ],
+      });
     }
 
-    // get list of collections
-    const collections = await this.sequelizeKlass.scope('get').findAndCountAll({
+    return this.SequelizeService.find({
+      query: {
+        ...params.query,
+      },
       where,
-
-      offset: params.query.skip,
-      limit: params.query.limit,
-      // order by
-      order: [
-        params.query.order_by,
-      ],
     });
-
-    return {
-      data: collections.rows,
-      skip: params.query.skip,
-      limit: params.query.limit,
-      total: collections.count,
-      info: {
-        q: params.query.q,
-      }
-    };
   }
 
   async get(id, params) {
     const where = {
       uid: id,
-      $or: [
-        {
-          '$creator.profile.uid$': params.user.uid,
-        },
-        {
-          '$creator.id$': params.user.id,
-        },
-      ],
-      // $or: [
-      //   {
-      //     status: Collection.STATUS_PUBLIC,
-      //     '$creator.profile.uid$': params.user.uid,
-      //   },
-      // ],
     };
 
-    const collection = await this.sequelizeKlass.scope('get').findOne({
+    if (params.user) {
+      where.$or = [
+        { '$creator.profile.uid$': params.user.uid },
+        { status: { $in: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED] } },
+      ];
+    } else {
+      where.status = {
+        $in: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED],
+      };
+    }
+    return this.SequelizeService.get(id, {
       where,
     });
-
-    if (!collection) {
-      throw new NotFound();
-    } else {
-      return new Collection(collection.toJSON());
-    }
   }
 
   async create(data, params) {
@@ -108,14 +85,11 @@ class Service {
     });
     // get user
 
-    const result = await this.sequelizeKlass
-      .create({
-        ...collection,
-        creator_id: collection.creator.id,
-      })
-      .catch(sequelizeErrorHandler);
+    const result = await this.SequelizeService.bulkCreate([{
+      ...collection,
+      creator_id: collection.creator.id,
+    }]);
 
-    console.log(collection, 'result', result);
     return collection;
   }
 
@@ -124,7 +98,12 @@ class Service {
   }
 
   async patch(id, data, params) {
-    return data;
+    // get the collection
+    return this.SequelizeService.patch(id, data.sanitized, {
+      where: {
+        creatorId: params.user.id,
+      },
+    });
   }
 
   async remove(id, params) {
