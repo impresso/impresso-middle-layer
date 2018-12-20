@@ -1,4 +1,3 @@
-const { sequelizeErrorHandler } = require('../../services/sequelize.utils');
 const Collection = require('../../models/collections.model');
 const SequelizeService = require('../sequelize.service');
 
@@ -86,14 +85,11 @@ class Service {
     });
     // get user
 
-    const result = await this.sequelizeKlass
-      .create({
-        ...collection,
-        creator_id: collection.creator.id,
-      })
-      .catch(sequelizeErrorHandler);
+    const result = await this.SequelizeService.bulkCreate([{
+      ...collection,
+      creator_id: collection.creator.id,
+    }]);
 
-    console.log(collection, 'result', result);
     return collection;
   }
 
