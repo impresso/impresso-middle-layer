@@ -19,18 +19,35 @@ class Newspaper {
     uid = '',
     labels = ['newspaper'],
     languages = [],
+    properties = [],
   } = {}, complete = false) {
     this.uid = String(uid);
 
-    this.acronym = String(acronym);
+    this.acronym = acronym.length? String(acronym): this.uid ;
     this.name = String(name);
     this.labels = labels;
     this.endYear = parseInt(endYear, 10);
     this.startYear = parseInt(startYear, 10);
 
-    this.deltaYear = deltaYear || (this.endYear - this.startYear);
+    this.deltaYear = this.endYear - this.startYear;
 
-    this.languages = languages;
+    this.languages = [];
+    this.properties = [];
+
+    // flatten languages, take codes only
+    if (languages.length) {
+      this.languages = languages.map(d => d.code);
+    }
+
+    // flatten properties, get prop value dict.
+    if (properties.length) {
+      properties.forEach((d) => {
+        this.properties.push({
+          [d.name]: d.newspapers_metadata.value,
+        })
+      });
+    }
+
     if (complete) {
       this.countArticles = parseInt(countArticles, 10);
       this.countIssues = parseInt(countIssues, 10);
@@ -101,18 +118,9 @@ class Newspaper {
     });
 
     newspaper.prototype.toJSON = function () {
-      const item = this.get();
-      // flatten languages
-      if (item.languages && Array.isArray(item.languages)) {
-        item.languages = item.languages.map(d => d.code);
-      }
-      if (item.properties && Array.isArray(item.properties)) {
-        item.properties.forEach((d) => {
-          item[d.name] = d.newspapers_metadata.value;
-        });
-        delete item.properties;
-      }
-      return item;
+      return new Newspaper({
+        ... this.get()
+      });
     };
 
     const newspaperMetadata = client.define('newspapers_metadata', {
