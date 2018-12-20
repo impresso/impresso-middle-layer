@@ -43,7 +43,7 @@ class Newspaper {
     if (properties.length) {
       properties.forEach((d) => {
         this.properties.push({
-          [d.name]: d.newspapers_metadata.value,
+          [d.name]: d,
         })
       });
     }
