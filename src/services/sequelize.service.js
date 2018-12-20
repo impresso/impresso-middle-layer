@@ -71,9 +71,9 @@ class SequelizeService {
     // directly.
     const p = {
       // for paginations.
-      limit: params.query.limit,
-      offset: params.query.skip,
-      order: params.query.order_by,
+      limit: params.limit || params.query.limit,
+      offset: params.skip || params.query.skip,
+      order: params.order_by || params.query.order_by,
     };
     debug(`'find' ${this.name} with params:`, params);
 
@@ -93,7 +93,7 @@ class SequelizeService {
     return fn.findAndCountAll(p)
       .catch(sequelizeErrorHandler)
       .then(res => ({
-        data: res.rows,
+        data: res.rows.map(d => d.toJSON()),
         total: res.count,
         limit: params.query.limit,
         skip: params.query.skip,
