@@ -333,7 +333,7 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
   const params = {
     limit: 10,
     skip: 0,
-    max_limit: 500,
+    max_limit: 1000,
   };
 
   if (!context.params) {
