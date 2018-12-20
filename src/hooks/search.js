@@ -127,7 +127,7 @@ const filtersToSolr = (type, filters) => {
     case 'newspaper':
       return reduceFiltersToSolr(filters, 'meta_journal_s');
     case 'topic':
-      return reduceFiltersToSolr(filters, 'topics_dpf');
+      return reduceFiltersToSolr(filters, 'topics_dpfs');
     case 'year':
       return reduceFiltersToSolr(filters, 'meta_year_i');
     case 'type':
@@ -249,8 +249,9 @@ module.exports = {
       limit: 400,
     },
     topic: {
-      // type: 'terms',
-      field: 'topic_dpf',
+      type: 'terms',
+      field: 'topic_dpfs',
+      method: 'dv',
       mincount: 1,
       limit: 20,
     },
