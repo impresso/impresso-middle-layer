@@ -98,6 +98,11 @@ class CollectableItem {
       },
     });
 
+    collectableItem.prototype.toJSON = function () {
+      return new CollectableItem({
+        ...this.get(),
+      });
+    };
     collectableItem.belongsTo(searchQuery, {
       onDelete: 'SET NULL',
       foreignKey: {
