@@ -180,7 +180,6 @@ class Article {
 
     // TODO: based on type!
     this.labels = ['article'];
-    console.log('rc', typeof rc, rc.reduce);
     this.enrich(rc, lb, rb);
   }
 
@@ -267,6 +266,11 @@ class Article {
               model: newspaper,
               as: 'newspaper',
             },
+
+          ],
+        },
+        getCollections: {
+          include: [
             {
               model: collection,
               as: 'collections',
@@ -275,6 +279,12 @@ class Article {
         },
       },
     });
+
+    article.prototype.toJSON = function () {
+      return new Article({
+        ...this.get(),
+      });
+    };
 
     article.belongsTo(newspaper, {
       foreignKey: {
