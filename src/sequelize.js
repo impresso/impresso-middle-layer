@@ -1,4 +1,4 @@
-const debug = require('debug')('impresso/sequelize');
+const debug = require('debug')('verbose:impresso/sequelize');
 const logger = require('winston');
 const Sequelize = require('sequelize');
 
@@ -65,7 +65,7 @@ const getSequelizeClient = config => new Sequelize({
 module.exports = function (app) {
   const config = app.get('sequelize');
   const sequelize = getSequelizeClient(config);
-  logger.info('connection to postgres database ...');
+  logger.info(`connection to postgres database ${config.database}...`);
   // const oldSetup = app.setup;
   // test connection
   sequelize
