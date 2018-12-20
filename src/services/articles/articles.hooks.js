@@ -1,9 +1,9 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
+  utils, protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
 } = require('../../hooks/params');
 const { assignIIIF } = require('../../hooks/iiif');
-const { filtersToSolrQuery } = require('../../hooks/search');
+const { filtersToSolrQuery, SOLR_ORDER_BY } = require('../../hooks/search');
 
 module.exports = {
   before: {
@@ -13,7 +13,20 @@ module.exports = {
     find: [
       validate({
         order_by: {
+          before: (d) => {
+            if (typeof d === 'string') {
+              return d.split(',');
+            }
+            return d;
+          },
           choices: ['-date', 'date', '-relevance', 'relevance'],
+          transform: d => utils.toOrderBy(d, SOLR_ORDER_BY, true),
+          after: (d) => {
+            if (Array.isArray(d)) {
+              return d.join(',');
+            }
+            return d;
+          },
         },
       }),
       validateEach('filters', {
