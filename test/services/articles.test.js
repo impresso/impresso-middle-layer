@@ -3,7 +3,8 @@ const app = require('../../src/app');
 
 /*
   ./node_modules/.bin/eslint \
-  src/services/articles test/services/articles.test.js --fix &&
+  src/services/articles test/services/articles.test.js \
+  --config .eslintrc.json --fix &&
   DEBUG=impresso/* mocha test/services/articles.test.js
 
   or, without debug
@@ -13,7 +14,7 @@ const app = require('../../src/app');
   mocha test/services/articles.test.js
 */
 describe('\'articles\' service', function () {
-  this.timeout(5000);
+  this.timeout(15000);
   const service = app.service('articles');
   it('registered the service', () => {
     assert.ok(service);
@@ -25,9 +26,9 @@ describe('\'articles\' service', function () {
       assert.fail(err.data);
     });
 
-    assert.ok(result.data);
-    assert.ok(result.data[0].issue);
-    assert.ok(result.data[0].pages);
+    assert.ok(result.data, 'there should be some article');
+    assert.ok(result.data[0].issue, 'there should be an issue for the first article');
+    assert.ok(result.data[0].pages, 'there should be pages');
     assert.equal(result.data[0].labels[0], 'article');
   });
 
@@ -71,7 +72,7 @@ describe('\'articles\' service', function () {
 
   it('get an article contents given an article id', async () => {
     const result = await service.get('GDL-1902-05-13-a-i0006').catch((err) => {
-      assert.fail(err.data);
+      assert.fail(err);
     });
     assert.equal(result.uid, 'GDL-1902-05-13-a-i0006');
     assert.ok(result.regions, 'Check image regions');
