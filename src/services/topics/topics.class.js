@@ -30,7 +30,7 @@ class Service {
   }
 
   async get(id, params) {
-    return this.solr.get(id);
+    return this.solr.get(id, params);
   }
 
   async create(data, params) {
