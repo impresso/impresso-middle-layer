@@ -1,14 +1,11 @@
 const debug = require('debug')('impresso/services:newspapers');
-
 const SequelizeService = require('../sequelize.service');
-const Newspaper = require('../../models/newspapers.model');
-
 
 class Service {
   constructor({
     app,
-    name = ''
-  }= {}){
+    name = '',
+  } = {}) {
     this.app = app;
     this.SequelizeService = SequelizeService({
       app,

@@ -3,7 +3,6 @@ const createService = require('./init.class.js');
 const hooks = require('./init.hooks');
 
 module.exports = function (app) {
-
   const paginate = app.get('paginate');
 
   const options = {

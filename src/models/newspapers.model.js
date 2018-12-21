@@ -12,7 +12,6 @@ class Newspaper {
     countArticles = -1,
     countIssues = -1,
     countPages = -1,
-    deltaYear = -1,
     endYear = -1,
     name = '',
     startYear = -1,
@@ -23,12 +22,11 @@ class Newspaper {
   } = {}, complete = false) {
     this.uid = String(uid);
 
-    this.acronym = acronym.length? String(acronym): this.uid ;
+    this.acronym = acronym.length ? String(acronym) : this.uid;
     this.name = String(name);
     this.labels = labels;
     this.endYear = parseInt(endYear, 10);
     this.startYear = parseInt(startYear, 10);
-
     this.deltaYear = this.endYear - this.startYear;
 
     this.languages = [];
@@ -44,7 +42,7 @@ class Newspaper {
       properties.forEach((d) => {
         this.properties.push({
           [d.name]: d,
-        })
+        });
       });
     }
 
@@ -119,7 +117,7 @@ class Newspaper {
 
     newspaper.prototype.toJSON = function () {
       return new Newspaper({
-        ... this.get()
+        ...this.get(),
       });
     };
 
