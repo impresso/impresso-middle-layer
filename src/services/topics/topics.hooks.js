@@ -1,11 +1,19 @@
 const {
   queryWithCommonParams, // validate, utils, REGEX_UID,
+  validate,
+  REGEX_UID,
 } = require('../../hooks/params');
 
 module.exports = {
   before: {
     all: [],
     find: [
+      validate({
+        model: {
+          required: false,
+          regex: REGEX_UID,
+        },
+      }, 'GET'),
       queryWithCommonParams(),
     ],
     get: [],

@@ -28,6 +28,7 @@ class Topic {
   constructor({
     uid = '',
     language = '',
+    model = '',
     // array of topicWords
     words = [],
   } = {}, {
@@ -38,6 +39,7 @@ class Topic {
     this.uid = String(uid);
     this.language = String(language);
     this.words = words;
+    this.model = String(model);
     if (checkHighlight) {
       // get highlighted word
       const idx = lodash.findIndex(this.words, 'h');
@@ -59,6 +61,7 @@ class Topic {
       uid: topic.id,
       language: topic.lg_s,
       words: topic.word_probs_dpf.split(' ').map(d => TopicWord.create(d)),
+      model: topic.tp_model_s,
     });
   }
 
