@@ -250,8 +250,7 @@ module.exports = {
     },
     topic: {
       type: 'terms',
-      field: 'topic_dpfs',
-      method: 'dv',
+      field: 'topics_dpfs',
       mincount: 1,
       limit: 20,
     },
