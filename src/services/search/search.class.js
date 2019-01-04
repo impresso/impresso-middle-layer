@@ -98,23 +98,25 @@ class Service {
     });
 
     const resolveFacetItems = [];
-    const facets = _solr.facets;
+    const facets = _solr.facets || {};
     // load from facets
-    Object.keys(_solr.facets).forEach((facet) => {
-      if (facet === 'newspaper') {
-        resolveFacetItems.push({
-          // the facet key to merge later
-          facet,
-          service: 'newspapers',
-          // enrich bucket with service identifier, uid.
-          // SOLR gives it as `val` property of the facet.
-          items: _solr.facets.newspaper.buckets.map(d => ({
-            ...d,
-            uid: d.val,
-          })),
-        });
-      }
-    });
+    if(_solr.facets) {
+      Object.keys(_solr.facets).forEach((facet) => {
+        if (facet === 'newspaper') {
+          resolveFacetItems.push({
+            // the facet key to merge later
+            facet,
+            service: 'newspapers',
+            // enrich bucket with service identifier, uid.
+            // SOLR gives it as `val` property of the facet.
+            items: _solr.facets.newspaper.buckets.map(d => ({
+              ...d,
+              uid: d.val,
+            })),
+          });
+        }
+      });
+    }
 
     if (resolveFacetItems.length) {
       // resolve uids with the appropriate service
