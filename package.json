@@ -85,7 +85,7 @@
     "pg": "^7.4.1",
     "pg-hstore": "^2.3.2",
     "request-promise": "^4.2.2",
-    "sequelize": "^4.41.2",
+    "sequelize": "^4.42.0",
     "serve-favicon": "^2.5.0",
     "short-hash": "^1.0.0",
     "slugify": "^1.2.9",
