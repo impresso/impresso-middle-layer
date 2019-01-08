@@ -23,10 +23,11 @@ describe('\'newspapers\' service', function () {
     assert.ok(results.total > 0, 'has a total greater than zero');
     assert.ok(results.data[0] instanceof Newspaper, 'is an instance of Newspaper');
   });
-  it('get newspapers containing "gazette"!', async () => {
+  it('get newspapers containing "gazette", ordered by start year!', async () => {
     const results = await service.find({
       query: {
         q: 'gazette',
+        order_by: 'startYear',
       },
     });
     assert.ok(results.total > 0, 'has a total greater than zero');

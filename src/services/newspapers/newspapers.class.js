@@ -18,7 +18,10 @@ class Service {
     const where = {};
 
     if (params.query.q) {
-      where.name = params.query.q;
+      where.$or = [
+        { name: params.query.q },
+        { uid: params.query.q },
+      ];
     }
 
     return this.SequelizeService.find({
