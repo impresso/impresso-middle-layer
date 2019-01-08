@@ -80,8 +80,12 @@ class SequelizeService {
     if (params.where) {
       p.where = params.where;
     }
+
+    // force distinct if needed
     if (params.distinct) {
-      p.distinct = params.distinct;
+      p.distinct = true;
+      const pk = this.sequelizeKlass.primaryKeyAttributes[0];
+      p.col = `${this.sequelizeKlass.name}.${this.sequelizeKlass.primaryKeys[pk].field}`;
     }
 
     let fn = this.sequelizeKlass;
@@ -92,6 +96,10 @@ class SequelizeService {
 
     return fn.findAndCountAll(p)
       .catch(sequelizeErrorHandler)
+      .then((res) => {
+        debug(`'find' ${this.name} success, n.results:`, res.count);
+        return res;
+      })
       .then(res => ({
         data: res.rows.map(d => d.toJSON()),
         total: res.count,

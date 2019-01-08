@@ -23,8 +23,8 @@ class Service {
 
     return this.SequelizeService.find({
       ...params,
-      scope: 'findAll',
       where,
+      distinct: true,
     });
   }
 }
