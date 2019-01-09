@@ -200,11 +200,40 @@ const findAll = (config, params = {}, factory) => {
   });
 };
 
+/**
+ * [resolveAsync description]
+ *
+ * @param  {Object} config configuration item
+ * @param  {Array} groups groups of services, each containing a list of items
+ * @param  {Function} factory Instance generator
+ * @return {Object} {uid: instance}
+ */
+const resolveAsync = (config, groups) => {
+
+  // await Promise.all(groups.map((group) => {
+  //   debug(`resolveAsync': findAll for namespace "${group.namespace}"`);
+  //
+  //   return findAll(config, {
+  //     fl: Topic.
+  //     namespace: group.namespace,
+  //   }, group.factory).then(res => {
+  //     console.log(res);
+  //   });
+  // });
+  // return items
+  //
+  //
+  return groups;
+}
 
 const getSolrClient = config => ({
   findAll: (params, factory) => findAll(config, params, factory),
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
+
+  utils: {
+    resolveAsync: (items, factory) => resolveAsync(config, items, factory),
+  }
 });
 
 module.exports = function (app) {
