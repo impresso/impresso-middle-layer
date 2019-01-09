@@ -1,6 +1,8 @@
 const debug = require('debug')('impresso/services:newspapers');
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
+const Neo4jService = require('../neo4j.service');
+
 const Issue = require('../../models/issues.model');
 
 class Service {
@@ -11,6 +13,10 @@ class Service {
     this.name = String(name);
     this.app = app;
     this.SequelizeService = SequelizeService({
+      app,
+      name,
+    });
+    this.Neo4jService = Neo4jService({
       app,
       name,
     });
@@ -34,7 +40,7 @@ class Service {
     return results;
   }
 
-  async get(id) {
+  async get(id, params) {
     const issue = await Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
@@ -45,13 +51,15 @@ class Service {
         },
         q: `meta_issue_id_s:${id}`,
         fl: Issue.ISSUE_SOLR_FL_MINIMAL,
-        ollapse_by: 'meta_issue_id_s',
+        collapse_by: 'meta_issue_id_s',
         // get first ARTICLE result
         collapse_fn: 'sort=\'id ASC\'',
       }).then(res => res.data[0]),
-    ]).then(results =>
-      // TODO
-      results[0]);
+      this.Neo4jService.get(id, params),
+    ]).then(results =>({
+        ... results[0],
+        ... results[1] || {},
+    }));
     return issue;
   }
 }
