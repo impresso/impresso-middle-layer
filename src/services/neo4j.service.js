@@ -22,6 +22,7 @@ class Neo4jService {
 
     debug(`Configuring neo4j service: ${this.options.name}`);
 
+    // really don't know what they are :(
     this._id = options.idField || options.id || 'id';
     this.id = this._id;
     this._uId = options.startId || 0;
