@@ -195,7 +195,7 @@ const filtersToSolrQuery = () => async (context) => {
       // payload(topics_dpf,tmGDL_tp04_fr)
       reduceFiltersToVars(filters[key]).forEach((d) => {
         const l = Object.keys(vars).length;
-        vars[`v${l}`] = `payload(${key}_dpf,${d})`;
+        vars[`v${l}`] = `payload(${key}_dpfs,${d})`;
       });
     }
   });
@@ -253,6 +253,7 @@ module.exports = {
       field: 'topics_dpfs',
       mincount: 1,
       limit: 20,
+      numBuckets: true,
     },
     newspaper: {
       type: 'terms',
