@@ -144,6 +144,18 @@ const findAll = (config, params = {}, factory) => {
       'group.limit': 3, // top 3
       'group.ngroups': true,
     };
+  } else if (_params.collapse_by) {
+    // using https://lucene.apache.org/solr/guide/6_6/collapse-and-expand-results.html
+    if (!_params.collapse_fn) {
+      _params.collapse_fn = '';
+    }
+    if (_params.expand) {
+      qs.expand = true;
+    }
+    qs = {
+      ...qs,
+      fq: `{!collapse field=${_params.collapse_by} ${_params.collapse_fn}}`, // top 1 document matching.
+    };
   }
 
   if (_params.fl) {
