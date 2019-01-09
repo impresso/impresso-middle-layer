@@ -118,13 +118,13 @@ class Service {
               uid: d.val,
             })),
           });
-        } else if(facet === 'topic') {
+        } else if (facet === 'topic') {
           facetGroupsToResolve.push({
             // the facet key to merge later
             facet,
             engine: 'solr',
             namespace: 'topics',
-            klass: Topic,
+            Klass: Topic,
 
             // enrich bucket with service identifier, uid.
             // SOLR gives it as `val` property of the facet.
@@ -141,11 +141,11 @@ class Service {
     if (facetGroupsToResolve.length) {
       // resolve uids with the appropriate service
       const facetGroupsResolved = await Promise.all([
-        sequelizeUtils.resolveAsync(this.sequelize,facetGroupsToResolve
+        sequelizeUtils.resolveAsync(this.sequelize, facetGroupsToResolve
           .filter(d => d.engine === 'sequelize')),
         this.solr.utils.resolveAsync(facetGroupsToResolve
           .filter(d => d.engine === 'solr')),
-      ]).then(results => results[0].concat(results[1]));
+      ]).then(groups => groups[0].concat(groups[1]));
 
       // add facet resolved item to facet
       facetGroupsResolved.forEach((group) => {
@@ -155,7 +155,7 @@ class Service {
         facets[group.facet] = {
           ..._solr.facets[group.facet],
           buckets: group.items,
-        }
+        };
       });
     }
 
