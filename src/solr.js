@@ -200,11 +200,43 @@ const findAll = (config, params = {}, factory) => {
   });
 };
 
+/**
+ * [resolveAsync description]
+ *
+ * @param  {Object} config configuration item
+ * @param  {Array} groups groups of services, each containing a list of items
+ * @param  {Function} factory Instance generator
+ * @return {Object} {uid: instance}
+ */
+const resolveAsync = async (config, groups) => {
+  await Promise.all(groups.map((group, k) => {
+    debug(`resolveAsync': findAll for namespace "${group.namespace}"`);
+    const ids = group.items.map(d => d.uid);
+
+
+    return findAll(config, {
+      q: `id:${ids.join(' ')}`,
+      fl: group.Klass.SOLR_FL,
+      namespace: group.namespace,
+    }, group.Klass.solrFactory).then((res) => {
+      console.log(res);
+      res.response.docs.forEach((doc) => {
+        const idx = ids.indexOf(doc.uid);
+        groups[k].items[idx].item = doc;
+      });
+    });
+  }));
+  return groups;
+};
 
 const getSolrClient = config => ({
   findAll: (params, factory) => findAll(config, params, factory),
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
+
+  utils: {
+    resolveAsync: (items, factory) => resolveAsync(config, items, factory),
+  },
 });
 
 module.exports = function (app) {

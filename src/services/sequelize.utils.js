@@ -60,7 +60,6 @@ const resolveAsync = async (client, groups) => {
   await Promise.all(promises).catch((err) => {
     debug('resolveAsync:promise.all throw error', err);
   });
-  console.log(groups[0].items);
   return groups;
 };
 

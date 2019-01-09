@@ -5,11 +5,13 @@ const solr = require('../../solr');
 const { SOLR_INVERTED_GROUP_BY } = require('../../hooks/search');
 const neo4j = require('../../neo4j');
 const sequelize = require('../../sequelize');
+const sequelizeUtils = require('../../services/sequelize.utils');
 const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
-const { resolveAsync } = require('../sequelize.utils');
+
 const article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
+const Topic = require('../../models/topics.model');
 
 class Service {
   /**
@@ -97,20 +99,38 @@ class Service {
       return {};
     });
 
-    const resolveFacetItems = [];
+    const facetGroupsToResolve = [];
     const facets = _solr.facets || {};
     // load from facets
-    if(_solr.facets) {
+    if (_solr.facets) {
       Object.keys(_solr.facets).forEach((facet) => {
         if (facet === 'newspaper') {
-          resolveFacetItems.push({
+          facetGroupsToResolve.push({
             // the facet key to merge later
             facet,
+            engine: 'sequelize',
             service: 'newspapers',
             // enrich bucket with service identifier, uid.
             // SOLR gives it as `val` property of the facet.
             items: _solr.facets.newspaper.buckets.map(d => ({
               ...d,
+              count: d.count,
+              uid: d.val,
+            })),
+          });
+        } else if (facet === 'topic') {
+          facetGroupsToResolve.push({
+            // the facet key to merge later
+            facet,
+            engine: 'solr',
+            namespace: 'topics',
+            Klass: Topic,
+
+            // enrich bucket with service identifier, uid.
+            // SOLR gives it as `val` property of the facet.
+            items: _solr.facets.topic.buckets.map(d => ({
+              ...d,
+              count: d.count,
               uid: d.val,
             })),
           });
@@ -118,32 +138,41 @@ class Service {
       });
     }
 
-    if (resolveFacetItems.length) {
+    if (facetGroupsToResolve.length) {
       // resolve uids with the appropriate service
-      await resolveAsync(this.sequelize, resolveFacetItems);
+      const facetGroupsResolved = await Promise.all([
+        sequelizeUtils.resolveAsync(this.sequelize, facetGroupsToResolve
+          .filter(d => d.engine === 'sequelize')),
+        this.solr.utils.resolveAsync(facetGroupsToResolve
+          .filter(d => d.engine === 'solr')),
+      ]).then(groups => groups[0].concat(groups[1]));
+
+      // add facet resolved item to facet
+      facetGroupsResolved.forEach((group) => {
+        // rebuild facets!
+        debug(`find '${this.name}': rebuilding facet "${group.facet}"`);
+
+        facets[group.facet] = {
+          ..._solr.facets[group.facet],
+          buckets: group.items,
+        };
+      });
     }
-    // substitute solr.facets buckets the with the facets.
-    resolveFacetItems.forEach((resolved) => {
-      facets[resolved.facet] = {
-        ...facets[resolved.facet],
-        buckets: resolved.items,
-      };
-    });
 
     // merge results maintaining solr ordering.
-    results = _solr.response.docs.map((d) => {
-      let newspaper = d.newspaper;
+    results = _solr.response.docs.map((doc) => {
+      let newspaper = doc.newspaper;
 
       if (facets.newspaper && facets.newspaper.buckets) {
-        const facetedNewspaper = facets.newspaper.buckets.find(n => n.uid === d.newspaper.uid);
+        const facetedNewspaper = facets.newspaper.buckets.find(n => n.uid === newspaper.uid);
         if (facetedNewspaper.item) {
           newspaper = new Newspaper(facetedNewspaper.item);
         }
       }
 
       return {
-        ...d,
-        ...itemsFromNeo4j[d.uid] || {},
+        ...doc,
+        ...itemsFromNeo4j[doc.uid] || {},
         newspaper,
       };
     });
