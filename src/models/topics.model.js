@@ -80,5 +80,13 @@ class Topic {
   }
 }
 
+const SOLR_FL = [
+  'id',
+  'lg_s',
+  'word_probs_dpf',
+  'tp_model_s',
+];
+
 
 module.exports = Topic;
+module.exports.SOLR_FL = SOLR_FL;
