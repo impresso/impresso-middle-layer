@@ -208,23 +208,26 @@ const findAll = (config, params = {}, factory) => {
  * @param  {Function} factory Instance generator
  * @return {Object} {uid: instance}
  */
-const resolveAsync = (config, groups) => {
+const resolveAsync = async (config, groups) => {
+  await Promise.all(groups.map((group, k) => {
+    debug(`resolveAsync': findAll for namespace "${group.namespace}"`);
+    const ids = group.items.map(d => d.uid);
 
-  // await Promise.all(groups.map((group) => {
-  //   debug(`resolveAsync': findAll for namespace "${group.namespace}"`);
-  //
-  //   return findAll(config, {
-  //     fl: Topic.
-  //     namespace: group.namespace,
-  //   }, group.factory).then(res => {
-  //     console.log(res);
-  //   });
-  // });
-  // return items
-  //
-  //
+
+    return findAll(config, {
+      q: `id:${ids.join(' ')}`,
+      fl: group.Klass.SOLR_FL,
+      namespace: group.namespace,
+    }, group.Klass.solrFactory).then((res) => {
+      console.log(res);
+      res.response.docs.forEach((doc) => {
+        const idx = ids.indexOf(doc.uid);
+        groups[k].items[idx].item = doc;
+      });
+    });
+  }));
   return groups;
-}
+};
 
 const getSolrClient = config => ({
   findAll: (params, factory) => findAll(config, params, factory),
@@ -233,7 +236,7 @@ const getSolrClient = config => ({
 
   utils: {
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
-  }
+  },
 });
 
 module.exports = function (app) {
