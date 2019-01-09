@@ -1,5 +1,5 @@
 // Initializes the `issues` service on path `/issues`
-const createService = require('../neo4j.service');
+const createService = require('./issues.class');
 const hooks = require('./issues.hooks');
 
 module.exports = function (app) {
@@ -8,7 +8,7 @@ module.exports = function (app) {
   const options = {
     name: 'issues',
     paginate,
-    config: app.get('neo4j'),
+    app,
   };
 
   // Initialize our service with any options it requires

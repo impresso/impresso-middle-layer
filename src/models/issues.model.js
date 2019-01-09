@@ -8,17 +8,41 @@ class Issue {
     // countPages = 0,
     // date = new Date(),
     // entities = [],
-    // newspaper = new Newspaper.Model(),
+    newspaper = new Newspaper(),
     // pages = [],
+    cover = '', // page uid
     uid = '',
     // year = 0,
     labels = ['issue'],
-  } = {}, complete = false) {
+  } = {}) {
     this.uid = String(uid);
+    this.cover = cover;
     this.labels = labels;
-    if (complete) {
-      // TODO: fill
+
+    if (newspaper instanceof Newspaper) {
+      this.newspaper = newspaper;
+    } else if (newspaper) {
+      this.newspaper = new Newspaper(newspaper);
     }
+  }
+
+  /**
+   * Return an Issue mapper for Solr response document
+   * Issues are rebuilt from SOLR "articles" documents.
+   *
+   * @return {function} {Issue} issue instance.
+   */
+  static solrFactory() {
+    return (doc) => {
+      const iss = new Issue({
+        uid: doc.meta_issue_id_s,
+        cover: doc.page_id_ss[0],
+        newspaper: new Newspaper({
+          uid: doc.meta_journal_s,
+        }),
+      });
+      return iss;
+    };
   }
 
   static sequelize(client) {
@@ -56,6 +80,12 @@ class Issue {
       },
     });
 
+    issue.prototype.toJSON = function () {
+      return new Issue({
+        ...this.get(),
+      });
+    };
+
     issue.belongsTo(newspaper, {
       foreignKey: 'newspaper_id',
     });
@@ -64,5 +94,14 @@ class Issue {
   }
 }
 
+const ISSUE_SOLR_FL_MINIMAL = [
+  'meta_issue_id_s',
+  'meta_journal_s',
+  'meta_issue_id_s',
+  'cc_b',
+  'front_b',
+  'page_id_ss',
+];
 
 module.exports = Issue;
+module.exports.ISSUE_SOLR_FL_MINIMAL = ISSUE_SOLR_FL_MINIMAL;
