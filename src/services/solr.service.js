@@ -31,20 +31,26 @@ class SolrService {
   }
 
   async find(params) {
-    const results = await this.solr.findAll({
+    const p = {
       q: params.q || params.query.sq || '*:*',
       limit: params.query.limit,
       skip: params.query.skip,
       fl: params.fl,
       order_by: params.query.order_by, // default ordering TODO
+      collapse_by: params.collapse_by,
+      collapse_fn: params.collapse_fn,
       namespace: this.namespace,
-    }, this.Model.solrFactory);
+    };
+    // removing unnecessary indefined fields.
+    Object.keys(p).forEach(key => p[key] === undefined && delete p[key]);
+
+    const results = await this.solr.findAll(p, this.Model.solrFactory);
 
     return {
       data: results.response.docs,
       total: results.response.numFound,
-      limit: params.query.limit,
-      skip: params.query.skip,
+      limit: p.limit,
+      skip: p.skip,
       info: {
         // params,
         responseTime: {
