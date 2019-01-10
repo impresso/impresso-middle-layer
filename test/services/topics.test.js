@@ -15,6 +15,15 @@ describe('\'topics\' service', () => {
     assert.ok(service, 'Registered the service');
   });
 
+  it('should not raise an issue when q is null (from socket)', async () => {
+    const results = await service.find({
+      query: {
+        q: null,
+      },
+    });
+    assert.ok(results.data[0]);
+  });
+
   it('use filters to get topics from one model only', async () => {
     const results = await service.find({
       query: {

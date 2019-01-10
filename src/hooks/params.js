@@ -163,7 +163,7 @@ const _validateOne = (key, item, rule) => {
   const _errors = {};
   let _item;
   // it is required
-  if (typeof item === 'undefined') {
+  if (typeof item === 'undefined' || item === null) {
     if (rule.required === true) {
       _errors[key] = {
         code: 'NotFound',
