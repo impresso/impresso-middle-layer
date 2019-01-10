@@ -31,7 +31,7 @@ const update = (config, params = {}) => {
     body,
     // json: true REMOVED because of duplicate keys
   }).then((res) => {
-    console.log(res);
+    debug('update received', res);
     return 'ok';
   });
 };
@@ -105,7 +105,7 @@ const findAll = (config, params = {}, factory) => {
     namespace: 'search',
     ...params,
   };
-  debug(`findAll: request to '${_params.namespace}' endpoint.`, _params);
+  debug(`findAll: request to '${_params.namespace}' endpoint. With PARAMS`, _params);
 
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
@@ -219,7 +219,6 @@ const resolveAsync = async (config, groups) => {
       fl: group.Klass.SOLR_FL,
       namespace: group.namespace,
     }, group.Klass.solrFactory).then((res) => {
-      console.log(res);
       res.response.docs.forEach((doc) => {
         const idx = ids.indexOf(doc.uid);
         groups[k].items[idx].item = doc;
