@@ -36,6 +36,7 @@ class SolrService {
       limit: params.query.limit,
       skip: params.query.skip,
       fl: params.fl,
+      facets: params.query.facets,
       order_by: params.query.order_by, // default ordering TODO
       collapse_by: params.collapse_by,
       collapse_fn: params.collapse_fn,
@@ -56,6 +57,7 @@ class SolrService {
         responseTime: {
           solr: results.responseHeader.QTime,
         },
+        facets: results.facets,
         // solr: results.responseHeader,
       },
     };
