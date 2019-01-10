@@ -18,7 +18,7 @@ describe('\'search-exporter\' service', function () {
   });
 
   it('given a search, return the metadata', async () => {
-    const skip = 12500;
+    const skip = 0;
     const limit = 500;
     const results = await service.find({
       user: {
@@ -32,14 +32,26 @@ describe('\'search-exporter\' service', function () {
           {
             type: 'string',
             context: 'include',
-            q: 'europ* OR Osteurop*',
+            q: 'paneurop*',
           },
           {
             type: 'daterange',
             context: 'include',
-            daterange: '1939-01-09T00:00:00Z TO 1945-05-08T00:00:00Z',
+            daterange: '1900-01-01T00:00:00Z TO 1945-01-01T00:00:00Z',
           },
         ],
+        // filters: [
+        //   {
+        //     type: 'string',
+        //     context: 'include',
+        //     q: 'europ* OR Osteurop*',
+        //   },
+        //   {
+        //     type: 'daterange',
+        //     context: 'include',
+        //     daterange: '1939-01-09T00:00:00Z TO 1945-05-08T00:00:00Z',
+        //   },
+        // ],
       },
     }).catch((err) => {
       assert.fail(err);
