@@ -56,9 +56,9 @@ class Service {
         collapse_fn: 'sort=\'id ASC\'',
       }).then(res => res.data[0]),
       this.Neo4jService.get(id, params),
-    ]).then(results =>({
-        ... results[0],
-        ... results[1] || {},
+    ]).then(results => ({
+      ...results[0],
+      ...results[1] || {},
     }));
     return issue;
   }

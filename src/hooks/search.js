@@ -63,7 +63,7 @@ const reduceRegexFiltersToSolr = filters =>
   }, []).join(' AND ');
 
 
-const reduceStringFiltersToSolr = filters =>
+const reduceStringFiltersToSolr = (filters, field) =>
   // reduce the string in filters to final SOLR query `sq`
   filters.reduce((_sq, query) => {
     // const specialchars = '+ - && || ! ( ) { } [ ] ^ " ~ * ? : \\'.split(' ');
@@ -85,7 +85,7 @@ const reduceStringFiltersToSolr = filters =>
     }
 
 
-    _q = `content_txt_fr:${_q}`;
+    _q = `${field}:${_q}`;
     // is standalone SOLR? Surround by parenthesis
     // if(isSolrStandalone(q)) {
     //   return q
@@ -115,7 +115,7 @@ const filtersToSolr = (type, filters) => {
   // console.log('filtersToSolr', type, filters);
   switch (type) {
     case 'string':
-      return reduceStringFiltersToSolr(filters);
+      return reduceStringFiltersToSolr(filters, 'content_txt_fr');
     case 'daterange':
       return reduceDaterangeFiltersToSolr(filters);
     case 'language':
@@ -138,10 +138,41 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'pers_mentions');
     case 'location':
       return reduceFiltersToSolr(filters, 'loc_mentions');
+    case 'topicmodel':
+      return reduceFiltersToSolr(filters, 'tp_model_s');
+    case 'topic-string':
+      return reduceStringFiltersToSolr(filters, 'topic_suggest');
     case 'regex':
       return reduceRegexFiltersToSolr(filters);
     default:
       throw new Error(`reduceFilterToSolr: filter function for '${type}' not found`);
+  }
+};
+
+/**
+ * Transform q param in a nice string filter.
+/**
+ * @param  {String} type filter type, gets transkated to actual solr fields.
+ * @return {null}      [description]
+ */
+const qToSolrFilter = (type = 'string') => (context) => {
+  if (context.type !== 'before') {
+    throw new Error('The \'filtersToSolrQuery\' hook should only be used as a \'before\' hook.');
+  }
+  if (typeof context.params.sanitized !== 'object') {
+    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+  }
+  if (!Array.isArray(context.params.sanitized.filters)) {
+    context.params.sanitized.filters = [];
+  }
+  if (context.params.sanitized.q) {
+    context.params.sanitized.filters.unshift({
+      context: 'include',
+      type,
+      fuzzy: false,
+      standalone: false,
+      q: context.params.sanitized.q,
+    });
   }
 };
 
@@ -174,18 +205,7 @@ const filtersToSolrQuery = () => async (context) => {
   const vars = {};
 
   // if there is a q parameter, let's add it to the very beginning of the query as include.
-  if (context.params.sanitized.q) {
-    if (!filters.string) {
-      filters.string = [];
-    }
-    filters.string.unshift({
-      context: 'include',
-      type: 'string',
-      fuzzy: false,
-      standalone: false,
-      q: context.params.sanitized.q,
-    });
-  }
+
 
   Object.keys(filters).forEach((key) => {
     queries.push(filtersToSolr(key, filters[key]));
@@ -220,6 +240,7 @@ const filtersToSolrQuery = () => async (context) => {
 
 module.exports = {
   filtersToSolrQuery,
+  qToSolrFilter,
   reduceFiltersToSolr,
 
 

@@ -16,34 +16,22 @@ module.exports = {
           min_length: 2,
           max_length: 1000,
         },
-        order_by: {
-          before: (d) => {
-            if (typeof d === 'string') {
-              return d.split(',');
-            }
-            return d;
-          },
-          choices: ['name', '-name', 'date', '-date', 'relevance', '-relevance'],
-          defaultValue: 'name',
-          transform: d => utils.translate(d, {
+        order_by: utils.orderBy({
+          values: {
             name: 'meta_issue_id_s ASC',
             '-name': 'meta_issue_id_s DESC',
             date: 'meta_date_dt ASC',
             '-date': 'meta_date_dt DESC',
             relevance: 'score ASC',
             '-relevance': 'score DESC',
-          }),
-          after: (d) => {
-            if (Array.isArray(d)) {
-              return d.join(',');
-            }
-            return d;
           },
-        },
+          defaultValue: 'name',
+        }),
       }),
       validateEach('filters', {
         context: {
           choices: ['include', 'exclude'],
+          defaultValue: 'include',
           required: true,
         },
         type: {
