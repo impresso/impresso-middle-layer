@@ -88,6 +88,77 @@ const toOrderBy = (ordering, translateTable, lower = false) => {
 
 const translate = (key, dict) => dict[key];
 
+/**
+ * To be used in conjunction with validate()
+ * Usage:
+ ```
+   order_by: utils.orderBy({
+     values: {
+       'name': 'topic_suggest ASC',
+       '-name': 'topic_suggest DESC',
+     },
+     defaultValue: 'name',
+   }),
+ ```
+ * @param  {Object} [values={}, defaultValue=null]  [description]
+ * @return {Object} complex validate object with before, after.
+ */
+const orderBy = ({
+  values = {},
+  defaultValue = undefined,
+  required = false,
+} = {}) => ({
+  before: (d) => {
+    if (typeof d === 'string') {
+      return d.split(',');
+    }
+    return d;
+  },
+  choices: Object.keys(values),
+  defaultValue,
+  required,
+  transform: d => translate(d, values),
+  after: (d) => {
+    if (Array.isArray(d)) {
+      return d.join(',');
+    }
+    return d;
+  },
+});
+
+/**
+ * [facets description]
+ * @param  {Object} [values={}]         [description]
+ * @param  {String} [defaultValue=null] [optional]
+ * @return {Object}                     [description]
+ */
+const facets = ({
+  values = {},
+  defaultValue = undefined,
+  required = false,
+} = {}) => ({
+  before: (d) => {
+    if (typeof d === 'string') {
+      return d.split(',');
+    }
+    return d;
+  },
+  choices: Object.keys(values),
+  defaultValue,
+  required,
+  transform: d => ({
+    ...translate(d, values),
+    facet: d,
+  }), // translate(d, values),
+  after: (fields) => {
+    const _facets = {};
+    fields.forEach((field) => {
+      _facets[field.facet] = values[field.facet];
+    });
+    return JSON.stringify(_facets);
+  },
+});
+
 const _validateOne = (key, item, rule) => {
   const _errors = {};
   let _item;
@@ -369,7 +440,6 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
     params.skip = Math.max(0, parseInt(context.params.query.skip, 10));
   }
 
-  debug('queryWithCommonParams: <params>', params);
 
   if (replaceQuery) {
     context.params.isSafe = true;
@@ -378,6 +448,7 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
       ...context.params.sanitized || {}, // add validated params, if any
       ...params,
     };
+    debug(`queryWithCommonParams (replaceQuery:${replaceQuery}), <context.params.query>:`, context.params.query);
   } else {
     context.params.sanitized = params;
     debug('queryWithCommonParams: do not replace context.params.query.');
@@ -514,6 +585,8 @@ module.exports = {
   REGEX_UIDS,
 
   utils: {
+    orderBy,
+    facets,
     toOrderBy,
     toLucene,
     translate,
