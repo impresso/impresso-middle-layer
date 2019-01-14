@@ -213,12 +213,12 @@ const resolveAsync = async (config, groups) => {
     debug(`resolveAsync': findAll for namespace "${group.namespace}"`);
     const ids = group.items.map(d => d.uid);
 
-
     return findAll(config, {
-      q: `id:${ids.join(' ')}`,
+      q: `id:${ids.join(' OR id:')}`,
       fl: group.Klass.SOLR_FL,
+      limit: ids.length,
       namespace: group.namespace,
-    }, group.Klass.solrFactory).then((res) => {
+    }, group.factory || group.Klass.solrFactory).then((res) => {
       res.response.docs.forEach((doc) => {
         const idx = ids.indexOf(doc.uid);
         groups[k].items[idx].item = doc;
