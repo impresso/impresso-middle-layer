@@ -88,8 +88,7 @@ class Service {
     }).then(rows => lodash(rows)
       .map(d => d.toJSON())
       .groupBy('itemId')
-      .value()
-    );
+      .value());
 
 
     const groupBy = SOLR_INVERTED_GROUP_BY[params.query.group_by];
@@ -98,7 +97,7 @@ class Service {
     const itemsFromNeo4j = await neo4jRun(session, neo4jQueries, {
       _exec_user_uid: params.query._exec_user_uid,
       Project: 'impresso',
-      uids: uids,
+      uids,
 
     }).then((res) => {
       const _records = {};
@@ -178,6 +177,7 @@ class Service {
     // merge results maintaining solr ordering.
     results = _solr.response.docs.map((doc) => {
       let newspaper = doc.newspaper;
+      let cols = [];
 
       if (facets.newspaper && facets.newspaper.buckets) {
         const facetedNewspaper = facets.newspaper.buckets.find(n => n.uid === newspaper.uid);
@@ -185,11 +185,13 @@ class Service {
           newspaper = new Newspaper(facetedNewspaper.item);
         }
       }
-
+      if (collections && collections[doc.uid]) {
+        cols = collections[doc.uid].map(d => d.collection);
+      }
       return {
         ...doc,
         ...itemsFromNeo4j[doc.uid] || {},
-        collections: collections[doc.uid].map(d => d.collection),
+        collections: cols,
         newspaper,
       };
     });
