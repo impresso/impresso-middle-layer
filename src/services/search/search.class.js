@@ -125,7 +125,7 @@ class Service {
             engine: 'solr',
             namespace: 'topics',
             Klass: Topic,
-
+            factory: Topic.solrFacetFactory,
             // enrich bucket with service identifier, uid.
             // SOLR gives it as `val` property of the facet.
             items: _solr.facets.topic.buckets.map(d => ({
