@@ -85,7 +85,11 @@ class Service {
       where: {
         itemId: { $in: uids },
       },
-    }).then(rows => lodash(rows).map(d => d.toJSON()).groupBy('itemId').value());
+    }).then(rows => lodash(rows)
+      .map(d => d.toJSON())
+      .groupBy('itemId')
+      .value()
+    );
 
 
     const groupBy = SOLR_INVERTED_GROUP_BY[params.query.group_by];
@@ -185,7 +189,7 @@ class Service {
       return {
         ...doc,
         ...itemsFromNeo4j[doc.uid] || {},
-        collections: collections[doc.uid] || {},
+        collections: collections[doc.uid].map(d => d.collection),
         newspaper,
       };
     });
