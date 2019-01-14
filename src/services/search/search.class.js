@@ -12,6 +12,8 @@ const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
 const article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
 const Topic = require('../../models/topics.model');
+const CollectableItem = require('../../models/collectable-items.model');
+
 
 class Service {
   /**
@@ -52,7 +54,6 @@ class Service {
   async find(params) {
     // mapped objects
     let results = [];
-    const uids = [];
 
     debug(`find '${this.name}': query:`, params.query, params.sanitized.sv);
 
@@ -76,13 +77,24 @@ class Service {
       return Service.wrap([], params.query.limit, params.query.skip, total);
     }
 
+    // remap for the addons...
+    const uids = _solr.response.docs.map(d => d.uid);
+
+    // get related collections
+    const collections = await CollectableItem.sequelize(this.sequelize).findAll({
+      where: {
+        itemId: { $in: uids },
+      },
+    }).then(rows => lodash(rows).map(d => d.toJSON()).groupBy('itemId').value());
+
+
     const groupBy = SOLR_INVERTED_GROUP_BY[params.query.group_by];
     const session = this.neo4j.session();
     const neo4jQueries = this.neo4jQueries[groupBy].findAll;
     const itemsFromNeo4j = await neo4jRun(session, neo4jQueries, {
       _exec_user_uid: params.query._exec_user_uid,
       Project: 'impresso',
-      uids: _solr.response.docs.map(d => d.uid),
+      uids: uids,
 
     }).then((res) => {
       const _records = {};
@@ -173,6 +185,7 @@ class Service {
       return {
         ...doc,
         ...itemsFromNeo4j[doc.uid] || {},
+        collections: collections[doc.uid] || {},
         newspaper,
       };
     });
