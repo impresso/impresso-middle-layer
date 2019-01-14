@@ -133,7 +133,7 @@ class Collection {
       onDelete: 'CASCADE',
     });
 
-    collection.prototype.toJSON = function () {
+    collection.prototype.toJSON = function (obfuscate=true) {
       return {
         ...new Collection({
           uid: this.uid,
@@ -145,7 +145,7 @@ class Collection {
           countItems: this.countItems,
         }),
         creator: this.creator.toJSON({
-          obfuscate: true,
+          obfuscate,
         }),
       };
     };

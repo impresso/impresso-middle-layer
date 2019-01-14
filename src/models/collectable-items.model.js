@@ -101,6 +101,7 @@ class CollectableItem {
     collectableItem.prototype.toJSON = function () {
       return new CollectableItem({
         ...this.get(),
+        collection: this.collection.toJSON(),
       });
     };
     collectableItem.belongsTo(searchQuery, {
