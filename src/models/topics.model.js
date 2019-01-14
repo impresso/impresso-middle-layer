@@ -65,6 +65,21 @@ class Topic {
     });
   }
 
+  static solrFacetFactory() {
+    return doc => {
+      const topic = new Topic({
+        uid: doc.id,
+        language: doc.lg_s,
+        words: doc.word_probs_dpf.split(' ').map(d => TopicWord.create(d)),
+        model: doc.tp_model_s,
+      });
+      // once created get rid of it
+      topic.words = [];
+      // console.log('solrFacetFactory')
+      return topic;
+    };
+  }
+
   static solrSuggestFactory() {
     const opts = {
       checkHighlight: true,
