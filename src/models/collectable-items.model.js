@@ -99,10 +99,15 @@ class CollectableItem {
     });
 
     collectableItem.prototype.toJSON = function () {
-      return new CollectableItem({
+      const item = new CollectableItem({
         ...this.get(),
-        collection: this.collection.toJSON(),
       });
+
+      if (this.collection) {
+        // obfuscate user
+        item.collection = this.collection.toJSON(true);
+      }
+      return item;
     };
     collectableItem.belongsTo(searchQuery, {
       onDelete: 'SET NULL',
