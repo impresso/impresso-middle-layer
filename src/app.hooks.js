@@ -1,10 +1,14 @@
 // Application hooks that run for every service
 const logger = require('./hooks/logger');
 const { validateRouteId } = require('./hooks/params');
+const { authenticate } = require('@feathersjs/authentication').hooks;
 
 module.exports = {
   before: {
-    all: [validateRouteId()],
+    all: [
+      authenticate('jwt'),
+      validateRouteId(),
+    ],
     find: [],
     get: [],
     create: [],
