@@ -108,6 +108,6 @@ app.use(handler({
     },
   },
 }));
-app.hooks(appHooks);
+app.configure(appHooks);
 
 module.exports = app;

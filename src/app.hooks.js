@@ -3,10 +3,9 @@ const logger = require('./hooks/logger');
 const { validateRouteId } = require('./hooks/params');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 
-module.exports = {
+const hooks = {
   before: {
     all: [
-      authenticate('jwt'),
       validateRouteId(),
     ],
     find: [],
@@ -36,4 +35,15 @@ module.exports = {
     patch: [],
     remove: [],
   },
+};
+
+module.exports = function (app) {
+  const config = app.get('appHooks');
+
+  // based on config
+  if(config.alwaysRequired) {
+    hooks.before.all.push(authenticate('jwt'));
+  }
+  // set hooks
+  app.hooks(hooks);
 };
