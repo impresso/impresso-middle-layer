@@ -45,6 +45,7 @@
     "@feathersjs/feathers": "^3.1.4",
     "@feathersjs/socketio": "^3.2.1",
     "async": "^2.6.0",
+    "async-redis": "^1.1.5",
     "aws-sdk": "^2.259.1",
     "body-parser": "^1.18.2",
     "child-process-async": "^1.0.1",

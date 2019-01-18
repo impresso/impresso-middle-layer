@@ -23,6 +23,7 @@ const authentication = require('./authentication');
 
 const sequelize = require('./sequelize');
 const neo4j = require('./neo4j');
+const redis = require('./redis');
 
 const app = express(feathers());
 
@@ -46,6 +47,8 @@ app.configure(socketio());
 app.configure(sequelize);
 app.configure(neo4j);
 
+// configure redis cahce if redis config is available
+app.configure(redis);
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
