@@ -24,6 +24,7 @@ const authentication = require('./authentication');
 const sequelize = require('./sequelize');
 const neo4j = require('./neo4j');
 const redis = require('./redis');
+const celery = require('./celery');
 
 const app = express(feathers());
 
@@ -49,6 +50,9 @@ app.configure(neo4j);
 
 // configure redis cahce if redis config is available
 app.configure(redis);
+
+// configure celery client task manage if celery config is available
+app.configure(celery);
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
