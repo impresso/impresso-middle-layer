@@ -218,7 +218,7 @@ const resolveAsync = async (config, groups) => {
       fl: group.Klass.SOLR_FL,
       limit: ids.length,
       namespace: group.namespace,
-    }, group.factory || group.Klass.solrFactory).then((res) => {
+    }, group.factory || group.Klass.solrFactory).then((res) => {
       res.response.docs.forEach((doc) => {
         const idx = ids.indexOf(doc.uid);
         groups[k].items[idx].item = doc;

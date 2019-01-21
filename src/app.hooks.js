@@ -41,7 +41,7 @@ module.exports = function (app) {
   const config = app.get('appHooks');
 
   // based on config
-  if(config.alwaysRequired) {
+  if (config.alwaysRequired) {
     hooks.before.all.push(authenticate('jwt'));
   }
   // set hooks
