@@ -1,7 +1,7 @@
 const debug = require('debug')('impresso/redis');
 const asyncRedis = require('async-redis');
 
-const getSequelizeClient = (config) => {
+const getRedisClient = (config) => {
   const client = asyncRedis.createClient(config);
   client.on('error', (err) => {
     debug(`Error! ${err}`);
@@ -19,6 +19,6 @@ module.exports = function (app) {
     app.set('redisClient', null);
   } else {
     debug('Redis configuration found, let\'s see if it works...');
-    app.set('redisClient', getSequelizeClient(config));
+    app.set('redisClient', getRedisClient(config));
   }
 };
