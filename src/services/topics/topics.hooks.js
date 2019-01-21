@@ -6,11 +6,13 @@ const {
   utils,
 } = require('../../hooks/params');
 const { filtersToSolrQuery, qToSolrFilter } = require('../../hooks/search');
+const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
 module.exports = {
   before: {
     all: [],
     find: [
+      checkCachedContents(),
       validate({
         q: {
           required: false,
@@ -68,7 +70,10 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
+    find: [
+      returnCachedContents(),
+      saveResultsInCache(),
+    ],
     get: [],
     create: [],
     update: [],
