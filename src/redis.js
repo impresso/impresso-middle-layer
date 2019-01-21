@@ -9,14 +9,16 @@ const getSequelizeClient = (config) => {
   client.on('ready', () => {
     debug('Redis is ready!');
   });
+  return client;
 };
 
 module.exports = function (app) {
   const config = app.get('redis');
   if (!config || !config.enable) {
     debug('Redis is not configured. No cache is available.');
-    app.set('RedisClient', null);
+    app.set('redisClient', null);
   } else {
-    app.set('RedisClient', getSequelizeClient(config));
+    debug('Redis configuration found, let\'s see if it works...');
+    app.set('redisClient', getSequelizeClient(config));
   }
 };
