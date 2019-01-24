@@ -22,20 +22,32 @@ const getCeleryClient = (config) => {
   client.on('ready', (err) => {
     debug(`ready! ${err}`);
   });
-
   client.on('message', (msg) => {
-    debug('message!', msg);
+    debug(`message!`, msg);
     // emit corresponding message
-    // for the user channel.
   });
 
   client.on('connect', async () => {
     debug('Celery is ready!');
   });
 
+  client.run = ({
+    task = 'echo',
+    args = [],
+  } = {}) => new Promise((resolve, reject) => {
+    debug(`run celery task ${task}`);
+    client.call(task, args, (res) => {
+      debug('Celery task retrieved!', res);
+      if(['SUCCESS', 'INIT', 'PROGRESS'].indexOf(res.status) !== -1) {
+        resolve(res);
+      } else {
+        reject(res);
+      }
+    });
+  });
+
   return client;
 };
-
 
 module.exports = function (app) {
   const config = app.get('celery');
