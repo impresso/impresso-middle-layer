@@ -28,13 +28,12 @@ describe('\'search\' service, \'create\' method', function () {
 
   it('save a search', async () => {
     await sleep(2000);
-    const result = await service.create({
-      collection_uid: 'local-abc',
-    }, {
+    const result = await service.create({}, {
       user: {
         id: 12,
       },
       query: {
+        collection_uid: 'local-abc',
         group_by: 'articles',
         filters: [
           {

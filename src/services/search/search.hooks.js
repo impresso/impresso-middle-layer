@@ -108,8 +108,6 @@ module.exports = {
           required: true,
           regex: REGEX_UID,
         },
-      }, 'POST'),
-      validate({
         group_by: {
           required: true,
           choices: ['articles'],
@@ -118,6 +116,7 @@ module.exports = {
       }, 'GET'),
       validateEach('filters', filtersValidator, {
         required: true,
+        method: 'GET',
       }),
       qToSolrFilter('string'),
       filtersToSolrQuery(SOLR_FILTER_TYPES),
