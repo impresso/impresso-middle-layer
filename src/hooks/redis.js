@@ -20,9 +20,11 @@ const { generateHash } = require('../crypto');
  *
  * @return {feathers.SKIP or undefined} if undefined, following hooks will be loaded
  */
-const checkCachedContents = () => async (context) => {
+const checkCachedContents = ({
+  useAuthenticatedUser = true,
+} = {}) => async (context) => {
   const client = context.app.get('redisClient');
-  debug('checkCachedContents. Redis ready?', client !== null);
+  debug(`checkCachedContents; enabled: ${client !== null}, useAuthenticatedUser: ${useAuthenticatedUser}`);
   if (!client) {
     return;
   }
@@ -33,22 +35,24 @@ const checkCachedContents = () => async (context) => {
     context.params = {};
   }
 
-  if (context.params.user) {
+  if (useAuthenticatedUser && context.params.user) {
     // prepend user specific cache.
     keyParts.shift(context.params.user.uid);
   }
 
   if (context.params.query) {
-    keyParts.push(generateHash(context.params.query));
+    const qs = JSON.stringify(context.params.query);
+    keyParts.push(qs.length < 64 ? qs : generateHash(context.params.query));
   }
 
   // generate key from parameters.
   context.params.cacheKey = keyParts.join('::');
 
-  debug('checkCachedContents. cacheKey', context.params.cacheKey);
 
   // look for cache
   const value = await client.get(context.params.cacheKey);
+
+  debug(`checkCachedContents; cacheKey: ${context.params.cacheKey}, exists: ${!!value}`);
 
   if (value) {
     // setting `result` makes feathers ignore
@@ -66,7 +70,7 @@ const checkCachedContents = () => async (context) => {
  * @return {feathers.SKIP or undefined}
  */
 const returnCachedContents = () => (context) => {
-  debug(`returnCachedContents: ${context.params.isCached}`);
+  debug(`returnCachedContents: ${!!context.params.isCached}`);
   if (context.params.isCached) {
     if (typeof context.result === 'object') {
       context.result.cached = true;
