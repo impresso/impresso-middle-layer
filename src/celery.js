@@ -23,7 +23,7 @@ const getCeleryClient = (config) => {
     debug(`ready! ${err}`);
   });
   client.on('message', (msg) => {
-    debug(`message!`, msg);
+    debug('message!', msg);
     // emit corresponding message
   });
 
@@ -38,7 +38,7 @@ const getCeleryClient = (config) => {
     debug(`run celery task ${task}`);
     client.call(task, args, (res) => {
       debug('Celery task retrieved!', res);
-      if(['SUCCESS', 'INIT', 'PROGRESS'].indexOf(res.status) !== -1) {
+      if (['SUCCESS', 'INIT', 'PROGRESS'].indexOf(res.status) !== -1) {
         resolve(res);
       } else {
         reject(res);
