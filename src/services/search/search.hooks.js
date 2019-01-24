@@ -6,7 +6,44 @@ const {
 } = require('../../hooks/search');
 const { assignIIIF } = require('../../hooks/iiif');
 const { protect } = require('@feathersjs/authentication-local').hooks;
+const { authenticate } = require('@feathersjs/authentication').hooks;
 
+const filtersValidator = {
+  context: {
+    choices: ['include', 'exclude'],
+    required: true,
+  },
+  type: {
+    choices: SOLR_FILTER_TYPES,
+    required: true,
+  },
+  q: {
+    required: false,
+    min_length: 2,
+    max_length: 500,
+  },
+  // compatible only with type daterange, unused elsewhere.
+  // If it is an array, an OR will be used to JOIN the array items..
+  // ex: ['* TO 1950-12-01', '1960-01-01 TO 1940-12-01']
+  // q= ... AND (date_e:[* TO 1950-12-01] OR date_s:[1960-01-01 TO 1940-12-01])
+  daterange: {
+    regex: /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) TO (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/,
+    required: false,
+  },
+
+  uids: {
+    regex: REGEX_UIDS,
+    required: false,
+    // we cannot transform since Mustache is rendering the filters...
+    // transform: d => d.split(',')
+  },
+  uid: {
+    regex: REGEX_UID,
+    required: false,
+    // we cannot transform since Mustache is rendering the filters...
+    // transform: d => d.split(',')
+  },
+};
 
 module.exports = {
   before: {
@@ -56,42 +93,7 @@ module.exports = {
           },
         },
       }),
-      validateEach('filters', {
-        context: {
-          choices: ['include', 'exclude'],
-          required: true,
-        },
-        type: {
-          choices: SOLR_FILTER_TYPES,
-          required: true,
-        },
-        q: {
-          required: false,
-          min_length: 2,
-          max_length: 500,
-        },
-        // compatible only with type daterange, unused elsewhere.
-        // If it is an array, an OR will be used to JOIN the array items..
-        // ex: ['* TO 1950-12-01', '1960-01-01 TO 1940-12-01']
-        // q= ... AND (date_e:[* TO 1950-12-01] OR date_s:[1960-01-01 TO 1940-12-01])
-        daterange: {
-          regex: /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) TO (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/,
-          required: false,
-        },
-
-        uids: {
-          regex: REGEX_UIDS,
-          required: false,
-          // we cannot transform since Mustache is rendering the filters...
-          // transform: d => d.split(',')
-        },
-        uid: {
-          regex: REGEX_UID,
-          required: false,
-          // we cannot transform since Mustache is rendering the filters...
-          // transform: d => d.split(',')
-        },
-      }, {
+      validateEach('filters', filtersValidator, {
         required: false,
       }),
       qToSolrFilter('string'),
@@ -99,7 +101,27 @@ module.exports = {
       queryWithCommonParams(),
     ],
     get: [],
-    create: [],
+    create: [
+      authenticate('jwt'),
+      validate({
+        collection_uid: {
+          required: true,
+          regex: REGEX_UID,
+        },
+      }, 'POST'),
+      validate({
+        group_by: {
+          required: true,
+          choices: ['articles'],
+          transform: d => utils.translate(d, SOLR_GROUP_BY),
+        },
+      }, 'GET'),
+      validateEach('filters', filtersValidator, {
+        required: true,
+      }),
+      qToSolrFilter('string'),
+      filtersToSolrQuery(SOLR_FILTER_TYPES),
+    ],
     update: [],
     patch: [],
     remove: [],

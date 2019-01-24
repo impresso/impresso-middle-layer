@@ -8,6 +8,7 @@ const sequelize = require('../../sequelize');
 const sequelizeUtils = require('../../services/sequelize.utils');
 const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
 const article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
@@ -20,18 +21,20 @@ class Service {
    * Search service. According to group, deliver a different thing.
    *
    * Add solr
-   * @param  {object} options pass the current app in options.app
+   * @param  {object} options pass the current app in app
    */
-  constructor(options) {
-    this.solr = solr.client(options.app.get('solr'));
-    this.sequelize = sequelize.client(options.app.get('sequelize'));
-    this.neo4j = neo4j.client(options.app.get('neo4j'));
-    this.name = options.name;
+  constructor({
+    app,
+    name,
+  } = {}) {
+    this.app = app;
+    this.solr = solr.client(app.get('solr'));
+    this.sequelize = sequelize.client(app.get('sequelize'));
+    this.neo4j = neo4j.client(app.get('neo4j'));
+    this.name = name;
     this.neo4jQueries = {};
     this.neo4jQueries.articles = decypher(`${__dirname}/../articles/articles.queries.cyp`);
     this.neo4jQueries.pages = decypher(`${__dirname}/../pages/pages.queries.cyp`);
-
-    this.options = options || {};
   }
 
   static wrap(data, limit, skip, total, info) {
@@ -44,6 +47,43 @@ class Service {
     };
   }
 
+  /**
+   * Save current search and return the corrseponding searchQuery
+   * @param  {[type]}  data   [description]
+   * @param  {[type]}  params [description]
+   * @return {Promise}        [description]
+   */
+  async create(data, params) {
+    const client = this.app.get('celeryClient');
+    if (!client) {
+      return {};
+    }
+
+    const q = params.sanitized.sq;
+    debug(`create '${this.name}', from solr query: ${q}`);
+
+    return client.run({
+      task: 'impresso.tasks.add_to_collection_from_query',
+      args: [
+        // collection_uid
+        params.sanitized.collection_uid,
+        // user id
+        params.user.id,
+        // query
+        q,
+        // content_type, A for article
+        'A',
+      ],
+    }).catch((err) => {
+      if (err.result.exc_type === 'DoesNotExist') {
+        throw new NotFound(err.result.exc_message);
+      } else if (err.result.exc_type === 'OperationalError') {
+        // probably db is not availabe
+        throw new NotImplemented();
+      }
+      throw new NotImplemented();
+    });
+  }
 
   /**
    * async find - generic /search endpoint, this method gets matches from solr
