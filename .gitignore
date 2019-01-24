@@ -12,9 +12,11 @@ package-lock.json
 
 config/*.json
 !config/*.example.json
+!config/default.json
 
 .marker
 .keyWithErrors
 *.out
 
 *.csv
+*.rdb

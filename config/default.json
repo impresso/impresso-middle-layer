@@ -1,0 +1,112 @@
+{
+  "host": "localhost",
+  "port": 3030,
+  "public": "../public/",
+  "paginate": {
+    "default": 10,
+    "max": 50
+  },
+  "redis": {
+    "enable": true
+  },
+  "celery": {
+    "enable": true,
+    "CELERY_BROKER_URL": "redis://localhost/4",
+    "CELERY_RESULT_BACKEND": "redis://localhost/5"
+  },
+  "appHooks": {
+    "alwaysRequired": false
+  },
+  "authentication": {
+    "secret": "********",
+    "strategies": [
+      "jwt",
+      "local"
+    ],
+    "path": "/authentication",
+    "service": "users",
+    "jwt": {
+      "header": {
+        "typ": "access"
+      },
+      "audience": "http://localhost:3030",
+      "subject": "anonymous",
+      "issuer": "feathers",
+      "algorithm": "HS256",
+      "expiresIn": "7d"
+    },
+    "local": {
+      "entity": "user",
+      "usernameField": "email",
+      "passwordField": "password"
+    },
+    "cookie": {
+      "enabled": true,
+      "name": "feathers-jwt",
+      "httpOnly": false,
+      "secure": false
+    }
+  },
+  "neo4j": {
+    "host": "bolt://localhost:7687",
+    "project": "impresso",
+    "auth": {
+      "user": "neo4j",
+      "pass": "neo4j"
+    }
+  },
+  "proxy": {
+    "host": "http://localhost:3030",
+    "iiif": {
+      "epfl": {
+        "endpoint": "https://...",
+        "auth": {
+          "user": "",
+          "pass": "*****"
+        }
+      },
+      "epflsafe": {
+        "endpoint": "https://...",
+        "auth": {
+          "user": "",
+          "pass": "*****"
+        }
+      }
+    }
+  },
+  "sequelize": {
+    "dialect": "mysql",
+    "host": "localhost",
+    "port": 3307,
+    "database": "*****",
+    "auth": {
+      "user": "",
+      "pass": "*****"
+    },
+    "tables": {
+      "articles": "content_items",
+      "pages": "pages",
+      "newspapers": "newspapers",
+      "users": "auth_user"
+    }
+  },
+  "solr": {
+    "host": "localhost",
+    "port": 8984,
+    "auth": {
+      "user": "",
+      "pass": "*****"
+    },
+    "search": {
+      "endpoint": "https://.../select"
+    },
+    "mentions": {
+      "endpoint": "https://.../select",
+      "suggest": "https://.../suggest"
+    },
+    "topics": {
+      "endpoint": "https://.../select",
+      "suggest": "https://.../suggest"
+    }
+  }
+}
