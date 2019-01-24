@@ -7,11 +7,26 @@ class Service {
     name = '',
   } = {}) {
     this.app = app;
+    this.name = name;
     this.SequelizeService = SequelizeService({
       app,
       name,
     });
   }
+  /**
+   * get a single newspaper.
+   * @param  {String}  id     uid or acronym of the newspaper
+   * @return {Promise}        [description]
+   */
+  async get(id) {
+    const where = {
+      uid: id,
+    };
+    return this.SequelizeService.get(id, {
+      where,
+    });
+  }
+
   async find(params) {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
 
