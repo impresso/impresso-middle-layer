@@ -1,5 +1,6 @@
-const debug = require('debug')('verbose:impresso/sequelize');
-const logger = require('winston');
+const debug = require('debug')('impresso/sequelize');
+const verbose = require('debug')('verbose:impresso/sequelize');
+
 const Sequelize = require('sequelize');
 
 const { Op } = Sequelize;
@@ -58,44 +59,26 @@ const getSequelizeClient = config => new Sequelize({
   //   freezeTableName: true
   // }
   logging(str) {
-    debug(str);
+    verbose(str);
   },
 });
 
 module.exports = function (app) {
   const config = app.get('sequelize');
   const sequelize = getSequelizeClient(config);
-  logger.info(`connection to postgres database ${config.database}...`);
+  debug(`Sequelize ${config.dialect} database name: ${config.database} ..`);
   // const oldSetup = app.setup;
   // test connection
   sequelize
     .authenticate()
     .then(() => {
-      logger.info('connection to postgres database ok!');
+      debug(`Sequelize is ready! ${config.dialect} database name: ${config.database}`);
     })
     .catch((err) => {
-      logger.error('Unable to connect to the postgres database:', err);
+      debug(`Unable to connect to the ${config.dialect}: ${config.database}: ${err}`);
     });
 
   app.set('sequelizeClient', sequelize);
-
-  // we make use of a READ only connection.
-  // app.setup = function (...args) {
-  //   const result = oldSetup.apply(this, args);
-  //
-  //   // Set up data relationships
-  //   const models = sequelize.models;
-  //   Object.keys(models).forEach(name => {
-  //     if ('associate' in models[name]) {
-  //       models[name].associate(models);
-  //     }
-  //   });
-  //
-  //   // Sync to the database
-  //   sequelize.sync();
-  //
-  //   return result;
-  // };
 };
 
 module.exports.client = getSequelizeClient;

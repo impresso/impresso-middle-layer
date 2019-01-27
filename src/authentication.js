@@ -42,7 +42,7 @@ class HashedPasswordVerifier extends Verifier {
 module.exports = function () {
   const app = this;
   const config = app.get('authentication');
-  console.log('creating authentication sercice');
+  debug('configure authentication');
   // Set up authentication with the secret
   app.configure(authentication(config));
   app.configure(jwt());
