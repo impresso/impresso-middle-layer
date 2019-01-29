@@ -32,9 +32,9 @@ class Service {
       });
     }
 
-    if (params.query.item_uid) {
+    if (params.query.uids) {
       where.$and.push({
-        itemId: params.query.item_uid,
+        uid: { $in : params.query.uids },
       });
     }
 
@@ -56,6 +56,16 @@ class Service {
   }
 
   async get(id, params) {
+    const uids = id.split(',');
+    if (params.findAll || (uids.length > 1 && uids.length < 20)) {
+      return this.find({
+        ...params,
+        query: {
+          ...params.query,
+          uids: uids,
+        }
+      }).then(d => d.data);
+    }
     const where = {
       uid: id,
     };
