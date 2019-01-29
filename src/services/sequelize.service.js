@@ -85,7 +85,6 @@ class SequelizeService {
       offset: params.skip || params.query.skip,
       order: params.order_by || params.query.order_by,
     };
-    debug(`'find' ${this.name} with params:`, params);
 
     if (params.where) {
       p.where = params.where;
@@ -100,6 +99,8 @@ class SequelizeService {
       const pk = this.sequelizeKlass.primaryKeyAttributes[0];
       p.col = `${this.sequelizeKlass.name}.${this.sequelizeKlass.primaryKeys[pk].field}`;
     }
+
+    debug(`'find' ${this.name} with params:`, p, 'where:', p.where);
 
     let fn = this.sequelizeKlass;
 
