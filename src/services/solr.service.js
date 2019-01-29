@@ -1,7 +1,7 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
 const lodash = require('lodash');
-const debug = require('debug')('impresso/services:SequelizeService');
+const debug = require('debug')('impresso/services:SolrService');
 const solr = require('../solr');
 
 class SolrService {
@@ -20,6 +20,7 @@ class SolrService {
   }
 
   async get(id, params) {
+    debug(`get ${id}`, params);
     const results = await this.solr.findAll({
       q: `id:${id}`,
       limit: 1,
