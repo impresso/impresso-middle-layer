@@ -65,6 +65,16 @@ class SequelizeService {
     });
   }
 
+  async rawSelect({
+    query = '',
+    replacements = {}
+  } = {}) {
+    return this.sequelize.query(query, {
+      replacements,
+      type: this.sequelize.QueryTypes.SELECT,
+    }).catch(sequelizeErrorHandler)
+  }
+
   async find(params) {
     // we should be sure that ONLY those ones are in place.
     // should you need more, you can use this.sequelizeKlass
@@ -79,6 +89,9 @@ class SequelizeService {
 
     if (params.where) {
       p.where = params.where;
+    }
+    if(params.group) {
+      p.group = params.group;
     }
 
     // force distinct if needed
