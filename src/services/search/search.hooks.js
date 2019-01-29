@@ -49,6 +49,9 @@ module.exports = {
   before: {
     all: [],
     find: [
+      authenticate('jwt', {
+        allowUnauthenticated: true,
+      }),
       validate({
         q: {
           required: false,
