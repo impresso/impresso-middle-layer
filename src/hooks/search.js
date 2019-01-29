@@ -118,6 +118,8 @@ const filtersToSolr = (type, filters) => {
       return reduceStringFiltersToSolr(filters, 'content_txt_fr');
     case 'daterange':
       return reduceDaterangeFiltersToSolr(filters);
+    case 'uid':
+      return reduceFiltersToSolr(filters, 'id');
     case 'language':
       return reduceFiltersToSolr(filters, 'lg_s');
     case 'page':
