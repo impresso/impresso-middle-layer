@@ -3,23 +3,48 @@ const {
   queryWithCommonParams, validate, validateEach, utils, REGEX_UID, REGEX_UIDS,
 } = require('../../hooks/params');
 
+const { resolve } = require('../../hooks/results');
+
+const reconcile = () => (context) => {
+
+
+  if(!context.result.resolved) {
+    return;
+  }
+
+  const collections = context.result.resolved.find(d => d.service === 'collections');
+
+  if(!collections || !collections.data || !collections.data.length) {
+    return;
+  }
+  // fill CollectableItemGroup.collections
+  context.result.data = context.result.data.map((d) => {
+    // clean collections
+    d.collections = [];
+    collections.data.forEach(coll => {
+      if (d.collectionIds.indexOf(coll.uid) !== -1) {
+        d.collections.push(coll);
+      }
+    });
+    return d;
+  });
+
+  console.log(context.result.data[0]);
+}
+
 module.exports = {
   before: {
     all: [authenticate('jwt')],
     find: [
       validate({
-        collection_uid: {
-          required: false,
-          regex: REGEX_UID,
-        },
-        item_uid: {
-          required: false,
-          regex: REGEX_UID,
-        },
         item_uids: {
           required: false,
           regex: REGEX_UIDS,
           after: d => (Array.isArray(d) ? d : d.split(',')),
+        },
+        resolve: {
+          choices: ['collection', 'collectable'],
+          defaultValue: 'collection',
         },
         order_by: {
           choices: ['-date', 'date'],
@@ -83,7 +108,10 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
+    find: [
+      resolve(),
+      reconcile(),
+    ],
     get: [],
     create: [],
     update: [],
