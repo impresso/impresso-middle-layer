@@ -294,7 +294,7 @@ const VALIDATE_OPTIONAL_UIDS = {
   uids: {
     required: false,
     regex: REGEX_UIDS,
-    transform: d => d.split(','),
+    transform: d => (Array.isArray(d) ? d : d.split(',')),
   },
 };
 
