@@ -7,11 +7,13 @@ class Profile {
     provider = 'local',
     displayname = '',
     picture = '',
+    pattern = '',
   } = {}) {
     this.uid = String(uid);
     this.provider = String(provider);
     this.displayname = String(displayname);
     this.picture = String(picture);
+    this.pattern = String(pattern).split(',');
   }
   isValid() {
     return !!this.uid.length;
@@ -31,6 +33,10 @@ class Profile {
         defaultValue: 'local',
       },
       displayName: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      pattern: {
         type: DataTypes.STRING,
         allowNull: true,
       },
