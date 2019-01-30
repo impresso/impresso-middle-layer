@@ -241,6 +241,47 @@ class Article {
     // console.log(this.regions);
   }
 
+  /**
+   * Given a solr document containing pp_plain, it
+   * merges info coming from SOLR select api to create
+   * ArticleMatch instances
+   *
+   * @param  {Object} solrDocument    [description]
+   * @param  {Array}  [fragments=[]]  [description]
+   * @param  {Object} [highlights={}] [description]
+   * @return {Array}                 Array of ArticleMatch matches
+   */
+  static getMatches({
+    solrDocument,
+    fragments = [],
+    highlights = {},
+  } = {}) {
+    if (!highlights || !highlights.offsets) {
+      return [];
+    }
+    return highlights.offsets.map((pos, i) => {
+      // for each offset
+      let match = false;
+      // find in page
+      solrDocument.pp_plain.forEach((pag) => {
+        for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
+          // if the token start at position and the token length is
+          // the one described in pos. Really complicated.
+          if (pos[0] === pag.t[ii].s && pag.t[ii].l === pos[1] - pos[0]) {
+            // console.log('FFFFOUND', pag.id, pag.t[ii], pos[0]);
+            match = new ArticleMatch({
+              fragment: fragments[i],
+              coords: pag.t[ii].c,
+              pageUid: pag.id,
+            });
+            break;
+          }
+        }
+      });
+      return match;
+    }).filter(d => d);
+  }
+
   static sequelize(client) {
     const newspaper = Newspaper.sequelize(client);
     const collection = Collection.sequelize(client);
@@ -283,6 +324,7 @@ class Article {
     article.prototype.toJSON = function () {
       return new Article({
         ...this.get(),
+        newspaper: this.newspaper.toJSON(),
       });
     };
 
@@ -359,27 +401,13 @@ class Article {
         return art;
       }
 
-      art.matches = highlights.offsets.map((pos, i) => {
-        // for each offset
-        let match = false;
-        // find in page
-        doc.pp_plain.forEach((pag) => {
-          for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
-            // if the token start at position and the token length is
-            // the one described in pos. Really complicated.
-            if (pos[0] === pag.t[ii].s && pag.t[ii].l === pos[1] - pos[0]) {
-              // console.log('FFFFOUND', pag.id, pag.t[ii], pos[0]);
-              match = new ArticleMatch({
-                fragment: fragments[i],
-                coords: pag.t[ii].c,
-                pageUid: pag.id,
-              });
-              break;
-            }
-          }
-        });
-        return match;
-      }).filter(d => d);
+      art.matches = Article.getMatches({
+        article: art,
+        solrDocument: doc,
+        fragments,
+        highlights,
+      });
+
       return art;
     };
   }

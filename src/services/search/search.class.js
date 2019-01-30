@@ -118,15 +118,17 @@ class Service {
     // get text matches
     // const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
     // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
-    debug(`find '${this.name}': call articles service for ${uids.length} uids, user:`,
-      params.user? params.user.uid: 'no auth user found');
+    debug(
+      `find '${this.name}': call articles service for ${uids.length} uids, user:`,
+      params.user ? params.user.uid : 'no auth user found',
+    );
 
     // get articles (if group by is article ...)!
     const results = await this.app.service('articles').get(uids.join(','), {
       findAll: true,
       user: params.user,
       authenticated: params.authenticated,
-    }).then(articles => articles.map(article => {
+    }).then(articles => articles.map((article) => {
       const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
       const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
       article.matches = Article.getMatches({

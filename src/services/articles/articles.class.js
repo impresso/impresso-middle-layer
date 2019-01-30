@@ -32,10 +32,13 @@ class Service {
         .map(d => d.q);
       // As we requested article in a page,
       // we have to calculate regions for that page.
-      if (pageUids.length === 1) {
-        fl = Article.ARTICLE_SOLR_FL;
-      }
     }
+
+    if (pageUids.length === 1) {
+      fl = Article.ARTICLE_SOLR_FL;
+    }
+
+    debug(`'find' ${this.name}`, params);
     // if(params.isSafe query.filters)
     const results = await this.SolrService.find({
       ...params,
@@ -47,7 +50,8 @@ class Service {
       return results;
     }
 
-    // add collections and other stuff from sequelize
+    // add newspapers and other things from sequelize
+    // to be moved to the toBeResolved hook? proper hook.
     const addons = await this.SequelizeService.find({
       ...params,
       scope: 'get',
@@ -58,8 +62,10 @@ class Service {
       order_by: [['uid', 'DESC']],
     });
 
-    // calculate regions
+    // console.log(addons);
+    // finally printout regions
     if (pageUids.length === 1) {
+      // console.log("RESULTSSS", results.data)
       results.data = results.data.map((d) => {
         const addon = addons.data.find(a => d.uid === a.uid);
         return {
@@ -69,34 +75,47 @@ class Service {
             .filter(r => pageUids.indexOf(r.pageUid) !== -1),
         };
       });
-    }
+    } else {
+      results.data = results.data.map((d) => {
+        const addon = addons.data.find(a => d.uid === a.uid);
+        if (!addon) {
+          return d;
+        }
 
+        return {
+          ...d,
+          newspaper: addon.newspaper,
+        };
+      });
+    }
     return results;
   }
 
   async get(id, params) {
     const uids = id.split(',');
-    if (uids.length > 1 && uids.length < 20) {
-      const results = await Promise.all(uids.map(d => this.get(d, params)));
-      return results;
+    if (uids.length > 1 || params.findAll) {
+      return this.find({
+        params: {
+          ...params,
+          findAll: true,
+        },
+        query: {
+          limit: 20,
+          filters: [
+            {
+              type: 'uid',
+              q: uids,
+            },
+          ],
+        },
+      }).then(res => res.data);
     } else if (uids.length > 20) {
       return [];
     }
-    const where = {
-      uid: id,
-    };
-    debug('articles get:', id, 'user', params.user);
-    // if there's an user, get the private ones as well.
-    if (params.user) {
-      where.$or = [
-        { '$collections.creator_id$': params.user.id },
-        { '$collections.status$': 'PUB' },
-      ];
-    } else {
-      where['$collections.status$'] = { $in: ['PUB', 'SHA'] };
-    }
 
-    const article = await Promise.all([
+    debug(`'get', id: ${id}`, params.user ? params.user.uid : 'no user found');
+
+    return Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
       this.SolrService.get(id, {
@@ -110,36 +129,19 @@ class Service {
           uid: id,
         },
       }).catch(() => {
-        debug(`get: no data found for ${id} ...`);
-      }),
-      // then the collections, catch to null;
-      this.SequelizeService.get(id, {
-        scope: 'getCollections',
-        where,
-      }).catch(() => {
-        debug(`get: no collections found for ${id}`, where);
+        debug(`get: SequelizeService warning, no data found for ${id} ...`);
       }),
     ]).then((results) => {
       if (!results[1]) {
         return results[0];
       }
 
-      let collections = [];
-
-      if (results[2]) {
-        collections = results[2].collections;
-        debug(`get: ${collections.length} collections found for ${id}`);
-      }
-
       return {
         ...results[0],
         v: results[1].v,
         newspaper: results[1].newspaper,
-        collections,
       };
     });
-
-    return article;
   }
 }
 

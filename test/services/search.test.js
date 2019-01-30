@@ -13,7 +13,7 @@ const app = require('../../src/app');
   ./node_modules/.bin/eslint  \
   src/services/search src/hooks \
   --config .eslintrc.json --fix \
-  && NODE_ENV=sandbox DEBUG=impresso* mocha test/services/search.test.js
+  && NODE_ENV=test DEBUG=impresso* mocha test/services/search.test.js
 
  */
 describe('\'search\' service', function () {
@@ -36,18 +36,19 @@ describe('\'search\' service', function () {
           {
             type: 'topic',
             context: 'include',
-            q: 'tmGDL_tp04_fr',
+            q: 'tmLETEMPS_tp23_fr',
           },
           {
             type: 'topic',
             context: 'include',
-            q: 'tmGDL_tp03_fr',
+            q: 'tmLETEMPS_tp44_fr',
           },
         ],
       },
     });
-    console.log(result.info.facets.topic);
-    assert.ok(result.info.facets.year);
+    // console.log(result.info.facets.topic);
+    assert.ok(result.info.facets.topic, 'should expose topic in facet');
+    assert.ok(result.info.facets.year, 'should expose year in facet');
   });
   it('get search results with regex queries', async () => {
     const result = await service.find({
@@ -223,9 +224,7 @@ describe('\'search\' service', function () {
       user: {
         uid: 'local-user-test-only',
       },
-    }).catch((err) => {
-      console.log(err.data);
     });
-    console.log(res);
+    assert.ok(res);
   });
 });
