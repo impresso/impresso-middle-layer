@@ -6,31 +6,28 @@ const {
 const { resolve } = require('../../hooks/results');
 
 const reconcile = () => (context) => {
-
-
-  if(!context.result.resolved) {
+  if (!context.result.resolved) {
     return;
   }
 
   const collections = context.result.resolved.find(d => d.service === 'collections');
 
-  if(!collections || !collections.data || !collections.data.length) {
+  if (!collections || !collections.data || !collections.data.length) {
     return;
   }
+
   // fill CollectableItemGroup.collections
   context.result.data = context.result.data.map((d) => {
     // clean collections
     d.collections = [];
-    collections.data.forEach(coll => {
+    collections.data.forEach((coll) => {
       if (d.collectionIds.indexOf(coll.uid) !== -1) {
         d.collections.push(coll);
       }
     });
     return d;
   });
-
-  console.log(context.result.data[0]);
-}
+};
 
 module.exports = {
   before: {

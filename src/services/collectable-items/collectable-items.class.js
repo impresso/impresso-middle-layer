@@ -26,32 +26,32 @@ class Service {
 
     if (params.sanitized.item_uids) {
       where.push({
-        'item_id': params.sanitized.item_uids,
+        item_id: params.sanitized.item_uids,
       });
     }
-    if(params.user.id && params.authenticated) {
+    if (params.user.id && params.authenticated) {
       where.push({
         $or: [
           { 'collection.creator_id': params.user.id },
           { 'collection.status': ['PUB', 'SHA'] },
-        ]
+        ],
       });
     } else {
       where.push({ 'collection.status': ['PUB', 'SHA'] });
     }
 
     const whereReducer = (sum, clause) => {
-      Object.keys(clause).forEach(k => {
-        if(k === '$or') {
-          sum.push('(' + clause[k].reduce(whereReducer, []).join(' OR ') + ')');
-        } else if(Array.isArray(clause[k])) {
+      Object.keys(clause).forEach((k) => {
+        if (k === '$or') {
+          sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
+        } else if (Array.isArray(clause[k])) {
           sum.push(`${k} IN ('${clause[k].join('\',\'')}')`);
         } else {
           sum.push(`${k} = '${clause[k]}'`);
         }
       });
       return sum;
-    }
+    };
 
     const reducedWhere = where.reduce(whereReducer, []).join(' AND ');
 
@@ -87,33 +87,34 @@ class Service {
             ON collectableItem.collection_id = collection.id
           WHERE ${reducedWhere}
           GROUP BY item_id) as gps`,
-      })
-    ]).then((rs) => ({
+      }),
+    ]).then(rs => ({
       data: rs[0].map(d => new CollectableItemGroup(d)),
       limit: params.query.limit,
       skip: params.query.skip,
       total: rs[1][0].total,
     }));
 
-    debug('\'find\' success! n. results:', results.total,' - where clause:', reducedWhere);
-    if(!results.total) {
+    debug('\'find\' success! n. results:', results.total, ' - where clause:', reducedWhere);
+    if (!results.total) {
       return results;
     }
 
     const resolvable = {
       collections: {
         service: 'collections',
-        uids: lodash(results.data).map('collectionIds').flatten().uniq().value()
-      }
-    }
+        uids: lodash(results.data).map('collectionIds').flatten().uniq()
+          .value(),
+      },
+    };
 
     // user asked specifically to fill item data.
-    if(params.sanitized.resolve === 'item') {
+    if (params.sanitized.resolve === 'item') {
       // collect items uids
       results.data.forEach((d) => {
         // add uid to list of uid per service.
         const service = d.getService();
-        if(!resolvable[service]) {
+        if (!resolvable[service]) {
           resolvable[service] = {
             service,
             uids: [d.itemId],

@@ -34,7 +34,7 @@ class Service {
 
     if (params.query.uids) {
       where.$and.push({
-        uid: { $in : params.query.uids },
+        uid: { $in: params.query.uids },
       });
     }
 
@@ -62,8 +62,8 @@ class Service {
         ...params,
         query: {
           ...params.query,
-          uids: uids,
-        }
+          uids,
+        },
       }).then(d => d.data);
     }
     const where = {

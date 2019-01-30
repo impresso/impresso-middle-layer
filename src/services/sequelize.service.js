@@ -67,12 +67,12 @@ class SequelizeService {
 
   async rawSelect({
     query = '',
-    replacements = {}
+    replacements = {},
   } = {}) {
     return this.sequelize.query(query, {
       replacements,
       type: this.sequelize.QueryTypes.SELECT,
-    }).catch(sequelizeErrorHandler)
+    }).catch(sequelizeErrorHandler);
   }
 
   async find(params) {
@@ -89,7 +89,7 @@ class SequelizeService {
     if (params.where) {
       p.where = params.where;
     }
-    if(params.group) {
+    if (params.group) {
       p.group = params.group;
     }
 

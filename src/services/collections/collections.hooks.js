@@ -1,6 +1,6 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  queryWithCommonParams, validate, utils, REGEX_UIDS
+  queryWithCommonParams, validate, utils, REGEX_UIDS,
 } = require('../../hooks/params');
 
 const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model');

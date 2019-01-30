@@ -12,7 +12,7 @@ class CollectableItemGroup {
     this.collectionIds = collectionIds;
     this.searchQueries = searchQueries;
 
-    if(!collections.length && collectionIds.length) {
+    if (!collections.length && collectionIds.length) {
       this.collections = collectionIds.map(uid => ({ uid }));
     }
 
