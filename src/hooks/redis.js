@@ -35,9 +35,14 @@ const checkCachedContents = ({
     context.params = {};
   }
 
+
   if (useAuthenticatedUser && context.params.user) {
     // prepend user specific cache.
     keyParts.shift(context.params.user.uid);
+  }
+
+  if (context.id) {
+    keyParts.push(context.id);
   }
 
   if (context.params.query) {
@@ -69,13 +74,17 @@ const checkCachedContents = ({
  *
  * @return {feathers.SKIP or undefined}
  */
-const returnCachedContents = () => (context) => {
+const returnCachedContents = ({
+  skipHooks = true,
+} = {}) => (context) => {
   debug(`returnCachedContents: ${!!context.params.isCached}`);
   if (context.params.isCached) {
     if (typeof context.result === 'object') {
       context.result.cached = true;
     }
-    return feathers.SKIP;
+    if (skipHooks) {
+      return feathers.SKIP;
+    }
   }
 };
 
@@ -89,7 +98,10 @@ const saveResultsInCache = () => async (context) => {
     return;
   }
   debug('saveResultsInCache', context.params.cacheKey);
-  await client.set(context.params.cacheKey, JSON.stringify(context.result));
+  if (!context.params.isCached) {
+    // do not override cached contents. See returnCachedContents
+    await client.set(context.params.cacheKey, JSON.stringify(context.result));
+  }
 };
 
 module.exports = {
