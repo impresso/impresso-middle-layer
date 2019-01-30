@@ -65,16 +65,16 @@ class Service extends Neo4jService {
         })
         .catch(sequelizeErrorHandler);
 
-      await this._run(this.queries.create, {
-        ...data.sanitized,
-        ...user,
-        provider: user.profile.provider,
-      }).then(res =>
-      // console.log(res.records, res);
-        res.records.map(neo4jRecordMapper).map(d => ({
-          ...d,
-          id: d.id,
-        })));
+      // await this._run(this.queries.create, {
+      //   ...data.sanitized,
+      //   ...user,
+      //   provider: user.profile.provider,
+      // }).then(res =>
+      // // console.log(res.records, res);
+      //   res.records.map(neo4jRecordMapper).map(d => ({
+      //     ...d,
+      //     id: d.id,
+      //   })));
 
       debug(`create user: ${user.uid} success`);
     }
@@ -144,22 +144,29 @@ class Service extends Neo4jService {
     if (user.profile) {
       await user.profile.destroy();
     }
+
+
     // no way, should be a cascade...
     debug(`remove: user ${user.username}`);
     const results = await Promise.all([
       // remove from mysql
       user.destroy().catch(sequelizeErrorHandler),
       // remove from neo4j
-      this._run(this.queries.remove, {
-        uid: id,
-      }),
+      // this._run(this.queries.remove, {
+      //   uid: id,
+      // }),
     ]);
+    debug(`remove: ${user.username} success: sequelize: ${results[0]}`);
 
-    debug(`remove: ${user.username} success,
-      sequelize: ${results[0]},
-      neo4j: ${results[1].summary.counters._stats.nodesDeleted}`);
+    // debug(`remove: ${user.username} success,
+    //   sequelize: ${results[0]},
+    //   neo4j: ${results[1].summary.counters._stats.nodesDeleted}`);
+    // return {
+    //   ...this._finalizeRemove(results[1]),
+    //   removed: results[0],
+    //   id,
+    // };
     return {
-      ...this._finalizeRemove(results[1]),
       removed: results[0],
       id,
     };
