@@ -27,6 +27,20 @@ const reconcile = () => (context) => {
     });
     return d;
   });
+
+  const articles = context.result.resolved.find(d => d.service === 'articles');
+
+  if (!articles || !articles.data || !articles.data.length) {
+    return;
+  }
+
+  // fill CollectableItemGroup.collections
+  context.result.data = context.result.data.map((d) => {
+    // add item
+    d.item = articles.data.find(art => art.uid === d.itemId);
+    return d;
+  });
+
 };
 
 module.exports = {
@@ -40,7 +54,7 @@ module.exports = {
           after: d => (Array.isArray(d) ? d : d.split(',')),
         },
         resolve: {
-          choices: ['collection', 'collectable'],
+          choices: ['collection', 'item'],
           defaultValue: 'collection',
         },
         order_by: {
