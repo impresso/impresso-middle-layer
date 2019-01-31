@@ -15,6 +15,7 @@ const resolve = service => async (context) => {
 
     context.result.resolved = await Promise.all(context.result.toBeResolved.map(d =>
       context.app.service(d.service).get(d.uids.join(','), {
+        authenticated: context.params.authenticated,
         user: context.params.user,
         findAll: true,
         query: {
