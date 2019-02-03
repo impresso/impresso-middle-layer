@@ -9,6 +9,28 @@ const models = {
   newspapers: Newspapers,
 };
 
+/**
+ * Basic Where reducer to be used with raw queries.
+ *
+ * @param  {[type]} sum    [description]
+ * @param  {[type]} clause [description]
+ * @return {[type]}        [description]
+ */
+const whereReducer = (sum, clause) => {
+  Object.keys(clause).forEach((k) => {
+    if (k === '$or') {
+      sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
+    } else if (Array.isArray(clause[k])) {
+      sum.push(`${k} IN ('${clause[k].join('\',\'')}')`);
+    } else if(typeof clause[k] === 'string'){
+      sum.push(`${k} = '${clause[k]}'`);
+    } else {
+      sum.push(`${k} = ${clause[k]}`);
+    }
+  });
+  return sum;
+};
+
 const sequelizeErrorHandler = (err) => {
   if (err.name === 'SequelizeUniqueConstraintError') {
     debug(`sequelize failed. ConstraintValidationFailed: ${err}`);
@@ -67,4 +89,5 @@ module.exports = {
   sequelizeErrorHandler,
   resolveAsync,
   models,
+  whereReducer,
 };
