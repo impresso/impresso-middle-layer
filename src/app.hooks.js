@@ -4,6 +4,9 @@ const { validateRouteId } = require('./hooks/params');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 
 const basicParams = () => (context) => {
+  if(!context.params) {
+    context.params = {};
+  }
   if (!context.params.query) {
     context.params.query = {};
   }
@@ -15,9 +18,11 @@ const hooks = {
       validateRouteId(),
     ],
     find: [
-
+      basicParams(),
     ],
-    get: [],
+    get: [
+      basicParams(),
+    ],
     create: [
       basicParams(),
     ],
