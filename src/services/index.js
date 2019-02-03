@@ -29,6 +29,8 @@ const topics = require('./topics/topics.service.js');
 
 const init = require('./init/init.service.js');
 
+const pagesTimelines = require('./pages-timelines/pages-timelines.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -55,4 +57,5 @@ module.exports = function () {
   app.configure(collectableItems);
   app.configure(topics);
   app.configure(init);
+  app.configure(pagesTimelines);
 };
