@@ -1,3 +1,5 @@
+const lodash = require('lodash');
+
 class Timeline {
   constructor({
     name = '',
@@ -11,6 +13,15 @@ class Timeline {
     this.legend = legend;
     this.format = format;
     this.values = values;
+    this.extents = {};
+    // calculate extents
+    Object.keys(this.legend).forEach((key) => {
+      const vals = values.map(d => d[key]);
+      this.extents[key] = [
+        lodash.min(vals),
+        lodash.max(vals),
+      ];
+    });
   }
 }
 
