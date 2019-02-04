@@ -8,7 +8,7 @@ class Issue {
     // countPages = 0,
     // date = new Date(),
     // entities = [],
-    newspaper = new Newspaper(),
+    newspaper,
     // pages = [],
     cover = '', // page uid
     uid = '',
