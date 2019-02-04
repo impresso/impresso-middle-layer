@@ -83,10 +83,27 @@ describe('\'collectable-items\' service', function () {
       query: {
         item_uids: ['GDL-1967-04-25-a-i0152'],
       },
+      authenticated: true,
       user,
     });
     assert.ok(results);
   });
+
+  it('find all collectableitems for a given set of item uids', async () => {
+    const results = await service.find({
+      query: {
+        collection_uids: [
+          collection.uid,
+        ],
+        resolve: 'item',
+      },
+      authenticated: true,
+      user,
+    });
+    console.log(results);
+    assert.ok(results);
+  });
+
 
   it('find all items for the current user for the given item uid', async () => {
     const results = await service.find({

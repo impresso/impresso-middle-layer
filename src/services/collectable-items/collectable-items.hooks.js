@@ -47,6 +47,11 @@ module.exports = {
     all: [authenticate('jwt')],
     find: [
       validate({
+        collection_uids: {
+          required: false,
+          regex: REGEX_UIDS,
+          after: d => (Array.isArray(d) ? d : d.split(',')),
+        },
         item_uids: {
           required: false,
           regex: REGEX_UIDS,

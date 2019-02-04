@@ -29,6 +29,11 @@ class Service {
         item_id: params.sanitized.item_uids,
       });
     }
+    if (params.sanitized.collection_uids) {
+      where.push({
+        collection_id: params.sanitized.collection_uids,
+      });
+    }
     if (params.user.id && params.authenticated) {
       where.push({
         $or: [
