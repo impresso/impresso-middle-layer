@@ -73,7 +73,9 @@ module.exports = function (app) {
   debug('global hooks configuration', config);
   // based on config
   if (config.alwaysRequired) {
-    hooks.before.all.push(requireAuthentication());
+    hooks.before.all.push(requireAuthentication({
+      excludePaths: ['authentication', 'users'].concat(config.excludePaths)
+    }));
   }
   // set hooks
   app.hooks(hooks);
