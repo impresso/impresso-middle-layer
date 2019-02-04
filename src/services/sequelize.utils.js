@@ -22,7 +22,7 @@ const whereReducer = (sum, clause) => {
       sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
     } else if (Array.isArray(clause[k])) {
       sum.push(`${k} IN ('${clause[k].join('\',\'')}')`);
-    } else if(typeof clause[k] === 'string'){
+    } else if (typeof clause[k] === 'string') {
       sum.push(`${k} = '${clause[k]}'`);
     } else {
       sum.push(`${k} = ${clause[k]}`);

@@ -40,7 +40,6 @@ const reconcile = () => (context) => {
     d.item = articles.data.find(art => art.uid === d.itemId);
     return d;
   });
-
 };
 
 module.exports = {
