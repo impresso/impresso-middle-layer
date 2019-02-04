@@ -239,9 +239,8 @@ const getSolrClient = config => ({
 });
 
 module.exports = function (app) {
-  const config = app.get('sequelize');
-  const solr = getSolrClient(config);
-  app.set('solrClient', solr);
+  const config = app.get('solr');
+  app.set('solrClient', getSolrClient(config));
 };
 
 module.exports.client = getSolrClient;

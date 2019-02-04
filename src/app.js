@@ -22,6 +22,7 @@ const appHooks = require('./app.hooks');
 const authentication = require('./authentication');
 
 const sequelize = require('./sequelize');
+const solr = require('./solr');
 const neo4j = require('./neo4j');
 const redis = require('./redis');
 const celery = require('./celery');
@@ -46,6 +47,7 @@ app.configure(socketio());
 
 // configure database adapters
 app.configure(sequelize);
+app.configure(solr);
 app.configure(neo4j);
 
 // configure redis cahce if redis config is available
@@ -94,7 +96,6 @@ app.use(handler({
       res.json({ message: 'Not found' });
     },
     500: (err, req, res) => {
-      console.error(err.message);
       res.json({ message: 'service unavailable' });
     },
     // bad request

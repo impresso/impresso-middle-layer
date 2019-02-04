@@ -16,7 +16,13 @@
   },
   "appHooks": {
     "alwaysRequired": true,
-    "excludePaths": ["newspapers", "pages-timelines", "issues-timelines"]
+    "excludePaths": [
+      "newspapers",
+      "pages-timelines",
+      "issues-timelines",
+      "articles-timelines",
+      "search"
+    ]
   },
   "authentication": {
     "secret": "********",
