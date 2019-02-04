@@ -2,7 +2,7 @@
 /* eslint import/no-dynamic-require: "off" */
 const lodash = require('lodash');
 const debug = require('debug')('impresso/services:SolrService');
-const solr = require('../solr');
+
 
 class SolrService {
   constructor({
@@ -13,7 +13,7 @@ class SolrService {
     this.name = String(name);
     this.namespace = String(namespace);
 
-    this.solr = solr.client(app.get('solr'));
+    this.solr = app.get('solrClient');
 
     this.Model = require(`../models/${this.name}.model`);
     debug(`Configuring service: ${this.name} success`);
