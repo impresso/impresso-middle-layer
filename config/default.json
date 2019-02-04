@@ -15,7 +15,8 @@
     "CELERY_RESULT_BACKEND": "redis://localhost/5"
   },
   "appHooks": {
-    "alwaysRequired": false
+    "alwaysRequired": true,
+    "excludePaths": ["newspapers", "pages-timelines"]
   },
   "authentication": {
     "secret": "********",
