@@ -52,6 +52,7 @@ class Service extends Neo4jService {
         .create(user)
         .catch(sequelizeErrorHandler);
 
+      debug('create: user created!', createdUser.id);
       // N.B. sequelize profile uid is the user uid.
       user.profile.provider = 'local';
       user.profile.uid = `local-${nanoid(8)}`; //= > "7hy8hvrX"
@@ -156,7 +157,7 @@ class Service extends Neo4jService {
       //   uid: id,
       // }),
     ]);
-    debug(`remove: ${user.username} success: sequelize: ${results[0]}`);
+    debug(`remove: ${user.username} success! User id ${results[0].id}`);
 
     // debug(`remove: ${user.username} success,
     //   sequelize: ${results[0]},

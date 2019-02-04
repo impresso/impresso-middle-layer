@@ -13,7 +13,9 @@ class Profile {
     this.provider = String(provider);
     this.displayname = String(displayname);
     this.picture = String(picture);
-    this.pattern = String(pattern).split(',');
+    if (pattern && pattern.length > 0) {
+      this.pattern = String(pattern).split(',');
+    }
   }
   isValid() {
     return !!this.uid.length;

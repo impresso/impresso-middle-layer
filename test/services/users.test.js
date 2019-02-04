@@ -39,7 +39,6 @@ describe('\'users\' service', function () {
     assert.ok(result);
   });
 
-
   it('create the user', async () => {
     const removed = await service.remove(user.username, {
       user: {
