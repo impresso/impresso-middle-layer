@@ -16,7 +16,7 @@
   },
   "appHooks": {
     "alwaysRequired": true,
-    "excludePaths": ["newspapers", "pages-timelines"]
+    "excludePaths": ["newspapers", "pages-timelines", "issues-timelines"]
   },
   "authentication": {
     "secret": "********",
