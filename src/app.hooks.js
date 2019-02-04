@@ -4,7 +4,7 @@ const { validateRouteId } = require('./hooks/params');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 
 const basicParams = () => (context) => {
-  if(!context.params) {
+  if (!context.params) {
     context.params = {};
   }
   if (!context.params.query) {
@@ -12,11 +12,25 @@ const basicParams = () => (context) => {
   }
 };
 
+/**
+ * Ensure JWT has been sent, except for the authentication andpoint.
+ * @return {[type]} [description]
+ */
+const requireAuthentication = ({
+  excludePaths = ['authentication', 'users', 'newspapers'],
+} = {}) => (context) => {
+  const allowUnauthenticated = excludePaths.indexOf(context.path) !== -1;
+  console.log('hook:requireAuthentication', context.path, !allowUnauthenticated);
+  if (!allowUnauthenticated) {
+    return authenticate('jwt')(context);
+  }
+  return context;
+};
+
 const hooks = {
   before: {
     all: [
       validateRouteId(),
-      authenticate('jwt'),
     ],
     find: [
       basicParams(),
@@ -57,8 +71,8 @@ module.exports = function (app) {
   const config = app.get('appHooks');
 
   // based on config
-  if (config.alwaysRequired) {
-    hooks.before.all.push(authenticate('jwt'));
+  if (!config.alwaysRequired) {
+    hooks.before.all.push(requireAuthentication());
   }
   // set hooks
   app.hooks(hooks);
