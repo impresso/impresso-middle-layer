@@ -2,12 +2,17 @@ const {
   validate, validateEach, queryWithCommonParams, REGEX_UID,
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
+const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+
 
 module.exports = {
   before: {
     all: [],
     find: [],
     get: [
+      checkCachedContents({
+        useAuthenticatedUser: false,
+      }),
       validate({
       }),
       validateEach('filters', {
@@ -36,7 +41,10 @@ module.exports = {
   after: {
     all: [],
     find: [],
-    get: [],
+    get: [
+      returnCachedContents(),
+      saveResultsInCache(),
+    ],
     create: [],
     update: [],
     patch: [],
