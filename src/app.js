@@ -94,7 +94,7 @@ app.use(handler({
       res.json({ message: 'Not found' });
     },
     500: (err, req, res) => {
-      console.log(err.toJSON());
+      console.error(err.message);
       res.json({ message: 'service unavailable' });
     },
     // bad request
