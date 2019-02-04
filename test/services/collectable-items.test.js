@@ -62,6 +62,7 @@ describe('\'collectable-items\' service', function () {
         },
       ],
     }, {
+      authenticated: true,
       user,
     });
     assert.ok(results.data.length);
@@ -71,11 +72,14 @@ describe('\'collectable-items\' service', function () {
     const results = await service.find({
       query: {
         limit: 2,
+        resolve: 'item',
       },
+      authenticated: true,
       user,
     });
-    assert.ok(results.data[0].collection, 'has collection!');
-    assert.equal(results.data[0].item.uid, 'GDL-1967-04-25-a-i0152');
+    assert.equal(results.total, 1);
+    assert.ok(results.data[0].collections.length, 'has at least one collection!');
+    assert.equal(results.data[0].item.uid, 'GDL-1967-04-25-a-i0152', 'item has been resolved');
   });
 
   it('find all collectableitems for a given set of item uids', async () => {
@@ -100,19 +104,8 @@ describe('\'collectable-items\' service', function () {
       authenticated: true,
       user,
     });
-    console.log(results);
+
     assert.ok(results);
-  });
-
-
-  it('find all items for the current user for the given item uid', async () => {
-    const results = await service.find({
-      query: {
-        uid: '',
-      },
-      user,
-    });
-    console.log(results);
   });
 
   it('remove an article from a collection', async () => {
