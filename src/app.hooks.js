@@ -58,7 +58,7 @@ const hooks = {
   },
 
   error: {
-    all: [logger()],
+    all: [],
     find: [],
     get: [],
     create: [],
