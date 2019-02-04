@@ -16,6 +16,7 @@ const hooks = {
   before: {
     all: [
       validateRouteId(),
+      authenticate('jwt'),
     ],
     find: [
       basicParams(),
