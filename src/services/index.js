@@ -31,6 +31,8 @@ const init = require('./init/init.service.js');
 
 const pagesTimelines = require('./pages-timelines/pages-timelines.service.js');
 
+const issuesTimelines = require('./issues-timelines/issues-timelines.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -58,4 +60,5 @@ module.exports = function () {
   app.configure(topics);
   app.configure(init);
   app.configure(pagesTimelines);
+  app.configure(issuesTimelines);
 };
