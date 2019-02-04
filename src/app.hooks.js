@@ -1,5 +1,6 @@
 // Application hooks that run for every service
 const logger = require('./hooks/logger');
+const debug = require('debug')('impresso/app.hooks');
 const { validateRouteId } = require('./hooks/params');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 
@@ -20,7 +21,7 @@ const requireAuthentication = ({
   excludePaths = ['authentication', 'users', 'newspapers'],
 } = {}) => (context) => {
   const allowUnauthenticated = excludePaths.indexOf(context.path) !== -1;
-  console.log('hook:requireAuthentication', context.path, !allowUnauthenticated);
+  debug('hook:requireAuthentication', context.path, !allowUnauthenticated);
   if (!allowUnauthenticated) {
     return authenticate('jwt')(context);
   }
@@ -69,7 +70,7 @@ const hooks = {
 
 module.exports = function (app) {
   const config = app.get('appHooks');
-
+  debug('global hooks configuration', config);
   // based on config
   if (config.alwaysRequired) {
     hooks.before.all.push(requireAuthentication());
