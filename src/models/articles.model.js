@@ -298,6 +298,10 @@ class Article {
         type: DataTypes.STRING(50),
         field: 's3_version',
       },
+      creationDate: {
+        type: DataTypes.DATE,
+        field: 'created',
+      },
     }, {
       tableName: config.sequelize.tables.articles,
       scopes: {

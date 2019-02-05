@@ -62,32 +62,25 @@ class Service {
       order_by: [['uid', 'DESC']],
     });
 
-    // console.log(addons);
-    // finally printout regions
-    if (pageUids.length === 1) {
-      // console.log("RESULTSSS", results.data)
-      results.data = results.data.map((d) => {
-        const addon = addons.data.find(a => d.uid === a.uid);
-        return {
-          ...d,
-          newspaper: addon ? addon.newspaper : d.newspaper,
-          regions: d.regions
-            .filter(r => pageUids.indexOf(r.pageUid) !== -1),
-        };
-      });
-    } else {
-      results.data = results.data.map((d) => {
-        const addon = addons.data.find(a => d.uid === a.uid);
-        if (!addon) {
-          return d;
-        }
-
+    results.data = results.data.map((d) => {
+      const addon = addons.data.find(a => d.uid === a.uid);
+      if (!addon) {
+        return d;
+      }
+      if (pageUids.length === 1) {
         return {
           ...d,
           newspaper: addon.newspaper,
+          regions: d.regions
+            .filter(r => pageUids.indexOf(r.pageUid) !== -1),
         };
-      });
-    }
+      }
+      return {
+        ...d,
+        newspaper: addon.newspaper,
+      };
+    });
+
     return results;
   }
 

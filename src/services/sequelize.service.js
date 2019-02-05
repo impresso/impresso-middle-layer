@@ -48,7 +48,9 @@ class SequelizeService {
 
     const result = await fn.findOne({
       where,
-    });
+    }).catch(this.onError);
+    
+    debug(`'get' ${this.name} success:`, result);
 
     if (!result) {
       throw new errors.NotFound();
