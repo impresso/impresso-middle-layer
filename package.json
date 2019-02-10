@@ -25,7 +25,7 @@
     "test": "npm run eslint && npm run mocha",
     "eslint": "eslint src/. test/. --config .eslintrc.json --fix",
     "start": "node src/",
-    "dev": "NODE_ENV=development nodemon src/",
+    "dev": "nodemon src/",
     "mocha": "NODE_ENV=test mocha test/ --recursive --exit",
     "cli": "node src/admin/cli.js",
     "import-articles": "node scripts/import-articles.js",
