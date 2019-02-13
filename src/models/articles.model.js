@@ -72,7 +72,7 @@ const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'lb_plain:[json]',
   'rb_plain:[json]',
   'pp_plain:[json]',
-  'nem_offset_plain:[json]',
+  // 'nem_offset_plain:[json]',
 ]);
 
 class ArticleRegion {
