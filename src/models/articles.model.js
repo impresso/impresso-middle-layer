@@ -8,7 +8,7 @@ const CollectableItem = require('./collectable-items.model');
 const Issue = require('./issues.model');
 const Page = require('./pages.model');
 const {
-  toHierarchy, sliceAtSplitpoints, render,
+  toHierarchy, sliceAtSplitpoints, render, annotate,
 } = require('../helpers');
 
 const ARTICLE_SOLR_FL_MINIMAL = [
@@ -72,6 +72,7 @@ const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'lb_plain:[json]',
   'rb_plain:[json]',
   'pp_plain:[json]',
+  'nem_offset_plain:[json]',
 ]);
 
 class ArticleRegion {
@@ -141,6 +142,8 @@ class Article {
     rb = [],
     // region coordinates
     rc = [],
+    // mentions offsets
+    mentions = [],
   } = {}) {
     this.uid = String(uid);
     this.type = String(type);
@@ -180,6 +183,10 @@ class Article {
 
     // TODO: based on type!
     this.labels = ['article'];
+
+    if(mentions.length) {
+      this.mentions = mentions;
+    }
     this.enrich(rc, lb, rb);
   }
 
@@ -224,6 +231,16 @@ class Article {
       // text regions, grouped thanks to region splipoints
       const trs = toHierarchy(tokens, rb);
 
+      // annotated wit mentions...
+      if (this.mentions && this.mentions.length) {
+        this.mentions.forEach(group => {
+          const category = Object.keys(group)[0];
+          group[category].forEach(token => {
+            annotate(tokens, category, token[0], token[0]+token[1], 'class');
+          });
+        });
+      }
+
       if (rcs.length !== trs.length) {
         // it would never happen.
         throw new Error(`article ${this.uid} coordinates corrupted`);
@@ -239,7 +256,9 @@ class Article {
       this.regions = rcs.map(d => new ArticleRegion(d));
     }
     // console.log(this.regions);
+    //
   }
+
 
   /**
    * Given a solr document containing pp_plain, it
@@ -389,6 +408,8 @@ class Article {
         rb: doc.rb_plain,
 
         rc: doc.pp_plain,
+
+        mentions: doc.nem_offset_plain,
       });
 
       if (!doc.pp_plain) {
@@ -411,6 +432,7 @@ class Article {
         fragments,
         highlights,
       });
+
 
       return art;
     };
