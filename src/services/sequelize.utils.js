@@ -4,8 +4,10 @@ const {
 } = require('@feathersjs/errors');
 
 const Newspapers = require('../models/newspapers.model');
+const Collection = require('../models/collections.model');
 
 const models = {
+  collections: Collection,
   newspapers: Newspapers,
 };
 
@@ -62,13 +64,17 @@ const resolveAsync = async (client, groups) => {
       idxs[d.uid] = i;
     });
 
-    debug('resolveAsync:promise for service', g.service, idxs);
+    debug('resolveAsync:promise for service', g.service, idxs, g.items.map(d => d.uid));
 
     return klass.scope('findAll').findAll({
       where: {
         uid: g.items.map(d => d.uid),
       },
     })
+      .then(rows => {
+        console.log(rows);
+        return rows;
+      })
       .then(rows => rows.map(r => r.toJSON()))
       .then((records) => {
         // add each record to the initial group

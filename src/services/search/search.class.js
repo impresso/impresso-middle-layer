@@ -159,6 +159,20 @@ class Service {
               uid: d.val,
             })),
           });
+        } else if(facet === 'collection') {
+          facetGroupsToResolve.push({
+            // the facet key to merge later
+            facet,
+            engine: 'sequelize',
+            service: 'collections',
+            // enrich bucket with service identifier, uid.
+            // SOLR gives it as `val` property of the facet.
+            items: _solr.facets.collection.buckets.map(d => ({
+              ...d,
+              count: d.count,
+              uid: d.val.split(':').slice(1).join(''),
+            })),
+          });
         } else if (facet === 'topic') {
           facetGroupsToResolve.push({
             // the facet key to merge later
