@@ -37,6 +37,8 @@ const articlesTimelines = require('./articles-timelines/articles-timelines.servi
 
 const jobs = require('./jobs/jobs.service.js');
 
+const logs = require('./logs/logs.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -67,4 +69,5 @@ module.exports = function () {
   app.configure(issuesTimelines);
   app.configure(articlesTimelines);
   app.configure(jobs);
+  app.configure(logs);
 };
