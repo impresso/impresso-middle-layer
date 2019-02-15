@@ -1,6 +1,11 @@
 const debug = require('debug')('impresso/celery');
 const celery = require('node-celery');
 
+const JOB_STATUS_TRANSLATIONS = {
+  REA: 'A new job has been created',
+  RUN: 'Job is doing its job ...',
+  DON: 'Job done! Congrats.',
+};
 
 /**
  *
@@ -12,7 +17,7 @@ const celery = require('node-celery');
  * @param  {[type]} config [description]
  * @return {[type]}        [description]
  */
-const getCeleryClient = (config) => {
+const getCeleryClient = (config, app) => {
   const client = celery.createClient(config);
 
   client.on('error', (err) => {
@@ -24,7 +29,22 @@ const getCeleryClient = (config) => {
   });
   client.on('message', (msg) => {
     debug('message!', msg);
-    // emit corresponding message
+
+    if (typeof msg.result === 'object') {
+       if(msg.result.job_id) {
+         app.service('logs').create({
+           task: msg.result.task,
+           job: {
+             id: msg.result.job_id,
+             status: msg.result.job_status,
+             progress: msg.result.progress,
+           },
+           msg: JOB_STATUS_TRANSLATIONS[msg.result.job_status],
+           to: msg.result.user_uid,
+           from: 'jobs',
+         });
+       }
+    }
   });
 
   client.on('connect', async () => {
@@ -56,6 +76,6 @@ module.exports = function (app) {
     app.set('celeryClient', null);
   } else {
     debug('Celery configuration found, let\'s see if it works...');
-    app.set('celeryClient', getCeleryClient(config));
+    app.set('celeryClient', getCeleryClient(config, app));
   }
 };
