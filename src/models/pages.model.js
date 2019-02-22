@@ -11,7 +11,8 @@ class Page {
     iiif = '',
     labels = ['page'],
     num = 0,
-
+    // converted coordinates
+    hasCC = false,
     // number of articles
     countArticles = 0,
 
@@ -36,6 +37,7 @@ class Page {
     this.iiif = String(iiif);
     this.labels = labels;
     this.countArticles = parseInt(countArticles, 10);
+    this.hasCC = Boolean(hasCC);
 
     if (complete) {
       this.articlesEntities = articlesEntities.map((d) => {
