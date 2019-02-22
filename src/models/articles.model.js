@@ -184,7 +184,7 @@ class Article {
     // TODO: based on type!
     this.labels = ['article'];
 
-    if(mentions.length) {
+    if (mentions.length) {
       this.mentions = mentions;
     }
     this.enrich(rc, lb, rb);
@@ -233,10 +233,10 @@ class Article {
 
       // annotated wit mentions...
       if (this.mentions && this.mentions.length) {
-        this.mentions.forEach(group => {
+        this.mentions.forEach((group) => {
           const category = Object.keys(group)[0];
-          group[category].forEach(token => {
-            annotate(tokens, category, token[0], token[0]+token[1], 'class');
+          group[category].forEach((token) => {
+            annotate(tokens, category, token[0], token[0] + token[1], 'class');
           });
         });
       }

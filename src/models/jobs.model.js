@@ -1,15 +1,16 @@
+/* eslint-disable no-unused-vars */
 const User = require('./users.model');
 const { DataTypes } = require('sequelize');
 
-const TYPE_BULK_COLLECTION_FROM_QUERY = 'BCQ'
-const TYPE_DELETE_COLLECTION = 'DCO'
-const TYPE_SYNC_COLLECTION_TO_SOLR = 'IDX'
+const TYPE_BULK_COLLECTION_FROM_QUERY = 'BCQ';
+const TYPE_DELETE_COLLECTION = 'DCO';
+const TYPE_SYNC_COLLECTION_TO_SOLR = 'IDX';
 
-const STATUS_READY = 'REA'
-const STATUS_RUN = 'RUN'
-const STATUS_DONE = 'DON'
-const STATUS_ERR = 'ERR'
-const STATUS_ARCHIVED = 'ARC'
+const STATUS_READY = 'REA';
+const STATUS_RUN = 'RUN';
+const STATUS_DONE = 'DON';
+const STATUS_ERR = 'ERR';
+const STATUS_ARCHIVED = 'ARC';
 
 
 class Job {
@@ -26,10 +27,10 @@ class Job {
     this.id = parseInt(id, 10);
     this.status = status;
     this.type = type;
-    try{
+    try {
       this.extra = JSON.parse(extra);
-    } catch(e) {
-      if(e.name != 'SyntaxError') {
+    } catch (e) {
+      if (e.name !== 'SyntaxError') {
         console.error(e);
       }
     }
@@ -77,7 +78,7 @@ class Job {
         defaultValue: DataTypes.NOW,
       },
       extra: {
-        type: DataTypes.JSON
+        type: DataTypes.JSON,
       },
       creatorId: {
         type: DataTypes.INTEGER,
