@@ -24,7 +24,7 @@ const IiifMapper = (d) => {
   } else if (d.labels.indexOf('issue') !== -1 && d.cover && d.cover.uid) {
     // issue with cover page ;)
     _d.iiif = `${config.proxy.host}/proxy/iiif/${d.cover.uid}`;
-    _d.iiifThumbnail = `${config.proxy.host}/proxy/iiif/${d.cover.uid}/full/150,/0/default.png`;
+    _d.iiifThumbnail = `${config.proxy.host}/proxy/iiif/${d.cover.uid}/full/350,/0/default.png`;
     _d.cover.iiif = `${config.proxy.host}/proxy/iiif/${d.cover.uid}`;
     _d.cover.iiifThumbnail = `${config.proxy.host}/proxy/iiif/${d.cover.uid}/full/150,/0/default.png`;
   } else if (d.labels.indexOf('page') !== -1) {
@@ -32,7 +32,7 @@ const IiifMapper = (d) => {
     _d.iiifThumbnail = `${config.proxy.host}/proxy/iiif/${d.uid}/full/150,/0/default.png`;
   } else if (d.labels.indexOf('issue') !== -1 && typeof d.cover === 'string') {
     _d.iiif = `${config.proxy.host}/proxy/iiif/${d.cover}`;
-    _d.iiifThumbnail = `${config.proxy.host}/proxy/iiif/${d.cover}/full/150,/0/default.png`;
+    _d.iiifThumbnail = `${config.proxy.host}/proxy/iiif/${d.cover}/full/350,/0/default.png`;
   }
   return _d;
 };
