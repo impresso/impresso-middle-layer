@@ -62,11 +62,13 @@ module.exports = {
           defaultValue: 'collection',
         },
         order_by: {
-          choices: ['-date', 'date'],
+          choices: ['-date', 'date', '-itemDate', 'itemDate'],
           defaultValue: '-date',
           transform: d => utils.translate(d, {
-            date: [['date_added', 'ASC']],
-            '-date': [['date_added', 'DESC']],
+            date: 'latestDateAdded ASC',
+            '-date': 'latestDateAdded DESC',
+            itemDate: 'itemDate ASC',
+            '-itemdate': 'itemDate DESC',
           }),
         },
       }, 'GET'),

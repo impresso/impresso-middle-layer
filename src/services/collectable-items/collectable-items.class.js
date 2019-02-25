@@ -68,6 +68,7 @@ class Service {
             JSON_ARRAYAGG(collection_id) AS collectionIds,
             MIN(collectableItem.content_type) as contentType,
             MAX(collectableItem.date_added) as latestDateAdded,
+            MAX(collectableItem.item_date) as itemDate,
             item_id as itemId
           FROM
             collectable_items as collectableItem
@@ -75,6 +76,7 @@ class Service {
             ON collectableItem.collection_id = collection.id
           WHERE ${reducedWhere}
           GROUP BY item_id
+          ORDER BY ${params.sanitized.order_by}
             LIMIT :limit OFFSET :skip`,
         replacements: {
           limit: params.query.limit,
@@ -194,6 +196,7 @@ class Service {
     }
     const items = data.sanitized.items.map(d => ({
       itemId: d.uid,
+
       contentType: d.content_type,
       collectionId: collection.uid,
     }));
