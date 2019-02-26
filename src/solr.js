@@ -105,6 +105,7 @@ const findAll = (config, params = {}, factory) => {
     namespace: 'search',
     ...params,
   };
+
   debug(`findAll: request to '${_params.namespace}' endpoint. With PARAMS`, _params);
 
   // you can have multiple namespace for the same solr
@@ -119,7 +120,9 @@ const findAll = (config, params = {}, factory) => {
     wt: 'json',
     // wt: 'xml'
   };
-
+  if (_params.fq && _params.fq.length) {
+    qs.fq = _params.fq;
+  }
   if (_params.vars) {
     Object.assign(qs, _params.vars);
   }
