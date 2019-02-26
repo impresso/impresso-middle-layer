@@ -65,7 +65,7 @@ const reduceRegexFiltersToSolr = filters =>
   }, []).join(' AND ');
 
 
-const reduceStringFiltersToSolr = (filters, field, languages=['en', 'fr', 'de']) =>
+const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>
   // reduce the string in filters to final SOLR query `sq`
   filters.reduce((_sq, query) => {
     // const specialchars = '+ - && || ! ( ) { } [ ] ^ " ~ * ? : \\'.split(' ');
@@ -74,26 +74,29 @@ const reduceStringFiltersToSolr = (filters, field, languages=['en', 'fr', 'de'])
     // const field = fields[0];
     // solarized query is the initial query
     let _q = query.q.trim();
-    // const _isExact = /^"[^"]+"$/.test(_q);
-    const _hasSpaces = _q.split(' ').length > 1;
 
-    if (!query.standalone) {
-      // escape special chars
+    // const isExact = /^"[^"]+"$/.test(_q);
+    const hasMultipleWords = _q.split(' ').length > 1;
 
-      // if there are spaces, use parenthesis
-      if (_hasSpaces) {
-        _q = `(${query.q.split(/\s+/g).join(' ')})`;
-      }
+    if (query.precision === 'soft') {
+      _q = `(${_q.split(/\s+/g).join(' ')})`;
+    } else if (query.precision === 'fuzzy') {
+      // "richard chase"~1
+      _q = `"${_q.split(/\s+/g).join(' ')}"~1`;
+    } else if (hasMultipleWords) {
+      // text:"Richard Chase"
+      _q = _q.replace(/"/g, ' ');
+      _q = `"${_q.split(/\s+/g).join(' ')}"`;
     }
 
     // q multiplied for languages :(
     const ql = languages.map(lang => `${field}_${lang}:${_q}`);
 
-    if(ql.length > 1) {
+    if (ql.length > 1) {
       _q = `(${ql.join(' OR ')})`;
     } else {
       _q = ql[0];
-    }    // is standalone SOLR? Surround by parenthesis
+    } // is standalone SOLR? Surround by parenthesis
     // if(isSolrStandalone(q)) {
     //   return q
     // }
@@ -218,7 +221,7 @@ const filtersToSolrQuery = () => async (context) => {
 
 
   Object.keys(filters).forEach((key) => {
-    if(['uid', 'string'].indexOf(key) !== -1) {
+    if (['uid', 'string'].indexOf(key) !== -1) {
       queries.push(filtersToSolr(key, filters[key]));
     } else {
       filterQueries.push(filtersToSolr(key, filters[key]));
@@ -236,7 +239,7 @@ const filtersToSolrQuery = () => async (context) => {
 
   debug('\'filtersToSolrQuery\' vars =', vars);
 
-  context.params.sanitized.sq = queries.length? queries.join(' AND '): '*:*';
+  context.params.sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
   context.params.sanitized.sfq = filterQueries.join(' AND ');
   context.params.sanitized.sv = vars;
   context.params.sanitized.queryComponents = [].concat(
