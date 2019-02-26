@@ -2,7 +2,8 @@ const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
 } = require('../../hooks/params');
 const {
-  filtersToSolrQuery, qToSolrFilter, SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
+  filtersToSolrQuery, qToSolrFilter, filtersToSolrFacetQuery,
+  SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
 } = require('../../hooks/search');
 const { assignIIIF } = require('../../hooks/iiif');
 const { protect } = require('@feathersjs/authentication-local').hooks;
@@ -79,26 +80,35 @@ module.exports = {
             return d;
           },
         },
-        facets: {
-          before: (d) => {
-            if (typeof d === 'string') {
-              return d.split(',');
-            }
-            return d;
-          },
-          choices: Object.keys(SOLR_FACETS),
-          after: (fields) => {
-            const _facets = {};
-            fields.forEach((field) => {
-              _facets[field] = SOLR_FACETS[field];
-            });
-            return JSON.stringify(_facets);
-          },
-        },
+        facets: utils.facets({
+          values: SOLR_FACETS,
+        }),
       }),
+
       validateEach('filters', filtersValidator, {
         required: false,
       }),
+
+      validateEach('facetfilters', {
+        name: {
+          choices: Object.keys(SOLR_FACETS),
+          required: true,
+        },
+        q: {
+          required: false,
+          min_length: 2,
+          max_length: 10,
+        },
+        page: {
+          required: false,
+          regex: /\d+/,
+        },
+      }, {
+        required: false,
+      }),
+
+      filtersToSolrFacetQuery(),
+
       qToSolrFilter('string'),
       filtersToSolrQuery(SOLR_FILTER_TYPES),
       queryWithCommonParams(),
