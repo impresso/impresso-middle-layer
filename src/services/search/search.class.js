@@ -60,6 +60,7 @@ class Service {
     }
 
     const q = params.sanitized.sq;
+    const fq = params.sanitized.sfq;
     debug(`create '${this.name}', from solr query: ${q}`);
 
     return client.run({
@@ -71,6 +72,8 @@ class Service {
         params.user.id,
         // query
         q,
+        // filter query
+        fq,
         // content_type, A for article
         'A',
       ],
@@ -97,6 +100,7 @@ class Service {
     // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
       q: params.query.sq,
+      fq: params.sanitized.sfq,
       order_by: params.query.order_by,
       facets: params.query.facets,
       limit: params.query.limit,
@@ -124,11 +128,22 @@ class Service {
     );
 
     // get articles (if group by is article ...)!
-    const results = await this.app.service('articles').get(uids.join(','), {
-      findAll: true,
+    const results = await this.app.service('articles').find({
       user: params.user,
       authenticated: params.authenticated,
-    }).then(articles => articles.map((article) => {
+      query: {
+        limit: 20,
+        filters: [
+          {
+            type: 'uid',
+            q: uids,
+          },
+        ],
+      },
+    })
+    .then(res => res.data)
+    .then(articles => articles.map((article) => {
+      // complete article with fragments found
       const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
       const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
       article.matches = Article.getMatches({
@@ -157,20 +172,6 @@ class Service {
               ...d,
               count: d.count,
               uid: d.val,
-            })),
-          });
-        } else if(facet === 'collection') {
-          facetGroupsToResolve.push({
-            // the facet key to merge later
-            facet,
-            engine: 'sequelize',
-            service: 'collections',
-            // enrich bucket with service identifier, uid.
-            // SOLR gives it as `val` property of the facet.
-            items: _solr.facets.collection.buckets.map(d => ({
-              ...d,
-              count: d.count,
-              uid: d.val.split(':').slice(1).join(''),
             })),
           });
         } else if (facet === 'topic') {
