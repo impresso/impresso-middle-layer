@@ -12,7 +12,9 @@ class Page {
     labels = ['page'],
     num = 0,
     // converted coordinates
-    hasCC = false,
+    hasCoords = false,
+    // has json errors
+    hasErrors = false,
     // number of articles
     countArticles = 0,
 
@@ -37,7 +39,8 @@ class Page {
     this.iiif = String(iiif);
     this.labels = labels;
     this.countArticles = parseInt(countArticles, 10);
-    this.hasCC = Boolean(hasCC);
+    this.hasCoords = Boolean(hasCoords);
+    this.hasErrors = Boolean(hasErrors);
 
     if (complete) {
       this.articlesEntities = articlesEntities.map((d) => {
@@ -55,8 +58,8 @@ class Page {
   }
 
   static sequelize(client) {
-    const newspaper = Newspaper.model(client);
-    const issue = Issue.model(client);
+    const newspaper = Newspaper.sequelize(client);
+    const issue = Issue.sequelize(client);
 
     const page = client.define('page', {
       uid: {
@@ -73,9 +76,17 @@ class Page {
         type: Sequelize.STRING,
         field: 'newspaper_id',
       },
-      page_number: {
+      num: {
         type: Sequelize.SMALLINT,
         field: 'page_number',
+      },
+      hasCoords: {
+        type: Sequelize.SMALLINT,
+        field: 'has_converted_coordinates',
+      },
+      hasErrors: {
+        type: Sequelize.SMALLINT,
+        field: 'has_corrupted_json',
       },
     }, {
       scopes: {
