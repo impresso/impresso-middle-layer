@@ -2,6 +2,8 @@ const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
 
 const SOLR_FILTER_TYPES = [
+  'hasTextContents',
+  'isFront',
   'string', 'entity', 'newspaper', 'daterange',
   'year', 'language', 'type', 'regex',
   // mention allows to find both mentions of type person and location
@@ -124,6 +126,10 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
 const filtersToSolr = (type, filters) => {
   // console.log('filtersToSolr', type, filters);
   switch (type) {
+    case 'hasTextContents':
+      return 'NOT(content_length_i:0)';
+    case 'isFront':
+      return 'front_b:1';
     case 'string':
       return reduceStringFiltersToSolr(filters, 'content_txt');
     case 'daterange':
