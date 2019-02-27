@@ -22,6 +22,10 @@ const ARTICLE_SOLR_FL_LITE = [
   'lg_s', // 'fr',
   'content_txt_fr',
   'title_txt_fr',
+  'content_txt_en',
+  'title_txt_en',
+  'content_txt_de',
+  'title_txt_de',
 
   // coordinates ok
   'cc_b',
@@ -47,6 +51,8 @@ const ARTICLE_SOLR_FL_TO_CSV = [
   'lg_s', // 'fr',
 
   'title_txt_fr',
+  'title_txt_en',
+  'title_txt_de',
   // coordinates ok
   'front_b',
   'page_id_ss',
@@ -72,7 +78,7 @@ const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'lb_plain:[json]',
   'rb_plain:[json]',
   'pp_plain:[json]',
-  // 'nem_offset_plain:[json]',
+  'nem_offset_plain:[json]',
 ]);
 
 class ArticleRegion {
@@ -233,7 +239,7 @@ class Article {
 
       // annotated wit mentions...
       if (this.mentions && this.mentions.length) {
-        this.mentions.forEach((group) => {
+        this.mentions.filter(d => d !== null).forEach((group) => {
           const category = Object.keys(group)[0];
           group[category].forEach((token) => {
             annotate(tokens, category, token[0], token[0] + token[1], 'class');

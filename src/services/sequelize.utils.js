@@ -37,9 +37,12 @@ const sequelizeErrorHandler = (err) => {
   if (err.name === 'SequelizeUniqueConstraintError') {
     debug(`sequelize failed. ConstraintValidationFailed: ${err}`);
     throw new Conflict(`ConstraintValidationFailed: ${err.errors.map(d => d.message)}`);
+  } else if (err.name === 'SequelizeConnectionError') {
+    debug(`Connection error. ConstraintValidationFailed: ${err}`, err);
   } else {
     debug('sequelize failed. Check error below.');
-    debug(err);
+    debug(err.name);
+    console.error(err);
   }
   throw new BadRequest();
 };
@@ -71,10 +74,10 @@ const resolveAsync = async (client, groups) => {
         uid: g.items.map(d => d.uid),
       },
     })
-      .then(rows => {
-        console.log(rows);
-        return rows;
-      })
+      // .then((rows) => {
+      //   console.log(rows);
+      //   return rows;
+      // })
       .then(rows => rows.map(r => r.toJSON()))
       .then((records) => {
         // add each record to the initial group

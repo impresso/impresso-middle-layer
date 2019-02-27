@@ -2,12 +2,16 @@ const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
 
 const SOLR_FILTER_TYPES = [
+  'hasTextContents',
+  'isFront',
   'string', 'entity', 'newspaper', 'daterange',
   'year', 'language', 'type', 'regex',
   // mention allows to find both mentions of type person and location
   'mention', 'person', 'location',
   // today's special
   'topic',
+  // filter by user collections! Only when authentified
+  'collection',
 ];
 
 const SOLR_FILTER_DPF = [
@@ -63,7 +67,7 @@ const reduceRegexFiltersToSolr = filters =>
   }, []).join(' AND ');
 
 
-const reduceStringFiltersToSolr = (filters, field) =>
+const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>
   // reduce the string in filters to final SOLR query `sq`
   filters.reduce((_sq, query) => {
     // const specialchars = '+ - && || ! ( ) { } [ ] ^ " ~ * ? : \\'.split(' ');
@@ -72,21 +76,29 @@ const reduceStringFiltersToSolr = (filters, field) =>
     // const field = fields[0];
     // solarized query is the initial query
     let _q = query.q.trim();
-    // const _isExact = /^"[^"]+"$/.test(_q);
-    const _hasSpaces = _q.split(' ').length > 1;
 
-    if (!query.standalone) {
-      // escape special chars
+    // const isExact = /^"[^"]+"$/.test(_q);
+    const hasMultipleWords = _q.split(' ').length > 1;
 
-      // if there are spaces, use parenthesis
-      if (_hasSpaces) {
-        _q = `(${query.q.split(/\s+/g).join(' ')})`;
-      }
+    if (query.precision === 'soft') {
+      _q = `(${_q.split(/\s+/g).join(' ')})`;
+    } else if (query.precision === 'fuzzy') {
+      // "richard chase"~1
+      _q = `"${_q.split(/\s+/g).join(' ')}"~1`;
+    } else if (hasMultipleWords) {
+      // text:"Richard Chase"
+      _q = _q.replace(/"/g, ' ');
+      _q = `"${_q.split(/\s+/g).join(' ')}"`;
     }
 
+    // q multiplied for languages :(
+    const ql = languages.map(lang => `${field}_${lang}:${_q}`);
 
-    _q = `${field}:${_q}`;
-    // is standalone SOLR? Surround by parenthesis
+    if (ql.length > 1) {
+      _q = `(${ql.join(' OR ')})`;
+    } else {
+      _q = ql[0];
+    } // is standalone SOLR? Surround by parenthesis
     // if(isSolrStandalone(q)) {
     //   return q
     // }
@@ -114,8 +126,12 @@ const reduceStringFiltersToSolr = (filters, field) =>
 const filtersToSolr = (type, filters) => {
   // console.log('filtersToSolr', type, filters);
   switch (type) {
+    case 'hasTextContents':
+      return 'NOT(content_length_i:0)';
+    case 'isFront':
+      return 'front_b:1';
     case 'string':
-      return reduceStringFiltersToSolr(filters, 'content_txt_fr');
+      return reduceStringFiltersToSolr(filters, 'content_txt');
     case 'daterange':
       return reduceDaterangeFiltersToSolr(filters);
     case 'uid':
@@ -124,6 +140,8 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'lg_s');
     case 'page':
       return reduceFiltersToSolr(filters, 'page_id_ss');
+    case 'collection':
+      return reduceFiltersToSolr(filters, 'ucoll_ss');
     case 'issue':
       return reduceFiltersToSolr(filters, 'meta_issue_id_s');
     case 'newspaper':
@@ -203,14 +221,17 @@ const filtersToSolrQuery = () => async (context) => {
 
   const filters = lodash.groupBy(context.params.sanitized.filters, 'type');
   const queries = [];
+  const filterQueries = [];
   // will contain payload vars, if any.
   const vars = {};
 
-  // if there is a q parameter, let's add it to the very beginning of the query as include.
-
 
   Object.keys(filters).forEach((key) => {
-    queries.push(filtersToSolr(key, filters[key]));
+    if (['uid', 'string'].indexOf(key) !== -1) {
+      queries.push(filtersToSolr(key, filters[key]));
+    } else {
+      filterQueries.push(filtersToSolr(key, filters[key]));
+    }
     debug('\'filtersToSolrQuery\' key:', key, filters[key]);
     if (SOLR_FILTER_DPF.indexOf(key) !== -1) {
       // add payload variable
@@ -224,7 +245,8 @@ const filtersToSolrQuery = () => async (context) => {
 
   debug('\'filtersToSolrQuery\' vars =', vars);
 
-  context.params.sanitized.sq = queries.join(' AND ');
+  context.params.sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
+  context.params.sanitized.sfq = filterQueries.join(' AND ');
   context.params.sanitized.sv = vars;
   context.params.sanitized.queryComponents = [].concat(
     filters.years,
@@ -239,12 +261,33 @@ const filtersToSolrQuery = () => async (context) => {
   debug('\'filtersToSolrQuery\' with \'solr query\':', context.params.sanitized.sq);
 };
 
+/**
+ * check if there are any params to be added to our beloved facets. should follow facets validation
+ * @return {[type]}        [description]
+ */
+const filtersToSolrFacetQuery = () => async (context) => {
+  if (typeof context.params.sanitized !== 'object' || !context.params.sanitized.facets) {
+    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+  }
+  const facets = JSON.parse(context.params.sanitized.facets);
+  debug('\'filtersToSolrFacetQuery\' on facets:', facets);
+
+  if (!Array.isArray(context.params.sanitized.facetfilters)) {
+    context.params.sanitized.facetfilters = [];
+  }
+
+  // apply facets recursively based on facet name
+  Object.keys(facets).forEach((key) => {
+    const filter = context.params.sanitized.facetfilters.find(d => d.name === key);
+    console.log(filter);
+  });
+};
 
 module.exports = {
   filtersToSolrQuery,
   qToSolrFilter,
   reduceFiltersToSolr,
-
+  filtersToSolrFacetQuery,
 
   SOLR_FILTER_TYPES,
   SOLR_FILTER_DPF,
@@ -278,11 +321,19 @@ module.exports = {
       limit: 20,
       numBuckets: true,
     },
+    collection: {
+      type: 'terms',
+      field: 'ucoll_ss',
+      mincount: 1,
+      limit: 10,
+      numBuckets: true,
+    },
     newspaper: {
       type: 'terms',
       field: 'meta_journal_s',
       mincount: 1,
-      maxcount: 750,
+      limit: 20,
+      numBuckets: true,
     },
     date: {
       type: 'terms',

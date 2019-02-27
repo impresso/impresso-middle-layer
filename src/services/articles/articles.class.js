@@ -38,7 +38,7 @@ class Service {
       fl = Article.ARTICLE_SOLR_FL;
     }
 
-    debug(`'find' ${this.name}`, params);
+    debug(`'find' ${this.name} user:`, params.user ? params.user.uid : 'no user');
     // if(params.isSafe query.filters)
     const results = await this.SolrService.find({
       ...params,
@@ -87,11 +87,11 @@ class Service {
   async get(id, params) {
     const uids = id.split(',');
     if (uids.length > 1 || params.findAll) {
+      debug(`'get' with ${uids.length} ids -> redirect to 'find', user:`, params.user ? params.user.uid : 'no user found');
+
       return this.find({
-        params: {
-          ...params,
-          findAll: true,
-        },
+        ... params,
+        findAll: true,
         query: {
           limit: 20,
           filters: [
