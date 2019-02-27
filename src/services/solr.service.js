@@ -34,6 +34,7 @@ class SolrService {
   async find(params) {
     const p = {
       q: params.q || params.query.sq || '*:*',
+      fq: params.fq || params.query.sfq || undefined,
       limit: params.query.limit,
       skip: params.query.skip,
       fl: params.fl,
