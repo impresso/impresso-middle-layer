@@ -85,6 +85,33 @@ describe('test filtersToSolrQuery hook', () => {
     assert.deepEqual(context.params.sanitized.sq, '(content_txt_en:"accident d\'avion"~1 OR content_txt_fr:"accident d\'avion"~1 OR content_txt_de:"accident d\'avion"~1) AND (content_txt_en:(ministre portugais) OR content_txt_fr:(ministre portugais) OR content_txt_de:(ministre portugais))');
   });
 
+  it('with text context', async () => {
+    const context = {
+      type: 'before',
+      params: {
+        sanitized: {
+          filters: [
+            {
+              type: 'hasTextContents',
+            },
+            {
+              type: 'isFront',
+            },
+            {
+              type: 'string',
+              precision: 'exact',
+              context: 'include',
+              q: 'ministre portugais',
+            },
+          ],
+        },
+      },
+    };
+
+    await filtersToSolrQuery()(context);
+    console.log(context.params.sanitized.sq, 'FQ', context.params.sanitized.sfq);
+  });
+
   it('with daterange filters', async () => {
     const context = {
       type: 'before',
