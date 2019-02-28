@@ -1,6 +1,6 @@
 const debug = require('debug')('impresso/services:sequelize.utils');
 const {
-  Conflict, BadRequest,
+  Conflict, BadRequest, BadGateway,
 } = require('@feathersjs/errors');
 
 const Newspapers = require('../models/newspapers.model');
@@ -37,8 +37,10 @@ const sequelizeErrorHandler = (err) => {
   if (err.name === 'SequelizeUniqueConstraintError') {
     debug(`sequelize failed. ConstraintValidationFailed: ${err}`);
     throw new Conflict(`ConstraintValidationFailed: ${err.errors.map(d => d.message)}`);
+  } else if(err.name === 'SequelizeConnectionRefusedError') {
+    throw new BadGateway('SequelizeConnectionRefusedError');
   } else if (err.name === 'SequelizeConnectionError') {
-    debug(`Connection error. ConstraintValidationFailed: ${err}`, err);
+    debug(`Connection error. SequelizeConnectionError:`, err);  
   } else {
     debug('sequelize failed. Check error below.');
     debug(err.name);
