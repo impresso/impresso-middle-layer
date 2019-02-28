@@ -60,7 +60,7 @@ class Service {
     }
 
     const q = params.sanitized.sq;
-    // const fq = params.sanitized.sfq;
+    
     debug(`create '${this.name}', from solr query: ${q}`);
 
     return client.run({
@@ -72,8 +72,6 @@ class Service {
         params.user.id,
         // query
         q,
-        // filter query
-        fq,
         // content_type, A for article
         'A',
       ],
