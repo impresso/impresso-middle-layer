@@ -50,6 +50,11 @@ class Profile {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      emailAccepted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'email_accepted',
+      },
     });
   }
 }
