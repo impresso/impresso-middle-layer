@@ -127,7 +127,7 @@ const filtersToSolr = (type, filters) => {
   // console.log('filtersToSolr', type, filters);
   switch (type) {
     case 'hasTextContents':
-      return 'NOT(content_length_i:0)';
+      return 'content_length_i:[0 to *]';
     case 'isFront':
       return 'front_b:1';
     case 'string':
