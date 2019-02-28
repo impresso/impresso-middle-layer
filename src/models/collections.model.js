@@ -5,6 +5,7 @@ const User = require('./users.model');
 const STATUS_PRIVATE = 'PRI';
 const STATUS_SHARED = 'SHA';
 const STATUS_PUBLIC = 'PUB';
+const STATUS_DELETED = 'DEL';
 
 
 class Collection {
@@ -158,3 +159,4 @@ module.exports = Collection;
 module.exports.STATUS_PUBLIC = STATUS_PUBLIC;
 module.exports.STATUS_PRIVATE = STATUS_PRIVATE;
 module.exports.STATUS_SHARED = STATUS_SHARED;
+module.exports.STATUS_DELETED = STATUS_DELETED;

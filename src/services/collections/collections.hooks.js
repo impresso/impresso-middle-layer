@@ -71,7 +71,7 @@ module.exports = {
         },
         description: {
           required: false,
-          min_length: 3,
+          min_length: 0,
           max_length: 500,
         },
       }, 'POST'),
