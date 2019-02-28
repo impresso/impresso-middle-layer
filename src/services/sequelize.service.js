@@ -58,13 +58,31 @@ class SequelizeService {
     return result;
   }
 
+  /**
+   * Call sequelize update and return given id
+   * and the data that have been updated for the object
+   *
+   * @param  {[type]}  id     id of the
+   * @param  {[type]}  data   [description]
+   * @param  {[type]}  params [description]
+   * @return {Promise}        [description]
+   */
   async patch(id, data, params) {
+    if (id) {
+      params.where = {
+        ... params.where,
+        id: id,
+      };
+    }
     return this.sequelizeKlass.update({
       ...data,
     }, {
       // criteria
       where: params.where,
-    });
+    }).then(() => ({
+      uid: id,
+      ... data,
+    }));
   }
 
   async rawSelect({
