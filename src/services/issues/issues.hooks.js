@@ -36,7 +36,6 @@ module.exports = {
         context: {
           choices: ['include', 'exclude'],
           defaultValue: 'include',
-          required: true,
         },
         type: {
           choices: ['newspaper'],

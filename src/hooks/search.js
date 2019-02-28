@@ -230,7 +230,7 @@ const filtersToSolrQuery = () => async (context) => {
     if (['uid', 'string'].indexOf(key) !== -1) {
       queries.push(filtersToSolr(key, filters[key]));
     } else {
-      filterQueries.push(filtersToSolr(key, filters[key]));
+      queries.push(`filter(${filtersToSolr(key, filters[key])})`);
     }
     debug('\'filtersToSolrQuery\' key:', key, filters[key]);
     if (SOLR_FILTER_DPF.indexOf(key) !== -1) {
@@ -246,7 +246,7 @@ const filtersToSolrQuery = () => async (context) => {
   debug('\'filtersToSolrQuery\' vars =', vars);
 
   context.params.sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
-  context.params.sanitized.sfq = filterQueries.join(' AND ');
+  // context.params.sanitized.sfq = filterQueries.join(' AND ');
   context.params.sanitized.sv = vars;
   context.params.sanitized.queryComponents = [].concat(
     filters.years,

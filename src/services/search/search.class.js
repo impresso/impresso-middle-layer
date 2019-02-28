@@ -60,7 +60,7 @@ class Service {
     }
 
     const q = params.sanitized.sq;
-    const fq = params.sanitized.sfq;
+    // const fq = params.sanitized.sfq;
     debug(`create '${this.name}', from solr query: ${q}`);
 
     return client.run({
@@ -100,7 +100,7 @@ class Service {
     // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
       q: params.query.sq,
-      fq: params.sanitized.sfq,
+      // fq: params.sanitized.sfq,
       order_by: params.query.order_by,
       facets: params.query.facets,
       limit: params.query.limit,
