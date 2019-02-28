@@ -12,7 +12,7 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const filtersValidator = {
   context: {
     choices: ['include', 'exclude'],
-    required: true,
+    defaultValue: 'include',
   },
   type: {
     choices: SOLR_FILTER_TYPES,
