@@ -6,7 +6,10 @@ const { assignIIIF } = require('../../hooks/iiif');
 const { filtersToSolrQuery, SOLR_ORDER_BY } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
+const { resolveTopics } = require('../../hooks/resolvers/articles.resolvers');
+
 const resolveUserAddons = () => async (context) => {
+  console.log('resolveUserAddons!!', context.params.authenticated);
   if (!context.params.authenticated) {
     return;
   }
@@ -22,7 +25,6 @@ const resolveUserAddons = () => async (context) => {
   if (!uids.length) {
     return;
   }
-
   const collectables = await context.app.service('collectable-items').find({
     ...context.params,
     query: {
@@ -84,12 +86,12 @@ module.exports = {
       }),
       validateEach('filters', {
         type: {
-          choices: ['uid', 'issue', 'page', 'newspaper'],
+          choices: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
           required: true,
         },
         q: {
           regex: REGEX_UID,
-          required: true,
+          required: false,
           // we cannot transform since Mustache is render the filters...
           // transform: d => d.split(',')
         },
@@ -126,6 +128,7 @@ module.exports = {
       returnCachedContents({
         skipHooks: false,
       }),
+      resolveTopics(),
       saveResultsInCache(),
       resolveUserAddons(),
     ],
