@@ -7,6 +7,8 @@ const Collection = require('./collections.model');
 const CollectableItem = require('./collectable-items.model');
 const Issue = require('./issues.model');
 const Page = require('./pages.model');
+const ArticleTopic = require('./articles-topics.model');
+
 const {
   toHierarchy, sliceAtSplitpoints, render, annotate,
 } = require('../helpers');
@@ -68,6 +70,7 @@ const ARTICLE_SOLR_FL_TO_CSV = [
   'meta_country_code_s', // 'CH',
   'meta_province_code_s', // 'VD',
   'content_length_i',
+  'topics_dpfs',
 ];
 
 const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat([
@@ -79,6 +82,7 @@ const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'rb_plain:[json]',
   'pp_plain:[json]',
   'nem_offset_plain:[json]',
+  'topics_dpfs',
 ]);
 
 class ArticleRegion {
@@ -150,6 +154,8 @@ class Article {
     rc = [],
     // mentions offsets
     mentions = [],
+    // topics
+    topics = [],
   } = {}) {
     this.uid = String(uid);
     this.type = String(type);
@@ -192,6 +198,10 @@ class Article {
 
     if (mentions.length) {
       this.mentions = mentions;
+    }
+
+    if(topics.length) {
+      this.topics = topics;
     }
     this.enrich(rc, lb, rb);
   }
@@ -416,6 +426,7 @@ class Article {
         rc: doc.pp_plain,
 
         mentions: doc.nem_offset_plain,
+        topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs),
       });
 
       if (!doc.pp_plain) {
