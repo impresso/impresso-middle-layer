@@ -18,7 +18,8 @@ const IiifMapper = (d) => {
 
   if (d.pageUid && Array.isArray(d.coords)) {
     // fragments matches from SOLR
-    _d.iiifFragment = `${config.proxy.host}/proxy/iiif/${d.pageUid}/${d.coords.join(',')}/full/0/default.png`;
+    _d.iiif_fragment = `${config.proxy.host}/proxy/iiif/${d.pageUid}/${d.coords.join(',')}/full/0/default.png`;
+    _d.iiifFragment = _d.iiif_fragment;
   } else if (!d.labels) {
     // non canonical neo4j objects, ignore...
   } else if (d.labels.indexOf('issue') !== -1 && d.cover && d.cover.uid) {
