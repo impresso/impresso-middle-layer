@@ -92,13 +92,17 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
     }
 
     // q multiplied for languages :(
-    const ql = languages.map(lang => `${field}_${lang}:${_q}`);
+    if(languages.length) {
+      const ql = languages.map(lang => `${field}_${lang}:${_q}`);
 
-    if (ql.length > 1) {
-      _q = `(${ql.join(' OR ')})`;
+      if (ql.length > 1) {
+        _q = `(${ql.join(' OR ')})`;
+      } else {
+        _q = ql[0];
+      }
     } else {
-      _q = ql[0];
-    } // is standalone SOLR? Surround by parenthesis
+      _q = `${field}:${_q}`;
+    }// is standalone SOLR? Surround by parenthesis
     // if(isSolrStandalone(q)) {
     //   return q
     // }
@@ -161,7 +165,7 @@ const filtersToSolr = (type, filters) => {
     case 'topicmodel':
       return reduceFiltersToSolr(filters, 'tp_model_s');
     case 'topic-string':
-      return reduceStringFiltersToSolr(filters, 'topic_suggest');
+      return reduceStringFiltersToSolr(filters, 'topic_suggest', []);
     case 'regex':
       return reduceRegexFiltersToSolr(filters);
     default:
