@@ -14,9 +14,13 @@ const SOLR_FILTER_TYPES = [
   'collection',
 ];
 
-const SOLR_FILTER_DPF = [
-  'topic',
-];
+/**
+ * Translate DPF filter to appropriate field names
+ * @type {Object}
+ */
+const SOLR_FILTER_DPF = {
+  'topic': 'topics_dpfs'
+};
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   if (Array.isArray(filter.q)) {
@@ -237,17 +241,29 @@ const filtersToSolrQuery = () => async (context) => {
       queries.push(`filter(${filtersToSolr(key, filters[key])})`);
     }
     debug('\'filtersToSolrQuery\' key:', key, filters[key]);
-    if (SOLR_FILTER_DPF.indexOf(key) !== -1) {
+    if (SOLR_FILTER_DPF[key]) {
       // add payload variable
       // payload(topics_dpf,tmGDL_tp04_fr)
       reduceFiltersToVars(filters[key]).forEach((d) => {
         const l = Object.keys(vars).length;
-        vars[`v${l}`] = `payload(${key}_dpfs,${d})`;
+        const field = SOLR_FILTER_DPF[key];
+        vars[`v${l}`] = `payload(${field},${d})`;
       });
     }
   });
 
-  debug('\'filtersToSolrQuery\' vars =', vars);
+  if(Object.keys(vars).length) {
+    if(context.params.sanitized.order_by) {
+      context.params.sanitized.order_by = Object.keys(vars)
+        .map(d => `${vars[d]} desc`)
+        .concat(context.params.sanitized.order_by.split(','))
+        .join(',');
+    };
+  }
+
+  debug('\'filtersToSolrQuery\' vars =', vars, context.params.sanitized);
+
+  // context.params.query.order_by.push()
 
   context.params.sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
   // context.params.sanitized.sfq = filterQueries.join(' AND ');
@@ -284,6 +300,9 @@ const filtersToSolrFacetQuery = () => async (context) => {
   Object.keys(facets).forEach((key) => {
     const filter = context.params.sanitized.facetfilters.find(d => d.name === key);
     console.log(filter);
+    if(facets.filter) {
+
+    }
   });
 };
 
@@ -323,6 +342,7 @@ module.exports = {
       field: 'topics_dpfs',
       mincount: 1,
       limit: 20,
+      offset: 0,
       numBuckets: true,
     },
     collection: {
