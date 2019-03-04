@@ -60,7 +60,7 @@ class Service {
     }
 
     const q = params.sanitized.sq;
-    
+
     debug(`create '${this.name}', from solr query: ${q}`);
 
     return client.run({
@@ -130,7 +130,7 @@ class Service {
       user: params.user,
       authenticated: params.authenticated,
       query: {
-        limit: 20,
+        limit: uids.length,
         filters: [
           {
             type: 'uid',
@@ -140,18 +140,21 @@ class Service {
       },
     })
     .then(res => res.data)
-    .then(articles => articles.map((article) => {
-      // complete article with fragments found
-      const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
-      const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
-      article.matches = Article.getMatches({
-        solrDocument: _solr.response.docs.find(doc => doc.id === article.uid),
-        highlights,
-        fragments,
-      });
-      return article;
-    }));
-
+    .then((articles) => {
+      // respect indexes
+      const articleIndex = lodash(articles).map((article) => {
+        // complete article with fragments found
+        const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
+        const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
+        article.matches = Article.getMatches({
+          solrDocument: _solr.response.docs.find(doc => doc.id === article.uid),
+          highlights,
+          fragments,
+        });
+        return article;
+      }).keyBy('uid').value();
+      return uids.map(uid => articleIndex[uid]);
+    });
     // resolve facets...
     const facetGroupsToResolve = [];
     const facets = _solr.facets || {};
