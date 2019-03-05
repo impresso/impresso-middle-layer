@@ -275,6 +275,28 @@ class Article {
     //
   }
 
+  /**
+   * get regions from pp_plain field, aka region coordinates.
+   * Te param `regionCoords` is a list of page objects, containing a r property
+   * which contains an array of coordinates [x,y,w,h]
+   * this reduce function returns something like:
+   *  const regions = [
+   *    { page_uid: 'GDL-1900-08-08-a-p0002',
+   *      c: [ 3433, 1440, 783, 42 ] },
+   *    { page_uid: 'GDL-1900-08-08-a-p0002',
+   *      c: [ 3433, 1481, 783, 571 ] }
+   *  ][getPageRegions description]
+   * @param  {Array}  regionCoords=[]
+   * @return {Array}  List of ArticleRegion
+   */
+  static getRegions({
+    regionCoords = []
+  }) {
+    return regionCoords.reduce((acc, pag) => acc.concat(pag.r.map(reg => new ArticleRegion({
+      pageUid: pag.id,
+      c: reg,
+    }))), []);
+  }
 
   /**
    * Given a solr document containing pp_plain, it
@@ -319,6 +341,7 @@ class Article {
 
   static sequelize(client) {
     const newspaper = Newspaper.sequelize(client);
+    const page = Page.sequelize(client);
     const collection = Collection.sequelize(client);
     const collectableItem = CollectableItem.sequelize(client);
 
@@ -346,7 +369,10 @@ class Article {
               model: newspaper,
               as: 'newspaper',
             },
-
+            {
+              model: page,
+              as: 'pages',
+            },
           ],
         },
         getCollections: {
@@ -363,7 +389,8 @@ class Article {
     article.prototype.toJSON = function () {
       return new Article({
         ...this.get(),
-        newspaper: this.newspaper.toJSON(),
+        newspaper: this.newspaper ? this.newspaper.toJSON(): null,
+        pages: this.pages ? this.pages.map(p => p.toJSON()): [],
       });
     };
 
@@ -378,6 +405,13 @@ class Article {
       through: collectableItem,
       foreignKey: 'item_id',
       otherKey: 'collection_id',
+    });
+
+    article.belongsToMany(page, {
+      as: 'pages',
+      through: 'page_contentItem',
+      foreignKey: 'page_id',
+      otherKey: 'content_item_id',
     });
 
     return article;

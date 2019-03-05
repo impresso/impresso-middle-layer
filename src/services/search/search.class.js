@@ -115,8 +115,13 @@ class Service {
       return Service.wrap([], params.query.limit, params.query.skip, total);
     }
 
-    // remap for the addons...
-    const uids = _solr.response.docs.map(d => d.id);
+
+    // index for the pp_plain
+    const resultsIndex = lodash.keyBy(_solr.response.docs, 'id');
+    // get uids to load addons...
+    const uids = Object.keys(resultsIndex);
+    // _solr.response.docs.map(d => d.id);
+
     // get text matches
     // const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
     // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
@@ -147,9 +152,13 @@ class Service {
         const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
         const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
         article.matches = Article.getMatches({
-          solrDocument: _solr.response.docs.find(doc => doc.id === article.uid),
+          solrDocument: resultsIndex[article.uid], // _solr.response.docs.find(doc => doc.id === article.uid),
           highlights,
           fragments,
+        });
+        // complete article with page regions
+        article.regions = Article.getRegions({
+          regionCoords: resultsIndex[article.uid].pp_plain,
         });
         return article;
       }).keyBy('uid').value();
