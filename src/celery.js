@@ -30,7 +30,7 @@ const getCeleryClient = (config, app) => {
   client.on('message', (msg) => {
     debug('message!', msg);
 
-    if (typeof msg.result === 'object') {
+    if (msg.result && typeof msg.result === 'object') {
        if(msg.result.job_id) {
          app.service('logs').create({
            task: msg.result.task,
