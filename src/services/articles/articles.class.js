@@ -1,3 +1,4 @@
+const lodash = require('lodash');
 const debug = require('debug')('impresso/services:articles');
 
 const SequelizeService = require('../sequelize.service');
@@ -62,11 +63,17 @@ class Service {
       order_by: [['uid', 'DESC']],
     });
 
+    // idnexed by article uid;
+    const addonsIndex = lodash.keyBy(addons.data, 'uid');
+
     results.data = results.data.map((d) => {
-      const addon = addons.data.find(a => d.uid === a.uid);
+      const addon = addonsIndex[d.uid];
+
       if (!addon) {
+        debug('no addons for uid', d.uid);
         return d;
       }
+
       if (pageUids.length === 1) {
         return {
           ...d,
