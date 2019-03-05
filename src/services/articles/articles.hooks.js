@@ -6,49 +6,7 @@ const { assignIIIF } = require('../../hooks/iiif');
 const { filtersToSolrQuery, SOLR_ORDER_BY } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
-const { resolveTopics } = require('../../hooks/resolvers/articles.resolvers');
-
-const resolveUserAddons = () => async (context) => {
-  console.log('resolveUserAddons!!', context.params.authenticated);
-  if (!context.params.authenticated) {
-    return;
-  }
-  let uids = [];
-  if (Array.isArray(context.result)) {
-    uids = context.result.map(d => d.uid);
-  } else if (context.result.data && context.result.data.length) {
-    uids = context.result.data.map(d => d.uid);
-  } else if (context.result && context.result.uid) {
-    uids.push(context.result.uid);
-  }
-
-  if (!uids.length) {
-    return;
-  }
-  const collectables = await context.app.service('collectable-items').find({
-    ...context.params,
-    query: {
-      resolve: 'collection',
-      item_uids: uids,
-    },
-  });
-
-  const mapper = (d) => {
-    const collectableItemGroup = collectables.data.find(c => c.itemId === d.uid);
-    if (collectableItemGroup) {
-      d.collections = collectableItemGroup.collections;
-    }
-    return d;
-  };
-
-  if (Array.isArray(context.result)) {
-    context.result = context.result.map(mapper);
-  } else if (context.result.data) {
-    context.result.data = context.result.data.map(mapper);
-  } else if (context.result) {
-    context.result = mapper(context.result);
-  }
-};
+const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers');
 
 
 module.exports = {
