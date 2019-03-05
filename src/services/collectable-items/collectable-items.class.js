@@ -5,7 +5,7 @@ const { NotFound } = require('@feathersjs/errors');
 
 const SequelizeService = require('../sequelize.service');
 const CollectableItemGroup = require('../../models/collectable-items-groups.model');
-
+const { STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED, } = require('../../models/collections.model');
 
 class Service {
   constructor({
@@ -22,7 +22,9 @@ class Service {
 
   async find(params) {
     // simplified where for sequelize raw queries.
-    const where = [];
+    const where = [
+      { $not: [ { 'collection.status': STATUS_DELETED } ] },
+    ];
 
     if (params.sanitized.item_uids) {
       where.push({
@@ -38,16 +40,18 @@ class Service {
       where.push({
         $or: [
           { 'collection.creator_id': params.user.id },
-          { 'collection.status': ['PUB', 'SHA'] },
+          { 'collection.status': [STATUS_PUBLIC, STATUS_SHARED] },
         ],
       });
     } else {
-      where.push({ 'collection.status': ['PUB', 'SHA'] });
+      where.push({ 'collection.status': [STATUS_PUBLIC, STATUS_SHARED] });
     }
 
     const whereReducer = (sum, clause) => {
       Object.keys(clause).forEach((k) => {
-        if (k === '$or') {
+        if (k === '$not') {
+          sum.push(`NOT (${clause[k].reduce(whereReducer, []).join(' AND ')})`);
+        } else if (k === '$or') {
           sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
         } else if (Array.isArray(clause[k])) {
           sum.push(`${k} IN ('${clause[k].join('\',\'')}')`);
