@@ -19,15 +19,21 @@ const SOLR_FILTER_TYPES = [
  * @type {Object}
  */
 const SOLR_FILTER_DPF = {
-  'topic': 'topics_dpfs'
+  topic: 'topics_dpfs',
 };
 
+
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
+  let qq = '';
   if (Array.isArray(filter.q)) {
-    sq.push(filter.q.map(value => `${field}:${value}`).join(' OR '));
+    qq = filter.q.map(value => `${field}:${value}`).join(' OR ');
   } else {
-    sq.push(`${field}:${filter.q}`);
+    qq = `${field}:${filter.q}`;
   }
+  if (filter.context === 'exclude') {
+    qq = `NOT(${qq})`;
+  }
+  sq.push(qq);
   return sq;
 }, []).map(d => `(${d})`).join(' AND ');
 
@@ -96,7 +102,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
     }
 
     // q multiplied for languages :(
-    if(languages.length) {
+    if (languages.length) {
       const ql = languages.map(lang => `${field}_${lang}:${_q}`);
 
       if (ql.length > 1) {
@@ -229,7 +235,7 @@ const filtersToSolrQuery = () => async (context) => {
 
   const filters = lodash.groupBy(context.params.sanitized.filters, 'type');
   const queries = [];
-  const filterQueries = [];
+  // const filterQueries = [];
   // will contain payload vars, if any.
   const vars = {};
 
@@ -252,13 +258,13 @@ const filtersToSolrQuery = () => async (context) => {
     }
   });
 
-  if(Object.keys(vars).length) {
-    if(context.params.sanitized.order_by) {
+  if (Object.keys(vars).length) {
+    if (context.params.sanitized.order_by) {
       context.params.sanitized.order_by = Object.keys(vars)
         .map(d => `${vars[d]} desc`)
         .concat(context.params.sanitized.order_by.split(','))
         .join(',');
-    };
+    }
   }
 
   debug('\'filtersToSolrQuery\' vars =', vars, context.params.sanitized);
@@ -300,9 +306,9 @@ const filtersToSolrFacetQuery = () => async (context) => {
   Object.keys(facets).forEach((key) => {
     const filter = context.params.sanitized.facetfilters.find(d => d.name === key);
     console.log(filter);
-    if(facets.filter) {
-
-    }
+    // if (facets.filter) {
+    //
+    // }
   });
 };
 
