@@ -63,7 +63,6 @@ const reduceDaterangeFiltersToSolr = filters => filters
 const reduceRegexFiltersToSolr = filters =>
   filters.reduce((reduced, query) => {
     // cut regexp at any . not preceded by an escape sign.
-    console.log('reduceRegexFiltersToSolr', query);
     const q = query.q
       // get rid of first / and last /
       .replace(/^\/|\/$/g, '')
@@ -112,17 +111,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
       }
     } else {
       _q = `${field}:${_q}`;
-    }// is standalone SOLR? Surround by parenthesis
-    // if(isSolrStandalone(q)) {
-    //   return q
-    // }
-    // if(isSolrExact(q)) {
-    //
-    // }
-    // first loop
-
-
-    // console.log('prevuois loop:', sq)
+    }
     if (_sq === false) {
       if (query.context === 'exclude') {
         return `NOT (${_q})`; // first negation!
@@ -138,7 +127,6 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
 
 
 const filtersToSolr = (type, filters) => {
-  // console.log('filtersToSolr', type, filters);
   switch (type) {
     case 'hasTextContents':
       return 'content_length_i:[1 TO *]';
@@ -301,14 +289,12 @@ const filtersToSolrFacetQuery = () => async (context) => {
   if (!Array.isArray(context.params.sanitized.facetfilters)) {
     context.params.sanitized.facetfilters = [];
   }
-
   // apply facets recursively based on facet name
   Object.keys(facets).forEach((key) => {
     const filter = context.params.sanitized.facetfilters.find(d => d.name === key);
-    console.log(filter);
-    // if (facets.filter) {
-    //
-    // }
+    if (filter) {
+      debug(`filtersToSolrFacetQuery' on facet ${key}:`, filter);
+    }
   });
 };
 
@@ -316,6 +302,7 @@ module.exports = {
   filtersToSolrQuery,
   qToSolrFilter,
   reduceFiltersToSolr,
+  reduceRegexFiltersToSolr,
   filtersToSolrFacetQuery,
 
   SOLR_FILTER_TYPES,

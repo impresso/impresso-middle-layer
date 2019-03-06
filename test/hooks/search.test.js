@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { reduceFiltersToSolr, filtersToSolrQuery } = require('../../src/hooks/search');
+const { reduceFiltersToSolr, filtersToSolrQuery, reduceRegexFiltersToSolr } = require('../../src/hooks/search');
 
 /*
 ./node_modules/.bin/eslint \
@@ -15,7 +15,7 @@ describe('test single reducers in search hook', () => {
         q: ['fr', 'en'],
       },
     ], 'meta_language_s');
-    assert.equal('(meta_language_s:fr OR meta_language_s:en)', sq);
+    assert.deepEqual('(meta_language_s:fr OR meta_language_s:en)', sq);
   });
 
   it('exclude language filters', () => {
@@ -26,7 +26,16 @@ describe('test single reducers in search hook', () => {
         q: ['fr', 'en'],
       },
     ], 'meta_language_s');
-    assert.equal('(NOT(meta_language_s:fr OR meta_language_s:en))', sq);
+    assert.deepEqual('(NOT(meta_language_s:fr OR meta_language_s:en))', sq);
+  });
+
+  it('test regex filter, multiple words', () => {
+    const sq = reduceRegexFiltersToSolr([{
+      context: 'include',
+      type: 'regex',
+      q: '/go[uû]t.*parfait.*/',
+    }]);
+    assert.deepEqual('content_txt_fr:/go[uû]t/ AND content_txt_fr:/parfait/', sq);
   });
 });
 
