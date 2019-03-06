@@ -6,9 +6,10 @@ const app = require('../../src/app');
  * Test for search endpoint. Usage:
  *
 
- ./node_modules/.bin/eslint test/services/search.test.js  \
- src/services/search src/hooks --fix && mocha test/services/search.test.js
-
+ ./node_modules/.bin/eslint  \
+ src/services/search src/hooks \
+ --config .eslintrc.json --fix \
+ && NODE_ENV=test mocha test/services/search.test.js
 
   ./node_modules/.bin/eslint  \
   src/services/search src/hooks \
@@ -17,7 +18,7 @@ const app = require('../../src/app');
 
  */
 describe('\'search\' service', function () {
-  this.timeout(10000);
+  this.timeout(15000);
   const service = app.service('search');
   // const staff = {
   //   uid: 'local-user-test-only',
@@ -27,6 +28,25 @@ describe('\'search\' service', function () {
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });
+
+  it('get user collection facets (if any, but should not be any err)', async () => {
+    const result = await service.find({
+      user: {
+        id: 1,
+      },
+      query: {
+        group_by: 'articles',
+        facets: ['collection'],
+        filters: [],
+      },
+    });
+
+    assert.ok(result.data);
+    assert.ok(result.info.facets);
+
+    console.log(result.info.facets.collection);
+  });
+
   it('get search results for one specific topic', async () => {
     const result = await service.find({
       query: {
@@ -115,12 +135,32 @@ describe('\'search\' service', function () {
         facets: ['newspaper', 'language'],
         group_by: 'articles',
         page: 1,
+        limit: 1,
+        order_by: '-relevance',
+      },
+    });
+    assert.ok(result);
+    assert.deepEqual(result.data[0].newspaper.uid, 'NZZ');
+  });
+
+  it('get search results with newspaper filters, with string filter', async () => {
+    const result = await service.find({
+      query: {
+        filters: [
+          { context: 'include', type: 'newspaper', q: ['NZZ'] },
+          { context: 'include', type: 'string', q: 'neue' },
+        ],
+        facets: ['newspaper', 'language'],
+        group_by: 'articles',
+        page: 1,
         limit: 12,
         order_by: '-relevance',
       },
     });
-    console.log(result);
+    assert.ok(result);
+    assert.deepEqual(result.data[0].newspaper.uid, 'NZZ');
   });
+
   it('loaded solr content', async () => {
     const results = await service.find({
       query: {

@@ -144,26 +144,26 @@ class Service {
         ],
       },
     })
-    .then(res => res.data)
-    .then((articles) => {
+      .then(res => res.data)
+      .then((articles) => {
       // respect indexes
-      const articleIndex = lodash(articles).map((article) => {
-        // complete article with fragments found
-        const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
-        const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
-        article.matches = Article.getMatches({
-          solrDocument: resultsIndex[article.uid], // _solr.response.docs.find(doc => doc.id === article.uid),
-          highlights,
-          fragments,
-        });
-        // complete article with page regions
-        article.regions = Article.getRegions({
-          regionCoords: resultsIndex[article.uid].pp_plain,
-        });
-        return article;
-      }).keyBy('uid').value();
-      return uids.map(uid => articleIndex[uid]);
-    });
+        const articleIndex = lodash(articles).map((article) => {
+          // complete article with fragments found
+          const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
+          const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
+          article.matches = Article.getMatches({
+            solrDocument: resultsIndex[article.uid],
+            highlights,
+            fragments,
+          });
+          // complete article with page regions
+          article.regions = Article.getRegions({
+            regionCoords: resultsIndex[article.uid].pp_plain,
+          });
+          return article;
+        }).keyBy('uid').value();
+        return uids.map(uid => articleIndex[uid]);
+      });
     // resolve facets...
     const facetGroupsToResolve = [];
     const facets = _solr.facets || {};
