@@ -3,7 +3,6 @@ const createService = require('./jobs.class.js');
 const hooks = require('./jobs.hooks');
 
 module.exports = function (app) {
-
   // Initialize our service with any options it requires
   app.use('/jobs', createService({
     name: 'jobs',
