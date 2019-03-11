@@ -58,7 +58,7 @@ const getCeleryClient = (config, app) => {
     debug(`run celery task ${task}`);
     client.call(task, args, (res) => {
       debug('Celery task retrieved!', res);
-      if (['SUCCESS', 'INIT', 'PROGRESS'].indexOf(res.status) !== -1) {
+      if (['SUCCESS', 'INIT', 'PROGRESS', 'STOPPED'].indexOf(res.status) !== -1) {
         resolve(res);
       } else {
         reject(res);
