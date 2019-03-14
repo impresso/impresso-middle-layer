@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-const debug = require('debug')('impresso/services:issues');
+const debug = require('debug')('impresso/services:images');
 const SolrService = require('../solr.service');
 
 class Service {
