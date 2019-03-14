@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const Attachment = require('./attachments.model');
 const User = require('./users.model');
 const { DataTypes } = require('sequelize');
 
@@ -23,6 +24,7 @@ class Job {
     type = '',
     status = STATUS_READY,
     extra = '',
+    attachment = null,
   } = {}) {
     this.id = parseInt(id, 10);
     this.status = status;
@@ -46,11 +48,15 @@ class Job {
       this.lastModifiedDate = new Date(lastModifiedDate);
     }
 
+    if (attachment) {
+      this.attachment = attachment;
+    }
     this.creator = creator;
   }
 
   static sequelize(client) {
     const creator = User.sequelize(client);
+    const attachment = Attachment.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     const job = client.define('job', {
@@ -92,6 +98,10 @@ class Job {
             model: creator,
             as: 'creator',
           },
+          {
+            model: attachment,
+            as: 'attachment',
+          },
         ],
       },
     });
@@ -104,6 +114,15 @@ class Job {
       onDelete: 'CASCADE',
     });
 
+    job.hasOne(attachment, {
+      as: 'attachment',
+      foreignKey: {
+        fieldName: 'job_id',
+      },
+      constraints: false,
+      onDelete: 'CASCADE',
+    });
+
     job.prototype.toJSON = function (obfuscate = true) {
       return new Job({
         id: this.id,
@@ -113,6 +132,7 @@ class Job {
         creationDate: this.creationDate,
         lastModifiedDate: this.lastModifiedDate,
         extra: this.extra,
+        attachment: this.attachment ? this.attachment.toJSON(): null,
         creator: this.creator.toJSON({
           obfuscate,
         }),
