@@ -1,11 +1,13 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
+// const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   utils, validate, queryWithCommonParams,
 } = require('../../hooks/params');
 
 module.exports = {
   before: {
-    all: [authenticate('jwt')],
+    all: [
+      // authenticate('jwt')
+    ],
     find: [
       validate({
         order_by: utils.orderBy({
