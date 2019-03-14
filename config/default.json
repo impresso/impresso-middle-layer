@@ -114,6 +114,12 @@
     "topics": {
       "endpoint": "https://.../select",
       "suggest": "https://.../suggest"
+    },
+    "images": {
+      "endpoint": "https://.../select"
+    },
+    "entities": {
+      "endpoint": "https://.../select"
     }
   }
 }
