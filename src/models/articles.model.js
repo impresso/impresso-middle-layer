@@ -200,7 +200,7 @@ class Article {
       this.mentions = mentions;
     }
 
-    if(topics.length) {
+    if (topics.length) {
       this.topics = topics;
     }
     this.enrich(rc, lb, rb);
@@ -290,7 +290,7 @@ class Article {
    * @return {Array}  List of ArticleRegion
    */
   static getRegions({
-    regionCoords = []
+    regionCoords = [],
   }) {
     return regionCoords.reduce((acc, pag) => acc.concat(pag.r.map(reg => new ArticleRegion({
       pageUid: pag.id,
@@ -389,8 +389,8 @@ class Article {
     article.prototype.toJSON = function () {
       return new Article({
         ...this.get(),
-        newspaper: this.newspaper ? this.newspaper.toJSON(): null,
-        pages: this.pages ? this.pages.map(p => p.toJSON()): [],
+        newspaper: this.newspaper ? this.newspaper.toJSON() : null,
+        pages: this.pages ? this.pages.map(p => p.toJSON()) : [],
       });
     };
 
