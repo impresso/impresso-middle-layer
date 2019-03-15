@@ -127,6 +127,7 @@ class Job {
       return new Job({
         id: this.id,
         name: this.name,
+        type: this.type,
         description: this.description,
         status: this.status,
         creationDate: this.creationDate,
