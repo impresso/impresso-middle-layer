@@ -22,7 +22,11 @@ const appHooks = require('./app.hooks');
 const authentication = require('./authentication');
 
 const sequelize = require('./sequelize');
+const solr = require('./solr');
 const neo4j = require('./neo4j');
+const redis = require('./redis');
+const celery = require('./celery');
+const channels = require('./channels');
 
 const app = express(feathers());
 
@@ -44,15 +48,21 @@ app.configure(socketio());
 
 // configure database adapters
 app.configure(sequelize);
+app.configure(solr);
 app.configure(neo4j);
 
+// configure redis cahce if redis config is available
+app.configure(redis);
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
 app.configure(authentication);
 // Set up our services (see `services/index.js`)
 app.configure(services);
-
+// configure channels
+app.configure(channels);
+// configure celery client task manage if celery config is available
+app.configure(celery);
 
 // Configure a middleware for 404s and the error handler
 app.use(notFound());
@@ -87,7 +97,7 @@ app.use(handler({
       res.json({ message: 'Not found' });
     },
     500: (err, req, res) => {
-      console.log(err.toJSON());
+      console.log(err);
       res.json({ message: 'service unavailable' });
     },
     // bad request
@@ -102,7 +112,7 @@ app.use(handler({
     },
     default: (err, req, res) => {
       // handle all other errors
-      // console.log(err)
+      console.log(err)
       delete err.stack;
       res.json({ message: err.message });
     },

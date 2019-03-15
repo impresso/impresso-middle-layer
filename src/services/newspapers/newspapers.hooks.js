@@ -1,9 +1,12 @@
 const { queryWithCommonParams, validate, utils } = require('../../hooks/params');
+const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
 module.exports = {
   before: {
     all: [
-
+      checkCachedContents({
+        useAuthenticatedUser: false,
+      }),
     ],
     find: [
       validate({
@@ -35,7 +38,10 @@ module.exports = {
   },
 
   after: {
-    all: [],
+    all: [
+      returnCachedContents(),
+      saveResultsInCache(),
+    ],
     find: [],
     get: [],
     create: [],

@@ -7,11 +7,15 @@ class Profile {
     provider = 'local',
     displayname = '',
     picture = '',
+    pattern = '',
   } = {}) {
     this.uid = String(uid);
     this.provider = String(provider);
     this.displayname = String(displayname);
     this.picture = String(picture);
+    if (pattern && pattern.length > 0) {
+      this.pattern = String(pattern).split(',');
+    }
   }
   isValid() {
     return !!this.uid.length;
@@ -34,6 +38,10 @@ class Profile {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      pattern: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       picture: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -41,6 +49,11 @@ class Profile {
       user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+      },
+      emailAccepted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'email_accepted',
       },
     });
   }

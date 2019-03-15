@@ -1,17 +1,30 @@
-// const { authenticate } = require('@feathersjs/authentication').hooks;
+const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   utils, protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
 } = require('../../hooks/params');
 const { assignIIIF } = require('../../hooks/iiif');
 const { filtersToSolrQuery, SOLR_ORDER_BY } = require('../../hooks/search');
+const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+
+const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers');
+
 
 module.exports = {
   before: {
     all: [
-
-    ], // authenticate('jwt') ],
+      authenticate('jwt', {
+        allowUnauthenticated: true,
+      }),
+      checkCachedContents({
+        useAuthenticatedUser: false,
+      }),
+    ],
     find: [
       validate({
+        resolve: {
+          required: false,
+          choices: ['collection', 'tags'],
+        },
         order_by: {
           before: (d) => {
             if (typeof d === 'string') {
@@ -31,12 +44,12 @@ module.exports = {
       }),
       validateEach('filters', {
         type: {
-          choices: ['uid', 'issue', 'page', 'newspaper'],
+          choices: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
           required: true,
         },
         q: {
           regex: REGEX_UID,
-          required: true,
+          required: false,
           // we cannot transform since Mustache is render the filters...
           // transform: d => d.split(',')
         },
@@ -61,9 +74,21 @@ module.exports = {
       assignIIIF('pages', 'issue', 'regions'),
       displayQueryParams(['filters']),
       protect('content'),
+      returnCachedContents({
+        skipHooks: false,
+      }),
+      saveResultsInCache(),
+      resolveUserAddons(),
     ],
     get: [
       assignIIIF('pages', 'issue', 'regions'),
+      // save here cache, flush cache here
+      returnCachedContents({
+        skipHooks: false,
+      }),
+      resolveTopics(),
+      saveResultsInCache(),
+      resolveUserAddons(),
     ],
     create: [],
     update: [],

@@ -7,8 +7,10 @@ const Collection = require('./collections.model');
 const CollectableItem = require('./collectable-items.model');
 const Issue = require('./issues.model');
 const Page = require('./pages.model');
+const ArticleTopic = require('./articles-topics.model');
+
 const {
-  toHierarchy, sliceAtSplitpoints, render,
+  toHierarchy, sliceAtSplitpoints, render, annotate,
 } = require('../helpers');
 
 const ARTICLE_SOLR_FL_MINIMAL = [
@@ -22,6 +24,10 @@ const ARTICLE_SOLR_FL_LITE = [
   'lg_s', // 'fr',
   'content_txt_fr',
   'title_txt_fr',
+  'content_txt_en',
+  'title_txt_en',
+  'content_txt_de',
+  'title_txt_de',
 
   // coordinates ok
   'cc_b',
@@ -47,6 +53,8 @@ const ARTICLE_SOLR_FL_TO_CSV = [
   'lg_s', // 'fr',
 
   'title_txt_fr',
+  'title_txt_en',
+  'title_txt_de',
   // coordinates ok
   'front_b',
   'page_id_ss',
@@ -62,6 +70,7 @@ const ARTICLE_SOLR_FL_TO_CSV = [
   'meta_country_code_s', // 'CH',
   'meta_province_code_s', // 'VD',
   'content_length_i',
+  'topics_dpfs',
 ];
 
 const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat([
@@ -72,6 +81,8 @@ const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'lb_plain:[json]',
   'rb_plain:[json]',
   'pp_plain:[json]',
+  'nem_offset_plain:[json]',
+  'topics_dpfs',
 ]);
 
 class ArticleRegion {
@@ -141,6 +152,10 @@ class Article {
     rb = [],
     // region coordinates
     rc = [],
+    // mentions offsets
+    mentions = [],
+    // topics
+    topics = [],
   } = {}) {
     this.uid = String(uid);
     this.type = String(type);
@@ -180,6 +195,14 @@ class Article {
 
     // TODO: based on type!
     this.labels = ['article'];
+
+    if (mentions.length) {
+      this.mentions = mentions;
+    }
+
+    if (topics.length) {
+      this.topics = topics;
+    }
     this.enrich(rc, lb, rb);
   }
 
@@ -224,6 +247,16 @@ class Article {
       // text regions, grouped thanks to region splipoints
       const trs = toHierarchy(tokens, rb);
 
+      // annotated wit mentions...
+      if (this.mentions && this.mentions.length) {
+        this.mentions.filter(d => d !== null).forEach((group) => {
+          const category = Object.keys(group)[0];
+          group[category].forEach((token) => {
+            annotate(tokens, category, token[0], token[0] + token[1], 'class');
+          });
+        });
+      }
+
       if (rcs.length !== trs.length) {
         // it would never happen.
         throw new Error(`article ${this.uid} coordinates corrupted`);
@@ -239,10 +272,76 @@ class Article {
       this.regions = rcs.map(d => new ArticleRegion(d));
     }
     // console.log(this.regions);
+    //
+  }
+
+  /**
+   * get regions from pp_plain field, aka region coordinates.
+   * Te param `regionCoords` is a list of page objects, containing a r property
+   * which contains an array of coordinates [x,y,w,h]
+   * this reduce function returns something like:
+   *  const regions = [
+   *    { page_uid: 'GDL-1900-08-08-a-p0002',
+   *      c: [ 3433, 1440, 783, 42 ] },
+   *    { page_uid: 'GDL-1900-08-08-a-p0002',
+   *      c: [ 3433, 1481, 783, 571 ] }
+   *  ][getPageRegions description]
+   * @param  {Array}  regionCoords=[]
+   * @return {Array}  List of ArticleRegion
+   */
+  static getRegions({
+    regionCoords = [],
+  }) {
+    return regionCoords.reduce((acc, pag) => acc.concat(pag.r.map(reg => new ArticleRegion({
+      pageUid: pag.id,
+      c: reg,
+    }))), []);
+  }
+
+  /**
+   * Given a solr document containing pp_plain, it
+   * merges info coming from SOLR select api to create
+   * ArticleMatch instances
+   *
+   * @param  {Object} solrDocument    [description]
+   * @param  {Array}  [fragments=[]]  [description]
+   * @param  {Object} [highlights={}] [description]
+   * @return {Array}                 Array of ArticleMatch matches
+   */
+  static getMatches({
+    solrDocument,
+    fragments = [],
+    highlights = {},
+  } = {}) {
+    if (!highlights || !highlights.offsets) {
+      return [];
+    }
+    return highlights.offsets.map((pos, i) => {
+      // for each offset
+      let match = false;
+      // find in page
+      solrDocument.pp_plain.forEach((pag) => {
+        for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
+          // if the token start at position and the token length is
+          // the one described in pos. Really complicated.
+          if (pos[0] === pag.t[ii].s && pag.t[ii].l === pos[1] - pos[0]) {
+            // console.log('FFFFOUND', pag.id, pag.t[ii], pos[0]);
+            match = new ArticleMatch({
+              fragment: fragments[i],
+              coords: pag.t[ii].c,
+              pageUid: pag.id,
+            });
+            break;
+          }
+        }
+      });
+      return match;
+    }).filter(d => d);
   }
 
   static sequelize(client) {
     const newspaper = Newspaper.sequelize(client);
+    const page = Page.sequelize(client);
     const collection = Collection.sequelize(client);
     const collectableItem = CollectableItem.sequelize(client);
 
@@ -257,6 +356,10 @@ class Article {
         type: DataTypes.STRING(50),
         field: 's3_version',
       },
+      creationDate: {
+        type: DataTypes.DATE,
+        field: 'created',
+      },
     }, {
       tableName: config.sequelize.tables.articles,
       scopes: {
@@ -266,7 +369,10 @@ class Article {
               model: newspaper,
               as: 'newspaper',
             },
-
+            {
+              model: page,
+              as: 'pages',
+            },
           ],
         },
         getCollections: {
@@ -283,6 +389,8 @@ class Article {
     article.prototype.toJSON = function () {
       return new Article({
         ...this.get(),
+        newspaper: this.newspaper ? this.newspaper.toJSON() : null,
+        pages: this.pages ? this.pages.map(p => p.toJSON()) : [],
       });
     };
 
@@ -297,6 +405,13 @@ class Article {
       through: collectableItem,
       foreignKey: 'item_id',
       otherKey: 'collection_id',
+    });
+
+    article.belongsToMany(page, {
+      as: 'pages',
+      through: 'page_contentItem',
+      foreignKey: 'page_id',
+      otherKey: 'content_item_id',
     });
 
     return article;
@@ -343,6 +458,9 @@ class Article {
         rb: doc.rb_plain,
 
         rc: doc.pp_plain,
+
+        mentions: doc.nem_offset_plain,
+        topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs),
       });
 
       if (!doc.pp_plain) {
@@ -359,27 +477,14 @@ class Article {
         return art;
       }
 
-      art.matches = highlights.offsets.map((pos, i) => {
-        // for each offset
-        let match = false;
-        // find in page
-        doc.pp_plain.forEach((pag) => {
-          for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
-            // if the token start at position and the token length is
-            // the one described in pos. Really complicated.
-            if (pos[0] === pag.t[ii].s && pag.t[ii].l === pos[1] - pos[0]) {
-              // console.log('FFFFOUND', pag.id, pag.t[ii], pos[0]);
-              match = new ArticleMatch({
-                fragment: fragments[i],
-                coords: pag.t[ii].c,
-                pageUid: pag.id,
-              });
-              break;
-            }
-          }
-        });
-        return match;
-      }).filter(d => d);
+      art.matches = Article.getMatches({
+        article: art,
+        solrDocument: doc,
+        fragments,
+        highlights,
+      });
+
+
       return art;
     };
   }

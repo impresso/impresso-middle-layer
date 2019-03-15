@@ -2,7 +2,7 @@
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/services:SequelizeService');
 const sequelize = require('../sequelize');
-const errors = require('@feathersjs/errors');
+const { NotFound } = require('@feathersjs/errors');
 const { sequelizeErrorHandler } = require('./sequelize.utils');
 
 class SequelizeService {
@@ -25,7 +25,7 @@ class SequelizeService {
   }
 
   onError(err) {
-    return sequelizeErrorHandler(err);
+    sequelizeErrorHandler(err);
   }
 
   async bulkRemove(where) {
@@ -48,21 +48,52 @@ class SequelizeService {
 
     const result = await fn.findOne({
       where,
-    });
+    }).catch(this.onError);
 
     if (!result) {
-      throw new errors.NotFound();
+      throw new NotFound();
     }
+
+    debug(`'get' ${this.name} success!`);
+
     return result;
   }
 
+  /**
+   * Call sequelize update and return given id
+   * and the data that have been updated for the object
+   *
+   * @param  {[type]}  id     id of the
+   * @param  {[type]}  data   [description]
+   * @param  {[type]}  params [description]
+   * @return {Promise}        [description]
+   */
   async patch(id, data, params) {
+    if (id) {
+      params.where = {
+        ...params.where,
+        id,
+      };
+    }
     return this.sequelizeKlass.update({
       ...data,
     }, {
       // criteria
       where: params.where,
-    });
+    }).then(() => ({
+      uid: id,
+      ...data,
+    }));
+  }
+
+  async rawSelect({
+    query = '',
+    replacements = {},
+  } = {}) {
+    return this.sequelize.query(query, {
+      replacements,
+      type: this.sequelize.QueryTypes.SELECT,
+    }).catch(sequelizeErrorHandler);
   }
 
   async find(params) {
@@ -75,10 +106,12 @@ class SequelizeService {
       offset: params.skip || params.query.skip,
       order: params.order_by || params.query.order_by,
     };
-    debug(`'find' ${this.name} with params:`, params);
 
     if (params.where) {
       p.where = params.where;
+    }
+    if (params.group) {
+      p.group = params.group;
     }
 
     // force distinct if needed
@@ -87,6 +120,8 @@ class SequelizeService {
       const pk = this.sequelizeKlass.primaryKeyAttributes[0];
       p.col = `${this.sequelizeKlass.name}.${this.sequelizeKlass.primaryKeys[pk].field}`;
     }
+
+    debug(`'find' ${this.name} with params:`, p, 'where:', p.where);
 
     let fn = this.sequelizeKlass;
 

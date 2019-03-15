@@ -39,11 +39,7 @@ class Newspaper {
 
     // flatten properties, get prop value dict.
     if (properties.length) {
-      properties.forEach((d) => {
-        this.properties.push({
-          [d.name]: d,
-        });
-      });
+      this.properties = properties;
     }
 
     if (complete) {

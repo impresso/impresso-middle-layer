@@ -8,6 +8,7 @@ class Service {
     app = null,
   } = {}) {
     this.name = String(name);
+    this.app = app;
     this.SequelizeService = SequelizeService({
       app,
       name,
@@ -16,6 +17,7 @@ class Service {
 
   async find(params) {
     const where = {
+      $not: { status: Collection.STATUS_DELETED },
       $and: [],
     };
 
@@ -32,9 +34,9 @@ class Service {
       });
     }
 
-    if (params.query.item_uid) {
+    if (params.query.uids) {
       where.$and.push({
-        itemId: params.query.item_uid,
+        uid: { $in: params.query.uids },
       });
     }
 
@@ -56,11 +58,22 @@ class Service {
   }
 
   async get(id, params) {
+    const uids = id.split(',');
+    if (params.findAll || (uids.length > 1 && uids.length < 20)) {
+      return this.find({
+        ...params,
+        query: {
+          ...params.query,
+          uids,
+        },
+      }).then(d => d.data);
+    }
     const where = {
       uid: id,
     };
 
     if (params.user) {
+      where.$not = { status: { $in: [Collection.STATUS_DELETED] } };
       where.$or = [
         { '$creator.profile.uid$': params.user.uid },
         { status: { $in: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED] } },
@@ -72,7 +85,7 @@ class Service {
     }
     return this.SequelizeService.get(id, {
       where,
-    });
+    }).then(collection => collection.toJSON());
   }
 
   async create(data, params) {
@@ -107,7 +120,13 @@ class Service {
   }
 
   async remove(id, params) {
-    return { id };
+    return this.SequelizeService.patch(id, {
+      status: Collection.STATUS_DELETED,
+    }, {
+      where: {
+        creatorId: params.user.id,
+      },
+    });
   }
 
   // async removeAll(params) {

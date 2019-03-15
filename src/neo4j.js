@@ -1,4 +1,4 @@
-const logger = require('winston');
+const debug = require('debug')('impresso/neo4j');
 const neo4j = require('neo4j-driver').v1;
 
 const getNeo4jClient = (config) => {
@@ -9,13 +9,26 @@ const getNeo4jClient = (config) => {
 };
 
 module.exports = function (app) {
-  logger.info('connection to neo4j host ...');
-  const driver = getNeo4jClient(app.get('neo4j'));
+  const config = app.get('neo4j');
+  if (!config || !config.host) {
+    debug('Neo4j is not configured.');
+    return;
+  }
+
+  debug(`Neo4j configuration found, host:${config.host}, let's see if it works...`);
+
+  const driver = getNeo4jClient(config);
   // create a session
   const session = driver.session();
-  logger.info('connection to neo4j ok!');
-  // pass neo4j session to app
   app.set('neo4jClient', session);
+
+  // test query with neo4j
+  session.run('RETURN 1 + 1').then((res) => {
+    debug(`Neo4j is ready! version: ${res.summary.server.version}`);
+    // pass neo4j session to app
+  }).catch((err) => {
+    debug(`Neo4j connection error! ${err.code}`);
+  });
 };
 
 module.exports.client = getNeo4jClient;

@@ -66,7 +66,7 @@ class Topic {
   }
 
   static solrFacetFactory() {
-    return doc => {
+    return (doc) => {
       const topic = new Topic({
         uid: doc.id,
         language: doc.lg_s,

@@ -15,13 +15,22 @@ describe('\'newspapers\' service', function () {
     assert.ok(service, 'Registered the service');
   });
 
+  it('get single newspaper', async () => {
+    const result = await service.get('JDG');
+    assert.ok(result);
+  });
+
   it('get newspapers!', async () => {
     const results = await service.find({
       query: {},
     });
 
     assert.ok(results.total > 0, 'has a total greater than zero');
-    assert.ok(results.data[0] instanceof Newspaper, 'is an instance of Newspaper');
+    if (!results.cached) {
+      assert.ok(results.data[0] instanceof Newspaper, 'is an instance of Newspaper');
+    } else {
+      assert.ok(results.data[0].acronym, 'is a valid newspaper');
+    }
   });
   it('get newspapers containing "gazette", ordered by start year!', async () => {
     const results = await service.find({
@@ -31,6 +40,10 @@ describe('\'newspapers\' service', function () {
       },
     });
     assert.ok(results.total > 0, 'has a total greater than zero');
-    assert.ok(results.data[0] instanceof Newspaper, 'is an instance of Newspaper');
+    if (!results.cached) {
+      assert.ok(results.data[0] instanceof Newspaper, 'is an instance of Newspaper');
+    } else {
+      assert.ok(results.data[0].acronym, 'is a valid newspaper');
+    }
   });
 });

@@ -8,8 +8,9 @@ const sequelize = require('../../sequelize');
 const sequelizeUtils = require('../../services/sequelize.utils');
 const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
-const article = require('../../models/articles.model');
+const Article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
 const Topic = require('../../models/topics.model');
 const CollectableItem = require('../../models/collectable-items.model');
@@ -20,18 +21,20 @@ class Service {
    * Search service. According to group, deliver a different thing.
    *
    * Add solr
-   * @param  {object} options pass the current app in options.app
+   * @param  {object} options pass the current app in app
    */
-  constructor(options) {
-    this.solr = solr.client(options.app.get('solr'));
-    this.sequelize = sequelize.client(options.app.get('sequelize'));
-    this.neo4j = neo4j.client(options.app.get('neo4j'));
-    this.name = options.name;
+  constructor({
+    app,
+    name,
+  } = {}) {
+    this.app = app;
+    this.solr = solr.client(app.get('solr'));
+    this.sequelize = sequelize.client(app.get('sequelize'));
+    this.neo4j = neo4j.client(app.get('neo4j'));
+    this.name = name;
     this.neo4jQueries = {};
     this.neo4jQueries.articles = decypher(`${__dirname}/../articles/articles.queries.cyp`);
     this.neo4jQueries.pages = decypher(`${__dirname}/../pages/pages.queries.cyp`);
-
-    this.options = options || {};
   }
 
   static wrap(data, limit, skip, total, info) {
@@ -44,6 +47,44 @@ class Service {
     };
   }
 
+  /**
+   * Save current search and return the corrseponding searchQuery
+   * @param  {[type]}  data   [description]
+   * @param  {[type]}  params [description]
+   * @return {Promise}        [description]
+   */
+  async create(data, params) {
+    const client = this.app.get('celeryClient');
+    if (!client) {
+      return {};
+    }
+
+    const q = params.sanitized.sq;
+
+    debug(`create '${this.name}', from solr query: ${q}`);
+
+    return client.run({
+      task: 'impresso.tasks.add_to_collection_from_query',
+      args: [
+        // collection_uid
+        params.sanitized.collection_uid,
+        // user id
+        params.user.id,
+        // query
+        q,
+        // content_type, A for article
+        'A',
+      ],
+    }).catch((err) => {
+      if (err.result.exc_type === 'DoesNotExist') {
+        throw new NotFound(err.result.exc_message);
+      } else if (err.result.exc_type === 'OperationalError') {
+        // probably db is not availabe
+        throw new NotImplemented();
+      }
+      throw new NotImplemented();
+    });
+  }
 
   /**
    * async find - generic /search endpoint, this method gets matches from solr
@@ -52,22 +93,19 @@ class Service {
    * @param  {object} params query params. Check hhooks
    */
   async find(params) {
-    // mapped objects
-    let results = [];
-
     debug(`find '${this.name}': query:`, params.query, params.sanitized.sv);
-
 
     // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
       q: params.query.sq,
+      // fq: params.sanitized.sfq,
       order_by: params.query.order_by,
       facets: params.query.facets,
       limit: params.query.limit,
       skip: params.query.skip,
-      fl: article.ARTICLE_SOLR_FL_SEARCH,
+      fl: 'id,pp_plain:[json]', // for articles.
       vars: params.sanitized.sv,
-    }, article.solrFactory);
+    });
 
     const total = _solr.response.numFound;
 
@@ -77,43 +115,56 @@ class Service {
       return Service.wrap([], params.query.limit, params.query.skip, total);
     }
 
-    // remap for the addons...
-    const uids = _solr.response.docs.map(d => d.uid);
 
-    // get related collections
-    const collections = await CollectableItem.sequelize(this.sequelize).findAll({
-      where: {
-        itemId: { $in: uids },
+    // index for the pp_plain
+    const resultsIndex = lodash.keyBy(_solr.response.docs, 'id');
+    // get uids to load addons...
+    const uids = Object.keys(resultsIndex);
+    // _solr.response.docs.map(d => d.id);
+
+    // get text matches
+    // const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
+    // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
+    debug(
+      `find '${this.name}': call articles service for ${uids.length} uids, user:`,
+      params.user ? params.user.uid : 'no auth user found',
+    );
+
+    // get articles (if group by is article ...)!
+    const results = await this.app.service('articles').find({
+      user: params.user,
+      authenticated: params.authenticated,
+      query: {
+        limit: uids.length,
+        filters: [
+          {
+            type: 'uid',
+            q: uids,
+          },
+        ],
       },
-    }).then(rows => lodash(rows)
-      .map(d => d.toJSON())
-      .groupBy('itemId')
-      .value());
-
-
-    const groupBy = SOLR_INVERTED_GROUP_BY[params.query.group_by];
-    const session = this.neo4j.session();
-    const neo4jQueries = this.neo4jQueries[groupBy].findAll;
-    const itemsFromNeo4j = await neo4jRun(session, neo4jQueries, {
-      _exec_user_uid: params.query._exec_user_uid,
-      Project: 'impresso',
-      uids,
-
-    }).then((res) => {
-      const _records = {};
-      debug(`find '${this.name}': neo4j success`, neo4jSummary(res));
-
-      res.records.forEach((rec) => {
-        const _rec = neo4jRecordMapper(rec);
-        _records[_rec.uid] = _rec;
+    })
+      .then(res => res.data)
+      .then((articles) => {
+      // respect indexes
+        const articleIndex = lodash(articles).map((article) => {
+          // complete article with fragments found
+          const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
+          const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
+          article.matches = Article.getMatches({
+            solrDocument: resultsIndex[article.uid],
+            highlights,
+            fragments,
+          });
+          // complete article with page regions
+          article.regions = Article.getRegions({
+            regionCoords: resultsIndex[article.uid].pp_plain,
+          });
+          return article;
+        }).keyBy('uid').value();
+        return uids.map(uid => articleIndex[uid]);
       });
-
-      return _records;
-    }).catch((err) => {
-      console.log(err);
-      return {};
-    });
-
+    // resolve facets...
     const facetGroupsToResolve = [];
     const facets = _solr.facets || {};
     // load from facets
@@ -175,26 +226,26 @@ class Service {
     }
 
     // merge results maintaining solr ordering.
-    results = _solr.response.docs.map((doc) => {
-      let newspaper = doc.newspaper;
-      let cols = [];
-
-      if (facets.newspaper && facets.newspaper.buckets) {
-        const facetedNewspaper = facets.newspaper.buckets.find(n => n.uid === newspaper.uid);
-        if (facetedNewspaper.item) {
-          newspaper = new Newspaper(facetedNewspaper.item);
-        }
-      }
-      if (collections && collections[doc.uid]) {
-        cols = collections[doc.uid].map(d => d.collection);
-      }
-      return {
-        ...doc,
-        ...itemsFromNeo4j[doc.uid] || {},
-        collections: cols,
-        newspaper,
-      };
-    });
+    // results = _solr.response.docs.map((doc) => {
+    //   let newspaper = doc.newspaper;
+    //   let cols = [];
+    //
+    //   if (facets.newspaper && facets.newspaper.buckets) {
+    //     const facetedNewspaper = facets.newspaper.buckets.find(n => n.uid === newspaper.uid);
+    //     if (facetedNewspaper.item) {
+    //       newspaper = new Newspaper(facetedNewspaper.item);
+    //     }
+    //   }
+    //   if (collections && collections[doc.uid]) {
+    //     cols = collections[doc.uid].map(d => d.collection);
+    //   }
+    //   return {
+    //     ...doc,
+    //     ...itemsFromNeo4j[doc.uid] || {},
+    //     collections: cols,
+    //     newspaper,
+    //   };
+    // });
 
     return Service.wrap(results, params.query.limit, params.query.skip, total, {
       responseTime: {

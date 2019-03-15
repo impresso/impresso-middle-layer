@@ -8,21 +8,30 @@ class Issue {
     // countPages = 0,
     // date = new Date(),
     // entities = [],
-    newspaper = new Newspaper(),
-    // pages = [],
+    newspaper,
+    pages = [],
     cover = '', // page uid
     uid = '',
-    // year = 0,
     labels = ['issue'],
   } = {}) {
     this.uid = String(uid);
     this.cover = cover;
     this.labels = labels;
 
+    const issueDateFromUid = this.uid.match(/\d{4}-\d{2}-\d{2}/);
+
+    if (issueDateFromUid) {
+      this.date = new Date(issueDateFromUid[0]);
+    }
+
     if (newspaper instanceof Newspaper) {
       this.newspaper = newspaper;
     } else if (newspaper) {
       this.newspaper = new Newspaper(newspaper);
+    }
+
+    if (pages.length) {
+      this.pages = pages;
     }
   }
 
@@ -69,6 +78,14 @@ class Issue {
       },
     }, {
       scopes: {
+        get: {
+          include: [
+            {
+              model: newspaper,
+              as: 'newspaper',
+            },
+          ],
+        },
         findAll: {
           include: [
             {

@@ -294,7 +294,7 @@ const VALIDATE_OPTIONAL_UIDS = {
   uids: {
     required: false,
     regex: REGEX_UIDS,
-    transform: d => d.split(','),
+    transform: d => (Array.isArray(d) ? d : d.split(',')),
   },
 };
 
@@ -537,7 +537,11 @@ const displayQueryParams = (paramNames = []) => async (context) => {
     context.result.info = {};
   }
   paramNames.forEach((p) => {
-    context.result.info[p] = context.params.sanitized[p];
+    try {
+      context.result.info[p] = context.params.sanitized[p];
+    } catch (err) {
+      console.error(err);
+    }
   });
 };
 

@@ -34,7 +34,17 @@ const comparePassword = (password, encrypted, options) => {
   return enc.password === encrypted;
 };
 
+
+const generateHash = (obj) => {
+  const hash = JSON.stringify(obj).split('').sort().join('');
+
+  return crypto.createHmac('sha256', '')
+    .update(hash)
+    .digest('hex');
+};
+
 module.exports = {
   encrypt,
   comparePassword,
+  generateHash,
 };

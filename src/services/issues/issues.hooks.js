@@ -3,11 +3,15 @@ const {
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { assignIIIF } = require('../../hooks/iiif');
+const redisHooks = require('../../hooks/redis');
+
 
 module.exports = {
   before: {
     all: [
-
+      redisHooks.checkCachedContents({
+        useAuthenticatedUser: false,
+      }),
     ],
     find: [
       validate({
@@ -32,7 +36,6 @@ module.exports = {
         context: {
           choices: ['include', 'exclude'],
           defaultValue: 'include',
-          required: true,
         },
         type: {
           choices: ['newspaper'],
@@ -46,6 +49,7 @@ module.exports = {
       }, {
         required: false,
       }),
+
       filtersToSolrQuery('newspaper'),
       queryWithCommonParams(),
     ],
@@ -59,8 +63,9 @@ module.exports = {
   after: {
     all: [],
     find: [
-
+      redisHooks.returnCachedContents(),
       assignIIIF('cover'),
+      redisHooks.saveResultsInCache(),
     ],
     get: [
       // change count_pages

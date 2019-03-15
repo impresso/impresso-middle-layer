@@ -1,8 +1,8 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
 const lodash = require('lodash');
-const debug = require('debug')('impresso/services:SequelizeService');
-const solr = require('../solr');
+const debug = require('debug')('impresso/services:SolrService');
+
 
 class SolrService {
   constructor({
@@ -13,13 +13,14 @@ class SolrService {
     this.name = String(name);
     this.namespace = String(namespace);
 
-    this.solr = solr.client(app.get('solr'));
+    this.solr = app.get('solrClient');
 
     this.Model = require(`../models/${this.name}.model`);
     debug(`Configuring service: ${this.name} success`);
   }
 
   async get(id, params) {
+    debug(`get ${id}`, params);
     const results = await this.solr.findAll({
       q: `id:${id}`,
       limit: 1,
@@ -33,6 +34,7 @@ class SolrService {
   async find(params) {
     const p = {
       q: params.q || params.query.sq || '*:*',
+      fq: params.fq || params.query.sfq || undefined,
       limit: params.query.limit,
       skip: params.query.skip,
       fl: params.fl,

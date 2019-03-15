@@ -11,7 +11,7 @@ const queries = require('./queries/queries.service.js');
 const pages = require('./pages/pages.service.js');
 const tags = require('./tags/tags.service.js');
 const version = require('./version/version.service.js');
-
+const media = require('./media.js');
 const proxy = require('./proxy.js');
 
 const articlesTags = require('./articles-tags/articles-tags.service.js');
@@ -28,6 +28,18 @@ const collectableItems = require('./collectable-items/collectable-items.service.
 const topics = require('./topics/topics.service.js');
 
 const init = require('./init/init.service.js');
+
+const pagesTimelines = require('./pages-timelines/pages-timelines.service.js');
+
+const issuesTimelines = require('./issues-timelines/issues-timelines.service.js');
+
+const articlesTimelines = require('./articles-timelines/articles-timelines.service.js');
+
+const jobs = require('./jobs/jobs.service.js');
+
+const logs = require('./logs/logs.service.js');
+
+const images = require('./images/images.service.js');
 
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
@@ -48,6 +60,7 @@ module.exports = function () {
   app.configure(tags);
   app.configure(version);
 
+
   app.configure(proxy);
   app.configure(search);
   app.configure(searchExporter);
@@ -55,4 +68,11 @@ module.exports = function () {
   app.configure(collectableItems);
   app.configure(topics);
   app.configure(init);
+  app.configure(pagesTimelines);
+  app.configure(issuesTimelines);
+  app.configure(articlesTimelines);
+  app.configure(jobs);
+  app.configure(logs);
+  app.configure(images);
+  app.configure(media);
 };

@@ -105,6 +105,7 @@ const findAll = (config, params = {}, factory) => {
     namespace: 'search',
     ...params,
   };
+
   debug(`findAll: request to '${_params.namespace}' endpoint. With PARAMS`, _params);
 
   // you can have multiple namespace for the same solr
@@ -119,7 +120,9 @@ const findAll = (config, params = {}, factory) => {
     wt: 'json',
     // wt: 'xml'
   };
-
+  if (_params.fq && _params.fq.length) {
+    qs.fq = _params.fq;
+  }
   if (_params.vars) {
     Object.assign(qs, _params.vars);
   }
@@ -208,20 +211,20 @@ const findAll = (config, params = {}, factory) => {
  * @param  {Function} factory Instance generator
  * @return {Object} {uid: instance}
  */
-const resolveAsync = async (config, groups) => {
-  await Promise.all(groups.map((group, k) => {
+const resolveAsync = async (config, groups, factory) => {
+  debug(`resolveAsync':  ${groups.length} groups to resolve`);
+  await Promise.all(groups.filter(group => group.items.length > 0).map((group, k) => {
     debug(`resolveAsync': findAll for namespace "${group.namespace}"`);
-    const ids = group.items.map(d => d.uid);
-
+    const ids = group.items.map(d => d[group.idField || 'uid']);
     return findAll(config, {
       q: `id:${ids.join(' OR id:')}`,
       fl: group.Klass.SOLR_FL,
       limit: ids.length,
       namespace: group.namespace,
-    }, group.factory || group.Klass.solrFactory).then((res) => {
+    }, factory || group.factory || group.Klass.solrFactory).then((res) => {
       res.response.docs.forEach((doc) => {
         const idx = ids.indexOf(doc.uid);
-        groups[k].items[idx].item = doc;
+        groups[k].items[idx][group.itemField || 'item'] = doc;
       });
     });
   }));
@@ -239,9 +242,8 @@ const getSolrClient = config => ({
 });
 
 module.exports = function (app) {
-  const config = app.get('sequelize');
-  const solr = getSolrClient(config);
-  app.set('solrClient', solr);
+  const config = app.get('solr');
+  app.set('solrClient', getSolrClient(config));
 };
 
 module.exports.client = getSolrClient;

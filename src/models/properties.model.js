@@ -1,8 +1,22 @@
 const { DataTypes } = require('sequelize');
 
+
 class Property {
+  constructor({
+    name = '',
+    // eslint-disable-next-line camelcase
+    newspapers_metadata = {},
+  } = {}) {
+    this.name = name;
+    this.value = newspapers_metadata.value;
+    if (this.value.match(/https?:\/\//)) {
+      this.isUrl = true;
+    }
+  }
+
+
   static sequelize(client) {
-    return client.define('prop', {
+    const prop = client.define('prop', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -20,6 +34,13 @@ class Property {
     }, {
       tableName: 'meta_properties',
     });
+
+    prop.prototype.toJSON = function () {
+      return new Property({
+        ...this.get(),
+      });
+    };
+    return prop;
   }
 }
 module.exports = Property;
