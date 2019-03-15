@@ -43,9 +43,6 @@ module.exports = function (app) {
       debug('check access token...');
       app.passport.verifyJWT(res.locals.accessToken, {
         secret: authentication.secret,
-      }).catch((err) => {
-        debug('Error! auth found, with INVALID payload.', err);
-        next(new NotAuthenticated());
       }).then((payload) => {
         debug('access token valid, adding payloads...');
         res.locals.payload = payload;
@@ -53,6 +50,9 @@ module.exports = function (app) {
           uid: res.locals.payload.userId,
         };
         next();
+      }).catch((err) => {
+        debug('Error! auth found, with INVALID payload.', err);
+        next(new NotAuthenticated());
       });
     },
     // get item according to service. item must have an attachment property

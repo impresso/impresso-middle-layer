@@ -97,7 +97,7 @@ class Service {
       debug(`'get' with ${uids.length} ids -> redirect to 'find', user:`, params.user ? params.user.uid : 'no user found');
 
       return this.find({
-        ... params,
+        ...params,
         findAll: true,
         query: {
           limit: 20,

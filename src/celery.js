@@ -31,19 +31,19 @@ const getCeleryClient = (config, app) => {
     debug('message!', msg);
 
     if (msg.result && typeof msg.result === 'object') {
-       if(msg.result.job_id) {
-         app.service('logs').create({
-           task: msg.result.task,
-           job: {
-             id: msg.result.job_id,
-             status: msg.result.job_status,
-             progress: msg.result.progress,
-           },
-           msg: JOB_STATUS_TRANSLATIONS[msg.result.job_status],
-           to: msg.result.user_uid,
-           from: 'jobs',
-         });
-       }
+      if (msg.result.job_id) {
+        app.service('logs').create({
+          task: msg.result.task,
+          job: {
+            id: msg.result.job_id,
+            status: msg.result.job_status,
+            progress: msg.result.progress,
+          },
+          msg: JOB_STATUS_TRANSLATIONS[msg.result.job_status],
+          to: msg.result.user_uid,
+          from: 'jobs',
+        });
+      }
     }
   });
 

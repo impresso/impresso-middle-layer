@@ -7,7 +7,7 @@ const app = require('../../src/app');
  src/services/images \
  src/models src/hooks \
  --config .eslintrc.json --fix \
- && NODE_ENV=test DEBUG=impresso* mocha test/services/images.test.js
+ && NODE_ENV=test DEBUG=impresso/solr,impresso/services:images mocha test/services/images.test.js
 */
 describe('\'images\' service', () => {
   const service = app.service('images');
