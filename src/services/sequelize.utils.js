@@ -37,14 +37,14 @@ const sequelizeErrorHandler = (err) => {
   if (err.name === 'SequelizeUniqueConstraintError') {
     debug(`sequelize failed. ConstraintValidationFailed: ${err}`);
     throw new Conflict(`ConstraintValidationFailed: ${err.errors.map(d => d.message)}`);
-  } else if(err.name === 'SequelizeConnectionRefusedError') {
+  } else if (err.name === 'SequelizeConnectionRefusedError') {
     throw new BadGateway('SequelizeConnectionRefusedError');
   } else if (err.name === 'SequelizeConnectionError') {
-    debug(`Connection error. SequelizeConnectionError:`, err);  
+    debug('Connection error. SequelizeConnectionError:', err);
   } else {
     debug('sequelize failed. Check error below.');
     debug(err.name);
-    console.error(err);
+    // console.error(err);
   }
   throw new BadRequest();
 };

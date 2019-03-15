@@ -127,12 +127,13 @@ class Job {
       return new Job({
         id: this.id,
         name: this.name,
+        type: this.type,
         description: this.description,
         status: this.status,
         creationDate: this.creationDate,
         lastModifiedDate: this.lastModifiedDate,
         extra: this.extra,
-        attachment: this.attachment ? this.attachment.toJSON(): null,
+        attachment: this.attachment ? this.attachment.toJSON() : null,
         creator: this.creator.toJSON({
           obfuscate,
         }),

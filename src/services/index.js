@@ -11,7 +11,7 @@ const queries = require('./queries/queries.service.js');
 const pages = require('./pages/pages.service.js');
 const tags = require('./tags/tags.service.js');
 const version = require('./version/version.service.js');
-
+const media = require('./media.js');
 const proxy = require('./proxy.js');
 
 const articlesTags = require('./articles-tags/articles-tags.service.js');
@@ -60,6 +60,7 @@ module.exports = function () {
   app.configure(tags);
   app.configure(version);
 
+
   app.configure(proxy);
   app.configure(search);
   app.configure(searchExporter);
@@ -73,4 +74,5 @@ module.exports = function () {
   app.configure(jobs);
   app.configure(logs);
   app.configure(images);
+  app.configure(media);
 };

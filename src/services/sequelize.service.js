@@ -2,7 +2,7 @@
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/services:SequelizeService');
 const sequelize = require('../sequelize');
-const errors = require('@feathersjs/errors');
+const { NotFound } = require('@feathersjs/errors');
 const { sequelizeErrorHandler } = require('./sequelize.utils');
 
 class SequelizeService {
@@ -25,7 +25,7 @@ class SequelizeService {
   }
 
   onError(err) {
-    return sequelizeErrorHandler(err);
+    sequelizeErrorHandler(err);
   }
 
   async bulkRemove(where) {
@@ -50,11 +50,12 @@ class SequelizeService {
       where,
     }).catch(this.onError);
 
+    if (!result) {
+      throw new NotFound();
+    }
+
     debug(`'get' ${this.name} success!`);
 
-    if (!result) {
-      throw new errors.NotFound();
-    }
     return result;
   }
 
@@ -70,8 +71,8 @@ class SequelizeService {
   async patch(id, data, params) {
     if (id) {
       params.where = {
-        ... params.where,
-        id: id,
+        ...params.where,
+        id,
       };
     }
     return this.sequelizeKlass.update({
@@ -81,7 +82,7 @@ class SequelizeService {
       where: params.where,
     }).then(() => ({
       uid: id,
-      ... data,
+      ...data,
     }));
   }
 
