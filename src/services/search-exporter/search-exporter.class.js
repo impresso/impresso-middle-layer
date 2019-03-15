@@ -2,6 +2,7 @@
 const debug = require('debug')('impresso/services:search');
 const solr = require('../../solr');
 const article = require('../../models/articles.model');
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
 class Service {
   constructor(options) {
@@ -10,6 +11,34 @@ class Service {
     this.options = options || {};
   }
 
+  async create(data, params) {
+    const client = this.app.get('celeryClient');
+    if (!client) {
+      return {};
+    }
+
+    const q = params.sanitized.sq;
+
+    debug(`create '${this.name}', from solr query: ${q}`);
+
+    return client.run({
+      task: 'impresso.tasks.export_query_as_csv',
+      args: [
+        // user id
+        params.user.id,
+        // query
+        q,
+      ],
+    }).catch((err) => {
+      if (err.result.exc_type === 'DoesNotExist') {
+        throw new NotFound(err.result.exc_message);
+      } else if (err.result.exc_type === 'OperationalError') {
+        // probably db is not availabe
+        throw new NotImplemented();
+      }
+      throw new NotImplemented();
+    });
+  }
   async find(params) {
     // override params limit according to user role.
     params.query.limit = 2;
