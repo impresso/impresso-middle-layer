@@ -78,7 +78,8 @@ module.exports = function (app) {
       debug('flush headers for filename:', filename, protectedFilepath);
       res.set('Content-Disposition', `attachment; filename=${filename}`);
       res.set('X-Accel-Redirect', protectedFilepath);
-      next();
+      res.send();
+      res.end();
     }
   ]);
 }
