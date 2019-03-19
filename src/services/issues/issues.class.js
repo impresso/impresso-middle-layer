@@ -1,4 +1,4 @@
-const debug = require('debug')('impresso/services:newspapers');
+const debug = require('debug')('impresso/services:issues');
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 const Issue = require('../../models/issues.model');

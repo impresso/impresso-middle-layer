@@ -1,7 +1,7 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/media');
-const { BadRequest, NotFound } = require('@feathersjs/errors');
+const { BadRequest, NotFound, NotAuthenticated } = require('@feathersjs/errors');
 
 module.exports = function (app) {
   const config = app.get('media');
@@ -22,7 +22,6 @@ module.exports = function (app) {
     },
     function (req, res, next) {
       debug('using req params:', req.params);
-
       let accessToken = req.headers.authorization;
 
       if (req.cookies && req.cookies[authentication.cookie.name]) {
@@ -44,9 +43,6 @@ module.exports = function (app) {
       debug('check access token...');
       app.passport.verifyJWT(res.locals.accessToken, {
         secret: authentication.secret,
-      }).catch((err) => {
-        debug('Error! auth found, with INVALID payload.', err);
-        throw new NotFound();
       }).then((payload) => {
         debug('access token valid, adding payloads...');
         res.locals.payload = payload;
@@ -54,6 +50,9 @@ module.exports = function (app) {
           uid: res.locals.payload.userId,
         };
         next();
+      }).catch((err) => {
+        debug('Error! auth found, with INVALID payload.', err);
+        next(new NotAuthenticated());
       });
     },
     // get item according to service. item must have an attachment property
@@ -70,7 +69,7 @@ module.exports = function (app) {
         next(err);
       });
     },
-    function (req, res, next) {
+    function (req, res) {
       if (!res.locals.item.attachment) {
         throw new NotFound();
       }
@@ -79,7 +78,8 @@ module.exports = function (app) {
       debug('flush headers for filename:', filename, protectedFilepath);
       res.set('Content-Disposition', `attachment; filename=${filename}`);
       res.set('X-Accel-Redirect', protectedFilepath);
-      next();
+      res.send();
+      res.end();
     },
   ]);
 };

@@ -9,8 +9,8 @@ module.exports = function (app) {
   }
   debug('channels ready');
 
-  app.service('logs').publish((payload, context) => {
-    console.log('MESSAGG', payload);
+  app.service('logs').publish((payload) => {
+    // console.log('MESSAGG', payload);
     debug('log to');
     return app.channel(`logs/${payload.to}`);
   });
@@ -51,13 +51,13 @@ module.exports = function (app) {
   });
 
 
-  app.on('logout', (payload, { socket: { _feathers: connection }}) => {
+  app.on('logout', (payload, { socket: { _feathers: connection } }) => {
     // We currently use the soultion found at: https://github.com/feathersjs/feathers/issues/941
     if (connection) {
       const user = connection.user;
       debug('@logout', connection.payload);
       // When logging out, leave all channels before joining anonymous channel
-      if(user && user.uid) {
+      if (user && user.uid) {
         app.channel(`logs/${user.uid}`).leave(connection);
       }
       app.channel('authenticated').leave(connection);

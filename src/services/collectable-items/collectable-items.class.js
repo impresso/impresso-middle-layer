@@ -5,7 +5,9 @@ const { NotFound } = require('@feathersjs/errors');
 
 const SequelizeService = require('../sequelize.service');
 const CollectableItemGroup = require('../../models/collectable-items-groups.model');
-const { STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED, } = require('../../models/collections.model');
+const {
+  STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED,
+} = require('../../models/collections.model');
 
 class Service {
   constructor({
@@ -23,7 +25,7 @@ class Service {
   async find(params) {
     // simplified where for sequelize raw queries.
     const where = [
-      { $not: [ { 'collection.status': STATUS_DELETED } ] },
+      { $not: [{ 'collection.status': STATUS_DELETED }] },
     ];
 
     if (params.sanitized.item_uids) {

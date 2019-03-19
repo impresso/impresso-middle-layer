@@ -3,7 +3,6 @@ const createService = require('./logs.class.js');
 const hooks = require('./logs.hooks');
 
 module.exports = function (app) {
-
   const options = {
     name: 'logs',
     app,

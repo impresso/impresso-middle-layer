@@ -537,10 +537,8 @@ const displayQueryParams = (paramNames = []) => async (context) => {
     context.result.info = {};
   }
   paramNames.forEach((p) => {
-    try {
+    if (context.params && context.params.sanitized && context.params.sanitized[p]) {
       context.result.info[p] = context.params.sanitized[p];
-    } catch (err) {
-      console.error(err);
     }
   });
 };

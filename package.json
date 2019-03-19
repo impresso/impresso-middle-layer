@@ -28,6 +28,7 @@
     "dev": "nodemon src/",
     "mocha": "NODE_ENV=test mocha test/ --recursive --exit",
     "cli": "node src/admin/cli.js",
+    "update-data": "node scripts/update-data.js",
     "import-articles": "node scripts/import-articles.js",
     "import-pages": "node scripts/import-pages.js",
     "import-issues": "node scripts/import-issues.js",

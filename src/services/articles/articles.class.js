@@ -77,15 +77,11 @@ class Service {
       if (pageUids.length === 1) {
         return {
           ...d,
-          newspaper: addon.newspaper,
           regions: d.regions
             .filter(r => pageUids.indexOf(r.pageUid) !== -1),
         };
       }
-      return {
-        ...d,
-        newspaper: addon.newspaper,
-      };
+      return d;
     });
 
     return results;
@@ -97,7 +93,7 @@ class Service {
       debug(`'get' with ${uids.length} ids -> redirect to 'find', user:`, params.user ? params.user.uid : 'no user found');
 
       return this.find({
-        ... params,
+        ...params,
         findAll: true,
         query: {
           limit: 20,

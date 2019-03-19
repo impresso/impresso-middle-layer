@@ -112,7 +112,7 @@ app.use(handler({
     },
     default: (err, req, res) => {
       // handle all other errors
-      console.log(err)
+      console.log('error', err);
       delete err.stack;
       res.json({ message: err.message });
     },
