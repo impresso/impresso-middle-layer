@@ -366,10 +366,6 @@ class Article {
         get: {
           include: [
             {
-              model: newspaper,
-              as: 'newspaper',
-            },
-            {
               model: page,
               as: 'pages',
             },

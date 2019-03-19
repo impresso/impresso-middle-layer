@@ -77,15 +77,11 @@ class Service {
       if (pageUids.length === 1) {
         return {
           ...d,
-          newspaper: addon.newspaper,
           regions: d.regions
             .filter(r => pageUids.indexOf(r.pageUid) !== -1),
         };
       }
-      return {
-        ...d,
-        newspaper: addon.newspaper,
-      };
+      return d;
     });
 
     return results;

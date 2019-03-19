@@ -5,6 +5,8 @@
 const Sequelize = require('sequelize');
 const Language = require('./languages.model');
 const Property = require('./properties.model');
+const newspapersIndex = require('../data')('newspapers');
+
 
 class Newspaper {
   constructor({
@@ -21,26 +23,29 @@ class Newspaper {
     properties = [],
   } = {}, complete = false) {
     this.uid = String(uid);
-
     this.acronym = acronym.length ? String(acronym) : this.uid;
-    this.name = String(name);
     this.labels = labels;
-    this.endYear = parseInt(endYear, 10);
-    this.startYear = parseInt(startYear, 10);
+    this.languages = languages.map(d => d.code);
+    this.properties = properties;
+
+    const indexed = newspapersIndex.getValue(this.uid);
+
+    if (!name.length && indexed) {
+      this.name = indexed.name;
+      this.endYear = parseInt(indexed.endYear, 10);
+      this.startYear = parseInt(indexed.startYear, 10);
+      this.languages = indexed.languages;
+      this.countArticles = parseInt(indexed.countArticles, 10);
+      this.countIssues = parseInt(indexed.countIssues, 10);
+      this.countPages = parseInt(indexed.countPages, 10);
+      this.cached = true;
+    } else {
+      this.name = String(name);
+      this.endYear = parseInt(endYear, 10);
+      this.startYear = parseInt(startYear, 10);
+    }
+
     this.deltaYear = this.endYear - this.startYear;
-
-    this.languages = [];
-    this.properties = [];
-
-    // flatten languages, take codes only
-    if (languages.length) {
-      this.languages = languages.map(d => d.code);
-    }
-
-    // flatten properties, get prop value dict.
-    if (properties.length) {
-      this.properties = properties;
-    }
 
     if (complete) {
       this.countArticles = parseInt(countArticles, 10);
@@ -49,6 +54,9 @@ class Newspaper {
     }
   }
 
+  static getCached(uid) {
+    return new Newspaper(newspapersIndex.getValue(uid));
+  }
 
   static sequelize(client) {
     const language = Language.sequelize(client);
@@ -97,6 +105,14 @@ class Newspaper {
             {
               model: prop,
               as: 'properties',
+            },
+          ],
+        },
+        all: {
+          include: [
+            {
+              model: language,
+              as: 'languages',
             },
           ],
         },

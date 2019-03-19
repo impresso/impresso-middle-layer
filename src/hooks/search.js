@@ -31,7 +31,7 @@ const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
     qq = `${field}:${filter.q}`;
   }
   if (filter.context === 'exclude') {
-    qq = sq.length > 0 ? `NOT ${qq}`: `*:* AND NOT ${qq}`;
+    qq = sq.length > 0 ? `NOT ${qq}` : `*:* AND NOT ${qq}`;
   }
   sq.push(qq);
   return sq;

@@ -171,39 +171,49 @@ class Service {
     if (_solr.facets) {
       Object.keys(_solr.facets).forEach((facet) => {
         if (facet === 'newspaper') {
-          facetGroupsToResolve.push({
-            // the facet key to merge later
-            facet,
-            engine: 'sequelize',
-            service: 'newspapers',
-            // enrich bucket with service identifier, uid.
-            // SOLR gives it as `val` property of the facet.
-            items: _solr.facets.newspaper.buckets.map(d => ({
-              ...d,
-              count: d.count,
-              uid: d.val,
-            })),
-          });
+          facets[facet].buckets = facets[facet].buckets.map(d => ({
+            ...d,
+            item: Newspaper.getCached(d.val),
+            uid: d.val,
+          }));
+          // for free
+          // facetGroupsToResolve.push({
+          //   // the facet key to merge later
+          //   facet,
+          //   engine: 'sequelize',
+          //   service: 'newspapers',
+          //   // enrich bucket with service identifier, uid.
+          //   // SOLR gives it as `val` property of the facet.
+          //   items: _solr.facets.newspaper.buckets.map(d => ({
+          //     ...d,
+          //     count: d.count,
+          //     uid: d.val,
+          //   })),
+          // });
         } else if (facet === 'topic') {
-          facetGroupsToResolve.push({
-            // the facet key to merge later
-            facet,
-            engine: 'solr',
-            namespace: 'topics',
-            Klass: Topic,
-            factory: Topic.solrFacetFactory,
-            // enrich bucket with service identifier, uid.
-            // SOLR gives it as `val` property of the facet.
-            items: _solr.facets.topic.buckets.map(d => ({
-              ...d,
-              count: d.count,
-              uid: d.val,
-            })),
-          });
+          facets[facet].buckets = facets[facet].buckets.map(d => ({
+            ...d,
+            item: Topic.getCached(d.val),
+            uid: d.val,
+          }));
+          // facetGroupsToResolve.push({
+          //   // the facet key to merge later
+          //   facet,
+          //   engine: 'solr',
+          //   namespace: 'topics',
+          //   Klass: Topic,
+          //   factory: Topic.solrFacetFactory,
+          //   // enrich bucket with service identifier, uid.
+          //   // SOLR gives it as `val` property of the facet.
+          //   items: _solr.facets.topic.buckets.map(d => ({
+          //     ...d,
+          //     count: d.count,
+          //     uid: d.val,
+          //   })),
+          // });
         }
       });
     }
-
     if (facetGroupsToResolve.length) {
       // resolve uids with the appropriate service
       const facetGroupsResolved = await Promise.all([
