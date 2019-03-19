@@ -34,10 +34,6 @@ async function waterfall() {
       debug(`${result.response.numFound} topics found in ${result.responseHeader.QTime} ms`);
       return result.response.docs;
     })
-    .then(results => results.map(d => ({
-      ...d,
-      words: [],
-    })))
     .then(results => lodash.keyBy(results, 'uid'));
 
   debug('saving', Object.keys(topics).length, 'topics...');
