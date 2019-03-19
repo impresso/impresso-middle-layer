@@ -10,7 +10,7 @@ module.exports = function (app) {
   debug('configuring media ...', config.host, config.path);
 
   app.use(`${config.path}/:service/:id`, [
-    function(req, res, next) {
+    function (req, res, next) {
       if (config.services.indexOf(req.params.service) === -1) {
         throw new BadRequest('incomplete request params (service)');
       }
@@ -20,7 +20,7 @@ module.exports = function (app) {
       }
       next();
     },
-    function(req, res, next) {
+    function (req, res, next) {
       debug('using req params:', req.params);
       let accessToken = req.headers.authorization;
 
@@ -38,7 +38,7 @@ module.exports = function (app) {
         next();
       }
     },
-    function(req, res, next) {
+    function (req, res, next) {
       // check payload
       debug('check access token...');
       app.passport.verifyJWT(res.locals.accessToken, {
@@ -56,7 +56,7 @@ module.exports = function (app) {
       });
     },
     // get item according to service. item must have an attachment property
-    function(req, res, next) {
+    function (req, res, next) {
       debug(`calling ${req.params.service}:get(${req.params.id}) with authentified user uid: ${res.locals.user.uid}`);
       // a class having an attachment
       app.service(req.params.service).get(req.params.id, {
@@ -69,16 +69,17 @@ module.exports = function (app) {
         next(err);
       });
     },
-    function(req, res, next) {
+    function (req, res) {
       if (!res.locals.item.attachment) {
         throw new NotFound();
       }
       const filename = res.locals.item.attachment.path.split('/').pop();
-      const protectedFilepath = [ config.protectedPath, res.locals.item.attachment.path ].join('/');
+      const protectedFilepath = [config.protectedPath, res.locals.item.attachment.path].join('/');
       debug('flush headers for filename:', filename, protectedFilepath);
       res.set('Content-Disposition', `attachment; filename=${filename}`);
       res.set('X-Accel-Redirect', protectedFilepath);
-      next();
-    }
+      res.send();
+      res.end();
+    },
   ]);
-}
+};

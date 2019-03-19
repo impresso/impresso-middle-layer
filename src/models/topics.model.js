@@ -1,4 +1,5 @@
 const lodash = require('lodash');
+const topicsIndex = require('../data')('topics');
 
 class TopicWord {
   constructor({
@@ -54,6 +55,10 @@ class Topic {
   }
   getExcerpt() {
     return this.excerpt.map(d => d.w || d);
+  }
+
+  static getCached(uid) {
+    return new Topic(topicsIndex.getValue(uid));
   }
 
   static solrFactory() {

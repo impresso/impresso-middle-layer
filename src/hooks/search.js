@@ -31,7 +31,7 @@ const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
     qq = `${field}:${filter.q}`;
   }
   if (filter.context === 'exclude') {
-    qq = sq.length > 0 ? `NOT ${qq}`: `*:* AND NOT ${qq}`;
+    qq = sq.length > 0 ? `NOT ${qq}` : `*:* AND NOT ${qq}`;
   }
   sq.push(qq);
   return sq;
@@ -263,8 +263,11 @@ const filtersToSolrQuery = () => async (context) => {
   // context.params.sanitized.sfq = filterQueries.join(' AND ');
   context.params.sanitized.sv = vars;
   context.params.sanitized.queryComponents = [].concat(
+    filters.isFront,
     filters.years,
     filters.newspaper,
+    filters.topic,
+    filters.collection,
     filters.language,
     filters.daterange,
     filters.type,
