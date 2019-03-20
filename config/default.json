@@ -21,7 +21,8 @@
       "pages-timelines",
       "issues-timelines",
       "articles-timelines",
-      "search"
+      "search",
+      "images"
     ]
   },
   "authentication": {
