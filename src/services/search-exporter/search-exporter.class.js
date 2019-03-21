@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:search');
 const solr = require('../../solr');
+const celery = require('../../celery');
 const article = require('../../models/articles.model');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
