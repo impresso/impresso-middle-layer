@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:search');
 const solr = require('../../solr');
-const celery = require('../../celery');
 const article = require('../../models/articles.model');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
@@ -13,8 +12,7 @@ class Service {
   }
 
   async create(data, params) {
-    console.log('celery', celery);
-    const client = this.app.get('celery');
+    const client = this.app.get('celeryClient');
     if (!client) {
       return {};
     }
