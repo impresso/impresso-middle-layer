@@ -9,6 +9,7 @@ class Service {
     this.solr = solr.client(options.app.get('solr'));
     this.name = options.name;
     this.options = options || {};
+    this.app = options.app;
   }
 
   async create(data, params) {
