@@ -48,7 +48,22 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
     ```
     NODE_ENV=development DEBUG=impresso* npm run dev
     ```
-
+## Deployment
+With forever, make sure you have correctly set the file `config/production.json` (is *.gitignored*).
+You should create a `/path/to/forever.production.json` file:
+```
+{
+  "uid": "impresso-middle-layer",
+  "append": true,
+  "watch": false,
+  "script": "src/index.js",
+  "sourceDir": "/path/to/impresso-middle-layer"
+}
+```
+Then start with:
+```
+NODE_ENV=production forever start /path/to/forever.production.json
+```
 ## Testing
 
 Simply run `npm test` and all your tests in the `test/` directory will be run.
