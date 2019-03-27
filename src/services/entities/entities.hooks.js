@@ -1,31 +1,30 @@
+const { authenticate } = require('@feathersjs/authentication').hooks;
+const {
+  queryWithCommonParams, validate, utils,
+} = require('../../hooks/params');
+
 
 module.exports = {
   before: {
-    all: [
+    all: [],
+    find: [
+      queryWithCommonParams(),
+    ],
+    get: [],
+    create: [],
+    update: [],
+    patch: [],
+    remove: []
+  },
 
-    ], // authenticate('jwt') ],
+  after: {
+    all: [],
     find: [],
     get: [],
     create: [],
     update: [],
     patch: [],
-    remove: [],
-  },
-
-  after: {
-    all: [
-      // normalize()
-    ],
-    find: [
-      // finalizeMany()
-    ],
-    get: [
-      // finalize()
-    ],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
+    remove: []
   },
 
   error: {
@@ -35,6 +34,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: [],
-  },
+    remove: []
+  }
 };
