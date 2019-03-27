@@ -46,7 +46,7 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
 1. Start your app (not the debug)
 
     ```
-    DEBUG=impresso* npm run dev
+    NODE_ENV=development DEBUG=impresso* npm run dev
     ```
 
 ## Testing
