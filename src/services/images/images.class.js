@@ -20,7 +20,7 @@ class Service {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query, params);
     return this.SolrService.find({
       ...params,
-      fl: 'id',
+      fl: '*',
     });
   }
 
