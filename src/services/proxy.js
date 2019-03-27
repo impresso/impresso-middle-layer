@@ -60,7 +60,7 @@ module.exports = function (app) {
       }
       return;
     }
-    
+
     // verify access token and user rights
     app.passport.verifyJWT(accessToken, {
       secret: authentication.secret,
@@ -68,12 +68,30 @@ module.exports = function (app) {
       debug('proxy: auth found, payload OK. <userId>:', payload.userId);
       req.proxyAuthorization = config.iiif.epflsafe.auth;
       // check authorization level in user service.
-      next();
+      if(config.iiif.internalOnly && isImage) {
+        // xaccel
+        internalRedirect({
+          res,
+          filepath,
+          protectedPath: config.iiif.protected.endpoint,
+        });
+      } else {
+        next();
+      }
     }).catch((err) => {
       debug('proxy: auth found, INVALID payload.', err);
       // x accel for the images
-
-      next();
+      // do nothing, we're going for the "public" endpoint
+      if(config.iiif.internalOnly && isImage) {
+        // xaccel
+        internalRedirect({
+          res,
+          filepath,
+          protectedPath: config.iiif.public.endpoint,
+        });
+      } else {
+        next();
+      }
     });
   }, proxy({
     target: config.iiif.epfl.endpoint, // https://dhlabsrv17.epfl.ch/iiif_impresso/"GDL-1900-01-10-a-p0002/full/full/0/default.jpg

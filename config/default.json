@@ -77,7 +77,7 @@
         "endpoint": "/public-iiif"
       },
       "protected": {
-        "endpoint": "/nda-only-iiif"
+        "endpoint": "/protected-iiif"
       },
       "epfl": {
         "endpoint": "https://...",
