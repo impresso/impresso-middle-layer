@@ -201,7 +201,6 @@ const createEntity = (entity) => {
   });
 };
 
-
 const resolve = async ({
   ids = [],
   languages = ['en', 'fr', 'de', 'it'], // platform languages
@@ -253,6 +252,7 @@ const resolve = async ({
       depth: depth + 1,
       maxDepth,
       languages,
+      cache,
     });
     debug(`resolve: with ${Object.keys(resolvedPendings).length} pending entities`);
 
@@ -272,7 +272,6 @@ const resolve = async ({
   }
 
   return index;
-
 };
 
 module.exports = {
