@@ -1,10 +1,12 @@
 /* eslint-disable no-unused-vars */
+const lodash = require('lodash');
 const wikidata = require('../wikidata');
 const Entity = require('../../models/entities.model');
 const SequelizeService = require('../sequelize.service');
 
+
 class Service {
-  constructor ({
+  constructor({
     app = null,
     name = '',
   } = {}) {
@@ -16,30 +18,57 @@ class Service {
     });
   }
 
-  async find (params) {
+  async find(params) {
     const where = {};
     // get entities;
-    return this.SequelizeService.find({
+    const result = await this.SequelizeService.find({
       query: {
         ...params.query,
       },
       where,
     });
+
+    // get wikidata ids
+    const wkdIds = lodash(result.data)
+      .map('wikidataId')
+      .compact()
+      .value();
+
+    const resolvedEntities = {};
+
+    await Promise.all(wkdIds.map(wkdId => wikidata.resolve({
+      ids: [wkdId],
+      cache: this.app.get('redisClient'),
+    }).then((resolved) => {
+      resolvedEntities[wkdId] = resolved[wkdId];
+    })));
+
+    result.data = result.data.map((d) => {
+      if (d.wikidataId) {
+        d.wikidata = resolvedEntities[d.wikidataId];
+      }
+      return d;
+    });
+    return result;
   }
 
-  async get (id, params) {
-    const entity = new Entity({
-      id: 0,
-      label: 'Douglas Adams',
-      wikidataId: 'Q42',
-      type: 'human',
-    });
+  async get(id, params) {
+    const where = {
+      id,
+    };
+
+    const entity = await this.SequelizeService.get(id, { where })
+      .then(d => d.toJSON());
+
+    if (!entity.wikidataId) {
+      return entity;
+    }
 
     return wikidata.resolve({
-      ids: ['Q42'],
+      ids: [entity.wikidataId],
       cache: this.app.get('redisClient'),
     }).then((res) => {
-      if(res[entity.wikidataId]) {
+      if (res[entity.wikidataId]) {
         entity.wikidata = res[entity.wikidataId];
       }
       return entity;
@@ -48,7 +77,7 @@ class Service {
     });
   }
 
-  async create (data, params) {
+  async create(data, params) {
     if (Array.isArray(data)) {
       return Promise.all(data.map(current => this.create(current, params)));
     }
@@ -56,15 +85,15 @@ class Service {
     return data;
   }
 
-  async update (id, data, params) {
+  async update(id, data, params) {
     return data;
   }
 
-  async patch (id, data, params) {
+  async patch(id, data, params) {
     return data;
   }
 
-  async remove (id, params) {
+  async remove(id, params) {
     return { id };
   }
 }
