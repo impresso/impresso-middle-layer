@@ -71,6 +71,13 @@
   "proxy": {
     "host": "http://localhost:3030",
     "iiif": {
+      "internalOnly": false,
+      "public": {
+        "endpoint": "/public-iiif"
+      },
+      "protected": {
+        "endpoint": "/nda-only-iiif"
+      },
       "epfl": {
         "endpoint": "https://...",
         "auth": {

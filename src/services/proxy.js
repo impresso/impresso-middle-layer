@@ -4,6 +4,25 @@ const proxy = require('http-proxy-middleware');
 const modifyResponse = require('node-http-proxy-json');
 const nodePath = require('path');
 
+/**
+ * Internal redirect using X accel Redirect (NGINX) to speed up (and cache) image delivery.
+ * @param  {Response} res             Eprress response object
+ * @param  {String} protectedPath='/' NGINX Protected path
+ * @param  {String} filepath=''       Filepath
+ * @return {null}                     End response with X accel headers
+ */
+const internalRedirect = ({
+  res,
+  protectedPath='/',
+  filepath=''
+} = {}) => {
+  const protectedFilepath = [protectedPath, filepath].join('/').replace(/\/+/g,'/');
+  debug('internalRedirect to:', protectedFilepath);
+  res.set('X-Accel-Redirect', protectedFilepath);
+  res.send();
+  res.end();
+}
+
 module.exports = function (app) {
   const config = app.get('proxy');
   const proxyhost = app.get('proxy').host;
@@ -15,7 +34,9 @@ module.exports = function (app) {
   const proxyPublicAuthorization = config.iiif.epfl.auth;
 
   app.use('/proxy/iiif', (req, res, next) => {
-    // console.log('Request URL:', req.originalUrl,
+    // get extension
+    const isImage = ['png'].indexOf(req.originalUrl.split('.').pop()) !== -1;
+    const filepath = req.originalUrl.replace('/proxy/iiif', '/');
     //  authentication.cookie.name, req.cookies, req.isAuthenticated());
     // access token from cookies
     let accessToken = req.headers.authorization;
@@ -27,10 +48,20 @@ module.exports = function (app) {
     if (!accessToken) {
       debug('proxy: no auth found, return public contents only.');
       // do nothing, we're going for the "public" endpoint
-      next();
+      if(config.iiif.internalOnly && isImage) {
+        // xaccel
+        internalRedirect({
+          res,
+          filepath,
+          protectedPath: config.iiif.public.endpoint,
+        });
+      } else {
+        next();
+      }
       return;
     }
-
+    
+    // verify access token and user rights
     app.passport.verifyJWT(accessToken, {
       secret: authentication.secret,
     }).then((payload) => {
@@ -40,6 +71,8 @@ module.exports = function (app) {
       next();
     }).catch((err) => {
       debug('proxy: auth found, INVALID payload.', err);
+      // x accel for the images
+
       next();
     });
   }, proxy({
