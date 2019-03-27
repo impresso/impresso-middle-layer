@@ -1,4 +1,5 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
+const { assignIIIF } = require('../../hooks/iiif');
 const {
   utils, validate, queryWithCommonParams,
 } = require('../../hooks/params');
@@ -29,7 +30,9 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
+    find: [
+      assignIIIF('pages', 'regions'),
+    ],
     get: [],
     create: [],
     update: [],
