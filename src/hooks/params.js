@@ -356,7 +356,7 @@ const validate = (validators, method = 'GET') => async (context) => {
 };
 
 const validateRouteId = () => async (context) => {
-  if (context.id && !REGEX_UIDS.test(context.id)) {
+  if (context.id && !(REGEX_UID.test(context.id) || REGEX_UIDS.test(context.id))) {
     debug('validateRouteId: context.id not matching REGEX_UIDS');
     throw new errors.BadRequest('route id is not valid');
   }
