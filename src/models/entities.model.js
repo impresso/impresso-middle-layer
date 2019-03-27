@@ -2,18 +2,21 @@ const { DataTypes } = require('sequelize');
 
 class Entity {
   constructor({
-    id = '',
-    label = '',
-    mentions = [],
-    wikidataId = '',
+    id = 0,
+    name = '',
+    wikidataId = null,
+    dbpediaURL = null,
+    impressoId = null,
     type = 'entity',
   } = {}) {
     this.id = parseInt(id, 10);
-    this.label = String(label);
+    this.name = String(name);
     this.type = String(type);
-    this.wikidataId = String(wikidataId);
-    this.mentions = mentions;
+    this.wikidataId = wikidataId;
+    this.dbpediaURL = dbpediaURL;
+    this.impressoId = impressoId;
   }
+
 
   static sequelize(client, {
     tableName = 'entities',
@@ -25,7 +28,7 @@ class Entity {
         autoIncrement: true,
         unique: true,
       },
-      label: {
+      name: {
         type: DataTypes.STRING(255),
         field: 'master_label',
       },
@@ -35,12 +38,21 @@ class Entity {
       },
       dbpediaURL: {
         type: DataTypes.STRING(255),
-        field: 'dpp_url',
+        field: 'dbp_url',
       },
       impressoId: {
         type: DataTypes.STRING(255),
         field: 'imp_id',
       },
+      // countItems: {
+      //   // number of contentitems matching
+      // },
+      // startDate: {
+      //
+      // },
+      // endDate: {
+      //
+      // }
     }, {
       tableName,
     });
