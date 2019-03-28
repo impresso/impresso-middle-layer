@@ -14,9 +14,9 @@ class Image {
     this.year = parseInt(year, 10);
     this.coords = coords;
     this.pages = pages;
-    this.regions = pages.map((page) => ({
+    this.regions = pages.map(page => ({
       pageUid: page.uid,
-      coords: coords,
+      coords,
     }));
 
     if (date instanceof Date) {
@@ -46,7 +46,7 @@ class Image {
         }),
         year: doc.year[0],
         coords: doc.iiif_box,
-        pages: doc.iiif_base_url.map((d) => new Page({
+        pages: doc.iiif_base_url.map(d => new Page({
           uid: d.split('/').pop(),
         })),
       });

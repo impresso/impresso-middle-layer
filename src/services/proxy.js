@@ -13,15 +13,15 @@ const nodePath = require('path');
  */
 const internalRedirect = ({
   res,
-  protectedPath='/',
-  filepath=''
+  protectedPath = '/',
+  filepath = '',
 } = {}) => {
-  const protectedFilepath = [protectedPath, filepath].join('/').replace(/\/+/g,'/');
+  const protectedFilepath = [protectedPath, filepath].join('/').replace(/\/+/g, '/');
   debug('internalRedirect to:', protectedFilepath);
   res.set('X-Accel-Redirect', protectedFilepath);
   res.send();
   res.end();
-}
+};
 
 module.exports = function (app) {
   const config = app.get('proxy');
@@ -48,7 +48,7 @@ module.exports = function (app) {
     if (!accessToken) {
       debug('proxy: no auth found, return public contents only.');
       // do nothing, we're going for the "public" endpoint
-      if(config.iiif.internalOnly && isImage) {
+      if (config.iiif.internalOnly && isImage) {
         // xaccel
         internalRedirect({
           res,
@@ -68,7 +68,7 @@ module.exports = function (app) {
       debug('proxy: auth found, payload OK. <userId>:', payload.userId);
       req.proxyAuthorization = config.iiif.epflsafe.auth;
       // check authorization level in user service.
-      if(config.iiif.internalOnly && isImage) {
+      if (config.iiif.internalOnly && isImage) {
         // xaccel
         internalRedirect({
           res,
@@ -82,7 +82,7 @@ module.exports = function (app) {
       debug('proxy: auth found, INVALID payload.', err);
       // x accel for the images
       // do nothing, we're going for the "public" endpoint
-      if(config.iiif.internalOnly && isImage) {
+      if (config.iiif.internalOnly && isImage) {
         // xaccel
         internalRedirect({
           res,
