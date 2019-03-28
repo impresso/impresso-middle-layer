@@ -25,10 +25,10 @@ class Service {
     return client.run({
       task: 'impresso.tasks.export_query_as_csv',
       args: [
-        // user id
-        params.user.id,
         // query
         q,
+        // user id
+        params.user.id,
       ],
     }).catch((err) => {
       if (err.result.exc_type === 'DoesNotExist') {
@@ -37,6 +37,7 @@ class Service {
         // probably db is not availabe
         throw new NotImplemented();
       }
+      console.error(err);
       throw new NotImplemented();
     });
   }
