@@ -1,10 +1,15 @@
+// const { authenticate } = require('@feathersjs/authentication').hooks;
+const {
+  queryWithCommonParams,
+} = require('../../hooks/params');
+
 
 module.exports = {
   before: {
-    all: [
-
-    ], // authenticate('jwt') ],
-    find: [],
+    all: [],
+    find: [
+      queryWithCommonParams(),
+    ],
     get: [],
     create: [],
     update: [],
@@ -13,15 +18,9 @@ module.exports = {
   },
 
   after: {
-    all: [
-      // normalize()
-    ],
-    find: [
-      // finalizeMany()
-    ],
-    get: [
-      // finalize()
-    ],
+    all: [],
+    find: [],
+    get: [],
     create: [],
     update: [],
     patch: [],

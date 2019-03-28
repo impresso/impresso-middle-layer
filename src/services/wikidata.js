@@ -201,13 +201,26 @@ const createEntity = (entity) => {
   });
 };
 
-
 const resolve = async ({
   ids = [],
   languages = ['en', 'fr', 'de', 'it'], // platform languages
   depth = 0,
   maxDepth = 1,
+  cache = null,
 } = {}) => {
+  // check wikidata in redis cache
+  let cached;
+  const cacheKey = `wkd:${ids.join(',')}`;
+
+  if (cache) {
+    cached = await cache.get(cacheKey);
+    if (cached) {
+      debug('cache found for cacheKey:', cacheKey);
+      return JSON.parse(cached);
+    }
+    debug('no cache found for cacheKey:', cacheKey);
+    // check cacheKey
+  }
   // get wikidata api url for the given ids and the given anguage
   const url = wdk.getEntities(ids, languages);
   debug(`resolve: url '${url}', depth: ${depth}`);
@@ -230,6 +243,7 @@ const resolve = async ({
     };
   });
 
+  let index;
 
   if (result.pendings.length && depth < maxDepth) {
     // enrich current entities with resolved pendings
@@ -238,17 +252,26 @@ const resolve = async ({
       depth: depth + 1,
       maxDepth,
       languages,
+      cache,
     });
     debug(`resolve: with ${Object.keys(resolvedPendings).length} pending entities`);
 
     // console.log(resolvedPendings);
-    return lodash.mapValues(result.entities, (d) => {
+    index = lodash.mapValues(result.entities, (d) => {
       d.resolvePendings(resolvedPendings);
       return d.toJSON();
     });
+  } else {
+    index = lodash.mapValues(result.entities, d => d.toJSON());
   }
 
-  return lodash.mapValues(result.entities, d => d.toJSON());
+  if (cache) {
+    // save
+    debug('saving results in cache');
+    await cache.set(cacheKey, JSON.stringify(index));
+  }
+
+  return index;
 };
 
 module.exports = {
