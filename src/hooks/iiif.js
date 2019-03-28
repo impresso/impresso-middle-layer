@@ -57,7 +57,6 @@ const assignIIIF = (...props) => async (context) => {
     });
     return _d;
   };
-  // find method
   if (context.method === 'find' && context.result.data && context.result.data.length) {
     debug(`proxy: <n. results>: ${context.result.data.length} <host>: ${config.proxy.host}, <keys>: ${props}`);
     context.result.data = context.result.data.map(_recursiveReplace);

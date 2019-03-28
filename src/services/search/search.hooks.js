@@ -18,7 +18,7 @@ const resolveQueryComponents = () => async (context) => {
       if (!Array.isArray(d.q)) {
         d.item = Newspaper.getCached(d.q);
       }
-    } else if(d.type === 'topic') {
+    } else if (d.type === 'topic') {
       if (!Array.isArray(d.q)) {
         d.item = Topic.getCached(d.q);
       }
@@ -26,7 +26,7 @@ const resolveQueryComponents = () => async (context) => {
     return d;
   });
   context.params.sanitized.queryComponents = qc;
-}
+};
 
 const filtersValidator = {
   context: {

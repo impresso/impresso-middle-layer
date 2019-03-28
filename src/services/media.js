@@ -34,7 +34,7 @@ module.exports = function (app) {
         res.send('fin');
         res.end();
       } else {
-        res.locals.accessToken = accessToken;
+        res.locals.accessToken = accessToken.replace(/Bearer\s+/, '');
         next();
       }
     },
