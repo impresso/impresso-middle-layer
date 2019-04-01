@@ -3,6 +3,9 @@ const { assignIIIF } = require('../../hooks/iiif');
 const {
   utils, validate, queryWithCommonParams,
 } = require('../../hooks/params');
+const {
+  qToSolrFilter, filtersToSolrQuery,
+} = require('../../hooks/search');
 
 module.exports = {
   before: {
@@ -18,7 +21,33 @@ module.exports = {
           },
           defaultValue: 'relevance',
         }),
+        facets: utils.facets({
+          values: {
+            year: {
+              type: 'terms',
+              field: 'meta_year_i',
+              mincount: 1,
+              limit: 400,
+            },
+            newspaper: {
+              type: 'terms',
+              field: 'meta_journal_s',
+              mincount: 1,
+              limit: 20,
+              numBuckets: true,
+            },
+            date: {
+              type: 'terms',
+              field: 'meta_date_dt',
+              mincount: 1,
+              limit: 100,
+            },
+          },
+        }),
       }),
+
+      qToSolrFilter('string'),
+      filtersToSolrQuery(['newspaper', 'year', 'type', 'daterange', 'isFront']),
       queryWithCommonParams(),
     ],
     get: [],
