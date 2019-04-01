@@ -33,7 +33,9 @@ module.exports = {
     find: [
       assignIIIF('pages', 'regions'),
     ],
-    get: [],
+    get: [
+      assignIIIF('pages', 'regions'),
+    ],
     create: [],
     update: [],
     patch: [],
