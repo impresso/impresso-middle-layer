@@ -1,11 +1,34 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const { assignIIIF } = require('../../hooks/iiif');
 const {
-  utils, validate, queryWithCommonParams,
+  utils, validate, validateEach, queryWithCommonParams,
 } = require('../../hooks/params');
 const {
   qToSolrFilter, filtersToSolrQuery,
 } = require('../../hooks/search');
+const filtersValidator = {
+  context: {
+    choices: ['include', 'exclude'],
+    defaultValue: 'include',
+  },
+  type: {
+    choices: ['newspaper', 'year', 'type', 'daterange', 'isFront'],
+    required: true,
+  },
+  q: {
+    required: false,
+    min_length: 2,
+    max_length: 500,
+  },
+  // compatible only with type daterange, unused elsewhere.
+  // If it is an array, an OR will be used to JOIN the array items..
+  // ex: ['* TO 1950-12-01', '1960-01-01 TO 1940-12-01']
+  // q= ... AND (date_e:[* TO 1950-12-01] OR date_s:[1960-01-01 TO 1940-12-01])
+  daterange: {
+    regex: /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) TO (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/,
+    required: false,
+  },
+};
 
 module.exports = {
   before: {
@@ -45,7 +68,9 @@ module.exports = {
           },
         }),
       }),
-
+      validateEach('filters', filtersValidator, {
+        required: false,
+      }),
       qToSolrFilter('string'),
       filtersToSolrQuery(['newspaper', 'year', 'type', 'daterange', 'isFront']),
       queryWithCommonParams(),
