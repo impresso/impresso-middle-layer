@@ -283,7 +283,11 @@ const filtersToSolrQuery = () => async (context) => {
  * @return {[type]}        [description]
  */
 const filtersToSolrFacetQuery = () => async (context) => {
-  if (typeof context.params.sanitized !== 'object' || !context.params.sanitized.facets) {
+  if (!context.params.sanitized.facets) {
+    debug('\'filtersToSolrFacetQuery\' warning, no facets requested.');
+    return;
+  }
+  if (typeof context.params.sanitized !== 'object') {
     throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
   }
   const facets = JSON.parse(context.params.sanitized.facets);
