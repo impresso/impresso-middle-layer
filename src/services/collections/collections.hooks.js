@@ -8,8 +8,7 @@ const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.mode
 module.exports = {
   before: {
     all: [
-
-
+      authenticate('jwt'),
     ],
     find: [
       validate({
@@ -38,7 +37,6 @@ module.exports = {
     ],
     get: [],
     create: [
-      authenticate('jwt'),
       validate({
         // request must contain a name - from which we will create a UID
         name: {
@@ -61,7 +59,6 @@ module.exports = {
     ],
     update: [],
     patch: [
-      authenticate('jwt'),
       validate({
         // request must contain a name - from which we will create a UID
         name: {
@@ -77,7 +74,6 @@ module.exports = {
       }, 'POST'),
     ],
     remove: [
-      authenticate('jwt'),
     ],
   },
 
