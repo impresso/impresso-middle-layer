@@ -18,21 +18,13 @@ class Service {
   async find(params) {
     const where = {
       $not: { status: Collection.STATUS_DELETED },
-      $and: [],
-    };
-
-    if (params.user) {
-      where.$and.push({
+      $and: [{
         $or: [
           { creatorId: params.user.id },
           { status: Collection.STATUS_PUBLIC },
         ],
-      });
-    } else {
-      where.$and.push({
-        status: Collection.STATUS_PUBLIC,
-      });
-    }
+      }],
+    };
 
     if (params.query.uids) {
       where.$and.push({
