@@ -1,10 +1,12 @@
 const { queryWithCommonParams, validate } = require('../../hooks/params');
-
+const { authenticate } = require('@feathersjs/authentication').hooks;
 
 module.exports = {
   before: {
     all: [
-
+      authenticate('jwt', {
+        allowUnauthenticated: true,
+      }),
     ],
     find: [
       validate({
