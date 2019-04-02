@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:images');
 const SolrService = require('../solr.service');
+const Image = require('../../models/images.model');
 
 class Service {
   constructor({
@@ -17,17 +18,18 @@ class Service {
   }
 
   async find(params) {
-    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query, params);
+    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
     return this.SolrService.find({
       ...params,
-      fl: '*',
+      fl: Image.SOLR_FL,
     });
   }
 
   async get(id, params) {
-    return {
-      id, text: `A new message with ID: ${id}!`,
-    };
+    debug(`get '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
+    return this.SolrService.get(id, {
+      fl: Image.SOLR_FL,
+    });
   }
 
   async create(data, params) {
