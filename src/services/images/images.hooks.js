@@ -6,6 +6,7 @@ const {
 const {
   qToSolrFilter, filtersToSolrQuery,
 } = require('../../hooks/search');
+
 const filtersValidator = {
   context: {
     choices: ['include', 'exclude'],

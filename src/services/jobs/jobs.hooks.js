@@ -30,9 +30,9 @@ module.exports = {
           choices: ['stop'],
           defaultValue: '-modified',
           transform: d => utils.translate(d, {
-            stop: 'STO'
+            stop: 'STO',
           }),
-        }
+        },
       }, 'POST'),
     ],
     remove: [],

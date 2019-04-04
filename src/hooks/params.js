@@ -501,7 +501,7 @@ const validateEach = (paramName, validators, options = {}) => {
         // console.log(_error);
         throw new errors.BadRequest(_error);
       }
-      debug(`validateEach: ${opts.required ? 'required': 'optional'} ${paramName} not found in '${opts.method}' or is not an Array or it is empty. Received:`, toBeValidated);
+      debug(`validateEach: ${opts.required ? 'required' : 'optional'} ${paramName} not found in '${opts.method}' or is not an Array or it is empty. Received:`, toBeValidated);
       // throw new Error(`The param ${paramName} should exist and be an array.`);
       return;
     }
