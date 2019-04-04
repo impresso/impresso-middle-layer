@@ -36,8 +36,10 @@ const getCeleryClient = (config, app) => {
           task: msg.result.task,
           job: {
             id: msg.result.job_id,
+            type: msg.result.job_type,
             status: msg.result.job_status,
             progress: msg.result.progress,
+            creationDate: msg.result.job_created, // : '2019-04-04T08:54:12.067946+00:00',
           },
           msg: JOB_STATUS_TRANSLATIONS[msg.result.job_status],
           to: msg.result.user_uid,

@@ -24,7 +24,17 @@ module.exports = {
     get: [],
     create: [],
     update: [],
-    patch: [],
+    patch: [
+      validate({
+        status: {
+          choices: ['stop'],
+          defaultValue: '-modified',
+          transform: d => utils.translate(d, {
+            stop: 'STO'
+          }),
+        }
+      }, 'POST'),
+    ],
     remove: [],
   },
 

@@ -70,7 +70,7 @@ const getTopics = async ({ q = '', config = {}, params = {} } = {}) => {
 const getCollections = async ({
   q = '', app, user, params = {},
 } = {}) => {
-  if (!q.length) {
+  if (!q.length || !user || !user.id) {
     return [];
   }
   const results = await app.service('collections').find({
