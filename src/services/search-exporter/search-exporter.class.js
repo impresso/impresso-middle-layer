@@ -29,6 +29,8 @@ class Service {
         q,
         // user id
         params.user.id,
+        // description
+        data.sanitized.description || '',
       ],
     }).catch((err) => {
       if (err.result.exc_type === 'DoesNotExist') {
