@@ -1,5 +1,5 @@
 const logger = require('winston');
-const debug = require('debug')('impresso/proxy');
+const debug = require('debug')('verbose:impresso/proxy');
 const proxy = require('http-proxy-middleware');
 const modifyResponse = require('node-http-proxy-json');
 const nodePath = require('path');
