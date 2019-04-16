@@ -17,10 +17,14 @@ const resolveQueryComponents = () => async (context) => {
     if (d.type === 'newspaper') {
       if (!Array.isArray(d.q)) {
         d.item = Newspaper.getCached(d.q);
+      } else {
+        d.items = d.q.map(uid => Newspaper.getCached(uid));
       }
     } else if (d.type === 'topic') {
       if (!Array.isArray(d.q)) {
         d.item = Topic.getCached(d.q);
+      } else {
+        d.items = d.q.map(uid => Newspaper.getCached(uid));
       }
     }
     return d;
