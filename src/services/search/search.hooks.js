@@ -24,7 +24,7 @@ const resolveQueryComponents = () => async (context) => {
       if (!Array.isArray(d.q)) {
         d.item = Topic.getCached(d.q);
       } else {
-        d.items = d.q.map(uid => Newspaper.getCached(uid));
+        d.items = d.q.map(uid => Topic.getCached(uid));
       }
     }
     return d;
