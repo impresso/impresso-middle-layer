@@ -124,10 +124,10 @@ class Article {
     content = '',
     size = 0,
     // dl = 0,
-    issue = new Issue(),
+    issue = null,
     // labels = [],
 
-    newspaper = new Newspaper(),
+    newspaper = null,
 
     pages = [],
     // regions = [],
@@ -177,8 +177,16 @@ class Article {
 
     this.size = parseInt(size, 10);
 
-    this.issue = issue;
-    this.newspaper = newspaper;
+    if(issue instanceof Issue) {
+      this.issue = issue;
+    } else if (issue) {
+      this.issue = new Issue({ uid: issue });
+    }
+    if(newspaper instanceof Newspaper) {
+      this.newspaper = newspaper;
+    } else if (newspaper) {
+      this.newspaper = new Newspaper({ uid: newspaper });
+    }
     // this.issue =
     this.pages = pages;
     this.collections = collections;
