@@ -1,6 +1,7 @@
 const Page = require('./pages.model');
 const Issue = require('./issues.model');
 const Newspaper = require('./newspapers.model');
+const Article = require('./articles.model');
 
 class Image {
   constructor({
@@ -13,6 +14,7 @@ class Image {
     year = 0,
     isFront = false,
     pages = [],
+    article = null,
   } = {}) {
     this.uid = String(uid);
     this.year = parseInt(year, 10);
@@ -40,6 +42,12 @@ class Image {
     } else {
       this.issue = new Issue(issue);
     }
+
+    if (article instanceof Article) {
+      this.article = article;
+    } else if (typeof article === 'string') {
+      this.article = article;
+    }
   }
 
   /**
@@ -49,7 +57,6 @@ class Image {
    */
   static solrFactory() {
     return (doc) => {
-      console.log(doc);
       const img = new Image({
         uid: doc.id,
         newspaper: new Newspaper({
@@ -65,8 +72,9 @@ class Image {
         type: doc.item_type_s,
         year: doc.meta_year_i,
         date: doc.meta_date_dt,
-        coords: doc.iiif_box,
+        coords: doc.coords_is,
         isFront: doc.front_b,
+        article: doc.linked_art_s,
       });
       return img;
     };
@@ -76,6 +84,7 @@ class Image {
 module.exports = Image;
 module.exports.SOLR_FL = [
   'id',
+  'coords_is',
   'meta_ed_s',
   'meta_issue_id_s',
   'page_nb_is',
