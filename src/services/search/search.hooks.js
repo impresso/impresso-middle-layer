@@ -37,6 +37,10 @@ const filtersValidator = {
     choices: ['include', 'exclude'],
     defaultValue: 'include',
   },
+  op: {
+    choices: ['AND', 'OR'],
+    defaultValue: 'OR',
+  },
   type: {
     choices: SOLR_FILTER_TYPES,
     required: true,

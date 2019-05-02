@@ -25,8 +25,10 @@ const SOLR_FILTER_DPF = {
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   let qq = '';
+  const op = filter.op || 'OR';
+
   if (Array.isArray(filter.q)) {
-    qq = filter.q.map(value => `${field}:${value}`).join(' OR ');
+    qq = filter.q.map(value => `${field}:${value}`).join(` ${op} `);
   } else {
     qq = `${field}:${filter.q}`;
   }
@@ -127,6 +129,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
 
 
 const filtersToSolr = (type, filters) => {
+  debug('filtersToSolr', type, filters);
   switch (type) {
     case 'hasTextContents':
       return 'content_length_i:[1 TO *]';
@@ -149,7 +152,9 @@ const filtersToSolr = (type, filters) => {
     case 'newspaper':
       return reduceFiltersToSolr(filters, 'meta_journal_s');
     case 'topic':
-      return reduceFiltersToSolr(filters, 'topics_dpfs');
+      const a = reduceFiltersToSolr(filters, 'topics_dpfs');
+      debug('TOPICO', a);
+      return a;
     case 'year':
       return reduceFiltersToSolr(filters, 'meta_year_i');
     case 'type':
