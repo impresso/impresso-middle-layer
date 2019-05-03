@@ -11,9 +11,16 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 
 const Newspaper = require('../../models/newspapers.model');
 const Topic = require('../../models/topics.model');
+const Collection = require('../../models/collections.model');
+
 
 const resolveQueryComponents = () => async (context) => {
-  const qc = context.params.sanitized.queryComponents.map((d) => {
+  console.log('resolveQueryComponents', context.params.sanitized.queryComponents);
+  for(let i = 0, l=context.params.sanitized.queryComponents.length; i < l; i += 1) {
+    const d = {
+      ...context.params.sanitized.queryComponents[i],
+    };
+    console.log(d);
     if (d.type === 'newspaper') {
       if (!Array.isArray(d.q)) {
         d.item = Newspaper.getCached(d.q);
@@ -26,10 +33,16 @@ const resolveQueryComponents = () => async (context) => {
       } else {
         d.items = d.q.map(uid => Topic.getCached(uid));
       }
+    } else if (d.type === 'collection') {
+      d.items = await context.app.service('collections').find({
+        user: context.params.user,
+        query: {
+          uids: d.q,
+        },
+      }).then(res => res.data);
     }
-    return d;
-  });
-  context.params.sanitized.queryComponents = qc;
+    context.params.sanitized.queryComponents[i] = d;
+  }
 };
 
 const filtersValidator = {
