@@ -208,6 +208,18 @@ class Service {
     }));
 
     const results = await this.SequelizeService.bulkCreate(items);
+
+    const client = this.app.get('celeryClient');
+    if (client) {
+      client.run({
+        task: 'impresso.tasks.store_collection',
+        args: [
+          // collection_uid
+          collection.uid,
+        ],
+      })
+    }
+
     return {
       data: results.map(d => d.toJSON()),
       info: {
