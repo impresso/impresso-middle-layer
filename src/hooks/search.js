@@ -53,12 +53,15 @@ const reduceFiltersToVars = filters => filters.reduce((sq, filter) => {
 const reduceDaterangeFiltersToSolr = filters => filters
   .reduce((sq, filter) => {
     let q;
-    if (Array.isArray(filter.daterange)) {
-      q = `(${filter.daterange.join('OR')})`;
+    if (Array.isArray(filter.q)) {
+      q = `${filter.q.map(d => `meta_date_dt:[${d}]`).join(' OR ')}`;
     } else {
-      q = `meta_date_dt:[${filter.daterange}]`;
+      q = `meta_date_dt:[${filter.q}]`;
     }
-    sq.push(filter.context === 'exclude' ? `NOT (${q})` : q);
+    if (filter.context === 'exclude') {
+      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+    }
+    sq.push(q);
     return sq;
   }, []).join(' AND ');
 

@@ -13,7 +13,7 @@ const filtersValidator = {
     defaultValue: 'include',
   },
   type: {
-    choices: ['newspaper', 'year', 'type', 'daterange', 'isFront'],
+    choices: ['issue', 'newspaper', 'year', 'type', 'daterange', 'isFront'],
     required: true,
   },
   q: {
