@@ -42,6 +42,10 @@ class Service {
       countArticles: results[0].response.numFound,
     });
   }
+
+  async find(params) {
+    return this.SequelizeService.find(params);
+  }
 }
 
 module.exports = function (options) {
