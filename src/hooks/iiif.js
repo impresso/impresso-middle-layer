@@ -1,13 +1,16 @@
 const debug = require('debug')('impresso/hooks:iiif');
 const config = require('@feathersjs/configuration')()();
+const endpoint = `${config.proxy.host}/proxy/iiif`;
 
-const _getIIIF = uid => `${config.proxy.host}/proxy/iiif/${uid}/info.json`;
+const getJSON = uid => `${endpoint}/${uid}/info.json`;
+const getThumbnail = (uid, { dim = '150,' } = {}) => `${endpoint}/${uid}/full/${dim}/0/default.png`;
+const getFragment = (uid, { coords, dim = 'full' } = {}) => `${endpoint}/${uid}/${coords.join(',')}/${dim}/0/default.png`;
 
 const _IIIFmapper = (context, fromKey = 'uid', toKey = 'iiif') => (d) => {
   const _d = {
     ...d,
   };
-  _d[toKey] = _getIIIF(d[fromKey]);
+  _d[toKey] = getJSON(d[fromKey]);
   return _d;
 };
 
@@ -86,4 +89,7 @@ module.exports = {
   // proxyIIIFWithMapper,
   assignIIIF,
   proxyIIIFOnKey,
+  getJSON,
+  getThumbnail,
+  getFragment,
 };
