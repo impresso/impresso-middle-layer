@@ -3,7 +3,7 @@ const Newspaper = require('./newspapers.model');
 const Issue = require('./issues.model');
 const ArticleEntity = require('./articles-entities.model');
 const ArticleTag = require('./articles-tags.model');
-
+const { getJSON, getThumbnail } = require('../hooks/iiif.js');
 
 class Page {
   constructor({
@@ -16,7 +16,7 @@ class Page {
     // has json errors
     hasErrors = false,
     // number of articles
-    countArticles = 0,
+    countArticles = -1,
 
     // All user ArticleTag instances on this pages
     articlesTags = [],
@@ -26,6 +26,10 @@ class Page {
 
     // All collections for this page
     collections = [],
+
+    // issue_uid
+    issue_uid,
+    newspaper_uid,
   } = {}, complete = false) {
     this.uid = String(uid);
 
@@ -36,11 +40,26 @@ class Page {
       this.num = parseInt(num, 10);
     }
     // if any is provided
-    this.iiif = String(iiif);
+    console.log('IIIIF', this.uid);
+    this.iiif = getJSON(this.uid);
+    this.iiifThumbnail = getThumbnail(this.uid);
+
     this.labels = labels;
-    this.countArticles = parseInt(countArticles, 10);
+
+    if (countArticles > -1) {
+      this.countArticles = parseInt(countArticles, 10);
+    }
+
     this.hasCoords = Boolean(hasCoords);
     this.hasErrors = Boolean(hasErrors);
+
+    if (issue_uid) {
+      this.issueUid = issue_uid;
+    }
+
+    if (newspaper_uid) {
+      this.newspaper = Newspaper.getCached(newspaper_uid);
+    }
 
     if (complete) {
       this.articlesEntities = articlesEntities.map((d) => {
@@ -112,6 +131,10 @@ class Page {
     page.belongsTo(issue, {
       foreignKey: 'issue_id',
     });
+
+    page.prototype.toJSON = function () {
+      return new Page(this.get());
+    };
 
     return page;
   }

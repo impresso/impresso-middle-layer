@@ -20,12 +20,8 @@ module.exports = {
 
   after: {
     all: [],
-    find: [
-      assignIIIF(),
-    ],
-    get: [
-      assignIIIF(),
-    ],
+    find: [],
+    get: [],
     create: [],
     update: [],
     patch: [],

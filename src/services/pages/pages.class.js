@@ -36,11 +36,8 @@ class Service {
       throw new NotFound();
     }
     // initialize page after solr
-    return new Page({
-      ...results[1].toJSON(),
-      uid: id,
-      countArticles: results[0].response.numFound,
-    });
+    results[1].countArticles = results[0].response.numFound;
+    return results[1];
   }
 
   async find(params) {
