@@ -1,11 +1,38 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const { assignIIIF } = require('../../hooks/iiif');
 const {
-  utils, validate, validateEach, queryWithCommonParams,
+  utils, validate, validateEach, queryWithCommonParams, displayQueryParams,
 } = require('../../hooks/params');
 const {
   qToSolrFilter, filtersToSolrQuery,
 } = require('../../hooks/search');
+
+const Newspaper = require('../../models/newspapers.model');
+const Topic = require('../../models/topics.model');
+
+
+const resolveQueryComponents = () => async (context) => {
+  console.log('resolveQueryComponents', context.params.sanitized.queryComponents);
+  for(let i = 0, l=context.params.sanitized.queryComponents.length; i < l; i += 1) {
+    const d = {
+      ...context.params.sanitized.queryComponents[i],
+    };
+    if (d.type === 'newspaper') {
+      if (!Array.isArray(d.q)) {
+        d.item = Newspaper.getCached(d.q);
+      } else {
+        d.items = d.q.map(uid => Newspaper.getCached(uid));
+      }
+    } else if (d.type === 'topic') {
+      if (!Array.isArray(d.q)) {
+        d.item = Topic.getCached(d.q);
+      } else {
+        d.items = d.q.map(uid => Topic.getCached(uid));
+      }
+    }
+    context.params.sanitized.queryComponents[i] = d;
+  }
+};
 
 const filtersValidator = {
   context: {
@@ -42,8 +69,10 @@ module.exports = {
           values: {
             relevance: 'score ASC',
             '-relevance': 'score DESC',
+            date: 'meta_date_dt ASC',
+            '-date': 'meta_date_dt DESC',
           },
-          defaultValue: 'relevance',
+          defaultValue: 'date',
         }),
         facets: utils.facets({
           values: {
@@ -87,6 +116,8 @@ module.exports = {
     all: [],
     find: [
       assignIIIF('pages', 'regions'),
+      displayQueryParams(['queryComponents', 'filters']),
+      resolveQueryComponents(),
     ],
     get: [
       assignIIIF('pages', 'regions'),
