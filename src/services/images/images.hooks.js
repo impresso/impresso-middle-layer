@@ -10,9 +10,22 @@ const {
 const Newspaper = require('../../models/newspapers.model');
 const Topic = require('../../models/topics.model');
 
+const resolveFacets = () => async(context) => {
+  if(context.result && context.result.info && context.result.info.facets) {
+    // enrich facets
+    if(context.result.info.facets.newspaper) {
+      context.result.info.facets.newspaper.buckets = context.result.info.facets.newspaper.buckets.map(d => ({
+        ...d,
+        item: Newspaper.getCached(d.val),
+        uid: d.val,
+      }));
+    }
+  }
+  console.log('resolveFacets', context.result.info.facets.newspaper);
+
+}
 
 const resolveQueryComponents = () => async (context) => {
-  console.log('resolveQueryComponents', context.params.sanitized.queryComponents);
   for(let i = 0, l=context.params.sanitized.queryComponents.length; i < l; i += 1) {
     const d = {
       ...context.params.sanitized.queryComponents[i],
@@ -116,6 +129,7 @@ module.exports = {
     all: [],
     find: [
       assignIIIF('pages', 'regions'),
+      resolveFacets(),
       displayQueryParams(['queryComponents', 'filters']),
       resolveQueryComponents(),
     ],
