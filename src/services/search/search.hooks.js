@@ -2,48 +2,13 @@ const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
 } = require('../../hooks/params');
 const {
-  filtersToSolrQuery, qToSolrFilter, filtersToSolrFacetQuery,
+  filtersToSolrQuery, qToSolrFilter,
   SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
 } = require('../../hooks/search');
+const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info');
 const { assignIIIF } = require('../../hooks/iiif');
 const { protect } = require('@feathersjs/authentication-local').hooks;
 const { authenticate } = require('@feathersjs/authentication').hooks;
-
-const Newspaper = require('../../models/newspapers.model');
-const Topic = require('../../models/topics.model');
-const Collection = require('../../models/collections.model');
-
-
-const resolveQueryComponents = () => async (context) => {
-  console.log('resolveQueryComponents', context.params.sanitized.queryComponents);
-  for(let i = 0, l=context.params.sanitized.queryComponents.length; i < l; i += 1) {
-    const d = {
-      ...context.params.sanitized.queryComponents[i],
-    };
-    console.log(d);
-    if (d.type === 'newspaper') {
-      if (!Array.isArray(d.q)) {
-        d.item = Newspaper.getCached(d.q);
-      } else {
-        d.items = d.q.map(uid => Newspaper.getCached(uid));
-      }
-    } else if (d.type === 'topic') {
-      if (!Array.isArray(d.q)) {
-        d.item = Topic.getCached(d.q);
-      } else {
-        d.items = d.q.map(uid => Topic.getCached(uid));
-      }
-    } else if (d.type === 'collection') {
-      d.items = await context.app.service('collections').find({
-        user: context.params.user,
-        query: {
-          uids: d.q,
-        },
-      }).then(res => res.data);
-    }
-    context.params.sanitized.queryComponents[i] = d;
-  }
-};
 
 const filtersValidator = {
   context: {

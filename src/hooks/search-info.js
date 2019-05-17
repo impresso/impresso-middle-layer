@@ -3,6 +3,48 @@ const debug = require('debug')('impresso/hooks:facets');
 const Newspaper = require('../models/newspapers.model');
 const Topic = require('../models/topics.model');
 
+/**
+ * check if there are any params to be added to our beloved facets.
+ * This hook **must** follow facets validation.
+ * @return {[type]}        [description]
+ */
+const filtersToSolrFacetQuery = () => async (context) => {
+  if (!context.params.sanitized.facets) {
+    debug('\'filtersToSolrFacetQuery\' warning, no facets requested.');
+    return;
+  }
+  if (typeof context.params.sanitized !== 'object') {
+    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+  }
+  const facets = JSON.parse(context.params.sanitized.facets);
+  const facetFields = Object.keys(facets);
+  debug('\'filtersToSolrFacetQuery\' on facets:', facets);
+
+  // prefix facet with user id...
+  if(facets.collection) {
+    if (context.params && context.params.user) {
+      debug(`'filtersToSolrFacetQuery' on user collection ${context.params.user.uid}`);
+      facets.collection.prefix = context.params.user.uid;
+    }
+  }
+
+  if (!Array.isArray(context.params.sanitized.facetfilters)) {
+    context.params.sanitized.facetfilters = [];
+  }
+
+  // apply facets recursively based on facet name
+  facetFields.forEach((key) => {
+    const filter = context.params.sanitized.facetfilters.find(d => d.name === key);
+    if (filter) {
+      debug(`filtersToSolrFacetQuery' on facet ${key}:`, filter);
+    }
+  });
+  // rewrite facets json
+  debug('\'filtersToSolrFacetQuery\' facets rewritten:', facets);
+  context.params.sanitized.facets = JSON.stringify(facets);
+};
+
+
 const resolveFacets = () => async(context) => {
   if(context.result && context.result.info && context.result.info.facets) {
     // enrich facets
@@ -59,6 +101,7 @@ const resolveQueryComponents = () => async (context) => {
 };
 
 module.exports = {
+  filtersToSolrFacetQuery,
   resolveFacets,
   resolveQueryComponents,
 }
