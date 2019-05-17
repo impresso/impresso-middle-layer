@@ -2,6 +2,7 @@ const Page = require('./pages.model');
 const Issue = require('./issues.model');
 const Newspaper = require('./newspapers.model');
 const Article = require('./articles.model');
+const { getFragment } = require('../hooks/iiif.js');
 
 class Image {
   constructor({
@@ -25,6 +26,7 @@ class Image {
     this.regions = pages.map(page => ({
       pageUid: page.uid,
       coords,
+      iiifFragment: getFragment(page.uid, { coords, dim: '250,' }),
     }));
 
     if (date instanceof Date) {

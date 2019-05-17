@@ -1,5 +1,4 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
-const { assignIIIF } = require('../../hooks/iiif');
 const {
   utils, validate, validateEach, queryWithCommonParams, displayQueryParams,
 } = require('../../hooks/params');
@@ -93,14 +92,11 @@ module.exports = {
   after: {
     all: [],
     find: [
-      assignIIIF('pages', 'regions'),
       resolveFacets(),
       displayQueryParams(['queryComponents', 'filters']),
       resolveQueryComponents(),
     ],
-    get: [
-      assignIIIF('pages', 'regions'),
-    ],
+    get: [],
     create: [],
     update: [],
     patch: [],
