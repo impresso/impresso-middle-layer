@@ -30,10 +30,12 @@ class Newspaper {
 
     const indexed = newspapersIndex.getValue(this.uid);
 
-    if (!name.length && indexed) {
+    if (indexed) {
       this.name = indexed.name;
       this.endYear = parseInt(indexed.endYear, 10);
       this.startYear = parseInt(indexed.startYear, 10);
+      this.firstIssue = indexed.firstIssue;
+      this.lastIssue = indexed.lastIssue;
       this.languages = indexed.languages;
       this.countArticles = parseInt(indexed.countArticles, 10);
       this.countIssues = parseInt(indexed.countIssues, 10);
