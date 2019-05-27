@@ -3,11 +3,9 @@ const createService = require('./articles-suggestions.class.js');
 const hooks = require('./articles-suggestions.hooks');
 
 module.exports = function (app) {
-  
-  const paginate = app.get('paginate');
-
   const options = {
-    paginate
+    app,
+    name: 'articles-suggestions',
   };
 
   // Initialize our service with any options it requires

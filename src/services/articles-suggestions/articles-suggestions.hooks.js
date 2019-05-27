@@ -1,14 +1,26 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
+const { queryWithCommonParams, validate } = require('../../hooks/params');
 
 module.exports = {
   before: {
-    all: [ authenticate('jwt') ],
-    find: [],
-    get: [],
+    all: [authenticate('jwt')],
+    find: [
+    ],
+    get: [
+      // give article id, we should provide the correct method
+      validate({
+        method: {
+          choices: ['topics'],
+          defaultValue: 'topics',
+        },
+      }),
+      queryWithCommonParams(),
+
+    ],
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
@@ -18,7 +30,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -28,6 +40,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };
