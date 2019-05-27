@@ -204,6 +204,23 @@ const findAll = (config, params = {}, factory) => {
 };
 
 /**
+ * Return a classic data response for lazy people
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+const wrapAll = (res) => ({
+  data: res.response.docs,
+  total: res.response.numFound,
+  limit: parseInt(res.responseHeader.params.rows, 10),
+  skip:  parseInt(res.responseHeader.params.start, 10),
+  info: {
+    responseTime: {
+      solr: res.responseHeader.QTime,
+    },
+  },
+});
+
+/**
  * [resolveAsync description]
  *
  * @param  {Object} config configuration item
@@ -235,8 +252,8 @@ const getSolrClient = config => ({
   findAll: (params, factory) => findAll(config, params, factory),
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
-
   utils: {
+    wrapAll,
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
   },
 });
