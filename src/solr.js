@@ -168,15 +168,32 @@ const findAll = (config, params = {}, factory) => {
 
   }
 
+  let opts = {
+    method: 'GET',
+    url: endpoint,
+    auth: config.auth,
+    // qs,
+    // form: _params.form,
+    // json: true REMOVED because of duplicate keys
+  };
+
+  if (_params.form) {
+    opts.form = _params.form;
+    opts.form.fq = _params.fq;
+    opts.qs = {
+      start: _params.skip,
+      rows: _params.limit,
+    };
+    // opts.form.q = opts.form.q + ' AND ' +
+    opts.method = 'POST';
+  } else {
+    opts.qs = qs;
+  }
+
 
   debug(`findAll: request to '${_params.namespace}' endpoint. With 'qs':`, qs);
   debug('\'findAll\': url', endpoint);
-  return rp({
-    url: endpoint,
-    auth: config.auth,
-    qs,
-    // json: true REMOVED because of duplicate keys
-  }).then((res) => {
+  return rp(opts).then((res) => {
     // dummy handle dupes keys
     const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
 
