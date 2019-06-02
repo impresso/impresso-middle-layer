@@ -1,6 +1,6 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  utils, validate, validateEach, queryWithCommonParams, displayQueryParams,
+  utils, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
 } = require('../../hooks/params');
 const {
   qToSolrFilter, filtersToSolrQuery,
@@ -51,6 +51,14 @@ module.exports = {
           },
           defaultValue: 'date',
         }),
+        similarTo: {
+          regex: REGEX_UID,
+          required: false,
+        },
+        vectorType: {
+          values: ['InceptionResNetV2'],
+          defaultValue: 'InceptionResNetV2',
+        },
         facets: utils.facets({
           values: {
             year: {
