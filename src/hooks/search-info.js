@@ -1,4 +1,4 @@
-const debug = require('debug')('impresso/hooks:facets');
+const debug = require('debug')('impresso/hooks:search-info');
 
 const Newspaper = require('../models/newspapers.model');
 const Topic = require('../models/topics.model');
@@ -21,7 +21,7 @@ const filtersToSolrFacetQuery = () => async (context) => {
   debug('\'filtersToSolrFacetQuery\' on facets:', facets);
 
   // prefix facet with user id...
-  if(facets.collection) {
+  if (facets.collection) {
     if (context.params && context.params.user) {
       debug(`'filtersToSolrFacetQuery' on user collection ${context.params.user.uid}`);
       facets.collection.prefix = context.params.user.uid;
@@ -45,10 +45,10 @@ const filtersToSolrFacetQuery = () => async (context) => {
 };
 
 
-const resolveFacets = () => async(context) => {
-  if(context.result && context.result.info && context.result.info.facets) {
+const resolveFacets = () => async (context) => {
+  if (context.result && context.result.info && context.result.info.facets) {
     // enrich facets
-    if(context.result.info.facets.newspaper) {
+    if (context.result.info.facets.newspaper) {
       debug('resolveFacets for newspaper');
       context.result.info.facets.newspaper.buckets = context.result.info.facets.newspaper.buckets.map(d => ({
         ...d,
@@ -57,7 +57,7 @@ const resolveFacets = () => async(context) => {
       }));
     }
 
-    if(context.result.info.facets.topic) {
+    if (context.result.info.facets.topic) {
       debug('resolveFacets for topics');
       context.result.info.facets.topic.buckets = context.result.info.facets.newspaper.buckets.map(d => ({
         ...d,
@@ -66,16 +66,15 @@ const resolveFacets = () => async(context) => {
       }));
     }
   }
-}
+};
 
 
 const resolveQueryComponents = () => async (context) => {
   debug('resolveQueryComponents', context.params.sanitized.queryComponents);
-  for(let i = 0, l=context.params.sanitized.queryComponents.length; i < l; i += 1) {
+  for (let i = 0, l = context.params.sanitized.queryComponents.length; i < l; i += 1) {
     const d = {
       ...context.params.sanitized.queryComponents[i],
     };
-    console.log(d);
     if (d.type === 'newspaper') {
       if (!Array.isArray(d.q)) {
         d.item = Newspaper.getCached(d.q);
@@ -95,6 +94,8 @@ const resolveQueryComponents = () => async (context) => {
           uids: d.q,
         },
       }).then(res => res.data);
+    } else {
+      debug('cannot resolve for type', d.type, 'item:', d);
     }
     context.params.sanitized.queryComponents[i] = d;
   }
@@ -104,4 +105,4 @@ module.exports = {
   filtersToSolrFacetQuery,
   resolveFacets,
   resolveQueryComponents,
-}
+};
