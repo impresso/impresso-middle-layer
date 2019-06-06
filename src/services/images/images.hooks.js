@@ -55,6 +55,10 @@ module.exports = {
           regex: REGEX_UID,
           required: false,
         },
+        similarToUploaded: {
+          regex: REGEX_UID,
+          required: false,
+        },
         vectorType: {
           values: ['InceptionResNetV2'],
           defaultValue: 'InceptionResNetV2',

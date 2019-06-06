@@ -30,9 +30,11 @@ class Service {
   }
 
   async get(id, params) {
-    return {
-      id, text: `A new message with ID: ${id}!`,
-    };
+    return this.SequelizeService.get(id, {
+      where: {
+        uid: id,
+      },
+    }).then(result => result.toJSON());
   }
 
   async create(data, params) {
