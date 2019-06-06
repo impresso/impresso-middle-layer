@@ -177,12 +177,12 @@ class Article {
 
     this.size = parseInt(size, 10);
 
-    if(issue instanceof Issue) {
+    if (issue instanceof Issue) {
       this.issue = issue;
     } else if (issue) {
       this.issue = new Issue({ uid: issue });
     }
-    if(newspaper instanceof Newspaper) {
+    if (newspaper instanceof Newspaper) {
       this.newspaper = newspaper;
     } else if (newspaper) {
       this.newspaper = new Newspaper({ uid: newspaper });
@@ -232,6 +232,7 @@ class Article {
       country: this.country,
     };
   }
+
   enrich(rc, lb, rb) {
     // get regions from rc field:
     // rc is a list of page objects, containing a r property
