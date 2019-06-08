@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services:entities');
 const lodash = require('lodash');
 const wikidata = require('../wikidata');
 const Entity = require('../../models/entities.model');
@@ -27,7 +28,7 @@ class Service {
       },
       where,
     });
-
+    debug(`'find' total:${result.total}`);
     // get wikidata ids
     const wkdIds = lodash(result.data)
       .map('wikidataId')
