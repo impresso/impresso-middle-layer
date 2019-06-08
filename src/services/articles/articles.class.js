@@ -105,7 +105,7 @@ class Service {
           ],
         },
       }).then(res => res.data);
-    } else if (uids.length > 20) {
+    } if (uids.length > 20) {
       return [];
     }
 

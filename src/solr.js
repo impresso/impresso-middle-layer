@@ -13,7 +13,6 @@ const update = (config, params = {}) => {
     ...params,
   };
 
-
   const url = `${config[p.namespace].update}?commit=${!!p.commit}`;
   const body = [{
     id: p.id,
@@ -80,7 +79,8 @@ const suggest = (config, params = {}, factory) => {
     );
     if (!results) {
       return [];
-    } else if (factory) {
+    }
+    if (factory) {
       results.suggestions = results.suggestions.map(factory());
     }
     return results.suggestions;
@@ -168,7 +168,7 @@ const findAll = (config, params = {}, factory) => {
 
   }
 
-  let opts = {
+  const opts = {
     method: 'GET',
     url: endpoint,
     auth: config.auth,
@@ -225,11 +225,11 @@ const findAll = (config, params = {}, factory) => {
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
  */
-const wrapAll = (res) => ({
+const wrapAll = res => ({
   data: res.response.docs,
   total: res.response.numFound,
   limit: parseInt(res.responseHeader.params.rows, 10),
-  skip:  parseInt(res.responseHeader.params.start, 10),
+  skip: parseInt(res.responseHeader.params.start, 10),
   info: {
     responseTime: {
       solr: res.responseHeader.QTime,

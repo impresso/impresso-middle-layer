@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:articles-tags');
-const Neo4jService = require('../neo4j.service').Service;
 const shash = require('short-hash');
 const { NotImplemented } = require('@feathersjs/errors');
+const Neo4jService = require('../neo4j.service').Service;
 
 class Service extends Neo4jService {
   async create(data, params) {

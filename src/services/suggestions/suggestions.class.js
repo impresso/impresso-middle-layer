@@ -17,8 +17,7 @@ const isPlainText = q =>
   // exclude suggestion when there is a complete regexp
   !q.match(/^\/|\/$/);
 
-const makePlainText = q =>
-  q.replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '').trim();
+const makePlainText = q => q.replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '').trim();
 
 const getNewspapers = async ({ app, params = {} } = {}) => {
   if (!isPlainText(params.query.q)) {

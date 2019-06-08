@@ -29,7 +29,7 @@ class NamedEntity {
       this.images = claims.P18.map(d => ({
         value: d.mainsnak.datavalue.value,
         rank: d.rank,
-        datatype: d.mainsnak.datatype
+        datatype: d.mainsnak.datatype,
       }));
     } else {
       this.images = [];

@@ -13,6 +13,7 @@ class Service {
       name,
     });
   }
+
   /**
    * get a single newspaper.
    * @param  {String}  id     uid or acronym of the newspaper
