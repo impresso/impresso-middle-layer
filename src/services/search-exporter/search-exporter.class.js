@@ -29,6 +29,8 @@ class Service {
         q,
         // user id
         params.user.id,
+        // description
+        data.sanitized.description || '',
       ],
     }).catch((err) => {
       if (err.result.exc_type === 'DoesNotExist') {
@@ -41,6 +43,7 @@ class Service {
       throw new NotImplemented();
     });
   }
+
   async find(params) {
     // override params limit according to user role.
     params.query.limit = 2;
@@ -56,9 +59,9 @@ class Service {
       order_by: params.query.order_by,
       limit: params.query.limit,
       skip: params.query.skip,
-      fl: params.user.is_staff ?
-        article.ARTICLE_SOLR_FL_TO_CSV.concat(['content_txt_fr']) :
-        article.ARTICLE_SOLR_FL_TO_CSV,
+      fl: params.user.is_staff
+        ? article.ARTICLE_SOLR_FL_TO_CSV.concat(['content_txt_fr'])
+        : article.ARTICLE_SOLR_FL_TO_CSV,
     }, article.solrFactory);
 
     const total = _solr.response.numFound;

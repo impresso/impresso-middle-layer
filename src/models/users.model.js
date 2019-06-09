@@ -77,6 +77,7 @@ class User {
       digest: 'sha256',
     });
   }
+
   // true or false.
   static comparePassword({
     encrypted = '',

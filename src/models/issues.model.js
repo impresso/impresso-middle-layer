@@ -27,7 +27,7 @@ class Issue {
     if (newspaper instanceof Newspaper) {
       this.newspaper = newspaper;
     } else if (newspaper) {
-      this.newspaper = new Newspaper(newspaper);
+      this.newspaper = Newspaper.getCached(newspaper);
     }
 
     if (pages.length) {
@@ -46,9 +46,7 @@ class Issue {
       const iss = new Issue({
         uid: doc.meta_issue_id_s,
         cover: doc.page_id_ss[0],
-        newspaper: new Newspaper({
-          uid: doc.meta_journal_s,
-        }),
+        newspaper: doc.meta_journal_s,
       });
       return iss;
     };

@@ -13,7 +13,6 @@ const update = (config, params = {}) => {
     ...params,
   };
 
-
   const url = `${config[p.namespace].update}?commit=${!!p.commit}`;
   const body = [{
     id: p.id,
@@ -80,7 +79,8 @@ const suggest = (config, params = {}, factory) => {
     );
     if (!results) {
       return [];
-    } else if (factory) {
+    }
+    if (factory) {
       results.suggestions = results.suggestions.map(factory());
     }
     return results.suggestions;
@@ -168,15 +168,32 @@ const findAll = (config, params = {}, factory) => {
 
   }
 
+  const opts = {
+    method: 'GET',
+    url: endpoint,
+    auth: config.auth,
+    // qs,
+    // form: _params.form,
+    // json: true REMOVED because of duplicate keys
+  };
+
+  if (_params.form) {
+    opts.form = _params.form;
+    opts.form.fq = _params.fq;
+    opts.qs = {
+      start: _params.skip,
+      rows: _params.limit,
+    };
+    // opts.form.q = opts.form.q + ' AND ' +
+    opts.method = 'POST';
+  } else {
+    opts.qs = qs;
+  }
+
 
   debug(`findAll: request to '${_params.namespace}' endpoint. With 'qs':`, qs);
   debug('\'findAll\': url', endpoint);
-  return rp({
-    url: endpoint,
-    auth: config.auth,
-    qs,
-    // json: true REMOVED because of duplicate keys
-  }).then((res) => {
+  return rp(opts).then((res) => {
     // dummy handle dupes keys
     const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
 
@@ -202,6 +219,23 @@ const findAll = (config, params = {}, factory) => {
     // throw feathers errors here.
   });
 };
+
+/**
+ * Return a classic data response for lazy people
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
+const wrapAll = res => ({
+  data: res.response.docs,
+  total: res.response.numFound,
+  limit: parseInt(res.responseHeader.params.rows, 10),
+  skip: parseInt(res.responseHeader.params.start, 10),
+  info: {
+    responseTime: {
+      solr: res.responseHeader.QTime,
+    },
+  },
+});
 
 /**
  * [resolveAsync description]
@@ -235,8 +269,8 @@ const getSolrClient = config => ({
   findAll: (params, factory) => findAll(config, params, factory),
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
-
   utils: {
+    wrapAll,
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
   },
 });

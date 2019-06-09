@@ -53,6 +53,7 @@ class Topic {
       this.excerpt = lodash.take(this.words, wordsInExcerpt);
     }
   }
+
   getExcerpt() {
     return this.excerpt.map(d => d.w || d);
   }

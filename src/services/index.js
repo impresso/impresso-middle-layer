@@ -42,6 +42,15 @@ const logs = require('./logs/logs.service.js');
 const images = require('./images/images.service.js');
 
 
+const articlesSuggestions = require('./articles-suggestions/articles-suggestions.service.js');
+
+
+const uploadedImages = require('./uploaded-images/uploaded-images.service.js');
+
+
+const mentions = require('./mentions/mentions.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -77,4 +86,7 @@ module.exports = function () {
   app.configure(images);
   app.configure(media);
   app.configure(entities);
+  app.configure(articlesSuggestions);
+  app.configure(uploadedImages);
+  app.configure(mentions);
 };

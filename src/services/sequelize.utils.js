@@ -44,7 +44,7 @@ const sequelizeErrorHandler = (err) => {
   } else {
     debug('sequelize failed. Check error below.');
     debug(err.name);
-    // console.error(err);
+    console.error(err);
   }
   throw new BadRequest();
 };

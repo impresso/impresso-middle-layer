@@ -93,16 +93,26 @@ app.use(handler({
       // make sure to strip off the stack trace in production
       if (process.env.NODE_ENV === 'production') {
         delete err.stack;
+      } else {
+        console.log('error', err);
       }
       res.json({ message: 'Not found' });
     },
     500: (err, req, res) => {
-      console.log(err);
+      if (process.env.NODE_ENV === 'production') {
+        delete err.stack;
+      } else {
+        console.log(err);
+      }
       res.json({ message: 'service unavailable' });
     },
     // bad request
     400: (err, req, res) => {
-      // console.log(err)
+      if (process.env.NODE_ENV === 'production') {
+        delete err.stack;
+      } else {
+        console.log(err);
+      }
       res.json({
         message: 'Please check request params',
         name: err.name,

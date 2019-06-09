@@ -69,7 +69,7 @@ module.exports = {
     ],
     get: [
       // change count_pages
-      assignIIIF('pages'),
+      // assignIIIF('pages'),
     ],
     create: [],
     update: [],

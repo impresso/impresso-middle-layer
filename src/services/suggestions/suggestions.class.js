@@ -17,8 +17,7 @@ const isPlainText = q =>
   // exclude suggestion when there is a complete regexp
   !q.match(/^\/|\/$/);
 
-const makePlainText = q =>
-  q.replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '').trim();
+const makePlainText = q => q.replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '').trim();
 
 const getNewspapers = async ({ app, params = {} } = {}) => {
   if (!isPlainText(params.query.q)) {
@@ -70,7 +69,7 @@ const getTopics = async ({ q = '', config = {}, params = {} } = {}) => {
 const getCollections = async ({
   q = '', app, user, params = {},
 } = {}) => {
-  if (!q.length) {
+  if (!q.length || !user || !user.id) {
     return [];
   }
   const results = await app.service('collections').find({

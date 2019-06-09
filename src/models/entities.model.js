@@ -8,6 +8,8 @@ class Entity {
     dbpediaURL = null,
     impressoId = null,
     type = 'entity',
+    countItems = -1,
+    countMentions = -1,
   } = {}) {
     this.id = parseInt(id, 10);
     this.name = String(name);
@@ -15,11 +17,12 @@ class Entity {
     this.wikidataId = wikidataId;
     this.dbpediaURL = dbpediaURL;
     this.impressoId = impressoId;
+    this.countItems = parseInt(countItems || 0, 10);
+    this.countMentions = parseInt(countMentions || 0, 10);
   }
 
-
   static sequelize(client, {
-    tableName = 'entities',
+    tableName = 'entities_v',
   } = {}) {
     const entity = client.define('entity', {
       id: {
@@ -44,11 +47,17 @@ class Entity {
         type: DataTypes.STRING(255),
         field: 'imp_id',
       },
-      // countItems: {
-      //   // number of contentitems matching
-      // },
+      countItems: {
+        // number of contentitems matching
+        type: DataTypes.INTEGER,
+        field: 'item_count',
+      },
+      countMentions: {
+        type: DataTypes.INTEGER,
+        field: 'mention_count',
+      },
       // startDate: {
-      //
+      //  // one day
       // },
       // endDate: {
       //

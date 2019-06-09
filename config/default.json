@@ -52,7 +52,7 @@
       "enabled": true,
       "name": "feathers-jwt",
       "httpOnly": false,
-      "secure": false
+      "secure": true
     }
   },
   "neo4j": {
@@ -134,6 +134,11 @@
     },
     "entities": {
       "endpoint": "https://.../select"
+    }
+  },
+  "recommender": {
+    "byTopics": {
+      "endpoint": "https://.../similar"
     }
   }
 }

@@ -81,6 +81,11 @@ class CollectableItem {
         type: DataTypes.STRING(50),
         field: 'collection_id',
       },
+      indexed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'indexed',
+      },
     }, {
       tableName: 'collectable_items',
       defaultScope: {

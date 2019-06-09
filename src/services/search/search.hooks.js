@@ -2,36 +2,22 @@ const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
 } = require('../../hooks/params');
 const {
-  filtersToSolrQuery, qToSolrFilter, filtersToSolrFacetQuery,
+  filtersToSolrQuery, qToSolrFilter,
   SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
 } = require('../../hooks/search');
+const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info');
 const { assignIIIF } = require('../../hooks/iiif');
 const { protect } = require('@feathersjs/authentication-local').hooks;
 const { authenticate } = require('@feathersjs/authentication').hooks;
-
-const Newspaper = require('../../models/newspapers.model');
-const Topic = require('../../models/topics.model');
-
-const resolveQueryComponents = () => async (context) => {
-  const qc = context.params.sanitized.queryComponents.map((d) => {
-    if (d.type === 'newspaper') {
-      if (!Array.isArray(d.q)) {
-        d.item = Newspaper.getCached(d.q);
-      }
-    } else if (d.type === 'topic') {
-      if (!Array.isArray(d.q)) {
-        d.item = Topic.getCached(d.q);
-      }
-    }
-    return d;
-  });
-  context.params.sanitized.queryComponents = qc;
-};
 
 const filtersValidator = {
   context: {
     choices: ['include', 'exclude'],
     defaultValue: 'include',
+  },
+  op: {
+    choices: ['AND', 'OR'],
+    defaultValue: 'OR',
   },
   type: {
     choices: SOLR_FILTER_TYPES,

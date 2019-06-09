@@ -17,12 +17,23 @@ class NamedEntity {
     type = '',
     labels = [],
     descriptions = [],
+    claims = {},
   } = {}) {
     this.id = String(id);
     this.type = String(type);
     this.labels = labels;
     this.descriptions = descriptions;
     this._pendings = {};
+
+    if (Array.isArray(claims.P18)) {
+      this.images = claims.P18.map(d => ({
+        value: d.mainsnak.datavalue.value,
+        rank: d.rank,
+        datatype: d.mainsnak.datatype,
+      }));
+    } else {
+      this.images = [];
+    }
   }
 
   addPending(property, id) {
@@ -54,6 +65,7 @@ class NamedEntity {
       type: this.type,
       labels: this.labels,
       descriptions: this.descriptions,
+      images: this.images,
     };
   }
 }

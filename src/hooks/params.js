@@ -375,9 +375,8 @@ const queryWithCurrentExecUser = () => async (context) => {
   if (context.params.user) {
     debug(`queryWithCurrentExecUser: add '_exec_user_uid':'${context.params.user.uid}' to the query `);
     context.params.query._exec_user_uid = context.params.user.uid;
-    context.params.query._exec_user_is_staff =
-      context.params.user.is_staff ||
-      context.params.user.isStaff;
+    context.params.query._exec_user_is_staff = context.params.user.is_staff
+      || context.params.user.isStaff;
   } else {
     debug('queryWithCurrentExecUser: cannot add \'_exec_user_uid\', no user found in \'context.params\'');
   }
@@ -501,7 +500,7 @@ const validateEach = (paramName, validators, options = {}) => {
         // console.log(_error);
         throw new errors.BadRequest(_error);
       }
-      debug(`validateEach: ${paramName} not found in '${opts.method}' or is not an Array or it is empty. Received:`, toBeValidated);
+      debug(`validateEach: ${opts.required ? 'required' : 'optional'} ${paramName} not found in '${opts.method}' or is not an Array or it is empty. Received:`, toBeValidated);
       // throw new Error(`The param ${paramName} should exist and be an array.`);
       return;
     }

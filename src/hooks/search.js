@@ -25,8 +25,10 @@ const SOLR_FILTER_DPF = {
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   let qq = '';
+  const op = filter.op || 'OR';
+
   if (Array.isArray(filter.q)) {
-    qq = filter.q.map(value => `${field}:${value}`).join(' OR ');
+    qq = filter.q.map(value => `${field}:${value}`).join(` ${op} `);
   } else {
     qq = `${field}:${filter.q}`;
   }
@@ -51,29 +53,31 @@ const reduceFiltersToVars = filters => filters.reduce((sq, filter) => {
 const reduceDaterangeFiltersToSolr = filters => filters
   .reduce((sq, filter) => {
     let q;
-    if (Array.isArray(filter.daterange)) {
-      q = `(${filter.daterange.join('OR')})`;
+    if (Array.isArray(filter.q)) {
+      q = `${filter.q.map(d => `meta_date_dt:[${d}]`).join(' OR ')}`;
     } else {
-      q = `meta_date_dt:[${filter.daterange}]`;
+      q = `meta_date_dt:[${filter.q}]`;
     }
-    sq.push(filter.context === 'exclude' ? `NOT (${q})` : q);
+    if (filter.context === 'exclude') {
+      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+    }
+    sq.push(q);
     return sq;
   }, []).join(' AND ');
 
-const reduceRegexFiltersToSolr = filters =>
-  filters.reduce((reduced, query) => {
-    // cut regexp at any . not preceded by an escape sign.
-    const q = query.q
-      // get rid of first / and last /
-      .replace(/^\/|\/$/g, '')
-      // split on point or spaces
-      .split(/\\?\.[*+]/)
-      // filterout empty stuff
-      .filter(d => d.length)
-      // rebuild;
-      .map(d => `content_txt_fr:/${d}/`);
-    return reduced.concat(q);
-  }, []).join(' AND ');
+const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
+  // cut regexp at any . not preceded by an escape sign.
+  const q = query.q
+  // get rid of first / and last /
+    .replace(/^\/|\/$/g, '')
+  // split on point or spaces
+    .split(/\\?\.[*+]/)
+  // filterout empty stuff
+    .filter(d => d.length)
+  // rebuild;
+    .map(d => `content_txt_fr:/${d}/`);
+  return reduced.concat(q);
+}, []).join(' AND ');
 
 
 const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>
@@ -283,7 +287,11 @@ const filtersToSolrQuery = () => async (context) => {
  * @return {[type]}        [description]
  */
 const filtersToSolrFacetQuery = () => async (context) => {
-  if (typeof context.params.sanitized !== 'object' || !context.params.sanitized.facets) {
+  if (!context.params.sanitized.facets) {
+    debug('\'filtersToSolrFacetQuery\' warning, no facets requested.');
+    return;
+  }
+  if (typeof context.params.sanitized !== 'object') {
     throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
   }
   const facets = JSON.parse(context.params.sanitized.facets);

@@ -88,6 +88,13 @@ module.exports = {
 
     create: [
       validate({
+        description: {
+          required: false,
+          min_length: 2,
+          max_length: 1000,
+        },
+      }, 'POST'),
+      validate({
         q: {
           required: false,
           min_length: 2,
@@ -97,6 +104,7 @@ module.exports = {
           required: true,
           choices: ['articles'],
         },
+
         order_by: {
           before: (d) => {
             if (typeof d === 'string') {

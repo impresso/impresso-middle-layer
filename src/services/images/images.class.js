@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
+const { NotFound } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/services:images');
 const SolrService = require('../solr.service');
+const Image = require('../../models/images.model');
 
 class Service {
   constructor({
@@ -17,17 +19,61 @@ class Service {
   }
 
   async find(params) {
-    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query, params);
+    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
+    let signature;
+
+    if (params.query.similarTo) {
+      debug('get similarTo vector ...', params.query.similarTo);
+      signature = await this.SolrService.solr.findAll({
+        q: `id:${params.query.similarTo}`,
+        fl: ['id', `signature:_vector_${params.query.vectorType}_bv`],
+        namespace: 'images',
+        limit: 1,
+      })
+        .then(res => res.response.docs[0].signature)
+        .catch((err) => {
+          throw new NotFound();
+        });
+
+      if (!signature) {
+        throw new NotFound('signature not found');
+      }
+    } else if (params.query.similarToUploaded) {
+      debug('get user uploaded image signature for UploadedImage:', params.query.similarToUploaded);
+      signature = await this.app.service('uploaded-images')
+        .get(params.query.similarToUploaded)
+        .then(res => res.signature)
+        .catch((err) => {
+          throw new NotFound();
+        });
+    }
+
+    if (signature) {
+      return this.SolrService.solr.findAll({
+        fq: params.query.sq,
+        form: {
+          q: `{!vectorscoring f="_vector_${params.query.vectorType}_bv" vector_b64="${signature}"}`,
+        },
+        fl: '*,score',
+        namespace: 'images',
+        limit: params.query.limit,
+        skip: params.query.skip,
+        facets: params.query.facets,
+        order_by: 'score DESC',
+      }, Image.solrFactory).then(res => this.SolrService.solr.utils.wrapAll(res));
+    }
+
     return this.SolrService.find({
       ...params,
-      fl: '*',
+      fl: Image.SOLR_FL,
     });
   }
 
   async get(id, params) {
-    return {
-      id, text: `A new message with ID: ${id}!`,
-    };
+    debug(`get '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
+    return this.SolrService.get(id, {
+      fl: Image.SOLR_FL,
+    });
   }
 
   async create(data, params) {

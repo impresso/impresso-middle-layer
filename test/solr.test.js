@@ -40,25 +40,27 @@ describe('test solr connection', function () {
     assert.ok(results.response.numFound);
   });
 
-  it('test update against a real article id (sandbox only!!)', async () => {
-    if (process.env.NODE_ENV !== 'sandbox') {
-      return;
-    }
-    const id = 'GDL-1892-10-07-a-i0003';// 'GDL-1967-04-25-a-i0152';
+  it('test update against a real article id', async () => {
+    const id = 'GDL-1938-10-14-a-i0092';// 'GDL-1967-04-25-a-i0152';
     const results = await solrClient.update({
       id,
       namespace: 'search',
-      set: {
-        ucoll_plain: {
-          set: 'PRI-test-local',
+      add: {
+        ucoll_ss: {
+          add: 'test',
         },
       },
     });
+    // "id":"GDL-1938-10-14-a-i0092",
+    //                 "ucoll_ss": {
+    //                     "add": collection.pk
+    //                 }
+    console.log(results);
     assert.ok(results);
 
     const updated = await solrClient.findAll({
       q: `id:${id}`,
-      fl: 'id,ucoll_plain',
+      fl: 'id,ucoll_ss',
       limit: 1,
       skip: 0,
       namespace: 'search',

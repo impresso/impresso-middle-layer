@@ -13,18 +13,17 @@ const resolve = service => async (context) => {
     }
     debug(`resolve: ${context.result.toBeResolved.length} services to resolve`, context.result.toBeResolved);
 
-    context.result.resolved = await Promise.all(context.result.toBeResolved.map(d =>
-      context.app.service(d.service).get(d.uids.join(','), {
-        authenticated: context.params.authenticated,
-        user: context.params.user,
-        findAll: true,
-        query: {
-          limit: d.uids.length,
-        },
-      }).then(results => ({
-        service: d.service,
-        data: results,
-      }))));
+    context.result.resolved = await Promise.all(context.result.toBeResolved.map(d => context.app.service(d.service).get(d.uids.join(','), {
+      authenticated: context.params.authenticated,
+      user: context.params.user,
+      findAll: true,
+      query: {
+        limit: d.uids.length,
+      },
+    }).then(results => ({
+      service: d.service,
+      data: results,
+    }))));
     // delete context.result.toBeResolved;
   } else {
     debug('resolve: result.toBeResolved, nothing to resolve.');

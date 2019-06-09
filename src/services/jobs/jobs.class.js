@@ -74,7 +74,15 @@ class Service {
   }
 
   async patch(id, data, params) {
-    return data;
+    const where = {};
+    if (params.user.id) {
+      where.creatorId = params.user.id;
+    } else {
+      where['$creator.profile.uid$'] = params.user.uid;
+    }
+    return this.SequelizeService.patch(id, {
+      status: data.sanitized.status,
+    }, { where });
   }
 
   async remove(id, params) {
