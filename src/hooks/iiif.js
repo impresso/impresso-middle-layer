@@ -1,5 +1,6 @@
 const debug = require('debug')('impresso/hooks:iiif');
 const config = require('@feathersjs/configuration')()();
+
 const endpoint = `${config.proxy.host}/proxy/iiif`;
 
 const getJSON = uid => `${endpoint}/${uid}/info.json`;

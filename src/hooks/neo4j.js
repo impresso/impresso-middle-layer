@@ -1,6 +1,6 @@
-const { neo4jToInt } = require('../services/neo4j.utils');
 const { BadRequest } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/hooks:neo4j');
+const { neo4jToInt } = require('../services/neo4j.utils');
 
 const normalizeTimeline = () => async (context) => {
   context.result = context.result.records.map(record => ({

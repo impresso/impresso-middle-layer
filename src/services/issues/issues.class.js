@@ -34,6 +34,7 @@ class Service {
     // add SequelizeService to load Newspaper properly.
     return results;
   }
+
   // eslint-disable-next-line no-unused-vars
   async get(id, params) {
     return Promise.all([
@@ -72,10 +73,10 @@ class Service {
       })
         .then(pages => pages.map(d => new Page(d))),
     ])
-    .then(([issue, pages]) => {
-      issue.pages = pages;
-      return issue;
-    });
+      .then(([issue, pages]) => {
+        issue.pages = pages;
+        return issue;
+      });
   }
 }
 

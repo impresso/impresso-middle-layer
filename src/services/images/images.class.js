@@ -20,9 +20,11 @@ class Service {
 
   async find(params) {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
+    let signature;
+
     if (params.query.similarTo) {
       debug('get similarTo vector ...', params.query.similarTo);
-      const signature = await this.SolrService.solr.findAll({
+      signature = await this.SolrService.solr.findAll({
         q: `id:${params.query.similarTo}`,
         fl: ['id', `signature:_vector_${params.query.vectorType}_bv`],
         namespace: 'images',
@@ -36,6 +38,17 @@ class Service {
       if (!signature) {
         throw new NotFound('signature not found');
       }
+    } else if (params.query.similarToUploaded) {
+      debug('get user uploaded image signature for UploadedImage:', params.query.similarToUploaded);
+      signature = await this.app.service('uploaded-images')
+        .get(params.query.similarToUploaded)
+        .then(res => res.signature)
+        .catch((err) => {
+          throw new NotFound();
+        });
+    }
+
+    if (signature) {
       return this.SolrService.solr.findAll({
         fq: params.query.sq,
         form: {

@@ -17,9 +17,11 @@ class Profile {
       this.pattern = String(pattern).split(',');
     }
   }
+
   isValid() {
     return !!this.uid.length;
   }
+
   static sequelize(client) {
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.

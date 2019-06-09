@@ -40,7 +40,6 @@ class Page {
       this.num = parseInt(num, 10);
     }
     // if any is provided
-    console.log('IIIIF', this.uid);
     this.iiif = getJSON(this.uid);
     this.iiifThumbnail = getThumbnail(this.uid);
 

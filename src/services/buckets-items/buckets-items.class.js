@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services/bucket-items');
-const Neo4jService = require('../neo4j.service').Service;
 const { NotImplemented } = require('@feathersjs/errors');
 const lodash = require('lodash');
+const Neo4jService = require('../neo4j.service').Service;
 
 class Service extends Neo4jService {
   /**

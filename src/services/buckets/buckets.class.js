@@ -1,8 +1,8 @@
 const debug = require('debug')('impresso/services:buckets');
-const Neo4jService = require('../neo4j.service').Service;
 const slugify = require('slugify');
 const lodash = require('lodash');
 const { NotImplemented } = require('@feathersjs/errors');
+const Neo4jService = require('../neo4j.service').Service;
 
 class Service extends Neo4jService {
   async create(data, params) {

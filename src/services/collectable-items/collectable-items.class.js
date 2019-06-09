@@ -217,7 +217,7 @@ class Service {
           // collection_uid
           collection.uid,
         ],
-      })
+      });
     }
 
     return {

@@ -65,20 +65,19 @@ const reduceDaterangeFiltersToSolr = filters => filters
     return sq;
   }, []).join(' AND ');
 
-const reduceRegexFiltersToSolr = filters =>
-  filters.reduce((reduced, query) => {
-    // cut regexp at any . not preceded by an escape sign.
-    const q = query.q
-      // get rid of first / and last /
-      .replace(/^\/|\/$/g, '')
-      // split on point or spaces
-      .split(/\\?\.[*+]/)
-      // filterout empty stuff
-      .filter(d => d.length)
-      // rebuild;
-      .map(d => `content_txt_fr:/${d}/`);
-    return reduced.concat(q);
-  }, []).join(' AND ');
+const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
+  // cut regexp at any . not preceded by an escape sign.
+  const q = query.q
+  // get rid of first / and last /
+    .replace(/^\/|\/$/g, '')
+  // split on point or spaces
+    .split(/\\?\.[*+]/)
+  // filterout empty stuff
+    .filter(d => d.length)
+  // rebuild;
+    .map(d => `content_txt_fr:/${d}/`);
+  return reduced.concat(q);
+}, []).join(' AND ');
 
 
 const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>

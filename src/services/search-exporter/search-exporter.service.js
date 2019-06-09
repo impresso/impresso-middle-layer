@@ -1,7 +1,7 @@
 // Initializes the `exporter` service on path `/exporter`
+const csvStringify = require('csv-stringify');
 const createService = require('./search-exporter.class.js');
 const hooks = require('./search-exporter.hooks');
-const csvStringify = require('csv-stringify');
 
 module.exports = function (app) {
   const paginate = app.get('paginate');

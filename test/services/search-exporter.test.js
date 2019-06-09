@@ -1,7 +1,7 @@
 const assert = require('assert');
-const app = require('../../src/app');
 const stringify = require('csv-stringify-as-promised');
 const fs = require('fs');
+const app = require('../../src/app');
 
 /**
  * use with
