@@ -8,7 +8,9 @@ src/services/articles-suggestions \
 --config .eslintrc.json --fix \
 && NODE_ENV=production DEBUG=impresso* mocha test/services/articles-suggestions.test.js
 */
-describe('\'articles-suggestions\' service', () => {
+describe('\'articles-suggestions\' service', function () {
+  this.timeout(10000);
+
   const service = app.service('articles-suggestions');
 
   it('registered the service', () => {
@@ -17,6 +19,15 @@ describe('\'articles-suggestions\' service', () => {
 
   it('given a first article, get top similar articles', async () => {
     const results = await service.get('IMP-1975-04-09-a-i0219');
+    assert.ok(results.total);
+    assert.ok(results.data);
+  });
+  it('given a first article, get top similar articles by sqtdist', async () => {
+    const results = await service.get('IMP-1975-04-09-a-i0219', {
+      query: {
+        method: 'topics_sqedist',
+      },
+    });
     assert.ok(results.total);
     assert.ok(results.data);
   });
