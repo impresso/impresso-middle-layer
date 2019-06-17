@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {
-  toHierarchy, sliceAtSplitpoints, annotate, render,
+  toHierarchy, sliceAtSplitpoints, annotate, render, toExcerpt,
 } = require('../src/helpers');
 
 const fulltext = "L'AFFAIRE DES BIJOUX DE LA BEGUM L'interrogatoire de Watson un des principaux complices II se prétend le filleul de M. Churchill / Marseille, 22 janvier. "
@@ -22,6 +22,16 @@ const paragraphBreaks = [33, 60, 88, 154, 337, 993, 1810, 2045,
 const regionBreaks = [131, 966, 1775, 2194, 2753];
 // const regionBreaks = [39, 74, 964, 1932, 2355, 3524, 4438, 5028, 5658];
 
+const fulltextBroken = "L'opinion et ^^ <^ le discours Wilson An Congrès américain * New-York, 9 janvier. "
++ "L'adresse de M. Wilson a produit une émotion profonde sur la Ghambre boudée de parlementaires, de diplomates"
++ ' et de fonctionnaires. Lorsque M. Willson déclara que la France doit obtenir réparation sur là question '
++ "d'Alsace-Lorraine, toute l'assistance se leva, applaudissant et acclamant. Les membres de la mission serbe "
++ 'ont particulièrement salué la déclaration concernant la restauration de îa Serbie et la liberté des peuples '
++ 'balkaniques. La décision de M. Wilson de prononcer ce discours a été tout à fait inattendue ; les conseillers '
++ "les plus proches n'ont connu que mercredi l'existence de l'adresse. L'adresse de M. Wilson reçoit "
++ "l'approbation enthousiaste générale. M. Stone, président de la commission sénatoriale des "
++ "affaires étrangères, s'est déclaré pleinement d'accord avec M. Wilson. Les au tres sénateurs padent. "
++ "de l'adresse comme du plus grand document de l'Etat. M. Flood, président de la commission des affaires ";
 
 /*
 
@@ -36,6 +46,13 @@ with debug
 const lines = sliceAtSplitpoints(fulltext, lineBreaks);
 const paragraphs = sliceAtSplitpoints(fulltext, paragraphBreaks);
 
+describe('get excerpt of a text', () => {
+  it('should perform an exact excerpt', () => {
+    assert.deepEqual(toExcerpt(fulltextBroken, {
+      TruncateLength: 20,
+    }), "L'opinion et ^^ &lt;^ le discours Wilson An Congrès américain * New-York, 9 janvier. L'adresse de M. Wilson a produit...");
+  });
+});
 
 describe('should cut a text', () => {
   it('according to simple splitpoints', () => {

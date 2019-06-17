@@ -1,3 +1,4 @@
+const truncatise = require('truncatise');
 const debug = require('debug')('impresso/helpers');
 const verbose = require('debug')('verbose:impresso/helpers');
 /**
@@ -187,10 +188,26 @@ const toHierarchy = (chunks, thresholds, ...otherThresholds) => {
   return clusters;
 };
 
+/**
+ * Cut a text to create a very nice Excerpt.
+ *
+ */
+const toExcerpt = (content, {
+  TruncateBy = 'words',
+  TruncateLength = 50,
+} = {}) => {
+  const exc = truncatise(content.split('<').join('&lt;').split('>').join('&rt;'), {
+    TruncateBy,
+    TruncateLength,
+  });
+  // npm i truncate
+  return exc;
+};
 
 module.exports = {
   toHierarchy,
   sliceAtSplitpoints,
   annotate,
   render,
+  toExcerpt,
 };
