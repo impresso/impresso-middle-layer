@@ -16,7 +16,7 @@ config/*.json
 !config/default.json
 
 src/data/*.json
-protected-media/filepond-uploads/
+protected-media
 
 .marker
 .keyWithErrors
