@@ -24,6 +24,10 @@ class SequelizeService {
     return this.sequelizeKlass.bulkCreate(items).catch(this.onError);
   }
 
+  async create(item) {
+    return this.sequelizeKlass.create(item).catch(this.onError);
+  }
+
   onError(err) {
     sequelizeErrorHandler(err);
   }

@@ -5,6 +5,7 @@ __*/
 *.sqlite3
 __*.js
 out/
+.DS_Store
 
 node_modules/
 package-lock.json
@@ -15,6 +16,7 @@ config/*.json
 !config/default.json
 
 src/data/*.json
+protected-media
 
 .marker
 .keyWithErrors
