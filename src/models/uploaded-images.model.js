@@ -43,7 +43,7 @@ class UploadedImage {
         allowNull: true,
       },
       thumbnail: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.TEXT,
         allowNull: true,
       },
       creationDate: {
@@ -88,9 +88,6 @@ class UploadedImage {
         creationDate: this.creationDate,
         lastModifiedDate: this.lastModifiedDate,
         signature: this.signature,
-      });
-      instance.creator = this.creator.toJSON({
-        obfuscate,
       });
       return instance;
     };
