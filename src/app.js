@@ -27,6 +27,7 @@ const neo4j = require('./neo4j');
 const redis = require('./redis');
 const celery = require('./celery');
 const channels = require('./channels');
+const multer = require('./multer');
 
 const app = express(feathers());
 
@@ -53,6 +54,8 @@ app.configure(neo4j);
 
 // configure redis cahce if redis config is available
 app.configure(redis);
+// configure local multer service.
+app.configure(multer);
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
@@ -63,6 +66,7 @@ app.configure(services);
 app.configure(channels);
 // configure celery client task manage if celery config is available
 app.configure(celery);
+
 
 // Configure a middleware for 404s and the error handler
 app.use(notFound());
