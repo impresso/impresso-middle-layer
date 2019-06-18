@@ -1,4 +1,3 @@
-const truncatise = require('truncatise');
 const { DataTypes } = require('sequelize');
 const config = require('@feathersjs/configuration')()();
 
@@ -10,7 +9,7 @@ const Page = require('./pages.model');
 const ArticleTopic = require('./articles-topics.model');
 
 const {
-  toHierarchy, sliceAtSplitpoints, render, annotate,
+  toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt,
 } = require('../helpers');
 
 const ARTICLE_SOLR_FL_MINIMAL = [
@@ -167,9 +166,8 @@ class Article {
     if (excerpt) {
       this.excerpt = String(excerpt);
     } else if (this.content.length) {
-      this.excerpt = truncatise(this.content, {
-        TruncateBy: 'words',
-        TruncateLength: 50,
+      this.excerpt = toExcerpt(this.content, {
+        TruncateLength: 20,
       });
     } else {
       this.excerpt = '';
