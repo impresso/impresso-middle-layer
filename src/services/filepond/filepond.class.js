@@ -15,7 +15,7 @@ class Service {
 
   create (data, params) {
     return new Promise((resolve, reject) => {
-      const file = path.join(this.app.get('media').protectedPath, 'filepond-uploads', params.file.filename);
+      const file = path.join(this.app.get('multer').dest, params.file.filename);
 
       const fingerprint = this.processImage(file).then((imageBuffer) => {
         return rp({
