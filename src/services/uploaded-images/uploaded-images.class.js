@@ -17,32 +17,38 @@ class Service {
   }
 
   async find(params) {
-    const where = {
-      creatorId: params.user.id,
-    };
+    return this.SequelizeService.find(params);
+  }
 
-    return this.SequelizeService.find({
-      query: {
-        ...params.query,
-      },
-      where,
+  get(id, params) {
+    return new Promise((resolve, reject) => {
+      this.create({ id }, params).then(resolve, () => {
+        this.SequelizeService.get(id, {
+          where: {
+            uid: id,
+          },
+        }).then(resolve, reject);
+      }).catch(reject);
     });
   }
 
-  async get(id, params) {
-    return this.SequelizeService.get(id, {
-      where: {
-        uid: id,
-      },
-    }).then(result => result.toJSON());
-  }
+  create(data, params) {
+    const app = this.app;
 
-  async create(data, params) {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(current => this.create(current, params)));
-    }
+    return new Promise((resolve, reject) => {
+      const redisClient = app.get('redisClient');
 
-    return data;
+      redisClient.hgetall(data.id).then((image) => {
+        redisClient.del(data.id);
+
+        const uploadedImage = new UploadedImage(image);
+
+        this.SequelizeService.create({
+          ...uploadedImage,
+          creatorId: params.user.id,
+        }).then(resolve, reject).catch(reject);
+      }, reject).catch(reject);
+    });
   }
 
   async update(id, data, params) {
