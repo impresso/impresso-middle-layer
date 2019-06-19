@@ -15,7 +15,7 @@ class UploadedImage {
     this.checksum = String(checksum);
     this.signature = String(signature);
     this.thumbnail = String(thumbnail);
-    this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate);
+    this.creationDate = new Date(creationDate);
   }
 
   static sequelize(client) {
