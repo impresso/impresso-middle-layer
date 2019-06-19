@@ -3,15 +3,24 @@ const { queryWithCommonParams, validate } = require('../../hooks/params');
 
 module.exports = {
   before: {
-    all: [authenticate('jwt')],
+    all: [
+      authenticate('jwt', {
+        allowUnauthenticated: true,
+      }),
+    ],
     find: [
     ],
     get: [
       // give article id, we should provide the correct method
       validate({
         method: {
-          choices: ['topics'],
+          choices: ['topics', 'topics_sqedist'],
           defaultValue: 'topics',
+        },
+        amount: {
+          choices: ['2', '3'],
+          defaultValue: '3',
+          transform: d => parseInt(d, 10),
         },
       }),
       queryWithCommonParams(),

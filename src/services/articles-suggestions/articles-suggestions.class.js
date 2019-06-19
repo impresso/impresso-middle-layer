@@ -5,8 +5,8 @@ const debug = require('debug')('impresso/services:articles-suggestions');
 const Article = require('../../models/articles.model');
 const ArticleTopic = require('../../models/articles-topics.model');
 
-const SIMILARITY_BY_TOPICS = 'topics';
-
+const SIM_BY_TOPICS = 'topics';
+const SIM_BY_TOPICS_SQEDIST = 'topics_sqedist';
 
 class Service {
   constructor(options) {
@@ -17,7 +17,7 @@ class Service {
   }
 
   async get(id, params) {
-    if (params.query.method === SIMILARITY_BY_TOPICS) {
+    if ([SIM_BY_TOPICS_SQEDIST, SIM_BY_TOPICS].indexOf(params.query.method) !== -1) {
       debug(`get(${id}) method: ${params.query.method} load topics ...`);
       const topics = await this.solrClient.findAll({
         q: `id:${id}`,
@@ -29,24 +29,39 @@ class Service {
           throw new NotFound();
         });
 
-      const topicWeight = lodash.take(topics, 3).reduce((acc, d) => {
-        acc.push(`abs(sub(${d.relevance},payload(topics_dpfs,${d.topicUid})))`);
-        return acc;
-      }, []).join(',');
+      let topicWeight;
 
-      debug(`get(${id}) method: ${params.query.method} topics loaded, get articles`);
+      if (params.query.method === SIM_BY_TOPICS) {
+        topicWeight = lodash.take(topics, params.query.amount).reduce((acc, d) => {
+          acc.push(`abs(sub(${d.relevance},payload(topics_dpfs,${d.topicUid})))`);
+          return acc;
+        }, []).join(',');
+        topicWeight = `sum(${topicWeight})`;
+      } else if (params.query.method === SIM_BY_TOPICS_SQEDIST) {
+        // to obtain dist(1,x,y,z,e,f,g) -
+        // Euclidean distance between (x,y,z) and (e,f,g) where each letter is a field name
+        const tw = new Array(params.query.amount * 2);
+        for (let i = 0; i < params.query.amount; i += 1) {
+          tw[i] = topics[i].relevance;
+          tw[i + params.query.amount] = `payload(topics_dpfs,${topics[i].topicUid})`;
+        }
+        topicWeight = `sqedist(${tw.join(',')})`;
+      }
+
+      debug(`get(${id}) method: ${params.query.method} topics loaded, get articles using`);
       return this.solrClient.findAll({
         q: 'filter(topics_dpfs:*)',
         // eslint-disable-next-line no-template-curly-in-string
         fl: Article.ARTICLE_SOLR_FL_LITE.concat(['dist:${topicWeight}']),
         vars: {
-          topicWeight: `sum(${topicWeight})`,
+          topicWeight,
         },
         skip: params.query.skip,
         limit: params.query.limit,
         // eslint-disable-next-line no-template-curly-in-string
         order_by: '${topicWeight} asc',
       }, Article.solrFactory)
+        .then()
         .then(this.solrClient.utils.wrapAll)
         .catch((err) => {
           console.error(err);

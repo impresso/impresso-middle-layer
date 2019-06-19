@@ -25,19 +25,32 @@ class Service {
       // number of articles,
       this.solrClient.findAll({
         q: `page_id_ss:${id}`,
-        fl: Article.ARTICLE_SOLR_FL_MINIMAL,
+        fl: `id`,
+        limit: 0,
       }),
       // mysql stuff
-      this.SequelizeService.get(id, {}),
+      this.SequelizeService.get(id, {}).catch((err) => {
+        if(err.code === 404) {
+          debug(`'get' (WARNING!) no page found using SequelizeService for page id ${id}`);
+          return;
+        }
+        throw err;
+      }),
     ]);
 
     if (results[0].response.numFound === 0) {
       debug(`get: no articles found for page id ${id}`);
       throw new NotFound();
     }
-    // initialize page after solr
-    results[1].countArticles = results[0].response.numFound;
-    return results[1];
+
+    if(results[1]) {
+      results[1].countArticles = results[0].response.numFound;
+      return results[1];
+    }
+    return new Page({
+      uid: id,
+      countArticles: results[0].response.numFound,
+    });
   }
 
   async find(params) {

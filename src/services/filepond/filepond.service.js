@@ -2,12 +2,10 @@
 const path = require('path');
 const createService = require('./filepond.class.js');
 const hooks = require('./filepond.hooks');
-const multer = require('../../multer');
 const md5File = require('md5-file');
 
 module.exports = function (app) {
-  const upload = multer({dest: path.join(app.get('media').protectedPath, 'filepond-uploads')});
-
+  const upload = app.get('multerClient');
   // Initialize our service with any options it requires
   app.use('/filepond',
     upload.single('filepond'),

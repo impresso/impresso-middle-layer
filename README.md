@@ -19,8 +19,8 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
     cd path/to/impresso-middle-layer && npm install
     ```
 
-1. Check that neo4J is running
-1. Configure your mysql tunnelling, e.g. in with config stored in  `~/.ssh/config`:
+1. Check that [redis](https://redis.io) is running.
+1. (optionally) configure your mysql tunnelling, e.g. in with config stored in  `~/.ssh/config`:
 
     ```
     Host cli-mysql-tunnel
@@ -41,15 +41,19 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
 
     ref. [SSH TUNNELLING FOR FUN AND PROFIT: AUTOSSH](https://www.everythingcli.org/ssh-tunnelling-for-fun-and-profit-autossh/)
 
-1. Configure the `config/default.json` according to your dbs
-
-1. Start your app (not the debug)
-
+1. Configure the `config/development.json` and `config/production.json` according to your system settings
+1. Preload the list of Newspaper and of the Topics.
+    ```
+    NODE_ENV=development DEBUG=impresso* npm run update-newspapers
+    NODE_ENV=development DEBUG=impresso* npm run update-topics
+    ```
+1. Start the app! Use the env variable `NODE_ENV` to switch between your development or production configuration file.
     ```
     NODE_ENV=development DEBUG=impresso* npm run dev
     ```
-## Deployment
-With forever, make sure you have correctly set the file `config/production.json` (is *.gitignored*).
+
+## Deployment with forever
+Make sure you have correctly set and tested the file `config/production.json` (is *.gitignored*).
 You should create a `/path/to/forever.production.json` file:
 ```
 {
@@ -64,6 +68,7 @@ Then start with:
 ```
 NODE_ENV=production forever start /path/to/forever.production.json
 ```
+
 ## Testing
 
 Simply run `npm test` and all your tests in the `test/` directory will be run.
@@ -87,9 +92,9 @@ For more information on all the things you can do with Feathers visit [docs.feat
 
 ## Changelog
 
-__0.1.0__
+__1.0.0__
 
-- Initial release
+- Public release
 
 ## License
 
