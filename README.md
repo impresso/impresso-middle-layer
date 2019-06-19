@@ -41,6 +41,8 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
 
     ref. [SSH TUNNELLING FOR FUN AND PROFIT: AUTOSSH](https://www.everythingcli.org/ssh-tunnelling-for-fun-and-profit-autossh/)
 
+    You can also create a **service** using system d.
+
 1. Configure the `config/development.json` and `config/production.json` according to your system settings
 1. Preload the list of Newspaper and of the Topics.
     ```
@@ -68,6 +70,34 @@ Then start with:
 ```
 NODE_ENV=production forever start /path/to/forever.production.json
 ```
+
+## Deployment with PM2
+Install pm2, then [generate a template](https://pm2.io/doc/en/runtime/guide/ecosystem-file)
+using the command `pm2 init` then edit the `ecosystem.config.js` file:
+
+```
+module.exports = {
+  apps : [{
+    name: 'impresso-middle-layer',
+    cwd: '/path/to/impresso/impresso-middle-layer',
+    script: 'src',
+
+    //
+    // args: 'one two',
+    instances: 4,
+    autorestart: false,
+    watch: false,
+    max_memory_restart: '1G',
+    env: {
+      NODE_ENV: 'development'
+    },
+    env_production : {
+      NODE_ENV: 'production'
+    }
+  }],
+}
+```
+Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
 
 ## Testing
 
