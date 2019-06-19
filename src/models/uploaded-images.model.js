@@ -8,12 +8,14 @@ class UploadedImage {
     checksum = '',
     signature = '',
     thumbnail = '',
+    creationDate = new Date(),
   } = {}) {
     this.uid = String(uid);
     this.name = String(name);
     this.checksum = String(checksum);
     this.signature = String(signature);
     this.thumbnail = String(thumbnail);
+    this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate);
   }
 
   static sequelize(client) {
@@ -88,6 +90,7 @@ class UploadedImage {
         creationDate: this.creationDate,
         lastModifiedDate: this.lastModifiedDate,
         signature: this.signature,
+        name: this.name,
       });
       return instance;
     };
