@@ -4,14 +4,14 @@ const app = require('../../src/app');
 /**
  * use with
  ./node_modules/.bin/eslint \
- src/models \
+ src/models/issues.model.js \
  test/services/issues.test.js  \
- src/services/issues src/hooks \
+ src/services/issues \
  --config .eslintrc.json --fix \
- && DEBUG=impresso/* mocha test/services/issues.test.js
+ && NODE_ENV=development DEBUG=impresso/* mocha test/services/issues.test.js
  */
 describe('\'issues\' service', function () {
-  this.timeout(15000);
+  this.timeout(25000);
   const service = app.service('issues');
 
   it('registered the service', () => {

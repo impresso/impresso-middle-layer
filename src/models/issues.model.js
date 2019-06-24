@@ -1,6 +1,10 @@
 const Sequelize = require('sequelize');
 const Newspaper = require('./newspapers.model');
 
+const ACCESS_RIGHTS_CLOSED = 'Closed';
+const ACCESS_RIGHTS_OPEN_PUBLIC = 'OpenPublic';
+const ACCESS_RIGHTS = [ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PUBLIC];
+
 class Issue {
   constructor({
     // collections = [],
@@ -13,6 +17,7 @@ class Issue {
     cover = '', // page uid
     uid = '',
     labels = ['issue'],
+    accessRights = ACCESS_RIGHTS_CLOSED,
   } = {}) {
     this.uid = String(uid);
     this.cover = cover;
@@ -20,6 +25,11 @@ class Issue {
 
     const issueDateFromUid = this.uid.match(/\d{4}-\d{2}-\d{2}/);
 
+    if (ACCESS_RIGHTS.indexOf(accessRights) !== -1) {
+      this.accessRights = accessRights;
+    } else {
+      this.accessRights = ACCESS_RIGHTS_CLOSED;
+    }
     if (issueDateFromUid) {
       this.date = new Date(issueDateFromUid[0]);
     }
@@ -74,6 +84,10 @@ class Issue {
       day: {
         type: Sequelize.SMALLINT,
       },
+      accessRights: {
+        type: Sequelize.STRING,
+        field: 'access_rights',
+      },
     }, {
       scopes: {
         get: {
@@ -120,3 +134,5 @@ const ISSUE_SOLR_FL_MINIMAL = [
 
 module.exports = Issue;
 module.exports.ISSUE_SOLR_FL_MINIMAL = ISSUE_SOLR_FL_MINIMAL;
+module.exports.ACCESS_RIGHTS_CLOSED = ACCESS_RIGHTS_CLOSED;
+module.exports.ACCESS_RIGHTS_OPEN_PUBLIC = ACCESS_RIGHTS_OPEN_PUBLIC;
