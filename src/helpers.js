@@ -195,8 +195,13 @@ const toHierarchy = (chunks, thresholds, ...otherThresholds) => {
 const toExcerpt = (content, {
   TruncateBy = 'words',
   TruncateLength = 50,
+  excludeTitle = '',
 } = {}) => {
-  const exc = truncatise(content.split('<').join('&lt;').split('>').join('&rt;'), {
+  let c = String(content);
+  if (excludeTitle.length && c.indexOf(excludeTitle) === 0) {
+    c = c.substr(excludeTitle.length);
+  }
+  const exc = truncatise(c.split('<').join('&lt;').split('>').join('&rt;'), {
     TruncateBy,
     TruncateLength,
   });
