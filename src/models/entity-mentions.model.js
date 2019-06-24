@@ -5,8 +5,8 @@ const AS_PERSON = 'pers';
 class EntityMention {
   constructor({
     id = '',
-    // entity = null,
-    // article = null,
+    entityId = 0,
+    articleUid = '',
     surface = '',
     offsetStart = 0,
     offsetLength = 0,
@@ -21,6 +21,8 @@ class EntityMention {
     demonym = '',
   } = {}) {
     this.id = parseInt(id, 10);
+    this.entityId = parseInt(entityId, 10);
+    this.articleUid = String(articleUid);
     this.type = String(type);
     this.name = String(name);
     this.t = String(surface);
@@ -97,7 +99,7 @@ class EntityMention {
       articleUid: {
         type: DataTypes.STRING(50),
         field: 'ci_id',
-      }
+      },
     }, {
       tableName,
     });
