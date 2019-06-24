@@ -1,6 +1,26 @@
 const {
-  queryWithCommonParams, validate, utils,
+  queryWithCommonParams, validate, validateEach, utils,
 } = require('../../hooks/params');
+
+const filtersValidator = {
+  context: {
+    choices: ['include', 'exclude'],
+    defaultValue: 'include',
+  },
+  op: {
+    choices: ['AND', 'OR'],
+    defaultValue: 'OR',
+  },
+  type: {
+    choices: ['entity'],
+    required: true,
+  },
+  q: {
+    required: false,
+    min_length: 2,
+    max_length: 500,
+  },
+}
 
 module.exports = {
   before: {
@@ -18,6 +38,9 @@ module.exports = {
           }),
         },
       }, 'GET'),
+      validateEach('filters', filtersValidator, {
+        required: false,
+      }),
       queryWithCommonParams(),
     ],
     get: [],
