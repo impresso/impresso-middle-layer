@@ -90,6 +90,14 @@ class EntityMention {
       demonym: {
         type: DataTypes.STRING(500),
       },
+      entityId: {
+        type: DataTypes.INTEGER,
+        field: 'entity_id',
+      },
+      articleUid: {
+        type: DataTypes.STRING(50),
+        field: 'ci_id',
+      }
     }, {
       tableName,
     });
