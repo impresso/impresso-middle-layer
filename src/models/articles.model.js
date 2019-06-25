@@ -168,6 +168,7 @@ class Article {
     } else if (this.content.length) {
       this.excerpt = toExcerpt(this.content, {
         TruncateLength: 20,
+        excludeTitle: this.title,
       });
     } else {
       this.excerpt = '';
@@ -392,16 +393,16 @@ class Article {
     article.prototype.toJSON = function () {
       return new Article({
         ...this.get(),
-        newspaper: this.newspaper ? this.newspaper.toJSON() : null,
-        pages: this.pages ? this.pages.map(p => p.toJSON()) : [],
+        // newspaper: this.newspaper ? this.newspaper.toJSON() : null,
+        // pages: this.pages ? this.pages.map(p => p.toJSON()) : [],
       });
     };
 
-    article.belongsTo(newspaper, {
-      foreignKey: {
-        fieldName: 'newspaper_id',
-      },
-    });
+    // article.belongsTo(newspaper, {
+    //   foreignKey: {
+    //     fieldName: 'newspaper_id',
+    //   },
+    // });
 
     article.belongsToMany(collection, {
       as: 'collections',

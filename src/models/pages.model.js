@@ -10,7 +10,7 @@ class Page {
     uid = '',
     iiif = '',
     labels = ['page'],
-    num = 0,
+    // num = 0,
     // converted coordinates
     hasCoords = false,
     // has json errors
@@ -26,19 +26,17 @@ class Page {
 
     // All collections for this page
     collections = [],
-
-    // issue_uid
-    issue_uid,
-    newspaper_uid,
   } = {}, complete = false) {
     this.uid = String(uid);
 
-    // if default is 0, then get page number from uid
-    if (num === 0) {
-      this.num = this.uid.match(/p0*([0-9]+)$/)[1];
-    } else {
-      this.num = parseInt(num, 10);
-    }
+    // "LCE-1864-07-17-a-p0004".match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
+    const [, issueUid, newspaperUid, num] = this.uid
+      .match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/);
+
+    this.num = parseInt(num, 10);
+    this.issueUid = issueUid;
+    this.newspaperUid = newspaperUid;
+
     // if any is provided
     this.iiif = getJSON(this.uid);
     this.iiifThumbnail = getThumbnail(this.uid);
@@ -52,13 +50,16 @@ class Page {
     this.hasCoords = Boolean(hasCoords);
     this.hasErrors = Boolean(hasErrors);
 
-    if (issue_uid) {
-      this.issueUid = issue_uid;
-    }
-
-    if (newspaper_uid) {
-      this.newspaper = Newspaper.getCached(newspaper_uid);
-    }
+    // if (issue_uid) {
+    //   this.issueUid = issue_uid;
+    // }
+    //
+    // if (newspaper_uid) {
+    //   this.newspaper = Newspaper.getCached(newspaper_uid);
+    // } else {
+    //   // get newspaper uid from uid.
+    //
+    // }
 
     if (complete) {
       this.articlesEntities = articlesEntities.map((d) => {
@@ -90,10 +91,6 @@ class Page {
         type: Sequelize.STRING,
         field: 'issue_id',
       },
-      newspaper_uid: {
-        type: Sequelize.STRING,
-        field: 'newspaper_id',
-      },
       num: {
         type: Sequelize.SMALLINT,
         field: 'page_number',
@@ -111,20 +108,12 @@ class Page {
         findAll: {
           include: [
             {
-              model: newspaper,
-              as: 'newspaper',
-            },
-            {
               model: issue,
               as: 'issue',
             },
           ],
         },
       },
-    });
-
-    page.belongsTo(newspaper, {
-      foreignKey: 'newspaper_id',
     });
 
     page.belongsTo(issue, {

@@ -7,6 +7,7 @@ const { filtersToSolrQuery, SOLR_ORDER_BY } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
 const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers');
+const { obfuscate } = require('../../hooks/access-rights');
 
 
 module.exports = {
@@ -79,6 +80,7 @@ module.exports = {
       }),
       saveResultsInCache(),
       resolveUserAddons(),
+      obfuscate(),
     ],
     get: [
       assignIIIF('pages', 'issue', 'regions'),
@@ -89,6 +91,7 @@ module.exports = {
       resolveTopics(),
       saveResultsInCache(),
       resolveUserAddons(),
+      obfuscate(),
     ],
     create: [],
     update: [],

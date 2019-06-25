@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services:mentions');
 const EntityMention = require('../../models/entity-mentions.model');
 const SequelizeService = require('../sequelize.service');
+
 
 /* eslint-disable no-unused-vars */
 class Service {
@@ -16,15 +18,18 @@ class Service {
     });
   }
 
+
   async find(params) {
     const where = {
       // creatorId: params.user.id,
     };
+    if (params.sanitized.sequelizeQuery) {
+      where.$and = params.sanitized.sequelizeQuery;
+    }
+    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
 
     return this.SequelizeService.find({
-      query: {
-        ...params.query,
-      },
+      ...params,
       where,
     });
   }
