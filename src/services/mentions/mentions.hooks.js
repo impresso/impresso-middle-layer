@@ -1,6 +1,8 @@
 const {
   queryWithCommonParams, validate, validateEach, utils,
 } = require('../../hooks/params');
+const { filtersToSequelizeQuery } = require('../../hooks/sequelize');
+const { resolveArticles } = require('../../hooks/resolvers/mentions.resolvers');
 
 const filtersValidator = {
   context: {
@@ -17,10 +19,11 @@ const filtersValidator = {
   },
   q: {
     required: false,
-    min_length: 2,
+    regex: /^[A-Za-z0-9_\-,]+[A-Za-z0-9_.-]*$/,
     max_length: 500,
   },
-}
+};
+
 
 module.exports = {
   before: {
@@ -41,6 +44,7 @@ module.exports = {
       validateEach('filters', filtersValidator, {
         required: false,
       }),
+      filtersToSequelizeQuery(),
       queryWithCommonParams(),
     ],
     get: [],
@@ -52,7 +56,9 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
+    find: [
+      resolveArticles(),
+    ],
     get: [],
     create: [],
     update: [],
