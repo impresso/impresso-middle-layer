@@ -2,7 +2,6 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   utils, protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
 } = require('../../hooks/params');
-const { assignIIIF } = require('../../hooks/iiif');
 const { filtersToSolrQuery, SOLR_ORDER_BY } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
@@ -72,7 +71,6 @@ module.exports = {
 
     ],
     find: [
-      assignIIIF('pages', 'issue', 'regions'),
       displayQueryParams(['filters']),
       protect('content'),
       returnCachedContents({
@@ -83,7 +81,6 @@ module.exports = {
       obfuscate(),
     ],
     get: [
-      assignIIIF('pages', 'issue', 'regions'),
       // save here cache, flush cache here
       returnCachedContents({
         skipHooks: false,

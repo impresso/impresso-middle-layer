@@ -1,9 +1,9 @@
-const Sequelize = require('sequelize');
+const { DataTypes } = require('sequelize');
 const Newspaper = require('./newspapers.model');
 const Issue = require('./issues.model');
 const ArticleEntity = require('./articles-entities.model');
 const ArticleTag = require('./articles-tags.model');
-const { getJSON, getThumbnail } = require('../hooks/iiif.js');
+const { getJSON, getThumbnail, getExternalThumbnail } = require('../hooks/iiif.js');
 
 class Page {
   constructor({
@@ -37,9 +37,14 @@ class Page {
     this.issueUid = issueUid;
     this.newspaperUid = newspaperUid;
 
-    // if any is provided
-    this.iiif = getJSON(this.uid);
-    this.iiifThumbnail = getThumbnail(this.uid);
+    // if any iiif is provided
+    if (!iiif.length) {
+      this.iiif = getJSON(this.uid);
+      this.iiifThumbnail = getThumbnail(this.uid);
+    } else {
+      this.iiif = String(iiif);
+      this.iiifThumbnail = getExternalThumbnail(this.iiif);
+    }
 
     this.labels = labels;
 
@@ -82,26 +87,30 @@ class Page {
 
     const page = client.define('page', {
       uid: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         primaryKey: true,
         field: 'id',
         unique: true,
       },
       issue_uid: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         field: 'issue_id',
       },
       num: {
-        type: Sequelize.SMALLINT,
+        type: DataTypes.SMALLINT,
         field: 'page_number',
       },
       hasCoords: {
-        type: Sequelize.SMALLINT,
+        type: DataTypes.SMALLINT,
         field: 'has_converted_coordinates',
       },
       hasErrors: {
-        type: Sequelize.SMALLINT,
+        type: DataTypes.SMALLINT,
         field: 'has_corrupted_json',
+      },
+      iiif: {
+        type: DataTypes.STRING(200),
+        field: 'iiif_manifest',
       },
     }, {
       scopes: {
@@ -121,6 +130,7 @@ class Page {
     });
 
     page.prototype.toJSON = function () {
+      console.log('page', this.get());
       return new Page(this.get());
     };
 
