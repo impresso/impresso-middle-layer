@@ -128,15 +128,14 @@ class Service {
         debug(`get: SequelizeService warning, no data found for ${id} ...`);
       }),
     ]).then((results) => {
-      if (!results[1]) {
-        return results[0];
+      if (results[1]) {
+        results[0].pages = results[1].pages.map(d => d.toJSON());
+        results[0].v = results[1].v;
       }
-
-      return {
-        ...results[0],
-        v: results[1].v,
-        newspaper: results[1].newspaper,
-      };
+      results[0].assignIIIF();
+      return results[0];
+    }).catch((err) => {
+      console.log(err);
     });
   }
 }
