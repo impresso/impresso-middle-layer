@@ -289,6 +289,7 @@ class Article {
   assignIIIF() {
     // get iiif of pages
     const pagesIndex = lodash.keyBy(this.pages, 'uid'); // d => d.iiif);
+    this.regions.forEach((region, i) => {
       if (pagesIndex[this.regions[i].pageUid]) {
         this.regions[i].iiifFragment = getExternalFragment(pagesIndex[this.regions[i].pageUid].iiif, {
           coords: region.coords,
