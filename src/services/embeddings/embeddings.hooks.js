@@ -1,14 +1,27 @@
-
+const { queryWithCommonParams, validate } = require('../../hooks/params');
 
 module.exports = {
   before: {
     all: [],
-    find: [],
+    find: [
+      validate({
+        language: {
+          choices: ['fr', 'de', 'en'],
+        },
+        q: {
+          required: true,
+          regex: /^[A-zÀ-ÿ]+$/,
+          max_length: 500,
+          transform: d => d.toLowerCase(),
+        },
+      }, 'GET'),
+      queryWithCommonParams(),
+    ],
     get: [],
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   after: {
@@ -18,7 +31,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
+    remove: [],
   },
 
   error: {
@@ -28,6 +41,6 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: []
-  }
+    remove: [],
+  },
 };
