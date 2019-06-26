@@ -140,6 +140,15 @@
     },
     "entities": {
       "endpoint": "https://.../select"
+    },
+    "embeddings_de": {
+      "endpoint": "https://.../select"
+    },
+    "embeddings_fr": {
+      "endpoint": "https://.../select"
+    },
+    "embeddings_en": {
+      "endpoint": "https://.../select"
     }
   },
   "recommender": {
