@@ -54,6 +54,9 @@ const mentions = require('./mentions/mentions.service.js');
 const filepond = require('./filepond/filepond.service.js');
 
 
+const embeddings = require('./embeddings/embeddings.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -93,4 +96,5 @@ module.exports = function () {
   app.configure(uploadedImages);
   app.configure(mentions);
   app.configure(filepond);
+  app.configure(embeddings);
 };
