@@ -25,12 +25,12 @@ class Service {
       // number of articles,
       this.solrClient.findAll({
         q: `page_id_ss:${id}`,
-        fl: `id`,
+        fl: 'id',
         limit: 0,
       }),
       // mysql stuff
       this.SequelizeService.get(id, {}).catch((err) => {
-        if(err.code === 404) {
+        if (err.code === 404) {
           debug(`'get' (WARNING!) no page found using SequelizeService for page id ${id}`);
           return;
         }
@@ -43,7 +43,7 @@ class Service {
       throw new NotFound();
     }
 
-    if(results[1]) {
+    if (results[1]) {
       results[1].countArticles = results[0].response.numFound;
       return results[1];
     }
