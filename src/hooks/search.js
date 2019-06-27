@@ -341,6 +341,18 @@ module.exports = {
       mincount: 1,
       limit: 400,
     },
+    country: {
+      type: 'terms',
+      field: 'meta_country_code_s',
+      mincount: 1,
+      limit: 10,
+    },
+    type: {
+      type: 'terms',
+      field: 'item_type_s',
+      mincount: 1,
+      limit: 10,
+    },
     topic: {
       type: 'terms',
       field: 'topics_dpfs',
