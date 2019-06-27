@@ -339,7 +339,13 @@ module.exports = {
       type: 'terms',
       field: 'meta_year_i',
       mincount: 1,
-      limit: 400,
+      limit: 400, // 400 years
+    },
+    month: {
+      type: 'terms',
+      field: 'meta_yearmonth_s',
+      mincount: 1,
+      limit: 120, // ten years granularity
     },
     country: {
       type: 'terms',
