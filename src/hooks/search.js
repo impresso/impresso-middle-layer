@@ -12,6 +12,9 @@ const SOLR_FILTER_TYPES = [
   'topic',
   // filter by user collections! Only when authentified
   'collection',
+  // numeric filters
+  'ocrQuality',
+  'contentLength',
 ];
 
 /**
@@ -57,6 +60,21 @@ const reduceDaterangeFiltersToSolr = filters => filters
       q = `${filter.q.map(d => `meta_date_dt:[${d}]`).join(' OR ')}`;
     } else {
       q = `meta_date_dt:[${filter.q}]`;
+    }
+    if (filter.context === 'exclude') {
+      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+    }
+    sq.push(q);
+    return sq;
+  }, []).join(' AND ');
+
+const reduceNumericRangeFilters = (filters, field) => filters
+  .reduce((sq, filter) => {
+    let q; // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition) or simple string '1 TO X';
+    if (Array.isArray(filter.q)) {
+      q = `${filter.q.map(d => `${field}:[${d}]`).join(' OR ')}`;
+    } else {
+      q = `${field}:[${filter.q}]`;
     }
     if (filter.context === 'exclude') {
       q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
@@ -134,6 +152,10 @@ const filtersToSolr = (type, filters) => {
   switch (type) {
     case 'hasTextContents':
       return 'content_length_i:[1 TO *]';
+    case 'ocrQuality':
+      return reduceNumericRangeFilters(filters, 'ocrqa_f');
+    case 'contentLength':
+      return reduceNumericRangeFilters(filters, 'content_length_i');
     case 'isFront':
       return 'front_b:1';
     case 'string':
@@ -339,7 +361,25 @@ module.exports = {
       type: 'terms',
       field: 'meta_year_i',
       mincount: 1,
-      limit: 400,
+      limit: 400, // 400 years
+    },
+    month: {
+      type: 'terms',
+      field: 'meta_yearmonth_s',
+      mincount: 1,
+      limit: 120, // ten years granularity
+    },
+    country: {
+      type: 'terms',
+      field: 'meta_country_code_s',
+      mincount: 1,
+      limit: 10,
+    },
+    type: {
+      type: 'terms',
+      field: 'item_type_s',
+      mincount: 1,
+      limit: 10,
     },
     topic: {
       type: 'terms',
