@@ -8,7 +8,8 @@ src/services/images \
 --config .eslintrc.json --fix \
 && NODE_ENV=production DEBUG=impresso* mocha test/services/images.test.js
 */
-describe('\'images\' service', () => {
+describe('\'images\' service', function () {
+  this.timeout(20000);
   const service = app.service('images');
 
 
@@ -16,6 +17,19 @@ describe('\'images\' service', () => {
     assert.ok(service, 'Registered the service');
   });
 
+  it('call find method with title! filter', async () => {
+    const result = await service.find({
+      query: {
+        filters: [
+          {
+            type: 'title',
+            q: 'Bahnhof',
+          },
+        ],
+      },
+    });
+    assert.ok(result.data[0].title.toLowerCase().indexOf('bahnhof') !== -1, '"banhof" should appear in "title" property');
+  });
 
   it('call find method with basic filter', async () => {
     const result = await service.find({
