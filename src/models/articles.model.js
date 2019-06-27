@@ -165,7 +165,7 @@ class Article {
 
     this.title = String(title);
     this.content = String(content);
-    console.log('CONTENTNTNTNTNTNTN', this.content);
+
     if (excerpt) {
       this.excerpt = String(excerpt);
     } else if (this.content.length) {
