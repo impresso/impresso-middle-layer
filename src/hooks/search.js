@@ -3,6 +3,7 @@ const lodash = require('lodash');
 
 const SOLR_FILTER_TYPES = [
   'hasTextContents',
+  'title',
   'isFront',
   'string', 'entity', 'newspaper', 'daterange',
   'year', 'language', 'type', 'regex',
@@ -160,6 +161,8 @@ const filtersToSolr = (type, filters) => {
       return 'front_b:1';
     case 'string':
       return reduceStringFiltersToSolr(filters, 'content_txt');
+    case 'title':
+      return reduceStringFiltersToSolr(filters, 'title_txt');
     case 'daterange':
       return reduceDaterangeFiltersToSolr(filters);
     case 'uid':
