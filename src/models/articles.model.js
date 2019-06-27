@@ -443,14 +443,31 @@ class Article {
    * @return {function} {Article} mapper with a single doc.
    */
   static solrFactory(res) {
+    const langs = ['fr', 'de', 'en'];
+
+    const getUncertainField = (doc, field) => {
+      let content = doc[`${field}_txt_${doc.lg_s}`];
+
+      if (!content) {
+        for(let i = 0, l = langs.length; i < l; i += 1) {
+          content = doc[`${field}_txt_${langs[i]}`];
+          if (content) {
+            break;
+          }
+        }
+      }
+      return content;
+    }
+
     return (doc) => {
       const art = new Article({
+
         uid: doc.id,
         type: doc.item_type_s,
         language: doc.lg_s,
 
-        title: doc[`title_txt_${doc.lg_s}`],
-        content: doc[`content_txt_${doc.lg_s}`],
+        title: getUncertainField(doc, "title"),
+        content: getUncertainField(doc, "content"),
         size: doc.content_length_i,
 
         newspaper: new Newspaper({

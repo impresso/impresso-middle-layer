@@ -66,22 +66,25 @@ class Service {
     // idnexed by article uid;
     const addonsIndex = lodash.keyBy(addons.data, 'uid');
 
-    results.data = results.data.map((d) => {
-      const addon = addonsIndex[d.uid];
+    results.data = results.data.map((article) => {
+      const addon = addonsIndex[article.uid];
 
       if (!addon) {
-        debug('no addons for uid', d.uid);
-        return d;
+        debug('no addons for uid', article.uid);
+        return article;
+      }
+
+      if (addon.pages) {
+        article.pages = addon.pages.map(d => d.toJSON());
       }
 
       if (pageUids.length === 1) {
-        return {
-          ...d,
-          regions: d.regions
-            .filter(r => pageUids.indexOf(r.pageUid) !== -1),
-        };
+        article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1);
       }
-      return d;
+
+      article.assignIIIF();
+
+      return article;
     });
 
     return results;
