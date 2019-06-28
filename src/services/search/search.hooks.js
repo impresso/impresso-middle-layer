@@ -23,10 +23,25 @@ const filtersValidator = {
     choices: SOLR_FILTER_TYPES,
     required: true,
   },
+  precision: {
+    choices: ['fuzzy', 'soft', 'exact', 'partial'],
+    default: 'exact',
+  },
   q: {
     required: false,
     min_length: 2,
     max_length: 500,
+  },
+  langs: {
+    before: (d) => {
+      if (typeof d === 'string') {
+        return d.split(',');
+      }
+      return d;
+    },
+    choices: ['fr'],
+    defaultValue: 'fr',
+    transform: d => Array.isArray(d)? d : d.split(','),
   },
   // compatible only with type daterange, unused elsewhere.
   // If it is an array, an OR will be used to JOIN the array items..
