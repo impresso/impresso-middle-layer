@@ -1,16 +1,16 @@
-const Sequelize = require('sequelize');
+const { DataTypes } = require('sequelize');
 const Newspaper = require('./newspapers.model');
 const Issue = require('./issues.model');
 const ArticleEntity = require('./articles-entities.model');
 const ArticleTag = require('./articles-tags.model');
-const { getJSON, getThumbnail } = require('../hooks/iiif.js');
+const { getJSON, getThumbnail, getExternalThumbnail } = require('../hooks/iiif.js');
 
 class Page {
   constructor({
     uid = '',
     iiif = '',
     labels = ['page'],
-    num = 0,
+    // num = 0,
     // converted coordinates
     hasCoords = false,
     // has json errors
@@ -26,22 +26,25 @@ class Page {
 
     // All collections for this page
     collections = [],
-
-    // issue_uid
-    issue_uid,
-    newspaper_uid,
   } = {}, complete = false) {
     this.uid = String(uid);
 
-    // if default is 0, then get page number from uid
-    if (num === 0) {
-      this.num = this.uid.match(/p0*([0-9]+)$/)[1];
+    // "LCE-1864-07-17-a-p0004".match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
+    const [, issueUid, newspaperUid, num] = this.uid
+      .match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/);
+
+    this.num = parseInt(num, 10);
+    this.issueUid = issueUid;
+    this.newspaperUid = newspaperUid;
+
+    // if any iiif is provided
+    if (!iiif.length) {
+      this.iiif = getJSON(this.uid);
+      this.iiifThumbnail = getThumbnail(this.uid);
     } else {
-      this.num = parseInt(num, 10);
+      this.iiif = String(iiif);
+      this.iiifThumbnail = getExternalThumbnail(this.iiif);
     }
-    // if any is provided
-    this.iiif = getJSON(this.uid);
-    this.iiifThumbnail = getThumbnail(this.uid);
 
     this.labels = labels;
 
@@ -52,13 +55,16 @@ class Page {
     this.hasCoords = Boolean(hasCoords);
     this.hasErrors = Boolean(hasErrors);
 
-    if (issue_uid) {
-      this.issueUid = issue_uid;
-    }
-
-    if (newspaper_uid) {
-      this.newspaper = Newspaper.getCached(newspaper_uid);
-    }
+    // if (issue_uid) {
+    //   this.issueUid = issue_uid;
+    // }
+    //
+    // if (newspaper_uid) {
+    //   this.newspaper = Newspaper.getCached(newspaper_uid);
+    // } else {
+    //   // get newspaper uid from uid.
+    //
+    // }
 
     if (complete) {
       this.articlesEntities = articlesEntities.map((d) => {
@@ -81,39 +87,35 @@ class Page {
 
     const page = client.define('page', {
       uid: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         primaryKey: true,
         field: 'id',
         unique: true,
       },
       issue_uid: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         field: 'issue_id',
       },
-      newspaper_uid: {
-        type: Sequelize.STRING,
-        field: 'newspaper_id',
-      },
       num: {
-        type: Sequelize.SMALLINT,
+        type: DataTypes.SMALLINT,
         field: 'page_number',
       },
       hasCoords: {
-        type: Sequelize.SMALLINT,
+        type: DataTypes.SMALLINT,
         field: 'has_converted_coordinates',
       },
       hasErrors: {
-        type: Sequelize.SMALLINT,
+        type: DataTypes.SMALLINT,
         field: 'has_corrupted_json',
+      },
+      iiif: {
+        type: DataTypes.STRING(200),
+        field: 'iiif_manifest',
       },
     }, {
       scopes: {
         findAll: {
           include: [
-            {
-              model: newspaper,
-              as: 'newspaper',
-            },
             {
               model: issue,
               as: 'issue',
@@ -121,10 +123,6 @@ class Page {
           ],
         },
       },
-    });
-
-    page.belongsTo(newspaper, {
-      foreignKey: 'newspaper_id',
     });
 
     page.belongsTo(issue, {

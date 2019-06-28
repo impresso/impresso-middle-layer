@@ -6,6 +6,9 @@
     "default": 10,
     "max": 50
   },
+  "accessRights": {
+    "showExcerpt": true
+  },
   "redis": {
     "enable": true
   },
@@ -136,6 +139,15 @@
       "endpoint": "https://.../select"
     },
     "entities": {
+      "endpoint": "https://.../select"
+    },
+    "embeddings_de": {
+      "endpoint": "https://.../select"
+    },
+    "embeddings_fr": {
+      "endpoint": "https://.../select"
+    },
+    "embeddings_en": {
       "endpoint": "https://.../select"
     }
   },

@@ -3,6 +3,7 @@ const lodash = require('lodash');
 
 const SOLR_FILTER_TYPES = [
   'hasTextContents',
+  'title',
   'isFront',
   'string', 'entity', 'newspaper', 'daterange',
   'year', 'language', 'type', 'regex',
@@ -12,6 +13,9 @@ const SOLR_FILTER_TYPES = [
   'topic',
   // filter by user collections! Only when authentified
   'collection',
+  // numeric filters
+  'ocrQuality',
+  'contentLength',
 ];
 
 /**
@@ -65,6 +69,21 @@ const reduceDaterangeFiltersToSolr = filters => filters
     return sq;
   }, []).join(' AND ');
 
+const reduceNumericRangeFilters = (filters, field) => filters
+  .reduce((sq, filter) => {
+    let q; // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition) or simple string '1 TO X';
+    if (Array.isArray(filter.q)) {
+      q = `${filter.q.map(d => `${field}:[${d}]`).join(' OR ')}`;
+    } else {
+      q = `${field}:[${filter.q}]`;
+    }
+    if (filter.context === 'exclude') {
+      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+    }
+    sq.push(q);
+    return sq;
+  }, []).join(' AND ');
+
 const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
   // cut regexp at any . not preceded by an escape sign.
   const q = query.q
@@ -82,62 +101,64 @@ const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
 
 const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>
   // reduce the string in filters to final SOLR query `sq`
-  filters.reduce((_sq, query) => {
+  filters.reduce((reduced, filter) => {
     // const specialchars = '+ - && || ! ( ) { } [ ] ^ " ~ * ? : \\'.split(' ');
     // operator
     let op = 'AND';
     // const field = fields[0];
-    // solarized query is the initial query
-    let _q = query.q.trim();
+    // solarized filter is the initial filter
+    let q = filter.q.trim();
 
-    // const isExact = /^"[^"]+"$/.test(_q);
-    const hasMultipleWords = _q.split(' ').length > 1;
+    // const isExact = /^"[^"]+"$/.test(q);
+    const hasMultipleWords = q.split(' ').length > 1;
 
-    if (query.precision === 'soft') {
-      _q = `(${_q.split(/\s+/g).join(' ')})`;
-    } else if (query.precision === 'fuzzy') {
+    if (filter.precision === 'soft') {
+      q = `(${q.split(/\s+/g).join(' ')})`;
+    } else if (filter.precision === 'fuzzy') {
       // "richard chase"~1
-      _q = `"${_q.split(/\s+/g).join(' ')}"~1`;
+      q = `"${q.split(/\s+/g).join(' ')}"~1`;
     } else if (hasMultipleWords) {
       // text:"Richard Chase"
-      _q = _q.replace(/"/g, ' ');
-      _q = `"${_q.split(/\s+/g).join(' ')}"`;
+      q = q.replace(/"/g, ' ');
+      q = `"${q.split(/\s+/g).join(' ')}"`;
     }
 
     // q multiplied for languages :(
     if (languages.length) {
-      const ql = languages.map(lang => `${field}_${lang}:${_q}`);
+      const ql = (filter.langs || languages).map(lang => `${field}_${lang}:${q}`);
 
       if (ql.length > 1) {
-        _q = `(${ql.join(' OR ')})`;
+        q = `(${ql.join(' OR ')})`;
       } else {
-        _q = ql[0];
+        q = ql[0];
       }
     } else {
-      _q = `${field}:${_q}`;
-    }
-    if (_sq === false) {
-      if (query.context === 'exclude') {
-        return `NOT (${_q})`; // first negation!
-      }
-      return _q;
+      q = `${field}:${q}`;
     }
 
-    if (query.context === 'exclude') {
-      op = 'AND NOT';
+    if (filter.context === 'exclude') {
+      q = reduced.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
     }
-    return `${_sq} ${op} ${_q}`;
-  }, false);
+
+    reduced.push(q);
+    return reduced;
+  }, []).join(' AND ');
 
 
 const filtersToSolr = (type, filters) => {
   switch (type) {
     case 'hasTextContents':
       return 'content_length_i:[1 TO *]';
+    case 'ocrQuality':
+      return reduceNumericRangeFilters(filters, 'ocrqa_f');
+    case 'contentLength':
+      return reduceNumericRangeFilters(filters, 'content_length_i');
     case 'isFront':
       return 'front_b:1';
     case 'string':
       return reduceStringFiltersToSolr(filters, 'content_txt');
+    case 'title':
+      return reduceStringFiltersToSolr(filters, 'title_txt');
     case 'daterange':
       return reduceDaterangeFiltersToSolr(filters);
     case 'uid':
@@ -276,6 +297,7 @@ const filtersToSolrQuery = () => async (context) => {
     filters.daterange,
     filters.type,
     filters.string,
+    filters.title,
     filters.issue,
     filters.page,
   ).filter(d => typeof d !== 'undefined');
@@ -339,7 +361,25 @@ module.exports = {
       type: 'terms',
       field: 'meta_year_i',
       mincount: 1,
-      limit: 400,
+      limit: 400, // 400 years
+    },
+    month: {
+      type: 'terms',
+      field: 'meta_yearmonth_s',
+      mincount: 1,
+      limit: 120, // ten years granularity
+    },
+    country: {
+      type: 'terms',
+      field: 'meta_country_code_s',
+      mincount: 1,
+      limit: 10,
+    },
+    type: {
+      type: 'terms',
+      field: 'item_type_s',
+      mincount: 1,
+      limit: 10,
     },
     topic: {
       type: 'terms',

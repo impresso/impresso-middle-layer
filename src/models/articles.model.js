@@ -1,4 +1,5 @@
 const { DataTypes } = require('sequelize');
+const lodash = require('lodash');
 const config = require('@feathersjs/configuration')()();
 
 const Newspaper = require('./newspapers.model');
@@ -11,6 +12,8 @@ const ArticleTopic = require('./articles-topics.model');
 const {
   toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt,
 } = require('../helpers');
+
+const { getExternalFragment } = require('../hooks/iiif');
 
 const ARTICLE_SOLR_FL_MINIMAL = [
   'id',
@@ -168,6 +171,7 @@ class Article {
     } else if (this.content.length) {
       this.excerpt = toExcerpt(this.content, {
         TruncateLength: 20,
+        excludeTitle: this.title,
       });
     } else {
       this.excerpt = '';
@@ -182,7 +186,7 @@ class Article {
     }
     if (newspaper instanceof Newspaper) {
       this.newspaper = newspaper;
-    } else if (newspaper) {
+    } else {
       this.newspaper = new Newspaper({ uid: newspaper });
     }
     // this.issue =
@@ -280,6 +284,18 @@ class Article {
     }
     // console.log(this.regions);
     //
+  }
+
+  assignIIIF() {
+    // get iiif of pages
+    const pagesIndex = lodash.keyBy(this.pages, 'uid'); // d => d.iiif);
+    this.regions.forEach((region, i) => {
+      if (pagesIndex[this.regions[i].pageUid]) {
+        this.regions[i].iiifFragment = getExternalFragment(pagesIndex[this.regions[i].pageUid].iiif, {
+          coords: region.coords,
+        });
+      }
+    });
   }
 
   /**
@@ -392,16 +408,16 @@ class Article {
     article.prototype.toJSON = function () {
       return new Article({
         ...this.get(),
-        newspaper: this.newspaper ? this.newspaper.toJSON() : null,
-        pages: this.pages ? this.pages.map(p => p.toJSON()) : [],
+        // newspaper: this.newspaper ? this.newspaper.toJSON() : null,
+        // pages: this.pages ? this.pages.map(p => p.toJSON()) : [],
       });
     };
 
-    article.belongsTo(newspaper, {
-      foreignKey: {
-        fieldName: 'newspaper_id',
-      },
-    });
+    // article.belongsTo(newspaper, {
+    //   foreignKey: {
+    //     fieldName: 'newspaper_id',
+    //   },
+    // });
 
     article.belongsToMany(collection, {
       as: 'collections',
@@ -413,11 +429,36 @@ class Article {
     article.belongsToMany(page, {
       as: 'pages',
       through: 'page_contentItem',
-      foreignKey: 'page_id',
-      otherKey: 'content_item_id',
+      foreignKey: 'content_item_id',
+      otherKey: 'page_id',
     });
 
     return article;
+  }
+
+  /**
+   * Given a solr document representing an article, return the value according to the field name
+   * when the field is declined multilanguage (eg when you have content_txt_de or
+   * content_txt_fr and you only care about some `content`)
+   *
+   * @param  {Object} doc   [description]
+   * @param  {String} field field name, without the `_txt_<language>` suffix
+   * @param  {Array}  langs =['fr', 'de', 'en'] Array of language suffixes
+   * @return {String}       the field value
+   */
+  static getUncertainField(doc, field, langs = ['fr', 'de', 'en']) {
+
+    let value = doc[`${field}_txt_${doc.lg_s}`];
+
+    if (!value) {
+      for(let i = 0, l = langs.length; i < l; i += 1) {
+        value = doc[`${field}_txt_${langs[i]}`];
+        if (value) {
+          break;
+        }
+      }
+    }
+    return value;
   }
 
   /**
@@ -429,12 +470,13 @@ class Article {
   static solrFactory(res) {
     return (doc) => {
       const art = new Article({
+
         uid: doc.id,
         type: doc.item_type_s,
         language: doc.lg_s,
 
-        title: doc[`title_txt_${doc.lg_s}`],
-        content: doc[`content_txt_${doc.lg_s}`],
+        title: Article.getUncertainField(doc, "title"),
+        content: Article.getUncertainField(doc, "content"),
         size: doc.content_length_i,
 
         newspaper: new Newspaper({

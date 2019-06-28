@@ -9,6 +9,7 @@ class Image {
     uid = '',
     type = 'image',
     coords = [],
+    title = '',
     issue = new Issue(),
     newspaper = new Newspaper(),
     date = new Date(),
@@ -28,7 +29,7 @@ class Image {
       coords,
       iiifFragment: getFragment(page.uid, { coords, dim: '250,' }),
     }));
-
+    this.title = String(title);
     if (date instanceof Date) {
       this.date = date;
     } else {
@@ -71,6 +72,7 @@ class Image {
           uid: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
           num,
         })) : [],
+        title: Article.getUncertainField(doc, "title"),
         type: doc.item_type_s,
         year: doc.meta_year_i,
         date: doc.meta_date_dt,
@@ -98,5 +100,6 @@ module.exports.SOLR_FL = [
   'meta_journal_s',
   'meta_date_dt',
   'item_type_s',
+  'title_txt_fr',
   '_version_',
 ];

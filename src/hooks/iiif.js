@@ -5,7 +5,16 @@ const endpoint = `${config.proxy.host}/proxy/iiif`;
 
 const getJSON = uid => `${endpoint}/${uid}/info.json`;
 const getThumbnail = (uid, { dim = '150,' } = {}) => `${endpoint}/${uid}/full/${dim}/0/default.png`;
+const getExternalThumbnail = (iiifManifest, { dim = '150,' } = {}) => {
+  const externalUid = iiifManifest.split('/info.json').shift();
+  return `${externalUid}/full/${dim}/0/default.png`;
+};
+
 const getFragment = (uid, { coords, dim = 'full' } = {}) => `${endpoint}/${uid}/${coords.join(',')}/${dim}/0/default.png`;
+const getExternalFragment = (iiifManifest, { coords, dim = 'full' } = {}) => {
+  const externalUid = iiifManifest.split('/info.json').shift();
+  return `${externalUid}/${coords.join(',')}/${dim}/0/default.png`;
+};
 
 const _IIIFmapper = (context, fromKey = 'uid', toKey = 'iiif') => (d) => {
   const _d = {
@@ -93,4 +102,6 @@ module.exports = {
   getJSON,
   getThumbnail,
   getFragment,
+  getExternalThumbnail,
+  getExternalFragment,
 };

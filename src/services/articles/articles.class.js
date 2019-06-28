@@ -66,22 +66,25 @@ class Service {
     // idnexed by article uid;
     const addonsIndex = lodash.keyBy(addons.data, 'uid');
 
-    results.data = results.data.map((d) => {
-      const addon = addonsIndex[d.uid];
+    results.data = results.data.map((article) => {
+      const addon = addonsIndex[article.uid];
 
       if (!addon) {
-        debug('no addons for uid', d.uid);
-        return d;
+        debug('no addons for uid', article.uid);
+        return article;
+      }
+
+      if (addon.pages) {
+        article.pages = addon.pages.map(d => d.toJSON());
       }
 
       if (pageUids.length === 1) {
-        return {
-          ...d,
-          regions: d.regions
-            .filter(r => pageUids.indexOf(r.pageUid) !== -1),
-        };
+        article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1);
       }
-      return d;
+
+      article.assignIIIF();
+
+      return article;
     });
 
     return results;
@@ -128,15 +131,14 @@ class Service {
         debug(`get: SequelizeService warning, no data found for ${id} ...`);
       }),
     ]).then((results) => {
-      if (!results[1]) {
-        return results[0];
+      if (results[1]) {
+        results[0].pages = results[1].pages.map(d => d.toJSON());
+        results[0].v = results[1].v;
       }
-
-      return {
-        ...results[0],
-        v: results[1].v,
-        newspaper: results[1].newspaper,
-      };
+      results[0].assignIIIF();
+      return results[0];
+    }).catch((err) => {
+      console.log(err);
     });
   }
 }

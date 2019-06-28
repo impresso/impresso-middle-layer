@@ -1,6 +1,29 @@
 const {
-  queryWithCommonParams, validate, utils,
+  queryWithCommonParams, validate, validateEach, utils,
 } = require('../../hooks/params');
+const { filtersToSequelizeQuery } = require('../../hooks/sequelize');
+const { resolveArticles } = require('../../hooks/resolvers/mentions.resolvers');
+
+const filtersValidator = {
+  context: {
+    choices: ['include', 'exclude'],
+    defaultValue: 'include',
+  },
+  op: {
+    choices: ['AND', 'OR'],
+    defaultValue: 'OR',
+  },
+  type: {
+    choices: ['entity'],
+    required: true,
+  },
+  q: {
+    required: false,
+    regex: /^[A-Za-z0-9_\-,]+[A-Za-z0-9_.-]*$/,
+    max_length: 500,
+  },
+};
+
 
 module.exports = {
   before: {
@@ -18,6 +41,10 @@ module.exports = {
           }),
         },
       }, 'GET'),
+      validateEach('filters', filtersValidator, {
+        required: false,
+      }),
+      filtersToSequelizeQuery(),
       queryWithCommonParams(),
     ],
     get: [],
@@ -29,7 +56,9 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
+    find: [
+      resolveArticles(),
+    ],
     get: [],
     create: [],
     update: [],

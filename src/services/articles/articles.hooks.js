@@ -2,11 +2,11 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   utils, protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
 } = require('../../hooks/params');
-const { assignIIIF } = require('../../hooks/iiif');
 const { filtersToSolrQuery, SOLR_ORDER_BY } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
 const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers');
+const { obfuscate } = require('../../hooks/access-rights');
 
 
 module.exports = {
@@ -71,7 +71,6 @@ module.exports = {
 
     ],
     find: [
-      assignIIIF('pages', 'issue', 'regions'),
       displayQueryParams(['filters']),
       protect('content'),
       returnCachedContents({
@@ -79,9 +78,9 @@ module.exports = {
       }),
       saveResultsInCache(),
       resolveUserAddons(),
+      obfuscate(),
     ],
     get: [
-      assignIIIF('pages', 'issue', 'regions'),
       // save here cache, flush cache here
       returnCachedContents({
         skipHooks: false,
@@ -89,6 +88,7 @@ module.exports = {
       resolveTopics(),
       saveResultsInCache(),
       resolveUserAddons(),
+      obfuscate(),
     ],
     create: [],
     update: [],
