@@ -20,6 +20,10 @@ const filtersValidator = {
     choices: ['issue', 'newspaper', 'year', 'type', 'daterange', 'isFront', 'title'],
     required: true,
   },
+  precision: {
+    choices: ['fuzzy', 'soft', 'exact', 'partial'],
+    default: 'exact',
+  },
   q: {
     required: false,
     min_length: 2,
