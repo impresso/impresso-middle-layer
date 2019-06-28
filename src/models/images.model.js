@@ -60,8 +60,6 @@ class Image {
    */
   static solrFactory() {
     return (doc) => {
-      console.log('solrFactory', doc);
-
       const img = new Image({
         uid: doc.id,
         newspaper: new Newspaper({
