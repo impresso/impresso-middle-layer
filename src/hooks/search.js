@@ -4,6 +4,7 @@ const lodash = require('lodash');
 const SOLR_FILTER_TYPES = [
   'hasTextContents',
   'isFront',
+  'title',
   'string', 'entity', 'newspaper', 'daterange',
   'year', 'language', 'type', 'regex',
   // mention allows to find both mentions of type person and location
@@ -103,11 +104,12 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
   filters.reduce((sq, filter) => {
     let q = filter.q.trim();
 
+    q = q.replace(/"/g, ' ');
     // const isExact = /^"[^"]+"$/.test(q);
-    const hasMultipleWords = q.split(' ').length > 1;
+    const hasMultipleWords = q.split(/\s/).length > 1;
 
     if (filter.precision === 'soft') {
-      q = `(${q.split(/\s+/g).join(' ')})`;
+      q = `(${q.split(/\s+/g).join(' OR ')})`;
     } else if (filter.precision === 'fuzzy') {
       // "richard chase"~1
       q = `"${q.split(/\s+/g).join(' ')}"~1`;
@@ -290,6 +292,7 @@ const filtersToSolrQuery = () => async (context) => {
     filters.daterange,
     filters.type,
     filters.string,
+    filters.title,
     filters.issue,
     filters.page,
   ).filter(d => typeof d !== 'undefined');
