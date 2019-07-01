@@ -54,7 +54,7 @@ class Service {
         .then(res => res.data[0]),
       this.SequelizeService.rawSelect({
         query: `
-          SELECT pages.id as uid, pages.page_number as num, pages.has_converted_coordinates as hasCoords, COUNT(ci.id) as countArticles
+          SELECT pages.id as uid, pages.iiif_manifest as iiif, pages.page_number as num, pages.has_converted_coordinates as hasCoords, COUNT(ci.id) as countArticles
           FROM pages
             JOIN issues
               ON pages.issue_id = issues.id
@@ -65,7 +65,6 @@ class Service {
           WHERE issues.id = :id
           GROUP BY pages.id
           ORDER BY num ASC
-
         `,
         replacements: {
           id,

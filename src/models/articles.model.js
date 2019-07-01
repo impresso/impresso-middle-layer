@@ -286,18 +286,21 @@ class Article {
     //
   }
 
-  assignIIIF() {
+  assignIIIF(props = ['regions', 'matches']) {
     // get iiif of pages
     const pagesIndex = lodash.keyBy(this.pages, 'uid'); // d => d.iiif);
-    this.regions.forEach((region, i) => {
-      if (pagesIndex[this.regions[i].pageUid]) {
-        this.regions[i].iiifFragment = getExternalFragment(pagesIndex[this.regions[i].pageUid].iiif, {
-          coords: region.coords,
+    props.forEach((prop) => {
+      if(Array.isArray(this[prop])) {
+        this[prop].forEach((d, i) => {
+          if (pagesIndex[this[prop][i].pageUid]) {
+            this[prop][i].iiifFragment = getExternalFragment(pagesIndex[this[prop][i].pageUid].iiif, {
+              coords: d.coords,
+            });
+          }
         });
       }
     });
   }
-
   /**
    * get regions from pp_plain field, aka region coordinates.
    * Te param `regionCoords` is a list of page objects, containing a r property
