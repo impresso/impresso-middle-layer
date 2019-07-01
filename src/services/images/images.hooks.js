@@ -17,13 +17,17 @@ const filtersValidator = {
     defaultValue: 'include',
   },
   type: {
-    choices: ['issue', 'newspaper', 'year', 'type', 'daterange', 'isFront'],
+    choices: ['issue', 'newspaper', 'title', 'year', 'type', 'daterange', 'isFront'],
     required: true,
   },
   q: {
     required: false,
     min_length: 2,
     max_length: 500,
+  },
+  precision: {
+    choices: ['soft', 'fuzzy', 'exact'],
+    defaultValue: 'exact',
   },
   // compatible only with type daterange, unused elsewhere.
   // If it is an array, an OR will be used to JOIN the array items..
