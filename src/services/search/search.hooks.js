@@ -6,7 +6,6 @@ const {
   SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
 } = require('../../hooks/search');
 const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info');
-const { assignIIIF } = require('../../hooks/iiif');
 const { protect } = require('@feathersjs/authentication-local').hooks;
 const { authenticate } = require('@feathersjs/authentication').hooks;
 
@@ -147,7 +146,6 @@ module.exports = {
   after: {
     all: [],
     find: [
-      assignIIIF('pages', 'matches'),
       displayQueryParams(['queryComponents', 'filters']),
       resolveQueryComponents(),
       protect('content'),

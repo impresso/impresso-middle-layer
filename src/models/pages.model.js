@@ -130,7 +130,6 @@ class Page {
     });
 
     page.prototype.toJSON = function () {
-      console.log('page', this.get());
       return new Page(this.get());
     };
 
