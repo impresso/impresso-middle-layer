@@ -100,52 +100,42 @@ const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
 
 const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>
   // reduce the string in filters to final SOLR query `sq`
-  filters.reduce((_sq, query) => {
-    // const specialchars = '+ - && || ! ( ) { } [ ] ^ " ~ * ? : \\'.split(' ');
-    // operator
-    let op = 'AND';
-    // const field = fields[0];
-    // solarized query is the initial query
-    let _q = query.q.trim();
+  filters.reduce((sq, filter) => {
+    let q = filter.q.trim();
 
-    // const isExact = /^"[^"]+"$/.test(_q);
-    const hasMultipleWords = _q.split(' ').length > 1;
+    // const isExact = /^"[^"]+"$/.test(q);
+    const hasMultipleWords = q.split(' ').length > 1;
 
-    if (query.precision === 'soft') {
-      _q = `(${_q.split(/\s+/g).join(' ')})`;
-    } else if (query.precision === 'fuzzy') {
+    if (filter.precision === 'soft') {
+      q = `(${q.split(/\s+/g).join(' ')})`;
+    } else if (filter.precision === 'fuzzy') {
       // "richard chase"~1
-      _q = `"${_q.split(/\s+/g).join(' ')}"~1`;
+      q = `"${q.split(/\s+/g).join(' ')}"~1`;
     } else if (hasMultipleWords) {
       // text:"Richard Chase"
-      _q = _q.replace(/"/g, ' ');
-      _q = `"${_q.split(/\s+/g).join(' ')}"`;
+      q = q.replace(/"/g, ' ');
+      q = `"${q.split(/\s+/g).join(' ')}"`;
     }
 
     // q multiplied for languages :(
     if (languages.length) {
-      const ql = languages.map(lang => `${field}_${lang}:${_q}`);
+      const ql = languages.map(lang => `${field}_${lang}:${q}`);
 
       if (ql.length > 1) {
-        _q = `(${ql.join(' OR ')})`;
+        q = `(${ql.join(' OR ')})`;
       } else {
-        _q = ql[0];
+        q = ql[0];
       }
     } else {
-      _q = `${field}:${_q}`;
-    }
-    if (_sq === false) {
-      if (query.context === 'exclude') {
-        return `NOT (${_q})`; // first negation!
-      }
-      return _q;
+      q = `${field}:${q}`;
     }
 
-    if (query.context === 'exclude') {
-      op = 'AND NOT';
+    if (filter.context === 'exclude') {
+      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
     }
-    return `${_sq} ${op} ${_q}`;
-  }, false);
+    sq.push(q);
+    return sq;
+  }, []).join(' AND ');
 
 
 const filtersToSolr = (type, filters) => {
@@ -160,6 +150,8 @@ const filtersToSolr = (type, filters) => {
       return 'front_b:1';
     case 'string':
       return reduceStringFiltersToSolr(filters, 'content_txt');
+    case 'title':
+      return reduceStringFiltersToSolr(filters, 'title_txt');
     case 'daterange':
       return reduceDaterangeFiltersToSolr(filters);
     case 'uid':
