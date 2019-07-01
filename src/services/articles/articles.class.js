@@ -65,7 +65,7 @@ class Service {
 
     // idnexed by article uid;
     const addonsIndex = lodash.keyBy(addons.data, 'uid');
-
+    debug('addons found for:', Object.keys(addonsIndex));
     results.data = results.data.map((article) => {
       const addon = addonsIndex[article.uid];
 
@@ -81,9 +81,7 @@ class Service {
       if (pageUids.length === 1) {
         article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1);
       }
-
       article.assignIIIF();
-
       return article;
     });
 
