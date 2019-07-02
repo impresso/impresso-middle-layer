@@ -133,9 +133,17 @@ class SequelizeService {
       fn = this.sequelizeKlass.scope(params.scope);
     }
 
-    return fn.findAndCountAll(p)
-      .catch(sequelizeErrorHandler)
+    let promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p);
+
+    return promise
       .then((res) => {
+        if (params.findAllOnly) {
+          debug(`'find' ${this.name} success, no count has been asked.`);
+          return {
+            rows: res,
+            count: -1,
+          };
+        }
         debug(`'find' ${this.name} success, n.results:`, res.count);
         return res;
       })
@@ -147,7 +155,8 @@ class SequelizeService {
         info: {
           query: params.query,
         },
-      }));
+      }))
+      .catch(sequelizeErrorHandler);
   }
 }
 
