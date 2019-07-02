@@ -1,4 +1,4 @@
-const debug = require('debug')('impresso/services:sequelize.utils');
+const debug = require('debug')('verbose:impresso/services:sequelize.utils');
 const {
   Conflict, BadRequest, BadGateway,
 } = require('@feathersjs/errors');
@@ -41,11 +41,14 @@ const sequelizeErrorHandler = (err) => {
     throw new BadGateway('SequelizeConnectionRefusedError');
   } else if (err.name === 'SequelizeConnectionError') {
     debug('Connection error. SequelizeConnectionError:', err);
-  } else {
+    throw new BadGateway('SequelizeConnectionError');
+  } else if(err.name) {
     debug('sequelize failed. Check error below.');
     debug(err.name);
     console.error(err);
+    throw new BadGateway(err.name);
   }
+  console.log(err);
   throw new BadRequest();
 };
 
