@@ -1,8 +1,14 @@
 const { DataTypes } = require('sequelize');
 
+const TYPES = {
+  50: 'person',
+  54: 'location',
+};
+
+
 class Entity {
   constructor({
-    id = 0,
+    uid = '',
     name = '',
     wikidataId = null,
     dbpediaURL = null,
@@ -11,9 +17,12 @@ class Entity {
     countItems = -1,
     countMentions = -1,
   } = {}) {
-    this.id = parseInt(id, 10);
+    this.uid = String(uid);
     this.name = String(name);
-    this.type = String(type);
+    this.type = TYPES[String(type)];
+    if (!this.type) {
+      this.type = String(type);
+    }
     this.wikidataId = wikidataId;
     this.dbpediaURL = dbpediaURL;
     this.impressoId = impressoId;
@@ -46,6 +55,10 @@ class Entity {
       impressoId: {
         type: DataTypes.STRING(255),
         field: 'imp_id',
+      },
+      type: {
+        type: DataTypes.SMALLINT,
+        field: 'type_id',
       },
     }, {
       tableName,
