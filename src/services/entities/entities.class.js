@@ -23,6 +23,7 @@ class Service {
     const where = {};
     // get entities;
     const result = await this.SequelizeService.find({
+      findAllOnly: true,
       query: {
         ...params.query,
       },
