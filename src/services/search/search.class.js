@@ -160,7 +160,12 @@ class Service {
           article.regions = Article.getRegions({
             regionCoords: resultsIndex[article.uid].pp_plain,
           });
-          article.assignIIIF();
+          if (article instanceof Article) {
+            article.assignIIIF();
+          } else {
+            Article.assignIIIF(article);
+          }
+
           return article;
         }).keyBy('uid').value();
         return uids.map(uid => articleIndex[uid]);

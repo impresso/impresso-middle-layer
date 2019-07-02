@@ -301,6 +301,22 @@ class Article {
       }
     });
   }
+
+  static assignIIIF(article, props = ['regions', 'matches']) {
+    // get iiif of pages
+    const pagesIndex = lodash.keyBy(article.pages, 'uid'); // d => d.iiif);
+    props.forEach((prop) => {
+      if(Array.isArray(article[prop])) {
+        article[prop].forEach((d, i) => {
+          if (pagesIndex[article[prop][i].pageUid]) {
+            article[prop][i].iiifFragment = getExternalFragment(pagesIndex[article[prop][i].pageUid].iiif, {
+              coords: d.coords,
+            });
+          }
+        });
+      }
+    });
+  }
   /**
    * get regions from pp_plain field, aka region coordinates.
    * Te param `regionCoords` is a list of page objects, containing a r property
