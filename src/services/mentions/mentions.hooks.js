@@ -34,8 +34,8 @@ module.exports = {
           choices: ['-name', 'name', '-id', 'id'],
           defaultValue: 'id',
           transform: d => utils.translate(d, {
-            name: [['name', 'ASC']],
-            '-name': [['name', 'DESC']],
+            // name: [['entity_id', 'ASC'], ['name', 'ASC']],
+            // '-name': [['entity_id', 'ASC'], ['name', 'DESC']],
             id: [['id', 'ASC']],
             '-id': [['id', 'DESC']],
           }),
