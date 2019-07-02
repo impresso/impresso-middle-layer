@@ -1,5 +1,5 @@
 const {
-  queryWithCommonParams, validate, validateEach, utils,
+  queryWithCommonParams, validate, validateEach, utils, REGEX_UIDS,
 } = require('../../hooks/params');
 const { filtersToSequelizeQuery } = require('../../hooks/sequelize');
 const { resolveArticles } = require('../../hooks/resolvers/mentions.resolvers');
@@ -19,7 +19,7 @@ const filtersValidator = {
   },
   q: {
     required: false,
-    regex: /^[A-Za-z0-9_\-,]+[A-Za-z0-9_.-]*$/,
+    regex: REGEX_UIDS,
     max_length: 500,
   },
 };
