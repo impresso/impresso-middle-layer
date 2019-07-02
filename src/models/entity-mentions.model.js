@@ -1,5 +1,10 @@
 const { DataTypes } = require('sequelize');
 
+const TYPES = {
+  50: 'person',
+  54: 'location',
+};
+
 class MentionAncillary {
   constructor({
     firstname = '',
@@ -69,20 +74,22 @@ class EntityMention {
     type = '',
     entityId = '',
     articleUid = '',
-    ancillary = null,
+    mentionAncillary = null,
   } = {}) {
     this.entityId = parseInt(entityId, 10);
     this.articleUid = String(articleUid);
-    this.type = String(type);
+    this.type = TYPES[String(type)] || String(type);
+
     this.name = String(name);
     this.t = String(surface);
     this.l = parseInt(offsetStart, 10);
     this.r = this.l + parseInt(offsetLength, 10);
     this.confidence = confidence;
-    if (ancillary && type === 50) {
-      console.log('JOIN');
+    if (mentionAncillary) {
+      this.ancillary = new MentionAncillary({
+        ...mentionAncillary.get(),
+      });
     }
-    // this.ancillary = ancillary;
   }
 
   static sequelize(client, {
@@ -122,6 +129,14 @@ class EntityMention {
       },
     }, {
       tableName,
+      defaultScope: {
+        include: [
+          {
+            model: mentionAncillary,
+            as: 'mentionAncillary',
+          },
+        ],
+      },
     });
 
     entityMention.hasOne(mentionAncillary, {
@@ -129,6 +144,12 @@ class EntityMention {
         fieldName: 'mention_id',
       },
     });
+
+    entityMention.prototype.toJSON = function () {
+      return new EntityMention({
+        ...this.get(),
+      });
+    };
 
     return entityMention;
   }
