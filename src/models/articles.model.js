@@ -440,28 +440,37 @@ class Article {
   }
 
   /**
+   * Given a solr document representing an article, return the value according to the field name
+   * when the field is declined multilanguage (eg when you have content_txt_de or
+   * content_txt_fr and you only care about some `content`)
+   *
+   * @param  {Object} doc   [description]
+   * @param  {String} field field name, without the `_txt_<language>` suffix
+   * @param  {Array}  langs =['fr', 'de', 'en'] Array of language suffixes
+   * @return {String}       the field value
+   */
+  static getUncertainField(doc, field, langs = ['fr', 'de', 'en']) {
+
+    let value = doc[`${field}_txt_${doc.lg_s}`];
+
+    if (!value) {
+      for(let i = 0, l = langs.length; i < l; i += 1) {
+        value = doc[`${field}_txt_${langs[i]}`];
+        if (value) {
+          break;
+        }
+      }
+    }
+    return value;
+  }
+
+  /**
    * Return an Article mapper for Solr response document
    *
    * @param {Object} res Solr response object
    * @return {function} {Article} mapper with a single doc.
    */
   static solrFactory(res) {
-    const langs = ['fr', 'de', 'en'];
-
-    const getUncertainField = (doc, field) => {
-      let content = doc[`${field}_txt_${doc.lg_s}`];
-
-      if (!content) {
-        for(let i = 0, l = langs.length; i < l; i += 1) {
-          content = doc[`${field}_txt_${langs[i]}`];
-          if (content) {
-            break;
-          }
-        }
-      }
-      return content;
-    }
-
     return (doc) => {
       const art = new Article({
 
@@ -469,8 +478,8 @@ class Article {
         type: doc.item_type_s,
         language: doc.lg_s,
 
-        title: getUncertainField(doc, "title"),
-        content: getUncertainField(doc, "content"),
+        title: Article.getUncertainField(doc, "title"),
+        content: Article.getUncertainField(doc, "content"),
         size: doc.content_length_i,
 
         newspaper: new Newspaper({

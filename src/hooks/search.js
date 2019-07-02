@@ -3,6 +3,7 @@ const lodash = require('lodash');
 
 const SOLR_FILTER_TYPES = [
   'hasTextContents',
+  'title',
   'isFront',
   'title',
   'string', 'entity', 'newspaper', 'daterange',
@@ -121,7 +122,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
 
     // q multiplied for languages :(
     if (languages.length) {
-      const ql = languages.map(lang => `${field}_${lang}:${q}`);
+      const ql = (filter.langs || languages).map(lang => `${field}_${lang}:${q}`);
 
       if (ql.length > 1) {
         q = `(${ql.join(' OR ')})`;
