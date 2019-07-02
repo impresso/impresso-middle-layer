@@ -153,7 +153,11 @@ class SequelizeService {
         limit: params.query.limit,
         skip: params.query.skip,
         info: {
-          query: params.query,
+          query: {
+            filters: params.query.filters,
+            limit: params.query.limit,
+            skip: params.query.skip,
+          },
         },
       }))
       .catch(sequelizeErrorHandler);
