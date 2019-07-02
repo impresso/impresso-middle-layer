@@ -23,13 +23,15 @@ class Service {
     const where = {
       // creatorId: params.user.id,
     };
+    const findAllOnly = !params.sanitized.sequelizeQuery;
     if (params.sanitized.sequelizeQuery) {
       where.$and = params.sanitized.sequelizeQuery;
     }
-    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
+    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query, findAllOnly);
 
     return this.SequelizeService.find({
       ...params,
+      findAllOnly,
       where,
     });
   }
