@@ -9,7 +9,7 @@ test/services/mentions.test.js \
 src/hooks/sequelize.js \
 src/hooks/resolvers/mentions.resolvers.js \
 --config .eslintrc.json --fix \
-&& NODE_ENV=development DEBUG=verbose*,imp* mocha test/services/mentions.test.js
+&& NODE_ENV=development DEBUG=verbose*,imp*,@feathersjs/error* mocha test/services/mentions.test.js
 */
 describe('\'mentions\' service', function () {
   this.timeout(10000);
@@ -37,7 +37,7 @@ describe('\'mentions\' service', function () {
         filters: [
           {
             type: 'entity',
-            q: '1',
+            q: 'aida-0001-"Arizona"_Charlie_Meadows',
           },
         ],
       },
@@ -45,6 +45,7 @@ describe('\'mentions\' service', function () {
       console.log(err);
     });
     assert.ok(result.total, 'there are results');
+    assert.ok(result.data[0].articleUid, 'there should be an article attached');
     assert.ok(result.data[0].article.uid, 'there is an article attached');
   });
 });
