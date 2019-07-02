@@ -21,7 +21,7 @@ async function waterfall() {
 
   // get total pages per newspapers
   await sequelizeClient.query(`SELECT COUNT(*) as countPages, p.newspaper_id as uid
-       FROM impresso_dev.pages AS p
+       FROM pages AS p
      GROUP BY p.newspaper_id`, {
     type: sequelizeClient.QueryTypes.SELECT,
   }).then((results) => {
