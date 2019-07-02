@@ -22,14 +22,14 @@ class Entity {
   }
 
   static sequelize(client, {
-    tableName = 'entities_v',
+    tableName = 'entities',
   } = {}) {
     const entity = client.define('entity', {
-      id: {
-        type: DataTypes.INTEGER,
+      uid: {
+        type: DataTypes.STRING(255),
         primaryKey: true,
-        autoIncrement: true,
         unique: true,
+        field: 'id',
       },
       name: {
         type: DataTypes.STRING(255),
@@ -47,21 +47,6 @@ class Entity {
         type: DataTypes.STRING(255),
         field: 'imp_id',
       },
-      countItems: {
-        // number of contentitems matching
-        type: DataTypes.INTEGER,
-        field: 'item_count',
-      },
-      countMentions: {
-        type: DataTypes.INTEGER,
-        field: 'mention_count',
-      },
-      // startDate: {
-      //  // one day
-      // },
-      // endDate: {
-      //
-      // }
     }, {
       tableName,
     });
