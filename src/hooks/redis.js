@@ -97,6 +97,10 @@ const saveResultsInCache = () => async (context) => {
   if (!client || !context.params.cacheKey) {
     return;
   }
+  if (!context.result || !Object.keys(context.result).length) {
+    // due to errors
+    return;
+  }
   debug('saveResultsInCache', context.params.cacheKey);
   if (!context.params.isCached) {
     // do not override cached contents. See returnCachedContents
