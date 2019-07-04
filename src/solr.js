@@ -234,6 +234,7 @@ const wrapAll = res => ({
     responseTime: {
       solr: res.responseHeader.QTime,
     },
+    facets: res.facets,
   },
 });
 
