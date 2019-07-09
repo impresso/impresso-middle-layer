@@ -410,5 +410,21 @@ module.exports = {
       field: 'lg_s',
       mincount: 1,
     },
+    person: {
+      type: 'terms',
+      field: 'pers_entities_dpfs',
+      mincount: 1,
+      limit: 20,
+      offset: 0,
+      numBuckets: true,
+    },
+    location: {
+      type: 'terms',
+      field: 'loc_entities_dpfs',
+      mincount: 1,
+      limit: 20,
+      offset: 0,
+      numBuckets: true,
+    },
   },
 };
