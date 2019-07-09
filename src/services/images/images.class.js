@@ -49,8 +49,14 @@ class Service {
     }
 
     if (signature) {
+      let fq;
+      if (params.query.sq === '*:*') {
+        fq = `_vector_${params.query.vectorType}_bv:[* TO *]`;
+      } else {
+        fq = `${params.query.sq} AND _vector_${params.query.vectorType}_bv:[* TO *]`;
+      }
       return this.SolrService.solr.findAll({
-        fq: params.query.sq,
+        fq,
         form: {
           q: `{!vectorscoring f="_vector_${params.query.vectorType}_bv" vector_b64="${signature}"}`,
         },
@@ -61,6 +67,13 @@ class Service {
         facets: params.query.facets,
         order_by: 'score DESC',
       }, Image.solrFactory).then(res => this.SolrService.solr.utils.wrapAll(res));
+    }
+
+    // no signature. Filter out images without signature!
+    if (params.query.sq === '*:*') {
+      params.query.sq = `filter(_vector_${params.query.vectorType}_bv:[* TO *])`;
+    } else {
+      params.query.sq = `${params.query.sq} AND filter(_vector_${params.query.vectorType}_bv:[* TO *])`;
     }
 
     return this.SolrService.find({
