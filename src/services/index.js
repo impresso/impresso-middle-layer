@@ -57,6 +57,9 @@ const filepond = require('./filepond/filepond.service.js');
 const embeddings = require('./embeddings/embeddings.service.js');
 
 
+const searchFacets = require('./search-facets/search-facets.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -97,4 +100,5 @@ module.exports = function () {
   app.configure(mentions);
   app.configure(filepond);
   app.configure(embeddings);
+  app.configure(searchFacets);
 };
