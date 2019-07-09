@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const rp = require('request-promise');
 const sharp = require('sharp');
+const verbose = require('debug')('verbose:impresso/services:filepond');
 
 class Service {
   constructor(options) {
@@ -13,13 +14,16 @@ class Service {
     this.app = app;
   }
 
-  create(data, params) {
-    return new Promise((resolve, reject) => {
-      const file = path.join(this.app.get('multer').dest, params.file.filename);
-
-      const fingerprint = this.processImage(file).then(imageBuffer => rp({
+  async create(data, params) {
+    const file = path.join(this.app.get('multer').dest, params.file.filename);
+    verbose('create:', file);
+    const url = this.app.get('images').visualSignature.endpoint;
+    verbose('visualSignature service url:', url);
+    // Promise: process image
+    const fingerprintPromise = this.processImage(file)
+      .then(imageBuffer => rp({
+        url,
         method: 'POST',
-        uri: 'https://impresso-images.dhlab.epfl.ch/visual-signature/',
         json: true,
         formData: {
           model_id: 'InceptionResNetV2',
@@ -32,23 +36,25 @@ class Service {
           },
         },
       }));
+    // promise: create base64 representation of the given file
+    const thumbnailPromise = sharp(file)
+      .resize(200)
+      .toBuffer()
+      .then(d => d.toString('base64'));
+    // send signature to redis
+    const image = await Promise.all([
+      fingerprintPromise,
+      thumbnailPromise,
+    ]).then(([fingerprint, thumbnail]) => ({
+      uid: params.file.filename,
+      name: params.file.originalname,
+      signature: fingerprint.vector_b64,
+      checksum: params.checksum,
+      thumbnail,
+    }));
 
-      const thumbnail = sharp(file)
-        .resize(200)
-        .toBuffer();
-
-      Promise.all([fingerprint, thumbnail]).then((values) => {
-        const image = {
-          uid: params.file.filename,
-          name: params.file.originalname,
-          signature: values[0].vector_b64,
-          checksum: params.checksum,
-          thumbnail: values[1].toString('base64'),
-        };
-
-        this.app.get('redisClient').hmset(params.file.filename, image).then(resolve).catch(reject);
-      });
-    });
+    verbose('image:', image);
+    return this.app.get('redisClient').hmset(`filepond:${image.checksum}`, image);
   }
 
   processImage(file, maxWidth = 1000, maxHeight = 1000) {
@@ -59,7 +65,7 @@ class Service {
         withoutEnlargement: true,
       })
       .toFormat('jpeg')
-      .toBuffer();
+      .toBuffer()
   }
 }
 
