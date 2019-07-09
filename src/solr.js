@@ -178,12 +178,16 @@ const findAll = (config, params = {}, factory) => {
   };
 
   if (_params.form) {
+    // rewrite query string to get fq and limit the qs params
     opts.form = _params.form;
     opts.form.fq = _params.fq;
     opts.qs = {
       start: _params.skip,
       rows: _params.limit,
     };
+    if (qs['json.facet']) {
+      opts.qs['json.facet'] = qs['json.facet'];
+    }
     // opts.form.q = opts.form.q + ' AND ' +
     opts.method = 'POST';
   } else {
