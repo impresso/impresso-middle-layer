@@ -1,8 +1,8 @@
 // Initializes the `filepond` service on path `/filepond`
 const path = require('path');
+const md5File = require('md5-file');
 const createService = require('./filepond.class.js');
 const hooks = require('./filepond.hooks');
-const md5File = require('md5-file');
 
 module.exports = function (app) {
   const upload = app.get('multerClient');
@@ -24,7 +24,7 @@ module.exports = function (app) {
         }).then((result) => {
           if (result.total) {
             res.format({
-              'text/plain': function() {
+              'text/plain': function () {
                 res.end(String(result.data[0].uid));
               },
             });
@@ -38,10 +38,9 @@ module.exports = function (app) {
     (req, res) => {
       // Format the message as text/plain
       res.format({
-        'text/plain': function() {
+        'text/plain': function () {
           res.end(String(req.file.filename));
         },
       });
-    }
-  );
+    });
 };

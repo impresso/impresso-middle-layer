@@ -5,7 +5,7 @@ const rp = require('request-promise');
 const sharp = require('sharp');
 
 class Service {
-  constructor (options) {
+  constructor(options) {
     this.options = options || {};
   }
 
@@ -13,27 +13,25 @@ class Service {
     this.app = app;
   }
 
-  create (data, params) {
+  create(data, params) {
     return new Promise((resolve, reject) => {
       const file = path.join(this.app.get('multer').dest, params.file.filename);
 
-      const fingerprint = this.processImage(file).then((imageBuffer) => {
-        return rp({
-          method: 'POST',
-          uri: 'https://impresso-images.dhlab.epfl.ch/visual-signature/',
-          json: true,
-          formData: {
-            model_id: 'InceptionResNetV2',
-            image: {
-              value: imageBuffer,
-              options: {
-                filename: params.file.filename,
-                contentType: 'image/jpeg',
-              },
+      const fingerprint = this.processImage(file).then(imageBuffer => rp({
+        method: 'POST',
+        uri: 'https://impresso-images.dhlab.epfl.ch/visual-signature/',
+        json: true,
+        formData: {
+          model_id: 'InceptionResNetV2',
+          image: {
+            value: imageBuffer,
+            options: {
+              filename: params.file.filename,
+              contentType: 'image/jpeg',
             },
           },
-        });
-      });
+        },
+      }));
 
       const thumbnail = sharp(file)
         .resize(200)
@@ -46,7 +44,7 @@ class Service {
           signature: values[0].vector_b64,
           checksum: params.checksum,
           thumbnail: values[1].toString('base64'),
-        }
+        };
 
         this.app.get('redisClient').hmset(params.file.filename, image).then(resolve).catch(reject);
       });
