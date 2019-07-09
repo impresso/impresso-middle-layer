@@ -48,6 +48,10 @@ const ARTICLE_SOLR_FL_LITE = [
   'meta_country_code_s', // 'CH',
   'meta_province_code_s', // 'VD',
   'content_length_i',
+
+  'topics_dpfs',
+  'pers_entities_dpfs',
+  'loc_entities_dpfs',
 ];
 
 const ARTICLE_SOLR_FL_TO_CSV = [
@@ -73,6 +77,8 @@ const ARTICLE_SOLR_FL_TO_CSV = [
   'meta_province_code_s', // 'VD',
   'content_length_i',
   'topics_dpfs',
+  'pers_entities_dpfs',
+  'loc_entities_dpfs',
 ];
 
 const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat([
@@ -84,8 +90,31 @@ const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'rb_plain:[json]',
   'pp_plain:[json]',
   'nem_offset_plain:[json]',
-  'topics_dpfs',
 ]);
+
+class ArticleDPF {
+  constructor({
+    uid = '',
+    relevance = '',
+  } = {}) {
+    this.uid = uid;
+    this.relevance = parseFloat(relevance);
+  }
+
+  static solrDPFsFactory(dpfs) {
+    if (!dpfs || !dpfs.length) {
+      return [];
+    }
+    console.log('solrDPFsFactory', dpfs);
+    return dpfs[0].trim().split(' ').map((d) => {
+      const parts = d.split('|');
+      return new ArticleDPF({
+        uid: parts[0],
+        relevance: parts[1],
+      });
+    });
+  }
+}
 
 class ArticleRegion {
   constructor({
@@ -158,6 +187,9 @@ class Article {
     mentions = [],
     // topics
     topics = [],
+    // entities: person
+    persons = [],
+    locations= [],
   } = {}) {
     this.uid = String(uid);
     this.type = String(type);
@@ -212,6 +244,14 @@ class Article {
 
     if (topics.length) {
       this.topics = topics;
+    }
+
+    if (persons.length) {
+      this.persons = persons;
+    }
+
+    if (locations.length) {
+      this.locations = locations;
     }
     this.enrich(rc, lb, rb);
   }
@@ -525,6 +565,8 @@ class Article {
 
         mentions: doc.nem_offset_plain,
         topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs),
+        persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
+        locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
       });
 
       if (!doc.pp_plain) {
