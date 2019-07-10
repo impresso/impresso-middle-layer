@@ -54,10 +54,6 @@ module.exports = function (app) {
     (req, res) => {
       console.log('result', req.feathers.checksum);
       // Format the message as text/plain
-      res.format({
-        'text/plain': function () {
-          res.end(String(req.file.filename));
-        },
-      });
+      res.send(req.feathers.checksum);
     });
 };
