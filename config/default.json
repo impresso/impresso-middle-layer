@@ -75,6 +75,11 @@
   "multer": {
     "dest": "/tmp/multer"
   },
+  "images": {
+    "visual-signature": {
+      "endpoint": "http://localhost:8000"
+    }
+  },
   "proxy": {
     "host": "http://localhost:3030",
     "iiif": {
