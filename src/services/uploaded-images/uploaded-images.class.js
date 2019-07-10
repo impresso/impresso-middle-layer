@@ -1,6 +1,9 @@
 /* eslint-disable no-unused-vars */
+const verbose = require('debug')('verbose:impresso/services:uploaded-images');
 const UploadedImage = require('../../models/uploaded-images.model');
 const SequelizeService = require('../sequelize.service');
+const { Op } = require('sequelize');
+const { NotFound } = require('@feathersjs/errors');
 
 /* eslint-disable no-unused-vars */
 class Service {
@@ -20,15 +23,26 @@ class Service {
     return this.SequelizeService.find(params);
   }
 
-  get(id, params) {
-    return new Promise((resolve, reject) => {
-      this.create({ id }, params).then(resolve, () => {
-        this.SequelizeService.get(id, {
-          where: {
-            uid: id,
-          },
-        }).then(resolve, reject);
-      }).catch(reject);
+  async get(id, params) {
+    verbose('get method, id:', id);
+
+    const cachedImage = await this.app.get('redisClient').get(`img:${id}`);
+
+    if (cachedImage) {
+      return new UploadedImage(JSON.parse(cachedImage));
+    }
+
+    return this.SequelizeService.get(id, {
+      where: {
+        [Op.or]: [
+          { uid: id },
+          { checksum: id }
+        ],
+      },
+    }).then((result) => {
+      console.log(result);
+      verbose('get result:', result);
+      return result;
     });
   }
 
