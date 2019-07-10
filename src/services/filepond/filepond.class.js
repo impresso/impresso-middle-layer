@@ -41,7 +41,7 @@ class Service {
       .resize(200)
       .toBuffer()
       .then(d => d.toString('base64'));
-    // send signature to redis
+    // send signature to mysql
     const image = await Promise.all([
       fingerprintPromise,
       thumbnailPromise,
@@ -53,8 +53,11 @@ class Service {
       thumbnail,
     }));
 
-    verbose('image:', image);
-    return this.app.get('redisClient').hmset(`filepond:${image.checksum}`, image);
+    verbose('image - uid:', image.uid, '- checksum', image.checksum);
+    await this.app.get('redisClient')
+      .set(`img:${image.checksum}`, JSON.stringify(image));
+    
+    return image;
   }
 
   processImage(file, maxWidth = 1000, maxHeight = 1000) {
