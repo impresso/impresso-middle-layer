@@ -31,6 +31,8 @@ const eachFilterValidator = {
       // numeric filters
       'ocrQuality',
       'contentLength',
+      // country of article
+      'country'
     ],
     required: true,
   },

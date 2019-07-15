@@ -177,6 +177,8 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'meta_year_i');
     case 'type':
       return reduceFiltersToSolr(filters, 'item_type_s');
+    case 'country':
+      return reduceFiltersToSolr(filters, 'meta_country_code_s');
     case 'mention':
       return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions']);
     case 'person':
