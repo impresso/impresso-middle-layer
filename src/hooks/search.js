@@ -25,6 +25,8 @@ const SOLR_FILTER_TYPES = [
  */
 const SOLR_FILTER_DPF = {
   topic: 'topics_dpfs',
+  person: 'pers_entities_dpfs',
+  location: 'loc_entities_dpfs',
 };
 
 
@@ -144,7 +146,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
 const filtersToSolr = (type, filters) => {
   switch (type) {
     case 'hasTextContents':
-      return 'content_length_i:[1 TO *]';
+      return 'content_length_i:[1 TO 10000]';
     case 'ocrQuality':
       return reduceNumericRangeFilters(filters, 'ocrqa_f');
     case 'contentLength':
@@ -178,9 +180,9 @@ const filtersToSolr = (type, filters) => {
     case 'mention':
       return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions']);
     case 'person':
-      return reduceFiltersToSolr(filters, 'pers_mentions');
+      return reduceFiltersToSolr(filters, 'pers_entities_dpfs');
     case 'location':
-      return reduceFiltersToSolr(filters, 'loc_mentions');
+      return reduceFiltersToSolr(filters, 'loc_entities_dpfs');
     case 'topicmodel':
       return reduceFiltersToSolr(filters, 'tp_model_s');
     case 'topic-string':
@@ -271,7 +273,7 @@ const filtersToSolrQuery = () => async (context) => {
     if (context.params.sanitized.order_by) {
       context.params.sanitized.order_by = Object.keys(vars)
         .map(d => `${vars[d]} desc`)
-        .concat(context.params.sanitized.order_by.split(','))
+        // .concat(context.params.sanitized.order_by.split(','))
         .join(',');
     }
   }
@@ -288,6 +290,8 @@ const filtersToSolrQuery = () => async (context) => {
     filters.years,
     filters.newspaper,
     filters.topic,
+    filters.person,
+    filters.location,
     filters.collection,
     filters.language,
     filters.daterange,
@@ -370,12 +374,14 @@ module.exports = {
       field: 'meta_country_code_s',
       mincount: 1,
       limit: 10,
+      numBuckets: true,
     },
     type: {
       type: 'terms',
       field: 'item_type_s',
       mincount: 1,
       limit: 10,
+      numBuckets: true,
     },
     topic: {
       type: 'terms',
@@ -409,12 +415,13 @@ module.exports = {
       type: 'terms',
       field: 'lg_s',
       mincount: 1,
+      numBuckets: true,
     },
     person: {
       type: 'terms',
       field: 'pers_entities_dpfs',
       mincount: 1,
-      limit: 20,
+      limit: 10,
       offset: 0,
       numBuckets: true,
     },
@@ -422,7 +429,7 @@ module.exports = {
       type: 'terms',
       field: 'loc_entities_dpfs',
       mincount: 1,
-      limit: 20,
+      limit: 10,
       offset: 0,
       numBuckets: true,
     },
