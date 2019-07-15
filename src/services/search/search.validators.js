@@ -19,6 +19,8 @@ const eachFilterValidator = {
       'hasTextContents',
       'title',
       'isFront',
+      'page',
+      'issue',
       'title',
       'string', 'entity', 'newspaper', 'daterange',
       'year', 'language', 'type', 'regex',
