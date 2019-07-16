@@ -16,6 +16,7 @@ const eachFilterValidator = {
   },
   type: {
     choices: [
+      'uid',
       'hasTextContents',
       'title',
       'isFront',
@@ -34,7 +35,7 @@ const eachFilterValidator = {
       'ocrQuality',
       'contentLength',
       // country of article
-      'country'
+      'country',
     ],
     required: true,
   },
