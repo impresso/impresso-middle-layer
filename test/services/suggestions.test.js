@@ -1,82 +1,56 @@
 const assert = require('assert');
 const app = require('../../src/app');
-const { getMentions, getTopics } = require('../../src/services/suggestions/suggestions.class.js').utils;
+const { toPlainText } = require('../../src/helpers');
 /*
 
  ./node_modules/.bin/eslint \
  test/services/suggestions.test.js  \
  src/services/suggestions \
  --config .eslintrc.json --fix &&
- mocha test/services/suggestions.test.js
+ NODE_ENV=development mocha test/services/suggestions.test.js
 
 */
 
 describe('\'suggestions\' service', function () {
   this.timeout(10000);
-  it('registered the service', () => {
-    const service = app.service('suggestions');
+  const service = app.service('suggestions');
 
+  it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });
 
   it('test getTopics sub service', async () => {
-    const results = await getTopics({
-      config: app.get('solr'),
-      params: {
-        query: {
-          q: 'suiss',
-        },
-      },
+    const results = await service.suggestTopics({
+      q: 'suiss',
     });
-    console.log(results);
-    assert.ok(results);
-    // assert.ok(results[0]., 'Contains a Mention suggestion object');
-  });
-
-  it('test NEW getMentions sub service', async () => {
-    const results = await getMentions({
-      config: app.get('solr'),
-      params: {
-        query: {
-          q: 'suiss',
-        },
-      },
-    });
-    // console.log(results);
-    assert.ok(results);
-    // assert.ok(results[0]., 'Contains a Mention suggestion object');
+    assert.strictEqual(results[0].type, 'topic');
   });
 
   it('test getMentions sub service', async () => {
-    const results = await getMentions({
-      config: app.get('solr'),
-      params: {
-        query: {
-          q: '/go[uû]t.*parfait.*',
-        },
-      },
+    const results = await service.suggestMentions({
+      q: 'Rome',
     });
-
-    assert.equal(results.length, 0);
-    // assert.ok(results[0].type, 'Contains a Mention suggestion object');
+    assert.strictEqual(results[0].type, 'mention');
+    assert.strictEqual(results[0].item.type, 'location', 'correct mention type in mention item');
+    assert.strictEqual(results[0].q, 'Rome');
+    assert.strictEqual(results[0].item.name, 'Rome');
   });
-  // it('say hello', async () => {
-  //   const suggestions = app.service('suggestions').find({
-  //     query: {
-  //       q: 'pau',
-  //     },
-  //   })
-  //
-  //   assert.ok(suggestions);
-  // });
+
+  it('test getMentions sub service with partial regex', async () => {
+    const results = await service.suggestMentions({
+      q: toPlainText('/go[uû]t.*parfait.*'),
+    });
+    assert.ok(results);
+  });
+
   it('only one year', async () => {
-    const suggestions = await app.service('suggestions').find({
+    const suggestions = await service.find({
       query: {
         q: '1947',
       },
     });
 
-    assert.equal(suggestions.data[0].daterange, '1947-01-01T00:00:00Z TO 1947-12-31T23:59:59Z');
+    assert.strictEqual(suggestions.data[0].daterange, '1947-01-01T00:00:00Z TO 1947-12-31T23:59:59Z');
   });
 
   it('two years', async () => {
@@ -85,7 +59,7 @@ describe('\'suggestions\' service', function () {
         q: '1950-1951',
       },
     });
-    assert.equal(suggestions.data[0].daterange, '1950-01-01T00:00:00Z TO 1951-12-31T23:59:59Z');
+    assert.strictEqual(suggestions.data[0].daterange, '1950-01-01T00:00:00Z TO 1951-12-31T23:59:59Z');
   });
 
   it('one year', async () => {
@@ -94,7 +68,7 @@ describe('\'suggestions\' service', function () {
         q: 'october 1950 to october 1951',
       },
     });
-    assert.equal(suggestions.data[0].daterange, '1950-10-01T10:00:00Z TO 1951-10-31T23:59:59Z');
+    assert.strictEqual(suggestions.data[0].daterange, '1950-10-01T10:00:00Z TO 1951-10-31T23:59:59Z');
   });
 
   it('one month', async () => {
@@ -104,7 +78,7 @@ describe('\'suggestions\' service', function () {
       },
     });
 
-    assert.equal(suggestions.data[0].daterange, '1956-10-01T10:00:00Z TO 1956-10-31T23:59:59Z');
+    assert.strictEqual(suggestions.data[0].daterange, '1956-10-01T10:00:00Z TO 1956-10-31T23:59:59Z');
   });
 
   it('exact match with partial q', async () => {
@@ -116,9 +90,7 @@ describe('\'suggestions\' service', function () {
       console.log(err);
       throw err;
     });
-    // console.log(suggestions);
     assert.ok(suggestions.data.length);
-    // assert.equal(suggestions.data[0].daterange, '1956-10-01T10:00:00Z TO 1956-10-31T23:59:59Z');
   });
 
   it('recognizes an invalid regexp', async () => {
@@ -127,7 +99,7 @@ describe('\'suggestions\' service', function () {
         q: '/*.*[/',
       },
     });
-    assert.equal(suggestions.data.length, 0);
+    assert.strictEqual(suggestions.data.length, 0);
   });
   it('recognizes a valid regexp and split on spaces', async () => {
     const suggestions = await app.service('suggestions').find({
@@ -135,6 +107,6 @@ describe('\'suggestions\' service', function () {
         q: '/go[uû]t.*parfait.*/',
       },
     });
-    assert.equal(suggestions.data[0].type, 'regex');
+    assert.strictEqual(suggestions.data[0].type, 'regex');
   });
 });
