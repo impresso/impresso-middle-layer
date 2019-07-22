@@ -1,138 +1,157 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services:suggestions');
 const chrono = require('chrono-node');
 const moment = require('moment');
 const lodash = require('lodash');
 
-const solr = require('../../solr');
-const { neo4jRecordMapper, neo4jToLucene } = require('../neo4j.utils.js');
-const Neo4jService = require('../neo4j.service').Service;
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
+const { latinise, toPlainText } = require('../../helpers');
 
 const Mention = require('../../models/mentions.model');
+const Entity = require('../../models/entities.model');
 const Topic = require('../../models/topics.model');
 const Suggestion = require('../../models/suggestions.model');
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
 
-const isPlainText = q =>
-  // exclude suggestion when there is a complete regexp
-  !q.match(/^\/|\/$/);
 
-const makePlainText = q => q.replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '').trim();
-
-const getNewspapers = async ({ app, params = {} } = {}) => {
-  if (!isPlainText(params.query.q)) {
-    return [];
+class Service {
+  constructor({
+    app,
+    name,
+  }) {
+    this.app = app;
+    this.name = name;
+    this.solrClient = this.app.get('solrClient');
   }
-  // const q = makePlainText(); // regexp
-  // get newspapers like xy
-  //
-  const results = await app.service('newspapers').find({
-    query: {
-      q: params.query.q,
-      limit: 3,
-    },
-  });
 
-  // console.log('getNewspapers', results);
-  return results.data.map(d => ({
-    type: 'newspaper',
-    q: d.uid,
-    uid: d.uid,
-    item: d,
-    context: 'include',
-  }));
-};
-
-const getTopics = async ({ q = '', config = {}, params = {} } = {}) => {
-  if (!q.length) {
-    return [];
+  suggestNewspapers({ q }) {
+    return this.app.service('newspapers').find({
+      query: {
+        q,
+        limit: 3,
+      },
+    }).then(({ data }) => data.map(d => new Suggestion({
+      type: 'newspaper',
+      h: d.name,
+      q: d.uid,
+      uid: d.uid,
+      item: d,
+    })));
   }
-  // clean fpr get mentions
-  const results = await solr.client(config).suggest({
-    // use solr mention index for that.
-    namespace: 'topics',
-    // query
-    q,
-  }, () => (doc) => {
-    const topic = Topic.solrSuggestFactory()(doc);
-    // console.log(topic);
-    return new Suggestion({
-      q: topic.uid,
-      h: topic.getExcerpt().join(' '),
-      type: 'topic',
-      item: topic,
-    });
-  });
-  return lodash.take(results, 5);
-};
 
-const getCollections = async ({
-  q = '', app, user, params = {},
-} = {}) => {
-  if (!q.length || !user || !user.id) {
-    return [];
+  suggestCollections({ q, user }) {
+    if (!user || !user.id) {
+      return [];
+    }
+    return this.app.service('collections').find({
+      query: {
+        q,
+        limit: 3,
+      },
+      user,
+    }).then(({ data }) => data.map(d => new Suggestion({
+      q: d.uid,
+      h: d.name,
+      type: 'collection',
+      item: d,
+    })));
   }
-  const results = await app.service('collections').find({
-    query: {
+
+  suggestEntities({ q }) {
+    return this.solrClient.suggest({
+      namespace: 'entities',
       q,
-      limit: 3,
-    },
-    user,
-  });
-  return results.data.map(d => new Suggestion({
-    q: d.uid,
-    h: d.name,
-    type: 'collection',
-    item: d,
-  }));
-};
-/**
- * Retrieve a list of mention filters for the autocomplete function
- * @param  {Object}  [config={}] Solr configuration
- * @param  {Object}  [params={}] must contains a search query `params.query.q`
- * @return {Promise}
- */
-const getMentions = async ({ config = {}, params = {} } = {}) => {
-  if (!isPlainText(params.query.q)) {
-    return [];
+      limit: 5,
+    }, () => (doc) => {
+      // payload shoyld be a string formatted as 'id|type',
+      // like 'aida-0001-Testament_(comics)|Person'
+      const [uid, type] = doc.payload.split('|');
+      const item = new Entity({
+        uid,
+        name: Entity.getNameFromUid(uid),
+        type,
+      });
+      return new Suggestion({
+        q: item.uid,
+        h: Entity.getNameFromUid(doc.term),
+        type: item.type,
+        item,
+        weight: doc.weight,
+      });
+    });
   }
 
-  const q = params.query.q // regexp
-    .replace(/[^\s0-9A-zÀ-Ÿ']|[[\]]/g, '')
-    .trim();
-
-  // clean fpr get mentions
-  const results = await solr.client(config).suggest({
-    // use solr mention index for that.
-    namespace: 'mentions',
-    // query
-    q,
-  }, () => (doc) => {
-    const mention = new Mention({
-      name: doc.term.replace(/<[^>]*>/g, ''),
-      frequence: doc.weight,
-      type: doc.payload,
+  suggestMentions({ q }) {
+    return this.solrClient.suggest({
+      namespace: 'mentions',
+      q,
+      limit: 5,
+    }, () => (doc) => {
+      // payload form ention contain type only
+      const item = new Mention({
+        name: doc.term.replace(/<[^>]*>/g, ''),
+        frequence: doc.weight,
+        type: doc.payload,
+      });
+      return new Suggestion({
+        q: item.name,
+        h: doc.term,
+        type: 'mention',
+        item,
+        weight: item.frequence,
+      });
     });
+  }
 
-    return new Suggestion({
-      q: mention.name,
-      h: doc.term,
-      type: mention.type,
-      item: mention,
+  suggestTopics({ q }) {
+    return this.solrClient.suggest({
+      namespace: 'topics',
+      q,
+      limit: 5,
+    }, () => (doc) => {
+      const topic = Topic.solrSuggestFactory()(doc);
+      // console.log(topic);
+      return new Suggestion({
+        q: topic.uid,
+        h: topic.getExcerpt().join(' '),
+        type: 'topic',
+        item: topic,
+      });
     });
-  });
+  }
 
-  return lodash.take(results, 5);
-  // // apply limit
-  // return lodash.take(results, 5).map(d => new Suggestion({
-  //   h: d.name,
-  //   type: d.type,
-  //   item: d,
-  // }));
-};
+  async get(type, params) {
+    switch (type) {
+      case 'topic':
+        return this.suggestTopics({
+          q: toPlainText(params.query.q),
+        });
+      case 'newspaper':
+        return this.suggestNewspapers({
+          q: toPlainText(params.query.q),
+        });
+      case 'collection':
+        return this.suggestCollections({
+          q: toPlainText(params.query.q),
+          user: params.user,
+        });
+      case 'person':
+      case 'location':
+      case 'entity':
+        return this.suggestEntities({
+          q: toPlainText(params.query.q),
+          type,
+        });
+      case 'mention':
+        return this.suggestMentions({
+          q: toPlainText(params.query.q),
+        });
+      default:
+        throw new NotFound();
+    }
+  }
 
-
-class Service extends Neo4jService {
   async find(params) {
     const self = this;
 
@@ -211,51 +230,37 @@ class Service extends Neo4jService {
       return [];
     };
 
-    const qToLucene = neo4jToLucene(params.query.q);
+    const qPlainText = toPlainText(params.query.q);
 
-    const entities = async () => this._run(this.queries.find, {
-      ...params.query,
-      q: qToLucene,
-    })
-      .then(result => result.records
-        .map(neo4jRecordMapper)
-        .map(record => ({
-          type: 'entity',
-          entity: record,
-        })))
-      .catch(err => []);
-
-    const qPlainText = makePlainText(params.query.q);
-
+    if (!qPlainText.length) {
+      return {
+        data: [],
+      };
+    }
     // let newspapers = () => this._run()
-    const results = await Promise.all([
+    return Promise.all([
       asregex(),
       dateranges(), // dates(),
       // entities(),
-      getCollections({
+      this.suggestCollections({
         q: qPlainText,
-        params,
-        app: this.app,
         user: params.user,
       }),
-      getNewspapers({
+      this.suggestNewspapers({
         q: qPlainText,
-        params,
-        app: this.app,
       }),
-      getTopics({
+      this.suggestTopics({
         q: qPlainText,
-        params,
-        config: this.app.get('solr'),
       }),
-      getMentions({
-        params,
-        config: this.app.get('solr'),
+      this.suggestMentions({
+        q: qPlainText,
       }),
-      // newspapers()
-    ]).then(values => Neo4jService.wrap(lodash.flatten(values.filter(d => !!d.length))));
-
-    return results;
+      this.suggestEntities({
+        q: qPlainText,
+      }),
+    ]).then(values => ({
+      data: lodash(values).filter(d => !lodash.isEmpty(d)).flatten().value(),
+    }));
   }
 }
 
@@ -264,7 +269,3 @@ module.exports = function (options) {
 };
 
 module.exports.Service = Service;
-module.exports.utils = {
-  getMentions,
-  getTopics,
-};
