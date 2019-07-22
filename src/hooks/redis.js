@@ -21,13 +21,20 @@ const { generateHash } = require('../crypto');
  * @return {feathers.SKIP or undefined} if undefined, following hooks will be loaded
  */
 const checkCachedContents = ({
-  useAuthenticatedUser = true,
+  useAuthenticatedUser = false,
+  cacheUnauthenticated = true,
 } = {}) => async (context) => {
-  const client = context.app.get('redisClient');
-  debug(`checkCachedContents; enabled: ${client !== null}, useAuthenticatedUser: ${useAuthenticatedUser}`);
-  if (!client) {
+  if (!context.params.provider) {
+    debug('checkCachedContents: skipping, internal call');
     return;
   }
+
+  const client = context.app.get('redisClient');
+  if (!client) {
+    debug('checkCachedContents: disabled, redis is not available');
+    return;
+  }
+  debug('checkCachedContents with provider:', context.params.provider);
 
   const keyParts = [`${context.service.name}.${context.method}`];
 
@@ -35,8 +42,13 @@ const checkCachedContents = ({
     context.params = {};
   }
 
+  if(!cacheUnauthenticated && !context.params.user) {
+    debug('checkCachedContents: disabled, hooks required to cache authenticated only, no user has been given');
+    return;
+  }
 
   if (useAuthenticatedUser && context.params.user) {
+    debug('checkCachedContents prefix key with user:', context.params.user.uid);
     // prepend user specific cache.
     keyParts.shift(context.params.user.uid);
   }
@@ -93,11 +105,15 @@ const returnCachedContents = ({
  * @return {[type]} [description]
  */
 const saveResultsInCache = () => async (context) => {
+  if (!context.params.cacheKey) {
+    return;
+  }
   const client = context.app.get('redisClient');
-  if (!client || !context.params.cacheKey) {
+  if (!client) {
     return;
   }
   if (!context.result || !Object.keys(context.result).length) {
+    debug('saveResultsInCache: skipping, errors found in result!');
     // due to errors
     return;
   }
