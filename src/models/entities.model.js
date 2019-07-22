@@ -22,13 +22,17 @@ class Entity {
     this.name = String(name);
     this.type = TYPES[String(type)];
     if (!this.type) {
-      this.type = String(type);
+      this.type = String(type).toLowerCase();
     }
     this.wikidataId = wikidataId;
     this.dbpediaURL = dbpediaURL;
     this.impressoId = impressoId;
     this.countItems = parseInt(countItems || 0, 10);
     this.countMentions = parseInt(countMentions || 0, 10);
+  }
+
+  static getNameFromUid(uid) {
+    return uid.replace(/^aida-\d+-/,'').split('_').join(' ');
   }
 
   static sequelize(client, {
