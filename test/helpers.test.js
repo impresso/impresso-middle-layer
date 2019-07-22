@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {
-  toHierarchy, sliceAtSplitpoints, annotate, render, toExcerpt,
+  toHierarchy, sliceAtSplitpoints, annotate, render, toExcerpt, latinise,
 } = require('../src/helpers');
 
 const fulltext = "L'AFFAIRE DES BIJOUX DE LA BEGUM L'interrogatoire de Watson un des principaux complices II se prétend le filleul de M. Churchill / Marseille, 22 janvier. "
@@ -35,12 +35,10 @@ const fulltextBroken = "L'opinion et ^^ <^ le discours Wilson An Congrès améri
 
 /*
 
-./node_modules/.bin/eslint \
-test/helpers.test.js src/helpers.js --fix &&
-mocha test/helpers.test.js
+./node_modules/.bin/eslint src/helpers.js --config .eslintrc.json --fix && mocha test/helpers.test.js
 
 with debug
-./node_modules/.bin/eslint src/helpers.js --fix && DEBUG=impresso* mocha test/helpers.test.js
+./node_modules/.bin/eslint src/helpers.js --config .eslintrc.json --fix && DEBUG=impresso* mocha test/helpers.test.js
 */
 
 const lines = sliceAtSplitpoints(fulltext, lineBreaks);
@@ -163,3 +161,12 @@ describe('should cut a text into pieces', () => {
     assert.equal(rendered[5], ' Au cours de sa séance du 28 juin,');
   });
 });
+
+describe('should latinise a text', () => {
+
+  it.only('in french', () => {
+    const ft = "APRÈS L'ACCIDENT";
+
+    console.log(ft, latinise(ft));
+  });
+})
