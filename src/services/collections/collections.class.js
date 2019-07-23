@@ -27,7 +27,7 @@ class Service {
     };
 
     if (params.query.uids) {
-      where[Op.in].push({
+      where[Op.and].push({
         uid: { [Op.in]: params.query.uids },
       });
     }
