@@ -24,6 +24,7 @@ class Service {
       uid: id,
     };
     return this.SequelizeService.get(id, {
+      scope: 'get',
       where,
     });
   }
