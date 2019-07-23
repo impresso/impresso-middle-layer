@@ -81,11 +81,14 @@ const suggest = (config, params = {}, factory) => {
       return [];
     }
     if (factory) {
-      results.suggestions = results.suggestions.map(factory());
+      results.suggestions = lodash(results.suggestions)
+        .take(qs.rows)
+        .map(factory())
+        .value();
     }
-    return results.suggestions;
+    return lodash.take(results.suggestions, qs.rows);
   }).catch((err) => {
-    debug(err);
+    console.error(err);
     throw new NotImplemented();
     // throw feathers errors here.
   });

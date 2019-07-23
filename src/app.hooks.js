@@ -48,7 +48,9 @@ const hooks = {
   },
 
   after: {
-    all: [logger()],
+    all: [
+      // logger()
+    ],
     find: [],
     get: [],
     create: [],

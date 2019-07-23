@@ -24,7 +24,7 @@ class SearchFacetBucket {
         this.item = new Entity({
           uid: this.uid,
           type,
-          name: this.uid.replace(/^aida-\d+-/,'').split('_').join(' ')
+          name: Entity.getNameFromUid(this.uid),
         });
       }
     }

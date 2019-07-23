@@ -40,20 +40,17 @@ class Newspaper {
       this.countArticles = parseInt(indexed.countArticles, 10);
       this.countIssues = parseInt(indexed.countIssues, 10);
       this.countPages = parseInt(indexed.countPages, 10);
-      this.cached = true;
+      this.fetched = true;
     } else {
       this.name = String(name);
       this.endYear = parseInt(endYear, 10);
       this.startYear = parseInt(startYear, 10);
-    }
-
-    this.deltaYear = this.endYear - this.startYear;
-
-    if (complete) {
       this.countArticles = parseInt(countArticles, 10);
       this.countIssues = parseInt(countIssues, 10);
       this.countPages = parseInt(countPages, 10);
     }
+
+    this.deltaYear = this.endYear - this.startYear;
   }
 
   static getCached(uid) {
@@ -85,18 +82,18 @@ class Newspaper {
         field: 'end_year',
       },
     }, {
-      defaultScope: {
-        include: [
-          {
-            model: language,
-            as: 'languages',
-          },
-          {
-            model: prop,
-            as: 'properties',
-          },
-        ],
-      },
+      // defaultScope: {
+      //   include: [
+      //     {
+      //       model: language,
+      //       as: 'languages',
+      //     },
+      //     {
+      //       model: prop,
+      //       as: 'properties',
+      //     },
+      //   ],
+      // },
       scopes: {
         findAll: {
           include: [
@@ -123,6 +120,10 @@ class Newspaper {
             {
               model: language,
               as: 'languages',
+            },
+            {
+              model: prop,
+              as: 'properties',
             },
           ],
         },

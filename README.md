@@ -41,6 +41,10 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
 
     ref. [SSH TUNNELLING FOR FUN AND PROFIT: AUTOSSH](https://www.everythingcli.org/ssh-tunnelling-for-fun-and-profit-autossh/)
 
+    ```
+    /usr/bin/autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -NL 3307:localhost:3306 <host_user>@<host_name> -p <host_port> -i /path/to/private/key
+    ```
+
     You can also create a **service** using system d.
 
 1. Configure the `config/development.json` and `config/production.json` according to your system settings

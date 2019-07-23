@@ -12,9 +12,7 @@ class Suggestion {
     item = null,
     // item content type if any item is present; otherwise
     type = '',
-
-    context = 'include',
-    precision = 'normal',
+    weight = -1,
   } = {}) {
     this.q = String(q);
     this.h = String(h);
@@ -22,8 +20,9 @@ class Suggestion {
       this.item = item;
     }
     this.type = String(type);
-    this.context = String(context);
-    this.precision = String(precision);
+    if (weight != -1) {
+      this.weight = parseInt(weight, 10);
+    }
   }
 }
 
