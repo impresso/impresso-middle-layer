@@ -12,6 +12,10 @@
   "redis": {
     "enable": true
   },
+  "cache": {
+    "enabled": true,
+    "override": false
+  },
   "celery": {
     "enable": true,
     "CELERY_BROKER_URL": "redis://localhost/4",
