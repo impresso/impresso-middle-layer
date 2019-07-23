@@ -1,5 +1,6 @@
 const lodash = require('lodash');
 const debug = require('debug')('impresso/services:articles');
+const { Op } = require('sequelize');
 
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
@@ -57,7 +58,7 @@ class Service {
       ...params,
       scope: 'get',
       where: {
-        uid: { $in: results.data.map(d => d.uid) },
+        uid: { [Op.in]: results.data.map(d => d.uid) },
       },
       limit: results.data.length,
       order_by: [['uid', 'DESC']],

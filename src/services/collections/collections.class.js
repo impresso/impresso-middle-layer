@@ -1,6 +1,6 @@
 const Collection = require('../../models/collections.model');
 const SequelizeService = require('../sequelize.service');
-
+const { Op } = require('sequelize');
 /* eslint-disable no-unused-vars */
 class Service {
   constructor({
@@ -17,9 +17,9 @@ class Service {
 
   async find(params) {
     const where = {
-      $not: { status: Collection.STATUS_DELETED },
-      $and: [{
-        $or: [
+      [Op.not]: { status: Collection.STATUS_DELETED },
+      [Op.and]: [{
+        [Op.or]: [
           { creatorId: params.user.id },
           { status: Collection.STATUS_PUBLIC },
         ],
@@ -27,14 +27,14 @@ class Service {
     };
 
     if (params.query.uids) {
-      where.$and.push({
-        uid: { $in: params.query.uids },
+      where[Op.in].push({
+        uid: { [Op.in]: params.query.uids },
       });
     }
 
     if (params.query.q) {
-      where.$and.push({
-        $or: [
+      where[Op.and].push({
+        [Op.or]: [
           { name: params.query.q },
           { description: params.query.q },
         ],
@@ -65,14 +65,14 @@ class Service {
     };
 
     if (params.user) {
-      where.$not = { status: { $in: [Collection.STATUS_DELETED] } };
-      where.$or = [
+      where[Op.not] = { status: { [Op.in]: [Collection.STATUS_DELETED] } };
+      where[Op.or] = [
         { '$creator.profile.uid$': params.user.uid },
-        { status: { $in: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED] } },
+        { status: { [Op.in]: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED] } },
       ];
     } else {
       where.status = {
-        $in: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED],
+        [Op.in]: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED],
       };
     }
     return this.SequelizeService.get(id, {
@@ -127,7 +127,7 @@ class Service {
   //   }
   //   // cannot be called from
   //   const where = {
-  //     $or: [
+  //     [Op.or]: [
   //       {
   //         status: Collection.STATUS_PUBLIC,
   //         '$creator.profile.uid$': params.user.uid,
