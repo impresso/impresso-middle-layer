@@ -2,7 +2,7 @@
 const debug = require('debug')('impresso/services:mentions');
 const EntityMention = require('../../models/entity-mentions.model');
 const SequelizeService = require('../sequelize.service');
-
+const { Op } = require('sequelize');
 
 /* eslint-disable no-unused-vars */
 class Service {
@@ -25,7 +25,7 @@ class Service {
     };
     const findAllOnly = !params.sanitized.sequelizeQuery;
     if (params.sanitized.sequelizeQuery) {
-      where.$and = params.sanitized.sequelizeQuery;
+      where[Op.and] = params.sanitized.sequelizeQuery;
     }
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query, findAllOnly);
 

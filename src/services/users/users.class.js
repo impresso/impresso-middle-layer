@@ -7,6 +7,7 @@ const { encrypt } = require('../../crypto');
 const shorthash = require('short-hash');
 const nanoid = require('nanoid');
 const sequelize = require('../../sequelize');
+const { Op } = require('sequelize');
 const { sequelizeErrorHandler } = require('../../services/sequelize.utils');
 const User = require('../../models/users.model');
 const Profile = require('../../models/profiles.model');
@@ -24,7 +25,7 @@ class Service extends Neo4jService {
     // if you're staff; otherwise get your own.
     const user = await this.sequelizeKlass.scope('isActive', 'get').findOne({
       where: {
-        $or: [{ username: id }, { '$profile.uid$': id }],
+        [Op.or]: [{ username: id }, { '$profile.uid$': id }],
       },
     });
     if (!user) {
@@ -133,7 +134,7 @@ class Service extends Neo4jService {
     // get user to be removed
     const user = await this.sequelizeKlass.scope('get').findOne({
       where: {
-        $or: [{ username: id }, { '$profile.uid$': id }],
+        [Op.or]: [{ username: id }, { '$profile.uid$': id }],
       },
     });
     if (!user) {
@@ -192,7 +193,7 @@ class Service extends Neo4jService {
     if (uid) {
       sequelizeParams = {
         where: {
-          $or: [{ email: uid }, { username: uid }, { '$profile.uid$': uid }],
+          [Op.or]: [{ email: uid }, { username: uid }, { '$profile.uid$': uid }],
         },
       };
     }

@@ -14,7 +14,7 @@ const reduceFiltersToSequelizeQuery = (name, filters = []) => {
   verbose(`'reduceFiltersToSequelizeQuery' treating group: ${name}, ${filters.length} elements`);
   if (name === 'entity') {
     return {
-      $and: filters.reduce((acc, filter) => {
+      [Op.and]: filters.reduce((acc, filter) => {
         acc.push({
           entityId: filter.q,
         });
@@ -43,7 +43,7 @@ const filtersToSequelizeQuery = () => async (context) => {
   const results = [];
   debug('\'filtersToSequelizeQuery\' types found in filters:', types);
 
-  // group filters by type, then concat with $and
+  // group filters by type, then concat with [Op.and]
   types.forEach((i) => {
     const reducedFilter = reduceFiltersToSequelizeQuery(i, groups[i]);
     if (reducedFilter) {
