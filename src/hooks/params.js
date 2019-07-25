@@ -1,22 +1,23 @@
 const errors = require('@feathersjs/errors');
 const debug = require('debug')('impresso/hooks:params');
+const { Op } = require('sequelize');
 
 const toSequelizeLike = (query) => {
   // replace all non nice characters.
   // for a two spaces word like "accent octoup", outputs:
   // {
-  //   $and: [
-  //     {$like: '%accen%',}
-  //     {$like: '%octoup%',}
+  //   [Op.and]: [
+  //     {[Op.ilike]: '%accen%',}
+  //     {[Op.ilike]: '%octoup%',}
   //   ],
   // },
   const escapeds = query.split(/\s+/).map(d => ({
-    $like: `%${d.replace(/[%()]/g, '')}%`,
+    [Op.like]: `%${d.replace(/[%()]/g, '')}%`,
   }));
 
   if (escapeds.length > 1) {
     return {
-      $and: escapeds,
+      [Op.and]: escapeds,
     };
   }
   return escapeds.pop();
@@ -339,7 +340,9 @@ const VALIDATE_OPTIONAL_PASSWORD = {
 */
 const validate = (validators, method = 'GET') => async (context) => {
   if (!validators) { return; }
-  debug('validate: <validators keys>', Object.keys(validators));
+  debug('validate: <validators keys>',
+    `${context.service.name}.${context.service.method}`,
+    Object.keys(validators));
 
   if (method === 'GET') {
     debug('validate: GET data', context.params.query);

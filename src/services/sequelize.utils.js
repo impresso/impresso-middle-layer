@@ -2,6 +2,7 @@ const debug = require('debug')('verbose:impresso/services:sequelize.utils');
 const {
   Conflict, BadRequest, BadGateway,
 } = require('@feathersjs/errors');
+const { Op } = require('sequelize');
 
 const Newspapers = require('../models/newspapers.model');
 const Collection = require('../models/collections.model');
@@ -19,8 +20,9 @@ const models = {
  * @return {[type]}        [description]
  */
 const whereReducer = (sum, clause) => {
+  console.log(clause);
   Object.keys(clause).forEach((k) => {
-    if (k === '$or') {
+    if (k === [Op.or]) {
       sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
     } else if (Array.isArray(clause[k])) {
       sum.push(`${k} IN ('${clause[k].join('\',\'')}')`);

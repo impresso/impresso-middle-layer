@@ -2,6 +2,7 @@
 const lodash = require('lodash');
 const debug = require('debug')('impresso/services/collectable-items');
 const { NotFound } = require('@feathersjs/errors');
+const { Op } = require('sequelize');
 
 const SequelizeService = require('../sequelize.service');
 const CollectableItemGroup = require('../../models/collectable-items-groups.model');
@@ -25,7 +26,7 @@ class Service {
   async find(params) {
     // simplified where for sequelize raw queries.
     const where = [
-      { $not: [{ 'collection.status': STATUS_DELETED }] },
+      { [Op.not]: [{ 'collection.status': STATUS_DELETED }] },
     ];
 
     if (params.sanitized.item_uids) {
@@ -40,7 +41,7 @@ class Service {
     }
     if (params.user.id && params.authenticated) {
       where.push({
-        $or: [
+        [Op.or]: [
           { 'collection.creator_id': params.user.id },
           { 'collection.status': [STATUS_PUBLIC, STATUS_SHARED] },
         ],
@@ -51,9 +52,9 @@ class Service {
 
     const whereReducer = (sum, clause) => {
       Object.keys(clause).forEach((k) => {
-        if (k === '$not') {
+        if (k === '[Op.not]') {
           sum.push(`NOT (${clause[k].reduce(whereReducer, []).join(' AND ')})`);
-        } else if (k === '$or') {
+        } else if (k === '[Op.or]') {
           sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
         } else if (Array.isArray(clause[k])) {
           sum.push(`${k} IN ('${clause[k].join('\',\'')}')`);
@@ -241,7 +242,7 @@ class Service {
     }
     const results = await this.SequelizeService.sequelizeKlass.destroy({
       where: {
-        $or: params.sanitized.items.map(d => ({
+        [Op.or]: params.sanitized.items.map(d => ({
           itemId: d.uid,
           collectionId: params.sanitized.collection_uid,
         })),
