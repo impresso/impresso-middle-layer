@@ -125,51 +125,58 @@ class Service {
     // get text matches
     // const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
     // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
+
+
+
     debug(
       `find '${this.name}': call articles service for ${uids.length} uids, user:`,
       params.user ? params.user.uid : 'no auth user found',
     );
 
-    // get articles (if group by is article ...)!
-    const results = await this.app.service('articles').find({
-      user: params.user,
-      authenticated: params.authenticated,
-      query: {
-        limit: uids.length,
-        filters: [
-          {
-            type: 'uid',
-            q: uids,
-          },
-        ],
-      },
-    })
-      .then(res => res.data)
-      .then((articles) => {
-      // respect indexes
-        const articleIndex = lodash(articles).map((article) => {
-          // complete article with fragments found
-          const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
-          const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
-          article.matches = Article.getMatches({
-            solrDocument: resultsIndex[article.uid],
-            highlights,
-            fragments,
-          });
-          // complete article with page regions
-          article.regions = Article.getRegions({
-            regionCoords: resultsIndex[article.uid].pp_plain,
-          });
-          if (article instanceof Article) {
-            article.assignIIIF();
-          } else {
-            Article.assignIIIF(article);
-          }
+    let results = [];
 
-          return article;
-        }).keyBy('uid').value();
-        return uids.map(uid => articleIndex[uid]);
-      });
+    if (uids.length) {
+      // get articles (if group by is article ...)!
+      results = await this.app.service('articles').find({
+        user: params.user,
+        authenticated: params.authenticated,
+        query: {
+          limit: uids.length,
+          filters: [
+            {
+              type: 'uid',
+              q: uids,
+            },
+          ],
+        },
+      })
+        .then(res => res.data)
+        .then((articles) => {
+        // respect indexes
+          const articleIndex = lodash(articles).map((article) => {
+            // complete article with fragments found
+            const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
+            const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
+            article.matches = Article.getMatches({
+              solrDocument: resultsIndex[article.uid],
+              highlights,
+              fragments,
+            });
+            // complete article with page regions
+            article.regions = Article.getRegions({
+              regionCoords: resultsIndex[article.uid].pp_plain,
+            });
+            if (article instanceof Article) {
+              article.assignIIIF();
+            } else {
+              Article.assignIIIF(article);
+            }
+
+            return article;
+          }).keyBy('uid').value();
+          return uids.map(uid => articleIndex[uid]);
+        });
+    }
     // resolve facets...
     const facetGroupsToResolve = [];
     const facets = _solr.facets || {};
