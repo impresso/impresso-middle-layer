@@ -1,13 +1,37 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  queryWithCommonParams,
+  validate, validateEach, queryWithCommonParams,
 } = require('../../hooks/params');
-
+const { filtersToSolrQuery } = require('../../hooks/search');
 
 module.exports = {
   before: {
     all: [],
     find: [
+      validateEach('filters', {
+        q: {
+          max_length: 50,
+          required: false,
+        },
+        context: {
+          choices: ['include', 'exclude'],
+          defaultValue: 'include',
+        },
+        op: {
+          choices: ['AND', 'OR'],
+          defaultValue: 'OR',
+        },
+        type: {
+          choices: [
+            'entity-string',
+            'entity-type',
+          ],
+          required: true,
+        },
+      }, {
+        required: false
+      }),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [],
