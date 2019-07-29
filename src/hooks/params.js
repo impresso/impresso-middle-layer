@@ -512,7 +512,7 @@ const validateEach = (paramName, validators, options = {}) => {
     const validated = toBeValidated.map((d) => {
       const _d = _validate(d, validators, opts.method);
       // add mustache friendly conditionals based on type. e.g; isIssue or isNewspaper
-      _d[`_is${d.type}`] = true;
+      // _d[`_is${d.type}`] = true;
       return _d;
     });
 
