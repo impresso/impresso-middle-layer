@@ -1,7 +1,7 @@
 const lodash = require('lodash');
 const debug = require('debug')('impresso/hooks:sequelize');
 const verbose = require('debug')('verbose:impresso/hooks:sequelize');
-
+const { Op } = require('sequelize');
 /**
  * reduceFiltersToSequelizeQuery
  * From standard Filter to sequelize where objects.
