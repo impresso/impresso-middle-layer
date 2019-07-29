@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const lodash = require('lodash');
-const { NotFound } = require('@feathersjs/errors');
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/services:search-facets');
 const SearchFacet = require('../../models/search-facets.model');
 const { SOLR_FACETS } = require ('../../hooks/search');
@@ -22,13 +22,22 @@ class Service {
 
     if (!types.length) {
       throw new NotFound();
+    } else if (types.length > 2) {
+      // limit number of facets per requests.
+      throw new NotImplemented();
+    } else if (types.includes('collection')) {
+      throw new NotImplemented();
     }
+    debug('params', params);
     // facets is an Object, will be stringified for the solr query.
     // '{"newspaper":{"type":"terms","field":"meta_journal_s","mincount":1,"limit":20,"numBuckets":true}}'
     const facets = lodash(types)
       .map(d => ({
         k: d,
         ...SOLR_FACETS[d],
+        // apply param limit and skip
+        offset: params.query.skip,
+        limit: params.query.limit,
       }))
       .keyBy('k').value();
 
