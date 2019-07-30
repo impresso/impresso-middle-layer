@@ -445,7 +445,9 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
 
   if (replaceQuery) {
     context.params.isSafe = true;
-
+    context.params.originalQuery = {
+      ...context.params.query,
+    };
     context.params.query = {
       ...context.params.sanitized || {}, // add validated params, if any
       ...params,
