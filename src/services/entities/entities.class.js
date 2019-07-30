@@ -27,11 +27,13 @@ class Service {
     const solrResult = await this.solrClient.findAll({
       q: params.sanitized.sq || '*:*',
       fl: 'id,l_s,t_s,article_fq_f,mention_fq_f',
+      highlight_by: params.sanitized.sq ? 'entitySuggest' : false,
       order_by: params.query.order_by,
       namespace: 'entities',
       limit: params.query.limit,
       skip: params.query.skip,
     }, Entity.solrFactory);
+
     debug('\'find\' total entities:', solrResult.response.numFound);
     // is Empty?
     if (!solrResult.response.numFound) {
@@ -72,6 +74,10 @@ class Service {
       data: entities.map((d) => {
         // enrich with wikidataID
         d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId;
+        // nerich with fragments, if any provided:
+        if (solrResult.fragments[d.uid].entitySuggest) {
+          d.matches = solrResult.fragments[d.uid].entitySuggest;
+        }
         return d;
       }),
       info: {
