@@ -258,7 +258,7 @@ const filtersToSolrQuery = () => async (context) => {
 
 
   Object.keys(filters).forEach((key) => {
-    if (['uid', 'string'].indexOf(key) !== -1) {
+    if (['uid', 'string', 'entity-string'].indexOf(key) !== -1) {
       queries.push(filtersToSolr(key, filters[key]));
     } else {
       queries.push(`filter(${filtersToSolr(key, filters[key])})`);
