@@ -1,6 +1,6 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  validate, validateEach, queryWithCommonParams,
+  validate, validateEach, queryWithCommonParams, utils,
 } = require('../../hooks/params');
 const {
   qToSolrFilter,
@@ -22,6 +22,19 @@ module.exports = {
           required: false,
           transform: () => true,
         },
+        order_by: utils.orderBy({
+          values: {
+            relevance: 'score ASC',
+            '-relevance': 'score DESC',
+            name: 'l_s ASC,article_fq_f DESC',
+            '-name': 'l_s DESC,article_fq_f DESC',
+            count: 'article_fq_f ASC,mention_fq_f ASC',
+            '-count': 'article_fq_f DESC,mention_fq_f DESC',
+            'count-mentions': 'mention_fq_f ASC,article_fq_f ASC',
+            '-count-mentions': 'mention_fq_f DESC,article_fq_f DESC',
+          },
+          defaultValue: '-count',
+        }),
       }),
       validateEach('filters', {
         q: {

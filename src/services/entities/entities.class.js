@@ -27,6 +27,7 @@ class Service {
     const solrResult = await this.solrClient.findAll({
       q: params.sanitized.sq || '*:*',
       fl: 'id,l_s,t_s,article_fq_f,mention_fq_f',
+      order_by: params.query.order_by,
       namespace: 'entities',
       limit: params.query.limit,
       skip: params.query.skip,
@@ -39,6 +40,9 @@ class Service {
         data: [],
         limit: params.query.limit,
         skip: params.query.skip,
+        info: {
+          ...params.originalQuery,
+        },
       };
     }
     // get list of uid from solr.
@@ -70,6 +74,9 @@ class Service {
         d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId;
         return d;
       }),
+      info: {
+        ...params.originalQuery,
+      },
     };
 
     if (!params.sanitized.resolve) { // no need to resolve?
