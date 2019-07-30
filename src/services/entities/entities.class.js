@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:entities');
 const lodash = require('lodash');
+const { Op } = require('sequelize');
 const wikidata = require('../wikidata');
 const Entity = require('../../models/entities.model');
 const SequelizeService = require('../sequelize.service');
-
 
 class Service {
   constructor({
@@ -17,41 +17,95 @@ class Service {
       app,
       name,
     });
+    this.solrClient = app.get('solrClient');
   }
 
   async find(params) {
-    const where = {};
-    // get entities;
-    const result = await this.SequelizeService.find({
+    debug('\'find\' total entities:', 0, params);
+
+    // get solr results for the queyr, if any; return raw results.
+    const solrResult = await this.solrClient.findAll({
+      q: params.sanitized.sq || '*:*',
+      fl: 'id,l_s,t_s,article_fq_f,mention_fq_f',
+      namespace: 'entities',
+      limit: params.query.limit,
+      skip: params.query.skip,
+    }, Entity.solrFactory);
+    debug('\'find\' total entities:', solrResult.response.numFound);
+    // is Empty?
+    if (!solrResult.response.numFound) {
+      return {
+        total: 0,
+        data: [],
+        limit: params.query.limit,
+        skip: params.query.skip,
+      };
+    }
+    // get list of uid from solr.
+    const entities = solrResult.response.docs;
+    // generate the sequelize clause.
+    const where = {
+      id: {
+        [Op.in]: entities.map(d => d.uid),
+      },
+    };
+    // get sequelize results
+    const sequelizeResult = await this.SequelizeService.find({
       findAllOnly: true,
       query: {
-        ...params.query,
+        limit: entities.length,
+        skip: 0,
       },
       where,
     });
-    debug(`'find' total:${result.total}`);
+
+    // entities from sequelize, containing wikidata and dbpedia urls
+    const sequelizeEntitiesIndex = lodash.keyBy(sequelizeResult.data, 'uid');
+    const result = {
+      total: solrResult.response.numFound,
+      limit: params.query.limit,
+      skip: params.query.skip,
+      data: entities.map((d) => {
+        // enrich with wikidataID
+        d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId;
+        return d;
+      }),
+    };
+
+    if (!params.sanitized.resolve) { // no need to resolve?
+      debug('\'find\' completed, SKIP wikidata.');
+      return result;
+    }
+
     // get wikidata ids
-    const wkdIds = lodash(result.data)
+    const wkdIds = lodash(sequelizeEntitiesIndex)
       .map('wikidataId')
       .compact()
       .value();
 
+    debug('\'find\'loading wikidata:', wkdIds.length);
     const resolvedEntities = {};
 
-    await Promise.all(wkdIds.map(wkdId => wikidata.resolve({
-      ids: [wkdId],
-      cache: this.app.get('redisClient'),
-    }).then((resolved) => {
-      resolvedEntities[wkdId] = resolved[wkdId];
-    })));
-
-    result.data = result.data.map((d) => {
-      if (d.wikidataId) {
-        d.wikidata = resolvedEntities[d.wikidataId];
-      }
-      return d;
+    return Promise.all(
+      wkdIds.map(wkdId => wikidata.resolve({
+        ids: [wkdId],
+        cache: this.app.get('redisClient'),
+      }).then((resolved) => {
+        resolvedEntities[wkdId] = resolved[wkdId];
+      })),
+    ).then((res) => {
+      debug('\'find\'loading wikidata success');
+      result.data = result.data.map((d) => {
+        if (d.wikidataId) {
+          d.wikidata = resolvedEntities[d.wikidataId];
+        }
+        return d;
+      });
+      return result;
+    }).catch((err) => {
+      console.error(err);
+      return result;
     });
-    return result;
   }
 
   async get(id, params) {

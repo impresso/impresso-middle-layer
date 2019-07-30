@@ -16,9 +16,20 @@ describe('\'entities\' service', function () {
     assert.ok(service, 'Registered the service');
   });
 
-  it('test find method', async () => {
-    const result = await service.find();
-    assert.ok(result.data);
+  it('test find method with q param', async () => {
+    const result = await service.find({
+      query: {
+        q: 'Anne *',
+        filters: [
+          {
+            type: 'type',
+            q: 'Person',
+          },
+        ],
+      },
+    });
+    assert.ok(result.total);
+    assert.ok(result.data[0].type, 'person');
   });
 
   it('test get method', async () => {

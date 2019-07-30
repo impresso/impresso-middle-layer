@@ -189,6 +189,10 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'tp_model_s');
     case 'topic-string':
       return reduceStringFiltersToSolr(filters, 'topic_suggest', []);
+    case 'entity-string':
+      return reduceStringFiltersToSolr(filters, 'entitySuggest', []);
+    case 'entity-type':
+      return reduceFiltersToSolr(filters, 't_s');
     case 'regex':
       return reduceRegexFiltersToSolr(filters);
     default:

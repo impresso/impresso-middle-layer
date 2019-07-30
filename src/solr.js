@@ -221,7 +221,7 @@ const findAll = (config, params = {}, factory) => {
     }
     return result;
   }).catch((err) => {
-    debug(err);
+    console.error(err);
     throw new NotImplemented();
     // throw feathers errors here.
   });

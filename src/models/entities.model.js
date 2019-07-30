@@ -1,5 +1,4 @@
 const { DataTypes } = require('sequelize');
-const entitiesIndex = require('../data')('entities');
 
 const TYPES = {
   50: 'person',
@@ -19,7 +18,12 @@ class Entity {
     countMentions = -1,
   } = {}) {
     this.uid = String(uid);
-    this.name = String(name);
+    if (name.length) {
+      this.name = Entity.getNameFromUid(name);
+    } else {
+      this.name = Entity.getNameFromUid(uid);
+    }
+
     this.type = TYPES[String(type)];
     if (!this.type) {
       this.type = String(type).toLowerCase();
@@ -32,7 +36,7 @@ class Entity {
   }
 
   static getNameFromUid(uid) {
-    return uid.replace(/^aida-\d+-/,'').split('_').join(' ');
+    return uid.replace(/^aida-\d+-/, '').split('_').join(' ');
   }
 
   static sequelize(client, {
@@ -81,7 +85,7 @@ class Entity {
   static solrFactory() {
     return doc => new Entity({
       uid: doc.id,
-      name: doc.l_s.strip('_').join(' '),
+      name: (doc.l_s || '').split('_').join(' '),
       type: doc.t_s,
       countItems: doc.article_fq_f,
       countMentions: doc.mention_fq_f,
