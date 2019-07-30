@@ -2,12 +2,27 @@
 const {
   validate, validateEach, queryWithCommonParams,
 } = require('../../hooks/params');
-const { filtersToSolrQuery } = require('../../hooks/search');
+const {
+  qToSolrFilter,
+  filtersToSolrQuery,
+} = require('../../hooks/search');
+
 
 module.exports = {
   before: {
     all: [],
     find: [
+      validate({
+        q: {
+          required: false,
+          min_length: 1,
+          max_length: 50,
+        },
+        resolve: {
+          required: false,
+          transform: () => true,
+        },
+      }),
       validateEach('filters', {
         q: {
           max_length: 50,
@@ -23,14 +38,17 @@ module.exports = {
         },
         type: {
           choices: [
-            'entity-string',
-            'entity-type',
+            'string',
+            'type',
           ],
           required: true,
+          // trasform is required because they shoyd be related to entities namespace.
+          transform: d => `entity-${d}`,
         },
       }, {
-        required: false
+        required: false,
       }),
+      qToSolrFilter('entity-string'),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
