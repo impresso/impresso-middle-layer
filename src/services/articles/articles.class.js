@@ -62,6 +62,9 @@ class Service {
       },
       limit: results.data.length,
       order_by: [['uid', 'DESC']],
+    }).catch(err => {
+      console.log(err);
+      return { data: [] };
     });
 
     // idnexed by article uid;

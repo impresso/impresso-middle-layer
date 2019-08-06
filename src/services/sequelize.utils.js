@@ -69,6 +69,9 @@ const resolveAsync = async (client, groups) => {
 
     const idxs = {};
 
+    if (!g.items.length) {
+      return groups;
+    }
     // loop through group items then store the idx
     g.items.forEach((d, i) => {
       idxs[d.uid] = i;
