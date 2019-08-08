@@ -6,6 +6,7 @@ const {
   validate, validateEach, queryWithCommonParams, utils,
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
+const { resolveCollections } = require('../../hooks/resolvers');
 
 module.exports = {
   before: {
@@ -44,8 +45,12 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
-    get: [],
+    find: [
+      // resolve(),
+    ],
+    get: [
+      resolveCollections(),
+    ],
     create: [],
     update: [],
     patch: [],
