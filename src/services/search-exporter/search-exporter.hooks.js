@@ -87,7 +87,7 @@ module.exports = {
       }, {
         required: false,
       }),
-      filtersToSolrQuery(SOLR_FILTER_TYPES),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
 

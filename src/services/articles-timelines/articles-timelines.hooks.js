@@ -29,7 +29,7 @@ module.exports = {
       }, {
         required: false,
       }),
-      filtersToSolrQuery(['issue', 'page', 'newspaper', 'topic']),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     create: [],
