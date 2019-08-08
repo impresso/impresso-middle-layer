@@ -4,7 +4,6 @@ const Entity = require('./entities.model');
 const Collection = require('./collections.model');
 
 const FACET_TYPES_WITH_ITEMS = ['newspaper', 'language', 'topic', 'person', 'location', 'collection'];
-const FACET_TYPES_WITH_PENDING_ITEMS = ['person', 'location', 'collection'];
 
 class SearchFacetBucket {
   constructor({
