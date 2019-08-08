@@ -25,29 +25,32 @@ class Service {
     } else if (types.length > 2) {
       // limit number of facets per requests.
       throw new NotImplemented();
-    } else if (types.includes('collection')) {
-      throw new NotImplemented();
     }
+
     // init with limit and skip
     const facetsq = {
       offset: params.query.skip,
       limit: params.query.limit,
       sort: params.query.order_by,
     };
-    // apply contains for facets
-    if (params.sanitized.q) {
-      facetsq.prefix = params.sanitized.q;
-    }
-    debug(`facets query for type "${type}":`, facetsq);
+
+    debug(`GET facets query for type "${type}":`, facetsq);
     // facets is an Object, will be stringified for the solr query.
     // '{"newspaper":{"type":"terms","field":"meta_journal_s","mincount":1,"limit":20,"numBuckets":true}}'
     const facets = lodash(types)
-      .map(d => ({
-        k: d,
-        ...SOLR_FACETS[d],
-        ...facetsq,
-      }))
+      .map((d) => {
+        const facet = {
+          k: d,
+          ...SOLR_FACETS[d],
+          ...facetsq,
+        };
+        if (type === 'collection') {
+          facet.prefix = params.authenticated ? params.user.uid : '-';
+        }
+        return facet;
+      })
       .keyBy('k').value();
+      
     debug('facets:', facets);
 
     // TODO: transform params.query.filters to match solr syntax
