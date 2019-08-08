@@ -36,7 +36,7 @@ module.exports = {
       filtersToSolrFacetQuery(),
 
       qToSolrFilter('string'),
-      filtersToSolrQuery(SOLR_FILTER_TYPES),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [],
@@ -58,7 +58,7 @@ module.exports = {
         method: 'GET',
       }),
       qToSolrFilter('string'),
-      filtersToSolrQuery(SOLR_FILTER_TYPES),
+      filtersToSolrQuery(),
     ],
     update: [],
     patch: [],

@@ -68,8 +68,8 @@ module.exports = {
           required: false,
         },
         vectorType: {
-          values: ['InceptionResNetV2'],
-          defaultValue: 'InceptionResNetV2',
+          values: ['InceptionResNetV2', 'ResNet50'],
+          defaultValue: 'ResNet50',
         },
         facets: utils.facets({
           values: {
@@ -99,7 +99,7 @@ module.exports = {
         required: false,
       }),
       qToSolrFilter('string'),
-      filtersToSolrQuery(['newspaper', 'year', 'type', 'daterange', 'isFront']),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [],

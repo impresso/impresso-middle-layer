@@ -56,7 +56,7 @@ module.exports = {
       }, {
         required: false,
       }),
-      filtersToSolrQuery(['issue', 'page']),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [],

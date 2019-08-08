@@ -3,7 +3,7 @@ const {
   eachFilterValidator, eachFacetFilterValidator, paramsValidator, facetsValidator,
 } = require('../search/search.validators');
 const {
-  validate, validateEach, queryWithCommonParams,
+  validate, validateEach, queryWithCommonParams, utils,
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
 
@@ -16,9 +16,24 @@ module.exports = {
       }),
       validate({
         ...paramsValidator,
+        order_by: {
+          before: (d) => Array.isArray(d) ? d.pop() : d,
+          defaultValue: '-count',
+          choices: ['-count', 'count'],
+          transform: d => utils.translate(d, {
+            '-count': {
+              count: 'desc'
+            },
+            count: {
+              count: 'asc'
+            },
+          }),
+        },
       }),
       validateEach('filters', eachFilterValidator),
-      filtersToSolrQuery(),
+      filtersToSolrQuery({
+        overrideOrderBy: false,
+      }),
       queryWithCommonParams(),
     ],
     create: [],

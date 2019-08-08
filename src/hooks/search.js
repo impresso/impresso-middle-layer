@@ -232,7 +232,7 @@ const qToSolrFilter = (type = 'string') => (context) => {
  * in `context.params.sanitized.filters` array to a smart SOLR query
  *
  */
-const filtersToSolrQuery = () => async (context) => {
+const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) => {
   if (context.type !== 'before') {
     throw new Error('The \'filtersToSolrQuery\' hook should only be used as a \'before\' hook.');
   }
@@ -275,7 +275,7 @@ const filtersToSolrQuery = () => async (context) => {
     }
   });
 
-  if (Object.keys(vars).length) {
+  if (overrideOrderBy && Object.keys(vars).length) {
     if (context.params.sanitized.order_by) {
       context.params.sanitized.order_by = Object.keys(vars)
         .map(d => `${vars[d]} desc`)
@@ -371,7 +371,7 @@ module.exports = {
     },
     month: {
       type: 'terms',
-      field: 'meta_yearmonth_s',
+      field: 'meta_month_s',
       mincount: 1,
       limit: 120, // ten years granularity
     },
@@ -393,7 +393,7 @@ module.exports = {
       type: 'terms',
       field: 'topics_dpfs',
       mincount: 1,
-      limit: 20,
+      limit: 10,
       offset: 0,
       numBuckets: true,
     },
