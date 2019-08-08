@@ -1,9 +1,9 @@
 const Topic = require('./topics.model');
 const Newspaper = require('./newspapers.model');
 const Entity = require('./entities.model');
+const Collection = require('./collections.model');
 
 const FACET_TYPES_WITH_ITEMS = ['newspaper', 'language', 'topic', 'person', 'location', 'collection'];
-const FACET_TYPES_WITH_PENDING_ITEMS = ['person', 'location', 'collection'];
 
 class SearchFacetBucket {
   constructor({
@@ -25,6 +25,11 @@ class SearchFacetBucket {
           uid: this.uid,
           type,
           name: Entity.getNameFromUid(this.uid),
+        });
+      } else if (type==='collection') {
+        this.item = new Collection({
+          uid: this.uid,
+          name: this.uid,
         });
       }
     }

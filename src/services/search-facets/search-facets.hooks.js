@@ -6,6 +6,7 @@ const {
   validate, validateEach, queryWithCommonParams, utils,
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
+const { resolveCollections } = require('../../hooks/resolvers');
 
 module.exports = {
   before: {
@@ -17,15 +18,15 @@ module.exports = {
       validate({
         ...paramsValidator,
         order_by: {
-          before: (d) => Array.isArray(d) ? d.pop() : d,
+          before: d => (Array.isArray(d) ? d.pop() : d),
           defaultValue: '-count',
           choices: ['-count', 'count'],
           transform: d => utils.translate(d, {
             '-count': {
-              count: 'desc'
+              count: 'desc',
             },
             count: {
-              count: 'asc'
+              count: 'asc',
             },
           }),
         },
@@ -44,8 +45,12 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
-    get: [],
+    find: [
+      // resolve(),
+    ],
+    get: [
+      resolveCollections(),
+    ],
     create: [],
     update: [],
     patch: [],
