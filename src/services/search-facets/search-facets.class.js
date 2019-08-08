@@ -3,7 +3,7 @@ const lodash = require('lodash');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/services:search-facets');
 const SearchFacet = require('../../models/search-facets.model');
-const { SOLR_FACETS } = require ('../../hooks/search');
+const { SOLR_FACETS } = require('../../hooks/search');
 
 class Service {
   constructor({
@@ -50,7 +50,7 @@ class Service {
         return facet;
       })
       .keyBy('k').value();
-      
+
     debug('facets:', facets);
 
     // TODO: transform params.query.filters to match solr syntax
@@ -63,9 +63,9 @@ class Service {
       vars: params.sanitized.sv,
     });
 
-    return types.map((type) => new SearchFacet({
+    return types.map(type => new SearchFacet({
       type,
-      ...result.facets[type]
+      ...result.facets[type],
     }));
   }
 
