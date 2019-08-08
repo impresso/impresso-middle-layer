@@ -116,7 +116,7 @@ const paramsValidator = {
       }
       return d;
     },
-    choices: ['-date', 'date', '-relevance', 'relevance'],
+    choices: ['-date', 'date', '-relevance', 'relevance', '-name', 'name'],
     transform: d => utils.toOrderBy(d, SOLR_ORDER_BY, true),
     after: (d) => {
       if (Array.isArray(d)) {
