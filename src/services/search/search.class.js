@@ -127,7 +127,6 @@ class Service {
     // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
 
 
-
     debug(
       `find '${this.name}': call articles service for ${uids.length} uids, user:`,
       params.user ? params.user.uid : 'no auth user found',
@@ -189,100 +188,15 @@ class Service {
             item: Newspaper.getCached(d.val),
             uid: d.val,
           }));
-          // for free
-          // facetGroupsToResolve.push({
-          //   // the facet key to merge later
-          //   facet,
-          //   engine: 'sequelize',
-          //   service: 'newspapers',
-          //   // enrich bucket with service identifier, uid.
-          //   // SOLR gives it as `val` property of the facet.
-          //   items: _solr.facets.newspaper.buckets.map(d => ({
-          //     ...d,
-          //     count: d.count,
-          //     uid: d.val,
-          //   })),
-          // });
         } else if (facet === 'topic') {
           facets[facet].buckets = facets[facet].buckets.map(d => ({
             ...d,
             item: Topic.getCached(d.val),
             uid: d.val,
           }));
-          // facetGroupsToResolve.push({
-          //   // the facet key to merge later
-          //   facet,
-          //   engine: 'solr',
-          //   namespace: 'topics',
-          //   Klass: Topic,
-          //   factory: Topic.solrFacetFactory,
-          //   // enrich bucket with service identifier, uid.
-          //   // SOLR gives it as `val` property of the facet.
-          //   items: _solr.facets.topic.buckets.map(d => ({
-          //     ...d,
-          //     count: d.count,
-          //     uid: d.val,
-          //   })),
-          // });
-        } else if (facet === 'collection') {
-          facetGroupsToResolve.push({
-            // the facet key to merge later
-            facet,
-            engine: 'sequelize',
-            service: 'collections',
-            // enrich bucket with service identifier, uid.
-            // SOLR gives it as `val` property of the facet.
-            items: _solr.facets.collection.buckets.map(d => ({
-              ...d,
-              count: d.count,
-              uid: d.val,
-            })),
-          });
         }
       });
     }
-    if (facetGroupsToResolve.length) {
-      // resolve uids with the appropriate service
-      const facetGroupsResolved = await Promise.all([
-        sequelizeUtils.resolveAsync(this.sequelize, facetGroupsToResolve
-          .filter(d => d.engine === 'sequelize')),
-        this.solr.utils.resolveAsync(facetGroupsToResolve
-          .filter(d => d.engine === 'solr')),
-      ]).then(groups => groups[0].concat(groups[1]));
-
-      // add facet resolved item to facet
-      facetGroupsResolved.forEach((group) => {
-        // rebuild facets!
-        debug(`find '${this.name}': rebuilding facet "${group.facet}"`);
-
-        facets[group.facet] = {
-          ..._solr.facets[group.facet],
-          buckets: group.items,
-        };
-      });
-    }
-
-    // merge results maintaining solr ordering.
-    // results = _solr.response.docs.map((doc) => {
-    //   let newspaper = doc.newspaper;
-    //   let cols = [];
-    //
-    //   if (facets.newspaper && facets.newspaper.buckets) {
-    //     const facetedNewspaper = facets.newspaper.buckets.find(n => n.uid === newspaper.uid);
-    //     if (facetedNewspaper.item) {
-    //       newspaper = new Newspaper(facetedNewspaper.item);
-    //     }
-    //   }
-    //   if (collections && collections[doc.uid]) {
-    //     cols = collections[doc.uid].map(d => d.collection);
-    //   }
-    //   return {
-    //     ...doc,
-    //     ...itemsFromNeo4j[doc.uid] || {},
-    //     collections: cols,
-    //     newspaper,
-    //   };
-    // });
 
     return Service.wrap(results, params.query.limit, params.query.skip, total, {
       responseTime: {
