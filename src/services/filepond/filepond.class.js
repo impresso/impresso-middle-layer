@@ -56,7 +56,7 @@ class Service {
     verbose('image - uid:', image.uid, '- checksum', image.checksum);
     await this.app.get('redisClient')
       .set(`img:${image.checksum}`, JSON.stringify(image));
-    
+
     return image;
   }
 
@@ -68,7 +68,7 @@ class Service {
         withoutEnlargement: true,
       })
       .toFormat('jpeg')
-      .toBuffer()
+      .toBuffer();
   }
 }
 

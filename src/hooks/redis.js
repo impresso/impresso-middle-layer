@@ -28,7 +28,7 @@ const checkCachedContents = ({
     debug('checkCachedContents: skipping, internal call');
     return;
   }
-  if(!context.app.get('cache').enabled) {
+  if (!context.app.get('cache').enabled) {
     debug('checkCachedContents: disabled by config');
     return;
   }
@@ -46,7 +46,7 @@ const checkCachedContents = ({
     context.params = {};
   }
 
-  if(!cacheUnauthenticated && !context.params.user) {
+  if (!cacheUnauthenticated && !context.params.user) {
     debug('checkCachedContents: disabled, hooks required to cache authenticated only, no user has been given');
     return;
   }
@@ -122,7 +122,7 @@ const saveResultsInCache = () => async (context) => {
     return;
   }
   debug('saveResultsInCache', context.params.cacheKey);
-  if(!context.app.get('cache').enabled) {
+  if (!context.app.get('cache').enabled) {
     debug('checkCachedContents: disabled by config');
     return;
   }

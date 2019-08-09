@@ -72,7 +72,7 @@ class Image {
           uid: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
           num,
         })) : [],
-        title: Article.getUncertainField(doc, "title"),
+        title: Article.getUncertainField(doc, 'title'),
         type: doc.item_type_s,
         year: doc.meta_year_i,
         date: doc.meta_date_dt,

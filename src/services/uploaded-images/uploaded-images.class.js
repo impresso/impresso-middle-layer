@@ -36,7 +36,7 @@ class Service {
       where: {
         [Op.or]: [
           { uid: id },
-          { checksum: id }
+          { checksum: id },
         ],
       },
     }).then((result) => {

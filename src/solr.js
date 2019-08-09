@@ -126,7 +126,7 @@ const findAll = (config, params = {}, factory) => {
   if (_params.fq && _params.fq.length) {
     qs.fq = _params.fq;
   }
-  if(_params.highlight_by) {
+  if (_params.highlight_by) {
     qs.hl = 'on';
     qs['hl.fl'] = _params.highlight_by;
   }

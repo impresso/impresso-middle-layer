@@ -44,7 +44,7 @@ const sequelizeErrorHandler = (err) => {
   } else if (err.name === 'SequelizeConnectionError') {
     debug('Connection error. SequelizeConnectionError:', err);
     throw new BadGateway('SequelizeConnectionError');
-  } else if(err.name) {
+  } else if (err.name) {
     debug('sequelize failed. Check error below.');
     debug(err.name);
     console.error(err);

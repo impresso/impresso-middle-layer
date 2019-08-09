@@ -19,7 +19,7 @@ module.exports = function (app) {
 
         app.get('redisClient')
           .get(`img:${req.feathers.checksum}`).then((image) => {
-            if(image) {
+            if (image) {
               verbose('/filepond, found image with the checksum', req.feathers.checksum);
               res.send(req.feathers.checksum);
             } else {

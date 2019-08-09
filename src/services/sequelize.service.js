@@ -133,7 +133,7 @@ class SequelizeService {
       fn = this.sequelizeKlass.scope(params.scope);
     }
 
-    let promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p);
+    const promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p);
 
     return promise
       .then((res) => {

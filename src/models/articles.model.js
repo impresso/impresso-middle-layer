@@ -189,7 +189,7 @@ class Article {
     topics = [],
     // entities: person
     persons = [],
-    locations= [],
+    locations = [],
   } = {}) {
     this.uid = String(uid);
     this.type = String(type);
@@ -330,7 +330,7 @@ class Article {
     // get iiif of pages
     const pagesIndex = lodash.keyBy(this.pages, 'uid'); // d => d.iiif);
     props.forEach((prop) => {
-      if(Array.isArray(this[prop])) {
+      if (Array.isArray(this[prop])) {
         this[prop].forEach((d, i) => {
           if (pagesIndex[this[prop][i].pageUid]) {
             this[prop][i].iiifFragment = getExternalFragment(pagesIndex[this[prop][i].pageUid].iiif, {
@@ -346,7 +346,7 @@ class Article {
     // get iiif of pages
     const pagesIndex = lodash.keyBy(article.pages, 'uid'); // d => d.iiif);
     props.forEach((prop) => {
-      if(Array.isArray(article[prop])) {
+      if (Array.isArray(article[prop])) {
         article[prop].forEach((d, i) => {
           if (pagesIndex[article[prop][i].pageUid]) {
             article[prop][i].iiifFragment = getExternalFragment(pagesIndex[article[prop][i].pageUid].iiif, {
@@ -357,6 +357,7 @@ class Article {
       }
     });
   }
+
   /**
    * get regions from pp_plain field, aka region coordinates.
    * Te param `regionCoords` is a list of page objects, containing a r property
@@ -506,11 +507,10 @@ class Article {
    * @return {String}       the field value
    */
   static getUncertainField(doc, field, langs = ['fr', 'de', 'en']) {
-
     let value = doc[`${field}_txt_${doc.lg_s}`];
 
     if (!value) {
-      for(let i = 0, l = langs.length; i < l; i += 1) {
+      for (let i = 0, l = langs.length; i < l; i += 1) {
         value = doc[`${field}_txt_${langs[i]}`];
         if (value) {
           break;
@@ -534,8 +534,8 @@ class Article {
         type: doc.item_type_s,
         language: doc.lg_s,
 
-        title: Article.getUncertainField(doc, "title"),
-        content: Article.getUncertainField(doc, "content"),
+        title: Article.getUncertainField(doc, 'title'),
+        content: Article.getUncertainField(doc, 'content'),
         size: doc.content_length_i,
 
         newspaper: new Newspaper({

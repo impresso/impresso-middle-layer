@@ -62,8 +62,8 @@ class Service {
       },
       limit: results.data.length,
       order_by: [['uid', 'DESC']],
-    }).catch(err => {
-      console.log(err);
+    }).catch((err) => {
+      console.error(err);
       return { data: [] };
     });
 
