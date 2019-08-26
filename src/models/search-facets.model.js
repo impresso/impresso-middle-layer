@@ -11,11 +11,10 @@ class SearchFacetBucket {
     val = '',
     count = -1,
   } = {}) {
-    this.val = String(val);
     this.count = parseInt(count, 10);
 
     if (FACET_TYPES_WITH_ITEMS.indexOf(type) !== -1) {
-      this.uid = this.val;
+      this.uid = String(val);
       if (type === 'topic') {
         this.item = Topic.getCached(this.uid);
       } else if (type === 'newspaper') {
@@ -46,6 +45,14 @@ class SearchFacet{
     this.numBuckets = parseInt(numBuckets, 10);
     this.buckets = buckets.map(d => new SearchFacetBucket({ type, ...d}));
   }
+
+  getItems() {
+    return this.buckets.map(({ item, count }) => ({
+      ...item,
+      count,
+    }));
+  }
+
 }
 
 module.exports = SearchFacet;
