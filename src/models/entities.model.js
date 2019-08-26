@@ -28,15 +28,25 @@ class Entity {
     if (!this.type) {
       this.type = String(type).toLowerCase();
     }
-    this.wikidataId = wikidataId;
-    this.dbpediaURL = dbpediaURL;
-    this.impressoId = impressoId;
-    this.countItems = parseInt(countItems || 0, 10);
-    this.countMentions = parseInt(countMentions || 0, 10);
+    if (wikidataId) {
+      this.wikidataId = wikidataId;
+    }
+    if (dbpediaURL) {
+      this.dbpediaURL = dbpediaURL;
+    }
+    if (impressoId) {
+      this.impressoId = impressoId;
+    }
+    if (countItems != -1) {
+      this.countItems = parseInt(countItems || 0, 10);
+    }
+    if (countMentions != -1) {
+      this.countMentions = parseInt(countMentions || 0, 10);
+    }
   }
 
   static getNameFromUid(uid) {
-    return uid.replace(/^aida-\d+-/, '').split('_').join(' ');
+    return uid.replace(/^aida-\d+-\d+-/, '').split('_').join(' ');
   }
 
   static sequelize(client, {
