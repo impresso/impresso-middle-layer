@@ -105,7 +105,8 @@ class ArticleDPF {
     if (!dpfs || !dpfs.length) {
       return [];
     }
-    console.log('solrDPFsFactory', dpfs);
+    // console.log('solrDPFsFactory', dpfs);
+    // dpfs = [ 'aida-0001-54-Paris|1 aida-0001-54-Pleven|1 aida-0001-54-Maurice_Bowra|1 aida-0001-54-China|1 aida-0001-54-Moscow|1 ' ]
     return dpfs[0].trim().split(' ').map((d) => {
       const parts = d.split('|');
       return new ArticleDPF({
@@ -142,6 +143,64 @@ class ArticleMatch {
     this.fragment = String(fragment);
     this.pageUid = String(pageUid);
     this.iiif = String(iiif);
+  }
+}
+
+class BaseArticle{
+  constructor({
+    uid = '',
+    type = '',
+    title = '',
+    content = '',
+    excerpt = '',
+    isCC = false,
+    size = 0,
+    pages = [],
+    persons = [],
+    locations = [],
+    collections = [],
+  } = {}) {
+    this.uid = String(uid);
+    this.type = String(type);
+    this.title = String(title);
+    this.excerpt = String(excerpt);
+    this.size = parseInt(size, 10);
+    this.nbPages = pages.length;
+    this.pages = pages;
+    this.isCC = isCC;
+    if (collections.length) {
+      this.collections = collections;
+    }
+    if (persons.length) {
+      this.persons = persons;
+    }
+    if (locations.length) {
+      this.locations = locations;
+    }
+  }
+  /**
+   * Return an Article mapper for Solr response document
+   *
+   * @param {Object} res Solr response object
+   * @return {function} {Article} mapper with a single doc.
+   */
+  static solrFactory(res) {
+    const fragments = res.fragments || {};
+    return (doc) => new BaseArticle({
+      uid: doc.id,
+      type: doc.item_type_s,
+      size: doc.content_length_i,
+      pages: doc.page_id_ss.map(uid => ({
+        uid,
+        num: parseInt(uid.match(/p([0-9]+)$/)[1], 10),
+      })),
+      isCC: !!doc.cc_b,
+      title: Article.getUncertainField(doc, 'title'),
+      persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
+      locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
+      collections: doc.ucoll_ss,
+      excerpt: lodash.get(fragments[doc.id], 'nd[0]', ''),
+    });
   }
 }
 
@@ -600,6 +659,7 @@ class Article {
 module.exports = Article;
 module.exports.solrFactory = Article.solrFactory;
 module.exports.Model = Article;
+module.exports.BaseArticle = BaseArticle;
 module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL;
 module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE;
 module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH;
