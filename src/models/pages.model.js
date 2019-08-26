@@ -26,6 +26,7 @@ class Page {
 
     // All collections for this page
     collections = [],
+    regions = [],
   } = {}, complete = false) {
     this.uid = String(uid);
 
@@ -65,7 +66,10 @@ class Page {
     //   // get newspaper uid from uid.
     //
     // }
-
+    if (regions) {
+      this.regions = regions;
+    }
+    
     if (complete) {
       this.articlesEntities = articlesEntities.map((d) => {
         if (d instanceof ArticleEntity) { return d; }
