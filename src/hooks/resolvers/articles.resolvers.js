@@ -27,13 +27,13 @@ const resolveTopics = () => async (context) => {
 
 
 const resolveUserAddons = () => async (context) => {
-  if (!context.params.authenticated) {
-    debug('skipping \'resolveUserAddons\', no user has been found');
+  if (!context.result || !context.params.authenticated) {
+    debug('skipping \'resolveUserAddons\', no user has been found or no results');
     return;
   }
   // get article uids
   let uids = [];
-
+  console.log(context.result);
   if (Array.isArray(context.result)) {
     uids = context.result.map(d => d.uid);
   } else if (context.result.data && context.result.data.length) {
