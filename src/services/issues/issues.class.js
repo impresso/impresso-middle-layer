@@ -74,6 +74,8 @@ class Service {
     ])
       .then(([issue, pages]) => {
         issue.pages = pages;
+        issue.countPages = pages.length;
+        issue.countArticles = pages.reduce((acc, p) => acc + p.countArticles, 0);
         return issue;
       });
   }
