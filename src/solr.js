@@ -129,6 +129,9 @@ const findAll = (config, params = {}, factory) => {
   if (_params.highlight_by) {
     qs.hl = 'on';
     qs['hl.fl'] = _params.highlight_by;
+    if (_params.highlight_props) {
+      Object.assign(qs, _params.highlight_props);
+    }
   }
   if (_params.vars) {
     Object.assign(qs, _params.vars);
