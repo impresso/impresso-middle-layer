@@ -38,7 +38,7 @@ class Service {
       highlight_props: {
         'hl.snippets': 0,
         'hl.alternateField': 'content_txt_fr',
-        'hl.maxAlternateFieldLength': 100,
+        'hl.maxAlternateFieldLength': 120,
         'hl.fragsize': 0,
       },
       fl: 'id,content_length_i,cc_b,lg_s,page_id_ss,item_type_s,title_txt_fr,title_txt_de,title_txt_en,pers_entities_dpfs,loc_entities_dpfs,ucoll_ss',
