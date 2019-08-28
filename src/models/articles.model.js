@@ -163,11 +163,14 @@ class BaseArticle{
     this.uid = String(uid);
     this.type = String(type);
     this.title = String(title);
-    this.excerpt = String(excerpt);
     this.size = parseInt(size, 10);
     this.nbPages = pages.length;
     this.pages = pages;
     this.isCC = isCC;
+    this.excerpt = toExcerpt(excerpt, {
+      TruncateLength: 20,
+      excludeTitle: this.title,
+    });
     if (collections.length) {
       this.collections = collections;
     }
