@@ -45,7 +45,7 @@ module.exports = {
           defaultValue: 'include',
         },
         type: {
-          choices: ['topicmodel', 'language', 'string'],
+          choices: ['topicmodel', 'language'],
           required: true,
         },
         q: {
@@ -58,7 +58,7 @@ module.exports = {
         required: false,
       }),
       qToSolrFilter('topic-string'),
-      filtersToSolrQuery('topicmodel', 'topic-string', 'language'),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [],
