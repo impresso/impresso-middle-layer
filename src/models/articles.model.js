@@ -353,8 +353,8 @@ class Article {
       c: reg,
     }))), []);
 
-    // if there are line brack and region breaks ...
-    if (lb.length && rb.length && rc.length) {
+    // if there are line breaks and region breaks ...
+    if (this.content.length) {
       // tokenize the content based on line breaks
       const tokens = sliceAtSplitpoints(this.content, lb);
       // text regions, grouped thanks to region splipoints

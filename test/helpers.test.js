@@ -35,10 +35,12 @@ const fulltextBroken = "L'opinion et ^^ <^ le discours Wilson An Congrès améri
 
 /*
 
-./node_modules/.bin/eslint src/helpers.js --config .eslintrc.json --fix && mocha test/helpers.test.js
+./node_modules/.bin/eslint src/helpers.js \
+--config .eslintrc.json --fix && mocha test/helpers.test.js
 
 with debug
-./node_modules/.bin/eslint src/helpers.js --config .eslintrc.json --fix && DEBUG=impresso* mocha test/helpers.test.js
+./node_modules/.bin/eslint src/helpers.js \
+--config .eslintrc.json --fix && DEBUG=impresso* mocha test/helpers.test.js
 */
 
 const lines = sliceAtSplitpoints(fulltext, lineBreaks);
@@ -54,13 +56,13 @@ describe('get excerpt of a text', () => {
 
 describe('should cut a text', () => {
   it('according to simple splitpoints', () => {
-    assert.equal(lines[16].t, 'Khan les détails sur le départ de ce ', 'verify corresponding segments in lines');
+    assert.strictEqual(lines[16].t, 'Khan les détails sur le départ de ce ', 'verify corresponding segments in lines');
     // verify specific point
-    assert.equal(paragraphs[10].t, 'Paris, 22 janvier. ', 'verify corresponding segments');
+    assert.strictEqual(paragraphs[10].t, 'Paris, 22 janvier. ', 'verify corresponding segments');
     paragraphBreaks.forEach((p, i) => {
-      assert.equal(paragraphs[i].r, p);
+      assert.strictEqual(paragraphs[i].r, p);
     });
-    assert.equal(paragraphs.length, paragraphBreaks.length + 1, 'count splitpoints and generated chunks');
+    assert.strictEqual(paragraphs.length, paragraphBreaks.length + 1, 'count splitpoints and generated chunks');
   });
 
   it('... respecting the initial offset', () => {
@@ -68,28 +70,28 @@ describe('should cut a text', () => {
     //   { t: 'un ', r: 189, l: 186 } ]
     const results = sliceAtSplitpoints(lines[5].t, [186], lines[5].l);
 
-    assert.equal(results.length, 2);
-    assert.equal(results[0].t, 'La police, on le sait, a écroué ');
-    assert.equal(results[0].l, lines[5].l);
-    assert.equal(results[0].r, 186);
-    assert.equal(results[1].t, 'un ');
-    assert.equal(results[1].l, 186);
-    assert.equal(results[1].r, lines[5].r);
+    assert.strictEqual(results.length, 2);
+    assert.strictEqual(results[0].t, 'La police, on le sait, a écroué ');
+    assert.strictEqual(results[0].l, lines[5].l);
+    assert.strictEqual(results[0].r, 186);
+    assert.strictEqual(results[1].t, 'un ');
+    assert.strictEqual(results[1].l, 186);
+    assert.strictEqual(results[1].r, lines[5].r);
   });
 });
 
 describe('should annotate a tokenized text', () => {
   it('with one annotation for one word in line 1', () => {
     annotate(lines, 'e019289', 53, 60);
-    assert.equal(lines[1].ref[0].uid, 'e019289');
+    assert.strictEqual(lines[1].ref[0].uid, 'e019289');
   });
 
   it('with one annotation for line 5 and 6', () => {
     annotate(lines, 'e019283', 186, 207);
     // console.log(lines[5], lines[6], lines[7]);
-    assert.equal(lines[5].ref[0].uid, 'e019283');
-    assert.equal(lines[6].ref[0].uid, 'e019283');
-    assert.equal(!!lines[7].ref, false);
+    assert.strictEqual(lines[5].ref[0].uid, 'e019283');
+    assert.strictEqual(lines[6].ref[0].uid, 'e019283');
+    assert.strictEqual(!!lines[7].ref, false);
   });
 
   it('with multiple annotation for line 5 and 6', () => {
@@ -98,24 +100,24 @@ describe('should annotate a tokenized text', () => {
     annotate(lines, 'lindsay-watson', 264, 278);
     annotate(lines, 'aga-khan', 555, 563);
 
-    assert.equal(lines[5].ref[1].uid, 'e019284');
-    assert.equal(lines[5].ref.length, 2);
-    // assert.equal(lines[5].ref.map(d => d.uid).join(','), 'e019283,e019284,e019286');
+    assert.strictEqual(lines[5].ref[1].uid, 'e019284');
+    assert.strictEqual(lines[5].ref.length, 2);
+    // assert.strictEqual(lines[5].ref.map(d => d.uid).join(','), 'e019283,e019284,e019286');
     // console.log(,lines[7],lines[8])
 
-    assert.equal(lines[15].ref[0].uid, 'aga-khan');
-    assert.equal(lines[16].ref[0].uid, 'aga-khan');
+    assert.strictEqual(lines[15].ref[0].uid, 'aga-khan');
+    assert.strictEqual(lines[16].ref[0].uid, 'aga-khan');
 
-    // assert.equal(lines[6].ref[0].uid, 'e019283');
-    assert.equal(!!lines[7].ref, false);
+    // assert.strictEqual(lines[6].ref[0].uid, 'e019283');
+    assert.strictEqual(!!lines[7].ref, false);
   });
 
   it('render annotations on line 5 and 6, overlapping', () => {
     const md = render(lines);
     // console.log(md);
-    assert.equal(md[8], '<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ');
-    assert.equal(md[15], 'avait obtenu de la secrétaire de l\'<span ref="aga-khan">Aga </span>');
-    assert.equal(render([lines[7], lines[8]])[1], '<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ', 'the same');
+    assert.strictEqual(md[8], '<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ');
+    assert.strictEqual(md[15], 'avait obtenu de la secrétaire de l\'<span ref="aga-khan">Aga </span>');
+    assert.strictEqual(render([lines[7], lines[8]])[1], '<span ref="lindsay-watson">Lindsay Watson</span>, arrêté à Strasbourg, ', 'the same');
   });
   //
 
@@ -124,8 +126,23 @@ describe('should annotate a tokenized text', () => {
     const lastLineFirstRegion = results[0].g[results[0].g.length - 1];
     const firstLineSecondRegion = results[1].g[0];
 
-    assert.equal(lastLineFirstRegion.t, 'II se prétend le filleul de M. Churchill / ');
-    assert.equal(firstLineSecondRegion.t, 'Marseille, 22 janvier. ');
+    assert.strictEqual(lastLineFirstRegion.t, 'II se prétend le filleul de M. Churchill / ');
+    assert.strictEqual(firstLineSecondRegion.t, 'Marseille, 22 janvier. ');
+  });
+});
+
+describe('should work with empty splitpints', () => {
+  const empties = sliceAtSplitpoints(fulltext, []);
+  it('check with empty lines and empty regions', () => {
+    assert.strictEqual(empties[0].t, fulltext);
+  });
+  it('check with empty regions and usual lines', () => {
+    const results = toHierarchy(lines, []);
+    assert.strictEqual(results[0].g[0].t, lines[0].t);
+  });
+  it('check grouping by empty regions', () => {
+    const results = toHierarchy(empties, []);
+    assert.strictEqual(results[0].g[0].t, fulltext);
   });
 });
 //
@@ -152,21 +169,19 @@ describe('should cut a text into pieces', () => {
     // then annotate
     annotate(ls, 'title', 0, title.length, 'class');
 
-    assert.equal(lastLineFirstRegion.t, ' ont été licenciés');
-    assert.equal(firstLineSecondRegion.t, ' Au cours de sa séance du 28 juin,');
+    assert.strictEqual(lastLineFirstRegion.t, ' ont été licenciés');
+    assert.strictEqual(firstLineSecondRegion.t, ' Au cours de sa séance du 28 juin,');
     // console.log(rs);
     const rendered = render(results);
 
-    assert.equal(rendered[0], '<span class="title">APRÈS L\'ACCIDENT</span>');
-    assert.equal(rendered[5], ' Au cours de sa séance du 28 juin,');
+    assert.strictEqual(rendered[0], '<span class="title">APRÈS L\'ACCIDENT</span>');
+    assert.strictEqual(rendered[5], ' Au cours de sa séance du 28 juin,');
   });
 });
 
 describe('should latinise a text', () => {
-
-  it.only('in french', () => {
+  it('in french', () => {
     const ft = "APRÈS L'ACCIDENT";
-
-    console.log(ft, latinise(ft));
+    assert.strictEqual("APRES L'ACCIDENT", latinise(ft));
   });
-})
+});
