@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const Newspaper = require('../../models/newspapers.model');
 const { BaseArticle } = require('../../models/articles.model');
 const SearchFacet = require('../../models/search-facets.model');
 
@@ -9,6 +10,20 @@ class Service {
   }
 
   async get (id, params) {
+    const newspaper = new Newspaper({
+      uid: id.split('-').shift()
+    });
+    const highlight_props = {
+      'hl.snippets': 0,
+      'hl.alternateField': 'content_txt_fr',
+      'hl.maxAlternateFieldLength': 120,
+      'hl.fragsize': 0,
+    }
+    const languages = newspaper.languages;
+
+    if (languages.length == 1) {
+      highlight_props['hl.alternateField'] = `content_txt_${languages[0]}`;
+    }
     // get all articles for the give issue,
     // at least 1 of content length, max 500 articles
     const result = await this.app.get('solrClient').findAll({
@@ -35,12 +50,7 @@ class Service {
       skip: 0,
       order_by: 'id ASC',
       highlight_by: 'nd',
-      highlight_props: {
-        'hl.snippets': 0,
-        'hl.alternateField': 'content_txt_fr',
-        'hl.maxAlternateFieldLength': 120,
-        'hl.fragsize': 0,
-      },
+      highlight_props,
       fl: 'id,content_length_i,cc_b,lg_s,page_id_ss,item_type_s,title_txt_fr,title_txt_de,title_txt_en,pers_entities_dpfs,loc_entities_dpfs,ucoll_ss',
     }, BaseArticle.solrFactory);
     // get persons and locations from the facet,
@@ -55,6 +65,7 @@ class Service {
     });
     // return a TOC instance without instantiating a class.
     return {
+      newspaper,
       persons,
       locations,
       articles: result.response.docs,
