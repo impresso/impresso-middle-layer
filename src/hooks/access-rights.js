@@ -16,7 +16,9 @@ const obfuscateArticleMapper = (article) => {
   if (!config.accessRights.showExcerpt) {
     article.excerpt = '... *** ...';
   }
-  article.content = '... *** ...';
+  if (!config.accessRights.enable) {
+    article.content = '... *** ...';
+  }
   return article;
 };
 
