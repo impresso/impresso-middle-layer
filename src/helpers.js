@@ -40,6 +40,13 @@ const seek = (tokens, splitpoints) => {
   let offsetIndex = 0;
   const clusters = [];
 
+  if (!splitpoints.length) {
+    return [{
+      g: tokens,
+      r: tokens[tokens.length - 1].r,
+    }];
+  }
+
   for (let i = 0, l = splitpoints.length; i < l; i += 1) {
     for (let j = offsetIndex, ll = tokens.length; j < ll; j += 1) {
       if (tokens[j].r > splitpoints[i]) {
@@ -71,7 +78,12 @@ const seek = (tokens, splitpoints) => {
  */
 const sliceAtSplitpoints = (text, splitpoints, origin = 0) => {
   if (!Array.isArray(splitpoints) || !splitpoints.length) {
-    throw new Error('sliceAtIndices: the list of splitpoints is empty!');
+    return [{
+      t: text,
+      r: text.length,
+      l: 0,
+    }];
+    // throw new Error('sliceAtIndices: the list of splitpoints is empty!');
   }
   verbose(`sliceAtIndices: text length of ${text.length} chars with ${splitpoints.length} splitpoints`);
 
@@ -177,7 +189,6 @@ const toHierarchy = (chunks, thresholds, ...otherThresholds) => {
   debug(`toHierarchy: from ${chunks.length} chunks, ${thresholds.length} initital threshold, ${otherThresholds.length} additional lists of nodes`);
 
   let clusters = seek(chunks, thresholds);
-
   // recursively with remaining nodes, if any.
   otherThresholds.forEach((threshold) => {
     clusters = seek(clusters, threshold);
