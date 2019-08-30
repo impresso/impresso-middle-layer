@@ -48,17 +48,17 @@ const eachFilterValidator = {
     min_length: 2,
     max_length: 500,
   },
-  langs: {
-    before: (d) => {
-      if (typeof d === 'string') {
-        return d.split(',');
-      }
-      return d;
-    },
-    choices: ['fr'],
-    defaultValue: 'fr',
-    transform: d => (Array.isArray(d) ? d : d.split(',')),
-  },
+  // langs: {
+  //   before: (d) => {
+  //     if (typeof d === 'string') {
+  //       return d.split(',');
+  //     }
+  //     return d;
+  //   },
+  //   choices: ['fr','en','de'],
+  //   defaultValue: 'fr,en,de',
+  //   transform: d => (Array.isArray(d) ? d : d.split(',')),
+  // },
   // compatible only with type daterange, unused elsewhere.
   // If it is an array, an OR will be used to JOIN the array items..
   // ex: ['* TO 1950-12-01', '1960-01-01 TO 1940-12-01']
