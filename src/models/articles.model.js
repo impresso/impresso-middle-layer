@@ -354,7 +354,7 @@ class Article {
     }))), []);
 
     // if there are line breaks and region breaks ...
-    if (this.content.length) {
+    if (rc.length && this.content.length) {
       // tokenize the content based on line breaks
       const tokens = sliceAtSplitpoints(this.content, lb);
       // text regions, grouped thanks to region splipoints
