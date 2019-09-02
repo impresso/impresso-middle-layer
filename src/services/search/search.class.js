@@ -104,12 +104,16 @@ class Service {
       limit: params.query.limit,
       skip: params.query.skip,
       fl: 'id,pp_plain:[json]', // for articles.
+      highlight_by: 'content_txt_de,content_txt_fr,content_txt_en',
+      highlight_props: {
+        'hl.snippets': 10,
+        'hl.fragsize': 100,
+      },
       vars: params.sanitized.sv,
     });
 
     const total = _solr.response.numFound;
-
-    debug(`find '${this.name}': SOLR found ${total} using SOLR params:`, _solr.responseHeader.params);
+    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, _solr.responseHeader.params);
 
     if (!total) {
       return Service.wrap([], params.query.limit, params.query.skip, total);
@@ -125,10 +129,9 @@ class Service {
     // get text matches
     // const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
     // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
-
-
+    
     debug(
-      `find '${this.name}': call articles service for ${uids.length} uids, user:`,
+      `find '${this.name}' (2 / 2): call articles service for ${uids.length} uids, user:`,
       params.user ? params.user.uid : 'no auth user found',
     );
 
