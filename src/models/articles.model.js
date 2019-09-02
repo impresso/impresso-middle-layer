@@ -131,16 +131,23 @@ class ArticleRegion {
   }
 }
 
+class Fragment {
+  constructor({
+    fragment = '',
+  } = {}) {
+    this.fragment = String(fragment);
+  }
+}
 
-class ArticleMatch {
+class ArticleMatch extends Fragment {
   constructor({
     coords = [],
     fragment = '',
     pageUid = '',
     iiif = '',
   } = {}) {
+    super({ fragment });
     this.coords = coords.map(coord => parseInt(coord, 10));
-    this.fragment = String(fragment);
     this.pageUid = String(pageUid);
     this.iiif = String(iiif);
   }
@@ -458,8 +465,8 @@ class Article {
     fragments = [],
     highlights = {},
   } = {}) {
-    if (!highlights || !highlights.offsets) {
-      return [];
+    if (!highlights || !highlights.offsets || !highlights.offsets.length) {
+      return fragments.map(fragment => new Fragment({ fragment }));
     }
     return highlights.offsets.map((pos, i) => {
       // for each offset
@@ -629,6 +636,7 @@ class Article {
         topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs),
         persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
         locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
+        collections: doc.ucoll_ss,
       });
 
       if (!doc.pp_plain) {

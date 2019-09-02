@@ -25,6 +25,22 @@ const resolveTopics = () => async (context) => {
   }
 };
 
+/**
+ * [hasCollections description]
+ * @param  {Article}  article [description]
+ * @param  {User}  user    [description]
+ * @return {Boolean}         [description]
+ */
+const hasCollections = ({ article, user }) => {
+  if (!user || !article.collections.length) {
+    debug('\'hasCollections\' skip, no user or empty collections');
+    return false;
+  }
+  debug('hasCollections', article.collections.join(','), user.uid);
+  return true;
+  // skip user detection as it is related to indexing and could be delayed.
+  // return article.collections.join(',').indexOf(user.uid) !== -1;
+}
 
 const resolveUserAddons = () => async (context) => {
   if (!context.result || !context.params.authenticated) {
@@ -33,15 +49,15 @@ const resolveUserAddons = () => async (context) => {
   }
   // get article uids
   let uids = [];
-  console.log(context.result);
   if (Array.isArray(context.result)) {
-    uids = context.result.map(d => d.uid);
+    uids = context.result.filter(article => hasCollections({ article, user: context.params.user })).map(d => d.uid);
   } else if (context.result.data && context.result.data.length) {
-    uids = context.result.data.map(d => d.uid);
+    uids = context.result.data.filter(article => hasCollections({ article, user: context.params.user })).map(d => d.uid);
   } else if (context.result && context.result.uid) {
-    uids.push(context.result.uid);
+    if (hasCollections({ article: context.result, user: context.params.user.uid})) {
+      uids.push(context.result.uid);
+    }
   }
-
   if (!uids.length) {
     debug(`skipping 'resolveUserAddons' for user: '${context.params.user.uid}', no articles to enrich!`);
     return;
@@ -49,7 +65,8 @@ const resolveUserAddons = () => async (context) => {
   debug(`'resolveUserAddons' for user: '${context.params.user.uid}' for ${uids.length} articles...`);
 
   const collectables = await context.app.service('collectable-items').find({
-    ...context.params,
+    authenticated: context.params.authenticated,
+    user: context.params.user,
     query: {
       resolve: 'collection',
       item_uids: uids,
