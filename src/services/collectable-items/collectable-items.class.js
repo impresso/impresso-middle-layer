@@ -26,7 +26,7 @@ class Service {
   async find(params) {
     // simplified where for sequelize raw queries.
     const where = [
-      { [Op.not]: [{ 'collection.status': STATUS_DELETED }] },
+      { '[Op.not]': [{ 'collection.status': STATUS_DELETED }] },
     ];
 
     if (params.sanitized.item_uids) {
@@ -41,7 +41,7 @@ class Service {
     }
     if (params.user.id && params.authenticated) {
       where.push({
-        [Op.or]: [
+        '[Op.or]': [
           { 'collection.creator_id': params.user.id },
           { 'collection.status': [STATUS_PUBLIC, STATUS_SHARED] },
         ],
@@ -51,7 +51,15 @@ class Service {
     }
 
     const whereReducer = (sum, clause) => {
+      // This should be used for sequelize Symbol operator, e.g Symbol(sequelize.operator.not)
+      // Object.getOwnPropertySymbols(clause).forEach((k) => {
+      //   console.log('symbol!', k, k.toString());
+      //   const t = k.toString();
+      //
+      //   if(t === ...)
+      // });
       Object.keys(clause).forEach((k) => {
+
         if (k === '[Op.not]') {
           sum.push(`NOT (${clause[k].reduce(whereReducer, []).join(' AND ')})`);
         } else if (k === '[Op.or]') {
