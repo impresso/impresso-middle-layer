@@ -377,10 +377,14 @@ class Article {
         });
       }
 
-      if (rcs.length !== trs.length) {
-        // it would never happen.
+      if (rcs.length < trs.length) {
+        // it would never happen.... or not?
+        console.log(rcs[0]);
+        console.log(rb, this.content.length);
+        console.log(trs);
         throw new Error(`article ${this.uid} coordinates corrupted`);
       }
+
       // then, for each region,
       // we add the corresponding regionCoords, if any
       // this.regions = this.regions.map()
