@@ -12,6 +12,7 @@ class SearchFacetBucket {
     count = -1,
   } = {}) {
     this.count = parseInt(count, 10);
+    this.val = String(val);
 
     if (FACET_TYPES_WITH_ITEMS.indexOf(type) !== -1) {
       this.uid = String(val);
