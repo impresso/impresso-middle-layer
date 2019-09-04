@@ -51,6 +51,24 @@ describe('\'images\' service', function () {
     assert.deepEqual(result.info.filters[1].q.join(','), '1970,1971', 'filters should be given in info');
   });
 
+  it('check IIIF manifest for external IIIF services!', async () => {
+    const result = await service.find({
+      query: {
+        filters: [
+          {
+            type: 'newspaper',
+            q: ['luxland'],
+          },
+          {
+            type: 'title',
+            q: 'bilder',
+          },
+        ],
+      },
+    });
+    assert.strictEqual(result.data[0].pages[0].iiif.indexOf('https://iiif.eluxemburgensia.lu/'), 0);
+  });
+
   it('find similar images to a newspaper image', async () => {
     const result = await service.find({
       query: {

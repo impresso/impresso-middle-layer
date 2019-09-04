@@ -3,6 +3,8 @@ const { NotFound } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/services:images');
 const SolrService = require('../solr.service');
 const Image = require('../../models/images.model');
+const Page = require('../../models/pages.model');
+
 
 class Service {
   constructor({
@@ -11,6 +13,7 @@ class Service {
   }) {
     this.app = app;
     this.name = name;
+    this.sequelizeClient = this.app.get('sequelizeClient');
     this.SolrService = SolrService({
       app,
       name,
@@ -18,7 +21,11 @@ class Service {
     });
   }
 
+<<<<<<< HEAD
   async assignIIIF({ method, result }) {
+=======
+  async resolvePages({ method, result }) {
+>>>>>>> 776703dc008713850427ff98ea898c225d216aa2
     const pagesIndex = {};
     // get page uids for the given images, so that we can get the correct
     // IIIF from mysql db
@@ -115,15 +122,20 @@ class Service {
     } else {
       params.query.sq = `${params.query.sq} AND filter(_vector_${params.query.vectorType}_bv:[* TO *])`;
     }
-
+    // get all pages, then get IIIF manifest
     return this.SolrService.find({
       ...params,
       fl: Image.SOLR_FL,
+<<<<<<< HEAD
     }).then(result => this.assignIIIF({
+=======
+    }).then(result => this.resolvePages({
+>>>>>>> 776703dc008713850427ff98ea898c225d216aa2
       method: 'find',
       result,
     }));
   }
+
 
   async get(id, params) {
     debug(`get '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
