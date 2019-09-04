@@ -41,12 +41,18 @@ class Service {
         }
       }
     }
+    const uids = Object.keys(pagesIndex);
     // load page stuff
     const pages = await Page.sequelize(this.sequelizeClient).findAll({
       where: {
-        uid: Object.keys(pagesIndex),
+        uid: uids,
       },
     });
+    // missing pages ...!
+    if (!pages.length || pages.length != uids.length) {
+      debug('assignIIIF: cannot find some pages, requested:', uids, 'found:', pages);
+    }
+
     // remap results with objects
     pages.forEach((page) => {
       pagesIndex[page.uid].forEach((coord) => {
