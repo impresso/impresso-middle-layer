@@ -21,11 +21,7 @@ class Service {
     });
   }
 
-<<<<<<< HEAD
   async assignIIIF({ method, result }) {
-=======
-  async resolvePages({ method, result }) {
->>>>>>> 776703dc008713850427ff98ea898c225d216aa2
     const pagesIndex = {};
     // get page uids for the given images, so that we can get the correct
     // IIIF from mysql db
@@ -126,11 +122,7 @@ class Service {
     return this.SolrService.find({
       ...params,
       fl: Image.SOLR_FL,
-<<<<<<< HEAD
     }).then(result => this.assignIIIF({
-=======
-    }).then(result => this.resolvePages({
->>>>>>> 776703dc008713850427ff98ea898c225d216aa2
       method: 'find',
       result,
     }));
