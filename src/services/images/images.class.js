@@ -18,6 +18,46 @@ class Service {
     });
   }
 
+  async assignIIIF({ method, result }) {
+    const pagesIndex = {};
+    // get page uids for the given images, so that we can get the correct
+    // IIIF from mysql db
+    if (method === 'get') {
+      for (let i = 0, l = result.pages.length; i < l; i += 1) {
+        const pageuid = result.pages[i].uid;
+        pagesIndex[pageuid].push([-1, i]);
+      }
+    } else if (method === 'find') {
+      for (let i = 0, l = result.data.length; i < l; i += 1) {
+        for (let ii = 0, ll = result.data[i].pages.length; ii < ll; ii += 1) {
+          const pageuid = result.data[i].pages[ii].uid;
+          if (!pagesIndex[pageuid]) {
+            pagesIndex[pageuid] = [];
+          }
+          pagesIndex[pageuid].push([i, ii]);
+        }
+      }
+    }
+    // load page stuff
+    const pages = await Page.sequelize(this.sequelizeClient).findAll({
+      where: {
+        uid: Object.keys(pagesIndex),
+      },
+    });
+    // remap results with objects
+    pages.forEach((page) => {
+      pagesIndex[page.uid].forEach((coord) => {
+        if (method === 'get') {
+          result.pages[coord[1]] = page.toJSON();
+        } else if (method === 'find') {
+          result.data[coord[0]].pages[coord[1]] = page.toJSON();
+          result.data[coord[0]].assignIIIF();
+        }
+      });
+    });
+    return result;
+  }
+
   async find(params) {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
     let signature;
@@ -79,7 +119,10 @@ class Service {
     return this.SolrService.find({
       ...params,
       fl: Image.SOLR_FL,
-    });
+    }).then(result => this.assignIIIF({
+      method: 'find',
+      result,
+    }));
   }
 
   async get(id, params) {
