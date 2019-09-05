@@ -8,7 +8,9 @@
   },
   "accessRights": {
     "showExcerpt": true,
-    "enable": true
+    "enable": true,
+    "unauthorizedIIIFUrl": "unauthorized.json",
+    "unauthorizedIIIFImageUrl": "unauthorized.png"
   },
   "redis": {
     "enable": true

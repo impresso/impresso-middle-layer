@@ -16,8 +16,24 @@ const obfuscateArticleMapper = (article) => {
   if (!config.accessRights.showExcerpt) {
     article.excerpt = '... *** ...';
   }
-  if (!config.accessRights.enable) {
-    article.content = '... *** ...';
+  if (config.accessRights.enable) {
+    if(article.issue.accessRights === "Closed") {
+      article.obfuscated = true;
+      article.content = '... *** ...';
+      article.regions = article.regions.map(d => ({
+        ...d,
+        g: [],
+        obfuscated: true,
+        iiifFragment: config.accessRights.unauthorizedIIIFImageUrl,
+      }));
+      article.pages = article.pages.map(d => ({
+        ...d,
+        obfuscated: true,
+        iiif: config.accessRights.unauthorizedIIIFUrl,
+        iiifFragment: config.accessRights.unauthorizedIIIFImageUrl,
+        iiifThumbnail: config.accessRights.unauthorizedIIIFImageUrl,
+      }))
+    }
   }
   return article;
 };
