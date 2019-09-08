@@ -350,11 +350,13 @@ module.exports = {
   SOLR_ORDER_BY: {
     date: 'meta_date_dt',
     relevance: 'score',
+    id: 'id',
   },
 
   SOLR_GROUP_BY: {
     issues: 'meta_issue_id_s',
     articles: 'id',
+    raw: 'id',
   },
 
   SOLR_INVERTED_GROUP_BY: {
