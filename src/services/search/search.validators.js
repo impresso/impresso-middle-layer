@@ -106,7 +106,7 @@ const paramsValidator = {
   },
   group_by: {
     required: true,
-    choices: ['articles'],
+    choices: ['articles', 'raw'],
     transform: d => utils.translate(d, SOLR_GROUP_BY),
   },
   order_by: {
@@ -116,7 +116,7 @@ const paramsValidator = {
       }
       return d;
     },
-    choices: ['-date', 'date', '-relevance', 'relevance', '-name', 'name'],
+    choices: ['-date', 'date', '-relevance', 'relevance', '-name', 'name', 'id', '-id'],
     transform: d => utils.toOrderBy(d, SOLR_ORDER_BY, true),
     after: (d) => {
       if (Array.isArray(d)) {
