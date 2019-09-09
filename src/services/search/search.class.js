@@ -94,8 +94,8 @@ class Service {
    */
   async find(params) {
     debug(`find '${this.name}': query:`, params.query, params.sanitized.sv);
+    const isRaw = params.originalQuery.group_by === 'raw';
 
-    // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
       q: params.query.sq,
       // fq: params.sanitized.sfq,
@@ -103,7 +103,7 @@ class Service {
       facets: params.query.facets,
       limit: params.query.limit,
       skip: params.query.skip,
-      fl: 'id,pp_plain:[json]', // for articles.
+      fl: 'id,pp_plain:[json],lg_s', // other fields can be loaded later on
       highlight_by: 'content_txt_de,content_txt_fr,content_txt_en',
       highlight_props: {
         'hl.snippets': 10,
@@ -119,7 +119,6 @@ class Service {
       return Service.wrap([], params.query.limit, params.query.skip, total);
     }
 
-
     // index for the pp_plain
     const resultsIndex = lodash.keyBy(_solr.response.docs, 'id');
     // get uids to load addons...
@@ -129,7 +128,25 @@ class Service {
     // get text matches
     // const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
     // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
-    
+    if (isRaw) {
+      return Service.wrap(_solr.response.docs.map((d) => {
+        // console.log(_solr.fragments[d.id]);
+        const contentField = Object.keys(_solr.fragments[d.id])[0];
+        // const contentField = _solr.fragments[d.id][`content_txt_${d.lg_s}`] ? `content_txt_${d.lg_s}` : 'content_txt_fr';
+        const fragments = _solr.fragments[d.id][contentField];
+        const highlights = _solr.highlighting[d.id][contentField];
+        return {
+          id: d.id,
+          matches: Article.getMatches({
+            solrDocument: d,
+            highlights,
+            fragments,
+          }),
+          contentField,
+        }
+      }), params.query.limit, params.query.skip, total);
+    }
+
     debug(
       `find '${this.name}' (2 / 2): call articles service for ${uids.length} uids, user:`,
       params.user ? params.user.uid : 'no auth user found',
