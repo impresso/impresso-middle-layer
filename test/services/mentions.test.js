@@ -20,25 +20,35 @@ describe('\'mentions\' service', function () {
     assert.ok(service, 'Registered the service');
   });
 
-  // // removed: timeout error for a huge table
-  // it.only('find', async () => {
-  //   const result = await service.find({
-  //     query: {
-  //       order_by: 'name',
-  //     },
-  //   });
-  //   assert.ok(result.total);
-  //   assert.ok(result.data);
-  // });
+  it('find mentions for Leipzig', async () => {
+    const result = await service.find({
+      query: {
+        order_by: 'id',
+        filters: [
+          {
+            type: 'entity',
+            q: 'aida-0001-54-Leipzig',
+          },
+        ],
+      },
+    }).catch((err) => {
+      console.log(err);
+    });
+    assert.ok(result.total, 'there are results');
+    assert.ok(result.data[0].entityId, 'aida-0001-54-Leipzig');
+    assert.ok(result.data[0].type, 'location');
+    assert.ok(result.data[0].articleUid, 'there should be an article attached');
+    assert.ok(result.data[0].article.uid, 'there is an article attached');
+  });
 
-  it('find mentions for a specific entity', async () => {
+  it('find mentions for a person', async () => {
     const result = await service.find({
       query: {
         order_by: 'name',
         filters: [
           {
             type: 'entity',
-            q: 'aida-0001-"Arizona"_Charlie_Meadows',
+            q: 'aida-0001-50-"Arizona"_Charlie_Meadows',
           },
         ],
       },
