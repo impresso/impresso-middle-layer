@@ -76,7 +76,7 @@ class EntityMention {
     articleUid = '',
     mentionAncillary = null,
   } = {}) {
-    this.entityId = parseInt(entityId, 10);
+    this.entityId = String(entityId);
     this.articleUid = String(articleUid);
     this.type = TYPES[String(type)] || String(type);
 
@@ -120,7 +120,7 @@ class EntityMention {
         field: 'type_id',
       },
       entityId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(255),
         field: 'entity_id',
       },
       articleUid: {
