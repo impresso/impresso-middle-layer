@@ -87,7 +87,7 @@ const resolveQueryComponents = () => async (context) => {
       } else {
         d.items = d.q.map(uid => Topic.getCached(uid));
       }
-    } else if (d.type === 'collection') {
+    } else if (d.type === 'collection' && context.params.user) {
       d.items = await context.app.service('collections').find({
         user: context.params.user,
         query: {
