@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
+const { Op } = require('sequelize');
 const debug = require('debug')('impresso/services:mentions');
 const EntityMention = require('../../models/entity-mentions.model');
 const SequelizeService = require('../sequelize.service');
-const { Op } = require('sequelize');
+
 
 /* eslint-disable no-unused-vars */
 class Service {
