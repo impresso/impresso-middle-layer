@@ -1,5 +1,4 @@
 const { queryWithCommonParams } = require('../../hooks/params');
-const { assignIIIF } = require('../../hooks/iiif');
 
 module.exports = {
   before: {

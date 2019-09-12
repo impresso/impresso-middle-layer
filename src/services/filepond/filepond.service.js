@@ -1,9 +1,7 @@
 // Initializes the `filepond` service on path `/filepond`
-const path = require('path');
 const md5File = require('md5-file');
-const createService = require('./filepond.class.js');
-const hooks = require('./filepond.hooks');
 const verbose = require('debug')('verbose:impresso/services:filepond');
+const createService = require('./filepond.class.js');
 
 module.exports = function (app) {
   const upload = app.get('multerClient');

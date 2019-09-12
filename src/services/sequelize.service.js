@@ -1,8 +1,8 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/services:SequelizeService');
-const sequelize = require('../sequelize');
 const { NotFound } = require('@feathersjs/errors');
+const sequelize = require('../sequelize');
 const { sequelizeErrorHandler } = require('./sequelize.utils');
 
 class SequelizeService {

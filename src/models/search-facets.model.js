@@ -26,7 +26,7 @@ class SearchFacetBucket {
           type,
           name: Entity.getNameFromUid(this.uid),
         });
-      } else if (type==='collection') {
+      } else if (type === 'collection') {
         this.item = new Collection({
           uid: this.uid,
           name: this.uid,
@@ -36,7 +36,7 @@ class SearchFacetBucket {
   }
 }
 
-class SearchFacet{
+class SearchFacet {
   constructor({
     type = 'facet',
     buckets = [],
@@ -44,7 +44,7 @@ class SearchFacet{
   } = {}) {
     this.type = type;
     this.numBuckets = parseInt(numBuckets, 10);
-    this.buckets = buckets.map(d => new SearchFacetBucket({ type, ...d}));
+    this.buckets = buckets.map(d => new SearchFacetBucket({ type, ...d }));
   }
 
   getItems() {
@@ -53,7 +53,6 @@ class SearchFacet{
       count,
     }));
   }
-
 }
 
 module.exports = SearchFacet;

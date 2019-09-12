@@ -36,6 +36,7 @@ class Service {
 
     debug(`GET facets query for type "${type}":`, facetsq);
     // facets is an Object, will be stringified for the solr query.
+    // eslint-disable-next-line max-len
     // '{"newspaper":{"type":"terms","field":"meta_journal_s","mincount":1,"limit":20,"numBuckets":true}}'
     const facets = lodash(types)
       .map((d) => {
@@ -63,9 +64,9 @@ class Service {
       vars: params.sanitized.sv,
     });
 
-    return types.map(type => new SearchFacet({
-      type,
-      ...result.facets[type],
+    return types.map(t => new SearchFacet({
+      t,
+      ...result.facets[t],
     }));
   }
 

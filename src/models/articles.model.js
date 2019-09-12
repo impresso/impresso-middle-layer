@@ -106,6 +106,7 @@ class ArticleDPF {
       return [];
     }
     // console.log('solrDPFsFactory', dpfs);
+    // eslint-disable-next-line max-len
     // dpfs = [ 'aida-0001-54-Paris|1 aida-0001-54-Pleven|1 aida-0001-54-Maurice_Bowra|1 aida-0001-54-China|1 aida-0001-54-Moscow|1 ' ]
     return dpfs[0].trim().split(' ').map((d) => {
       const parts = d.split('|');
@@ -153,12 +154,11 @@ class ArticleMatch extends Fragment {
   }
 }
 
-class BaseArticle{
+class BaseArticle {
   constructor({
     uid = '',
     type = '',
     title = '',
-    content = '',
     excerpt = '',
     isCC = false,
     size = 0,
@@ -188,6 +188,7 @@ class BaseArticle{
       this.locations = locations;
     }
   }
+
   /**
    * Return an Article mapper for Solr response document
    *
@@ -196,7 +197,7 @@ class BaseArticle{
    */
   static solrFactory(res) {
     const fragments = res.fragments || {};
-    return (doc) => new BaseArticle({
+    return doc => new BaseArticle({
       uid: doc.id,
       type: doc.item_type_s,
       size: doc.content_length_i,
@@ -205,6 +206,7 @@ class BaseArticle{
         num: parseInt(uid.match(/p([0-9]+)$/)[1], 10),
       })),
       isCC: !!doc.cc_b,
+      // eslint-disable-next-line no-use-before-define
       title: Article.getUncertainField(doc, 'title'),
       persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
       locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
@@ -406,9 +408,10 @@ class Article {
       if (Array.isArray(this[prop])) {
         this[prop].forEach((d, i) => {
           if (pagesIndex[this[prop][i].pageUid]) {
-            this[prop][i].iiifFragment = getExternalFragment(pagesIndex[this[prop][i].pageUid].iiif, {
-              coords: d.coords,
-            });
+            this[prop][i].iiifFragment = getExternalFragment(
+              pagesIndex[this[prop][i].pageUid].iiif,
+              { coords: d.coords },
+            );
           }
         });
       }
@@ -422,9 +425,10 @@ class Article {
       if (Array.isArray(article[prop])) {
         article[prop].forEach((d, i) => {
           if (pagesIndex[article[prop][i].pageUid]) {
-            article[prop][i].iiifFragment = getExternalFragment(pagesIndex[article[prop][i].pageUid].iiif, {
-              coords: d.coords,
-            });
+            article[prop][i].iiifFragment = getExternalFragment(
+              pagesIndex[article[prop][i].pageUid].iiif,
+              { coords: d.coords },
+            );
           }
         });
       }
@@ -496,7 +500,6 @@ class Article {
   }
 
   static sequelize(client) {
-    const newspaper = Newspaper.sequelize(client);
     const page = Page.sequelize(client);
     const collection = Collection.sequelize(client);
     const collectableItem = CollectableItem.sequelize(client);

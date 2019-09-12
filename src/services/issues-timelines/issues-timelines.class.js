@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
+const { NotFound } = require('@feathersjs/errors');
 const Timeline = require('../../models/timelines.model');
 const { sequelizeErrorHandler, whereReducer } = require('../sequelize.utils');
-const { NotFound } = require('@feathersjs/errors');
 
 class Service {
   constructor({

@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
-const Neo4jService = require('../neo4j.service').Service;
 const debug = require('debug')('impresso/services:Timeline.class');
+const Neo4jService = require('../neo4j.service').Service;
 
 class Service extends Neo4jService {
   find(params) {

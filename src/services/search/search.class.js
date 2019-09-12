@@ -1,14 +1,14 @@
 /* eslint-disable no-unused-vars */
 const lodash = require('lodash');
 const debug = require('debug')('impresso/services:search');
+const decypher = require('decypher');
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const solr = require('../../solr');
 const { SOLR_INVERTED_GROUP_BY } = require('../../hooks/search');
 const neo4j = require('../../neo4j');
 const sequelize = require('../../sequelize');
 const sequelizeUtils = require('../../services/sequelize.utils');
-const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
-const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
 const Article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
@@ -132,7 +132,8 @@ class Service {
       return Service.wrap(_solr.response.docs.map((d) => {
         // console.log(_solr.fragments[d.id]);
         const contentField = Object.keys(_solr.fragments[d.id])[0];
-        // const contentField = _solr.fragments[d.id][`content_txt_${d.lg_s}`] ? `content_txt_${d.lg_s}` : 'content_txt_fr';
+        // const contentField = _solr.fragments[d.id][`content_txt_${d.lg_s}`]
+        // ? `content_txt_${d.lg_s}` : 'content_txt_fr';
         const fragments = _solr.fragments[d.id][contentField];
         const highlights = _solr.highlighting[d.id][contentField];
         return {
@@ -143,7 +144,7 @@ class Service {
             fragments,
           }),
           contentField,
-        }
+        };
       }), params.query.limit, params.query.skip, total);
     }
 

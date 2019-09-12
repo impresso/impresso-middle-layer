@@ -3,7 +3,6 @@ const createService = require('./table-of-contents.class.js');
 const hooks = require('./table-of-contents.hooks');
 
 module.exports = function (app) {
-
   const paginate = app.get('paginate');
 
   const options = {

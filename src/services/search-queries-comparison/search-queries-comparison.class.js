@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-const shash = require('short-hash');
-const debug = require('debug')('impresso/services:articles-tags');
-const Neo4jService = require('../neo4j.service').Service;
+exports.SearchQueriesComparison = class SearchQueriesComparison {
+  constructor(options) {
+    this.options = options || {};
+  }
 
-class Service extends Neo4jService {
   async find(params) {
     return [];
   }
@@ -33,10 +33,4 @@ class Service extends Neo4jService {
   async remove(id, params) {
     return { id };
   }
-}
-
-module.exports = function (options) {
-  return new Service(options);
 };
-
-module.exports.Service = Service;

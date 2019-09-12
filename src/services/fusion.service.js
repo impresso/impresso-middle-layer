@@ -2,10 +2,10 @@
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/services:FusionService');
 const decypher = require('decypher');
+const { NotFound } = require('@feathersjs/errors');
 const neo4j = require('../neo4j');
 const sequelize = require('../sequelize');
 
-const { NotFound } = require('@feathersjs/errors');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('./neo4j.utils');
 
 class FusionService {

@@ -1,13 +1,13 @@
 /* eslint-disable no-unused-vars */
+const { BadRequest, NotFound } = require('@feathersjs/errors');
+const shorthash = require('short-hash');
+const nanoid = require('nanoid');
+const { Op } = require('sequelize');
 const debug = require('debug')('impresso/services:users');
 const { neo4jRecordMapper } = require('../neo4j.utils.js');
 const Neo4jService = require('../neo4j.service').Service;
-const { BadRequest, NotFound } = require('@feathersjs/errors');
 const { encrypt } = require('../../crypto');
-const shorthash = require('short-hash');
-const nanoid = require('nanoid');
 const sequelize = require('../../sequelize');
-const { Op } = require('sequelize');
 const { sequelizeErrorHandler } = require('../../services/sequelize.utils');
 const User = require('../../models/users.model');
 const Profile = require('../../models/profiles.model');
