@@ -53,6 +53,7 @@ class Newspaper {
     this.deltaYear = this.endYear - this.startYear;
   }
 
+  // TODO: when cache is moved to Redis this will become an async function
   static getCached(uid) {
     return new Newspaper(newspapersIndex.getValue(uid));
   }

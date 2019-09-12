@@ -1,36 +1,85 @@
-/* eslint-disable no-unused-vars */
-exports.SearchQueriesComparison = class SearchQueriesComparison {
-  constructor(options) {
-    this.options = options || {};
-  }
+const debug = require('debug')('impresso/services:search-queries-comparison');
+const {
+  getItemsFromSolrResponse,
+  getFacetsFromSolrResponse,
+  getTotalFromSolrResponse,
+} = require('../search/search.extractors');
 
-  async find(params) {
-    return [];
-  }
+function intersectionRequestToSolrQuery(request) {
+  const {
+    order_by: orderBy,
+    facets,
+    limit,
+    skip,
+  } = request;
 
-  async get(id, params) {
-    return {
-      id, text: `A new message with ID: ${id}!`,
+  const q = 'ucoll_ss:local-eb-5ARSPMJj';
+  const fl = 'id,pp_plain:[json],lg_s';
+
+
+  return {
+    q,
+    order_by: orderBy,
+    facets,
+    limit,
+    skip,
+    fl,
+  };
+}
+
+class SearchQueriesComparison {
+  setup(app) {
+    this.solrClient = app.get('solrClient');
+    this.articlesService = app.service('articles');
+
+    this.handlers = {
+      intersection: this.findIntersectingItemsBetweenQueries.bind(this),
     };
   }
 
+  /**
+   * Since there are quite a few query parameters we use
+   * "POST" instead of "GET".
+   */
   async create(data, params) {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(current => this.create(current, params)));
-    }
+    const { sanitized: request } = data;
+    const { method = '' } = params.query;
+    const userInfo = {
+      user: params.user,
+      authenticated: params.authenticated,
+    };
 
-    return data;
+    const handler = this.handlers[method];
+
+    debug(`Executing method "${method}" with request: ${JSON.stringify(request)}`);
+    return handler(request, userInfo);
   }
 
-  async update(id, data, params) {
-    return data;
-  }
+  async findIntersectingItemsBetweenQueries(request, userInfo) {
+    const solrQuery = intersectionRequestToSolrQuery(request);
+    const response = await this.solrClient.findAll(solrQuery);
 
-  async patch(id, data, params) {
-    return data;
-  }
+    const data = await getItemsFromSolrResponse(response, this.articlesService, userInfo);
+    const facets = await getFacetsFromSolrResponse(response);
+    const total = getTotalFromSolrResponse(response);
 
-  async remove(id, params) {
-    return { id };
+    const { limit, skip } = request;
+
+    return {
+      data,
+      limit,
+      skip,
+      total,
+      info: {
+        responseTime: {
+          solr: response.responseHeader.QTime,
+        },
+        facets,
+      },
+    };
   }
+}
+
+module.exports = {
+  SearchQueriesComparison,
 };
