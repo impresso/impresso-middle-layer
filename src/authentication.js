@@ -5,8 +5,8 @@ const local = require('@feathersjs/authentication-local');
 const oauth2 = require('@feathersjs/authentication-oauth2');
 const GithubStrategy = require('passport-github').Strategy;
 const { Verifier } = require('@feathersjs/authentication-local');
-const User = require('./models/users.model');
 const { BadRequest } = require('@feathersjs/errors');
+const User = require('./models/users.model');
 /**
  * Custom verifier to compare SALT in db
  *

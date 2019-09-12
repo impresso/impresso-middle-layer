@@ -59,7 +59,6 @@ class Service {
       //   if(t === ...)
       // });
       Object.keys(clause).forEach((k) => {
-
         if (k === '[Op.not]') {
           sum.push(`NOT (${clause[k].reduce(whereReducer, []).join(' AND ')})`);
         } else if (k === '[Op.or]') {

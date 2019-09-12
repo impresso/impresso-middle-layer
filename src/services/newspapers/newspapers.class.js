@@ -1,6 +1,6 @@
 const debug = require('debug')('impresso/services:newspapers');
-const SequelizeService = require('../sequelize.service');
 const { Op } = require('sequelize');
+const SequelizeService = require('../sequelize.service');
 
 class Service {
   constructor({

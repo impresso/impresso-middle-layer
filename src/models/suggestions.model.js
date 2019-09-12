@@ -20,7 +20,7 @@ class Suggestion {
       this.item = item;
     }
     this.type = String(type);
-    if (weight != -1) {
+    if (weight !== -1) {
       this.weight = parseInt(weight, 10);
     }
   }

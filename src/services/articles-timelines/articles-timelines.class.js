@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 const lodash = require('lodash');
-const Timeline = require('../../models/timelines.model');
 const { NotFound } = require('@feathersjs/errors');
+const Timeline = require('../../models/timelines.model');
 
 class Service {
   constructor({

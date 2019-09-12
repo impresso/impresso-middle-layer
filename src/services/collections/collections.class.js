@@ -1,6 +1,6 @@
+const { Op } = require('sequelize');
 const Collection = require('../../models/collections.model');
 const SequelizeService = require('../sequelize.service');
-const { Op } = require('sequelize');
 /* eslint-disable no-unused-vars */
 class Service {
   constructor({

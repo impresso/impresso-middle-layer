@@ -4,10 +4,10 @@
 const neo4j = require('neo4j-driver').v1;
 const decypher = require('decypher');
 const debug = require('debug')('impresso/services:Neo4jService');
+const errors = require('@feathersjs/errors');
 const {
   neo4jRecordMapper, neo4jRun, neo4jToInt,
 } = require('./neo4j.utils');
-const errors = require('@feathersjs/errors');
 
 class Neo4jService {
   constructor(options) {

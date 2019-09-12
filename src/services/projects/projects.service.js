@@ -1,7 +1,7 @@
 // Initializes the `projects` service on path `/projects`
+const queries = require('decypher')(`${__dirname}/projects.queries.cyp`);
 const createService = require('./projects.class.js');
 const hooks = require('./projects.hooks');
-const queries = require('decypher')(`${__dirname}/projects.queries.cyp`);
 
 
 module.exports = function (app) {

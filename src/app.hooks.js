@@ -1,8 +1,7 @@
 // Application hooks that run for every service
-const logger = require('./hooks/logger');
 const debug = require('debug')('impresso/app.hooks');
-const { validateRouteId } = require('./hooks/params');
 const { authenticate } = require('@feathersjs/authentication').hooks;
+const { validateRouteId } = require('./hooks/params');
 
 const basicParams = () => (context) => {
   if (!context.params) {

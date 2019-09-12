@@ -21,7 +21,7 @@ class Newspaper {
     labels = ['newspaper'],
     languages = [],
     properties = [],
-  } = {}, complete = false) {
+  } = {}) {
     this.uid = String(uid);
     this.acronym = acronym.length ? String(acronym) : this.uid;
     this.labels = labels;

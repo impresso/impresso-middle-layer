@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 const verbose = require('debug')('verbose:impresso/services:uploaded-images');
-const UploadedImage = require('../../models/uploaded-images.model');
-const SequelizeService = require('../sequelize.service');
 const { Op } = require('sequelize');
 const { NotFound } = require('@feathersjs/errors');
+const UploadedImage = require('../../models/uploaded-images.model');
+const SequelizeService = require('../sequelize.service');
 
 /* eslint-disable no-unused-vars */
 class Service {

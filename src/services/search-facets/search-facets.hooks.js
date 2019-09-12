@@ -1,6 +1,6 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  eachFilterValidator, eachFacetFilterValidator, paramsValidator, facetsValidator,
+  eachFilterValidator, paramsValidator,
 } = require('../search/search.validators');
 const {
   validate, validateEach, queryWithCommonParams, utils,

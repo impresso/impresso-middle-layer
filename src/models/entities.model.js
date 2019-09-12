@@ -37,10 +37,10 @@ class Entity {
     if (impressoId) {
       this.impressoId = impressoId;
     }
-    if (countItems != -1) {
+    if (countItems !== -1) {
       this.countItems = parseInt(countItems || 0, 10);
     }
-    if (countMentions != -1) {
+    if (countMentions !== -1) {
       this.countMentions = parseInt(countMentions || 0, 10);
     }
   }

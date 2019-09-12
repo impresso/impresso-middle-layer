@@ -1,14 +1,10 @@
-const { returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+
 
 module.exports = {
   before: {
     all: [],
     find: [],
-    get: [
-      // checkCachedContents({
-      //   useAuthenticatedUser: false,
-      // }),
-    ],
+    get: [],
     create: [],
     update: [],
     patch: [],
@@ -18,12 +14,7 @@ module.exports = {
   after: {
     all: [],
     find: [],
-    get: [
-      returnCachedContents({
-        skipHooks: false,
-      }),
-      saveResultsInCache(),
-    ],
+    get: [],
     create: [],
     update: [],
     patch: [],

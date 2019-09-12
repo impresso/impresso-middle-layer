@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:search');
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const solr = require('../../solr');
 const article = require('../../models/articles.model');
-const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
 class Service {
   constructor(options) {
@@ -65,7 +65,8 @@ class Service {
 //     }, article.solrFactory);
 //
 //     const total = _solr.response.numFound;
-//     debug(`find '${this.name}': SOLR found ${total} using SOLR params:`, _solr.responseHeader.params);
+//     debug(`find '${this.name}': SOLR found ${total} using SOLR params:`,
+//           _solr.responseHeader.params);
 //
 //     if (!total) {
 //       return {

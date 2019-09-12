@@ -1,14 +1,14 @@
+const { protect } = require('@feathersjs/authentication-local').hooks;
+const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, REGEX_UIDS, utils,
+  validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, utils,
 } = require('../../hooks/params');
 const {
   filtersToSolrQuery, qToSolrFilter,
-  SOLR_FILTER_TYPES, SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
+  SOLR_FACETS, SOLR_GROUP_BY,
 } = require('../../hooks/search');
 const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info');
 const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = require('./search.validators');
-const { protect } = require('@feathersjs/authentication-local').hooks;
-const { authenticate } = require('@feathersjs/authentication').hooks;
 
 
 module.exports = {

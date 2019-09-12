@@ -74,7 +74,8 @@ const reduceDaterangeFiltersToSolr = filters => filters
 
 const reduceNumericRangeFilters = (filters, field) => filters
   .reduce((sq, filter) => {
-    let q; // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition) or simple string '1 TO X';
+    let q; // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition)
+    // or simple string '1 TO X';
     if (Array.isArray(filter.q)) {
       q = `${filter.q.map(d => `${field}:[${d}]`).join(' OR ')}`;
     } else {
@@ -104,6 +105,7 @@ const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
 
 const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>
   // reduce the string in filters to final SOLR query `sq`
+  // eslint-disable-next-line implicit-arrow-linebreak
   filters.reduce((sq, filter) => {
     let q = filter.q.trim();
 

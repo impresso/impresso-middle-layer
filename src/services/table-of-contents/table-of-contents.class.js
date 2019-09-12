@@ -4,25 +4,25 @@ const { BaseArticle } = require('../../models/articles.model');
 const SearchFacet = require('../../models/search-facets.model');
 
 class Service {
-  constructor ({ app, name }) {
+  constructor({ app, name }) {
     this.app = app;
     this.name = name;
   }
 
-  async get (id, params) {
+  async get(id, params) {
     const newspaper = new Newspaper({
-      uid: id.split('-').shift()
+      uid: id.split('-').shift(),
     });
-    const highlight_props = {
+    const highlightProps = {
       'hl.snippets': 0,
       'hl.alternateField': 'content_txt_fr',
       'hl.maxAlternateFieldLength': 120,
       'hl.fragsize': 0,
-    }
+    };
     const languages = newspaper.languages;
 
-    if (languages.length == 1) {
-      highlight_props['hl.alternateField'] = `content_txt_${languages[0]}`;
+    if (languages.length === 1) {
+      highlightProps['hl.alternateField'] = `content_txt_${languages[0]}`;
     }
     // get all articles for the give issue,
     // at least 1 of content length, max 500 articles
@@ -50,7 +50,7 @@ class Service {
       skip: 0,
       order_by: 'id ASC',
       highlight_by: 'nd',
-      highlight_props,
+      highlightProps,
       fl: 'id,content_length_i,cc_b,lg_s,page_id_ss,item_type_s,title_txt_fr,title_txt_de,title_txt_en,pers_entities_dpfs,loc_entities_dpfs,ucoll_ss',
     }, BaseArticle.solrFactory);
     // get persons and locations from the facet,

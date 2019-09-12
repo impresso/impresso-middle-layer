@@ -49,7 +49,7 @@ class Service {
       },
     });
     // missing pages ...!
-    if (!pages.length || pages.length != uids.length) {
+    if (!pages.length || pages.length !== uids.length) {
       debug('assignIIIF: cannot find some pages, requested:', uids, 'found:', pages);
     }
 

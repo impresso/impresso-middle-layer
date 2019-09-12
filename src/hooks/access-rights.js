@@ -17,7 +17,7 @@ const obfuscateArticleMapper = (article) => {
     article.excerpt = '... *** ...';
   }
   if (config.accessRights.enable) {
-    if(article.issue.accessRights === "Closed") {
+    if (article.issue.accessRights === 'Closed') {
       article.obfuscated = true;
       article.content = '... *** ...';
       article.regions = article.regions.map(d => ({
@@ -32,7 +32,7 @@ const obfuscateArticleMapper = (article) => {
         iiif: config.accessRights.unauthorizedIIIFUrl,
         iiifFragment: config.accessRights.unauthorizedIIIFImageUrl,
         iiifThumbnail: config.accessRights.unauthorizedIIIFImageUrl,
-      }))
+      }));
     }
   }
   return article;
