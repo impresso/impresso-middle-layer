@@ -7,6 +7,7 @@ const {
 } = require('../../hooks/params');
 const { SOLR_FACETS } = require('../../hooks/search');
 const { paramsValidator, eachFilterValidator } = require('../search/search.validators');
+const { validateWithSchema } = require('../../hooks/schema');
 
 const SupportedComparisonMethods = ['intersection'];
 
@@ -39,6 +40,7 @@ module.exports = {
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
+      validateWithSchema('services/search-queries-comparison/schema/post/payload.json'),
       validateComparisonMethod,
       queryWithCommonParams(false, 'POST'),
       validate({

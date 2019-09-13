@@ -4,6 +4,7 @@ const {
   intersectionRequestToSolrQuery,
   DefaultSolrFieldsFilter,
 } = require('../../src/services/search-queries-comparison/search-queries-comparison.class');
+const hooks = require('../../src/services/search-queries-comparison/search-queries-comparison.hooks');
 
 describe('\'search-queries-comparison\' service', () => {
   it('registered the service', () => {
@@ -89,6 +90,76 @@ describe('intersectionRequestToSolrQuery', () => {
       () => intersectionRequestToSolrQuery(request),
       {
         message: 'reduceFilterToSolr: filter function for \'foobar\' not found',
+      },
+    );
+  });
+});
+
+describe('post hooks sequence', () => {
+  it('generates correct request for valid payload', async () => {
+    const context = {
+      params: {
+        query: {
+          method: 'intersection',
+        },
+      },
+      data: {
+        queries: [
+          {
+            filters: [{ type: 'topic', q: 'AA' }],
+          },
+          {
+            filters: [{ type: 'topic', q: 'BB' }],
+          },
+        ],
+      },
+    };
+
+    await Promise.all(hooks.before.create.map(async (hook) => {
+      await hook(context);
+      return context;
+    }));
+
+    const expectedPayload = {
+      limit: 10,
+      max_limit: 1000,
+      skip: 0,
+      queries: [
+        {
+          filters: [{
+            type: 'topic', q: 'AA', op: 'OR', context: 'include',
+          }],
+        },
+        {
+          filters: [{
+            type: 'topic', q: 'BB', op: 'OR', context: 'include',
+          }],
+        },
+      ],
+    };
+    assert.deepEqual(context.data.sanitized, expectedPayload);
+  });
+
+  it('throws "BadRequest" when payload does not match schema', async () => {
+    const context = {
+      params: {
+        query: {
+          method: 'intersection',
+        },
+      },
+      data: {
+        queries: [],
+      },
+    };
+
+    await assert.rejects(
+      Promise.all(hooks.before.create.map(async (hook) => {
+        await hook(context);
+        return context;
+      })),
+      {
+        code: 400,
+        message: 'JSON validation errors: data.queries should NOT have fewer than 2 items',
       },
     );
   });
