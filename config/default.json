@@ -7,10 +7,17 @@
     "max": 50
   },
   "accessRights": {
-    "showExcerpt": true
+    "showExcerpt": true,
+    "enable": true,
+    "unauthorizedIIIFUrl": "unauthorized.json",
+    "unauthorizedIIIFImageUrl": "unauthorized.png"
   },
   "redis": {
     "enable": true
+  },
+  "cache": {
+    "enabled": true,
+    "override": false
   },
   "celery": {
     "enable": true,
@@ -74,6 +81,11 @@
   },
   "multer": {
     "dest": "/tmp/multer"
+  },
+  "images": {
+    "visual-signature": {
+      "endpoint": "http://localhost:8000"
+    }
   },
   "proxy": {
     "host": "http://localhost:3030",

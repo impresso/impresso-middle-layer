@@ -20,9 +20,13 @@ async function waterfall() {
     .then(results => lodash.keyBy(results, 'acronym'));
 
   // get total pages per newspapers
-  await sequelizeClient.query(`SELECT COUNT(*) as countPages, p.newspaper_id as uid
-       FROM impresso_dev.pages AS p
-     GROUP BY p.newspaper_id`, {
+  await sequelizeClient.query(`
+    SELECT
+      COUNT(DISTINCT p.id) as countPages,
+      iss.newspaper_id as uid
+    FROM pages AS p
+    JOIN issues as iss ON p.issue_id=iss.id
+    GROUP BY iss.newspaper_id`, {
     type: sequelizeClient.QueryTypes.SELECT,
   }).then((results) => {
     results.forEach((d) => {

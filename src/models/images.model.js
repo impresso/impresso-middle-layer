@@ -2,7 +2,7 @@ const Page = require('./pages.model');
 const Issue = require('./issues.model');
 const Newspaper = require('./newspapers.model');
 const Article = require('./articles.model');
-const { getFragment } = require('../hooks/iiif.js');
+const { getExternalFragment } = require('../hooks/iiif.js');
 
 class Image {
   constructor({
@@ -24,11 +24,7 @@ class Image {
     this.coords = coords;
     this.pages = pages;
     this.isFront = Boolean(isFront);
-    this.regions = pages.map(page => ({
-      pageUid: page.uid,
-      coords,
-      iiifFragment: getFragment(page.uid, { coords, dim: '250,' }),
-    }));
+
     this.title = String(title);
     if (date instanceof Date) {
       this.date = date;
@@ -53,6 +49,14 @@ class Image {
     }
   }
 
+  assignIIIF() {
+    this.regions = this.pages.map(page => ({
+      pageUid: page.uid,
+      coords: this.coords,
+      iiifFragment: getExternalFragment(page.iiif, { coords: this.coords, dim: '250,' }),
+    }));
+  }
+
   /**
    * Return an Image mapper for Solr response document
    *
@@ -72,7 +76,7 @@ class Image {
           uid: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
           num,
         })) : [],
-        title: Article.getUncertainField(doc, "title"),
+        title: Article.getUncertainField(doc, 'title'),
         type: doc.item_type_s,
         year: doc.meta_year_i,
         date: doc.meta_date_dt,

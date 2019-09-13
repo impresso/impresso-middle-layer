@@ -83,7 +83,7 @@ class UploadedImage {
       onDelete: 'CASCADE',
     });
 
-    uploadedImage.prototype.toJSON = function (obfuscate = true) {
+    uploadedImage.prototype.toJSON = function () {
       const instance = new UploadedImage({
         uid: this.uid,
         thumbnail: this.thumbnail,

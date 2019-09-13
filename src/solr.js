@@ -81,11 +81,14 @@ const suggest = (config, params = {}, factory) => {
       return [];
     }
     if (factory) {
-      results.suggestions = results.suggestions.map(factory());
+      results.suggestions = lodash(results.suggestions)
+        .take(qs.rows)
+        .map(factory())
+        .value();
     }
-    return results.suggestions;
+    return lodash.take(results.suggestions, qs.rows);
   }).catch((err) => {
-    debug(err);
+    console.error(err);
     throw new NotImplemented();
     // throw feathers errors here.
   });
@@ -122,6 +125,13 @@ const findAll = (config, params = {}, factory) => {
   };
   if (_params.fq && _params.fq.length) {
     qs.fq = _params.fq;
+  }
+  if (_params.highlight_by) {
+    qs.hl = 'on';
+    qs['hl.fl'] = _params.highlight_by;
+    if (_params.highlight_props) {
+      Object.assign(qs, _params.highlight_props);
+    }
   }
   if (_params.vars) {
     Object.assign(qs, _params.vars);
@@ -178,12 +188,16 @@ const findAll = (config, params = {}, factory) => {
   };
 
   if (_params.form) {
+    // rewrite query string to get fq and limit the qs params
     opts.form = _params.form;
     opts.form.fq = _params.fq;
     opts.qs = {
       start: _params.skip,
       rows: _params.limit,
     };
+    if (qs['json.facet']) {
+      opts.qs['json.facet'] = qs['json.facet'];
+    }
     // opts.form.q = opts.form.q + ' AND ' +
     opts.method = 'POST';
   } else {
@@ -214,7 +228,7 @@ const findAll = (config, params = {}, factory) => {
     }
     return result;
   }).catch((err) => {
-    debug(err);
+    console.error(err);
     throw new NotImplemented();
     // throw feathers errors here.
   });
@@ -234,6 +248,7 @@ const wrapAll = res => ({
     responseTime: {
       solr: res.responseHeader.QTime,
     },
+    facets: res.facets,
   },
 });
 

@@ -1,8 +1,14 @@
 const { DataTypes } = require('sequelize');
 
+const TYPES = {
+  50: 'person',
+  54: 'location',
+};
+
+
 class Entity {
   constructor({
-    id = 0,
+    uid = '',
     name = '',
     wikidataId = null,
     dbpediaURL = null,
@@ -11,25 +17,47 @@ class Entity {
     countItems = -1,
     countMentions = -1,
   } = {}) {
-    this.id = parseInt(id, 10);
-    this.name = String(name);
-    this.type = String(type);
-    this.wikidataId = wikidataId;
-    this.dbpediaURL = dbpediaURL;
-    this.impressoId = impressoId;
-    this.countItems = parseInt(countItems || 0, 10);
-    this.countMentions = parseInt(countMentions || 0, 10);
+    this.uid = String(uid);
+    if (name.length) {
+      this.name = Entity.getNameFromUid(name);
+    } else {
+      this.name = Entity.getNameFromUid(uid);
+    }
+
+    this.type = TYPES[String(type)];
+    if (!this.type) {
+      this.type = String(type).toLowerCase();
+    }
+    if (wikidataId) {
+      this.wikidataId = wikidataId;
+    }
+    if (dbpediaURL) {
+      this.dbpediaURL = dbpediaURL;
+    }
+    if (impressoId) {
+      this.impressoId = impressoId;
+    }
+    if (countItems !== -1) {
+      this.countItems = parseInt(countItems || 0, 10);
+    }
+    if (countMentions !== -1) {
+      this.countMentions = parseInt(countMentions || 0, 10);
+    }
+  }
+
+  static getNameFromUid(uid) {
+    return uid.replace(/^aida-\d+-\d+-/, '').split('_').join(' ');
   }
 
   static sequelize(client, {
-    tableName = 'entities_v',
+    tableName = 'entities',
   } = {}) {
     const entity = client.define('entity', {
-      id: {
-        type: DataTypes.INTEGER,
+      uid: {
+        type: DataTypes.STRING(255),
         primaryKey: true,
-        autoIncrement: true,
         unique: true,
+        field: 'id',
       },
       name: {
         type: DataTypes.STRING(255),
@@ -47,21 +75,10 @@ class Entity {
         type: DataTypes.STRING(255),
         field: 'imp_id',
       },
-      countItems: {
-        // number of contentitems matching
-        type: DataTypes.INTEGER,
-        field: 'item_count',
+      type: {
+        type: DataTypes.SMALLINT,
+        field: 'type_id',
       },
-      countMentions: {
-        type: DataTypes.INTEGER,
-        field: 'mention_count',
-      },
-      // startDate: {
-      //  // one day
-      // },
-      // endDate: {
-      //
-      // }
     }, {
       tableName,
     });
@@ -74,7 +91,26 @@ class Entity {
 
     return entity;
   }
+
+  static solrFactory() {
+    return doc => new Entity({
+      uid: doc.id,
+      name: (doc.l_s || '').split('_').join(' '),
+      type: doc.t_s,
+      countItems: doc.article_fq_f,
+      countMentions: doc.mention_fq_f,
+    });
+  }
 }
 
+const SOLR_FL = [
+  'id',
+  'l_s',
+  'article_fq_f',
+  'mention_fq_f',
+  't_s',
+  'entitySuggest',
+];
 
 module.exports = Entity;
+module.exports.SOLR_FL = SOLR_FL;

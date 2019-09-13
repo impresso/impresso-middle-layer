@@ -1,8 +1,8 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/services:SequelizeService');
-const sequelize = require('../sequelize');
 const { NotFound } = require('@feathersjs/errors');
+const sequelize = require('../sequelize');
 const { sequelizeErrorHandler } = require('./sequelize.utils');
 
 class SequelizeService {
@@ -133,9 +133,17 @@ class SequelizeService {
       fn = this.sequelizeKlass.scope(params.scope);
     }
 
-    return fn.findAndCountAll(p)
-      .catch(sequelizeErrorHandler)
+    const promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p);
+
+    return promise
       .then((res) => {
+        if (params.findAllOnly) {
+          debug(`'find' ${this.name} success, no count has been asked.`);
+          return {
+            rows: res,
+            count: -1,
+          };
+        }
         debug(`'find' ${this.name} success, n.results:`, res.count);
         return res;
       })
@@ -145,9 +153,14 @@ class SequelizeService {
         limit: params.query.limit,
         skip: params.query.skip,
         info: {
-          query: params.query,
+          query: {
+            filters: params.query.filters,
+            limit: params.query.limit,
+            skip: params.query.skip,
+          },
         },
-      }));
+      }))
+      .catch(sequelizeErrorHandler);
   }
 }
 

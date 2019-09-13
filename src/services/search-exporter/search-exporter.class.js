@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:search');
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const solr = require('../../solr');
 const article = require('../../models/articles.model');
-const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
 class Service {
   constructor(options) {
@@ -44,41 +44,42 @@ class Service {
     });
   }
 
-  async find(params) {
-    // override params limit according to user role.
-    params.query.limit = 2;
-    if (params.user) {
-      // is authentified
-      params.query.limit = params.user.is_staff ? 500 : 100;
-    }
-
-    debug(`find '${this.name}': query:`, params.query);
-
-    const _solr = await this.solr.findAll({
-      q: params.query.sq,
-      order_by: params.query.order_by,
-      limit: params.query.limit,
-      skip: params.query.skip,
-      fl: params.user.is_staff
-        ? article.ARTICLE_SOLR_FL_TO_CSV.concat(['content_txt_fr'])
-        : article.ARTICLE_SOLR_FL_TO_CSV,
-    }, article.solrFactory);
-
-    const total = _solr.response.numFound;
-    debug(`find '${this.name}': SOLR found ${total} using SOLR params:`, _solr.responseHeader.params);
-
-    if (!total) {
-      return {
-        records: [],
-        headers: [],
-      };
-    }
-
-    return {
-      records: _solr.response.docs.map(d => d.toCSV()),
-      headers: Object.keys(_solr.response.docs[0]),
-    };
-  }
+//   async find(params) {
+//     // override params limit according to user role.
+//     params.query.limit = 2;
+//     if (params.user) {
+//       // is authentified
+//       params.query.limit = params.user.is_staff ? 500 : 100;
+//     }
+//
+//     debug(`find '${this.name}': query:`, params.query);
+//
+//     const _solr = await this.solr.findAll({
+//       q: params.query.sq,
+//       order_by: params.query.order_by,
+//       limit: params.query.limit,
+//       skip: params.query.skip,
+//       fl: params.user.is_staff
+//         ? article.ARTICLE_SOLR_FL_TO_CSV.concat(['content_txt_fr'])
+//         : article.ARTICLE_SOLR_FL_TO_CSV,
+//     }, article.solrFactory);
+//
+//     const total = _solr.response.numFound;
+//     debug(`find '${this.name}': SOLR found ${total} using SOLR params:`,
+//           _solr.responseHeader.params);
+//
+//     if (!total) {
+//       return {
+//         records: [],
+//         headers: [],
+//       };
+//     }
+//
+//     return {
+//       records: _solr.response.docs.map(d => d.toCSV()),
+//       headers: Object.keys(_solr.response.docs[0]),
+//     };
+//   }
 }
 
 module.exports = function (options) {

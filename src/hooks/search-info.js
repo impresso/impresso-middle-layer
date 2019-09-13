@@ -50,20 +50,22 @@ const resolveFacets = () => async (context) => {
     // enrich facets
     if (context.result.info.facets.newspaper) {
       debug('resolveFacets for newspaper');
-      context.result.info.facets.newspaper.buckets = context.result.info.facets.newspaper.buckets.map(d => ({
-        ...d,
-        item: Newspaper.getCached(d.val),
-        uid: d.val,
-      }));
+      context.result.info.facets.newspaper.buckets = context.result.info.facets.newspaper.buckets
+        .map(d => ({
+          ...d,
+          item: Newspaper.getCached(d.val),
+          uid: d.val,
+        }));
     }
 
     if (context.result.info.facets.topic) {
       debug('resolveFacets for topics');
-      context.result.info.facets.topic.buckets = context.result.info.facets.newspaper.buckets.map(d => ({
-        ...d,
-        item: Topic.getCached(d.val),
-        uid: d.val,
-      }));
+      context.result.info.facets.topic.buckets = context.result.info.facets.newspaper.buckets
+        .map(d => ({
+          ...d,
+          item: Topic.getCached(d.val),
+          uid: d.val,
+        }));
     }
   }
 };
@@ -87,7 +89,8 @@ const resolveQueryComponents = () => async (context) => {
       } else {
         d.items = d.q.map(uid => Topic.getCached(uid));
       }
-    } else if (d.type === 'collection') {
+    } else if (d.type === 'collection' && context.params.user) {
+      // eslint-disable-next-line no-await-in-loop
       d.items = await context.app.service('collections').find({
         user: context.params.user,
         query: {

@@ -48,6 +48,10 @@ const ARTICLE_SOLR_FL_LITE = [
   'meta_country_code_s', // 'CH',
   'meta_province_code_s', // 'VD',
   'content_length_i',
+
+  'topics_dpfs',
+  'pers_entities_dpfs',
+  'loc_entities_dpfs',
 ];
 
 const ARTICLE_SOLR_FL_TO_CSV = [
@@ -73,6 +77,8 @@ const ARTICLE_SOLR_FL_TO_CSV = [
   'meta_province_code_s', // 'VD',
   'content_length_i',
   'topics_dpfs',
+  'pers_entities_dpfs',
+  'loc_entities_dpfs',
 ];
 
 const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat([
@@ -84,8 +90,33 @@ const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'rb_plain:[json]',
   'pp_plain:[json]',
   'nem_offset_plain:[json]',
-  'topics_dpfs',
 ]);
+
+class ArticleDPF {
+  constructor({
+    uid = '',
+    relevance = '',
+  } = {}) {
+    this.uid = uid;
+    this.relevance = parseFloat(relevance);
+  }
+
+  static solrDPFsFactory(dpfs) {
+    if (!dpfs || !dpfs.length) {
+      return [];
+    }
+    // console.log('solrDPFsFactory', dpfs);
+    // eslint-disable-next-line max-len
+    // dpfs = [ 'aida-0001-54-Paris|1 aida-0001-54-Pleven|1 aida-0001-54-Maurice_Bowra|1 aida-0001-54-China|1 aida-0001-54-Moscow|1 ' ]
+    return dpfs[0].trim().split(' ').map((d) => {
+      const parts = d.split('|');
+      return new ArticleDPF({
+        uid: parts[0],
+        relevance: parts[1],
+      });
+    });
+  }
+}
 
 class ArticleRegion {
   constructor({
@@ -101,18 +132,87 @@ class ArticleRegion {
   }
 }
 
+class Fragment {
+  constructor({
+    fragment = '',
+  } = {}) {
+    this.fragment = String(fragment);
+  }
+}
 
-class ArticleMatch {
+class ArticleMatch extends Fragment {
   constructor({
     coords = [],
     fragment = '',
     pageUid = '',
     iiif = '',
   } = {}) {
+    super({ fragment });
     this.coords = coords.map(coord => parseInt(coord, 10));
-    this.fragment = String(fragment);
     this.pageUid = String(pageUid);
     this.iiif = String(iiif);
+  }
+}
+
+class BaseArticle {
+  constructor({
+    uid = '',
+    type = '',
+    title = '',
+    excerpt = '',
+    isCC = false,
+    size = 0,
+    pages = [],
+    persons = [],
+    locations = [],
+    collections = [],
+  } = {}) {
+    this.uid = String(uid);
+    this.type = String(type);
+    this.title = String(title);
+    this.size = parseInt(size, 10);
+    this.nbPages = pages.length;
+    this.pages = pages;
+    this.isCC = isCC;
+    this.excerpt = toExcerpt(excerpt, {
+      TruncateLength: 20,
+      excludeTitle: this.title,
+    });
+    if (collections.length) {
+      this.collections = collections;
+    }
+    if (persons.length) {
+      this.persons = persons;
+    }
+    if (locations.length) {
+      this.locations = locations;
+    }
+  }
+
+  /**
+   * Return an Article mapper for Solr response document
+   *
+   * @param {Object} res Solr response object
+   * @return {function} {Article} mapper with a single doc.
+   */
+  static solrFactory(res) {
+    const fragments = res.fragments || {};
+    return doc => new BaseArticle({
+      uid: doc.id,
+      type: doc.item_type_s,
+      size: doc.content_length_i,
+      pages: doc.page_id_ss.map(uid => ({
+        uid,
+        num: parseInt(uid.match(/p([0-9]+)$/)[1], 10),
+      })),
+      isCC: !!doc.cc_b,
+      // eslint-disable-next-line no-use-before-define
+      title: Article.getUncertainField(doc, 'title'),
+      persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
+      locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
+      collections: doc.ucoll_ss,
+      excerpt: lodash.get(fragments[doc.id], 'nd[0]', ''),
+    });
   }
 }
 
@@ -158,6 +258,9 @@ class Article {
     mentions = [],
     // topics
     topics = [],
+    // entities: person
+    persons = [],
+    locations = [],
   } = {}) {
     this.uid = String(uid);
     this.type = String(type);
@@ -213,6 +316,14 @@ class Article {
     if (topics.length) {
       this.topics = topics;
     }
+
+    if (persons.length) {
+      this.persons = persons;
+    }
+
+    if (locations.length) {
+      this.locations = locations;
+    }
     this.enrich(rc, lb, rb);
   }
 
@@ -251,8 +362,8 @@ class Article {
       c: reg,
     }))), []);
 
-    // if there are line brack and region breaks ...
-    if (lb.length && rb.length && rc.length) {
+    // if there are line breaks and region breaks ...
+    if (rc.length && this.content.length) {
       // tokenize the content based on line breaks
       const tokens = sliceAtSplitpoints(this.content, lb);
       // text regions, grouped thanks to region splipoints
@@ -268,10 +379,14 @@ class Article {
         });
       }
 
-      if (rcs.length !== trs.length) {
-        // it would never happen.
+      if (rcs.length < trs.length) {
+        // it would never happen.... or not?
+        console.log(rcs[0]);
+        console.log(rb, this.content.length);
+        console.log(trs);
         throw new Error(`article ${this.uid} coordinates corrupted`);
       }
+
       // then, for each region,
       // we add the corresponding regionCoords, if any
       // this.regions = this.regions.map()
@@ -290,17 +405,36 @@ class Article {
     // get iiif of pages
     const pagesIndex = lodash.keyBy(this.pages, 'uid'); // d => d.iiif);
     props.forEach((prop) => {
-      if(Array.isArray(this[prop])) {
+      if (Array.isArray(this[prop])) {
         this[prop].forEach((d, i) => {
           if (pagesIndex[this[prop][i].pageUid]) {
-            this[prop][i].iiifFragment = getExternalFragment(pagesIndex[this[prop][i].pageUid].iiif, {
-              coords: d.coords,
-            });
+            this[prop][i].iiifFragment = getExternalFragment(
+              pagesIndex[this[prop][i].pageUid].iiif,
+              { coords: d.coords },
+            );
           }
         });
       }
     });
   }
+
+  static assignIIIF(article, props = ['regions', 'matches']) {
+    // get iiif of pages
+    const pagesIndex = lodash.keyBy(article.pages, 'uid'); // d => d.iiif);
+    props.forEach((prop) => {
+      if (Array.isArray(article[prop])) {
+        article[prop].forEach((d, i) => {
+          if (pagesIndex[article[prop][i].pageUid]) {
+            article[prop][i].iiifFragment = getExternalFragment(
+              pagesIndex[article[prop][i].pageUid].iiif,
+              { coords: d.coords },
+            );
+          }
+        });
+      }
+    });
+  }
+
   /**
    * get regions from pp_plain field, aka region coordinates.
    * Te param `regionCoords` is a list of page objects, containing a r property
@@ -339,8 +473,8 @@ class Article {
     fragments = [],
     highlights = {},
   } = {}) {
-    if (!highlights || !highlights.offsets) {
-      return [];
+    if (!highlights || !highlights.offsets || !highlights.offsets.length) {
+      return fragments.map(fragment => new Fragment({ fragment }));
     }
     return highlights.offsets.map((pos, i) => {
       // for each offset
@@ -366,7 +500,6 @@ class Article {
   }
 
   static sequelize(client) {
-    const newspaper = Newspaper.sequelize(client);
     const page = Page.sequelize(client);
     const collection = Collection.sequelize(client);
     const collectableItem = CollectableItem.sequelize(client);
@@ -450,11 +583,10 @@ class Article {
    * @return {String}       the field value
    */
   static getUncertainField(doc, field, langs = ['fr', 'de', 'en']) {
-
     let value = doc[`${field}_txt_${doc.lg_s}`];
 
     if (!value) {
-      for(let i = 0, l = langs.length; i < l; i += 1) {
+      for (let i = 0, l = langs.length; i < l; i += 1) {
         value = doc[`${field}_txt_${langs[i]}`];
         if (value) {
           break;
@@ -478,8 +610,8 @@ class Article {
         type: doc.item_type_s,
         language: doc.lg_s,
 
-        title: Article.getUncertainField(doc, "title"),
-        content: Article.getUncertainField(doc, "content"),
+        title: Article.getUncertainField(doc, 'title'),
+        content: Article.getUncertainField(doc, 'content'),
         size: doc.content_length_i,
 
         newspaper: new Newspaper({
@@ -509,6 +641,9 @@ class Article {
 
         mentions: doc.nem_offset_plain,
         topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs),
+        persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
+        locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
+        collections: doc.ucoll_ss,
       });
 
       if (!doc.pp_plain) {
@@ -542,6 +677,7 @@ class Article {
 module.exports = Article;
 module.exports.solrFactory = Article.solrFactory;
 module.exports.Model = Article;
+module.exports.BaseArticle = BaseArticle;
 module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL;
 module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE;
 module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH;

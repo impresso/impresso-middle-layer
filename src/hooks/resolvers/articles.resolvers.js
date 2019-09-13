@@ -25,15 +25,13 @@ const resolveTopics = () => async (context) => {
   }
 };
 
-
 const resolveUserAddons = () => async (context) => {
-  if (!context.params.authenticated) {
-    debug('skipping \'resolveUserAddons\', no user has been found');
+  if (!context.result || !context.params.authenticated) {
+    debug('skipping \'resolveUserAddons\', no user has been found or no results');
     return;
   }
   // get article uids
   let uids = [];
-
   if (Array.isArray(context.result)) {
     uids = context.result.map(d => d.uid);
   } else if (context.result.data && context.result.data.length) {
@@ -41,7 +39,6 @@ const resolveUserAddons = () => async (context) => {
   } else if (context.result && context.result.uid) {
     uids.push(context.result.uid);
   }
-
   if (!uids.length) {
     debug(`skipping 'resolveUserAddons' for user: '${context.params.user.uid}', no articles to enrich!`);
     return;
@@ -49,7 +46,8 @@ const resolveUserAddons = () => async (context) => {
   debug(`'resolveUserAddons' for user: '${context.params.user.uid}' for ${uids.length} articles...`);
 
   const collectables = await context.app.service('collectable-items').find({
-    ...context.params,
+    authenticated: context.params.authenticated,
+    user: context.params.user,
     query: {
       resolve: 'collection',
       item_uids: uids,

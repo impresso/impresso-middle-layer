@@ -16,7 +16,7 @@ class Service {
     //   app,
     //   name,
     // });
-    this.solr = SolrService({
+    this.solrService = SolrService({
       app,
       name,
       namespace: 'topics',
@@ -24,13 +24,35 @@ class Service {
   }
 
   async find(params) {
-    return this.solr.find({
-      ...params,
-    });
+    const solrResult = await this.solrService.solr.findAll({
+      q: params.sanitized.sq || '*:*',
+      highlight_by: params.sanitized.sq ? 'topic_suggest' : false,
+      order_by: params.query.order_by,
+      namespace: 'topics',
+      limit: params.query.limit,
+      skip: params.query.skip,
+    }, this.solrService.Model.solrFactory);
+
+    debug('\'find\' total topics:', solrResult.response.numFound);
+
+    return {
+      total: solrResult.response.numFound,
+      limit: params.query.limit,
+      skip: params.query.skip,
+      data: solrResult.response.docs.map((d) => {
+        if (solrResult.fragments[d.uid].topic_suggest) {
+          d.matches = solrResult.fragments[d.uid].topic_suggest;
+        }
+        return d;
+      }),
+      info: {
+        ...params.originalQuery,
+      },
+    };
   }
 
   async get(id, params) {
-    return this.solr.get(id, params);
+    return this.solrService.get(id, params);
   }
 
   async create(data, params) {

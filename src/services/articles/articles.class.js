@@ -1,5 +1,7 @@
 const lodash = require('lodash');
 const debug = require('debug')('impresso/services:articles');
+const { Op } = require('sequelize');
+const { NotFound } = require('@feathersjs/errors');
 
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
@@ -57,10 +59,13 @@ class Service {
       ...params,
       scope: 'get',
       where: {
-        uid: { $in: results.data.map(d => d.uid) },
+        uid: { [Op.in]: results.data.map(d => d.uid) },
       },
       limit: results.data.length,
       order_by: [['uid', 'DESC']],
+    }).catch((err) => {
+      console.error(err);
+      return { data: [] };
     });
 
     // idnexed by article uid;
@@ -128,15 +133,17 @@ class Service {
       }).catch(() => {
         debug(`get: SequelizeService warning, no data found for ${id} ...`);
       }),
-    ]).then((results) => {
-      if (results[1]) {
-        results[0].pages = results[1].pages.map(d => d.toJSON());
-        results[0].v = results[1].v;
+    ]).then(([article, addons]) => {
+      if (addons) {
+        console.log(addons);
+        article.pages = addons.pages.map(d => d.toJSON());
+        article.v = addons.v;
       }
-      results[0].assignIIIF();
-      return results[0];
+      article.assignIIIF();
+      return article;
     }).catch((err) => {
-      console.log(err);
+      console.error(err);
+      throw new NotFound();
     });
   }
 }

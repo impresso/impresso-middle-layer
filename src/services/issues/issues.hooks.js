@@ -50,7 +50,7 @@ module.exports = {
         required: false,
       }),
 
-      filtersToSolrQuery('newspaper'),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [],

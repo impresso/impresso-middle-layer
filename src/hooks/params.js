@@ -1,22 +1,23 @@
 const errors = require('@feathersjs/errors');
 const debug = require('debug')('impresso/hooks:params');
+const { Op } = require('sequelize');
 
 const toSequelizeLike = (query) => {
   // replace all non nice characters.
   // for a two spaces word like "accent octoup", outputs:
   // {
-  //   $and: [
-  //     {$like: '%accen%',}
-  //     {$like: '%octoup%',}
+  //   [Op.and]: [
+  //     {[Op.ilike]: '%accen%',}
+  //     {[Op.ilike]: '%octoup%',}
   //   ],
   // },
   const escapeds = query.split(/\s+/).map(d => ({
-    $like: `%${d.replace(/[%()]/g, '')}%`,
+    [Op.like]: `%${d.replace(/[%()]/g, '')}%`,
   }));
 
   if (escapeds.length > 1) {
     return {
-      $and: escapeds,
+      [Op.and]: escapeds,
     };
   }
   return escapeds.pop();
@@ -270,8 +271,8 @@ const _validate = (params, rules) => {
 const REGEX_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/;
 const REGEX_SLUG = /^[a-z0-9-]+$/;
-const REGEX_UID = /^[A-Za-z0-9_-]+$/;
-const REGEX_UIDS = /^[A-Za-z0-9_\-,]+[A-Za-z0-9_.-]+$/;
+const REGEX_UID = /^[A-zÀ-Ÿ0-9_."'-]+$/;
+const REGEX_UIDS = /^[A-zÀ-Ÿ0-9_.,"'-]+[A-zÀ-Ÿ0-9_.,"'-]+$/;
 const REGEX_NUMERIC = /^\d+$/;
 
 
@@ -339,7 +340,9 @@ const VALIDATE_OPTIONAL_PASSWORD = {
 */
 const validate = (validators, method = 'GET') => async (context) => {
   if (!validators) { return; }
-  debug('validate: <validators keys>', Object.keys(validators));
+  debug('validate: <validators keys>',
+    `${context.service.name}.${context.service.method}`,
+    Object.keys(validators));
 
   if (method === 'GET') {
     debug('validate: GET data', context.params.query);
@@ -422,7 +425,7 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
 
 
   // num of results expected, 0 to 500
-  if (context.params.query.limit) {
+  if (context.params.query.limit > -1) {
     const limit = parseInt(context.params.query.limit, 10);
     params.limit = +Math.min(Math.max(0, limit), params.max_limit || 500);
   }
@@ -442,7 +445,9 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
 
   if (replaceQuery) {
     context.params.isSafe = true;
-
+    context.params.originalQuery = {
+      ...context.params.query,
+    };
     context.params.query = {
       ...context.params.sanitized || {}, // add validated params, if any
       ...params,
@@ -509,7 +514,7 @@ const validateEach = (paramName, validators, options = {}) => {
     const validated = toBeValidated.map((d) => {
       const _d = _validate(d, validators, opts.method);
       // add mustache friendly conditionals based on type. e.g; isIssue or isNewspaper
-      _d[`_is${d.type}`] = true;
+      // _d[`_is${d.type}`] = true;
       return _d;
     });
 

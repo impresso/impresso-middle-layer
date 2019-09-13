@@ -23,7 +23,7 @@ class Issue {
     this.cover = cover;
     this.labels = labels;
 
-    const issueDateFromUid = this.uid.match(/\d{4}-\d{2}-\d{2}/);
+    const issueDateFromUid = this.uid.match(/(\d{4})-\d{2}-\d{2}/);
 
     if (ACCESS_RIGHTS.indexOf(accessRights) !== -1) {
       this.accessRights = accessRights;
@@ -32,6 +32,7 @@ class Issue {
     }
     if (issueDateFromUid) {
       this.date = new Date(issueDateFromUid[0]);
+      this.year = issueDateFromUid[1];
     }
 
     if (newspaper instanceof Newspaper) {

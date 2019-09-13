@@ -24,6 +24,7 @@ const neo4jPrepare = (cypherQuery, params) =>
   // use Mustache renderer to pre-prepare cypehr query.
   // This allows to use if, unless and each templates without
   // adding unwanted complexification in code.
+  // eslint-disable-next-line implicit-arrow-linebreak
   mustache.render(cypherQuery, params);
 
 

@@ -1,4 +1,5 @@
 const debug = require('debug')('impresso/services:newspapers');
+const { Op } = require('sequelize');
 const SequelizeService = require('../sequelize.service');
 
 class Service {
@@ -24,6 +25,7 @@ class Service {
       uid: id,
     };
     return this.SequelizeService.get(id, {
+      scope: 'get',
       where,
     });
   }
@@ -34,7 +36,7 @@ class Service {
     const where = {};
 
     if (params.query.q) {
-      where.$or = [
+      where[Op.or] = [
         { name: params.query.q },
         { uid: params.query.q },
       ];

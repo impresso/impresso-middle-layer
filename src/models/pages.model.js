@@ -1,5 +1,4 @@
 const { DataTypes } = require('sequelize');
-const Newspaper = require('./newspapers.model');
 const Issue = require('./issues.model');
 const ArticleEntity = require('./articles-entities.model');
 const ArticleTag = require('./articles-tags.model');
@@ -26,6 +25,7 @@ class Page {
 
     // All collections for this page
     collections = [],
+    regions = [],
   } = {}, complete = false) {
     this.uid = String(uid);
 
@@ -65,6 +65,9 @@ class Page {
     //   // get newspaper uid from uid.
     //
     // }
+    if (regions) {
+      this.regions = regions;
+    }
 
     if (complete) {
       this.articlesEntities = articlesEntities.map((d) => {
@@ -82,7 +85,6 @@ class Page {
   }
 
   static sequelize(client) {
-    const newspaper = Newspaper.sequelize(client);
     const issue = Issue.sequelize(client);
 
     const page = client.define('page', {

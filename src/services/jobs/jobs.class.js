@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:jobs');
-const SequelizeService = require('../sequelize.service');
 const { BadGateway, NotFound, NotImplemented } = require('@feathersjs/errors');
+const SequelizeService = require('../sequelize.service');
 
 class Service {
   constructor({

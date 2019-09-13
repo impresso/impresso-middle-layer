@@ -1,5 +1,7 @@
-const { queryWithCommonParams, validate } = require('../../hooks/params');
 const { authenticate } = require('@feathersjs/authentication').hooks;
+const { queryWithCommonParams, validate } = require('../../hooks/params');
+const { checkCachedContents, saveResultsInCache, returnCachedContents } = require('../../hooks/redis');
+
 
 module.exports = {
   before: {
@@ -18,12 +20,19 @@ module.exports = {
         },
       }),
       queryWithCommonParams(),
+      checkCachedContents({
+        cacheUnauthenticated: false,
+        useAuthenticatedUser: true,
+      }),
     ],
   },
 
   after: {
     all: [],
-    find: [],
+    find: [
+      returnCachedContents(),
+      saveResultsInCache(),
+    ],
     get: [],
     create: [],
     update: [],

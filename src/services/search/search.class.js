@@ -1,14 +1,14 @@
 /* eslint-disable no-unused-vars */
 const lodash = require('lodash');
 const debug = require('debug')('impresso/services:search');
+const decypher = require('decypher');
+const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const solr = require('../../solr');
 const { SOLR_INVERTED_GROUP_BY } = require('../../hooks/search');
 const neo4j = require('../../neo4j');
 const sequelize = require('../../sequelize');
 const sequelizeUtils = require('../../services/sequelize.utils');
-const decypher = require('decypher');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
-const { NotFound, NotImplemented } = require('@feathersjs/errors');
 
 const Article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
@@ -94,8 +94,8 @@ class Service {
    */
   async find(params) {
     debug(`find '${this.name}': query:`, params.query, params.sanitized.sv);
+    const isRaw = params.originalQuery.group_by === 'raw';
 
-    // TODO: transform params.query.filters to match solr syntax
     const _solr = await this.solr.findAll({
       q: params.query.sq,
       // fq: params.sanitized.sfq,
@@ -103,18 +103,21 @@ class Service {
       facets: params.query.facets,
       limit: params.query.limit,
       skip: params.query.skip,
-      fl: 'id,pp_plain:[json]', // for articles.
+      fl: 'id,pp_plain:[json],lg_s', // other fields can be loaded later on
+      highlight_by: 'content_txt_de,content_txt_fr,content_txt_en',
+      highlight_props: {
+        'hl.snippets': 10,
+        'hl.fragsize': 100,
+      },
       vars: params.sanitized.sv,
     });
 
     const total = _solr.response.numFound;
-
-    debug(`find '${this.name}': SOLR found ${total} using SOLR params:`, _solr.responseHeader.params);
+    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, _solr.responseHeader.params);
 
     if (!total) {
       return Service.wrap([], params.query.limit, params.query.skip, total);
     }
-
 
     // index for the pp_plain
     const resultsIndex = lodash.keyBy(_solr.response.docs, 'id');
@@ -125,46 +128,75 @@ class Service {
     // get text matches
     // const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
     // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
+    if (isRaw) {
+      return Service.wrap(_solr.response.docs.map((d) => {
+        // console.log(_solr.fragments[d.id]);
+        const contentField = Object.keys(_solr.fragments[d.id])[0];
+        // const contentField = _solr.fragments[d.id][`content_txt_${d.lg_s}`]
+        // ? `content_txt_${d.lg_s}` : 'content_txt_fr';
+        const fragments = _solr.fragments[d.id][contentField];
+        const highlights = _solr.highlighting[d.id][contentField];
+        return {
+          id: d.id,
+          matches: Article.getMatches({
+            solrDocument: d,
+            highlights,
+            fragments,
+          }),
+          contentField,
+        };
+      }), params.query.limit, params.query.skip, total);
+    }
+
     debug(
-      `find '${this.name}': call articles service for ${uids.length} uids, user:`,
+      `find '${this.name}' (2 / 2): call articles service for ${uids.length} uids, user:`,
       params.user ? params.user.uid : 'no auth user found',
     );
 
-    // get articles (if group by is article ...)!
-    const results = await this.app.service('articles').find({
-      user: params.user,
-      authenticated: params.authenticated,
-      query: {
-        limit: uids.length,
-        filters: [
-          {
-            type: 'uid',
-            q: uids,
-          },
-        ],
-      },
-    })
-      .then(res => res.data)
-      .then((articles) => {
-      // respect indexes
-        const articleIndex = lodash(articles).map((article) => {
-          // complete article with fragments found
-          const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
-          const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
-          article.matches = Article.getMatches({
-            solrDocument: resultsIndex[article.uid],
-            highlights,
-            fragments,
-          });
-          // complete article with page regions
-          article.regions = Article.getRegions({
-            regionCoords: resultsIndex[article.uid].pp_plain,
-          });
-          article.assignIIIF();
-          return article;
-        }).keyBy('uid').value();
-        return uids.map(uid => articleIndex[uid]);
-      });
+    let results = [];
+
+    if (uids.length) {
+      // get articles (if group by is article ...)!
+      results = await this.app.service('articles').find({
+        user: params.user,
+        authenticated: params.authenticated,
+        query: {
+          limit: uids.length,
+          filters: [
+            {
+              type: 'uid',
+              q: uids,
+            },
+          ],
+        },
+      })
+        .then(res => res.data)
+        .then((articles) => {
+        // respect indexes
+          const articleIndex = lodash(articles).map((article) => {
+            // complete article with fragments found
+            const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
+            const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
+            article.matches = Article.getMatches({
+              solrDocument: resultsIndex[article.uid],
+              highlights,
+              fragments,
+            });
+            // complete article with page regions
+            article.regions = Article.getRegions({
+              regionCoords: resultsIndex[article.uid].pp_plain,
+            });
+            if (article instanceof Article) {
+              article.assignIIIF();
+            } else {
+              Article.assignIIIF(article);
+            }
+
+            return article;
+          }).keyBy('uid').value();
+          return uids.map(uid => articleIndex[uid]);
+        });
+    }
     // resolve facets...
     const facetGroupsToResolve = [];
     const facets = _solr.facets || {};
@@ -177,100 +209,15 @@ class Service {
             item: Newspaper.getCached(d.val),
             uid: d.val,
           }));
-          // for free
-          // facetGroupsToResolve.push({
-          //   // the facet key to merge later
-          //   facet,
-          //   engine: 'sequelize',
-          //   service: 'newspapers',
-          //   // enrich bucket with service identifier, uid.
-          //   // SOLR gives it as `val` property of the facet.
-          //   items: _solr.facets.newspaper.buckets.map(d => ({
-          //     ...d,
-          //     count: d.count,
-          //     uid: d.val,
-          //   })),
-          // });
         } else if (facet === 'topic') {
           facets[facet].buckets = facets[facet].buckets.map(d => ({
             ...d,
             item: Topic.getCached(d.val),
             uid: d.val,
           }));
-          // facetGroupsToResolve.push({
-          //   // the facet key to merge later
-          //   facet,
-          //   engine: 'solr',
-          //   namespace: 'topics',
-          //   Klass: Topic,
-          //   factory: Topic.solrFacetFactory,
-          //   // enrich bucket with service identifier, uid.
-          //   // SOLR gives it as `val` property of the facet.
-          //   items: _solr.facets.topic.buckets.map(d => ({
-          //     ...d,
-          //     count: d.count,
-          //     uid: d.val,
-          //   })),
-          // });
-        } else if (facet === 'collection') {
-          facetGroupsToResolve.push({
-            // the facet key to merge later
-            facet,
-            engine: 'sequelize',
-            service: 'collections',
-            // enrich bucket with service identifier, uid.
-            // SOLR gives it as `val` property of the facet.
-            items: _solr.facets.collection.buckets.map(d => ({
-              ...d,
-              count: d.count,
-              uid: d.val,
-            })),
-          });
         }
       });
     }
-    if (facetGroupsToResolve.length) {
-      // resolve uids with the appropriate service
-      const facetGroupsResolved = await Promise.all([
-        sequelizeUtils.resolveAsync(this.sequelize, facetGroupsToResolve
-          .filter(d => d.engine === 'sequelize')),
-        this.solr.utils.resolveAsync(facetGroupsToResolve
-          .filter(d => d.engine === 'solr')),
-      ]).then(groups => groups[0].concat(groups[1]));
-
-      // add facet resolved item to facet
-      facetGroupsResolved.forEach((group) => {
-        // rebuild facets!
-        debug(`find '${this.name}': rebuilding facet "${group.facet}"`);
-
-        facets[group.facet] = {
-          ..._solr.facets[group.facet],
-          buckets: group.items,
-        };
-      });
-    }
-
-    // merge results maintaining solr ordering.
-    // results = _solr.response.docs.map((doc) => {
-    //   let newspaper = doc.newspaper;
-    //   let cols = [];
-    //
-    //   if (facets.newspaper && facets.newspaper.buckets) {
-    //     const facetedNewspaper = facets.newspaper.buckets.find(n => n.uid === newspaper.uid);
-    //     if (facetedNewspaper.item) {
-    //       newspaper = new Newspaper(facetedNewspaper.item);
-    //     }
-    //   }
-    //   if (collections && collections[doc.uid]) {
-    //     cols = collections[doc.uid].map(d => d.collection);
-    //   }
-    //   return {
-    //     ...doc,
-    //     ...itemsFromNeo4j[doc.uid] || {},
-    //     collections: cols,
-    //     newspaper,
-    //   };
-    // });
 
     return Service.wrap(results, params.query.limit, params.query.skip, total, {
       responseTime: {

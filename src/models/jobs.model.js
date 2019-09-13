@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
+const { DataTypes } = require('sequelize');
 const Attachment = require('./attachments.model');
 const User = require('./users.model');
-const { DataTypes } = require('sequelize');
 
 const TYPE_BULK_COLLECTION_FROM_QUERY = 'BCQ';
 const TYPE_DELETE_COLLECTION = 'DCO';

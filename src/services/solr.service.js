@@ -40,6 +40,7 @@ class SolrService {
       fl: params.fl,
       facets: params.query.facets,
       order_by: params.query.order_by, // default ordering TODO
+      highlight_by: params.query.highlight_by,
       collapse_by: params.collapse_by,
       collapse_fn: params.collapse_fn,
       namespace: this.namespace,

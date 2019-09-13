@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
+const shash = require('short-hash');
 const debug = require('debug')('impresso/services:articles-tags');
 const Neo4jService = require('../neo4j.service').Service;
-const shash = require('short-hash');
 
 class Service extends Neo4jService {
   async find(params) {

@@ -1,7 +1,8 @@
-const debug = require('debug')('impresso/services:sequelize.utils');
+const debug = require('debug')('verbose:impresso/services:sequelize.utils');
 const {
   Conflict, BadRequest, BadGateway,
 } = require('@feathersjs/errors');
+const { Op } = require('sequelize');
 
 const Newspapers = require('../models/newspapers.model');
 const Collection = require('../models/collections.model');
@@ -19,8 +20,9 @@ const models = {
  * @return {[type]}        [description]
  */
 const whereReducer = (sum, clause) => {
+  console.log(clause);
   Object.keys(clause).forEach((k) => {
-    if (k === '$or') {
+    if (k === [Op.or]) {
       sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
     } else if (Array.isArray(clause[k])) {
       sum.push(`${k} IN ('${clause[k].join('\',\'')}')`);
@@ -41,11 +43,14 @@ const sequelizeErrorHandler = (err) => {
     throw new BadGateway('SequelizeConnectionRefusedError');
   } else if (err.name === 'SequelizeConnectionError') {
     debug('Connection error. SequelizeConnectionError:', err);
-  } else {
+    throw new BadGateway('SequelizeConnectionError');
+  } else if (err.name) {
     debug('sequelize failed. Check error below.');
     debug(err.name);
     console.error(err);
+    throw new BadGateway(err.name);
   }
+  console.log(err);
   throw new BadRequest();
 };
 
@@ -64,6 +69,9 @@ const resolveAsync = async (client, groups) => {
 
     const idxs = {};
 
+    if (!g.items.length) {
+      return groups;
+    }
     // loop through group items then store the idx
     g.items.forEach((d, i) => {
       idxs[d.uid] = i;
