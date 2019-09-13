@@ -1,7 +1,7 @@
 const debug = require('debug')('impresso/services:search-queries-comparison');
 const {
   flatten, values, groupBy,
-  uniq,
+  uniq, omitBy, isNil,
 } = require('lodash');
 const {
   getItemsFromSolrResponse,
@@ -11,7 +11,7 @@ const {
 const { filtersToQuery } = require('../../util/solr');
 
 // TODO: Do we need to make it configurable in request?
-const DefaultSolrFieldsFilter = 'id,pp_plain:[json],lg_s';
+const DefaultSolrFieldsFilter = ['id', 'pp_plain:[json]', 'lg_s'].join(',');
 
 /**
  * Given comparison request (`https://github.com/impresso/impresso-middle-layer/tree/master/src/services/search-queries-comparison/schema/intersection/post/request.json`),
@@ -30,20 +30,21 @@ function intersectionRequestToSolrQuery(request) {
   } = request;
 
   const allFilters = flatten(queries.map(({ filters }) => filters));
+
   const filtersGroupsByType = values(groupBy(allFilters, 'type'));
   const solrQueries = uniq(filtersGroupsByType.map(filtersToQuery));
 
   const q = solrQueries.join(' AND ');
   const fl = DefaultSolrFieldsFilter;
 
-  return {
+  return omitBy({
     q,
     order_by: orderBy,
     facets,
     limit,
     skip,
     fl,
-  };
+  }, isNil);
 }
 
 class SearchQueriesComparison {
@@ -108,4 +109,5 @@ class SearchQueriesComparison {
 module.exports = {
   SearchQueriesComparison,
   intersectionRequestToSolrQuery,
+  DefaultSolrFieldsFilter,
 };

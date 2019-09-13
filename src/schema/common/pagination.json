@@ -16,6 +16,11 @@
       "description": "Skip this many items",
       "minimum": 0
     },
+    "skip": {
+      "type": "integer",
+      "description": "Skip this many items",
+      "minimum": 0
+    },
     "page": {
       "type": "integer",
       "description": "Display N-th page (using 'limit' as the number of items in the page)",
