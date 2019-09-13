@@ -118,7 +118,7 @@ app.use(handler({
         console.log(err);
       }
       res.json({
-        message: 'Please check request params',
+        message: err.message || 'Please check request params',
         name: err.name,
         code: err.code,
         errors: err.data,

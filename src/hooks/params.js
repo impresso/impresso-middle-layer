@@ -1,6 +1,7 @@
 const errors = require('@feathersjs/errors');
 const debug = require('debug')('impresso/hooks:params');
 const { Op } = require('sequelize');
+const { assignIn } = require('lodash');
 
 const toSequelizeLike = (query) => {
   // replace all non nice characters.
@@ -254,7 +255,6 @@ const _validate = (params, rules) => {
       } else {
         _params[key] = _validateOne(key, params[key], rules[key]);
       }
-
       // special after hook
       if (typeof rules[key].after === 'function') {
         _params[key] = rules[key].after(_params[key]);
@@ -341,7 +341,7 @@ const VALIDATE_OPTIONAL_PASSWORD = {
 const validate = (validators, method = 'GET') => async (context) => {
   if (!validators) { return; }
   debug('validate: <validators keys>',
-    `${context.service.name}.${context.service.method}`,
+    `${context.path}.${context.method}`,
     Object.keys(validators));
 
   if (method === 'GET') {
@@ -354,7 +354,9 @@ const validate = (validators, method = 'GET') => async (context) => {
     }
   } else {
     debug('validate: POST data');
-    context.data.sanitized = _validate(context.data, validators);
+    context.data.sanitized = assignIn(
+      {}, context.data.sanitized, _validate(context.data, validators),
+    );
   }
 };
 
@@ -402,7 +404,7 @@ const queryWithCurrentExecUser = () => async (context) => {
     queryWithCommonParams();
   ```
 */
-const queryWithCommonParams = (replaceQuery = true) => async (context) => {
+const queryWithCommonParams = (replaceQuery = true, method = 'GET') => async (context) => {
   const params = {
     limit: 10,
     skip: 0,
@@ -423,27 +425,29 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
     params._exec_user_is_staff = context.params.user.is_staff;
   }
 
+  const originObject = method === 'GET' ? context.params.query : context.data;
+  const destinationObject = method === 'GET' ? context.params : context.data;
 
   // num of results expected, 0 to 500
-  if (context.params.query.limit > -1) {
-    const limit = parseInt(context.params.query.limit, 10);
+  if (originObject.limit > -1) {
+    const limit = parseInt(originObject.limit, 10);
     params.limit = +Math.min(Math.max(0, limit), params.max_limit || 500);
   }
   // transform page in corresponding SKIP. Page is 1-n.
-  if (context.params.query.page) {
-    const page = Math.max(1, parseInt(context.params.query.page, 10));
+  if (originObject.page) {
+    const page = Math.max(1, parseInt(originObject.page, 10));
     // transform in skip and offsets. E.G page=4 when limit = 10
     // results in skip=30 page=2 in skip=10, page=1 in skip=0
     params.skip = (page - 1) * params.limit;
     params.page = page;
-  } else if (context.params.query.offset) {
-    params.skip = Math.max(0, parseInt(context.params.query.offset, 10));
-  } else if (context.params.query.skip) {
-    params.skip = Math.max(0, parseInt(context.params.query.skip, 10));
+  } else if (originObject.offset) {
+    params.skip = Math.max(0, parseInt(originObject.offset, 10));
+  } else if (originObject.skip) {
+    params.skip = Math.max(0, parseInt(originObject.skip, 10));
   }
 
 
-  if (replaceQuery) {
+  if (replaceQuery && method === 'GET') {
     context.params.isSafe = true;
     context.params.originalQuery = {
       ...context.params.query,
@@ -454,8 +458,9 @@ const queryWithCommonParams = (replaceQuery = true) => async (context) => {
     };
     debug(`queryWithCommonParams (replaceQuery:${replaceQuery}), <context.params.query>:`, context.params.query);
   } else {
-    context.params.sanitized = params;
-    debug('queryWithCommonParams: do not replace context.params.query.');
+    destinationObject.sanitized = assignIn({}, destinationObject.sanitized, params);
+    const field = method === 'GET' ? 'context.params' : 'context.data';
+    debug(`queryWithCommonParams: appends params to '${field}.sanitized': ${JSON.stringify(params)}`);
   }
 };
 
@@ -570,6 +575,8 @@ module.exports = {
   validateEach,
   queryWithCommonParams,
   queryWithCurrentExecUser,
+
+  sanitize: _validate,
 
   validateRouteId,
 

@@ -29,6 +29,7 @@ module.exports = {
         required: false,
       }),
 
+      // TODO: Deprecated
       validateEach('facet-filters', eachFacetFilterValidator, {
         required: false,
       }),

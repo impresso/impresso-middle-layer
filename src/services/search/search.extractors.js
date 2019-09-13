@@ -26,6 +26,15 @@ function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, hig
   return [matches, regions];
 }
 
+/**
+ * Extracts matching documents from Solr response as `Article` items.
+ * @param {object} response Solr search response.
+ * @param {Service} articlesService service used to fetch articles content by their Ids.
+ * @param {object} userInfo - a `{ user, authenticated }` object used to manage
+ *                            authorisation of the content.
+ *
+ * @return {array} a list of `Article` items.
+ */
 async function getItemsFromSolrResponse(response, articlesService, userInfo = {}) {
   const { user, authenticated } = userInfo;
 
@@ -78,10 +87,17 @@ const CacheProvider = {
   topic: Topic,
 };
 
+/**
+ * Extract facets from Solr response.
+ * @param {object} response Solr response
+ * @return {object} facets object.
+ */
 async function getFacetsFromSolrResponse(response) {
   const { facets = {} } = response;
 
   return Promise.all(Object.keys(facets).map(async (facetLabel) => {
+    if (!facets[facetLabel].buckets) return facets[facetLabel];
+
     const cacheProvider = CacheProvider[facetLabel];
     const buckets = await Promise.all(
       facets[facetLabel].buckets.map(async b => addCachedItems(b, cacheProvider)),
@@ -91,6 +107,11 @@ async function getFacetsFromSolrResponse(response) {
   }));
 }
 
+/**
+ * Extract total number of matched documents.
+ * @param {object} response Solr response.
+ * @return {number}
+ */
 function getTotalFromSolrResponse(response) {
   return response.response.numFound;
 }
