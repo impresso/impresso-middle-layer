@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize');
 const Newspaper = require('./newspapers.model');
 
+const ACCESS_RIGHTS_ND = 'NotDefined';
 const ACCESS_RIGHTS_CLOSED = 'Closed';
 const ACCESS_RIGHTS_OPEN_PUBLIC = 'OpenPublic';
 const ACCESS_RIGHTS = [ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PUBLIC];
@@ -17,13 +18,15 @@ class Issue {
     cover = '', // page uid
     uid = '',
     labels = ['issue'],
-    accessRights = ACCESS_RIGHTS_CLOSED,
+    accessRights = ACCESS_RIGHTS_ND,
   } = {}) {
     this.uid = String(uid);
     this.cover = cover;
     this.labels = labels;
 
     const issueDateFromUid = this.uid.match(/(\d{4})-\d{2}-\d{2}/);
+
+    this.fresh = accessRights !== ACCESS_RIGHTS_ND;
 
     if (ACCESS_RIGHTS.indexOf(accessRights) !== -1) {
       this.accessRights = accessRights;

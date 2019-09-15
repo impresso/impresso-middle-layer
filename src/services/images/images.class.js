@@ -28,7 +28,7 @@ class Service {
     if (method === 'get') {
       for (let i = 0, l = result.pages.length; i < l; i += 1) {
         const pageuid = result.pages[i].uid;
-        pagesIndex[pageuid].push([-1, i]);
+        pagesIndex[pageuid] = [[-1, i]];
       }
     } else if (method === 'find') {
       for (let i = 0, l = result.data.length; i < l; i += 1) {
@@ -43,7 +43,7 @@ class Service {
     }
     const uids = Object.keys(pagesIndex);
     // load page stuff
-    const pages = await Page.sequelize(this.sequelizeClient).findAll({
+    const pages = await Page.sequelize(this.sequelizeClient).scope('withAccessRights').findAll({
       where: {
         uid: uids,
       },
@@ -54,12 +54,16 @@ class Service {
     }
 
     // remap results with objects
+    // load access rights from Page Model
     pages.forEach((page) => {
       pagesIndex[page.uid].forEach((coord) => {
         if (method === 'get') {
           result.pages[coord[1]] = page.toJSON();
+          result.assignIIIF();
+          result.issue.accessRights = page.accessRights;
         } else if (method === 'find') {
           result.data[coord[0]].pages[coord[1]] = page.toJSON();
+          result.data[coord[0]].issue.accessRights = page.accessRights;
           result.data[coord[0]].assignIIIF();
         }
       });
@@ -115,7 +119,10 @@ class Service {
         skip: params.query.skip,
         facets: params.query.facets,
         order_by: 'score DESC',
-      }, Image.solrFactory).then(res => this.SolrService.solr.utils.wrapAll(res));
+      }, Image.solrFactory).then(res => this.assignIIIF({
+        method: 'find',
+        result: this.SolrService.solr.utils.wrapAll(res),
+      }));
     }
 
     // no signature. Filter out images without signature!
@@ -139,7 +146,10 @@ class Service {
     debug(`get '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
     return this.SolrService.get(id, {
       fl: Image.SOLR_FL,
-    });
+    }).then(result => this.assignIIIF({
+      method: 'get',
+      result,
+    }));
   }
 
   async create(data, params) {
