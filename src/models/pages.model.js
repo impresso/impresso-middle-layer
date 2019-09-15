@@ -26,6 +26,7 @@ class Page {
     // All collections for this page
     collections = [],
     regions = [],
+    accessRights = 'nd',
   } = {}, complete = false) {
     this.uid = String(uid);
 
@@ -45,6 +46,8 @@ class Page {
       this.iiif = String(iiif);
       this.iiifThumbnail = getExternalThumbnail(this.iiif);
     }
+
+    this.accessRights = accessRights;
 
     this.labels = labels;
 
@@ -116,6 +119,14 @@ class Page {
       },
     }, {
       scopes: {
+        withAccessRights: {
+          include: [
+            {
+              model: issue,
+              attributes: ['accessRights'],
+            },
+          ],
+        },
         findAll: {
           include: [
             {
@@ -132,6 +143,12 @@ class Page {
     });
 
     page.prototype.toJSON = function () {
+      if (this.issue) {
+        return new Page({
+          ...this.get(),
+          accessRights: this.issue.accessRights,
+        });
+      }
       return new Page(this.get());
     };
 
