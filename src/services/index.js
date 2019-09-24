@@ -66,6 +66,9 @@ const tableOfContents = require('./table-of-contents/table-of-contents.service.j
 const searchQueriesComparison = require('./search-queries-comparison/search-queries-comparison.service.js');
 
 
+const me = require('./me/me.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -109,4 +112,5 @@ module.exports = function () {
   app.configure(searchFacets);
   app.configure(tableOfContents);
   app.configure(searchQueriesComparison);
+  app.configure(me);
 };
