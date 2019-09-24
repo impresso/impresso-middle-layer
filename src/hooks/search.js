@@ -29,15 +29,16 @@ const SOLR_FILTER_DPF = {
   location: 'loc_entities_dpfs',
 };
 
+const escapeValue = value => value.replace(/[()]/g, d => `\\${d}`);
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   let qq = '';
   const op = filter.op || 'OR';
 
   if (Array.isArray(filter.q)) {
-    qq = filter.q.map(value => `${field}:${value}`).join(` ${op} `);
+    qq = filter.q.map(value => `${field}:${escapeValue(value)}`).join(` ${op} `);
   } else {
-    qq = `${field}:${filter.q}`;
+    qq = `${field}:${escapeValue(filter.q)}`;
   }
   if (filter.context === 'exclude') {
     qq = sq.length > 0 ? `NOT ${qq}` : `*:* AND NOT ${qq}`;
@@ -272,7 +273,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) 
       reduceFiltersToVars(filters[key]).forEach((d) => {
         const l = Object.keys(vars).length;
         const field = SOLR_FILTER_DPF[key];
-        vars[`v${l}`] = `payload(${field},${d})`;
+        vars[`v${l}`] = `payload(${field},${escapeValue(d)})`;
       });
     }
   });

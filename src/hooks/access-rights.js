@@ -17,7 +17,7 @@ const obfuscateArticleMapper = (article) => {
     article.excerpt = '... *** ...';
   }
   if (config.accessRights.enable) {
-    if (article.issue.accessRights === 'Closed') {
+    if (article.issue.accessRights === ACCESS_RIGHTS_CLOSED) {
       article.obfuscated = true;
       article.content = '... *** ...';
       article.regions = article.regions.map(d => ({
