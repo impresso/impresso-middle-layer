@@ -98,7 +98,7 @@ app.use(handler({
       if (process.env.NODE_ENV === 'production') {
         delete err.stack;
       } else {
-        console.log('error', err);
+        console.error('error 404 Not found', err);
       }
       res.json({ message: 'Not found' });
     },
@@ -106,19 +106,32 @@ app.use(handler({
       if (process.env.NODE_ENV === 'production') {
         delete err.stack;
       } else {
-        console.log(err);
+        console.error('error 500', err);
       }
       res.json({ message: 'service unavailable' });
+    },
+    // unauthentified
+    401: (err, req, res) => {
+      if (process.env.NODE_ENV === 'production') {
+        delete err.stack;
+      } else {
+        console.error('error 401 Not authentified', err);
+      }
+      res.json({
+        message: err.message,
+        name: err.name,
+        code: err.code,
+      });
     },
     // bad request
     400: (err, req, res) => {
       if (process.env.NODE_ENV === 'production') {
         delete err.stack;
       } else {
-        console.log(err);
+        console.error('error 400 Bad Request', err.data || err);
       }
       res.json({
-        message: 'Please check request params',
+        message: err.message || 'Please check request params',
         name: err.name,
         code: err.code,
         errors: err.data,
@@ -126,7 +139,7 @@ app.use(handler({
     },
     default: (err, req, res) => {
       // handle all other errors
-      console.log('error', err);
+      console.error('error', err);
       delete err.stack;
       res.json({ message: err.message });
     },
