@@ -3,19 +3,15 @@ const fs = require('fs');
 const lodash = require('lodash');
 const debug = require('debug')('impresso/scripts:update-data');
 const config = require('@feathersjs/configuration')()();
-const sequelizeClient = require('../src/sequelize').client(config.sequelize);
 const solrClient = require('../src/solr').client(config.solr);
-const Newspaper = require(`../src/models/newspapers.model`);
-const Topic = require(`../src/models/topics.model`);
-
+const Topic = require('../src/models/topics.model');
 
 debug('start!');
 
 async function waterfall() {
-
   debug('find topics...');
   const topics = await solrClient.findAll({
-    q: `*:*`,
+    q: '*:*',
     limit: 1000,
     skip: 0,
     fl: '*',
@@ -29,8 +25,6 @@ async function waterfall() {
       }));
     })
     .then(results => lodash.keyBy(results, 'uid'));
-
-
 
   debug('get topics links...');
 
@@ -56,7 +50,10 @@ async function waterfall() {
       namespace: 'search',
     });
     topics[topicUid].countItems = result.response.numFound;
-    topics[topicUid].relatedTopics = result.facets.topic.buckets.map(d => ({ uid: d.val, w: d.count }));
+    topics[topicUid].relatedTopics = result.facets.topic.buckets.map(d => ({
+      uid: d.val,
+      w: d.count,
+    }));
     // enrich topic
     // console.log(result.facets.topic.buckets);
   }, Promise.resolve());
@@ -67,7 +64,7 @@ async function waterfall() {
   debug('success, saved ./src/data/topics.js');
 }
 
-waterfall().then((res) => {
+waterfall().then(() => {
   debug('done, exit.'); // prints 60 after 2 seconds.
   process.exit();
 }).catch((err) => {

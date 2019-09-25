@@ -65,7 +65,7 @@ class Service {
     });
 
     return types.map(t => new SearchFacet({
-      t,
+      type: t,
       ...result.facets[t],
     }));
   }
