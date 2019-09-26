@@ -1,7 +1,7 @@
 const {
   keyBy, isEmpty,
   assignIn, clone,
-  isUndefined,
+  isUndefined, fromPairs,
 } = require('lodash');
 const Article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
@@ -95,16 +95,18 @@ const CacheProvider = {
 async function getFacetsFromSolrResponse(response) {
   const { facets = {} } = response;
 
-  return Promise.all(Object.keys(facets).map(async (facetLabel) => {
-    if (!facets[facetLabel].buckets) return facets[facetLabel];
+  const facetPairs = await Promise.all(Object.keys(facets).map(async (facetLabel) => {
+    if (!facets[facetLabel].buckets) return [facetLabel, facets[facetLabel]];
 
     const cacheProvider = CacheProvider[facetLabel];
     const buckets = await Promise.all(
       facets[facetLabel].buckets.map(async b => addCachedItems(b, cacheProvider)),
     );
 
-    return assignIn(clone(facets[facetLabel]), { buckets });
+    return [facetLabel, assignIn(clone(facets[facetLabel]), { buckets })];
   }));
+
+  return fromPairs(facetPairs);
 }
 
 /**
