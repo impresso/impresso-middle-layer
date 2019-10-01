@@ -64,6 +64,15 @@ describe('\'newspapers\' service', function () {
     }
   });
 
+  it('get newspapers, order by countIssues desc', async () => {
+    const results = await service.find({
+      query: {
+        order_by: '-countIssues',
+      },
+    });
+    assert.ok(results.data[0].countIssues > results.data[1].countIssues, 'the biggest newspaper first');
+  });
+
   it('get newspapers!', async () => {
     const results = await service.find({
       query: {},
