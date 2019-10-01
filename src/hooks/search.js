@@ -1,6 +1,19 @@
 const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
 
+/**
+ * Fields names that should not be wrapped into `filter(...)` when
+ * used in `q` Solr parameter.
+ *
+ * TODO: Explain why.
+ */
+const NON_FILTERED_FIELDS = [
+  'uid',
+  'string',
+  'entity-string',
+  'topic-string',
+];
+
 const SOLR_FILTER_TYPES = [
   'hasTextContents',
   'title',
@@ -261,7 +274,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) 
 
 
   Object.keys(filters).forEach((key) => {
-    if (['uid', 'string', 'entity-string', 'topic-string'].indexOf(key) !== -1) {
+    if (NON_FILTERED_FIELDS.indexOf(key) !== -1) {
       queries.push(filtersToSolr(key, filters[key]));
     } else {
       queries.push(`filter(${filtersToSolr(key, filters[key])})`);
@@ -294,6 +307,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) 
   context.params.sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
   // context.params.sanitized.sfq = filterQueries.join(' AND ');
   context.params.sanitized.sv = vars;
+  // NOTE: `queryComponents` should be deprecated
   context.params.sanitized.queryComponents = [].concat(
     filters.isFront,
     filters.years,
@@ -346,9 +360,12 @@ module.exports = {
   reduceFiltersToSolr,
   reduceRegexFiltersToSolr,
   filtersToSolrFacetQuery,
+  filtersToSolr,
 
   SOLR_FILTER_TYPES,
   SOLR_FILTER_DPF,
+
+  NON_FILTERED_FIELDS,
 
   SOLR_ORDER_BY: {
     date: 'meta_date_dt',

@@ -1,19 +1,17 @@
-/* eslint-disable no-unused-vars */
-const lodash = require('lodash');
 const debug = require('debug')('impresso/services:search');
 const decypher = require('decypher');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const solr = require('../../solr');
-const { SOLR_INVERTED_GROUP_BY } = require('../../hooks/search');
 const neo4j = require('../../neo4j');
 const sequelize = require('../../sequelize');
-const sequelizeUtils = require('../../services/sequelize.utils');
-const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('../neo4j.utils');
 
 const Article = require('../../models/articles.model');
-const Newspaper = require('../../models/newspapers.model');
-const Topic = require('../../models/topics.model');
-const CollectableItem = require('../../models/collectable-items.model');
+
+const {
+  getItemsFromSolrResponse,
+  getFacetsFromSolrResponse,
+  getTotalFromSolrResponse,
+} = require('../search/search.extractors');
 
 
 class Service {
@@ -45,6 +43,26 @@ class Service {
       total,
       info,
     };
+  }
+
+  static asRawResponse(solrResponse, params, total) {
+    return Service.wrap(solrResponse.response.docs.map((d) => {
+      // console.log(_solr.fragments[d.id]);
+      const contentField = Object.keys(solrResponse.fragments[d.id])[0];
+      // const contentField = _solr.fragments[d.id][`content_txt_${d.lg_s}`]
+      // ? `content_txt_${d.lg_s}` : 'content_txt_fr';
+      const fragments = solrResponse.fragments[d.id][contentField];
+      const highlights = solrResponse.highlighting[d.id][contentField];
+      return {
+        id: d.id,
+        matches: Article.getMatches({
+          solrDocument: d,
+          highlights,
+          fragments,
+        }),
+        contentField,
+      };
+    }), params.query.limit, params.query.skip, total);
   }
 
   /**
@@ -96,7 +114,7 @@ class Service {
     debug(`find '${this.name}': query:`, params.query, params.sanitized.sv);
     const isRaw = params.originalQuery.group_by === 'raw';
 
-    const _solr = await this.solr.findAll({
+    const solrQuery = {
       q: params.query.sq,
       // fq: params.sanitized.sfq,
       order_by: params.query.order_by,
@@ -110,118 +128,37 @@ class Service {
         'hl.fragsize': 100,
       },
       vars: params.sanitized.sv,
-    });
+    };
 
-    const total = _solr.response.numFound;
-    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, _solr.responseHeader.params);
+    const solrResponse = await this.solr.findAll(solrQuery);
+
+    const total = getTotalFromSolrResponse(solrResponse);
+    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader.params);
 
     if (!total) {
       return Service.wrap([], params.query.limit, params.query.skip, total);
     }
 
-    // index for the pp_plain
-    const resultsIndex = lodash.keyBy(_solr.response.docs, 'id');
-    // get uids to load addons...
-    const uids = Object.keys(resultsIndex);
-    // _solr.response.docs.map(d => d.id);
-
-    // get text matches
-    // const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
-    // const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
     if (isRaw) {
-      return Service.wrap(_solr.response.docs.map((d) => {
-        // console.log(_solr.fragments[d.id]);
-        const contentField = Object.keys(_solr.fragments[d.id])[0];
-        // const contentField = _solr.fragments[d.id][`content_txt_${d.lg_s}`]
-        // ? `content_txt_${d.lg_s}` : 'content_txt_fr';
-        const fragments = _solr.fragments[d.id][contentField];
-        const highlights = _solr.highlighting[d.id][contentField];
-        return {
-          id: d.id,
-          matches: Article.getMatches({
-            solrDocument: d,
-            highlights,
-            fragments,
-          }),
-          contentField,
-        };
-      }), params.query.limit, params.query.skip, total);
+      return Service.asRawResponse(solrResponse, params, total);
     }
 
+    const userInfo = {
+      user: params.user,
+      authenticated: params.authenticated,
+    };
+
     debug(
-      `find '${this.name}' (2 / 2): call articles service for ${uids.length} uids, user:`,
+      `find '${this.name}' (2 / 2): call articles service for ${solrResponse.response.docs.length} uids, user:`,
       params.user ? params.user.uid : 'no auth user found',
     );
 
-    let results = [];
+    const resultItems = await getItemsFromSolrResponse(solrResponse, this.app.service('articles'), userInfo);
+    const facets = await getFacetsFromSolrResponse(solrResponse);
 
-    if (uids.length) {
-      // get articles (if group by is article ...)!
-      results = await this.app.service('articles').find({
-        user: params.user,
-        authenticated: params.authenticated,
-        query: {
-          limit: uids.length,
-          filters: [
-            {
-              type: 'uid',
-              q: uids,
-            },
-          ],
-        },
-      })
-        .then(res => res.data)
-        .then((articles) => {
-        // respect indexes
-          const articleIndex = lodash(articles).map((article) => {
-            // complete article with fragments found
-            const fragments = _solr.fragments[article.uid][`content_txt_${article.language}`];
-            const highlights = _solr.highlighting[article.uid][`content_txt_${article.language}`];
-            article.matches = Article.getMatches({
-              solrDocument: resultsIndex[article.uid],
-              highlights,
-              fragments,
-            });
-            // complete article with page regions
-            article.regions = Article.getRegions({
-              regionCoords: resultsIndex[article.uid].pp_plain,
-            });
-            if (article instanceof Article) {
-              article.assignIIIF();
-            } else {
-              Article.assignIIIF(article);
-            }
-
-            return article;
-          }).keyBy('uid').value();
-          return uids.map(uid => articleIndex[uid]);
-        });
-    }
-    // resolve facets...
-    const facetGroupsToResolve = [];
-    const facets = _solr.facets || {};
-    // load from facets
-    if (_solr.facets) {
-      Object.keys(_solr.facets).forEach((facet) => {
-        if (facet === 'newspaper') {
-          facets[facet].buckets = facets[facet].buckets.map(d => ({
-            ...d,
-            item: Newspaper.getCached(d.val),
-            uid: d.val,
-          }));
-        } else if (facet === 'topic') {
-          facets[facet].buckets = facets[facet].buckets.map(d => ({
-            ...d,
-            item: Topic.getCached(d.val),
-            uid: d.val,
-          }));
-        }
-      });
-    }
-
-    return Service.wrap(results, params.query.limit, params.query.skip, total, {
+    return Service.wrap(resultItems, params.query.limit, params.query.skip, total, {
       responseTime: {
-        solr: _solr.responseHeader.QTime,
+        solr: solrResponse.responseHeader.QTime,
       },
       facets,
     });

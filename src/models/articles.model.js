@@ -433,6 +433,7 @@ class Article {
         });
       }
     });
+    return article;
   }
 
   /**
