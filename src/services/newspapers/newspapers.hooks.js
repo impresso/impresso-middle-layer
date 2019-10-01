@@ -2,6 +2,7 @@ const {
   queryWithCommonParams, validate, validateEach, utils,
 } = require('../../hooks/params');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+const { validateWithSchema } = require('../../hooks/schema');
 
 module.exports = {
   before: {
@@ -11,6 +12,7 @@ module.exports = {
       }),
     ],
     find: [
+      validateWithSchema('services/newspapers/schema/find/query.json', 'params.query'),
       validate({
         q: {
           required: false,
