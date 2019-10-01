@@ -27,7 +27,7 @@ class Service {
     return this.SequelizeService.get(id, {
       scope: 'get',
       where,
-    });
+    }).then(d => d.toJSON());
   }
 
   async find(params) {
@@ -40,6 +40,19 @@ class Service {
         { name: params.query.q },
         { uid: params.query.q },
       ];
+    }
+
+    if (params.query.filters && params.query.filters.length) {
+      where[Op.and] = [];
+      if (params.query.filters.some(d => d.type === 'included')) {
+        where[Op.and].push({
+          '$stats.start$': { [Op.not]: null },
+        });
+      } else if (params.query.filters.some(d => d.type === 'excluded')) {
+        where[Op.and].push({
+          '$stats.start$': { [Op.is]: null },
+        });
+      }
     }
 
     return this.SequelizeService.find({
