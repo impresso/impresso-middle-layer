@@ -72,10 +72,10 @@ class Newspaper {
         type: Sequelize.SMALLINT,
         field: 'end',
       },
-      // countIssues: {
-      //   type: Sequelize.INTEGER,
-      //   field: 'number_issues',
-      // },
+      countIssues: {
+        type: Sequelize.INTEGER,
+        field: 'number_issues',
+      },
     }, {
       tableName: 'np_timespan_v',
     });
