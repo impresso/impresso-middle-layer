@@ -1,4 +1,6 @@
-const { queryWithCommonParams, validate, utils } = require('../../hooks/params');
+const {
+  queryWithCommonParams, validate, validateEach, utils,
+} = require('../../hooks/params');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
 module.exports = {
@@ -16,7 +18,15 @@ module.exports = {
           transform: d => utils.toSequelizeLike(d),
         },
         order_by: {
-          choices: ['-name', 'name', '-startYear', 'startYear', '-endYear', 'endYear'],
+          choices: [
+            '-name',
+            'name',
+            '-startYear',
+            'startYear', '-endYear',
+            'endYear',
+            'firstIssue', '-firstIssue',
+            'lastIssue', '-lastIssue',
+          ],
           defaultValue: 'name',
           transform: d => utils.translate(d, {
             name: [['name', 'ASC']],
@@ -25,8 +35,20 @@ module.exports = {
             '-startYear': [['startYear', 'DESC']],
             endYear: [['endYear', 'ASC']],
             '-endYear': [['endYear', 'DESC']],
+            firstIssue: [['stats', 'startYear', 'ASC']],
+            '-firstIssue': [['stats', 'startYear', 'DESC']],
+            lastIssue: [['stats', 'endYear', 'ASC']],
+            '-lastIssue': [['stats', 'endYear', 'DESC']],
           }),
         },
+      }),
+      validateEach('filters', {
+        type: {
+          choices: ['included', 'excluded'],
+          required: true,
+        },
+      }, {
+        required: false,
       }),
       queryWithCommonParams(),
     ],
