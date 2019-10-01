@@ -28,6 +28,7 @@ module.exports = {
             'endYear',
             'firstIssue', '-firstIssue',
             'lastIssue', '-lastIssue',
+            'countIssues', '-countIssues',
           ],
           defaultValue: 'name',
           transform: d => utils.translate(d, {
@@ -41,6 +42,8 @@ module.exports = {
             '-firstIssue': [['stats', 'startYear', 'DESC']],
             lastIssue: [['stats', 'endYear', 'ASC']],
             '-lastIssue': [['stats', 'endYear', 'DESC']],
+            countIssues: [['stats', 'number_issues', 'ASC']],
+            '-countIssues': [['stats', 'number_issues', 'DESC']],
           }),
         },
       }),
