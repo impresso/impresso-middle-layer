@@ -34,7 +34,18 @@ describe('\'newspapers\' service', function () {
     assert.strictEqual(result.included, false);
   });
 
-  it.only('get only included newspaper', async () => {
+  it('get newspapers, should fail because of JSON schema', async () => {
+    const result = await service.find({
+      query: {
+        included: true,
+      },
+    }).catch(({ code }) => {
+      assert.strictEqual(code, 400);
+    });
+    assert.strictEqual(result, undefined);
+  });
+
+  it('get only included newspaper', async () => {
     const results = await service.find({
       query: {
         order_by: 'lastIssue',
