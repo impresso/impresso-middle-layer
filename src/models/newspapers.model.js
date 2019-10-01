@@ -21,12 +21,14 @@ class Newspaper {
     labels = ['newspaper'],
     languages = [],
     properties = [],
+    stats = {},
   } = {}) {
     this.uid = String(uid);
     this.acronym = acronym.length ? String(acronym) : this.uid;
     this.labels = labels;
     this.languages = languages.map(d => d.code);
     this.properties = properties;
+    this.included = stats.startYear !== null;
 
     const indexed = newspapersIndex.getValue(this.uid);
 
@@ -61,6 +63,23 @@ class Newspaper {
   static sequelize(client) {
     const language = Language.sequelize(client);
     const prop = Property.sequelize(client);
+    const stats = client.define('stats', {
+      startYear: {
+        type: Sequelize.SMALLINT,
+        field: 'start',
+      },
+      endYear: {
+        type: Sequelize.SMALLINT,
+        field: 'end',
+      },
+      // countIssues: {
+      //   type: Sequelize.INTEGER,
+      //   field: 'number_issues',
+      // },
+    }, {
+      tableName: 'np_timespan_v',
+    });
+    stats.removeAttribute('id');
 
     const newspaper = client.define('newspaper', {
       uid: {
@@ -83,21 +102,21 @@ class Newspaper {
         field: 'end_year',
       },
     }, {
-      // defaultScope: {
-      //   include: [
-      //     {
-      //       model: language,
-      //       as: 'languages',
-      //     },
-      //     {
-      //       model: prop,
-      //       as: 'properties',
-      //     },
-      //   ],
-      // },
+      defaultScope: {
+        include: [
+          {
+            model: stats,
+            as: 'stats',
+          },
+        ],
+      },
       scopes: {
         findAll: {
           include: [
+            {
+              model: stats,
+              as: 'stats',
+            },
             {
               model: language,
               as: 'languages',
@@ -119,6 +138,10 @@ class Newspaper {
         get: {
           include: [
             {
+              model: stats,
+              as: 'stats',
+            },
+            {
               model: language,
               as: 'languages',
             },
@@ -132,13 +155,16 @@ class Newspaper {
     });
 
     newspaper.prototype.toJSON = function () {
-      return new Newspaper({
-        ...this.get(),
-      });
+      return new Newspaper(this.get());
     };
 
     const newspaperMetadata = client.define('newspapers_metadata', {
       value: Sequelize.STRING,
+    });
+
+    newspaper.hasOne(stats, {
+      as: 'stats',
+      foreignKey: 'newspaper_id',
     });
 
     newspaper.belongsToMany(language, {
