@@ -1,6 +1,6 @@
 // Application hooks that run for every service
 const debug = require('debug')('impresso/app.hooks');
-const { GeneralError } = require("@feathersjs/errors");
+const { GeneralError } = require('@feathersjs/errors');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { validateRouteId } = require('./hooks/params');
 
@@ -11,6 +11,11 @@ const basicParams = () => (context) => {
   if (!context.params.query) {
     context.params.query = {};
   }
+  ['limit', 'page', 'offset'].forEach((param) => {
+    if (context.params.query[param]) {
+      context.params.query[param] = parseInt(context.params.query[param], 10);
+    }
+  });
 };
 
 
@@ -32,6 +37,7 @@ const requireAuthentication = ({
 const errorHandler = (ctx) => {
   if (ctx.error) {
     const error = ctx.error;
+    console.error(error);
     if (!error.code) {
       const newError = new GeneralError('server error');
       ctx.error = newError;
