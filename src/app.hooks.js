@@ -1,5 +1,6 @@
 // Application hooks that run for every service
 const debug = require('debug')('impresso/app.hooks');
+const { GeneralError } = require("@feathersjs/errors");
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { validateRouteId } = require('./hooks/params');
 
@@ -11,6 +12,7 @@ const basicParams = () => (context) => {
     context.params.query = {};
   }
 };
+
 
 /**
  * Ensure JWT has been sent, except for the authentication andpoint.
@@ -26,6 +28,23 @@ const requireAuthentication = ({
   }
   return context;
 };
+
+const errorHandler = (ctx) => {
+  if (ctx.error) {
+    const error = ctx.error;
+    if (!error.code) {
+      const newError = new GeneralError('server error');
+      ctx.error = newError;
+      return ctx;
+    }
+    if (error.code === 404 || process.env.NODE_ENV === 'production') {
+      error.stack = null;
+    }
+    return ctx;
+  }
+  return null;
+};
+
 
 const hooks = {
   before: {
@@ -59,7 +78,9 @@ const hooks = {
   },
 
   error: {
-    all: [],
+    all: [
+      errorHandler,
+    ],
     find: [],
     get: [],
     create: [],
