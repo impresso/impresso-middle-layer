@@ -37,7 +37,8 @@ const requireAuthentication = ({
 const errorHandler = (ctx) => {
   if (ctx.error) {
     const error = ctx.error;
-    console.error(error);
+    console.error(`ERROR ${error.code} at ${ctx.path}:${ctx.method}, message:`, error.message);
+    console.error(error.stack);
     if (!error.code) {
       const newError = new GeneralError('server error');
       ctx.error = newError;
