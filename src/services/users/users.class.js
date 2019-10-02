@@ -25,7 +25,7 @@ class Service extends Neo4jService {
     // if you're staff; otherwise get your own.
     const user = await this.sequelizeKlass.scope('isActive', 'get').findOne({
       where: {
-        [Op.or]: [{ username: id }, { '$profile.uid$': id }],
+        [Op.or]: [{ id }, { username: id }, { '$profile.uid$': id }],
       },
     });
     if (!user) {
@@ -175,7 +175,6 @@ class Service extends Neo4jService {
   }
 
   async find(params) {
-    const userUid = params.authenticated ? params.user.uid : undefined;
     debug('find: ', params);
     let uid;
 
@@ -201,27 +200,6 @@ class Service extends Neo4jService {
     return this.sequelizeKlass.scope('isActive', 'find')
       .findAll(sequelizeParams)
       .then(res => res.map(d => new User(d.toJSON())));
-    // const results = await Promise.all([
-    //   // look for username or email or profile uid (sooo cool!)
-    //
-    //   // neo4j!
-    //   this._run(this.queries.find, {
-    //     ...params.query,
-    //     uid,
-    //     user_uid: userUid,
-    //   }).then(res =>
-    //     // add id field for oauth2. @todo change somewhere in config
-    //     res.records.map(neo4jRecordMapper).map(u => ({
-    //       ...u,
-    //       id: u.uid,
-    //   }))),
-    // ]);
-    //
-    // if(results[1]) {
-    //
-    // }
-    // console.log(results);
-    // return results[0];
   }
 }
 
