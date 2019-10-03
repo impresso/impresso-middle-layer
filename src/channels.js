@@ -51,17 +51,22 @@ module.exports = function (app) {
   });
 
 
-  app.on('logout', (payload, { socket: { _feathers: connection } }) => {
-    // We currently use the soultion found at: https://github.com/feathersjs/feathers/issues/941
-    if (connection) {
-      const user = connection.user;
-      debug('@logout', connection.payload);
+  app.on('logout', (payload, socket) => { // }, { socket: { _feathers: connection } }) => {
+    if (payload.user) {
+      debug('@logout received for user:', payload.user.username);
+    } else {
+      debug('@logout received, no payload?', payload, socket);
+    }
+
+    if (socket.connection) {
       // When logging out, leave all channels before joining anonymous channel
-      if (user && user.uid) {
-        app.channel(`logs/${user.uid}`).leave(connection);
+      if (socket.connection.user && socket.connection.user.uid) {
+        debug('@logout (leaving private logs) for user:', socket.connection.user.username);
+        app.channel(`logs/${socket.connection.user.uid}`).leave(socket.connection);
       }
-      app.channel('authenticated').leave(connection);
-      app.channel('anonymous').join(connection);
+      app.channel('authenticated').leave(socket.connection);
+      debug('@logout (reconnecting with anonymous channel) for user:', socket.connection.user.username);
+      app.channel('anonymous').join(socket.connection);
     }
   });
 };

@@ -1,10 +1,10 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
 const { protect } = require('@feathersjs/authentication-local').hooks;
 const { BadRequest } = require('@feathersjs/errors');
 const { includes, get, assignIn } = require('lodash');
 const {
   validate, queryWithCommonParams, utils, sanitize,
 } = require('../../hooks/params');
+const { authenticate } = require('../../hooks/authenticate');
 const { SOLR_FACETS } = require('../../hooks/search');
 const { paramsValidator, eachFilterValidator } = require('../search/search.validators');
 const { validateWithSchema } = require('../../hooks/schema');
