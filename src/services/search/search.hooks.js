@@ -1,5 +1,5 @@
 const { protect } = require('@feathersjs/authentication-local').hooks;
-const { authenticate } = require('@feathersjs/authentication').hooks;
+const { authenticate } = require('../../hooks/authenticate');
 const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, utils,
 } = require('../../hooks/params');
