@@ -1,6 +1,6 @@
 // Application hooks that run for every service
 const debug = require('debug')('impresso/app.hooks');
-const { GeneralError, BadGateway } = require('@feathersjs/errors');
+const { GeneralError, BadGateway, NotAvailable } = require('@feathersjs/errors');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { validateRouteId } = require('./hooks/params');
 
@@ -42,6 +42,8 @@ const errorHandler = (ctx) => {
 
     if (error.name === 'SequelizeConnectionRefusedError') {
       ctx.error = new BadGateway('SequelizeConnectionRefusedError');
+    } else if (error.name === 'SequelizeConnectionError') {
+      ctx.error = new NotAvailable('SequelizeConnectionError');
     } else if (!error.code) {
       ctx.error = new GeneralError('server error');
     }
