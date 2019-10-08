@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services:uploaded-images');
 const verbose = require('debug')('verbose:impresso/services:uploaded-images');
 const { Op } = require('sequelize');
 const { NotFound } = require('@feathersjs/errors');
@@ -24,14 +25,15 @@ class Service {
   }
 
   async get(id, params) {
-    verbose('get method, id:', id);
-
+    debug(`[get] id: ${id} check REDIS if an image has been uploaded KEY:"img:${id}"`);
     const cachedImage = await this.app.get('redisClient').get(`img:${id}`);
 
     if (cachedImage) {
+      debug('[get] id:', id, 'found uploaded image in REDIS, with hash:', cachedImage.uid);
       return new UploadedImage(JSON.parse(cachedImage));
     }
 
+    debug('[get] id:', id, 'looking for existing images');
     return this.SequelizeService.get(id, {
       where: {
         [Op.or]: [
@@ -41,14 +43,14 @@ class Service {
       },
     }).then((result) => {
       console.log(result);
-      verbose('get result:', result);
+      debug('get result:', result);
       return result;
     });
   }
 
   create(data, params) {
     const app = this.app;
-
+    debug('create', data);
     return new Promise((resolve, reject) => {
       const redisClient = app.get('redisClient');
 
