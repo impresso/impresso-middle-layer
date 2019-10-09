@@ -54,7 +54,7 @@ const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
     qq = `${field}:${escapeValue(filter.q)}`;
   }
   if (filter.context === 'exclude') {
-    qq = sq.length > 0 ? `NOT ${qq}` : `*:* AND NOT ${qq}`;
+    qq = sq.length > 0 ? `NOT (${qq})` : `*:* AND NOT (${qq})`;
   }
   sq.push(qq);
   return sq;
@@ -80,7 +80,7 @@ const reduceDaterangeFiltersToSolr = filters => filters
       q = `meta_date_dt:[${filter.q}]`;
     }
     if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
     }
     sq.push(q);
     return sq;
@@ -96,7 +96,7 @@ const reduceNumericRangeFilters = (filters, field) => filters
       q = `${field}:[${filter.q}]`;
     }
     if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
     }
     sq.push(q);
     return sq;
@@ -152,7 +152,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
     }
 
     if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
     }
     sq.push(q);
     return sq;
