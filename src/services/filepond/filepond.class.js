@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const rp = require('request-promise');
 const sharp = require('sharp');
-const verbose = require('debug')('verbose:impresso/services:filepond');
+const debug = require('debug')('impresso/services:filepond');
 
 class Service {
   constructor(options) {
@@ -16,9 +16,9 @@ class Service {
 
   async create(data, params) {
     const file = path.join(this.app.get('multer').dest, params.file.filename);
-    verbose('create:', file);
+    debug('[create] filepath:', file);
     const url = this.app.get('images').visualSignature.endpoint;
-    verbose('visualSignature service url:', url);
+    debug('[create] visualSignature service url:', url);
     // Promise: process image
     const fingerprintPromise = this.processImage(file)
       .then(imageBuffer => rp({
@@ -53,7 +53,7 @@ class Service {
       thumbnail,
     }));
 
-    verbose('image - uid:', image.uid, '- checksum', image.checksum);
+    debug('[create] add to REDIS image - uid:', image.uid, '- checksum', image.checksum);
     await this.app.get('redisClient')
       .set(`img:${image.checksum}`, JSON.stringify(image));
 
