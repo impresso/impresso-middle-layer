@@ -102,15 +102,10 @@ class Newspaper {
         field: 'end_year',
       },
     }, {
-      defaultScope: {
-        include: [
-          {
-            model: stats,
-            as: 'stats',
-          },
-        ],
-      },
       scopes: {
+        lookup: {
+          include: [],
+        },
         findAll: {
           include: [
             {
@@ -127,11 +122,11 @@ class Newspaper {
             },
           ],
         },
-        all: {
+        find: {
           include: [
             {
-              model: language,
-              as: 'languages',
+              model: stats,
+              as: 'stats',
             },
           ],
         },
