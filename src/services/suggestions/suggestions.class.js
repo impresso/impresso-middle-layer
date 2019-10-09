@@ -26,11 +26,16 @@ class Service {
   }
 
   suggestNewspapers({ q }) {
+    debug('suggestNewspapers for q:', q);
     return this.app.service('newspapers').find({
       query: {
         q,
         limit: 3,
+        faster: true,
       },
+    }).then((res) => {
+      debug('suggestNewspapers SUCCESS q:', q);
+      return res;
     }).then(({ data }) => data.map(d => new Suggestion({
       type: 'newspaper',
       h: d.name,
@@ -44,12 +49,16 @@ class Service {
     if (!user || !user.id) {
       return [];
     }
+    debug('suggestCollections for q:', q);
     return this.app.service('collections').find({
       query: {
         q,
         limit: 3,
       },
       user,
+    }).then((res) => {
+      debug('suggestCollections SUCCESS q:', q);
+      return res;
     }).then(({ data }) => data.map(d => new Suggestion({
       q: d.uid,
       h: d.name,
@@ -62,7 +71,7 @@ class Service {
     return this.solrClient.suggest({
       namespace: 'entities',
       q,
-      limit: 5,
+      limit: 3,
     }, () => (doc) => {
       // payload shoyld be a string formatted as 'id|type',
       // like 'aida-0001-Testament_(comics)|Person'
@@ -86,7 +95,7 @@ class Service {
     return this.solrClient.suggest({
       namespace: 'mentions',
       q,
-      limit: 5,
+      limit: 3,
     }, () => (doc) => {
       // payload form ention contain type only
       const item = new Mention({
@@ -108,7 +117,7 @@ class Service {
     return this.solrClient.suggest({
       namespace: 'topics',
       q,
-      limit: 5,
+      limit: 3,
     }, () => (doc) => {
       const topic = Topic.solrSuggestFactory()(doc);
       // console.log(topic);
@@ -154,7 +163,7 @@ class Service {
 
   async find(params) {
     const self = this;
-
+    debug('[find] params.query.q:', params.query.q);
     const asregex = async () => {
       if (params.query.q.indexOf('/') === 0) {
         try {
@@ -258,9 +267,12 @@ class Service {
       this.suggestEntities({
         q: qPlainText,
       }),
-    ]).then(values => ({
-      data: lodash(values).filter(d => !lodash.isEmpty(d)).flatten().value(),
-    }));
+    ]).then((values) => {
+      debug('[find] SUCCESS for params.query.q:', params.query.q);
+      return {
+        data: lodash(values).filter(d => !lodash.isEmpty(d)).flatten().value(),
+      };
+    });
   }
 }
 

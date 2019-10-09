@@ -8,12 +8,12 @@ const toSequelizeLike = (query) => {
   // for a two spaces word like "accent octoup", outputs:
   // {
   //   [Op.and]: [
-  //     {[Op.ilike]: '%accen%',}
-  //     {[Op.ilike]: '%octoup%',}
+  //     {[Op.like]: '%accen%',}
+  //     {[Op.like]: '%octoup%',}
   //   ],
   // },
   const escapeds = query.split(/\s+/).map(d => ({
-    [Op.like]: `%${d.replace(/[%()]/g, '')}%`,
+    [Op.like]: `%%${d.replace(/[%()]/g, '')}%`,
   }));
 
   if (escapeds.length > 1) {

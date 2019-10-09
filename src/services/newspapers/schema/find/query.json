@@ -15,6 +15,10 @@
       "type": "string",
       "description": "Order intersection items by this value"
     },
+    "faster": {
+      "type": "boolean",
+      "description": "for quick lookup only, disable sorting and looking for stats"
+    },
     "q": {
       "type": "string",
       "description": "Newspaper containing q"
