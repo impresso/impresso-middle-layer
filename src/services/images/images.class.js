@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-const { NotFound } = require('@feathersjs/errors');
+const { NotFound, BadGateway } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/services:images');
 const SolrService = require('../solr.service');
 const Image = require('../../models/images.model');
@@ -72,11 +72,11 @@ class Service {
   }
 
   async find(params) {
-    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
+    debug(`[find] with params.isSafe:${params.isSafe} and params.query:`, params.query);
     let signature;
 
     if (params.query.similarTo) {
-      debug('get similarTo vector ...', params.query.similarTo);
+      debug('[find] get signature for params.query.similarTo:', params.query.similarTo, '- vector:', `_vector_${params.query.vectorType}_bv`);
       signature = await this.SolrService.solr.findAll({
         q: `id:${params.query.similarTo}`,
         fl: ['id', `signature:_vector_${params.query.vectorType}_bv`],
@@ -85,14 +85,15 @@ class Service {
       })
         .then(res => res.response.docs[0].signature)
         .catch((err) => {
+          console.error(err);
           throw new NotFound();
         });
-
+      debug('[find] signature retrieved for params.query.similarTo:', params.query.similarTo);
       if (!signature) {
         throw new NotFound('signature not found');
       }
     } else if (params.query.similarToUploaded) {
-      debug('get user uploaded image signature for UploadedImage:', params.query.similarToUploaded);
+      debug('[find] get signature for user uploaded image params.query.similarToUploaded:', params.query.similarToUploaded);
       signature = await this.app.service('uploaded-images')
         .get(params.query.similarToUploaded)
         .then(res => res.signature)
@@ -108,6 +109,8 @@ class Service {
       } else {
         fq = `${params.query.sq} AND _vector_${params.query.vectorType}_bv:[* TO *]`;
       }
+      debug('[find] find all with the current signature, solr query', fq);
+
       return this.SolrService.solr.findAll({
         fq,
         form: {
@@ -119,12 +122,19 @@ class Service {
         skip: params.query.skip,
         facets: params.query.facets,
         order_by: 'score DESC',
-      }, Image.solrFactory).then(res => this.assignIIIF({
+      }, Image.solrFactory).then((res) => {
+        console.log(res);
+        debug(`[find] success, ${res.response.numFound} results all with the current signature, in QTime:${res.responseHeader.QTime}ms`);
+        return res;
+      }).then(res => this.assignIIIF({
         method: 'find',
         result: this.SolrService.solr.utils.wrapAll(res),
-      }));
+      })).catch((err) => {
+        console.error(err);
+        throw new BadGateway('unable to load similar images');
+      });
     }
-
+    debug('[find] no signature requested, perform normal solr query');
     // no signature. Filter out images without signature!
     if (params.query.sq === '*:*') {
       params.query.sq = `filter(_vector_${params.query.vectorType}_bv:[* TO *])`;
