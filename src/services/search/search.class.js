@@ -123,7 +123,7 @@ class Service {
       skip: params.query.skip,
       fl: 'id,pp_plain:[json],lg_s', // other fields can be loaded later on
       highlight_by: 'content_txt_de,content_txt_fr,content_txt_en',
-      highlight_props: {
+      highlightProps: {
         'hl.snippets': 10,
         'hl.fragsize': 100,
       },
