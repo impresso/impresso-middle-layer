@@ -1,3 +1,4 @@
+const { pick, identity } = require('lodash');
 const { Op } = require('sequelize');
 const Collection = require('../../models/collections.model');
 const SequelizeService = require('../sequelize.service');
@@ -64,20 +65,27 @@ class Service {
       uid: id,
     };
 
-    if (params.user) {
-      where[Op.not] = { status: { [Op.in]: [Collection.STATUS_DELETED] } };
-      where[Op.or] = [
-        { '$creator.profile.uid$': params.user.uid },
-        { status: { [Op.in]: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED] } },
-      ];
-    } else {
-      where.status = {
-        [Op.in]: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED],
-      };
+    if (!params.query.nameOnly) {
+      if (params.user) {
+        where[Op.not] = { status: { [Op.in]: [Collection.STATUS_DELETED] } };
+        where[Op.or] = [
+          { '$creator.profile.uid$': params.user.uid },
+          { status: { [Op.in]: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED] } },
+        ];
+      } else {
+        where.status = {
+          [Op.in]: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED],
+        };
+      }
     }
+
+    const transform = params.query.nameOnly
+      ? c => pick(c, ['name', 'description'])
+      : identity;
+
     return this.SequelizeService.get(id, {
       where,
-    }).then(collection => collection.toJSON());
+    }).then(collection => transform(collection.toJSON()));
   }
 
   async create(data, params) {
