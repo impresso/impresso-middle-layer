@@ -207,15 +207,27 @@ const toExcerpt = (content, {
   TruncateBy = 'words',
   TruncateLength = 50,
   excludeTitle = '',
+  Suffix = '...',
+  maxLength = 120,
 } = {}) => {
   let c = String(content);
   if (excludeTitle.length && c.indexOf(excludeTitle) === 0) {
     c = c.substr(excludeTitle.length);
   }
-  const exc = truncatise(c.split('<').join('&lt;').split('>').join('&rt;'), {
+  // clean
+  c = c.split('<').join('&lt;').split('>').join('&rt;');
+  const exc = truncatise(c, {
     TruncateBy,
     TruncateLength,
+    Suffix,
   });
+  if (exc > maxLength) {
+    return truncatise(c, {
+      TruncateBy: 'characters',
+      maxLength,
+      Suffix,
+    });
+  }
   // npm i truncate
   return exc;
 };
