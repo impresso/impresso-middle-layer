@@ -49,6 +49,18 @@ class Entity {
     return uid.replace(/^aida-\d+-\d+-/, '').split('_').join(' ');
   }
 
+  static getTypeFromUid(uid) {
+    return uid.replace(/^aida-\d+-(\d+)-.*/, '$1');
+  }
+
+  static getCached(uid) {
+    return new Entity({
+      uid,
+      name: Entity.getNameFromUid(uid),
+      type: Entity.getTypeFromUid(uid),
+    });
+  }
+
   static sequelize(client, {
     tableName = 'entities',
   } = {}) {
