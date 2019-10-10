@@ -17,7 +17,16 @@ module.exports = {
         q: {
           required: false,
           max_length: 500,
-          transform: d => utils.toSequelizeLike(d),
+          transform: (d) => {
+            if (d) {
+              return utils.toSequelizeLike(d);
+            }
+            return null;
+          },
+        },
+        faster: {
+          required: false,
+          transform: d => !!d,
         },
         order_by: {
           choices: [
@@ -32,8 +41,8 @@ module.exports = {
           ],
           defaultValue: 'name',
           transform: d => utils.translate(d, {
-            name: [['name', 'ASC']],
-            '-name': [['name', 'DESC']],
+            name: [['id', 'ASC']],
+            '-name': [['id', 'DESC']],
             startYear: [['startYear', 'ASC']],
             '-startYear': [['startYear', 'DESC']],
             endYear: [['endYear', 'ASC']],

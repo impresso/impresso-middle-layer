@@ -1,4 +1,4 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
+const { authenticate } = require('../../hooks/authenticate');
 const { queryWithCommonParams, validate } = require('../../hooks/params');
 const { checkCachedContents, saveResultsInCache, returnCachedContents } = require('../../hooks/redis');
 
