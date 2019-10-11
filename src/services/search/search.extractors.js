@@ -6,6 +6,7 @@ const {
 const Article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
 const Topic = require('../../models/topics.model');
+const Entity = require('../../models/entities.model');
 
 function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex) {
   const { uid: id, language } = article;
@@ -85,6 +86,8 @@ async function addCachedItems(bucket, provider) {
 const CacheProvider = {
   newspaper: Newspaper,
   topic: Topic,
+  person: Entity,
+  location: Entity,
 };
 
 /**
