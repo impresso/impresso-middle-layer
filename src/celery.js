@@ -28,23 +28,35 @@ const getCeleryClient = (config, app) => {
     debug(`ready! ${err}`);
   });
   client.on('message', (msg) => {
-    debug('message!', msg);
+    let result = msg.result;
 
-    if (msg.result && typeof msg.result === 'object') {
-      if (msg.result.job_id) {
+    if (result && typeof result === 'string') {
+      try {
+        result = JSON.parse(msg);
+      } catch (err) {
+        debug('@message, ERROR, cannot get json from this string:', result);
+        console.error(err);
+      }
+    }
+
+    if (result && typeof result === 'object') {
+      if (result.job_id) {
+        debug(`@message related to job: ${result.job_id}, send to: ${result.user_uid}`, result);
         app.service('logs').create({
-          task: msg.result.task,
+          task: result.task,
           job: {
-            id: msg.result.job_id,
-            type: msg.result.job_type,
-            status: msg.result.job_status,
-            progress: msg.result.progress,
-            creationDate: msg.result.job_created, // : '2019-04-04T08:54:12.067946+00:00',
+            id: result.job_id,
+            type: result.job_type,
+            status: result.job_status,
+            progress: result.progress,
+            creationDate: result.job_created, // : '2019-04-04T08:54:12.067946+00:00',
           },
-          msg: JOB_STATUS_TRANSLATIONS[msg.result.job_status],
-          to: msg.result.user_uid,
+          msg: JOB_STATUS_TRANSLATIONS[result.job_status],
+          to: result.user_uid,
           from: 'jobs',
         });
+      } else {
+        debug('@message from unknown origin, cannot propagate:', result);
       }
     }
   });
