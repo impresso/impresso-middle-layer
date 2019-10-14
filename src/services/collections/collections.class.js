@@ -1,19 +1,25 @@
+/* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services:collections');
 const { pick, identity } = require('lodash');
 const { Op } = require('sequelize');
+const { BadGateway } = require('@feathersjs/errors');
+
 const Collection = require('../../models/collections.model');
 const SequelizeService = require('../sequelize.service');
-/* eslint-disable no-unused-vars */
+
 class Service {
-  constructor({
-    name = '',
-    app = null,
-  } = {}) {
-    this.name = String(name);
+  constructor(options) {
+    this.options = options || {};
+  }
+
+  setup(app) {
     this.app = app;
-    this.SequelizeService = SequelizeService({
+    this.name = 'collections';
+    this.sequelizeService = new SequelizeService({
       app,
-      name,
+      name: this.name,
     });
+    debug('[setup] completed');
   }
 
   async find(params) {
@@ -42,7 +48,7 @@ class Service {
       });
     }
 
-    return this.SequelizeService.find({
+    return this.sequelizeService.find({
       query: {
         ...params.query,
       },
@@ -83,27 +89,21 @@ class Service {
       ? c => pick(c, ['name', 'description'])
       : identity;
 
-    return this.SequelizeService.get(id, {
+    return this.sequelizeService.get(id, {
       where,
     }).then(collection => transform(collection.toJSON()));
   }
 
   async create(data, params) {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(current => this.create(current, params)));
-    }
     const collection = new Collection({
       ...data.sanitized,
       creator: params.user,
     });
-    // get user
 
-    const result = await this.SequelizeService.bulkCreate([{
+    return this.sequelizeService.create({
       ...collection,
-      creator_id: collection.creator.id,
-    }]);
-
-    return collection;
+      creatorId: collection.creator.id,
+    });
   }
 
   async update(id, data, params) {
@@ -112,7 +112,7 @@ class Service {
 
   async patch(id, data, params) {
     // get the collection
-    return this.SequelizeService.patch(id, data.sanitized, {
+    return this.sequelizeService.patch(id, data.sanitized, {
       where: {
         creatorId: params.user.id,
       },
@@ -120,12 +120,38 @@ class Service {
   }
 
   async remove(id, params) {
-    return this.SequelizeService.patch(id, {
+    debug(`[remove] id:${id}, params.user.uid:${params.user.uid}`);
+    const result = await this.sequelizeService.patch(id, {
       status: Collection.STATUS_DELETED,
     }, {
       where: {
         creatorId: params.user.id,
       },
+    });
+    debug(`[remove] id:${id}, patch status to DEL. Running celery task "remove_collection"...`);
+    return this.app.get('celeryClient').run({
+      task: 'impresso.tasks.remove_collection',
+      args: [
+        // collection_uid
+        id,
+        // user id
+        params.user.id,
+      ],
+    }).then((res) => {
+      debug(`[remove] id:${id} celery task launched`, res.status, res.date_done);
+      return {
+        params: {
+          id,
+          status: Collection.STATUS_DELETED,
+        },
+        task: {
+          task_id: res.task_id,
+          creationDate: res.date_done,
+        },
+      };
+    }).catch((err) => {
+      debug(`[remove] id:${id} celery task FAILED:`, err);
+      throw new BadGateway('celeryUnreachable');
     });
   }
 
