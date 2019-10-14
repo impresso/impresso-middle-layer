@@ -62,7 +62,6 @@
     "debug": "^3.2.6",
     "decypher": "^0.13.0",
     "dotenv": "^4.0.0",
-    "eslint-config-airbnb-base": "^13.1.0",
     "fast-xml-parser": "^3.12.12",
     "feathers-authentication-hooks": "^0.1.7",
     "feathers-errors": "^2.9.2",
@@ -112,6 +111,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "mocha": "^4.1.0",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "eslint-config-airbnb-base": "^13.1.0"
   }
 }
