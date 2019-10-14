@@ -5,10 +5,15 @@ const ajv = new Ajv({ allErrors: true, strictKeywords: true });
 ajv.addSchema(require('../schema/common/pagination.json'));
 ajv.addSchema(require('../schema/search/filter.json'));
 
+// models
+ajv.addSchema(require('../schema/models/base-user.model.json'));
+ajv.addSchema(require('../schema/models/search-query.model.json'));
+
+// services
+ajv.addSchema(require('../services/search-queries/schema/post/payload.json'));
 ajv.addSchema(require('../services/search-queries-comparison/schema/post/payload.json'));
 ajv.addSchema(require('../services/search-queries-comparison/schema/post/response.json'));
 ajv.addSchema(require('../services/newspapers/schema/find/query.json'));
-
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
 
