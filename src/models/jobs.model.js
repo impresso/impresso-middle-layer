@@ -29,11 +29,15 @@ class Job {
     this.id = parseInt(id, 10);
     this.status = status;
     this.type = type;
-    try {
-      this.extra = JSON.parse(extra);
-    } catch (e) {
-      if (e.name !== 'SyntaxError') {
-        console.error(e);
+    if (typeof extra === 'object') {
+      this.extra = extra;
+    } else {
+      try {
+        this.extra = JSON.parse(extra);
+      } catch (e) {
+        if (e.name !== 'SyntaxError') {
+          console.error(e);
+        }
       }
     }
     if (creationDate instanceof Date) {
