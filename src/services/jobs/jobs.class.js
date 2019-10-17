@@ -4,15 +4,16 @@ const { BadGateway, NotFound, NotImplemented } = require('@feathersjs/errors');
 const SequelizeService = require('../sequelize.service');
 
 class Service {
-  constructor({
-    name = '',
-    app = null,
-  } = {}) {
-    this.name = name;
+  constructor(options) {
+    this.options = options;
+  }
+
+  setup(app) {
     this.app = app;
-    this.SequelizeService = SequelizeService({
+    this.name = 'jobs';
+    this.sequelizeService = new SequelizeService({
       app,
-      name,
+      name: this.name,
     });
   }
 
@@ -21,7 +22,7 @@ class Service {
       creatorId: params.user.id,
     };
 
-    return this.SequelizeService.find({
+    return this.sequelizeService.find({
       query: {
         ...params.query,
       },
@@ -38,7 +39,7 @@ class Service {
     } else {
       where.creatorId = params.user.id;
     }
-    return this.SequelizeService.get(id, { where })
+    return this.sequelizeService.get(id, { where })
       .then(job => job.toJSON());
   }
 
@@ -74,19 +75,27 @@ class Service {
   }
 
   async patch(id, data, params) {
-    const where = {};
-    if (params.user.id) {
-      where.creatorId = params.user.id;
-    } else {
-      where['$creator.profile.uid$'] = params.user.uid;
-    }
-    return this.SequelizeService.patch(id, {
+    const where = {
+      creatorId: params.user.id,
+    };
+    debug(`[patch] id:${id}, params.user.uid:${params.user.uid}, where:`, where);
+    return this.sequelizeService.patch(id, {
       status: data.sanitized.status,
     }, { where });
   }
 
   async remove(id, params) {
-    return { id };
+    debug(`[remove] id:${id}, params.user.uid:${params.user.uid}`);
+    return this.sequelizeService.bulkRemove({
+      id,
+      creatorId: params.user.id,
+      status: ['RIP', 'DON'],
+    }).then(removed => ({
+      params: {
+        id,
+      },
+      removed,
+    }));
   }
 }
 
