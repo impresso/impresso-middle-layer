@@ -20,17 +20,19 @@ class Service {
 
     const q = params.sanitized.sq;
 
-    debug(`create '${this.name}', from solr query: ${q}`);
+    debug('[create] from solr query:', q);
 
     return client.run({
       task: 'impresso.tasks.export_query_as_csv',
       args: [
-        // query
-        q,
         // user id
         params.user.id,
+        // query
+        q,
         // description
         data.sanitized.description || '',
+        // query_hash
+        JSON.stringify(params.sanitized.filters),
       ],
     }).catch((err) => {
       if (err.result.exc_type === 'DoesNotExist') {
