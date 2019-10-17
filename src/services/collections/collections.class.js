@@ -95,6 +95,7 @@ class Service {
   }
 
   async create(data, params) {
+    debug('[create]', data);
     const collection = new Collection({
       ...data.sanitized,
       creator: params.user,
