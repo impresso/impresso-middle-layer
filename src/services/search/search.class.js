@@ -77,18 +77,20 @@ class Service {
       return {};
     }
 
-    const q = params.sanitized.sq;
+    // quickly save the data!
+    const q = data.sanitized.sq;
 
-    debug(`create '${this.name}', from solr query: ${q}`);
+    // create new search query :TODO
+    debug(`[create] from solr query: ${q} from user:${params.user.uid}`);
 
     return client.run({
       task: 'impresso.tasks.add_to_collection_from_query',
       args: [
         // collection_uid
-        params.sanitized.collection_uid,
+        data.sanitized.collection_uid,
         // user id
         params.user.id,
-        // query
+        // query ID
         q,
         // content_type, A for article
         'A',
@@ -101,6 +103,9 @@ class Service {
         throw new NotImplemented();
       }
       throw new NotImplemented();
+    }).then((res) => {
+      debug('[create] impresso.tasks.add_to_collection_from_query SUCCESS.', res);
+      return {};
     });
   }
 
