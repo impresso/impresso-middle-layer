@@ -248,25 +248,25 @@ const qToSolrFilter = (type = 'string') => (context) => {
  * in `context.params.sanitized.filters` array to a smart SOLR query
  *
  */
-const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) => {
+const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) => async (context) => {
   if (context.type !== 'before') {
     throw new Error('The \'filtersToSolrQuery\' hook should only be used as a \'before\' hook.');
   }
-  if (typeof context.params.sanitized !== 'object') {
-    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+  if (typeof context[prop].sanitized !== 'object') {
+    context[prop].sanitized = {};
   }
-  if (!Array.isArray(context.params.sanitized.filters)) {
-    context.params.sanitized.filters = [];
+  if (!Array.isArray(context[prop].sanitized.filters)) {
+    context[prop].sanitized.filters = [];
   }
-  if (!context.params.sanitized.filters.length && !context.params.sanitized.q) {
+  if (!context[prop].sanitized.filters.length && !context[prop].sanitized.q) {
     // nothing is give, wildcard then.
     debug('\'filtersToSolrQuery\' with \'solr query\':', '*:*');
-    context.params.sanitized.sq = '*:*';
-    context.params.sanitized.queryComponents = [];
+    context[prop].sanitized.sq = '*:*';
+    context[prop].sanitized.queryComponents = [];
     return;
   }
 
-  const filters = lodash.groupBy(context.params.sanitized.filters, 'type');
+  const filters = lodash.groupBy(context[prop].sanitized.filters, 'type');
   const queries = [];
   // const filterQueries = [];
   // will contain payload vars, if any.
@@ -292,23 +292,23 @@ const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) 
   });
 
   if (overrideOrderBy && Object.keys(vars).length) {
-    if (context.params.sanitized.order_by) {
-      context.params.sanitized.order_by = Object.keys(vars)
+    if (context[prop].sanitized.order_by) {
+      context[prop].sanitized.order_by = Object.keys(vars)
         .map(d => `${vars[d]} desc`)
-        // .concat(context.params.sanitized.order_by.split(','))
+        // .concat(context[prop].sanitized.order_by.split(','))
         .join(',');
     }
   }
 
-  debug('\'filtersToSolrQuery\' vars =', vars, context.params.sanitized);
+  debug('\'filtersToSolrQuery\' vars =', vars, context[prop].sanitized);
 
-  // context.params.query.order_by.push()
+  // context[prop].query.order_by.push()
 
-  context.params.sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
-  // context.params.sanitized.sfq = filterQueries.join(' AND ');
-  context.params.sanitized.sv = vars;
+  context[prop].sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
+  // context[prop].sanitized.sfq = filterQueries.join(' AND ');
+  context[prop].sanitized.sv = vars;
   // NOTE: `queryComponents` should be deprecated
-  context.params.sanitized.queryComponents = [].concat(
+  context[prop].sanitized.queryComponents = [].concat(
     filters.isFront,
     filters.years,
     filters.newspaper,
@@ -324,7 +324,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) 
     filters.issue,
     filters.page,
   ).filter(d => typeof d !== 'undefined');
-  debug('\'filtersToSolrQuery\' with \'solr query\':', context.params.sanitized.sq);
+  debug('\'filtersToSolrQuery\' with \'solr query\':', context[prop].sanitized.sq);
 };
 
 /**
