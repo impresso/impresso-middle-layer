@@ -53,13 +53,14 @@ module.exports = {
           choices: ['articles'],
           transform: d => utils.translate(d, SOLR_GROUP_BY),
         },
-      }, 'GET'),
+      }, 'POST'),
       validateEach('filters', eachFilterValidator, {
         required: true,
-        method: 'GET',
+        method: 'POST',
       }),
-      qToSolrFilter('string'),
-      filtersToSolrQuery(),
+      filtersToSolrQuery({
+        prop: 'data',
+      }),
     ],
     update: [],
     patch: [],
