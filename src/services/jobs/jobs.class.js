@@ -2,6 +2,7 @@
 const debug = require('debug')('impresso/services:jobs');
 const { BadGateway, NotFound, NotImplemented } = require('@feathersjs/errors');
 const SequelizeService = require('../sequelize.service');
+const { STATUS_KILLED, STATUS_DONE } = require('../../models/jobs.model');
 
 class Service {
   constructor(options) {
@@ -89,7 +90,7 @@ class Service {
     return this.sequelizeService.bulkRemove({
       id,
       creatorId: params.user.id,
-      status: ['RIP', 'DON'],
+      status: [STATUS_KILLED, STATUS_DONE],
     }).then(removed => ({
       params: {
         id,
