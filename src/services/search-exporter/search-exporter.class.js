@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:search');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
+const { protobuf } = require('impresso-jscommons');
 const solr = require('../../solr');
 const article = require('../../models/articles.model');
 
@@ -19,8 +20,13 @@ class Service {
     }
 
     const q = params.sanitized.sq;
+    debug('[create] from solr query:', q, 'filters:', params.sanitized.filters);
 
-    debug('[create] from solr query:', q);
+    const pq = protobuf.searchQuery.serialize({
+      filters: params.sanitized.filters,
+    });
+    debug('[create] protobuffered:', pq);
+
 
     return client.run({
       task: 'impresso.tasks.export_query_as_csv',
@@ -32,7 +38,7 @@ class Service {
         // description
         data.sanitized.description || '',
         // query_hash
-        JSON.stringify(params.sanitized.filters),
+        pq,
       ],
     }).catch((err) => {
       if (err.result.exc_type === 'DoesNotExist') {
