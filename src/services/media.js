@@ -1,7 +1,7 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/media');
-const { BadRequest, NotFound, NotAuthenticated } = require('@feathersjs/errors');
+const { BadRequest, NotFound } = require('@feathersjs/errors');
 const { authenticate } = require('@feathersjs/express');
 
 module.exports = function (app) {
@@ -38,6 +38,7 @@ module.exports = function (app) {
     },
     function (req, res) {
       const filename = res.locals.item.attachment.path.split('/').pop();
+      debug(`[${req.params.service}:${req.params.id}]`, 'original filepath:', res.locals.item.attachment.path);
       const protectedFilepath = [config.protectedPath, res.locals.item.attachment.path].join('/');
       debug(`[${req.params.service}:${req.params.id}]`, 'flush headers for filename:', filename, protectedFilepath);
       res.set('Content-Disposition', `attachment; filename=${filename}`);
