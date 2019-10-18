@@ -23,6 +23,7 @@ class Job {
     creationDate = new Date(),
     lastModifiedDate = new Date(),
     creator = null,
+    description = '',
     type = '',
     status = STATUS_READY,
     extra = '',
@@ -31,6 +32,7 @@ class Job {
     this.id = parseInt(id, 10);
     this.status = status;
     this.type = type;
+    this.description = description;
     if (typeof extra === 'object') {
       this.extra = extra;
     } else {
@@ -88,6 +90,9 @@ class Job {
         type: DataTypes.DATE,
         field: 'date_last_modified',
         defaultValue: DataTypes.NOW,
+      },
+      description: {
+        type: DataTypes.STRING,
       },
       extra: {
         type: DataTypes.JSON,
