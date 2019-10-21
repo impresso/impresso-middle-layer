@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/entities/schema/find/query.json",
+  "description": "Query params validation for /entities find",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "filters": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["string", "type", "uid"]
+          },
+          "q": {
+            "type": "string"
+          },
+          "op": {
+            "type": "string",
+            "enum": ["AND", "OR"]
+          }
+        }
+      }
+    },
+    "resolve": {
+      "type": "boolean"
+    },
+    "q": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "order_by": {
+      "type": "string",
+      "description": "Order intersection items by this value",
+      "enum": ["relevance", "-relevance", "name", "-name","count","-count", "count-mentions", "-count-mentions"]
+    },
+    "limit": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit"
+    },
+    "offset": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/offset"
+    },
+    "skip": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/skip"
+    },
+    "page": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/page"
+    }
+  }
+}
