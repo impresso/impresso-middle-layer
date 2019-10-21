@@ -271,8 +271,8 @@ const _validate = (params, rules) => {
 const REGEX_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/;
 const REGEX_SLUG = /^[a-z0-9-]+$/;
-const REGEX_UID = /^[A-zÀ-Ÿ0-9_."'-]+$/;
-const REGEX_UIDS = /^[A-zÀ-Ÿ0-9_.,"'-]+[A-zÀ-Ÿ0-9_.,"'-]+$/;
+const REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"'-]+$/;
+const REGEX_UIDS = /^[A-zÀ-Ÿ0-9_.–,"'-]+[A-zÀ-Ÿ0-9_.,"'-]+$/;
 const REGEX_NUMERIC = /^\d+$/;
 
 
