@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {
-  toHierarchy, sliceAtSplitpoints, annotate, render, toExcerpt, latinise,
+  toHierarchy, sliceAtSplitpoints, annotate, render, toExcerpt, latinise, toTextWrap,
 } = require('../src/helpers');
 
 const fulltext = "L'AFFAIRE DES BIJOUX DE LA BEGUM L'interrogatoire de Watson un des principaux complices II se prétend le filleul de M. Churchill / Marseille, 22 janvier. "
@@ -183,5 +183,16 @@ describe('should latinise a text', () => {
   it('in french', () => {
     const ft = "APRÈS L'ACCIDENT";
     assert.strictEqual("APRES L'ACCIDENT", latinise(ft));
+  });
+});
+
+describe('should cut a text around the annotation', () => {
+  it('cut around Navin', () => {
+    const text = 'Im Escher Tageblatt stand es geschlieben, daß der Nechtssozialist Arthur Nozier uuter den Auspizien des demokratischen Blattes einen Vortrag, m...';
+    assert.strictEqual(' Nechtssozialist Arthur <span ref="match">Nozier</span> uuter den Auspizien des', toTextWrap({
+      text,
+      l: 73,
+      r: 79,
+    }));
   });
 });
