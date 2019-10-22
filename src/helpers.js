@@ -1080,15 +1080,17 @@ const toTextWrap = ({
   let ll = Math.max(0, l - d);
   let rr = Math.min(r + d, text.length);
   // first non word character, not to cut words
-  const mlnw = text.substring(ll).match(/[^\w]/);
-  if (mlnw) {
-    // add offset only if it is less than l ...
-    ll = Math.min(ll + mlnw.index, l - minD);
+  if (ll > 0) {
+    const mlnw = text.substring(ll).match(/[^\w]/);
+    if (mlnw) {
+      // add offset only if it is less than l ...
+      ll = Math.min(ll + mlnw.index, l - minD);
+    }
   }
   const mrnw = text.substring(ll, rr).match(/([^\w])\w*$/);
   if (mrnw) {
     // add offset only if it is less than l ...
-    rr = Math.max(rr - mlnw.index, r + minD);
+    rr = Math.max(ll + mrnw.index, r + minD);
   }
   const wrapped = text.slice(ll, rr);
   if (!html) {
