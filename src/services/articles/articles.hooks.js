@@ -77,7 +77,7 @@ module.exports = {
         skipHooks: false,
       }),
       saveResultsInCache(),
-      resolveUserAddons(),
+      // resolveUserAddons(),
       obfuscate(),
     ],
     get: [
