@@ -32,7 +32,7 @@ const resolveArticles = (key = 'articleUid') => async (context) => {
       context.result.data[i].article = articles[uid];
       console.log(context.result.data[i], articles[uid].content);
       context.result.data[i].context = toTextWrap({
-        text: articles[uid].content,
+        text: `${articles[uid].content}`,
         l: context.result.data[i].l,
         r: context.result.data[i].r,
         ref: `match ${context.result.data[i].type} uid-${context.result.data[i].entityId}`,
