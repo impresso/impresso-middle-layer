@@ -1075,7 +1075,7 @@ const toPlainText = q => q.replace(/[^\s0-9A-zÀ-Ÿ ']|[[\]]/g, ' ').trim();
  * @return {String}   cleaned string
  */
 const toTextWrap = ({
-  text, l, r, d = 25, minD = 10, html = true, ref = 'match',
+  text, l, r, d = 25, minD = 10, html = true, ref = 'highlight', attr = 'class',
 } = {}) => {
   let ll = Math.max(0, l - d);
   let rr = Math.min(r + d, text.length);
@@ -1097,7 +1097,7 @@ const toTextWrap = ({
     return wrapped;
   }
   const lines = sliceAtSplitpoints(wrapped, []);
-  annotate(lines, ref, l - ll, r - ll);
+  annotate(lines, ref, l - ll, r - ll, attr);
   return render(lines).pop();
 };
 
