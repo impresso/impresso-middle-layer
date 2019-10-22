@@ -14,7 +14,7 @@ const resolveArticles = (key = 'articleUid') => async (context) => {
   const uids = context.result.data.map(d => d[key]);
   const solrClient = context.app.get('solrClient');
 
-  debug('[resolveArticles]: uids', uids);
+  debug('[resolveArticles]: load solr contents uids', uids);
 
   const results = await solrClient.findAll({
     q: `id:(${uids.join(' OR ')})`,
@@ -24,13 +24,14 @@ const resolveArticles = (key = 'articleUid') => async (context) => {
     namespace: 'search',
   }, Article.solrFactory);
 
+  debug('[resolveArticles]: uids', uids);
   const articles = lodash.keyBy(results.response.docs, 'uid');
   // console.log(articles);
   // enrich thanks to uid ordering, then get
   uids.forEach((uid, i) => {
     if (articles[uid]) {
       context.result.data[i].article = articles[uid];
-      console.log(context.result.data[i], articles[uid].content);
+      // console.log(context.result.data[i], articles[uid].content);
       context.result.data[i].context = toTextWrap({
         text: `${articles[uid].content}`,
         l: context.result.data[i].l,

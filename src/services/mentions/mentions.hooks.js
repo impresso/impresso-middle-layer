@@ -30,6 +30,10 @@ module.exports = {
     all: [],
     find: [
       validate({
+        faster: {
+          required: false,
+          transform: d => !!d,
+        },
         order_by: {
           choices: ['-name', 'name', '-id', 'id'],
           defaultValue: 'id',
