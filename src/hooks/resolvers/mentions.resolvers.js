@@ -35,7 +35,7 @@ const resolveArticles = (key = 'articleUid') => async (context) => {
         text: `${articles[uid].content}`,
         l: context.result.data[i].l,
         r: context.result.data[i].r,
-        ref: `match ${context.result.data[i].type} uid-${context.result.data[i].entityId}`,
+        ref: `highlight ${context.result.data[i].type} uid-${context.result.data[i].entityId}`,
         d: 50,
       });
       // remove contents
