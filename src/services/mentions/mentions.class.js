@@ -20,7 +20,8 @@ class Service {
 
   async find(params) {
     const where = {};
-    const findAllOnly = !params.sanitized.sequelizeQuery;
+
+    const findAllOnly = params.query.faster || !params.sanitized.sequelizeQuery;
     if (params.sanitized.sequelizeQuery) {
       where[Op.and] = params.sanitized.sequelizeQuery;
     }
