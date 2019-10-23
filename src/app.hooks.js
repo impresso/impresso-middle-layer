@@ -37,8 +37,10 @@ const requireAuthentication = ({
 const errorHandler = (ctx) => {
   if (ctx.error) {
     const error = ctx.error;
-    console.error(`ERROR ${error.code} ${error.name} at ${ctx.path}:${ctx.method}, message:`, error.message);
-    console.error(error.stack);
+    console.error(
+      `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
+      error.stack,
+    );
 
     if (error.name === 'SequelizeConnectionRefusedError') {
       ctx.error = new BadGateway('SequelizeConnectionRefusedError');
@@ -76,9 +78,7 @@ const hooks = {
   },
 
   after: {
-    all: [
-      // logger()
-    ],
+    all: [],
     find: [],
     get: [],
     create: [],

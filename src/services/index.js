@@ -72,6 +72,9 @@ const me = require('./me/me.service.js');
 const searchQueries = require('./search-queries/search-queries.service.js');
 
 
+const errorsCollector = require('./errors-collector/errors-collector.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -117,4 +120,5 @@ module.exports = function () {
   app.configure(searchQueriesComparison);
   app.configure(me);
   app.configure(searchQueries);
+  app.configure(errorsCollector);
 };
