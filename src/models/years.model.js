@@ -2,6 +2,8 @@ const yearsIndex = require('../data')('years');
 
 class Weights {
   constructor({
+    // number of content items
+    c,
     // number of articles
     a,
     // number of pages
@@ -11,6 +13,9 @@ class Weights {
     // number of images (with or without vectors),
     m,
   } = {}) {
+    if (typeof c !== 'undefined') {
+      this.c = parseFloat(c);
+    }
     if (typeof a !== 'undefined') {
       this.a = parseFloat(a);
     }
