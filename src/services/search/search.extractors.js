@@ -7,6 +7,7 @@ const Article = require('../../models/articles.model');
 const Newspaper = require('../../models/newspapers.model');
 const Topic = require('../../models/topics.model');
 const Entity = require('../../models/entities.model');
+const Year = require('../../models/years.model');
 
 function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex) {
   const { uid: id, language } = article;
@@ -88,6 +89,7 @@ const CacheProvider = {
   topic: Topic,
   person: Entity,
   location: Entity,
+  year: Year,
 };
 
 /**
@@ -100,7 +102,6 @@ async function getFacetsFromSolrResponse(response) {
 
   const facetPairs = await Promise.all(Object.keys(facets).map(async (facetLabel) => {
     if (!facets[facetLabel].buckets) return [facetLabel, facets[facetLabel]];
-
     const cacheProvider = CacheProvider[facetLabel];
     const buckets = await Promise.all(
       facets[facetLabel].buckets.map(async b => addCachedItems(b, cacheProvider)),

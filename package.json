@@ -29,6 +29,7 @@
     "mocha": "NODE_ENV=test mocha test/ --recursive --exit",
     "cli": "node src/admin/cli.js",
     "update-newspapers": "node scripts/update-newspapers.js",
+    "update-years": "node scripts/update-years.js",
     "update-topics": "node scripts/update-topics.js",
     "import-articles": "node scripts/import-articles.js",
     "import-pages": "node scripts/import-pages.js",
