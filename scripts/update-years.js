@@ -13,9 +13,8 @@ debug('start!');
 
 async function waterfall() {
   debug('timeline of contentItems having textual contents...');
-  // const total
-  const withTextContents = await solrClient.findAll({
-    q: 'content_length_i:[1 TO *]',
+  const years = await solrClient.findAll({
+    q: '*:*',
     limit: 0,
     fl: 'id',
     facets: JSON.stringify({
@@ -32,16 +31,34 @@ async function waterfall() {
     acc[bucket.val] = new Year({
       y: bucket.val,
       refs: {
-        a: bucket.count,
+        c: bucket.count,
       },
     });
     return acc;
   }, {}));
-  console.log(withTextContents);
 
-  debug('saving', Object.keys(withTextContents).length, 'years withTextContents...');
+  await solrClient.findAll({
+    q: 'content_length_i:[1 TO *]',
+    limit: 0,
+    fl: 'id',
+    facets: JSON.stringify({
+      year: {
+        type: 'terms',
+        field: 'meta_year_i',
+        mincount: 1,
+        limit: 400,
+      },
+    }),
+    namespace: 'search',
+  }).then(res => res.facets.year.buckets.forEach((bucket) => {
+    // save to the dictionary year:Year instance
+    years[bucket.val].refs.a = parseFloat(bucket.count);
+  }, {}));
+  console.log(years);
 
-  fs.writeFileSync('./src/data/years.json', JSON.stringify(withTextContents));
+  debug('saving', Object.keys(years).length, 'years ...');
+
+  fs.writeFileSync('./src/data/years.json', JSON.stringify(years));
   debug('success, saved ./src/data/years.js');
 }
 
