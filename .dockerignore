@@ -3,3 +3,4 @@ config
 .git
 node_modules
 docker
+data
