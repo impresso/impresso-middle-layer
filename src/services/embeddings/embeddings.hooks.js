@@ -10,9 +10,12 @@ module.exports = {
         },
         q: {
           required: true,
-          regex: /^[A-zÀ-ÿ]+$/,
+          regex: /^[A-zÀ-ÿ'()\s]+$/,
           max_length: 500,
-          transform: d => d.toLowerCase(),
+          transform: d => d.replace(/[^A-zÀ-ÿ]/g, ' ')
+            .toLowerCase().split(/[^\w]/)
+            .sort((a, b) => a.length - b.length)
+            .pop(),
         },
       }, 'GET'),
       queryWithCommonParams(),
