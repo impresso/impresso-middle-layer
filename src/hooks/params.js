@@ -215,6 +215,7 @@ const _validateOne = (key, item, rule) => {
 
   if (Object.keys(_errors).length) {
     debug('_validateOne: errors:', _errors);
+    console.error('_validateOne throws errors:', _errors, '- item:', item);
     throw new errors.BadRequest(_errors);
   }
 
