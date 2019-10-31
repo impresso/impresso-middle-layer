@@ -42,7 +42,7 @@ const SOLR_FILTER_DPF = {
   location: 'loc_entities_dpfs',
 };
 
-const escapeValue = value => value.replace(/[()]/g, d => `\\${d}`);
+const escapeValue = value => value.replace(/[(),]/g, d => `\\${d}`);
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   let qq = '';
@@ -50,6 +50,7 @@ const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
 
   if (Array.isArray(filter.q)) {
     qq = filter.q.map(value => `${field}:${escapeValue(value)}`).join(` ${op} `);
+    qq = `(${qq})`;
   } else {
     qq = `${field}:${escapeValue(filter.q)}`;
   }
@@ -224,10 +225,10 @@ const filtersToSolr = (type, filters) => {
  */
 const qToSolrFilter = (type = 'string') => (context) => {
   if (context.type !== 'before') {
-    throw new Error('The \'filtersToSolrQuery\' hook should only be used as a \'before\' hook.');
+    throw new Error('[qToSolrFilter] hook should only be used as a \'before\' hook.');
   }
   if (typeof context.params.sanitized !== 'object') {
-    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+    throw new Error('[qToSolrFilter] hook should be used after a \'validate\' hook.');
   }
   if (!Array.isArray(context.params.sanitized.filters)) {
     context.params.sanitized.filters = [];
@@ -249,8 +250,9 @@ const qToSolrFilter = (type = 'string') => (context) => {
  *
  */
 const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) => async (context) => {
+  const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`;
   if (context.type !== 'before') {
-    throw new Error('The \'filtersToSolrQuery\' hook should only be used as a \'before\' hook.');
+    throw new Error(`${prefix} hook should only be used as a 'before' hook.`);
   }
   if (typeof context[prop].sanitized !== 'object') {
     context[prop].sanitized = {};
@@ -260,7 +262,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
   }
   if (!context[prop].sanitized.filters.length && !context[prop].sanitized.q) {
     // nothing is give, wildcard then.
-    debug('\'filtersToSolrQuery\' with \'solr query\':', '*:*');
+    debug(`${prefix} with 'solr query': *:*`);
     context[prop].sanitized.sq = '*:*';
     context[prop].sanitized.queryComponents = [];
     return;
@@ -272,14 +274,13 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
   // will contain payload vars, if any.
   const vars = {};
 
-
   Object.keys(filters).forEach((key) => {
     if (NON_FILTERED_FIELDS.indexOf(key) !== -1) {
       queries.push(filtersToSolr(key, filters[key]));
     } else {
       queries.push(`filter(${filtersToSolr(key, filters[key])})`);
     }
-    debug('\'filtersToSolrQuery\' key:', key, filters[key]);
+    debug(`${prefix} key:${key}`, filters[key]);
     if (SOLR_FILTER_DPF[key]) {
       // add payload variable
       // payload(topics_dpf,tmGDL_tp04_fr)
@@ -291,16 +292,25 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     }
   });
 
+  // prepend order by if it is not relevance
   if (overrideOrderBy && Object.keys(vars).length) {
-    if (context[prop].sanitized.order_by) {
-      context[prop].sanitized.order_by = Object.keys(vars)
-        .map(d => `${vars[d]} desc`)
-        // .concat(context[prop].sanitized.order_by.split(','))
+    const varsOrderBy = Object.keys(vars).map(d => `${vars[d]} desc`);
+    // if order by is by relevance:
+    if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
+      context[prop].sanitized.order_by = varsOrderBy
+        .concat(context[prop].sanitized.order_by.split(','))
         .join(',');
+    } else if (context[prop].sanitized.order_by) {
+      context[prop].sanitized.order_by = context[prop].sanitized.order_by
+        .split(',')
+        .concat(varsOrderBy)
+        .join(',');
+    } else {
+      context[prop].sanitized.order_by = varsOrderBy.join(',');
     }
   }
-
-  debug('\'filtersToSolrQuery\' vars =', vars, context[prop].sanitized);
+  debug(`${prefix} query order_by:`, context[prop].sanitized.order_by);
+  debug(`${prefix} vars =`, vars, context[prop].sanitized);
 
   // context[prop].query.order_by.push()
 
@@ -324,7 +334,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     filters.issue,
     filters.page,
   ).filter(d => typeof d !== 'undefined');
-  debug('\'filtersToSolrQuery\' with \'solr query\':', context[prop].sanitized.sq);
+  debug(`${prefix} with 'solr query': ${context[prop].sanitized.sq}`);
 };
 
 /**
@@ -333,14 +343,14 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
  */
 const filtersToSolrFacetQuery = () => async (context) => {
   if (!context.params.sanitized.facets) {
-    debug('\'filtersToSolrFacetQuery\' warning, no facets requested.');
+    debug('[filtersToSolrFacetQuery] WARN no facets requested.');
     return;
   }
   if (typeof context.params.sanitized !== 'object') {
-    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+    throw new Error('[filtersToSolrFacetQuery] hook should be used after a \'validate\' hook.');
   }
   const facets = JSON.parse(context.params.sanitized.facets);
-  debug('\'filtersToSolrFacetQuery\' on facets:', facets);
+  debug('[filtersToSolrFacetQuery] on facets:', facets);
 
   if (!Array.isArray(context.params.sanitized.facetfilters)) {
     context.params.sanitized.facetfilters = [];
@@ -349,7 +359,7 @@ const filtersToSolrFacetQuery = () => async (context) => {
   Object.keys(facets).forEach((key) => {
     const filter = context.params.sanitized.facetfilters.find(d => d.name === key);
     if (filter) {
-      debug(`filtersToSolrFacetQuery' on facet ${key}:`, filter);
+      debug(`[filtersToSolrFacetQuery] on facet ${key}:`, filter);
     }
   });
 };
