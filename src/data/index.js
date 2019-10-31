@@ -9,7 +9,7 @@ class DataIndex {
     this.name = String(name);
     debug('init index for', this.name);
     try {
-      this.values = require(`./${this.name}.json`);
+      this.values = require(`../../data/${this.name}.json`);
       debug('init index for', this.name, 'success');
     } catch (e) {
       debug('index built FAILED for', this.name, e.code);

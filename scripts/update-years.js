@@ -58,8 +58,9 @@ async function waterfall() {
 
   debug('saving', Object.keys(years).length, 'years ...');
 
-  fs.writeFileSync('./src/data/years.json', JSON.stringify(years));
-  debug('success, saved ./src/data/years.js');
+  const fileName = './data/years.json';
+  fs.writeFileSync(fileName, JSON.stringify(years));
+  debug(`success, saved ${fileName}`);
 }
 
 waterfall().then(() => {
