@@ -41,7 +41,7 @@ async function getItemsFromSolrResponse(response, articlesService, userInfo = {}
   const { user, authenticated } = userInfo;
 
   const documentsIndex = keyBy(response.response.docs, 'id');
-  const uids = Object.keys(documentsIndex);
+  const uids = response.response.docs.map(d => d.id);
 
   if (isEmpty(uids)) return [];
 
@@ -59,16 +59,16 @@ async function getItemsFromSolrResponse(response, articlesService, userInfo = {}
     },
   };
 
-  const articles = (await articlesService.find(articlesRequest)).data;
+  const articlesIndex = keyBy((await articlesService.find(articlesRequest)).data, 'uid');
 
-  return articles.map((article) => {
+  return uids.map((uid) => {
+    const article = articlesIndex[uid];
     const [matches, regions] = getAricleMatchesAndRegions(
       article,
       documentsIndex,
       fragmentsIndex,
       highlightingIndex,
     );
-
     return Article.assignIIIF(assignIn(
       clone(article), { matches, regions },
     ));
