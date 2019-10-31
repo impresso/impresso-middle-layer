@@ -116,7 +116,7 @@ class Service {
    * @param  {object} params query params. Check hhooks
    */
   async find(params) {
-    debug(`find '${this.name}': query:`, params.query, params.sanitized.sv);
+    debug('[find]: query:', params.query, params.sanitized.sv);
     const isRaw = params.originalQuery.group_by === 'raw';
 
     const solrQuery = {
@@ -138,7 +138,7 @@ class Service {
     const solrResponse = await this.solr.findAll(solrQuery);
 
     const total = getTotalFromSolrResponse(solrResponse);
-    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader.params);
+    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader);
 
     if (!total) {
       return Service.wrap([], params.query.limit, params.query.skip, total);
