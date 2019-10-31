@@ -1,5 +1,5 @@
 {
-  "name": "boomerang",
+  "name": "impresso-middle-layer",
   "description": "",
   "version": "0.0.0",
   "homepage": "",
@@ -72,7 +72,7 @@
     "feathers-solr": "^1.1.15",
     "helmet": "^3.21.1",
     "http-proxy-middleware": "^0.18.0",
-    "impresso-jscommons": "github:impresso/impresso-jscommons#master",
+    "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/master",
     "json2csv": "^4.3.3",
     "lodash": "^4.17.15",
     "lodash.first": "^3.0.0",
