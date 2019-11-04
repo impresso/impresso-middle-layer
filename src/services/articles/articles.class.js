@@ -109,7 +109,7 @@ class Service {
   async get(id, params) {
     const uids = id.split(',');
     if (uids.length > 1 || params.findAll) {
-      debug(`'get' with ${uids.length} ids -> redirect to 'find', user:`, params.user ? params.user.uid : 'no user found');
+      debug(`[get] with ${uids.length} ids -> redirect to 'find', user:`, params.user ? params.user.uid : 'no user found');
 
       return this.find({
         ...params,
@@ -128,7 +128,7 @@ class Service {
       return [];
     }
 
-    debug(`'get', id: ${id}`, params.user ? params.user.uid : 'no user found');
+    debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found');
 
     return Promise.all([
       // we perform a solr request to get
@@ -144,11 +144,23 @@ class Service {
           uid: id,
         },
       }).catch(() => {
-        debug(`get: SequelizeService warning, no data found for ${id} ...`);
+        debug(`[get:${id}]: SequelizeService warning, no data found for ${id} ...`);
       }),
-    ]).then(([article, addons]) => {
+      Issue.sequelize(this.app.get('sequelizeClient'))
+        .findOne({
+          attributes: [
+            'accessRights',
+          ],
+          where: {
+            uid: id.split(/-i\d{4}/).shift(),
+          },
+        }),
+    ]).then(([article, addons, issue]) => {
       if (addons) {
         console.log(addons);
+        if (issue) {
+          article.issue.accessRights = issue.accessRights;
+        }
         article.pages = addons.pages.map(d => d.toJSON());
         article.v = addons.v;
       }
