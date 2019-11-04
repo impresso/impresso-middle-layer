@@ -157,7 +157,6 @@ class Service {
         }),
     ]).then(([article, addons, issue]) => {
       if (addons) {
-        console.log(addons);
         if (issue) {
           article.issue.accessRights = issue.accessRights;
         }
