@@ -1,6 +1,6 @@
 const config = require('@feathersjs/configuration')()();
 const debug = require('debug')('impresso/hooks:access-rights');
-const { ACCESS_RIGHTS_CLOSED } = require('../models/issues.model');
+const { ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PRIVATE } = require('../models/issues.model');
 
 debug('init hook config:', config.accessRights);
 
@@ -61,6 +61,11 @@ const obfuscateArticleMapper = (article) => {
   return article;
 };
 
+const shouldBeObfuscated = accessType => [
+  ACCESS_RIGHTS_OPEN_PRIVATE,
+  ACCESS_RIGHTS_CLOSED,
+].includes(accessType);
+
 const obfuscate = () => (context) => {
   const fullpath = `${context.path}.${context.method}`;
   const prefix = `[obfuscate (${fullpath})]`;
@@ -70,13 +75,15 @@ const obfuscate = () => (context) => {
   } else {
     switch (fullpath) {
       case 'issues.get':
-        if (context.result.accessRights === ACCESS_RIGHTS_CLOSED) {
+        if (shouldBeObfuscated(context.result.accessRights)) {
           debug(`${prefix} issue obfuscated due to context.result.accessRights: ${context.result.accessRights}`);
           context.result = obfuscateIssueMapper(context.result);
+        } else {
+          debug(`${prefix} issue NOT obfuscated due to context.result.accessRights: ${context.result.accessRights}`);
         }
         break;
       case 'articles.get':
-        if (context.result.issue.accessRights === ACCESS_RIGHTS_CLOSED) {
+        if (shouldBeObfuscated(context.result.issue.accessRights)) {
           debug(`${prefix} issue obfuscated due to context.result.issue.accessRights: ${context.result.issue.accessRights}`);
           context.result = obfuscateArticleMapper(context.result);
         }
@@ -84,7 +91,7 @@ const obfuscate = () => (context) => {
       case 'articles.find':
         debug(`${prefix} verify accessRights per article issue`);
         for (let i = 0, l = context.result.data.length; i < l; i += 1) {
-          if (context.result.data[i].issue.accessRights === ACCESS_RIGHTS_CLOSED) {
+          if (shouldBeObfuscated(context.result.data[i].issue.accessRights)) {
             context.result.data[i] = obfuscateArticleMapper(context.result.data[i]);
           }
         }
