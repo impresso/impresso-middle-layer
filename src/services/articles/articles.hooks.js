@@ -17,6 +17,7 @@ module.exports = {
       }),
       checkCachedContents({
         useAuthenticatedUser: false,
+        useAuthentication: true,
       }),
     ],
     find: [
@@ -77,7 +78,6 @@ module.exports = {
         skipHooks: false,
       }),
       saveResultsInCache(),
-      // resolveUserAddons(),
       obfuscate(),
     ],
     get: [

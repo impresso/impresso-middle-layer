@@ -22,6 +22,7 @@ const { generateHash } = require('../crypto');
  */
 const checkCachedContents = ({
   useAuthenticatedUser = false,
+  useAuthentication = false,
   cacheUnauthenticated = true,
 } = {}) => async (context) => {
   if (!context.params.provider) {
@@ -55,6 +56,12 @@ const checkCachedContents = ({
     debug('checkCachedContents prefix key with user:', context.params.user.uid);
     // prepend user specific cache.
     keyParts.shift(context.params.user.uid);
+  }
+
+  if (useAuthentication && context.params.authenticated) {
+    debug('checkCachedContents prefix key with authentication');
+    // prepend user specific cache.
+    keyParts.shift('auth');
   }
 
   if (context.id) {
@@ -91,7 +98,7 @@ const checkCachedContents = ({
  * @return {feathers.SKIP or undefined}
  */
 const returnCachedContents = ({
-  skipHooks = true,
+  skipHooks = false,
 } = {}) => (context) => {
   debug(`returnCachedContents: ${!!context.params.isCached}`);
   if (context.params.isCached) {
@@ -109,6 +116,10 @@ const returnCachedContents = ({
  * @return {[type]} [description]
  */
 const saveResultsInCache = () => async (context) => {
+  if (context.params.isCached) {
+    debug('saveResultsInCache: skipping saving, cached content already served.');
+    return;
+  }
   if (!context.params.cacheKey) {
     return;
   }

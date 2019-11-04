@@ -10,7 +10,8 @@
     "showExcerpt": true,
     "enable": true,
     "unauthorizedIIIFUrl": "unauthorized.json",
-    "unauthorizedIIIFImageUrl": "unauthorized.png"
+    "unauthorizedIIIFImageUrl": "unauthorized.png",
+    "unauthorizedContent": "content not available for unauthenticated users ..."
   },
   "redis": {
     "enable": true

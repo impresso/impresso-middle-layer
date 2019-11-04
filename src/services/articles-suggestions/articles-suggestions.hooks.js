@@ -1,5 +1,6 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
+const { authenticate } = require('../../hooks/authenticate');
 const { queryWithCommonParams, validate } = require('../../hooks/params');
+// const { obfuscate } = require('../../hooks/access-rights');
 
 module.exports = {
   before: {
@@ -35,7 +36,8 @@ module.exports = {
   after: {
     all: [],
     find: [],
-    get: [],
+    get: [
+    ],
     create: [],
     update: [],
     patch: [],
