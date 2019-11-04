@@ -38,13 +38,57 @@ describe('Newspaper issues and \'Public Domain\' contents', function () {
     assert.strictEqual(result.pages[0].iiif, app.get('accessRights').unauthorizedIIIFUrl);
   });
 
-  it('get issue "actionfem-1927-10-15", Closed, with authentication! (not obfuscate)', async () => {
+  it('get issue "actionfem-1927-10-15-a", Closed, with authentication! (not obfuscate)', async () => {
     const result = await app.service('issues').get('actionfem-1927-10-15-a', {
       authenticated: true,
+      user: {
+        uid: 'local-user-not-guest',
+      },
     });
     assert.strictEqual(result.uid, 'actionfem-1927-10-15-a');
     assert.strictEqual(result.cover, 'actionfem-1927-10-15-a-p0001');
     assert.strictEqual(result.accessRights, 'Closed');
+    // check iiif;
+    assert.notStrictEqual(result.pages[0].iiif, app.get('accessRights').unauthorizedIIIFUrl);
+  });
+});
+
+describe('\'OpenPrivate\' behaviour', function () {
+  this.timeout(15000);
+
+  it('get issue "EXP-1857-11-19-a", OpenPrivate (obfuscate for the moment)', async () => {
+    const result = await app.service('issues').get('EXP-1857-11-19-a', {
+      authenticated: false,
+    });
+    assert.strictEqual(result.uid, 'EXP-1857-11-19-a');
+    assert.strictEqual(result.cover, 'EXP-1857-11-19-a-p0001');
+    assert.strictEqual(result.accessRights, 'OpenPrivate');
+    // check iiif;
+    assert.strictEqual(result.pages[0].iiif, app.get('accessRights').unauthorizedIIIFUrl);
+  });
+
+  it('get article "EXP-1857-11-19-a-i0001" obfuscated OpenPrivate', async () => {
+    const result = await app.service('articles').get('EXP-1857-11-19-a-i0001', {
+      authenticated: false,
+    });
+    assert.strictEqual(result.issue.uid, 'EXP-1857-11-19-a');
+    assert.strictEqual(result.issue.accessRights, 'OpenPrivate');
+    assert.strictEqual(result.content, app.get('accessRights').unauthorizedContent);
+    assert.strictEqual(result.obfuscated, true);
+    // check iiif;
+    assert.strictEqual(result.pages[0].iiif, app.get('accessRights').unauthorizedIIIFUrl);
+  });
+  it('get article "EXP-1857-11-19-a-i0001" OpenPrivate, but authentified!', async () => {
+    const result = await app.service('articles').get('EXP-1857-11-19-a-i0001', {
+      authenticated: true,
+      user: {
+        uid: 'local-user-not-guest',
+      },
+    });
+    assert.strictEqual(result.issue.uid, 'EXP-1857-11-19-a');
+    assert.strictEqual(result.issue.accessRights, 'OpenPrivate');
+    assert.notStrictEqual(result.content, app.get('accessRights').unauthorizedContent);
+    assert.strictEqual(result.obfuscated, undefined);
     // check iiif;
     assert.notStrictEqual(result.pages[0].iiif, app.get('accessRights').unauthorizedIIIFUrl);
   });
