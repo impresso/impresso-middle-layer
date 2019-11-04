@@ -87,6 +87,7 @@ const obfuscate = () => (context) => {
         }
         break;
       case 'articles.find':
+      case 'articles-suggestions.get':
         debug(`${prefix} verify accessRights per article issue`);
         for (let i = 0, l = context.result.data.length; i < l; i += 1) {
           if (shouldBeObfuscated(context.result.data[i].issue.accessRights)) {
