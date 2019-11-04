@@ -36,28 +36,24 @@ const obfuscateIssueMapper = (issue) => {
  */
 const obfuscateArticleMapper = (article) => {
   if (!config.accessRights.showExcerpt) {
-    article.excerpt = '... *** ...';
+    article.excerpt = config.accessRights.unauthorizedContent;
   }
-  if (config.accessRights.enable) {
-    if (article.issue.accessRights === ACCESS_RIGHTS_CLOSED) {
-      article.issue.obfuscated = true;
-      article.obfuscated = true;
-      article.content = '... *** ...';
-      article.regions = article.regions.map(d => ({
-        ...d,
-        g: [],
-        obfuscated: true,
-        iiifFragment: config.accessRights.unauthorizedIIIFImageUrl,
-      }));
-      article.pages = article.pages.map(d => ({
-        ...d,
-        obfuscated: true,
-        iiif: config.accessRights.unauthorizedIIIFUrl,
-        iiifFragment: config.accessRights.unauthorizedIIIFImageUrl,
-        iiifThumbnail: config.accessRights.unauthorizedIIIFImageUrl,
-      }));
-    }
-  }
+  article.issue.obfuscated = true;
+  article.obfuscated = true;
+  article.content = config.accessRights.unauthorizedContent;
+  article.regions = article.regions.map(d => ({
+    ...d,
+    g: [],
+    obfuscated: true,
+    iiifFragment: config.accessRights.unauthorizedIIIFImageUrl,
+  }));
+  article.pages = article.pages.map(d => ({
+    ...d,
+    obfuscated: true,
+    iiif: config.accessRights.unauthorizedIIIFUrl,
+    iiifFragment: config.accessRights.unauthorizedIIIFImageUrl,
+    iiifThumbnail: config.accessRights.unauthorizedIIIFImageUrl,
+  }));
   return article;
 };
 
@@ -70,7 +66,9 @@ const obfuscate = () => (context) => {
   const fullpath = `${context.path}.${context.method}`;
   const prefix = `[obfuscate (${fullpath})]`;
 
-  if (context.params.authenticated) {
+  if (config.accessRights.disable) {
+    debug(`${prefix} skipping obfuscation following accessRights configuration.`);
+  } else if (context.params.authenticated) {
     debug(`${prefix} skipping obfuscation as the user ${context.params.user.uid} has the right credentials`);
   } else {
     switch (fullpath) {
