@@ -1,4 +1,4 @@
-const lodash = require('lodash');
+const { keyBy } = require('lodash');
 const debug = require('debug')('impresso/services:articles');
 const { Op } = require('sequelize');
 const { NotFound } = require('@feathersjs/errors');
@@ -6,6 +6,7 @@ const { NotFound } = require('@feathersjs/errors');
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 const Article = require('../../models/articles.model');
+const Issue = require('../../models/issues.model');
 
 class Service {
   constructor({
@@ -41,7 +42,7 @@ class Service {
       fl = Article.ARTICLE_SOLR_FL;
     }
 
-    debug(`'find' ${this.name} user:`, params.user ? params.user.uid : 'no user');
+    debug('[find] use auth user:', params.user ? params.user.uid : 'no user');
     // if(params.isSafe query.filters)
     const results = await this.SolrService.find({
       ...params,
@@ -53,9 +54,8 @@ class Service {
       return results;
     }
 
-    // add newspapers and other things from sequelize
-    // to be moved to the toBeResolved hook? proper hook.
-    const addons = await this.SequelizeService.find({
+    // add newspapers and other things from this class sequelize method
+    const getAddons = this.SequelizeService.find({
       ...params,
       scope: 'get',
       where: {
@@ -66,37 +66,50 @@ class Service {
     }).catch((err) => {
       console.error(err);
       return { data: [] };
-    });
+    }).then(({ data }) => keyBy(data, 'uid'));
 
-    // idnexed by article uid;
-    const addonsIndex = lodash.keyBy(addons.data, 'uid');
-    debug('addons found for:', Object.keys(addonsIndex));
-    results.data = results.data.map((article) => {
-      const addon = addonsIndex[article.uid];
+    // get accessRights from issues table
+    const getRelatedIssues = Issue.sequelize(this.app.get('sequelizeClient'))
+      .findAll({
+        attributes: [
+          'accessRights', 'uid',
+        ],
+        where: {
+          uid: { [Op.in]: results.data.map(d => d.issue.uid) },
+        },
+      }).then(rows => keyBy(rows.map(d => d.get()), 'uid'));
 
-      if (!addon) {
-        debug('no addons for uid', article.uid);
+    // do the loop
+    return Promise.all([
+      getAddons,
+      getRelatedIssues,
+    ]).then(([addonsIndex, issuesIndex]) => ({
+      ...results,
+      data: results.data.map((article) => {
+        if (issuesIndex[article.issue.uid]) {
+          article.issue.accessRights = issuesIndex[article.issue.uid].accessRights;
+        }
+        if (!addonsIndex[article.uid]) {
+          debug('[find] no pages for uid', article.uid);
+          return article;
+        }
+        // add pages
+        if (addonsIndex[article.uid].pages) {
+          article.pages = addonsIndex[article.uid].pages.map(d => d.toJSON());
+        }
+        if (pageUids.length === 1) {
+          article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1);
+        }
+        article.assignIIIF();
         return article;
-      }
-
-      if (addon.pages) {
-        article.pages = addon.pages.map(d => d.toJSON());
-      }
-
-      if (pageUids.length === 1) {
-        article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1);
-      }
-      article.assignIIIF();
-      return article;
-    });
-
-    return results;
+      }),
+    }));
   }
 
   async get(id, params) {
     const uids = id.split(',');
     if (uids.length > 1 || params.findAll) {
-      debug(`'get' with ${uids.length} ids -> redirect to 'find', user:`, params.user ? params.user.uid : 'no user found');
+      debug(`[get] with ${uids.length} ids -> redirect to 'find', user:`, params.user ? params.user.uid : 'no user found');
 
       return this.find({
         ...params,
@@ -115,7 +128,7 @@ class Service {
       return [];
     }
 
-    debug(`'get', id: ${id}`, params.user ? params.user.uid : 'no user found');
+    debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found');
 
     return Promise.all([
       // we perform a solr request to get
@@ -131,11 +144,22 @@ class Service {
           uid: id,
         },
       }).catch(() => {
-        debug(`get: SequelizeService warning, no data found for ${id} ...`);
+        debug(`[get:${id}]: SequelizeService warning, no data found for ${id} ...`);
       }),
-    ]).then(([article, addons]) => {
+      Issue.sequelize(this.app.get('sequelizeClient'))
+        .findOne({
+          attributes: [
+            'accessRights',
+          ],
+          where: {
+            uid: id.split(/-i\d{4}/).shift(),
+          },
+        }),
+    ]).then(([article, addons, issue]) => {
       if (addons) {
-        console.log(addons);
+        if (issue) {
+          article.issue.accessRights = issue.accessRights;
+        }
         article.pages = addons.pages.map(d => d.toJSON());
         article.v = addons.v;
       }

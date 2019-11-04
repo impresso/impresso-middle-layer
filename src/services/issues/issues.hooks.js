@@ -1,15 +1,18 @@
 const {
   utils, validate, validateEach, queryWithCommonParams,
 } = require('../../hooks/params');
+const { obfuscate } = require('../../hooks/access-rights');
+const { authenticate } = require('../../hooks/authenticate');
 const { filtersToSolrQuery } = require('../../hooks/search');
-const { assignIIIF } = require('../../hooks/iiif');
-const redisHooks = require('../../hooks/redis');
-
+const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
 module.exports = {
   before: {
     all: [
-      redisHooks.checkCachedContents({
+      authenticate('jwt', {
+        allowUnauthenticated: true,
+      }),
+      checkCachedContents({
         useAuthenticatedUser: false,
       }),
     ],
@@ -63,13 +66,12 @@ module.exports = {
   after: {
     all: [],
     find: [
-      redisHooks.returnCachedContents(),
-      assignIIIF('cover'),
-      redisHooks.saveResultsInCache(),
+      returnCachedContents(),
+      saveResultsInCache(),
     ],
     get: [
       // change count_pages
-      // assignIIIF('pages'),
+      obfuscate(),
     ],
     create: [],
     update: [],
