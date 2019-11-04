@@ -24,4 +24,4 @@ protected-media
 *.csv
 *.rdb
 
-data
+data/*.json
