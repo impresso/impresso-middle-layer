@@ -29,13 +29,24 @@ describe('Newspaper issues and \'Public Domain\' contents', function () {
     assert.strictEqual(result.pages[3].iiif, 'https://impresso-project.ch/api/proxy/iiif/LCG-1851-12-24-a-p0004');
   });
 
-  it.only('get issue "actionfem-1927-10-15-a-i0012", Closed', async () => {
+  it('get issue "actionfem-1927-10-15", Closed, no authentication (obfuscate)', async () => {
     const result = await app.service('issues').get('actionfem-1927-10-15-a');
     assert.strictEqual(result.uid, 'actionfem-1927-10-15-a');
     assert.strictEqual(result.cover, 'actionfem-1927-10-15-a-p0001');
     assert.strictEqual(result.accessRights, 'Closed');
     // check iiif;
-    console.log(result);
+    assert.strictEqual(result.pages[0].iiif, app.get('accessRights').unauthorizedIIIFUrl);
+  });
+
+  it('get issue "actionfem-1927-10-15", Closed, with authentication! (not obfuscate)', async () => {
+    const result = await app.service('issues').get('actionfem-1927-10-15-a', {
+      authenticated: true,
+    });
+    assert.strictEqual(result.uid, 'actionfem-1927-10-15-a');
+    assert.strictEqual(result.cover, 'actionfem-1927-10-15-a-p0001');
+    assert.strictEqual(result.accessRights, 'Closed');
+    // check iiif;
+    assert.notStrictEqual(result.pages[0].iiif, app.get('accessRights').unauthorizedIIIFUrl);
   });
 });
 
