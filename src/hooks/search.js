@@ -42,7 +42,7 @@ const SOLR_FILTER_DPF = {
   location: 'loc_entities_dpfs',
 };
 
-const escapeValue = value => value.replace(/[()\\+&|!{}[\]^~*?:";,]/g, d => `\\${d}`);
+const escapeValue = value => value.replace(/[()\\+&|!{}[\]?:;,]/g, d => `\\${d}`);
 const getValueWithFields = (value, fields) => {
   if (Array.isArray(fields)) {
     return fields.map(field => getValueWithFields(value, field)).join(' OR ');
