@@ -42,17 +42,23 @@ const SOLR_FILTER_DPF = {
   location: 'loc_entities_dpfs',
 };
 
-const escapeValue = value => value.replace(/[(),]/g, d => `\\${d}`);
+const escapeValue = value => value.replace(/[()\\+&|!{}[\]^~*?:";,]/g, d => `\\${d}`);
+const getValueWithFields = (value, fields) => {
+  if (Array.isArray(fields)) {
+    return fields.map(field => getValueWithFields(value, field)).join(' OR ');
+  }
+  return `${fields}:${escapeValue(value)}`;
+};
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   let qq = '';
   const op = filter.op || 'OR';
 
   if (Array.isArray(filter.q)) {
-    qq = filter.q.map(value => `${field}:${escapeValue(value)}`).join(` ${op} `);
+    qq = filter.q.map(value => getValueWithFields(value, field)).join(` ${op} `);
     qq = `(${qq})`;
   } else {
-    qq = `${field}:${escapeValue(filter.q)}`;
+    qq = getValueWithFields(filter.q, field);
   }
   if (filter.context === 'exclude') {
     qq = sq.length > 0 ? `NOT (${qq})` : `*:* AND NOT (${qq})`;
@@ -198,6 +204,8 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'meta_country_code_s');
     case 'mention':
       return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions']);
+    case 'entity':
+      return reduceFiltersToSolr(filters, ['pers_entities_dpfs', 'loc_entities_dpfs']);
     case 'person':
       return reduceFiltersToSolr(filters, 'pers_entities_dpfs');
     case 'location':
@@ -291,10 +299,9 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
       });
     }
   });
-
   // prepend order by if it is not relevance
   if (overrideOrderBy && Object.keys(vars).length) {
-    const varsOrderBy = Object.keys(vars).map(d => `${vars[d]} desc`);
+    const varsOrderBy = Object.keys(vars).map(v => ['${', v, '} desc'].join(''));
     // if order by is by relevance:
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
       context[prop].sanitized.order_by = varsOrderBy
@@ -400,6 +407,14 @@ module.exports = {
       field: 'meta_year_i',
       mincount: 1,
       limit: 400, // 400 years
+    },
+    size: {
+      type: 'range',
+      field: 'content_length_i',
+      end: 10000,
+      start: 0,
+      gap: 100,
+      other: 'after',
     },
     month: {
       type: 'terms',
