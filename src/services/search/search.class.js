@@ -135,7 +135,7 @@ class Service {
       vars: params.sanitized.sv,
     };
 
-    const solrResponse = await this.solr.findAll(solrQuery);
+    const solrResponse = await this.solr.findAllPost(solrQuery);
 
     const total = getTotalFromSolrResponse(solrResponse);
     debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader);
