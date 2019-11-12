@@ -43,6 +43,9 @@ class Service {
         if (solrResult.fragments[d.uid].topic_suggest) {
           d.matches = solrResult.fragments[d.uid].topic_suggest;
         }
+        const cached = this.solrService.Model.getCached(d.uid);
+        d.relatedTopics = cached.relatedTopics;
+        d.countItems = cached.countItems;
         return d;
       }),
       info: {
