@@ -37,7 +37,9 @@ module.exports = {
       filtersToSolrFacetQuery(),
 
       qToSolrFilter('string'),
-      filtersToSolrQuery(),
+      filtersToSolrQuery({
+        overrideOrderBy: false,
+      }),
       queryWithCommonParams(),
     ],
     get: [],
@@ -60,6 +62,7 @@ module.exports = {
       }),
       filtersToSolrQuery({
         prop: 'data',
+        overrideOrderBy: false,
       }),
     ],
     update: [],
