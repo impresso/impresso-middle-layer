@@ -54,6 +54,25 @@ async function waterfall() {
     // save to the dictionary year:Year instance
     years[bucket.val].refs.a = parseFloat(bucket.count);
   }, {}));
+
+  await solrClient.findAll({
+    q: '*:*',
+    limit: 0,
+    fl: 'id',
+    facets: JSON.stringify({
+      year: {
+        type: 'terms',
+        field: 'meta_year_i',
+        mincount: 1,
+        limit: 400,
+      },
+    }),
+    namespace: 'images',
+  }).then(res => res.facets.year.buckets.forEach((bucket) => {
+    // save to the dictionary year:Year instance
+    years[bucket.val].refs.m = parseFloat(bucket.count);
+  }, {}));
+
   console.log(years);
 
   debug('saving', Object.keys(years).length, 'years ...');
