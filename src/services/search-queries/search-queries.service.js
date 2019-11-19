@@ -3,11 +3,10 @@ const { SearchQueries } = require('./search-queries.class');
 const hooks = require('./search-queries.hooks');
 
 module.exports = function (app) {
-  
   const paginate = app.get('paginate');
 
   const options = {
-    paginate
+    paginate,
   };
 
   // Initialize our service with any options it requires
