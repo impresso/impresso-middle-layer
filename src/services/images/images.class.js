@@ -144,6 +144,7 @@ class Service {
         limit: params.query.limit,
         skip: params.query.skip,
         facets: params.query.facets,
+        order_by: params.query.order_by,
       }, Image.solrFactory).catch((err) => {
         console.error(err);
         throw new BadGateway('unable to load similar images');
