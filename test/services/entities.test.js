@@ -32,17 +32,21 @@ describe('\'entities\' service', function () {
     assert.ok(result.data[0].type, 'person');
   });
 
-  it('test get method', async () => {
-    const result = await service.get('aida-0001-"Arizona"_Charlie_Meadows');
-    assert.ok(result.wikidata.images, 'Entity 1 must contain wikidata as it has wikidata id');
+  it('test wikidata contents for get:aida-0001-50-"Arizona"_Charlie_Meadows (yes with quotes)', async () => {
+    const entity = await service.get('aida-0001-50-"Arizona"_Charlie_Meadows');
+    assert.ok(entity.wikidata.images, 'Entity 1 must contain wikidata as it has wikidata id');
   });
 
+  it('test get:aida-0001-54-Luxembourg_(city)', async () => {
+    const entity = await service.get('aida-0001-54-Luxembourg_(city)');
+    assert.strictEqual(entity.name, 'Luxembourg (city)');
+  });
   it('test get method with a location', async () => {
-    const entity = await service.get('aida-0001-Berlin');
+    const entity = await service.get('aida-0001-54-Berlin');
     assert.strictEqual(entity.name, 'Berlin');
     assert.strictEqual(entity.type, 'location');
     assert.strictEqual(entity.wikidataId, 'Q64');
-    assert.strictEqual(entity.uid, 'aida-0001-Berlin');
+    assert.strictEqual(entity.uid, 'aida-0001-54-Berlin');
     assert.ok(entity.wikidata.images, 'Entity 1 must contain wikidata as it has wikidata id');
   });
 });
