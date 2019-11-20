@@ -135,7 +135,8 @@ class Service {
         filters: [
           {
             type: 'uid',
-            q: `"${id}"`,
+            // yes, entities id can have " in their name... check entities tests.
+            q: `${id.split('"').join('*')}`, // no comment
           },
         ],
       },

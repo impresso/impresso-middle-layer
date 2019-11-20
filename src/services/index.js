@@ -82,7 +82,6 @@ module.exports = function () {
   app.configure(bucketsItems);
   app.configure(articles);
   app.configure(articlesTags);
-  app.configure(entities);
   app.configure(newspapers);
   app.configure(issues);
   app.configure(suggestions);
@@ -91,8 +90,6 @@ module.exports = function () {
   app.configure(pages);
   app.configure(tags);
   app.configure(version);
-
-
   app.configure(proxy);
   app.configure(search);
   app.configure(searchExporter);
