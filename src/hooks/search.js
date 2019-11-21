@@ -407,6 +407,7 @@ module.exports = {
       field: 'meta_year_i',
       mincount: 1,
       limit: 400, // 400 years
+      numBuckets: true,
     },
     size: {
       type: 'range',
