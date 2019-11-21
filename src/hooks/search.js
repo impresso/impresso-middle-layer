@@ -336,6 +336,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     filters.language,
     filters.daterange,
     filters.type,
+    filters.country,
     filters.string,
     filters.title,
     filters.issue,
