@@ -12,7 +12,7 @@ const configuration = require('@feathersjs/configuration');
 const rest = require('@feathersjs/express/rest');
 const socketio = require('@feathersjs/socketio');
 
-const handler = require('@feathersjs/express/errors');
+// const handler = require('@feathersjs/express/errors');
 const notFound = require('feathers-errors/not-found');
 
 const middleware = require('./middleware');
@@ -70,6 +70,7 @@ app.configure(celery);
 
 // Configure a middleware for 404s and the error handler
 app.use(notFound());
+
 // app.configure(handler({
 //   // html: {
 //   //   // strings should point to html files
@@ -90,8 +91,8 @@ app.use(notFound());
 //     }
 //   }
 // }));
-
-app.use(handler({
+//
+app.use(express.errorHandler({
   json: {
     404: (err, req, res) => {
       // make sure to strip off the stack trace in production

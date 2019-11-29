@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/search-queries/schema/post/payload.json",
+  "description": "Request payload for POST /search-queries",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/search-query.model.json#/properties/name"
+    },
+    "description": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/search-query.model.json#/properties/description"
+    },
+    "data": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/search-query.model.json#/properties/data"
+    },
+    "countItems": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/search-query.model.json#/properties/countItems"
+    }
+  },
+  "required": [
+    "name",
+    "description",
+    "data",
+    "countItems"
+  ]
+}

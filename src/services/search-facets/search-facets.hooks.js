@@ -1,4 +1,4 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
+const { authenticate } = require('../../hooks/authenticate');
 const {
   eachFilterValidator, paramsValidator,
 } = require('../search/search.validators');

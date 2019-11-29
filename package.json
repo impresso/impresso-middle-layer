@@ -1,7 +1,7 @@
 {
-  "name": "boomerang",
+  "name": "impresso-middle-layer",
   "description": "",
-  "version": "0.0.0",
+  "version": "1.1.0",
   "homepage": "",
   "main": "src",
   "keywords": [
@@ -29,6 +29,7 @@
     "mocha": "NODE_ENV=test mocha test/ --recursive --exit",
     "cli": "node src/admin/cli.js",
     "update-newspapers": "node scripts/update-newspapers.js",
+    "update-years": "node scripts/update-years.js",
     "update-topics": "node scripts/update-topics.js",
     "import-articles": "node scripts/import-articles.js",
     "import-pages": "node scripts/import-pages.js",
@@ -37,15 +38,15 @@
     "import-newspapers": "node scripts/import-newspapers.js"
   },
   "dependencies": {
-    "@feathersjs/authentication": "^2.1.16",
-    "@feathersjs/authentication-jwt": "^2.0.10",
-    "@feathersjs/authentication-local": "^1.2.9",
-    "@feathersjs/authentication-oauth2": "^1.3.1",
-    "@feathersjs/configuration": "^1.0.2",
-    "@feathersjs/errors": "^3.3.6",
-    "@feathersjs/express": "^1.3.1",
-    "@feathersjs/feathers": "^3.3.1",
-    "@feathersjs/socketio": "^3.2.9",
+    "@feathersjs/authentication": "^4.3.3",
+    "@feathersjs/authentication-local": "^4.3.3",
+    "@feathersjs/authentication-oauth": "^4.3.3",
+    "@feathersjs/configuration": "^4.3.3",
+    "@feathersjs/errors": "^4.3.3",
+    "@feathersjs/express": "^4.3.3",
+    "@feathersjs/feathers": "^4.3.3",
+    "@feathersjs/socketio": "^4.3.3",
+    "ajv": "^6.10.2",
     "async": "^2.6.1",
     "async-redis": "^1.1.5",
     "aws-sdk": "^2.395.0",
@@ -62,7 +63,6 @@
     "debug": "^3.2.6",
     "decypher": "^0.13.0",
     "dotenv": "^4.0.0",
-    "eslint-config-airbnb-base": "^13.1.0",
     "fast-xml-parser": "^3.12.12",
     "feathers-authentication-hooks": "^0.1.7",
     "feathers-errors": "^2.9.2",
@@ -70,8 +70,9 @@
     "feathers-memory": "^2.2.0",
     "feathers-sequelize": "^6.0.1",
     "feathers-solr": "^1.1.15",
-    "helmet": "^3.15.0",
+    "helmet": "^3.21.1",
     "http-proxy-middleware": "^0.18.0",
+    "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/master",
     "json2csv": "^4.3.3",
     "lodash": "^4.17.15",
     "lodash.first": "^3.0.0",
@@ -112,6 +113,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "mocha": "^4.1.0",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "eslint-config-airbnb-base": "^13.1.0"
   }
 }

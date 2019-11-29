@@ -19,7 +19,7 @@ class Service {
     //
     // https:// solrdev.dhlab.epfl.ch/solr/impresso_embeddings_de/select?q=word_s:amour&fl=embedding_bv
     const bv = await this.solrClient.findAll({
-      q: `word_s:${params.query.q}`,
+      q: `word_s:(${params.query.q})`,
       fl: 'embedding_bv',
       namespace,
     }).then((res) => {

@@ -1,6 +1,19 @@
 const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
 
+/**
+ * Fields names that should not be wrapped into `filter(...)` when
+ * used in `q` Solr parameter.
+ *
+ * TODO: Explain why.
+ */
+const NON_FILTERED_FIELDS = [
+  'uid',
+  'string',
+  'entity-string',
+  'topic-string',
+];
+
 const SOLR_FILTER_TYPES = [
   'hasTextContents',
   'title',
@@ -29,19 +42,26 @@ const SOLR_FILTER_DPF = {
   location: 'loc_entities_dpfs',
 };
 
-const escapeValue = value => value.replace(/[()]/g, d => `\\${d}`);
+const escapeValue = value => value.replace(/[()\\+&|!{}[\]?:;,]/g, d => `\\${d}`);
+const getValueWithFields = (value, fields) => {
+  if (Array.isArray(fields)) {
+    return fields.map(field => getValueWithFields(value, field)).join(' OR ');
+  }
+  return `${fields}:${escapeValue(value)}`;
+};
 
 const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   let qq = '';
   const op = filter.op || 'OR';
 
   if (Array.isArray(filter.q)) {
-    qq = filter.q.map(value => `${field}:${escapeValue(value)}`).join(` ${op} `);
+    qq = filter.q.map(value => getValueWithFields(value, field)).join(` ${op} `);
+    qq = `(${qq})`;
   } else {
-    qq = `${field}:${escapeValue(filter.q)}`;
+    qq = getValueWithFields(filter.q, field);
   }
   if (filter.context === 'exclude') {
-    qq = sq.length > 0 ? `NOT ${qq}` : `*:* AND NOT ${qq}`;
+    qq = sq.length > 0 ? `NOT (${qq})` : `*:* AND NOT (${qq})`;
   }
   sq.push(qq);
   return sq;
@@ -67,7 +87,7 @@ const reduceDaterangeFiltersToSolr = filters => filters
       q = `meta_date_dt:[${filter.q}]`;
     }
     if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
     }
     sq.push(q);
     return sq;
@@ -83,7 +103,7 @@ const reduceNumericRangeFilters = (filters, field) => filters
       q = `${field}:[${filter.q}]`;
     }
     if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
     }
     sq.push(q);
     return sq;
@@ -139,7 +159,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
     }
 
     if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT ${q}` : `*:* AND NOT ${q}`;
+      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
     }
     sq.push(q);
     return sq;
@@ -184,6 +204,8 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'meta_country_code_s');
     case 'mention':
       return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions']);
+    case 'entity':
+      return reduceFiltersToSolr(filters, ['pers_entities_dpfs', 'loc_entities_dpfs']);
     case 'person':
       return reduceFiltersToSolr(filters, 'pers_entities_dpfs');
     case 'location':
@@ -211,10 +233,10 @@ const filtersToSolr = (type, filters) => {
  */
 const qToSolrFilter = (type = 'string') => (context) => {
   if (context.type !== 'before') {
-    throw new Error('The \'filtersToSolrQuery\' hook should only be used as a \'before\' hook.');
+    throw new Error('[qToSolrFilter] hook should only be used as a \'before\' hook.');
   }
   if (typeof context.params.sanitized !== 'object') {
-    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+    throw new Error('[qToSolrFilter] hook should be used after a \'validate\' hook.');
   }
   if (!Array.isArray(context.params.sanitized.filters)) {
     context.params.sanitized.filters = [];
@@ -235,38 +257,38 @@ const qToSolrFilter = (type = 'string') => (context) => {
  * in `context.params.sanitized.filters` array to a smart SOLR query
  *
  */
-const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) => {
+const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) => async (context) => {
+  const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`;
   if (context.type !== 'before') {
-    throw new Error('The \'filtersToSolrQuery\' hook should only be used as a \'before\' hook.');
+    throw new Error(`${prefix} hook should only be used as a 'before' hook.`);
   }
-  if (typeof context.params.sanitized !== 'object') {
-    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+  if (typeof context[prop].sanitized !== 'object') {
+    context[prop].sanitized = {};
   }
-  if (!Array.isArray(context.params.sanitized.filters)) {
-    context.params.sanitized.filters = [];
+  if (!Array.isArray(context[prop].sanitized.filters)) {
+    context[prop].sanitized.filters = [];
   }
-  if (!context.params.sanitized.filters.length && !context.params.sanitized.q) {
+  if (!context[prop].sanitized.filters.length && !context[prop].sanitized.q) {
     // nothing is give, wildcard then.
-    debug('\'filtersToSolrQuery\' with \'solr query\':', '*:*');
-    context.params.sanitized.sq = '*:*';
-    context.params.sanitized.queryComponents = [];
+    debug(`${prefix} with 'solr query': *:*`);
+    context[prop].sanitized.sq = '*:*';
+    context[prop].sanitized.queryComponents = [];
     return;
   }
 
-  const filters = lodash.groupBy(context.params.sanitized.filters, 'type');
+  const filters = lodash.groupBy(context[prop].sanitized.filters, 'type');
   const queries = [];
   // const filterQueries = [];
   // will contain payload vars, if any.
   const vars = {};
 
-
   Object.keys(filters).forEach((key) => {
-    if (['uid', 'string', 'entity-string', 'topic-string'].indexOf(key) !== -1) {
+    if (NON_FILTERED_FIELDS.indexOf(key) !== -1) {
       queries.push(filtersToSolr(key, filters[key]));
     } else {
       queries.push(`filter(${filtersToSolr(key, filters[key])})`);
     }
-    debug('\'filtersToSolrQuery\' key:', key, filters[key]);
+    debug(`${prefix} key:${key}`, filters[key]);
     if (SOLR_FILTER_DPF[key]) {
       // add payload variable
       // payload(topics_dpf,tmGDL_tp04_fr)
@@ -277,24 +299,33 @@ const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) 
       });
     }
   });
-
+  // prepend order by if it is not relevance
   if (overrideOrderBy && Object.keys(vars).length) {
-    if (context.params.sanitized.order_by) {
-      context.params.sanitized.order_by = Object.keys(vars)
-        .map(d => `${vars[d]} desc`)
-        // .concat(context.params.sanitized.order_by.split(','))
+    const varsOrderBy = Object.keys(vars).map(v => ['${', v, '} desc'].join(''));
+    // if order by is by relevance:
+    if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
+      context[prop].sanitized.order_by = varsOrderBy
+        .concat(context[prop].sanitized.order_by.split(','))
         .join(',');
+    } else if (context[prop].sanitized.order_by) {
+      context[prop].sanitized.order_by = context[prop].sanitized.order_by
+        .split(',')
+        .concat(varsOrderBy)
+        .join(',');
+    } else {
+      context[prop].sanitized.order_by = varsOrderBy.join(',');
     }
   }
+  debug(`${prefix} query order_by:`, context[prop].sanitized.order_by);
+  debug(`${prefix} vars =`, vars, context[prop].sanitized);
 
-  debug('\'filtersToSolrQuery\' vars =', vars, context.params.sanitized);
+  // context[prop].query.order_by.push()
 
-  // context.params.query.order_by.push()
-
-  context.params.sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
-  // context.params.sanitized.sfq = filterQueries.join(' AND ');
-  context.params.sanitized.sv = vars;
-  context.params.sanitized.queryComponents = [].concat(
+  context[prop].sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
+  // context[prop].sanitized.sfq = filterQueries.join(' AND ');
+  context[prop].sanitized.sv = vars;
+  // NOTE: `queryComponents` should be deprecated
+  context[prop].sanitized.queryComponents = [].concat(
     filters.isFront,
     filters.years,
     filters.newspaper,
@@ -305,12 +336,13 @@ const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) 
     filters.language,
     filters.daterange,
     filters.type,
+    filters.country,
     filters.string,
     filters.title,
     filters.issue,
     filters.page,
   ).filter(d => typeof d !== 'undefined');
-  debug('\'filtersToSolrQuery\' with \'solr query\':', context.params.sanitized.sq);
+  debug(`${prefix} with 'solr query': ${context[prop].sanitized.sq}`);
 };
 
 /**
@@ -319,14 +351,14 @@ const filtersToSolrQuery = ({ overrideOrderBy = true } = {}) => async (context) 
  */
 const filtersToSolrFacetQuery = () => async (context) => {
   if (!context.params.sanitized.facets) {
-    debug('\'filtersToSolrFacetQuery\' warning, no facets requested.');
+    debug('[filtersToSolrFacetQuery] WARN no facets requested.');
     return;
   }
   if (typeof context.params.sanitized !== 'object') {
-    throw new Error('The \'filtersToSolrQuery\' hook should be used after a \'validate\' hook.');
+    throw new Error('[filtersToSolrFacetQuery] hook should be used after a \'validate\' hook.');
   }
   const facets = JSON.parse(context.params.sanitized.facets);
-  debug('\'filtersToSolrFacetQuery\' on facets:', facets);
+  debug('[filtersToSolrFacetQuery] on facets:', facets);
 
   if (!Array.isArray(context.params.sanitized.facetfilters)) {
     context.params.sanitized.facetfilters = [];
@@ -335,7 +367,7 @@ const filtersToSolrFacetQuery = () => async (context) => {
   Object.keys(facets).forEach((key) => {
     const filter = context.params.sanitized.facetfilters.find(d => d.name === key);
     if (filter) {
-      debug(`filtersToSolrFacetQuery' on facet ${key}:`, filter);
+      debug(`[filtersToSolrFacetQuery] on facet ${key}:`, filter);
     }
   });
 };
@@ -346,9 +378,12 @@ module.exports = {
   reduceFiltersToSolr,
   reduceRegexFiltersToSolr,
   filtersToSolrFacetQuery,
+  filtersToSolr,
 
   SOLR_FILTER_TYPES,
   SOLR_FILTER_DPF,
+
+  NON_FILTERED_FIELDS,
 
   SOLR_ORDER_BY: {
     date: 'meta_date_dt',
@@ -373,6 +408,15 @@ module.exports = {
       field: 'meta_year_i',
       mincount: 1,
       limit: 400, // 400 years
+      numBuckets: true,
+    },
+    size: {
+      type: 'range',
+      field: 'content_length_i',
+      end: 10000,
+      start: 0,
+      gap: 100,
+      other: 'after',
     },
     month: {
       type: 'terms',

@@ -1,9 +1,15 @@
 const Topic = require('./topics.model');
+const Year = require('./years.model');
 const Newspaper = require('./newspapers.model');
 const Entity = require('./entities.model');
 const Collection = require('./collections.model');
 
-const FACET_TYPES_WITH_ITEMS = ['newspaper', 'language', 'topic', 'person', 'location', 'collection'];
+const FACET_TYPES_WITH_ITEMS = ['newspaper', 'language', 'topic', 'person', 'location', 'collection', 'year'];
+const FACET_TYPES_WITH_CACHED_ITEMS = {
+  newspaper: Newspaper,
+  topic: Topic,
+  year: Year,
+};
 
 class SearchFacetBucket {
   constructor({
@@ -16,10 +22,9 @@ class SearchFacetBucket {
 
     if (FACET_TYPES_WITH_ITEMS.indexOf(type) !== -1) {
       this.uid = String(val);
-      if (type === 'topic') {
-        this.item = Topic.getCached(this.uid);
-      } else if (type === 'newspaper') {
-        this.item = Newspaper.getCached(this.uid);
+      if (FACET_TYPES_WITH_CACHED_ITEMS[type]) {
+        const Klass = FACET_TYPES_WITH_CACHED_ITEMS[type];
+        this.item = Klass.getCached(this.uid);
       } else if (type === 'person' || type === 'location') {
         this.item = new Entity({
           uid: this.uid,

@@ -135,20 +135,22 @@ class Collection {
     });
 
     collection.prototype.toJSON = function (obfuscate = true) {
-      return {
-        ...new Collection({
-          uid: this.uid,
-          name: this.name,
-          description: this.description,
-          status: this.status,
-          creationDate: this.creationDate,
-          lastModifiedDate: this.lastModifiedDate,
-          countItems: this.countItems,
-        }),
-        creator: this.creator.toJSON({
+      const sq = new Collection({
+        uid: this.uid,
+        name: this.name,
+        description: this.description,
+        status: this.status,
+        creationDate: this.creationDate,
+        lastModifiedDate: this.lastModifiedDate,
+        countItems: this.countItems,
+      });
+
+      if (this.creator) {
+        sq.creator = this.creator.toJSON({
           obfuscate,
-        }),
-      };
+        });
+      }
+      return sq;
     };
 
     return collection;

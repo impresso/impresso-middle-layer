@@ -1,4 +1,6 @@
 const debug = require('debug')('impresso/services:issues');
+const { NotFound } = require('@feathersjs/errors');
+
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 const Issue = require('../../models/issues.model');
@@ -54,7 +56,10 @@ class Service {
         .then(res => res.data[0]),
       this.SequelizeService.rawSelect({
         query: `
-          SELECT pages.id as uid, pages.iiif_manifest as iiif, pages.page_number as num, pages.has_converted_coordinates as hasCoords, COUNT(ci.id) as countArticles
+          SELECT
+            pages.id as uid, pages.iiif_manifest as iiif, pages.page_number as num,
+            pages.has_converted_coordinates as hasCoords, COUNT(ci.id) as countArticles,
+            issues.access_rights as accessRights
           FROM pages
             JOIN issues
               ON pages.issue_id = issues.id
@@ -73,6 +78,13 @@ class Service {
         .then(pages => pages.map(d => new Page(d))),
     ])
       .then(([issue, pages]) => {
+        if (!issue) {
+          throw new NotFound();
+        }
+        if (pages.length) {
+          // update issue accessRights thanks to pages data loaded from the db
+          issue.accessRights = pages[0].accessRights;
+        }
         issue.pages = pages;
         issue.countPages = pages.length;
         issue.countArticles = pages.reduce((acc, p) => acc + p.countArticles, 0);

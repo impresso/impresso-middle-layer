@@ -1,0 +1,6 @@
+config
+!config/default.json
+.git
+node_modules
+docker
+data

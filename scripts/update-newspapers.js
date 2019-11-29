@@ -15,7 +15,7 @@ debug('start!');
 async function waterfall() {
   debug('find newspapers...');
 
-  const newspapers = await Newspaper.sequelize(sequelizeClient).scope('all').findAll()
+  const newspapers = await Newspaper.sequelize(sequelizeClient).scope('findAll').findAll()
     .then(results => results.map(d => d.toJSON()))
     .then(results => lodash.keyBy(results, 'acronym'));
 
@@ -79,8 +79,9 @@ async function waterfall() {
 
   debug('saving', Object.keys(newspapers).length, 'newspapers...');
 
-  fs.writeFileSync('./src/data/newspapers.json', JSON.stringify(newspapers));
-  debug('success, saved ./src/data/newspapers.js');
+  const fileName = './data/newspapers.json';
+  fs.writeFileSync(fileName, JSON.stringify(newspapers));
+  debug(`success, saved ${fileName}`);
   debug('count newspaper issues, pages');
 }
 

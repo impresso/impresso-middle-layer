@@ -2,29 +2,34 @@
 const debug = require('debug')('impresso/services:entities');
 const lodash = require('lodash');
 const { Op } = require('sequelize');
+const { NotFound } = require('@feathersjs/errors');
+
 const wikidata = require('../wikidata');
+
 const Entity = require('../../models/entities.model');
 const SequelizeService = require('../sequelize.service');
+const SolrService = require('../solr.service');
 
 class Service {
-  constructor({
-    app = null,
-    name = '',
-  } = {}) {
+  constructor({ app }) {
     this.app = app;
-    this.name = name;
-    this.SequelizeService = SequelizeService({
+    this.name = 'entities';
+    this.sequelizeService = new SequelizeService({
       app,
-      name,
+      name: this.name,
     });
-    this.solrClient = app.get('solrClient');
+    this.solrService = new SolrService({
+      app,
+      name: this.name,
+      namespace: this.name,
+    });
   }
 
   async find(params) {
-    debug('\'find\' total entities:', 0, params);
+    debug('[find] with params:', params.query);
 
     // get solr results for the queyr, if any; return raw results.
-    const solrResult = await this.solrClient.findAll({
+    const solrResult = await this.solrService.solr.findAll({
       q: params.sanitized.sq || '*:*',
       fl: 'id,l_s,t_s,article_fq_f,mention_fq_f',
       highlight_by: params.sanitized.sq ? 'entitySuggest' : false,
@@ -34,7 +39,7 @@ class Service {
       skip: params.query.skip,
     }, Entity.solrFactory);
 
-    debug('\'find\' total entities:', solrResult.response.numFound);
+    debug('[find] total entities:', solrResult.response.numFound);
     // is Empty?
     if (!solrResult.response.numFound) {
       return {
@@ -56,7 +61,7 @@ class Service {
       },
     };
     // get sequelize results
-    const sequelizeResult = await this.SequelizeService.find({
+    const sequelizeResult = await this.sequelizeService.find({
       findAllOnly: true,
       query: {
         limit: entities.length,
@@ -86,7 +91,7 @@ class Service {
     };
 
     if (!params.sanitized.resolve) { // no need to resolve?
-      debug('\'find\' completed, SKIP wikidata.');
+      debug('[find] completed, no param resolve, then SKIP wikidata.');
       return result;
     }
 
@@ -96,7 +101,7 @@ class Service {
       .compact()
       .value();
 
-    debug('\'find\'loading wikidata:', wkdIds.length);
+    debug('[find] wikidata loading:', wkdIds.length);
     const resolvedEntities = {};
 
     return Promise.all(
@@ -107,7 +112,7 @@ class Service {
         resolvedEntities[wkdId] = resolved[wkdId];
       })),
     ).then((res) => {
-      debug('\'find\'loading wikidata success');
+      debug('[find] wikidata success!');
       result.data = result.data.map((d) => {
         if (d.wikidataId) {
           d.wikidata = resolvedEntities[d.wikidataId];
@@ -122,27 +127,24 @@ class Service {
   }
 
   async get(id, params) {
-    const where = {
-      id,
-    };
-
-    const entity = await this.SequelizeService.get(id, { where })
-      .then(d => d.toJSON());
-
-    if (!entity.wikidataId) {
-      return entity;
-    }
-
-    return wikidata.resolve({
-      ids: [entity.wikidataId],
-      cache: this.app.get('redisClient'),
+    return this.find({
+      ...params,
+      query: {
+        resolve: true,
+        limit: 1,
+        filters: [
+          {
+            type: 'uid',
+            // yes, entities id can have " in their name... check entities tests.
+            q: `${id.split('"').join('*')}`, // no comment
+          },
+        ],
+      },
     }).then((res) => {
-      if (res[entity.wikidataId]) {
-        entity.wikidata = res[entity.wikidataId];
+      if (!res.data.length) {
+        throw new NotFound();
       }
-      return entity;
-    }).catch((err) => {
-      console.log(err);
+      return res.data[0];
     });
   }
 

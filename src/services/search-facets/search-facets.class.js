@@ -53,7 +53,6 @@ class Service {
       .keyBy('k').value();
 
     debug('facets:', facets);
-
     // TODO: transform params.query.filters to match solr syntax
     const result = await this.app.get('solrClient').findAll({
       q: params.sanitized.sq,
@@ -87,7 +86,6 @@ class Service {
     const total = result.response.numFound;
 
     debug(`find '${this.name}': SOLR found ${total} using SOLR params:`, result.responseHeader.params);
-    console.log(result.facets);
     return {
       data: Object.keys(result.facets).map((type) => {
         if (typeof result.facets[type] === 'object') {

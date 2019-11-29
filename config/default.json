@@ -10,7 +10,8 @@
     "showExcerpt": true,
     "enable": true,
     "unauthorizedIIIFUrl": "unauthorized.json",
-    "unauthorizedIIIFImageUrl": "unauthorized.png"
+    "unauthorizedIIIFImageUrl": "unauthorized.png",
+    "unauthorizedContent": "content not available for unauthenticated users ..."
   },
   "redis": {
     "enable": true
@@ -36,20 +37,19 @@
     ]
   },
   "authentication": {
-    "secret": "********",
-    "strategies": [
+    "entity": "user",
+    "service": "users",
+    "secret": "***********",
+    "authStrategies": [
       "jwt",
       "local"
     ],
-    "path": "/authentication",
-    "service": "users",
-    "jwt": {
+    "jwtOptions": {
       "header": {
         "typ": "access"
       },
       "audience": "http://localhost:3030",
-      "subject": "anonymous",
-      "issuer": "feathers",
+      "issuer": "impresso-v1",
       "algorithm": "HS256",
       "expiresIn": "7d"
     },
@@ -77,7 +77,9 @@
     "host": "http://localhost:3030",
     "path": "/media",
     "protectedPath": "/protected-media",
-    "services": ["jobs"]
+    "services": [
+      "jobs"
+    ]
   },
   "multer": {
     "dest": "/tmp/multer"

@@ -15,6 +15,8 @@ describe('test obfuscation when the user is anonymous', () => {
       params: {
 
       },
+      path: 'articles',
+      method: 'find',
       result: {
         data: [
           {
@@ -22,12 +24,14 @@ describe('test obfuscation when the user is anonymous', () => {
             issue: {
               accessRights: ACCESS_RIGHTS_CLOSED,
             },
+            pages: [],
+            regions: [],
           },
         ],
       },
     };
     obfuscate()(context);
-    assert.ok(context.obfuscated);
+    assert.ok(context.result.data[0].issue.obfuscated);
     assert.ok(context.result.data[0].content !== 'Private content, do not Disclose.');
   });
 
@@ -37,6 +41,8 @@ describe('test obfuscation when the user is anonymous', () => {
       params: {
 
       },
+      path: 'articles',
+      method: 'find',
       result: {
         data: [
           {
@@ -49,7 +55,6 @@ describe('test obfuscation when the user is anonymous', () => {
       },
     };
     obfuscate()(context);
-    assert.ok(context.obfuscated);
     assert.deepEqual(context.result.data[0].content, 'Public accessible content.');
   });
 });

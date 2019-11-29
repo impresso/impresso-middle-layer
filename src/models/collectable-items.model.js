@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const Collection = require('./collections.model');
-const SearchQuery = require('./searchQueries.model');
+const SearchQuery = require('./search-queries.model');
 
 const CONTENT_TYPES = {
 

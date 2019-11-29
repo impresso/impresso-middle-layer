@@ -207,15 +207,27 @@ const toExcerpt = (content, {
   TruncateBy = 'words',
   TruncateLength = 50,
   excludeTitle = '',
+  Suffix = '...',
+  maxLength = 120,
 } = {}) => {
   let c = String(content);
   if (excludeTitle.length && c.indexOf(excludeTitle) === 0) {
     c = c.substr(excludeTitle.length);
   }
-  const exc = truncatise(c.split('<').join('&lt;').split('>').join('&rt;'), {
+  // clean
+  c = c.split('<').join('&lt;').split('>').join('&rt;');
+  const exc = truncatise(c, {
     TruncateBy,
     TruncateLength,
+    Suffix,
   });
+  if (exc > maxLength) {
+    return truncatise(c, {
+      TruncateBy: 'characters',
+      maxLength,
+      Suffix,
+    });
+  }
   // npm i truncate
   return exc;
 };
@@ -1057,6 +1069,38 @@ const latinise = (t) => {
  */
 const toPlainText = q => q.replace(/[^\s0-9A-zÀ-Ÿ ']|[[\]]/g, ' ').trim();
 
+/**
+ * Cut a text around a left right annotation.
+ * @param  {String} q dirty string
+ * @return {String}   cleaned string
+ */
+const toTextWrap = ({
+  text, l, r, d = 25, minD = 10, html = true, ref = 'highlight', attr = 'class',
+} = {}) => {
+  let ll = Math.max(0, l - d);
+  let rr = Math.min(r + d, text.length);
+  // first non word character, not to cut words
+  if (ll > 0) {
+    const mlnw = text.substring(ll).match(/[^\w]/);
+    if (mlnw) {
+      // add offset only if it is less than l ...
+      ll = Math.min(ll + mlnw.index, l - minD);
+    }
+  }
+  const mrnw = text.substring(ll, rr).match(/([^\w])\w*$/);
+  if (mrnw) {
+    // add offset only if it is less than l ...
+    rr = Math.max(ll + mrnw.index, r + minD);
+  }
+  const wrapped = text.slice(ll, rr);
+  if (!html) {
+    return wrapped;
+  }
+  const lines = sliceAtSplitpoints(wrapped, []);
+  annotate(lines, ref, l - ll, r - ll, attr);
+  return render(lines).pop();
+};
+
 module.exports = {
   toHierarchy,
   sliceAtSplitpoints,
@@ -1065,4 +1109,5 @@ module.exports = {
   toExcerpt,
   latinise,
   toPlainText,
+  toTextWrap,
 };

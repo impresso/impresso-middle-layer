@@ -21,9 +21,12 @@ class Service {
     };
     const languages = newspaper.languages;
 
-    if (languages.length === 1) {
+    if (newspaper.uid === 'NZZ') {
+      highlightProps['hl.alternateField'] = 'content_txt_de';
+    } else if (languages.length) {
       highlightProps['hl.alternateField'] = `content_txt_${languages[0]}`;
     }
+
     // get all articles for the give issue,
     // at least 1 of content length, max 500 articles
     const result = await this.app.get('solrClient').findAll({

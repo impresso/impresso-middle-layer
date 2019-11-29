@@ -1,4 +1,4 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
+const { authenticate } = require('../../hooks/authenticate');
 const {
   utils, protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
 } = require('../../hooks/params');
@@ -17,6 +17,7 @@ module.exports = {
       }),
       checkCachedContents({
         useAuthenticatedUser: false,
+        useAuthentication: true,
       }),
     ],
     find: [
@@ -77,7 +78,6 @@ module.exports = {
         skipHooks: false,
       }),
       saveResultsInCache(),
-      resolveUserAddons(),
       obfuscate(),
     ],
     get: [

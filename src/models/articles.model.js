@@ -169,15 +169,30 @@ class BaseArticle {
   } = {}) {
     this.uid = String(uid);
     this.type = String(type);
-    this.title = String(title);
+    this.title = String(title).trim();
     this.size = parseInt(size, 10);
     this.nbPages = pages.length;
     this.pages = pages;
     this.isCC = isCC;
+
+    let prefix;
+    if (!this.title.length && excerpt.length) {
+      this.title = toExcerpt(excerpt, {
+        TruncateLength: 5,
+        Suffix: '',
+      });
+      prefix = '...';
+    }
+
     this.excerpt = toExcerpt(excerpt, {
       TruncateLength: 20,
       excludeTitle: this.title,
     });
+
+    if (prefix) {
+      this.excerpt = [prefix, this.excerpt].join('');
+    }
+
     if (collections.length) {
       this.collections = collections;
     }
@@ -433,6 +448,7 @@ class Article {
         });
       }
     });
+    return article;
   }
 
   /**

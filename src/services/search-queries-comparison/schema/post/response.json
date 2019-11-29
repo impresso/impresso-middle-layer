@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/search-queries-comparison/schema/intersection/post/response.json",
+  "description": "Response for POST /search-queries-comparison/intersection",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/search_item"
+      }
+    },
+    "limit": {
+      "type": "integer",
+      "description": "Limited to this many items",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "skip": {
+      "type": "integer",
+      "description": "Skipped this many items",
+      "minimum": 0
+    },
+    "total": {
+      "type": "integer",
+      "description": "Total items found before limiting",
+      "minimum": 0
+    },
+    "info": {
+      "$ref": "#/definitions/info"
+    }
+  },
+  "definitions": {
+    "search_item": {
+      "type": "object",
+      "description": "TODO: add properties"
+    },
+    "info": {
+      "type": "object",
+      "description": "TODO: add properties"
+    }
+  },
+  "required": [
+    "data",
+    "limit",
+    "skip",
+    "total",
+    "info"
+  ]
+}

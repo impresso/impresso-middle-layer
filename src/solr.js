@@ -93,6 +93,112 @@ const suggest = (config, params = {}, factory) => {
     // throw feathers errors here.
   });
 };
+//
+const findAllPost = (config, params = {}, factory) => {
+  const qp = {
+    q: '*:*',
+    limit: 10,
+    skip: 0,
+    excerptLength: 30,
+    namespace: 'search',
+    ...params,
+  };
+
+
+  debug(`{findAll}: request to '${qp.namespace}' endpoint. With PARAMS:`, qp);
+  // you can have multiple namespace for the same solr
+  // configuration corresponding to  different solr on the same machine.
+  const endpoint = `${config[qp.namespace].endpoint}`;
+
+  const data = {
+    q: qp.q,
+    start: qp.skip,
+    rows: qp.limit,
+    wt: 'json',
+  };
+
+  if (qp.fq && qp.fq.length) {
+    data.fq = qp.fq;
+  }
+  if (qp.highlight_by) {
+    data.hl = 'on';
+    data['hl.fl'] = qp.highlight_by;
+    if (qp.highlightProps) {
+      Object.assign(data, qp.highlightProps);
+    }
+  }
+  if (qp.vars) {
+    Object.assign(data, qp.vars);
+  }
+  // transform order by if any
+  if (qp.order_by) {
+    data.sort = qp.order_by;
+  }
+
+  // transform facets if any
+  //
+  if (qp.facets) {
+    data['json.facet'] = qp.facets;
+  }
+
+  if (qp.group_by && qp.group_by !== 'id') {
+    Object.assign(data, {
+      group: true,
+      'group.field': qp.group_by,
+      // 'group.main': true,
+      'group.limit': 3, // top 3
+      'group.ngroups': true,
+    });
+  } else if (qp.collapse_by) {
+    // using https://lucene.apache.org/solr/guide/6_6/collapse-and-expand-results.html
+    if (!qp.collapse_fn) {
+      data.collapse_fn = '';
+    }
+    if (qp.expand) {
+      data.expand = true;
+    }
+    Object.assign(data, {
+      fq: `{!collapse field=${qp.collapse_by} ${qp.collapse_fn}}`, // top 1 document matching.
+    });
+  }
+
+  if (qp.fl) {
+    data.fl = Array.isArray(qp.fl) ? qp.fl.join(',') : qp.fl;
+  }
+
+  debug(`{findAll}: request to '${qp.namespace}' endpoint: '${endpoint}'. Using 'data':`, data);
+  return rp({
+    method: 'POST',
+    url: endpoint,
+    auth: config.auth,
+    form: data,
+    // json: true REMOVED because of duplicate keys
+  }).then((res) => {
+    // dummy handle dupes keys
+    const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
+
+    if (result.grouped) {
+      result.response = {
+        numFound: result.grouped[qp.group_by].ngroups,
+        docs: result.grouped[qp.group_by].groups,
+      };
+    }
+
+    debug(
+      `{findAll} success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
+      factory ? 'with factory' : '(no factory specified)',
+    );
+
+    if (factory) {
+      result.response.docs = result.response.docs.map(factory(result));
+    }
+    return result;
+  }).catch((err) => {
+    console.error(err);
+    throw new NotImplemented();
+  });
+};
+
 /**
  * request wrapper to get results from solr.
  * TODO Check grouping: https://lucene.apache.org/solr/guide/6_6/result-grouping.html
@@ -129,8 +235,8 @@ const findAll = (config, params = {}, factory) => {
   if (_params.highlight_by) {
     qs.hl = 'on';
     qs['hl.fl'] = _params.highlight_by;
-    if (_params.highlight_props) {
-      Object.assign(qs, _params.highlight_props);
+    if (_params.highlightProps) {
+      Object.assign(qs, _params.highlightProps);
     }
   }
   if (_params.vars) {
@@ -205,7 +311,7 @@ const findAll = (config, params = {}, factory) => {
   }
 
 
-  debug(`findAll: request to '${_params.namespace}' endpoint. With 'qs':`, qs);
+  debug(`findAll: request to '${_params.namespace}' endpoint. With 'qs':`, JSON.stringify(opts.qs));
   debug('\'findAll\': url', endpoint);
   return rp(opts).then((res) => {
     // dummy handle dupes keys
@@ -282,6 +388,7 @@ const resolveAsync = async (config, groups, factory) => {
 
 const getSolrClient = config => ({
   findAll: (params, factory) => findAll(config, params, factory),
+  findAllPost: (params, factory) => findAllPost(config, params, factory),
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
   utils: {

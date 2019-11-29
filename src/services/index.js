@@ -1,7 +1,6 @@
 const users = require('./users/users.service.js');
 const articles = require('./articles/articles.service.js');
 const entities = require('./entities/entities.service.js');
-const timeline = require('./timeline/timeline.service.js');
 const newspapers = require('./newspapers/newspapers.service.js');
 const issues = require('./issues/issues.service.js');
 const suggestions = require('./suggestions/suggestions.service.js');
@@ -69,16 +68,20 @@ const searchQueriesComparison = require('./search-queries-comparison/search-quer
 const me = require('./me/me.service.js');
 
 
+const searchQueries = require('./search-queries/search-queries.service.js');
+
+
+const errorsCollector = require('./errors-collector/errors-collector.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
   app.configure(users);
-  app.configure(timeline);
   app.configure(buckets);
   app.configure(bucketsItems);
   app.configure(articles);
   app.configure(articlesTags);
-  app.configure(entities);
   app.configure(newspapers);
   app.configure(issues);
   app.configure(suggestions);
@@ -87,8 +90,6 @@ module.exports = function () {
   app.configure(pages);
   app.configure(tags);
   app.configure(version);
-
-
   app.configure(proxy);
   app.configure(search);
   app.configure(searchExporter);
@@ -113,4 +114,6 @@ module.exports = function () {
   app.configure(tableOfContents);
   app.configure(searchQueriesComparison);
   app.configure(me);
+  app.configure(searchQueries);
+  app.configure(errorsCollector);
 };

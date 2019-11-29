@@ -32,6 +32,8 @@ class Topic {
     model = '',
     // array of topicWords
     words = [],
+    relatedTopics = [],
+    countItems = -1,
   } = {}, {
     // options
     wordsInExcerpt = 5,
@@ -52,6 +54,8 @@ class Topic {
     } else {
       this.excerpt = lodash.take(this.words, wordsInExcerpt);
     }
+    this.countItems = countItems;
+    this.relatedTopics = relatedTopics;
   }
 
   getExcerpt() {

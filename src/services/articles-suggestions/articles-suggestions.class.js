@@ -61,7 +61,6 @@ class Service {
         // eslint-disable-next-line no-template-curly-in-string
         order_by: '${topicWeight} asc',
       }, Article.solrFactory)
-        .then()
         .then(this.solrClient.utils.wrapAll)
         .catch((err) => {
           console.error(err);

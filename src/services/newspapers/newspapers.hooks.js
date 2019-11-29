@@ -1,5 +1,8 @@
-const { queryWithCommonParams, validate, utils } = require('../../hooks/params');
+const {
+  queryWithCommonParams, validate, validateEach, utils,
+} = require('../../hooks/params');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+const { validateWithSchema } = require('../../hooks/schema');
 
 module.exports = {
   before: {
@@ -9,24 +12,57 @@ module.exports = {
       }),
     ],
     find: [
+      validateWithSchema('services/newspapers/schema/find/query.json', 'params.query'),
       validate({
         q: {
           required: false,
           max_length: 500,
-          transform: d => utils.toSequelizeLike(d),
+          transform: (d) => {
+            if (d) {
+              return utils.toSequelizeLike(d);
+            }
+            return null;
+          },
+        },
+        faster: {
+          required: false,
+          transform: d => !!d,
         },
         order_by: {
-          choices: ['-name', 'name', '-startYear', 'startYear', '-endYear', 'endYear'],
+          choices: [
+            '-name',
+            'name',
+            '-startYear',
+            'startYear', '-endYear',
+            'endYear',
+            'firstIssue', '-firstIssue',
+            'lastIssue', '-lastIssue',
+            'countIssues', '-countIssues',
+          ],
           defaultValue: 'name',
           transform: d => utils.translate(d, {
-            name: [['name', 'ASC']],
-            '-name': [['name', 'DESC']],
+            name: [['id', 'ASC']],
+            '-name': [['id', 'DESC']],
             startYear: [['startYear', 'ASC']],
             '-startYear': [['startYear', 'DESC']],
             endYear: [['endYear', 'ASC']],
             '-endYear': [['endYear', 'DESC']],
+            firstIssue: [['stats', 'startYear', 'ASC']],
+            '-firstIssue': [['stats', 'startYear', 'DESC']],
+            lastIssue: [['stats', 'endYear', 'ASC']],
+            '-lastIssue': [['stats', 'endYear', 'DESC']],
+            countIssues: [['stats', 'number_issues', 'ASC']],
+            '-countIssues': [['stats', 'number_issues', 'DESC']],
           }),
         },
+      }),
+      validateEach('filters', {
+        type: {
+          choices: ['included', 'excluded'],
+          required: true,
+        },
+      }, {
+        required: false,
       }),
       queryWithCommonParams(),
     ],

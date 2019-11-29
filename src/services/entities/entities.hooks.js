@@ -1,4 +1,5 @@
 // const { authenticate } = require('@feathersjs/authentication').hooks;
+const { validateWithSchema } = require('../../hooks/schema');
 const {
   validate, validateEach, queryWithCommonParams, utils,
 } = require('../../hooks/params');
@@ -12,6 +13,7 @@ module.exports = {
   before: {
     all: [],
     find: [
+      validateWithSchema('services/entities/schema/find/query.json', 'params.query'),
       validate({
         q: {
           required: false,
@@ -53,10 +55,16 @@ module.exports = {
           choices: [
             'string',
             'type',
+            'uid',
           ],
           required: true,
           // trasform is required because they shoyd be related to entities namespace.
-          transform: d => `entity-${d}`,
+          transform: (d) => {
+            if (d === 'uid') {
+              return d;
+            }
+            return `entity-${d}`;
+          },
         },
       }, {
         required: false,

@@ -1,5 +1,6 @@
 // Application hooks that run for every service
 const debug = require('debug')('impresso/app.hooks');
+const { GeneralError, BadGateway } = require('@feathersjs/errors');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { validateRouteId } = require('./hooks/params');
 
@@ -10,7 +11,13 @@ const basicParams = () => (context) => {
   if (!context.params.query) {
     context.params.query = {};
   }
+  ['limit', 'page', 'offset'].forEach((param) => {
+    if (context.params.query[param]) {
+      context.params.query[param] = parseInt(context.params.query[param], 10);
+    }
+  });
 };
+
 
 /**
  * Ensure JWT has been sent, except for the authentication andpoint.
@@ -26,6 +33,30 @@ const requireAuthentication = ({
   }
   return context;
 };
+
+const errorHandler = (ctx) => {
+  if (ctx.error) {
+    const error = ctx.error;
+    console.error(
+      `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
+      error.stack,
+    );
+
+    if (error.name === 'SequelizeConnectionRefusedError') {
+      ctx.error = new BadGateway('SequelizeConnectionRefusedError');
+    } else if (error.name === 'SequelizeConnectionError') {
+      ctx.error = new BadGateway('SequelizeConnectionError');
+    } else if (!error.code) {
+      ctx.error = new GeneralError('server error');
+    }
+    if (error.code === 404 || process.env.NODE_ENV === 'production') {
+      error.stack = null;
+    }
+    return ctx;
+  }
+  return null;
+};
+
 
 const hooks = {
   before: {
@@ -47,9 +78,7 @@ const hooks = {
   },
 
   after: {
-    all: [
-      // logger()
-    ],
+    all: [],
     find: [],
     get: [],
     create: [],
@@ -59,7 +88,9 @@ const hooks = {
   },
 
   error: {
-    all: [],
+    all: [
+      errorHandler,
+    ],
     find: [],
     get: [],
     create: [],

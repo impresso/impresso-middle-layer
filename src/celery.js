@@ -1,5 +1,6 @@
 const debug = require('debug')('impresso/celery');
 const celery = require('node-celery');
+const Job = require('./models/jobs.model');
 
 const JOB_STATUS_TRANSLATIONS = {
   REA: 'A new job has been created',
@@ -28,23 +29,32 @@ const getCeleryClient = (config, app) => {
     debug(`ready! ${err}`);
   });
   client.on('message', (msg) => {
-    debug('message!', msg);
+    let result = msg.result;
 
-    if (msg.result && typeof msg.result === 'object') {
-      if (msg.result.job_id) {
+    if (result && typeof result === 'string') {
+      try {
+        result = JSON.parse(msg);
+      } catch (err) {
+        debug('@message, ERROR, cannot get json from this string:', result);
+        console.error(err);
+      }
+    }
+
+    if (result && typeof result === 'object') {
+      if (result.job) {
+        debug(`@message related to job: ${result.job_id}, send to: ${result.user_uid}`, result);
         app.service('logs').create({
-          task: msg.result.task,
-          job: {
-            id: msg.result.job_id,
-            type: msg.result.job_type,
-            status: msg.result.job_status,
-            progress: msg.result.progress,
-            creationDate: msg.result.job_created, // : '2019-04-04T08:54:12.067946+00:00',
-          },
-          msg: JOB_STATUS_TRANSLATIONS[msg.result.job_status],
-          to: msg.result.user_uid,
+          ...result,
+          job: new Job({
+            ...result.job,
+            creationDate: result.job.date_created,
+          }),
+          msg: JOB_STATUS_TRANSLATIONS[result.job.status],
+          to: result.user_uid,
           from: 'jobs',
         });
+      } else {
+        debug('@message from unknown origin, cannot propagate:', result);
       }
     }
   });

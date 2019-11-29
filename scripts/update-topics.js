@@ -21,7 +21,7 @@ async function waterfall() {
       debug(`${result.response.numFound} topics found in ${result.responseHeader.QTime} ms`);
       return result.response.docs.map(d => ({
         ...d,
-        words: lodash.take(d.words, 20),
+        words: lodash.take(d.words, 10),
       }));
     })
     .then(results => lodash.keyBy(results, 'uid'));
@@ -60,8 +60,9 @@ async function waterfall() {
 
   debug('saving', Object.keys(topics).length, 'topics...');
 
-  fs.writeFileSync('./src/data/topics.json', JSON.stringify(topics));
-  debug('success, saved ./src/data/topics.js');
+  const fileName = './data/topics.json';
+  fs.writeFileSync(fileName, JSON.stringify(topics));
+  debug(`success, saved ${fileName}`);
 }
 
 waterfall().then(() => {

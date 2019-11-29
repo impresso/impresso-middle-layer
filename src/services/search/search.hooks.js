@@ -1,5 +1,5 @@
 const { protect } = require('@feathersjs/authentication-local').hooks;
-const { authenticate } = require('@feathersjs/authentication').hooks;
+const { authenticate } = require('../../hooks/authenticate');
 const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, utils,
 } = require('../../hooks/params');
@@ -29,6 +29,7 @@ module.exports = {
         required: false,
       }),
 
+      // TODO: Deprecated
       validateEach('facet-filters', eachFacetFilterValidator, {
         required: false,
       }),
@@ -36,7 +37,9 @@ module.exports = {
       filtersToSolrFacetQuery(),
 
       qToSolrFilter('string'),
-      filtersToSolrQuery(),
+      filtersToSolrQuery({
+        overrideOrderBy: false,
+      }),
       queryWithCommonParams(),
     ],
     get: [],
@@ -52,13 +55,15 @@ module.exports = {
           choices: ['articles'],
           transform: d => utils.translate(d, SOLR_GROUP_BY),
         },
-      }, 'GET'),
+      }, 'POST'),
       validateEach('filters', eachFilterValidator, {
         required: true,
-        method: 'GET',
+        method: 'POST',
       }),
-      qToSolrFilter('string'),
-      filtersToSolrQuery(),
+      filtersToSolrQuery({
+        prop: 'data',
+        overrideOrderBy: false,
+      }),
     ],
     update: [],
     patch: [],

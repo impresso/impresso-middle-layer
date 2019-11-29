@@ -4,41 +4,40 @@ const debug = require('debug')('impresso/services:mentions');
 const EntityMention = require('../../models/entity-mentions.model');
 const SequelizeService = require('../sequelize.service');
 
-
 /* eslint-disable no-unused-vars */
 class Service {
-  constructor({
-    name = '',
-    app = null,
-  } = {}) {
-    this.name = String(name);
+  constructor(options) {
+    this.options = options;
+  }
+
+  setup(app) {
     this.app = app;
-    this.SequelizeService = SequelizeService({
+    this.sequelizeService = SequelizeService({
       app,
       name: 'entity-mentions',
     });
   }
 
-
   async find(params) {
-    const where = {
-      // creatorId: params.user.id,
-    };
-    const findAllOnly = !params.sanitized.sequelizeQuery;
+    const where = {};
+
+    const findAllOnly = params.query.faster || !params.sanitized.sequelizeQuery;
     if (params.sanitized.sequelizeQuery) {
       where[Op.and] = params.sanitized.sequelizeQuery;
     }
-    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query, findAllOnly);
-
-    return this.SequelizeService.find({
+    debug(`[find] with params.isSafe:${params.isSafe} and params.query:`, params.query, findAllOnly);
+    return this.sequelizeService.find({
       ...params,
       findAllOnly,
       where,
+    }).then((res) => {
+      debug('[find] success! total:', res.total);
+      return res;
     });
   }
 
   async get(id, params) {
-    return this.SequelizeService.get(id).then(result => result.toJSON());
+    return this.sequelizeService.get(id).then(result => result.toJSON());
   }
 }
 
