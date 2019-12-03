@@ -118,6 +118,39 @@ describe('\'Luxwort\' contents', function () {
   });
 });
 
+
+describe('Test /images service for crazy contents', function () {
+  this.timeout(5000);
+  const service = app.service('images');
+  it('get NO images from issue obermosel-1930-12-23-a without errors', async () => {
+    assert.ok(service);
+    const result = await service.find({
+      query: {
+        filters: [
+          {
+            type: 'issue',
+            q: 'obermosel-1930-12-23-a',
+          },
+        ],
+      },
+    });
+    assert.strictEqual(result.total, 0);
+  });
+
+  it('get images from issue GDL-1998-02-28-a', async () => {
+    const result = await service.find({
+      query: {
+        filters: [
+          {
+            type: 'issue',
+            q: 'GDL-1998-02-28-a',
+          },
+        ],
+      },
+    });
+    assert.strictEqual(result.total > 0, true);
+  });
+});
 // WRONG table of content generated for
 // https://solrdev.dhlab.epfl.ch/solr/impresso_dev/select?q=id:luxland-2007-12-21-a-i0001
 
