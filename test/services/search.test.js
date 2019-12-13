@@ -48,6 +48,11 @@ describe('\'search\' service', function () {
   });
 
   it('get search results for one specific topic', async () => {
+    // find one topic
+    const [t1, t2] = await app.service('topics')
+      .find({ query: { limit: 2 } })
+      .then(({ data }) => data);
+
     const result = await service.find({
       query: {
         group_by: 'articles',
@@ -56,12 +61,12 @@ describe('\'search\' service', function () {
           {
             type: 'topic',
             context: 'include',
-            q: 'tmLETEMPS_tp23_fr',
+            q: t1.uid,
           },
           {
             type: 'topic',
             context: 'include',
-            q: 'tmLETEMPS_tp44_fr',
+            q: t2.uid,
           },
         ],
       },
@@ -108,20 +113,20 @@ describe('\'search\' service', function () {
       query: {
         group_by: 'articles',
         facets: ['year'],
-        filters: [{
-          type: 'daterange',
-          context: 'exclude',
-          daterange: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
-        },
-        {
-          type: 'daterange',
-          context: 'include',
-          daterange: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
-        },
+        filters: [
+          {
+            type: 'daterange',
+            context: 'exclude',
+            q: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
+          },
+          {
+            type: 'daterange',
+            context: 'include',
+            q: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+          },
         ],
       },
     });
-    // console.log(result.info)
     assert.ok(result.info.facets.year);
   });
 
@@ -129,7 +134,7 @@ describe('\'search\' service', function () {
     const result = await service.find({
       query: {
         filters: [
-          { context: 'include', type: 'daterange', daterange: '1777-10-30T00:00:00Z TO 1999-03-04T00:00:00Z' },
+          { context: 'include', type: 'daterange', q: '1777-10-30T00:00:00Z TO 1999-03-04T00:00:00Z' },
           { context: 'include', type: 'newspaper', q: ['NZZ'] },
         ],
         facets: ['newspaper', 'language'],
