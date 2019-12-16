@@ -132,6 +132,7 @@
     }
   },
   "solr": {
+    "dataVersion": 1.0,
     "host": "localhost",
     "port": 8984,
     "auth": {
