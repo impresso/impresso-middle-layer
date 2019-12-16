@@ -21,8 +21,21 @@ function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, hig
     fragments,
   });
 
+  let regionCoords = [];
+  if (documentsIndex[id].rc_plains) {
+    regionCoords = documentsIndex[id].rc_plains.map((d) => {
+      const page = JSON.parse(d.replace(/'/g, '"'));
+      return {
+        id: page.pid,
+        r: page.c,
+      };
+    });
+  } else if (documentsIndex[id].pp_plain) {
+    regionCoords = documentsIndex[id].pp_plain;
+  }
+
   const regions = Article.getRegions({
-    regionCoords: documentsIndex[id].pp_plain,
+    regionCoords,
   });
 
   return [matches, regions];
