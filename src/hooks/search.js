@@ -184,6 +184,8 @@ const filtersToSolr = (type, filters) => {
       return reduceDaterangeFiltersToSolr(filters);
     case 'uid':
       return reduceFiltersToSolr(filters, 'id');
+    case 'accessRight':
+      return reduceFiltersToSolr(filters, 'access_right_s');
     case 'language':
       return reduceFiltersToSolr(filters, 'lg_s');
     case 'page':
@@ -484,6 +486,14 @@ module.exports = {
       type: 'terms',
       field: 'loc_entities_dpfs',
       mincount: 1,
+      limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
+    accessRight: {
+      type: 'terms',
+      field: 'access_right_s',
+      mincount: 0,
       limit: 10,
       offset: 0,
       numBuckets: true,

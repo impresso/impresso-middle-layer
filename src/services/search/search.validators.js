@@ -36,6 +36,8 @@ const eachFilterValidator = {
       'contentLength',
       // country of article
       'country',
+      // access right
+      'accessRight',
     ],
     required: true,
   },
