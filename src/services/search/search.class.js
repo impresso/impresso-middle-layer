@@ -27,6 +27,7 @@ class Service {
   } = {}) {
     this.app = app;
     this.solr = solr.client(app.get('solr'));
+    this.solrDataVersion = app.get('solr').dataVersion;
     this.sequelize = sequelize.client(app.get('sequelize'));
     this.neo4j = neo4j.client(app.get('neo4j'));
     this.name = name;
@@ -116,8 +117,13 @@ class Service {
    * @param  {object} params query params. Check hhooks
    */
   async find(params) {
-    debug('[find]: query:', params.query, params.sanitized.sv);
+    debug('[find] query:', params.query, params.sanitized.sv, '- data version:', this.solrDataVersion);
     const isRaw = params.originalQuery.group_by === 'raw';
+    let fl = 'id,pp_plain:[json],lg_s';
+
+    if (this.solrDataVersion > 0) {
+      fl = 'id,rc_plains,lg_s'; // ,pp_plain:[json]';
+    }
 
     const solrQuery = {
       q: params.query.sq,
@@ -126,7 +132,7 @@ class Service {
       facets: params.query.facets,
       limit: params.query.limit,
       skip: params.query.skip,
-      fl: 'id,pp_plain:[json],lg_s', // other fields can be loaded later on
+      fl, // other fields can be loaded later on
       highlight_by: 'content_txt_de,content_txt_fr,content_txt_en',
       highlightProps: {
         'hl.snippets': 10,

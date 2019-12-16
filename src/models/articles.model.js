@@ -15,10 +15,52 @@ const {
 
 const { getExternalFragment } = require('../hooks/iiif');
 
+const ACCESS_RIGHT_NOT_SPECIFIED = 'na';
+const ACCESS_RIGHT_OPEN_PRIVATE = 'OpenPrivate';
+const ACCESS_RIGHT_CLOSED = 'Closed';
+const ACCESS_RIGHT_OPEN_PUBLIC = 'OpenPublic';
+
 const ARTICLE_SOLR_FL_MINIMAL = [
   'id',
   'item_type_s',
   'doc_type_s',
+];
+
+const ARTICLE_SOLR_FL_LIST_ITEM = [
+  'id',
+  'lg_s', // 'fr',
+  'title_txt_fr',
+  'title_txt_en',
+  'title_txt_de',
+  'cc_b',
+  'front_b',
+  'page_id_ss',
+  'page_nb_is',
+  'item_type_s',
+  // 'page_nb_pagei'
+  'nb_pages_i',
+  'doc_type_s',
+  'meta_journal_s', // 'GDL',
+  'meta_year_i', // 1900,
+  'meta_date_dt', // '1900-08-09T00:00:00Z',
+  'meta_issue_id_s', // 'GDL-1900-08-09-a',
+  'meta_country_code_s', // 'CH',
+  'meta_province_code_s', // 'VD',
+  'content_length_i',
+  'topics_dpfs',
+  'pers_entities_dpfs',
+  'loc_entities_dpfs',
+  // regions
+  'rc_plains',
+  // snippet
+  'snippet_plain',
+  'access_right_s',
+  'meta_partnerid_s',
+  // layout & quality
+  'olr_b',
+  // access & download
+  'access_right_s',
+  'exportable_plain',
 ];
 
 const ARTICLE_SOLR_FL_LITE = [
@@ -231,7 +273,7 @@ class BaseArticle {
   }
 }
 
-class Article {
+class Article extends BaseArticle {
   constructor({
     uid = '',
     type = '',
@@ -262,7 +304,7 @@ class Article {
     nbPages = 0,
     isFront = false,
     isCC = false,
-
+    accessRight = ACCESS_RIGHT_NOT_SPECIFIED,
     // line breaks
     lb = [],
     // region breaks
@@ -276,12 +318,22 @@ class Article {
     // entities: person
     persons = [],
     locations = [],
+    regionCoords = [],
   } = {}) {
-    this.uid = String(uid);
-    this.type = String(type);
-    this.language = String(language);
+    super({
+      uid,
+      type,
+      title,
+      excerpt,
+      isCC,
+      size,
+      pages,
+      persons,
+      locations,
+      collections,
+    });
 
-    this.title = String(title);
+    this.language = String(language);
     this.content = String(content);
 
     if (excerpt) {
@@ -295,8 +347,6 @@ class Article {
       this.excerpt = '';
     }
 
-    this.size = parseInt(size, 10);
-
     if (issue instanceof Issue) {
       this.issue = issue;
     } else if (issue) {
@@ -307,8 +357,7 @@ class Article {
     } else {
       this.newspaper = new Newspaper({ uid: newspaper });
     }
-    // this.issue =
-    this.pages = pages;
+
     this.collections = collections;
     this.tags = tags;
 
@@ -320,7 +369,7 @@ class Article {
     this.nbPages = parseInt(nbPages, 10);
     this.isFront = !!isFront;
     this.isCC = !!isCC;
-
+    this.accessRight = accessRight;
     // TODO: based on type!
     this.labels = ['article'];
 
@@ -339,26 +388,13 @@ class Article {
     if (locations.length) {
       this.locations = locations;
     }
-    this.enrich(rc, lb, rb);
-  }
 
-  toCSV() {
-    return {
-      uid: this.uid,
-      title: this.title,
-      content: this.content,
-      language: this.language,
-      labels: this.labels.join(','),
-      year: this.year,
-      date: this.date.toISOString(),
-      size: this.size,
-      isFront: this.isFront,
-      nbPages: this.nbPages,
-      pages: this.pages.map(d => d.uid).join(','),
-      issue: this.issue.uid,
-      newspaper: this.newspaper.uid,
-      country: this.country,
-    };
+    if (regionCoords.length) {
+      this.regions = Article.getRegions({
+
+      })
+    }
+    this.enrich(rc, lb, rb);
   }
 
   enrich(rc, lb, rb) {
@@ -489,9 +525,14 @@ class Article {
     fragments = [],
     highlights = {},
   } = {}) {
-    if (!highlights || !highlights.offsets || !highlights.offsets.length) {
+    if (!solrDocument.pp_plain
+      || !highlights
+      || !highlights.offsets
+      || !highlights.offsets.length
+    ) {
       return fragments.map(fragment => new Fragment({ fragment }));
     }
+    console.log(highlights.offsets, fragments);
     return highlights.offsets.map((pos, i) => {
       // for each offset
       let match = false;
@@ -620,12 +661,28 @@ class Article {
    */
   static solrFactory(res) {
     return (doc) => {
+      // region coordinates may be loaded directly from the new field rc_plains
+      let rc = [];
+      if (doc.rc_plains) {
+        // new data version will have this in correct JSON format
+        rc = doc.rc_plains.map((d) => {
+          const page = JSON.parse(d.replace(/'/g, '"'));
+          return {
+            id: page.pid,
+            r: page.c,
+          };
+        });
+      } else if (doc.pp_plain) {
+        rc = doc.pp_plain;
+      }
+
       const art = new Article({
 
         uid: doc.id,
         type: doc.item_type_s,
         language: doc.lg_s,
 
+        excerpt: doc.snippet_plain,
         title: Article.getUncertainField(doc, 'title'),
         content: Article.getUncertainField(doc, 'content'),
         size: doc.content_length_i,
@@ -653,8 +710,9 @@ class Article {
         lb: doc.lb_plain,
         rb: doc.rb_plain,
 
-        rc: doc.pp_plain,
-
+        rc,
+        // accessRight
+        accessRight: doc.access_right_s || ACCESS_RIGHT_NOT_SPECIFIED,
         mentions: doc.nem_offset_plain,
         topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs),
         persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
@@ -697,5 +755,11 @@ module.exports.BaseArticle = BaseArticle;
 module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL;
 module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE;
 module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH;
+module.exports.ARTICLE_SOLR_FL_LIST_ITEM = ARTICLE_SOLR_FL_LIST_ITEM;
 module.exports.ARTICLE_SOLR_FL_TO_CSV = ARTICLE_SOLR_FL_TO_CSV;
 module.exports.ARTICLE_SOLR_FL_MINIMAL = ARTICLE_SOLR_FL_MINIMAL;
+
+module.exports.ACCESS_RIGHT_NOT_SPECIFIED = ACCESS_RIGHT_NOT_SPECIFIED;
+module.exports.ACCESS_RIGHT_OPEN_PRIVATE = ACCESS_RIGHT_OPEN_PRIVATE;
+module.exports.ACCESS_RIGHT_CLOSED = ACCESS_RIGHT_CLOSED;
+module.exports.ACCESS_RIGHT_OPEN_PUBLIC = ACCESS_RIGHT_OPEN_PUBLIC;
