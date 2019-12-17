@@ -14,8 +14,9 @@ describe('\'version\' service', () => {
     assert.ok(service, 'Registered the service');
   });
 
-  it('get the current git version', async () => {
+  it('get the current version', async () => {
     const result = await app.service('version').find();
-    assert.ok(result.version, 'check git log');
+    assert.ok(result.version, 'check that there is a version');
+    assert.strictEqual(result.solr.dataVersion, app.get('solr').dataVersion);
   });
 });
