@@ -38,6 +38,8 @@ const eachFilterValidator = {
       'country',
       // access right
       'accessRight',
+      // meta_partnerid_s
+      'meta_partnerid_s',
     ],
     required: true,
   },

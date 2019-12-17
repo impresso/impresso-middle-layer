@@ -498,5 +498,13 @@ module.exports = {
       offset: 0,
       numBuckets: true,
     },
+    partner: {
+      type: 'terms',
+      field: 'meta_partnerid_s',
+      mincount: 0,
+      limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
   },
 };
