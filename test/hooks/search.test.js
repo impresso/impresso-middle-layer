@@ -1,5 +1,9 @@
 const assert = require('assert');
-const { reduceFiltersToSolr, filtersToSolrQuery, reduceRegexFiltersToSolr } = require('../../src/hooks/search');
+const {
+  reduceFiltersToSolr,
+  filtersToSolrQuery,
+  reduceRegexFiltersToSolr,
+} = require('../../src/util/solr/filterReducers');
 
 /*
 ./node_modules/.bin/eslint \
