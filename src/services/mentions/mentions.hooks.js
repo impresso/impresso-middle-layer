@@ -19,7 +19,7 @@ const filtersValidator = {
   },
   q: {
     required: false,
-    regex: REGEX_UIDS,
+    regex: /^[A-zÀ-Ÿ0-9_.–,"')(-]+[A-zÀ-Ÿ0-9_.,"')(-]+$/,
     max_length: 500,
   },
 };
