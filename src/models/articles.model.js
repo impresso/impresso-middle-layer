@@ -258,7 +258,7 @@ class BaseArticle {
       uid: doc.id,
       type: doc.item_type_s,
       size: doc.content_length_i,
-      pages: doc.page_id_ss.map(uid => ({
+      pages: (doc.page_id_ss || []).map(uid => ({
         uid,
         num: parseInt(uid.match(/p([0-9]+)$/)[1], 10),
       })),
