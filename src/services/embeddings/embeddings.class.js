@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+const debug = require('debug')('impresso/services:embeddings');
 const { NotFound } = require('@feathersjs/errors');
 const SolrService = require('../solr.service');
 
@@ -18,6 +19,8 @@ class Service {
     // use en to get embedding vector for the queried word
     //
     // https:// solrdev.dhlab.epfl.ch/solr/impresso_embeddings_de/select?q=word_s:amour&fl=embedding_bv
+    debug('[find] with params', params.query);
+
     const bv = await this.solrClient.findAll({
       q: `word_s:(${params.query.q})`,
       fl: 'embedding_bv',
