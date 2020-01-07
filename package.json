@@ -113,7 +113,7 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
-    "mocha": "^6.2.2",
+    "mocha": "^7.0.0",
     "request": "^2.88.0"
   }
 }
