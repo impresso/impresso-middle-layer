@@ -77,6 +77,7 @@ module.exports = {
       returnCachedContents({
         skipHooks: false,
       }),
+      resolveTopics(),
       saveResultsInCache(),
       obfuscate(),
     ],

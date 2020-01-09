@@ -305,7 +305,10 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
   // prepend order by if it is not relevance
   if (overrideOrderBy && config.solr.dataVersion > 1 && Object.keys(vars).length) {
     // relevance direction
-    const direction = context[prop].sanitized.order_by.indexOf('score asc') ? 'asc' : 'desc';
+    let direction = 'desc';
+    if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {
+      direction = 'asc';
+    }
     const varsOrderBy = Object.keys(vars).map(v => ['${', v, '} ', direction].join(''));
     // if order by is by relevance:
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {

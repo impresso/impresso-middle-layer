@@ -55,7 +55,12 @@ class Service {
   }
 
   async get(id, params) {
-    return this.solrService.get(id, params);
+    return this.solrService.get(id, params).then((topic) => {
+      const cached = this.solrService.Model.getCached(id);
+      topic.countItems = cached.countItems;
+      topic.relatedTopics = cached.relatedTopics;
+      return topic;
+    });
   }
 
   async create(data, params) {

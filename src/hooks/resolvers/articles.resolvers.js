@@ -7,7 +7,16 @@ const resolveTopics = () => async (context) => {
   if (!context.result) {
     debug('resolveTopics: no "context.result" found');
   } else if (context.result.data && context.result.data.length) {
-    console.log(context.result.data[0]);
+    context.result.data = context.result.data.map((d) => {
+      if (!d.topics) {
+        return d;
+      }
+      d.topics = d.topics.map((at) => {
+        at.topic = Topic.getCached(at.topicUid);
+        return at;
+      });
+      return d;
+    });
   } else if (context.result.topics && context.result.topics.length) {
     debug(`resolveTopics: "context.result.topics" found with ${context.result.topics.length} topics`);
     const solrClient = context.app.get('solrClient');
