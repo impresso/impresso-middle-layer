@@ -1,5 +1,6 @@
 const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
+const config = require('@feathersjs/configuration')()();
 
 /**
  * Fields names that should not be wrapped into `filter(...)` when
@@ -302,7 +303,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     }
   });
   // prepend order by if it is not relevance
-  if (overrideOrderBy && Object.keys(vars).length) {
+  if (overrideOrderBy && config.solr.dataVersion > 1 && Object.keys(vars).length) {
     const varsOrderBy = Object.keys(vars).map(v => ['${', v, '} desc'].join(''));
     // if order by is by relevance:
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {

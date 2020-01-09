@@ -273,7 +273,7 @@ const REGEX_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))
 const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/;
 const REGEX_SLUG = /^[a-z0-9-]+$/;
 const REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()-]+$/;
-const EXTENDED_REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()-]+$/;
+const EXTENDED_REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()/$-]+$/;
 const REGEX_UIDS = /^[A-zÀ-Ÿ0-9_.–,"'-]+[A-zÀ-Ÿ0-9_.,"'-]+$/;
 const REGEX_NUMERIC = /^\d+$/;
 
@@ -363,9 +363,11 @@ const validate = (validators, method = 'GET') => async (context) => {
 };
 
 const validateRouteId = () => async (context) => {
-  if (context.path === 'entities' && context.id && !EXTENDED_REGEX_UID.test(context.id)) {
-    debug('validateRouteId: context.id not matching EXTENDED_REGEX_UID');
-    throw new errors.BadRequest('route id is not valid (use EXTENDED_REGEX_UID)');
+  if (context.path === 'entities' && context.id) {
+    if (!EXTENDED_REGEX_UID.test(context.id)) {
+      debug('validateRouteId: context.id not matching EXTENDED_REGEX_UID');
+      throw new errors.BadRequest('route id is not valid (use EXTENDED_REGEX_UID)');
+    }
   } else if (context.id && !(REGEX_UID.test(context.id) || REGEX_UIDS.test(context.id))) {
     debug('validateRouteId: context.id not matching REGEX_UIDS');
     throw new errors.BadRequest('route id is not valid (use REGEX_UID)');
