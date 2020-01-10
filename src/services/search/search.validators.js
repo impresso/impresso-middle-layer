@@ -39,7 +39,7 @@ const eachFilterValidator = {
       // access right
       'accessRight',
       // meta_partnerid_s
-      'meta_partnerid_s',
+      'partner',
     ],
     required: true,
   },

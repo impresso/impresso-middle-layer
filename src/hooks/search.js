@@ -187,6 +187,8 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 'id');
     case 'accessRight':
       return reduceFiltersToSolr(filters, 'access_right_s');
+    case 'partner':
+      return reduceFiltersToSolr(filters, 'meta_partnerid_s');
     case 'language':
       return reduceFiltersToSolr(filters, 'lg_s');
     case 'page':
