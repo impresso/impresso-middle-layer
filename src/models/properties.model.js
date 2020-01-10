@@ -9,7 +9,10 @@ class Property {
   } = {}) {
     this.name = name;
     this.value = newspapers_metadata.value;
-    if (this.value.match(/https?:\/\//)) {
+    if (!this.value) {
+      console.warn('Property', name, 'doesn\'t have a value', newspapers_metadata.get());
+    }
+    if (this.value && this.value.match(/https?:\/\//)) {
       this.isUrl = true;
     }
   }
