@@ -22,6 +22,7 @@ class Issue {
     newspaper,
     pages = [],
     cover = '', // page uid
+    frontPage = null,
     uid = '',
     labels = ['issue'],
     accessRights = ACCESS_RIGHTS_ND,
@@ -29,7 +30,9 @@ class Issue {
     this.uid = String(uid);
     this.cover = cover;
     this.labels = labels;
-
+    if (frontPage) {
+      this.frontPage = frontPage;
+    }
     const issueDateFromUid = this.uid.match(/(\d{4})-\d{2}-\d{2}/);
 
     this.fresh = accessRights !== ACCESS_RIGHTS_ND;
