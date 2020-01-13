@@ -4,11 +4,13 @@ const { DataTypes } = require('sequelize');
 class Property {
   constructor({
     name = '',
+    label = '',
     // eslint-disable-next-line camelcase
     newspapers_metadata = {},
   } = {}) {
     this.name = name;
     this.value = newspapers_metadata.value;
+    this.label = label;
     if (!this.value) {
       console.warn('Property', name, 'doesn\'t have a value', newspapers_metadata.get());
     }
@@ -33,6 +35,10 @@ class Property {
       name: {
         type: DataTypes.STRING,
         unique: true,
+      },
+      label: {
+        type: DataTypes.STRING,
+        lenght: 200,
       },
     }, {
       tableName: 'meta_properties',
