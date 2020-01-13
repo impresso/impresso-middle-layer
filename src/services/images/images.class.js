@@ -74,7 +74,6 @@ class Service {
   async find(params) {
     debug(`[find] with params.isSafe:${params.isSafe} and params.query:`, params.query);
     let signature;
-
     if (params.query.similarTo) {
       debug('[find] get signature for params.query.similarTo:', params.query.similarTo, '- vector:', `_vector_${params.query.vectorType}_bv`);
       signature = await this.SolrService.solr.findAll({
@@ -82,15 +81,18 @@ class Service {
         fl: ['id', `signature:_vector_${params.query.vectorType}_bv`],
         namespace: 'images',
         limit: 1,
+        requestOriginalPath: 'images/find',
       })
         .then(res => res.response.docs[0].signature)
         .catch((err) => {
           console.error(err);
           throw new NotFound();
         });
-      debug('[find] signature retrieved for params.query.similarTo:', params.query.similarTo);
       if (!signature) {
+        debug('[find] signature NOT retrieved for params.query.similarTo:', params.query.similarTo);
         throw new NotFound('signature not found');
+      } else {
+        debug('[find] signature retrieved for params.query.similarTo:', params.query.similarTo);
       }
     } else if (params.query.similarToUploaded) {
       debug('[find] get signature for user uploaded image params.query.similarToUploaded:', params.query.similarToUploaded);
@@ -103,6 +105,7 @@ class Service {
     }
 
     let solrResponse;
+    let skip = params.query.skip;
 
     if (signature) {
       let fq;
@@ -121,9 +124,10 @@ class Service {
         fl: '*,score',
         namespace: 'images',
         limit: params.query.limit,
-        skip: params.query.skip,
+        skip,
         facets: params.query.facets,
         order_by: 'score DESC',
+        requestOriginalPath: 'images/find',
       }, Image.solrFactory).catch((err) => {
         console.error(err);
         throw new BadGateway('unable to load similar images');
@@ -136,15 +140,39 @@ class Service {
       } else {
         params.query.sq = `${params.query.sq} AND filter(_vector_${params.query.vectorType}_bv:[* TO *])`;
       }
+
+      if (params.query.randomPage) {
+        // calculate a possible random skip value
+        skip = await this.SolrService.solr.findAll({
+          q: params.query.sq,
+          limit: 0,
+          skip: 0,
+          namespace: 'images',
+          requestOriginalPath: 'images/find',
+        }).then(res => res.response.numFound)
+          .then((total) => {
+            const pages = Math.ceil(total / params.query.limit);
+            const page = Math.round(Math.random() * pages);
+            return Math.max(0, (page - 1) * params.query.limit);
+          });
+        //
+        //   Math.round(
+        //   Math.random * Math.floor(res.response.numFound / params.query.limit),
+        // ));
+
+        debug('[find] random page requested, recalculating skip:', skip);
+      }
+
       // get all pages, then get IIIF manifest
       solrResponse = await this.SolrService.solr.findAll({
         q: params.query.sq,
         fl: Image.SOLR_FL,
         namespace: 'images',
         limit: params.query.limit,
-        skip: params.query.skip,
+        skip,
         facets: params.query.facets,
         order_by: params.query.order_by,
+        requestOriginalPath: 'images/find',
       }, Image.solrFactory).catch((err) => {
         console.error(err);
         throw new BadGateway('unable to load similar images');
@@ -166,6 +194,7 @@ class Service {
     debug(`get '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
     return this.SolrService.get(id, {
       fl: Image.SOLR_FL,
+      requestOriginalPath: 'images/get',
     }).then(result => this.assignIIIF({
       method: 'get',
       result,

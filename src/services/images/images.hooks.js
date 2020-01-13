@@ -70,6 +70,10 @@ module.exports = {
           values: ['InceptionResNetV2', 'ResNet50'],
           defaultValue: 'ResNet50',
         },
+        randomPage: {
+          required: false,
+          transform: d => ['true', ''].includes(d),
+        },
         facets: utils.facets({
           values: {
             year: {
