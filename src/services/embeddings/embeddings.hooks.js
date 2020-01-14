@@ -6,7 +6,7 @@ module.exports = {
     find: [
       validate({
         language: {
-          choices: ['fr', 'de', 'en'],
+          choices: ['fr', 'de', 'lb'],
         },
         q: {
           required: true,
