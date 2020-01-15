@@ -14,8 +14,8 @@ describe('test single reducers in search hook', () => {
         type: 'language',
         q: ['fr', 'en'],
       },
-    ], 'meta_language_s');
-    assert.deepEqual('(meta_language_s:fr OR meta_language_s:en)', sq);
+    ], 'lg_s');
+    assert.deepEqual('(lg_s:fr OR lg_s:en)', sq);
   });
 
   it('exclude language filters', () => {
@@ -25,8 +25,8 @@ describe('test single reducers in search hook', () => {
         type: 'language',
         q: ['fr', 'en'],
       },
-    ], 'meta_language_s');
-    assert.deepEqual('(NOT(meta_language_s:fr OR meta_language_s:en))', sq);
+    ], 'lg_s');
+    assert.deepEqual('*:* AND NOT ((lg_s:fr OR lg_s:en))', sq);
   });
 
   it('test regex filter, multiple words', () => {
