@@ -169,12 +169,15 @@ describe('test filtersToSolrQuery hook', () => {
             {
               type: 'daterange',
               context: 'exclude',
-              daterange: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
+              q: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
             },
             {
               type: 'daterange',
               context: 'include',
-              daterange: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+              q: [
+                '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+                '1945-01-01T00:00:00Z TO 1946-01-01T00:00:00Z',
+              ],
             },
             {
               context: 'include',
@@ -208,7 +211,14 @@ describe('test filtersToSolrQuery hook', () => {
     await filtersToSolrQuery()(context);
     assert.equal(
       context.params.sanitized.sq,
-      'filter(NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z]) AND meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z]) AND (content_txt_en:ambassad* OR content_txt_fr:ambassad* OR content_txt_de:ambassad*) AND filter((meta_journal_s:GDL)) AND filter((meta_year_i:1957 OR meta_year_i:1958 OR meta_year_i:1954)) AND filter((lg_s:french OR lg_s:german)) AND filter((item_type_s:ar))',
+      [
+        'filter(*:* AND NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z])',
+        ' AND (meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z] OR meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T00:00:00Z]))',
+        ' AND (content_txt_en:ambassad* OR content_txt_fr:ambassad* OR content_txt_de:ambassad*)',
+        ' AND filter((meta_journal_s:GDL))',
+        ' AND filter((meta_year_i:1957 OR meta_year_i:1958 OR meta_year_i:1954))',
+        ' AND filter((lg_s:french OR lg_s:german)) AND filter((item_type_s:ar))',
+      ].join(''),
     );
   });
 });

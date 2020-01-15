@@ -84,6 +84,9 @@ const reduceDaterangeFiltersToSolr = filters => filters
     let q;
     if (Array.isArray(filter.q)) {
       q = `${filter.q.map(d => `meta_date_dt:[${d}]`).join(' OR ')}`;
+      if (filter.q.length > 1) {
+        q = `(${q})`;
+      }
     } else {
       q = `meta_date_dt:[${filter.q}]`;
     }
