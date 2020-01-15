@@ -1,9 +1,9 @@
 const assert = require('assert');
 const {
   reduceFiltersToSolr,
-  filtersToSolrQuery,
   reduceRegexFiltersToSolr,
 } = require('../../src/util/solr/filterReducers');
+const { filtersToSolrQuery } = require('../../src/hooks/search');
 
 /*
 ./node_modules/.bin/eslint \

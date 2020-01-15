@@ -4,6 +4,13 @@ const { uniq, includes, groupBy } = require('lodash');
 const { filtersToSolr, escapeValue } = require('./filterReducers');
 
 /**
+ * Languages that have content indexes in Solr.
+ */
+const ContentLanguages = [
+  'en', 'fr', 'de',
+];
+
+/**
  * Fields names that should not be wrapped into `filter(...)` when
  * used in `q` Solr parameter.
  *
@@ -99,4 +106,5 @@ function filtersToQueryAndVariables(filters) {
 module.exports = {
   sameTypeFiltersToQuery,
   filtersToQueryAndVariables,
+  ContentLanguages,
 };
