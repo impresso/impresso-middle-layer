@@ -4,7 +4,7 @@ const { reduceFiltersToSolr, filtersToSolrQuery, reduceRegexFiltersToSolr } = re
 /*
 ./node_modules/.bin/eslint \
 src/hooks/search.js test/hooks/search.test.js --config .eslintrc.json --fix &&
-mocha test/hooks/search.test.js
+NODE_ENV=development mocha test/hooks/search.test.js
 */
 describe('test single reducers in search hook', () => {
   it('for language filters', () => {
@@ -100,7 +100,7 @@ describe('test filtersToSolrQuery hook', () => {
     };
     await filtersToSolrQuery()(context);
 
-    assert.deepEqual(context.params.sanitized.sq, '(content_txt_en:"accident d\'avion"~1 OR content_txt_fr:"accident d\'avion"~1 OR content_txt_de:"accident d\'avion"~1) AND (content_txt_en:(ministre portugais) OR content_txt_fr:(ministre portugais) OR content_txt_de:(ministre portugais))');
+    assert.deepEqual(context.params.sanitized.sq, '(content_txt_en:"accident d\'avion"~1 OR content_txt_fr:"accident d\'avion"~1 OR content_txt_de:"accident d\'avion"~1) AND (content_txt_en:(ministre OR portugais) OR content_txt_fr:(ministre OR portugais) OR content_txt_de:(ministre OR portugais))');
   });
 
   it('with text context', async () => {
