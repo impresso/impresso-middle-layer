@@ -140,11 +140,13 @@ describe('test filtersToSolrQuery hook', () => {
               type: 'daterange',
               context: 'exclude',
               daterange: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
+              q: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
             },
             {
               type: 'daterange',
               context: 'include',
               daterange: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+              q: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
             },
           ],
         },
@@ -154,7 +156,7 @@ describe('test filtersToSolrQuery hook', () => {
 
     assert.equal(
       context.params.sanitized.sq,
-      'filter(NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z]) AND meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z])',
+      'filter(*:* AND NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z]) AND meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z])',
     );
   });
 
