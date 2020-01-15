@@ -30,9 +30,15 @@ class Service {
         });
 
       let topicWeight;
+      const topicsChoosen = lodash.take(
+        topics.sort((a, b) => b.relevance - a.relevance),
+        params.query.amount,
+      );
+
+      debug(`get(${id}) method: ${params.query.method} topics loaded: `, topicsChoosen);
 
       if (params.query.method === SIM_BY_TOPICS) {
-        topicWeight = lodash.take(topics, params.query.amount).reduce((acc, d) => {
+        topicWeight = topicsChoosen.reduce((acc, d) => {
           acc.push(`abs(sub(${d.relevance},payload(topics_dpfs,${d.topicUid})))`);
           return acc;
         }, []).join(',');
@@ -48,11 +54,11 @@ class Service {
         topicWeight = `sqedist(${tw.join(',')})`;
       }
 
-      debug(`get(${id}) method: ${params.query.method} topics loaded, get articles using`);
+      debug(`get(${id}) method: ${params.query.method} topics loaded, get articles using fn topicWeight`, topicWeight);
       return this.solrClient.findAll({
-        q: 'filter(topics_dpfs:*)',
+        q: `filter(topics_dpfs:*) AND NOT(id:${id})`,
         // eslint-disable-next-line no-template-curly-in-string
-        fl: Article.ARTICLE_SOLR_FL_LITE.concat(['dist:${topicWeight}']),
+        fl: Article.ARTICLE_SOLR_FL_LIST_ITEM.concat(['dist:${topicWeight}']),
         vars: {
           topicWeight,
         },

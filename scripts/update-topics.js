@@ -50,10 +50,15 @@ async function waterfall() {
       namespace: 'search',
     });
     topics[topicUid].countItems = result.response.numFound;
-    topics[topicUid].relatedTopics = result.facets.topic.buckets.map(d => ({
-      uid: d.val,
-      w: d.count,
-    }));
+    if (!result.facets.topic) {
+      console.warn('the topic does not seem to exist...', result.facets, result.response);
+      topics[topicUid].relatedTopics = [];
+    } else {
+      topics[topicUid].relatedTopics = result.facets.topic.buckets.map(d => ({
+        uid: d.val,
+        w: d.count,
+      }));
+    }
     // enrich topic
     // console.log(result.facets.topic.buckets);
   }, Promise.resolve());

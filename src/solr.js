@@ -101,11 +101,12 @@ const findAllPost = (config, params = {}, factory) => {
     skip: 0,
     excerptLength: 30,
     namespace: 'search',
+    requestOriginalPath: '...',
     ...params,
   };
 
 
-  debug(`{findAll}: request to '${qp.namespace}' endpoint. With PARAMS:`, qp);
+  debug(`[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint. With PARAMS:`, qp);
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
   const endpoint = `${config[qp.namespace].endpoint}`;
@@ -166,7 +167,7 @@ const findAllPost = (config, params = {}, factory) => {
     data.fl = Array.isArray(qp.fl) ? qp.fl.join(',') : qp.fl;
   }
 
-  debug(`{findAll}: request to '${qp.namespace}' endpoint: '${endpoint}'. Using 'data':`, data);
+  debug(`[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint: '${endpoint}'. Using 'data':`, data);
   return rp({
     method: 'POST',
     url: endpoint,
@@ -185,7 +186,7 @@ const findAllPost = (config, params = {}, factory) => {
     }
 
     debug(
-      `{findAll} success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
+      `[findAllPost][${qp.requestOriginalPath}] success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
       factory ? 'with factory' : '(no factory specified)',
     );
 
@@ -194,6 +195,7 @@ const findAllPost = (config, params = {}, factory) => {
     }
     return result;
   }).catch((err) => {
+    debug(`[findAllPost][${qp.requestOriginalPath}] error!`);
     console.error(err);
     throw new NotImplemented();
   });
@@ -212,10 +214,11 @@ const findAll = (config, params = {}, factory) => {
     skip: 0,
     excerptLength: 30,
     namespace: 'search',
+    requestOriginalPath: '',
     ...params,
   };
 
-  debug(`findAll: request to '${_params.namespace}' endpoint. With PARAMS`, _params);
+  debug(`[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With PARAMS`, _params);
 
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
@@ -311,8 +314,8 @@ const findAll = (config, params = {}, factory) => {
   }
 
 
-  debug(`findAll: request to '${_params.namespace}' endpoint. With 'qs':`, JSON.stringify(opts.qs));
-  debug('\'findAll\': url', endpoint);
+  debug(`[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With 'qs':`, JSON.stringify(opts.qs));
+  debug(`[findAll][${_params.requestOriginalPath}]: url`, endpoint);
   return rp(opts).then((res) => {
     // dummy handle dupes keys
     const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
@@ -325,7 +328,7 @@ const findAll = (config, params = {}, factory) => {
     }
 
     debug(
-      `'findAll' success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
+      `[findAll][${_params.requestOriginalPath}] success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
       factory ? 'with factory' : 'but no factory specified',
     );
 
@@ -334,6 +337,7 @@ const findAll = (config, params = {}, factory) => {
     }
     return result;
   }).catch((err) => {
+    debug(`[findAll][${_params.requestOriginalPath}] error`);
     console.error(err);
     throw new NotImplemented();
     // throw feathers errors here.

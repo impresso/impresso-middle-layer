@@ -19,7 +19,7 @@ async function waterfall() {
     .then(results => results.map(d => d.toJSON()))
     .then(results => lodash.keyBy(results, 'acronym'));
 
-  debug('found', Object.keys(newspapers).length, 'newspapers,');
+  debug('found', Object.keys(newspapers).length, 'newspapers in mysql db,');
 
   // get total pages per newspapers
   await sequelizeClient.query(`
@@ -31,7 +31,7 @@ async function waterfall() {
     GROUP BY iss.newspaper_id`, {
     type: sequelizeClient.QueryTypes.SELECT,
   }).then((results) => {
-    debug('success, ', results.length, 'complete newspapers found on the db');
+    debug('success, ', results.length, 'newspapers WITH PAGES in mysql db found on the db');
     results.forEach((d) => {
       newspapers[d.uid].countPages = d.countPages;
     });
@@ -57,6 +57,9 @@ async function waterfall() {
     }),
   }).then((results) => {
     results.facets.newspaper.buckets.forEach((d) => {
+      if (!newspapers[d.val]) {
+        throw new Error('Not found value', d.val);
+      }
       newspapers[d.val].countArticles = d.count;
     });
   });

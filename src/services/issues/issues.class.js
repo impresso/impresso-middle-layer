@@ -33,7 +33,30 @@ class Service {
       // get first ARTICLE result
       collapse_fn: 'sort=\'id ASC\'',
     });
-    // add SequelizeService to load Newspaper properly.
+    // add Sequelize Rawquery to get proper frontPage
+    const coversIndex = await this.SequelizeService.rawSelect({
+      query: `
+        SELECT id as uid,
+          issue_id as issue_uid,
+          iiif_manifest as iiif,
+          page_number as num,
+          has_converted_coordinates as hasCoords,
+          has_corrupted_json as hasErrors
+        FROM pages WHERE id IN (:pageUids)`,
+      replacements: {
+        pageUids: results.data.map(d => d.cover),
+      },
+    }).then(covers => covers.reduce((index, cover) => {
+      index[cover.uid] = new Page(cover);
+      return index;
+    }, {}));
+
+    results.data = results.data.map((d) => {
+      if (coversIndex[d.cover]) {
+        d.frontPage = coversIndex[d.cover];
+      }
+      return d;
+    });
     return results;
   }
 

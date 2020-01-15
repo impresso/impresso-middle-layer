@@ -36,6 +36,10 @@ const eachFilterValidator = {
       'contentLength',
       // country of article
       'country',
+      // access right
+      'accessRight',
+      // meta_partnerid_s
+      'partner',
     ],
     required: true,
   },

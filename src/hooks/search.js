@@ -1,5 +1,6 @@
 const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
+const config = require('@feathersjs/configuration')()();
 
 const {
   filtersToQueryAndVariables,
@@ -26,7 +27,6 @@ const SOLR_FILTER_TYPES = [
 
 /**
  * Transform q param in a nice string filter.
-/**
  * @param  {String} type filter type, gets transkated to actual solr fields.
  * @return {null}      [description]
  */
@@ -78,8 +78,13 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
   const { query, variables: vars } = filtersToQueryAndVariables(context[prop].sanitized.filters);
 
   // prepend order by if it is not relevance
-  if (overrideOrderBy && Object.keys(vars).length) {
-    const varsOrderBy = Object.keys(vars).map(v => `$\{${v}} desc`);
+  if (overrideOrderBy && config.solr.dataVersion > 1 && Object.keys(vars).length) {
+    // relevance direction
+    let direction = 'desc';
+    if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {
+      direction = 'asc';
+    }
+    const varsOrderBy = Object.keys(vars).map(v => `$\{${v}} ${direction}`);
     // if order by is by relevance:
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
       context[prop].sanitized.order_by = varsOrderBy
@@ -257,6 +262,22 @@ module.exports = {
       type: 'terms',
       field: 'loc_entities_dpfs',
       mincount: 1,
+      limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
+    accessRight: {
+      type: 'terms',
+      field: 'access_right_s',
+      mincount: 0,
+      limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
+    partner: {
+      type: 'terms',
+      field: 'meta_partnerid_s',
+      mincount: 0,
       limit: 10,
       offset: 0,
       numBuckets: true,
