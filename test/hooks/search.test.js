@@ -1,5 +1,8 @@
 const assert = require('assert');
-const { reduceFiltersToSolr, filtersToSolrQuery, reduceRegexFiltersToSolr } = require('../../src/hooks/search');
+const {
+  reduceFiltersToSolr, filtersToSolrQuery, reduceRegexFiltersToSolr,
+  queries,
+} = require('../../src/hooks/search');
 
 /*
 ./node_modules/.bin/eslint \
@@ -127,7 +130,7 @@ describe('test filtersToSolrQuery hook', () => {
     };
 
     await filtersToSolrQuery()(context);
-    assert.deepEqual(context.params.sanitized.sq, 'filter(content_length_i:[1 TO *]) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")');
+    assert.deepEqual(context.params.sanitized.sq, `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")`);
   });
 
   it('with daterange filters', async () => {

@@ -173,7 +173,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
 const filtersToSolr = (type, filters) => {
   switch (type) {
     case 'hasTextContents':
-      return 'content_length_i:[1 TO 10000]';
+      return config.solr.queries.hasTextContents;
     case 'ocrQuality':
       return reduceNumericRangeFilters(filters, 'ocrqa_f');
     case 'contentLength':
@@ -386,6 +386,7 @@ const filtersToSolrFacetQuery = () => async (context) => {
 };
 
 module.exports = {
+  queries: config.solr.queries,
   filtersToSolrQuery,
   qToSolrFilter,
   reduceFiltersToSolr,
