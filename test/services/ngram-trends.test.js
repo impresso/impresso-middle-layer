@@ -6,7 +6,7 @@ const {
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
   it('builds expected payload', () => {
-    const payload = unigramTrendsRequestToSolrQuery('Einstein', null, ['meta_country_code_s']);
+    const payload = unigramTrendsRequestToSolrQuery('Einstein', null, ['country']);
     const expectedPayload = {
       query: '*:*',
       limit: 0,
@@ -24,7 +24,15 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
           "{!tag=tf_stats_de key=tf_stats_de sum=true func}termfreq(content_txt_de,'Einstein')",
         ],
         stats: true,
-        'facet.field': 'meta_country_code_s',
+        'json.facet': JSON.stringify({
+          country: {
+            type: 'terms',
+            field: 'meta_country_code_s',
+            mincount: 1,
+            limit: 10,
+            numBuckets: true,
+          },
+        }),
         hl: false,
       },
     };
@@ -34,7 +42,7 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
 });
 
 describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
-  it('parses response', () => {
+  it('parses response', async () => {
     const testResponse = {
       responseHeader: {
         status: 0,
@@ -138,8 +146,14 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
         },
       ],
       domainValues: ['1969', '1970'],
+      info: {
+        facets: {},
+        responseTime: {
+          solr: 6345,
+        },
+      },
     };
-    const parsedResponse = parseUnigramTrendsResponse(testResponse, 'Einstein');
+    const parsedResponse = await parseUnigramTrendsResponse(testResponse, 'Einstein');
 
     assert.deepEqual(parsedResponse, expectedParsedResponse);
   });

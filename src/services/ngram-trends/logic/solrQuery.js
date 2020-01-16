@@ -7,6 +7,11 @@ const {
   ContentLanguages,
 } = require('../../../util/solr');
 
+const {
+  getFacetsFromSolrResponse,
+} = require('../../../services/search/search.extractors');
+const { SOLR_FACETS } = require('../../../hooks/search');
+
 const TimeIntervalsFilelds = {
   year: 'meta_year_i',
   month: 'meta_yearmonth_s',
@@ -48,17 +53,22 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
       'facet.pivot': facetPivots,
       'stats.field': statsFields,
       stats: true,
-      'facet.field': facets.join(','),
+      'json.facet': JSON.stringify(facets.reduce((acc, facet) => {
+        acc[facet] = SOLR_FACETS[facet];
+        return acc;
+      }, {})),
       hl: false, // disable duplicate field "highlighting"
     },
   };
 }
 
+const mergeFn = (dst, src) => (dst || 0) + (src || 0);
+
 /**
  * Convert raw SOLR response to `ngram-trends/schema/post/response.json`.
  * @param {object} solrResponse SOLR trends response
  */
-function parseUnigramTrendsResponse(solrResponse, unigram) {
+async function parseUnigramTrendsResponse(solrResponse, unigram) {
   const pivots = get(solrResponse, 'facet_counts.facet_pivot', {});
   const languageCodes = Object.keys(pivots);
   const domainToValuesMapping = languageCodes.reduce((acc, languageCode) => {
@@ -68,15 +78,15 @@ function parseUnigramTrendsResponse(solrResponse, unigram) {
       const value = get(entry, `stats.stats_fields.tf_stats_${languageCode}.sum`);
       return [key, value];
     });
-    return mergeWith(acc, fromPairs(entries), (dst, src) => {
-      return (dst || 0) + (src || 0);
-    });
+    return mergeWith(acc, fromPairs(entries), mergeFn);
   }, {});
 
   const domainAndValueItems = sortBy(toPairs(domainToValuesMapping), ([domain]) => domain);
 
   const domainValues = domainAndValueItems.map(([domain]) => domain);
   const values = domainAndValueItems.map(([, value]) => value);
+  const facets = await getFacetsFromSolrResponse(solrResponse);
+  const time = get(solrResponse, 'responseHeader.QTime');
 
   return {
     trends: [
@@ -86,6 +96,12 @@ function parseUnigramTrendsResponse(solrResponse, unigram) {
       },
     ],
     domainValues,
+    info: {
+      responseTime: {
+        solr: time,
+      },
+      facets,
+    },
   };
 }
 
