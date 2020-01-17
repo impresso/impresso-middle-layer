@@ -38,6 +38,10 @@
             "type": "number",
             "description": "Total number of times the Ngram has been encountered in a particular period"
           }
+        },
+        "total": {
+          "type": "null",
+          "description": "Total number of times the Ngram has been encountered in the whole range"
         }
       }
     },

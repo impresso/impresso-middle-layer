@@ -132,9 +132,6 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
           tf_stats_fr: {
             sum: 11746.0,
           },
-          tf_stats_de: {
-            sum: 1789.0,
-          },
         },
       },
     };
@@ -143,6 +140,7 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
         {
           ngram: 'Einstein',
           values: [273, 176],
+          total: 11746,
         },
       ],
       domainValues: ['1969', '1970'],

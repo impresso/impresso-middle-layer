@@ -88,11 +88,14 @@ async function parseUnigramTrendsResponse(solrResponse, unigram) {
   const facets = await getFacetsFromSolrResponse(solrResponse);
   const time = get(solrResponse, 'responseHeader.QTime');
 
+  const total = languageCodes.reduce((runningTotal, languageCode) => runningTotal + get(solrResponse, `stats.stats_fields.tf_stats_${languageCode}.sum`, 0), 0);
+
   return {
     trends: [
       {
         ngram: unigram,
         values,
+        total,
       },
     ],
     domainValues,
