@@ -1,3 +1,5 @@
+const config = require('@feathersjs/configuration')()();
+
 const escapeValue = value => value.replace(/[()\\+&|!{}[\]?:;,]/g, d => `\\${d}`);
 
 const getValueWithFields = (value, fields) => {
@@ -69,6 +71,9 @@ const reduceDaterangeFiltersToSolr = filters => filters
     let q;
     if (Array.isArray(filter.q)) {
       q = `${filter.q.map(d => `meta_date_dt:[${d}]`).join(' OR ')}`;
+      if (filter.q.length > 1) {
+        q = `(${q})`;
+      }
     } else {
       q = `meta_date_dt:[${filter.q}]`;
     }
@@ -113,7 +118,7 @@ const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
 const filtersToSolr = (type, filters) => {
   switch (type) {
     case 'hasTextContents':
-      return 'content_length_i:[1 TO 10000]';
+      return config.solr.queries.hasTextContents;
     case 'ocrQuality':
       return reduceNumericRangeFilters(filters, 'ocrqa_f');
     case 'contentLength':
