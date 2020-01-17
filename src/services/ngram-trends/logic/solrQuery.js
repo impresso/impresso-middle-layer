@@ -108,7 +108,13 @@ async function parseUnigramTrendsResponse(solrResponse, unigram) {
   };
 }
 
+function guessTimeIntervalFromFilters(filters = []) {
+  return 'year'; // TODO: resolve the interval unit based on timeline filter.
+  // and add interval unit to the endpoint response.
+} 
+
 module.exports = {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
+  guessTimeIntervalFromFilters,
 };
