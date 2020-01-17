@@ -8,7 +8,7 @@ const { filtersToSolrQuery } = require('../../src/hooks/search');
 /*
 ./node_modules/.bin/eslint \
 src/hooks/search.js test/hooks/search.test.js --config .eslintrc.json --fix &&
-mocha test/hooks/search.test.js
+NODE_ENV=development mocha test/hooks/search.test.js
 */
 describe('test single reducers in search hook', () => {
   it('for language filters', () => {
@@ -18,8 +18,8 @@ describe('test single reducers in search hook', () => {
         type: 'language',
         q: ['fr', 'en'],
       },
-    ], 'meta_language_s');
-    assert.deepEqual('(meta_language_s:fr OR meta_language_s:en)', sq);
+    ], 'lg_s');
+    assert.deepEqual('(lg_s:fr OR lg_s:en)', sq);
   });
 
   it('exclude language filters', () => {
@@ -29,8 +29,8 @@ describe('test single reducers in search hook', () => {
         type: 'language',
         q: ['fr', 'en'],
       },
-    ], 'meta_language_s');
-    assert.deepEqual('(NOT(meta_language_s:fr OR meta_language_s:en))', sq);
+    ], 'lg_s');
+    assert.deepEqual('*:* AND NOT ((lg_s:fr OR lg_s:en))', sq);
   });
 
   it('test regex filter, multiple words', () => {
@@ -104,7 +104,7 @@ describe('test filtersToSolrQuery hook', () => {
     };
     await filtersToSolrQuery()(context);
 
-    assert.deepEqual(context.params.sanitized.sq, '(content_txt_en:"accident d\'avion"~1 OR content_txt_fr:"accident d\'avion"~1 OR content_txt_de:"accident d\'avion"~1) AND (content_txt_en:(ministre portugais) OR content_txt_fr:(ministre portugais) OR content_txt_de:(ministre portugais))');
+    assert.deepEqual(context.params.sanitized.sq, '(content_txt_en:"accident d\'avion"~1 OR content_txt_fr:"accident d\'avion"~1 OR content_txt_de:"accident d\'avion"~1) AND (content_txt_en:(ministre OR portugais) OR content_txt_fr:(ministre OR portugais) OR content_txt_de:(ministre OR portugais))');
   });
 
   it('with text context', async () => {
@@ -131,7 +131,7 @@ describe('test filtersToSolrQuery hook', () => {
     };
 
     await filtersToSolrQuery()(context);
-    assert.deepEqual(context.params.sanitized.sq, 'filter(content_length_i:[1 TO *]) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")');
+    assert.deepEqual(context.params.sanitized.sq, `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")`);
   });
 
   it('with daterange filters', async () => {
@@ -144,11 +144,13 @@ describe('test filtersToSolrQuery hook', () => {
               type: 'daterange',
               context: 'exclude',
               daterange: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
+              q: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
             },
             {
               type: 'daterange',
               context: 'include',
               daterange: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+              q: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
             },
           ],
         },
@@ -158,7 +160,7 @@ describe('test filtersToSolrQuery hook', () => {
 
     assert.equal(
       context.params.sanitized.sq,
-      'filter(NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z]) AND meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z])',
+      'filter(*:* AND NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z]) AND meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z])',
     );
   });
 
@@ -171,12 +173,15 @@ describe('test filtersToSolrQuery hook', () => {
             {
               type: 'daterange',
               context: 'exclude',
-              daterange: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
+              q: '1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z',
             },
             {
               type: 'daterange',
               context: 'include',
-              daterange: '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+              q: [
+                '1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z',
+                '1945-01-01T00:00:00Z TO 1946-01-01T00:00:00Z',
+              ],
             },
             {
               context: 'include',
@@ -210,7 +215,14 @@ describe('test filtersToSolrQuery hook', () => {
     await filtersToSolrQuery()(context);
     assert.equal(
       context.params.sanitized.sq,
-      'filter(NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z]) AND meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z]) AND (content_txt_en:ambassad* OR content_txt_fr:ambassad* OR content_txt_de:ambassad*) AND filter((meta_journal_s:GDL)) AND filter((meta_year_i:1957 OR meta_year_i:1958 OR meta_year_i:1954)) AND filter((lg_s:french OR lg_s:german)) AND filter((item_type_s:ar))',
+      [
+        'filter(*:* AND NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T00:00:00Z])',
+        ' AND (meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z] OR meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T00:00:00Z]))',
+        ' AND (content_txt_en:ambassad* OR content_txt_fr:ambassad* OR content_txt_de:ambassad*)',
+        ' AND filter((meta_journal_s:GDL))',
+        ' AND filter((meta_year_i:1957 OR meta_year_i:1958 OR meta_year_i:1954))',
+        ' AND filter((lg_s:french OR lg_s:german)) AND filter((item_type_s:ar))',
+      ].join(''),
     );
   });
 });

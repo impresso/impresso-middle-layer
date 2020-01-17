@@ -157,6 +157,7 @@ const filtersToSolrFacetQuery = () => async (context) => {
 };
 
 module.exports = {
+  queries: config.solr.queries,
   filtersToSolrQuery,
   qToSolrFilter,
   filtersToSolrFacetQuery,

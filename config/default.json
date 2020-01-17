@@ -141,6 +141,9 @@
       "user": "",
       "pass": "*****"
     },
+    "queries": {
+      "hasTextContents": "content_length_i:[1 TO *]"
+    },
     "search": {
       "alias": "",
       "endpoint": "https://.../select"

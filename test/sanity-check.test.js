@@ -118,6 +118,8 @@ describe('\'Luxwort\' contents', function () {
   });
 });
 
+// WRONG table of content generated for
+// https://solrdev.dhlab.epfl.ch/solr/impresso_dev/select?q=id:luxland-2007-12-21-a-i0001
 
 describe('Test /images service for crazy contents', function () {
   this.timeout(5000);
