@@ -40,7 +40,7 @@
           }
         },
         "total": {
-          "type": "null",
+          "type": "number",
           "description": "Total number of times the Ngram has been encountered in the whole range"
         }
       }

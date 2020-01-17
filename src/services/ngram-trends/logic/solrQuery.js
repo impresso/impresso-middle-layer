@@ -1,6 +1,6 @@
 const {
   get, mergeWith, toPairs,
-  fromPairs, sortBy,
+  fromPairs, sortBy, sum,
 } = require('lodash');
 const {
   filtersToQueryAndVariables,
@@ -88,7 +88,7 @@ async function parseUnigramTrendsResponse(solrResponse, unigram) {
   const facets = await getFacetsFromSolrResponse(solrResponse);
   const time = get(solrResponse, 'responseHeader.QTime');
 
-  const total = languageCodes.reduce((runningTotal, languageCode) => runningTotal + get(solrResponse, `stats.stats_fields.tf_stats_${languageCode}.sum`, 0), 0);
+  const total = sum(values);
 
   return {
     trends: [

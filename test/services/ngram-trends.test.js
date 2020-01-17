@@ -140,7 +140,7 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
         {
           ngram: 'Einstein',
           values: [273, 176],
-          total: 11746,
+          total: 449,
         },
       ],
       domainValues: ['1969', '1970'],
