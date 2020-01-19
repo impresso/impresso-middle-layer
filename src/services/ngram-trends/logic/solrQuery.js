@@ -78,6 +78,10 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
       const key = entry.value;
       const value = get(entry, `stats.stats_fields.tf_stats_${languageCode}.sum`);
       return [key, value];
+    }).sort((a, b) => {
+      if (a < b) return -1;
+      if (a > b) return 1;
+      return 0;
     });
     return mergeWith(acc, fromPairs(entries), mergeFn);
   }, {});
