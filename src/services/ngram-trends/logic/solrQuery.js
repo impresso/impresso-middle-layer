@@ -134,9 +134,9 @@ function guessTimeIntervalFromFilters(filters = []) {
     .filter(v => v !== undefined)
     .sort();
   const shortestTimedelta = timedeltas[0];
+
   // eslint-disable-next-line no-restricted-globals
   if (!isFinite(shortestTimedelta)) return 'year';
-
   if (shortestTimedelta < 1) return 'day';
   if (shortestTimedelta < 5) return 'month';
   return 'year';
