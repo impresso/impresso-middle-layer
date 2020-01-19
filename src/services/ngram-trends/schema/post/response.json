@@ -18,6 +18,11 @@
         "description": "Period. Depending on resolution this is either a year (YYYY), month (YYYY-MM) or day (YYYY-MM-DD)"
       }
     },
+    "timeInterval": {
+      "type": "string",
+      "enum": ["year", "month", "day"],
+      "description": "Time interval for domain values"
+    },
     "info": {
       "$ref": "#/definitions/info"
     }

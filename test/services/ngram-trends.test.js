@@ -2,6 +2,7 @@ const assert = require('assert');
 const {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
+  guessTimeIntervalFromFilters,
 } = require('../../src/services/ngram-trends/logic/solrQuery');
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
@@ -144,6 +145,7 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
         },
       ],
       domainValues: ['1969', '1970'],
+      timeInterval: 'year',
       info: {
         facets: {},
         responseTime: {
@@ -151,8 +153,66 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
         },
       },
     };
-    const parsedResponse = await parseUnigramTrendsResponse(testResponse, 'Einstein');
+    const parsedResponse = await parseUnigramTrendsResponse(testResponse, 'Einstein', 'year');
 
     assert.deepEqual(parsedResponse, expectedParsedResponse);
+  });
+});
+
+describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
+  it('guesses "month" from a time filter range less than 5 years', async () => {
+    const filters = [
+      {
+        type: 'daterange',
+        q: ['1849-09-25T00:00:00Z TO 1852-12-31T23:59:59Z'],
+        op: 'OR',
+      },
+    ];
+    const timeInterval = guessTimeIntervalFromFilters(filters);
+
+    assert.equal(timeInterval, 'month');
+  });
+  it('guesses "day" from a time filter range less than 1 year', async () => {
+    const filters = [
+      {
+        type: 'daterange',
+        q: ['1849-09-25T00:00:00Z TO 1849-12-31T23:59:59Z'],
+        op: 'OR',
+      },
+    ];
+    const timeInterval = guessTimeIntervalFromFilters(filters);
+
+    assert.equal(timeInterval, 'day');
+  });
+  it('guesses "year" from a time filter range more than 5 years', async () => {
+    const filters = [
+      {
+        type: 'daterange',
+        q: ['1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z'],
+        op: 'OR',
+      },
+    ];
+    const timeInterval = guessTimeIntervalFromFilters(filters);
+
+    assert.equal(timeInterval, 'year');
+  });
+  it('guesses "year" from a time filter with exclude context', async () => {
+    const filters = [
+      {
+        type: 'daterange',
+        q: ['1849-09-25T00:00:00Z TO 1849-12-31T23:59:59Z'],
+        op: 'OR',
+        context: 'exclude',
+      },
+    ];
+    const timeInterval = guessTimeIntervalFromFilters(filters);
+
+    assert.equal(timeInterval, 'year');
+  });
+  it('guesses "year" from a filters without a daterange filter', async () => {
+    const filters = [];
+    const timeInterval = guessTimeIntervalFromFilters(filters);
+
+    assert.equal(timeInterval, 'year');
   });
 });

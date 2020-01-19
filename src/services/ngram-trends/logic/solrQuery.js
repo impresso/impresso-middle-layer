@@ -1,3 +1,4 @@
+const moment = require('moment');
 const {
   get, mergeWith, toPairs,
   fromPairs, sortBy, sum,
@@ -68,7 +69,7 @@ const mergeFn = (dst, src) => (dst || 0) + (src || 0);
  * Convert raw SOLR response to `ngram-trends/schema/post/response.json`.
  * @param {object} solrResponse SOLR trends response
  */
-async function parseUnigramTrendsResponse(solrResponse, unigram) {
+async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
   const pivots = get(solrResponse, 'facet_counts.facet_pivot', {});
   const languageCodes = Object.keys(pivots);
   const domainToValuesMapping = languageCodes.reduce((acc, languageCode) => {
@@ -99,6 +100,7 @@ async function parseUnigramTrendsResponse(solrResponse, unigram) {
       },
     ],
     domainValues,
+    timeInterval,
     info: {
       responseTime: {
         solr: time,
@@ -108,10 +110,33 @@ async function parseUnigramTrendsResponse(solrResponse, unigram) {
   };
 }
 
+const DaterangeFilterValueRegex = /([^\s]+)\s+TO\s+([^\s]+)/;
+
+function getTimedeltaInDaterangeFilter(daterangeFilter) {
+  const value = daterangeFilter.q[0];
+  const matches = DaterangeFilterValueRegex.exec(value);
+  if (matches.length !== 3) return undefined;
+  if (daterangeFilter.context === 'exclude') return undefined;
+
+  const [fromDate, toDate] = matches.slice(1).map(v => moment.utc(v));
+  const years = moment.duration(toDate.diff(fromDate)).as('years');
+  return years;
+}
+
 function guessTimeIntervalFromFilters(filters = []) {
-  return 'year'; // TODO: resolve the interval unit based on timeline filter.
-  // and add interval unit to the endpoint response.
-} 
+  const daterangeFilters = filters.filter(({ type }) => type === 'daterange');
+  const timedeltas = daterangeFilters
+    .map(getTimedeltaInDaterangeFilter)
+    .filter(v => v !== undefined)
+    .sort();
+  const shortestTimedelta = timedeltas[0];
+  // eslint-disable-next-line no-restricted-globals
+  if (!isFinite(shortestTimedelta)) return 'year';
+
+  if (shortestTimedelta < 1) return 'day';
+  if (shortestTimedelta < 5) return 'month';
+  return 'year';
+}
 
 module.exports = {
   unigramTrendsRequestToSolrQuery,

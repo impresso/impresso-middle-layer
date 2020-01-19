@@ -15,7 +15,7 @@ class NgramTrends {
       ngrams[0], filters, facets, timeInterval,
     );
     const solrResponse = await this.solrClient.requestPostRaw(requestPayload);
-    const response = await parseUnigramTrendsResponse(solrResponse);
+    const response = await parseUnigramTrendsResponse(solrResponse, ngrams[0], timeInterval);
 
     return response;
   }
