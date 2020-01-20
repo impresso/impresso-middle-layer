@@ -19,6 +19,11 @@ const TimeIntervalsFilelds = {
   day: 'meta_date_dt',
 };
 
+// Default facet limit in SOLR is set to 100.
+// We need all data for the stats. -1 means no limit.
+// https://lucene.apache.org/solr/guide/6_6/faceting.html#Faceting-Thefacet.limitParameter
+const DefaultFacetLimit = -1;
+
 const getFacetPivotString = (languageCode, timeIntervalField) =>
   // eslint-disable-next-line implicit-arrow-linebreak
   `{!stats=tf_stats_${languageCode} key=${languageCode}}${timeIntervalField}`;
@@ -51,6 +56,7 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
     params: {
       vars: variables,
       facet: true,
+      'facet.limit': DefaultFacetLimit,
       'facet.pivot': facetPivots,
       'stats.field': statsFields,
       stats: true,

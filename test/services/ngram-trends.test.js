@@ -14,6 +14,7 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
       params: {
         vars: {},
         facet: true,
+        'facet.limit': -1,
         'facet.pivot': [
           '{!stats=tf_stats_en key=en}meta_year_i',
           '{!stats=tf_stats_fr key=fr}meta_year_i',
