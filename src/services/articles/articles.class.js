@@ -15,6 +15,7 @@ class Service {
   } = {}) {
     this.name = String(name);
     this.app = app;
+    this.solrDataVersion = app.get('solr').dataVersion;
     this.SequelizeService = SequelizeService({
       app,
       name,
@@ -42,7 +43,12 @@ class Service {
       fl = Article.ARTICLE_SOLR_FL;
     }
 
-    debug('[find] use auth user:', params.user ? params.user.uid : 'no user');
+    if (this.solrDataVersion > 1.0) {
+      // most complete data
+      fl = Article.ARTICLE_SOLR_FL_LIST_ITEM;
+    }
+
+    debug('[find] use auth user:', params.user ? params.user.uid : 'no user', '- data version:', this.solrDataVersion);
     // if(params.isSafe query.filters)
     const results = await this.SolrService.find({
       ...params,

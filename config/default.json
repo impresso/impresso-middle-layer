@@ -116,6 +116,8 @@
     }
   },
   "sequelize": {
+    "alias": "",
+    "dataVersion": 1.0,
     "dialect": "mysql",
     "host": "localhost",
     "port": 3307,
@@ -132,36 +134,52 @@
     }
   },
   "solr": {
+    "dataVersion": 1.0,
     "host": "localhost",
     "port": 8984,
     "auth": {
       "user": "",
       "pass": "*****"
     },
+    "queries": {
+      "hasTextContents": "content_length_i:[1 TO *]"
+    },
     "search": {
+      "alias": "",
       "endpoint": "https://.../select"
     },
     "mentions": {
+      "alias": "",
       "endpoint": "https://.../select",
       "suggest": "https://.../suggest"
     },
     "topics": {
+      "alias": "",
       "endpoint": "https://.../select",
       "suggest": "https://.../suggest"
     },
     "images": {
+      "alias": "",
       "endpoint": "https://.../select"
     },
     "entities": {
+      "alias": "",
       "endpoint": "https://.../select"
     },
     "embeddings_de": {
+      "alias": "",
       "endpoint": "https://.../select"
     },
     "embeddings_fr": {
+      "alias": "",
       "endpoint": "https://.../select"
     },
     "embeddings_en": {
+      "alias": "",
+      "endpoint": "https://.../select"
+    },
+    "embeddings_lb": {
+      "alias": "",
       "endpoint": "https://.../select"
     }
   },

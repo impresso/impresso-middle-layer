@@ -1,5 +1,6 @@
 const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
+const config = require('@feathersjs/configuration')()();
 
 /**
  * Fields names that should not be wrapped into `filter(...)` when
@@ -83,6 +84,9 @@ const reduceDaterangeFiltersToSolr = filters => filters
     let q;
     if (Array.isArray(filter.q)) {
       q = `${filter.q.map(d => `meta_date_dt:[${d}]`).join(' OR ')}`;
+      if (filter.q.length > 1) {
+        q = `(${q})`;
+      }
     } else {
       q = `meta_date_dt:[${filter.q}]`;
     }
@@ -169,7 +173,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
 const filtersToSolr = (type, filters) => {
   switch (type) {
     case 'hasTextContents':
-      return 'content_length_i:[1 TO 10000]';
+      return config.solr.queries.hasTextContents;
     case 'ocrQuality':
       return reduceNumericRangeFilters(filters, 'ocrqa_f');
     case 'contentLength':
@@ -184,6 +188,10 @@ const filtersToSolr = (type, filters) => {
       return reduceDaterangeFiltersToSolr(filters);
     case 'uid':
       return reduceFiltersToSolr(filters, 'id');
+    case 'accessRight':
+      return reduceFiltersToSolr(filters, 'access_right_s');
+    case 'partner':
+      return reduceFiltersToSolr(filters, 'meta_partnerid_s');
     case 'language':
       return reduceFiltersToSolr(filters, 'lg_s');
     case 'page':
@@ -300,8 +308,13 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     }
   });
   // prepend order by if it is not relevance
-  if (overrideOrderBy && Object.keys(vars).length) {
-    const varsOrderBy = Object.keys(vars).map(v => ['${', v, '} desc'].join(''));
+  if (overrideOrderBy && config.solr.dataVersion > 1 && Object.keys(vars).length) {
+    // relevance direction
+    let direction = 'desc';
+    if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {
+      direction = 'asc';
+    }
+    const varsOrderBy = Object.keys(vars).map(v => ['${', v, '} ', direction].join(''));
     // if order by is by relevance:
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
       context[prop].sanitized.order_by = varsOrderBy
@@ -373,6 +386,7 @@ const filtersToSolrFacetQuery = () => async (context) => {
 };
 
 module.exports = {
+  queries: config.solr.queries,
   filtersToSolrQuery,
   qToSolrFilter,
   reduceFiltersToSolr,
@@ -484,6 +498,22 @@ module.exports = {
       type: 'terms',
       field: 'loc_entities_dpfs',
       mincount: 1,
+      limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
+    accessRight: {
+      type: 'terms',
+      field: 'access_right_s',
+      mincount: 0,
+      limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
+    partner: {
+      type: 'terms',
+      field: 'meta_partnerid_s',
+      mincount: 0,
       limit: 10,
       offset: 0,
       numBuckets: true,

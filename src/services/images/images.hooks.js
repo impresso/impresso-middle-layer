@@ -48,12 +48,15 @@ module.exports = {
       validate({
         order_by: utils.orderBy({
           values: {
+            random: 'random',
+            id: 'id ASC',
+            '-id': 'id DESC',
             relevance: 'score ASC',
             '-relevance': 'score DESC',
             date: 'meta_date_dt ASC',
             '-date': 'meta_date_dt DESC',
           },
-          defaultValue: 'date',
+          defaultValue: 'id',
         }),
         similarTo: {
           regex: REGEX_UID,
@@ -66,6 +69,10 @@ module.exports = {
         vectorType: {
           values: ['InceptionResNetV2', 'ResNet50'],
           defaultValue: 'ResNet50',
+        },
+        randomPage: {
+          required: false,
+          transform: d => ['true', ''].includes(d),
         },
         facets: utils.facets({
           values: {

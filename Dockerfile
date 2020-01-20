@@ -6,7 +6,9 @@ COPY ./package.json .
 COPY ./package-lock.json .
 RUN npm install --production
 
-COPY . .
+COPY public ./public
+COPY scripts ./scripts
+COPY src ./src
 
 RUN mkdir -p config
 COPY ./config/default.json ./config

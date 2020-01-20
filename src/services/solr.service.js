@@ -27,6 +27,7 @@ class SolrService {
       skip: 0,
       fl: params.fl,
       namespace: this.namespace,
+      requestOriginalPath: params.requestOriginalPath,
     }, this.Model.solrFactory);
     return lodash.first(results.response.docs);
   }
@@ -44,6 +45,7 @@ class SolrService {
       collapse_by: params.collapse_by,
       collapse_fn: params.collapse_fn,
       namespace: this.namespace,
+      requestOriginalPath: params.requestOriginalPath,
     };
     // removing unnecessary indefined fields.
     Object.keys(p).forEach(key => p[key] === undefined && delete p[key]);
