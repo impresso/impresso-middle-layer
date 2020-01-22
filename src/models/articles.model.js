@@ -392,7 +392,7 @@ class Article extends BaseArticle {
     if (regionCoords.length) {
       this.regions = Article.getRegions({
 
-      })
+      });
     }
     this.enrich(rc, lb, rb);
   }
