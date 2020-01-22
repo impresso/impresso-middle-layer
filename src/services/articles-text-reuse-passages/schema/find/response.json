@@ -30,10 +30,10 @@
           "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/timeCoverage"
         },
         "offsetStart": {
-          "$ref": "#/definitions/passageOffset"
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/offsetStart"
         },
         "offsetEnd": {
-          "$ref": "#/definitions/passageOffset"
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/offsetEnd"
         }
       },
       "required": [
@@ -42,33 +42,6 @@
         "lexicalOverlap",
         "offsetStart",
         "offsetEnd"
-      ]
-    },
-    "passageOffset": {
-      "type": "object",
-      "description": "Offset of the passage in the article text",
-      "additionalProperties": false,
-      "properties": {
-        "offset": {
-          "type": "integer",
-          "description": "Offset from the start of the article",
-          "minimum": 0
-        },
-        "regionIndex": {
-          "type": "integer",
-          "description": "Index of the region it falls into",
-          "minimum": 0
-        },
-        "regionOffset": {
-          "type": "integer",
-          "description": "Offset from the start of the region",
-          "minimum": 0
-        }
-      },
-      "required": [
-        "offset",
-        "regionIndex",
-        "regionOffset"
       ]
     }
   },

@@ -27,6 +27,41 @@
         "abc123"
       ],
       "pattern": "^[\\w\\d]+$"
+    },
+    "offsetStart": {
+      "$ref": "#/definitions/offset"
+    },
+    "offsetEnd": {
+      "$ref": "#/definitions/offset"
+    }
+  },
+  "definitions": {
+    "offset": {
+      "type": "object",
+      "description": "Offset of the passage in the article text",
+      "additionalProperties": false,
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "description": "Offset from the start of the article",
+          "minimum": 0
+        },
+        "regionIndex": {
+          "type": "integer",
+          "description": "Index of the region it falls into",
+          "minimum": 0
+        },
+        "regionOffset": {
+          "type": "integer",
+          "description": "Offset from the start of the region",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "offset",
+        "regionIndex",
+        "regionOffset"
+      ]
     }
   }
 }

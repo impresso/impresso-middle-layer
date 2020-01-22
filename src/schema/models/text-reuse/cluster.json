@@ -6,7 +6,7 @@
   "description": "Represents a cluster of text reuse passages",
   "additionalProperties": false,
   "required": [
-    "id",
+    "id"
   ],
   "properties": {
     "id": {
