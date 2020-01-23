@@ -2,6 +2,9 @@ const assert = require('assert');
 const {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
+
+  getTextReuseClustersRequestForIds,
+  convertClustersSolrResponseToClusters,
 } = require('../../../src/logic/textReuse/solr');
 const { validated } = require('../../../src/util/json');
 
@@ -13,7 +16,7 @@ const passagesSolrResponse = {
     params: {
       q: 'ci_id_s:GDL-1938-05-13-a-i0042',
       hl: 'false',
-      limit: '-1',
+      rows: '1',
     },
   },
   response: {
@@ -51,12 +54,46 @@ const passagesSolrResponse = {
   },
 };
 
+const clustersSolrResponse = {
+  responseHeader: {
+    status: 0,
+    QTime: 0,
+    params: {
+      q: 'cluster_id_s:*',
+      rows: '1',
+    },
+  },
+  response: {
+    numFound: 458569,
+    start: 0,
+    docs: [
+      {
+        postproc_id_s: '90217',
+        cluster_id_s: '163208759161',
+        day_delta_f: 357.0,
+        newspapers_ss: [
+          'GDL', 'IMP',
+        ],
+        member_id_ss: [
+          'IMP-1972-12-02-a-i0274',
+          'GDL-1972-06-10-a-i0056',
+          'GDL-1971-12-11-a-i0046',
+        ],
+        lex_overlap_d: 22.8571428571,
+        cluster_size_l: 3,
+        id: '88e0c589-666d-483e-9f64-6289d9fba2b0',
+        _version_: 1656447964590112778,
+      },
+    ],
+  },
+};
+
 describe('getTextReusePassagesRequestForArticle', () => {
   it('returns expected response', () => {
     const expectedQueryParameters = {
       q: 'ci_id_s:abc123',
       hl: false,
-      limit: 100,
+      rows: 100,
     };
     const queryParameters = getTextReusePassagesRequestForArticle('abc123');
     assert.deepEqual(queryParameters, expectedQueryParameters);
@@ -68,7 +105,6 @@ describe('getTextReusePassagesRequestForArticle', () => {
 
 describe('convertPassagesSolrResponseToPassages', () => {
   it('converts real response correctly', () => {
-
     const expectedPassages = [
       {
         id: '-4959285765931909368',
@@ -90,4 +126,33 @@ describe('convertPassagesSolrResponseToPassages', () => {
       .map(p => validated(p, PassageSchemaUri));
     assert.deepEqual(passages, expectedPassages);
   });
+});
+
+describe('getTextReuseClustersRequestForIds', () => {
+  it('returns expected response', () => {
+    const queryParameters = getTextReuseClustersRequestForIds(['abc123', 'cde123']);
+    const expectedQueryParameters = {
+      q: 'cluster_id_s:abc123 OR cde123',
+      rows: 2,
+      hl: false,
+    };
+
+    assert.deepEqual(queryParameters, expectedQueryParameters);
+  });
+});
+
+describe('convertClustersSolrResponseToClusters', () => {
+  const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse);
+  const expectedClusters = [
+    {
+      id: '163208759161',
+      lexicalOverlap: 22.8571428571,
+      timeCoverage: {
+        from: '1971-12-11',
+        to: '1972-12-02',
+      },
+    },
+  ];
+
+  assert.deepStrictEqual(clusters, expectedClusters);
 });
