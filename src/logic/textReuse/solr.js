@@ -12,7 +12,7 @@ const PassageFields = {
 const ClusterFields = {
   Id: 'cluster_id_s',
   LexicalOverlap: 'lex_overlap_d',
-  ContentItemsIds: 'member_id_ss',
+  ContentItemsIds: 'member_id_full_ss',
   TimeDifferenceDay: 'day_delta_f',
 };
 

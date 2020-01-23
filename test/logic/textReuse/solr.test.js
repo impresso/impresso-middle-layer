@@ -76,10 +76,10 @@ const clustersSolrResponse = {
         newspapers_ss: [
           'GDL', 'IMP',
         ],
-        member_id_ss: [
-          'IMP-1972-12-02-a-i0274',
-          'GDL-1972-06-10-a-i0056',
-          'GDL-1971-12-11-a-i0046',
+        member_id_full_ss: [
+          'IMP-1972-12-02-a-i0274@157:403',
+          'GDL-1972-06-10-a-i0056@39:592',
+          'GDL-1971-12-11-a-i0046@127:679',
         ],
         lex_overlap_d: 22.8571428571,
         cluster_size_l: 3,
