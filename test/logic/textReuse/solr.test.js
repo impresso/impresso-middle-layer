@@ -111,16 +111,8 @@ describe('convertPassagesSolrResponseToPassages', () => {
       {
         id: '-4959285765931909368',
         clusterId: '25769809096',
-        offsetStart: {
-          offset: 1683,
-          regionIndex: 0,
-          regionOffset: 1683,
-        },
-        offsetEnd: {
-          offset: 1898,
-          regionIndex: 0,
-          regionOffset: 1898,
-        },
+        offsetStart: 1683,
+        offsetEnd: 1898,
       },
     ];
 

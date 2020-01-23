@@ -50,7 +50,7 @@ function getTextReuseClustersRequestForIds(clusterIds) {
 }
 
 function convertSolrPassageDocToPassage(doc) {
-  const [startOffset, endOffset] = [
+  const [offsetStart, offsetEnd] = [
     get(doc, PassageFields.OffsetStart),
     get(doc, PassageFields.OffsetEnd),
   ];
@@ -59,16 +59,8 @@ function convertSolrPassageDocToPassage(doc) {
     id: get(doc, PassageFields.Id),
     clusterId: has(doc, PassageFields.ClusterId)
       ? String(get(doc, PassageFields.ClusterId)) : undefined,
-    offsetStart: {
-      offset: startOffset,
-      regionIndex: 0,
-      regionOffset: startOffset,
-    },
-    offsetEnd: {
-      offset: endOffset,
-      regionIndex: 0,
-      regionOffset: endOffset,
-    },
+    offsetStart,
+    offsetEnd,
   };
 }
 

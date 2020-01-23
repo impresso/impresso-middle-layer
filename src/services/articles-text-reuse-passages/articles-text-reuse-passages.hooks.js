@@ -1,9 +1,14 @@
-
+const { authenticate } = require('../../hooks/authenticate');
+const { validateWithSchema } = require('../../hooks/schema');
 
 module.exports = {
   before: {
     all: [],
-    find: [],
+    find: [
+      authenticate('jwt', {
+        allowUnauthenticated: true,
+      }),
+    ],
     get: [],
     create: [],
     update: [],
@@ -13,7 +18,9 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
+    find: [
+      validateWithSchema('services/articles-text-reuse-passages/schema/find/response.json', 'result'),
+    ],
     get: [],
     create: [],
     update: [],
