@@ -9,6 +9,8 @@ const {
 const { validated } = require('../../../src/util/json');
 
 const PassageSchemaUri = 'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json';
+const ClusterSchemaUri = 'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json';
+
 const passagesSolrResponse = {
   responseHeader: {
     status: 0,
@@ -142,7 +144,8 @@ describe('getTextReuseClustersRequestForIds', () => {
 });
 
 describe('convertClustersSolrResponseToClusters', () => {
-  const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse);
+  const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse)
+    .map(c => validated(c, ClusterSchemaUri));
   const expectedClusters = [
     {
       id: '163208759161',
