@@ -168,9 +168,11 @@ class ArticleRegion {
   } = {}) {
     this.pageUid = String(pageUid);
     this.coords = c;
-    if (g.length) {
-      this.g = render(g);
-    }
+    // NOTE: Rendering now happens on the client side.
+    // if (g.length) {
+    //   this.g = render(g);
+    // }
+    this.isEmpty = g.length === 0;
   }
 }
 
