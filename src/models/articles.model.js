@@ -395,6 +395,7 @@ class Article extends BaseArticle {
       });
     }
     this.contentLineBreaks = lb;
+    this.regionBreaks = rb;
 
     this.enrich(rc, lb, rb);
   }
