@@ -6,7 +6,6 @@ const {
   filtersToQueryAndVariables,
 } = require('../util/solr');
 
-
 const SOLR_FILTER_TYPES = [
   'hasTextContents',
   'title',
@@ -84,7 +83,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {
       direction = 'asc';
     }
-    const varsOrderBy = Object.keys(vars).map(v => `$\{${v}} ${direction}`);
+    const varsOrderBy = Object.keys(vars).map(v => ['${', v, '} ', direction].join(''));
     // if order by is by relevance:
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
       context[prop].sanitized.order_by = varsOrderBy
