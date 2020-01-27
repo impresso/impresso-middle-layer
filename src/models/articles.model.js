@@ -168,9 +168,12 @@ class ArticleRegion {
   } = {}) {
     this.pageUid = String(pageUid);
     this.coords = c;
+    // TODO: Rendering now happens on the client side,
+    // so this field is not used anymore. Consider removing later.
     if (g.length) {
       this.g = render(g);
     }
+    this.isEmpty = g.length === 0;
   }
 }
 
@@ -392,8 +395,11 @@ class Article extends BaseArticle {
     if (regionCoords.length) {
       this.regions = Article.getRegions({
 
-      })
+      });
     }
+    this.contentLineBreaks = lb;
+    this.regionBreaks = rb;
+
     this.enrich(rc, lb, rb);
   }
 
