@@ -168,10 +168,11 @@ class ArticleRegion {
   } = {}) {
     this.pageUid = String(pageUid);
     this.coords = c;
-    // NOTE: Rendering now happens on the client side.
-    // if (g.length) {
-    //   this.g = render(g);
-    // }
+    // TODO: Rendering now happens on the client side,
+    // so this field is not used anymore. Consider removing later.
+    if (g.length) {
+      this.g = render(g);
+    }
     this.isEmpty = g.length === 0;
   }
 }
