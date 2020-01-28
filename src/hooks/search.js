@@ -2,18 +2,9 @@ const debug = require('debug')('impresso/hooks:search');
 const lodash = require('lodash');
 const config = require('@feathersjs/configuration')()();
 
-/**
- * Fields names that should not be wrapped into `filter(...)` when
- * used in `q` Solr parameter.
- *
- * TODO: Explain why.
- */
-const NON_FILTERED_FIELDS = [
-  'uid',
-  'string',
-  'entity-string',
-  'topic-string',
-];
+const {
+  filtersToQueryAndVariables,
+} = require('../util/solr');
 
 const SOLR_FILTER_TYPES = [
   'hasTextContents',
@@ -34,208 +25,7 @@ const SOLR_FILTER_TYPES = [
 ];
 
 /**
- * Translate DPF filter to appropriate field names
- * @type {Object}
- */
-const SOLR_FILTER_DPF = {
-  topic: 'topics_dpfs',
-  person: 'pers_entities_dpfs',
-  location: 'loc_entities_dpfs',
-};
-
-const escapeValue = value => value.replace(/[()\\+&|!{}[\]?:;,]/g, d => `\\${d}`);
-const getValueWithFields = (value, fields) => {
-  if (Array.isArray(fields)) {
-    return fields.map(field => getValueWithFields(value, field)).join(' OR ');
-  }
-  return `${fields}:${escapeValue(value)}`;
-};
-
-const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
-  let qq = '';
-  const op = filter.op || 'OR';
-
-  if (Array.isArray(filter.q)) {
-    qq = filter.q.map(value => getValueWithFields(value, field)).join(` ${op} `);
-    qq = `(${qq})`;
-  } else {
-    qq = getValueWithFields(filter.q, field);
-  }
-  if (filter.context === 'exclude') {
-    qq = sq.length > 0 ? `NOT (${qq})` : `*:* AND NOT (${qq})`;
-  }
-  sq.push(qq);
-  return sq;
-}, []).join(' AND ');
-
-const reduceFiltersToVars = filters => filters.reduce((sq, filter) => {
-  if (Array.isArray(filter.q)) {
-    filter.q.forEach((q) => {
-      sq.push(q);
-    });
-  } else {
-    sq.push(filter.q);
-  }
-  return sq;
-}, []);
-
-const reduceDaterangeFiltersToSolr = filters => filters
-  .reduce((sq, filter) => {
-    let q;
-    if (Array.isArray(filter.q)) {
-      q = `${filter.q.map(d => `meta_date_dt:[${d}]`).join(' OR ')}`;
-      if (filter.q.length > 1) {
-        q = `(${q})`;
-      }
-    } else {
-      q = `meta_date_dt:[${filter.q}]`;
-    }
-    if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
-    }
-    sq.push(q);
-    return sq;
-  }, []).join(' AND ');
-
-const reduceNumericRangeFilters = (filters, field) => filters
-  .reduce((sq, filter) => {
-    let q; // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition)
-    // or simple string '1 TO X';
-    if (Array.isArray(filter.q)) {
-      q = `${filter.q.map(d => `${field}:[${d}]`).join(' OR ')}`;
-    } else {
-      q = `${field}:[${filter.q}]`;
-    }
-    if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
-    }
-    sq.push(q);
-    return sq;
-  }, []).join(' AND ');
-
-const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
-  // cut regexp at any . not preceded by an escape sign.
-  const q = query.q
-  // get rid of first / and last /
-    .replace(/^\/|\/$/g, '')
-  // split on point or spaces
-    .split(/\\?\.[*+]/)
-  // filterout empty stuff
-    .filter(d => d.length)
-  // rebuild;
-    .map(d => `content_txt_fr:/${d}/`);
-  return reduced.concat(q);
-}, []).join(' AND ');
-
-
-const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>
-  // reduce the string in filters to final SOLR query `sq`
-  // eslint-disable-next-line implicit-arrow-linebreak
-  filters.reduce((sq, filter) => {
-    let q = filter.q.trim();
-
-    q = q.replace(/"/g, ' ');
-    // const isExact = /^"[^"]+"$/.test(q);
-    const hasMultipleWords = q.split(/\s/).length > 1;
-
-    if (filter.precision === 'soft') {
-      q = `(${q.split(/\s+/g).join(' OR ')})`;
-    } else if (filter.precision === 'fuzzy') {
-      // "richard chase"~1
-      q = `"${q.split(/\s+/g).join(' ')}"~1`;
-    } else if (hasMultipleWords) {
-      // text:"Richard Chase"
-      q = q.replace(/"/g, ' ');
-      q = `"${q.split(/\s+/g).join(' ')}"`;
-    }
-
-    // q multiplied for languages :(
-    if (languages.length) {
-      const ql = (filter.langs || languages).map(lang => `${field}_${lang}:${q}`);
-
-      if (ql.length > 1) {
-        q = `(${ql.join(' OR ')})`;
-      } else {
-        q = ql[0];
-      }
-    } else {
-      q = `${field}:${q}`;
-    }
-
-    if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
-    }
-    sq.push(q);
-    return sq;
-  }, []).join(' AND ');
-
-
-const filtersToSolr = (type, filters) => {
-  switch (type) {
-    case 'hasTextContents':
-      return config.solr.queries.hasTextContents;
-    case 'ocrQuality':
-      return reduceNumericRangeFilters(filters, 'ocrqa_f');
-    case 'contentLength':
-      return reduceNumericRangeFilters(filters, 'content_length_i');
-    case 'isFront':
-      return 'front_b:1';
-    case 'string':
-      return reduceStringFiltersToSolr(filters, 'content_txt');
-    case 'title':
-      return reduceStringFiltersToSolr(filters, 'title_txt');
-    case 'daterange':
-      return reduceDaterangeFiltersToSolr(filters);
-    case 'uid':
-      return reduceFiltersToSolr(filters, 'id');
-    case 'accessRight':
-      return reduceFiltersToSolr(filters, 'access_right_s');
-    case 'partner':
-      return reduceFiltersToSolr(filters, 'meta_partnerid_s');
-    case 'language':
-      return reduceFiltersToSolr(filters, 'lg_s');
-    case 'page':
-      return reduceFiltersToSolr(filters, 'page_id_ss');
-    case 'collection':
-      return reduceFiltersToSolr(filters, 'ucoll_ss');
-    case 'issue':
-      return reduceFiltersToSolr(filters, 'meta_issue_id_s');
-    case 'newspaper':
-      return reduceFiltersToSolr(filters, 'meta_journal_s');
-    case 'topic':
-      return reduceFiltersToSolr(filters, 'topics_dpfs');
-    case 'year':
-      return reduceFiltersToSolr(filters, 'meta_year_i');
-    case 'type':
-      return reduceFiltersToSolr(filters, 'item_type_s');
-    case 'country':
-      return reduceFiltersToSolr(filters, 'meta_country_code_s');
-    case 'mention':
-      return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions']);
-    case 'entity':
-      return reduceFiltersToSolr(filters, ['pers_entities_dpfs', 'loc_entities_dpfs']);
-    case 'person':
-      return reduceFiltersToSolr(filters, 'pers_entities_dpfs');
-    case 'location':
-      return reduceFiltersToSolr(filters, 'loc_entities_dpfs');
-    case 'topicmodel':
-      return reduceFiltersToSolr(filters, 'tp_model_s');
-    case 'topic-string':
-      return reduceStringFiltersToSolr(filters, 'topic_suggest', []);
-    case 'entity-string':
-      return reduceStringFiltersToSolr(filters, 'entitySuggest', []);
-    case 'entity-type':
-      return reduceFiltersToSolr(filters, 't_s');
-    case 'regex':
-      return reduceRegexFiltersToSolr(filters);
-    default:
-      throw new Error(`reduceFilterToSolr: filter function for '${type}' not found`);
-  }
-};
-
-/**
  * Transform q param in a nice string filter.
-/**
  * @param  {String} type filter type, gets transkated to actual solr fields.
  * @return {null}      [description]
  */
@@ -284,29 +74,8 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     return;
   }
 
-  const filters = lodash.groupBy(context[prop].sanitized.filters, 'type');
-  const queries = [];
-  // const filterQueries = [];
-  // will contain payload vars, if any.
-  const vars = {};
+  const { query, variables: vars } = filtersToQueryAndVariables(context[prop].sanitized.filters);
 
-  Object.keys(filters).forEach((key) => {
-    if (NON_FILTERED_FIELDS.indexOf(key) !== -1) {
-      queries.push(filtersToSolr(key, filters[key]));
-    } else {
-      queries.push(`filter(${filtersToSolr(key, filters[key])})`);
-    }
-    debug(`${prefix} key:${key}`, filters[key]);
-    if (SOLR_FILTER_DPF[key]) {
-      // add payload variable
-      // payload(topics_dpf,tmGDL_tp04_fr)
-      reduceFiltersToVars(filters[key]).forEach((d) => {
-        const l = Object.keys(vars).length;
-        const field = SOLR_FILTER_DPF[key];
-        vars[`v${l}`] = `payload(${field},${escapeValue(d)})`;
-      });
-    }
-  });
   // prepend order by if it is not relevance
   if (overrideOrderBy && config.solr.dataVersion > 1 && Object.keys(vars).length) {
     // relevance direction
@@ -334,10 +103,11 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
 
   // context[prop].query.order_by.push()
 
-  context[prop].sanitized.sq = queries.length ? queries.join(' AND ') : '*:*';
+  context[prop].sanitized.sq = query;
   // context[prop].sanitized.sfq = filterQueries.join(' AND ');
   context[prop].sanitized.sv = vars;
   // NOTE: `queryComponents` should be deprecated
+  const filters = lodash.groupBy(context[prop].sanitized.filters, 'type');
   context[prop].sanitized.queryComponents = [].concat(
     filters.isFront,
     filters.years,
@@ -389,15 +159,9 @@ module.exports = {
   queries: config.solr.queries,
   filtersToSolrQuery,
   qToSolrFilter,
-  reduceFiltersToSolr,
-  reduceRegexFiltersToSolr,
   filtersToSolrFacetQuery,
-  filtersToSolr,
 
   SOLR_FILTER_TYPES,
-  SOLR_FILTER_DPF,
-
-  NON_FILTERED_FIELDS,
 
   SOLR_ORDER_BY: {
     date: 'meta_date_dt',

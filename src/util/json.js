@@ -18,6 +18,8 @@ ajv.addSchema(require('../services/search-queries-comparison/schema/post/payload
 ajv.addSchema(require('../services/search-queries-comparison/schema/post/response.json'));
 ajv.addSchema(require('../services/newspapers/schema/find/query.json'));
 ajv.addSchema(require('../services/articles-text-reuse-passages/schema/find/response.json'));
+ajv.addSchema(require('../services/ngram-trends/schema/post/payload.json'));
+ajv.addSchema(require('../services/ngram-trends/schema/post/response.json'));
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
 

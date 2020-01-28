@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/ngram-trends/schema/post/response.json",
+  "description": "Response for POST /ngram-trends",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "trends": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/trend"
+      }
+    },
+    "domainValues": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "Period. Depending on resolution this is either a year (YYYY), month (YYYY-MM) or day (YYYY-MM-DD)"
+      }
+    },
+    "timeInterval": {
+      "type": "string",
+      "enum": ["year", "month", "day"],
+      "description": "Time interval for domain values"
+    },
+    "info": {
+      "$ref": "#/definitions/info"
+    }
+  },
+  "definitions": {
+    "trend": {
+      "type": "object",
+      "description": "Trend for an Ngram",
+      "additionalProperties": false,
+      "properties": {
+        "ngram": {
+          "type": "string",
+          "description": "Ngram"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "description": "Total number of times the Ngram has been encountered in a particular period"
+          }
+        },
+        "total": {
+          "type": "number",
+          "description": "Total number of times the Ngram has been encountered in the whole range"
+        }
+      }
+    },
+    "info": {
+      "type": "object",
+      "description": "TODO: add properties. Standard Info response with facets"
+    }
+  },
+  "required": [
+    "trends",
+    "domainValues",
+    "info"
+  ]
+}

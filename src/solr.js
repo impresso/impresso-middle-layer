@@ -358,6 +358,18 @@ const findAll = (config, params = {}, factory) => {
   });
 };
 
+const requestPostRaw = (config, payload) => {
+  const { endpoint } = config.search;
+  const opts = {
+    method: 'POST',
+    url: endpoint,
+    auth: config.auth,
+    json: payload,
+  };
+
+  return rp(opts);
+};
+
 /**
  * Return a classic data response for lazy people
  * @param  {[type]} res [description]
@@ -410,6 +422,7 @@ const getSolrClient = config => ({
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
   getRaw: async (params, namespace) => getRaw(config, params, namespace),
+  requestPostRaw: payload => requestPostRaw(config, payload),
   utils: {
     wrapAll,
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
