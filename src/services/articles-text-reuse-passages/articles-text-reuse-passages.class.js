@@ -40,9 +40,11 @@ class ArticlesTextReusePassages {
       .getRaw(getTextReusePassagesRequestForArticle(articleId), 'tr_passages')
       .then(convertPassagesSolrResponseToPassages);
     const clusterIds = [...new Set(passages.map(({ clusterId }) => clusterId))];
-    const clusters = await this.solrClient
-      .getRaw(getTextReuseClustersRequestForIds(clusterIds), 'tr_clusters')
-      .then(convertClustersSolrResponseToClusters);
+    const clusters = clusterIds.length > 0
+      ? await this.solrClient
+        .getRaw(getTextReuseClustersRequestForIds(clusterIds), 'tr_clusters')
+        .then(convertClustersSolrResponseToClusters)
+      : [];
 
     // 2. Construct response
     const response = buildResponse(passages, clusters);

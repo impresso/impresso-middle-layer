@@ -8,6 +8,11 @@ module.exports = {
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
+      (context) => {
+        if (context.params.query.id) {
+          context.params.route.articleId = context.params.query.id;
+        }
+      },
     ],
     get: [],
     create: [],

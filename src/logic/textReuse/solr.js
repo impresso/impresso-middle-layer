@@ -43,7 +43,7 @@ function getTextReusePassagesRequestForArticle(articleId) {
 function getTextReuseClustersRequestForIds(clusterIds) {
   assert.ok(Array.isArray(clusterIds) && clusterIds.length > 0, 'At least one cluster Id is required');
   return {
-    q: `${ClusterFields.Id}:${clusterIds.join(' OR ')}`,
+    q: clusterIds.map(clusterId => `${ClusterFields.Id}:${clusterId}`).join(' OR '),
     hl: false,
     rows: clusterIds.length,
   };

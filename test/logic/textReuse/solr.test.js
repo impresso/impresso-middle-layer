@@ -126,7 +126,7 @@ describe('getTextReuseClustersRequestForIds', () => {
   it('returns expected response', () => {
     const queryParameters = getTextReuseClustersRequestForIds(['abc123', 'cde123']);
     const expectedQueryParameters = {
-      q: 'cluster_id_s:abc123 OR cde123',
+      q: 'cluster_id_s:abc123 OR cluster_id_s:cde123',
       rows: 2,
       hl: false,
     };

@@ -17,7 +17,7 @@
       "examples": [
         "abc123"
       ],
-      "pattern": "^[\\w\\d-_]+$"
+      "pattern": "^[\\w\\d-_@]+$"
     },
     "clusterId": {
       "type": "string",
