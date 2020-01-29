@@ -5,6 +5,8 @@ const {
 
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
+
+  DefaultClusterFields,
 } = require('../../../src/logic/textReuse/solr');
 const { validated } = require('../../../src/util/json');
 
@@ -81,6 +83,8 @@ const clustersSolrResponse = {
           'GDL-1972-06-10-a-i0056@39:592',
           'GDL-1971-12-11-a-i0046@127:679',
         ],
+        min_date_dt: '1971-12-11T00:00:00Z',
+        max_date_dt: '1972-12-02T00:00:00Z',
         lex_overlap_d: 22.8571428571,
         cluster_size_l: 3,
         id: '88e0c589-666d-483e-9f64-6289d9fba2b0',
@@ -129,6 +133,7 @@ describe('getTextReuseClustersRequestForIds', () => {
       q: 'cluster_id_s:abc123 OR cluster_id_s:cde123',
       rows: 2,
       hl: false,
+      fl: DefaultClusterFields.join(','),
     };
 
     assert.deepEqual(queryParameters, expectedQueryParameters);
@@ -142,6 +147,7 @@ describe('convertClustersSolrResponseToClusters', () => {
     {
       id: '163208759161',
       lexicalOverlap: 22.8571428571,
+      clusterSize: 3,
       timeCoverage: {
         from: '1971-12-11',
         to: '1972-12-02',

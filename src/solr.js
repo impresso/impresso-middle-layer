@@ -435,3 +435,16 @@ module.exports = function (app) {
 };
 
 module.exports.client = getSolrClient;
+
+module.exports.SolrNamespaces = Object.freeze({
+  Search: 'search',
+  Mentions: 'mentions',
+  Topics: 'topics',
+  Entities: 'entities',
+  Images: 'images',
+  TextReusePassages: 'tr_passages',
+  TextReuseClusters: 'tr_clusters',
+  EmbeddingsDE: 'embeddings_de',
+  EmbeddingsFR: 'embeddings_fr',
+  EmbeddingsLB: 'embeddings_lb',
+});

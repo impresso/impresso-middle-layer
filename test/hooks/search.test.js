@@ -133,7 +133,7 @@ describe('test filtersToSolrQuery hook', () => {
     await filtersToSolrQuery()(context);
     assert.deepEqual(
       context.params.sanitized.sq,
-      `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")`
+      `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")`,
     );
   });
 

@@ -1,5 +1,7 @@
 const assert = require('assert');
-const { get, has } = require('lodash');
+const {
+  get, has, mapValues, groupBy,
+} = require('lodash');
 
 const PassageFields = {
   Id: 'id',
@@ -7,13 +9,16 @@ const PassageFields = {
   ClusterId: 'cluster_id_l',
   OffsetStart: 'beg_offset_i',
   OffsetEnd: 'end_offset_i',
+  ContentTextFR: 'content_txt_fr',
 };
 
 const ClusterFields = {
   Id: 'cluster_id_s',
   LexicalOverlap: 'lex_overlap_d',
-  ContentItemsIds: 'member_id_full_ss',
   TimeDifferenceDay: 'day_delta_f',
+  MinDate: 'min_date_dt',
+  MaxDate: 'max_date_dt',
+  ClusterSize: 'cluster_size_l',
 };
 
 /**
@@ -35,17 +40,26 @@ function getTextReusePassagesRequestForArticle(articleId) {
   };
 }
 
+const DefaultClusterFields = [
+  ClusterFields.Id,
+  ClusterFields.LexicalOverlap,
+  ClusterFields.MinDate,
+  ClusterFields.MaxDate,
+  ClusterFields.ClusterSize,
+];
+
 /**
  * Get Solr query parameters for requesting clusters by their Ids.
  * @param {string[]} clusterIds Ids of clusters
  * @return {object} GET request query parameters
  */
-function getTextReuseClustersRequestForIds(clusterIds) {
+function getTextReuseClustersRequestForIds(clusterIds, fields = DefaultClusterFields) {
   assert.ok(Array.isArray(clusterIds) && clusterIds.length > 0, 'At least one cluster Id is required');
   return {
     q: clusterIds.map(clusterId => `${ClusterFields.Id}:${clusterId}`).join(' OR '),
     hl: false,
     rows: clusterIds.length,
+    fl: fields.join(','),
   };
 }
 
@@ -68,27 +82,16 @@ function convertPassagesSolrResponseToPassages(solrResponse) {
   return get(solrResponse, 'response.docs', []).map(convertSolrPassageDocToPassage);
 }
 
-const ContentItemIdDateRegex = /^[^-]+-(\d{4}-\d{2}-\d{2})-.*$/;
-const extractDateFromContentItemId = (id) => {
-  const items = ContentItemIdDateRegex.exec(id);
-  if (items && items.length > 1) return new Date(items[1]);
-  return undefined;
-};
-const asDateString = date => date.toISOString().split('T')[0];
+const getDateFromISODateString = date => date.split('T')[0];
 
 function convertSolrClusterToCluster(doc) {
-  const ids = get(doc, ClusterFields.ContentItemsIds, []);
-  const dates = ids.map(extractDateFromContentItemId).sort((a, b) => a - b);
-  const [firstDate] = dates;
-  const timeDifferenceMs = get(doc, ClusterFields.TimeDifferenceDay) * 86400000;
-  const lastDate = new Date(firstDate.getTime() + timeDifferenceMs);
-
   return {
     id: get(doc, ClusterFields.Id),
     lexicalOverlap: get(doc, ClusterFields.LexicalOverlap),
+    clusterSize: get(doc, ClusterFields.ClusterSize),
     timeCoverage: {
-      from: asDateString(firstDate),
-      to: asDateString(lastDate),
+      from: getDateFromISODateString(get(doc, ClusterFields.MinDate)),
+      to: getDateFromISODateString(get(doc, ClusterFields.MaxDate)),
     },
   };
 }
@@ -97,10 +100,45 @@ function convertClustersSolrResponseToClusters(solrResponse) {
   return get(solrResponse, 'response.docs', []).map(convertSolrClusterToCluster);
 }
 
+/**
+ * TODO: The request will change once `cluster_id_ls` field is introduced
+ * and `collapse` SOLR functionality can be used.
+ *
+ * Build a GET request to find cluster IDs of passages that contain `text`.
+ * @param {string} text a text snippet
+ */
+function getTextReusePassagesClusterIdsSearchRequestForText(text) {
+  return {
+    q: `${PassageFields.ContentTextFR}:"${text}"`,
+    hl: false,
+    fl: [PassageFields.ClusterId, PassageFields.ContentTextFR].join(','),
+  };
+}
+
+function getClusterIdsFromPassagesSolrResponse(solrResponse) {
+  return get(solrResponse, 'response.docs', [])
+    .map(doc => doc[PassageFields.ClusterId]);
+}
+
+function getTextContentByClusterIdFromPassagesSolrResponse(solrResponse) {
+  const items = get(solrResponse, 'response.docs', [])
+    .map(doc => ({
+      id: doc[PassageFields.ClusterId],
+      content: doc[PassageFields.ContentTextFR],
+    }));
+  return mapValues(groupBy(items, 'id'), v => v[0].content);
+}
+
 module.exports = {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
 
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
+
+  getTextReusePassagesClusterIdsSearchRequestForText,
+  getClusterIdsFromPassagesSolrResponse,
+  getTextContentByClusterIdFromPassagesSolrResponse,
+
+  DefaultClusterFields,
 };
