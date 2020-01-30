@@ -1,16 +1,17 @@
+const { mapValues, groupBy } = require('lodash');
 const {
   getTextReusePassagesClusterIdsSearchRequestForText,
-  getClusterIdsFromPassagesSolrResponse,
-  getTextContentByClusterIdFromPassagesSolrResponse,
+  getClusterIdsAndTextFromPassagesSolrResponse,
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
 } = require('../../logic/textReuse/solr');
 const { SolrNamespaces } = require('../../solr');
 
-function buildResponseClusters(clusters, sampleTextByClusterId) {
+function buildResponseClusters(clusters, clusterIdsAndText) {
+  const mapping = mapValues(groupBy(clusterIdsAndText, 'id'), v => v[0].text);
   return clusters.map(cluster => ({
     cluster,
-    textSample: sampleTextByClusterId[cluster.id],
+    textSample: mapping[cluster.id],
   }));
 }
 
@@ -23,25 +24,21 @@ class TextReuseClusters {
   async find(params) {
     const { text } = params.query;
 
-    const [clusterIds, textByClusterId] = await this.solrClient
+    const clusterIdsAndText = await this.solrClient
       .getRaw(
         getTextReusePassagesClusterIdsSearchRequestForText(text),
         SolrNamespaces.TextReusePassages,
       )
-      .then(solrResponse => ([
-        getClusterIdsFromPassagesSolrResponse(solrResponse),
-        getTextContentByClusterIdFromPassagesSolrResponse(solrResponse),
-      ]));
-    const uniqueClusterIds = [...new Set(clusterIds)];
+      .then(getClusterIdsAndTextFromPassagesSolrResponse);
 
     const clusters = await this.solrClient
       .getRaw(
-        getTextReuseClustersRequestForIds(uniqueClusterIds),
+        getTextReuseClustersRequestForIds(clusterIdsAndText.map(({ id }) => id)),
         SolrNamespaces.TextReuseClusters,
       )
       .then(convertClustersSolrResponseToClusters);
 
-    const response = { clusters: buildResponseClusters(clusters, textByClusterId) };
+    const response = { clusters: buildResponseClusters(clusters, clusterIdsAndText) };
     return response;
   }
 }

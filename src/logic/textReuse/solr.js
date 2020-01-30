@@ -1,15 +1,16 @@
 const assert = require('assert');
 const {
-  get, has, mapValues, groupBy,
+  get, has,
 } = require('lodash');
 
 const PassageFields = {
   Id: 'id',
   ContentItemId: 'ci_id_s',
-  ClusterId: 'cluster_id_l',
+  ClusterId: 'cluster_id_s',
   OffsetStart: 'beg_offset_i',
   OffsetEnd: 'end_offset_i',
   ContentTextFR: 'content_txt_fr',
+  Date: 'meta_date_dt',
 };
 
 const ClusterFields = {
@@ -112,22 +113,18 @@ function getTextReusePassagesClusterIdsSearchRequestForText(text) {
     q: `${PassageFields.ContentTextFR}:"${text}"`,
     hl: false,
     fl: [PassageFields.ClusterId, PassageFields.ContentTextFR].join(','),
+    fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
   };
 }
 
-function getClusterIdsFromPassagesSolrResponse(solrResponse) {
+function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
   return get(solrResponse, 'response.docs', [])
-    .map(doc => doc[PassageFields.ClusterId]);
-}
-
-function getTextContentByClusterIdFromPassagesSolrResponse(solrResponse) {
-  const items = get(solrResponse, 'response.docs', [])
     .map(doc => ({
       id: doc[PassageFields.ClusterId],
-      content: doc[PassageFields.ContentTextFR],
+      text: doc[PassageFields.ContentTextFR],
     }));
-  return mapValues(groupBy(items, 'id'), v => v[0].content);
 }
+
 
 module.exports = {
   getTextReusePassagesRequestForArticle,
@@ -137,8 +134,7 @@ module.exports = {
   convertClustersSolrResponseToClusters,
 
   getTextReusePassagesClusterIdsSearchRequestForText,
-  getClusterIdsFromPassagesSolrResponse,
-  getTextContentByClusterIdFromPassagesSolrResponse,
+  getClusterIdsAndTextFromPassagesSolrResponse,
 
   DefaultClusterFields,
 };
