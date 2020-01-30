@@ -11,6 +11,9 @@
       "items": {
         "$ref": "#/definitions/clusterItem"
       }
+    },
+    "info": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json"
     }
   },
   "definitions": {
@@ -32,6 +35,7 @@
     }
   },
   "required": [
-    "clusters"
+    "clusters",
+    "info"
   ]
 }

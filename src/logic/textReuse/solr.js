@@ -102,19 +102,19 @@ function convertClustersSolrResponseToClusters(solrResponse) {
 }
 
 /**
- * TODO: The request will change once `cluster_id_ls` field is introduced
- * and `collapse` SOLR functionality can be used.
- *
  * Build a GET request to find cluster IDs of passages that contain `text`.
  * @param {string} text a text snippet
  */
-function getTextReusePassagesClusterIdsSearchRequestForText(text) {
-  return {
+function getTextReusePassagesClusterIdsSearchRequestForText(text, skip, limit) {
+  const request = {
     q: `${PassageFields.ContentTextFR}:"${text}"`,
     hl: false,
     fl: [PassageFields.ClusterId, PassageFields.ContentTextFR].join(','),
     fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
   };
+  if (skip !== undefined) request.start = skip;
+  if (limit !== undefined) request.rows = limit;
+  return request;
 }
 
 function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
@@ -125,6 +125,13 @@ function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
     }));
 }
 
+function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
+  return {
+    limit: parseInt(get(solrResponse, 'responseHeader.params.rows', '10'), 10),
+    offset: parseInt(get(solrResponse, 'responseHeader.params.start', '0'), 10),
+    total: get(solrResponse, 'response.numFound'),
+  };
+}
 
 module.exports = {
   getTextReusePassagesRequestForArticle,
@@ -137,4 +144,6 @@ module.exports = {
   getClusterIdsAndTextFromPassagesSolrResponse,
 
   DefaultClusterFields,
+
+  getPaginationInfoFromPassagesSolrResponse,
 };

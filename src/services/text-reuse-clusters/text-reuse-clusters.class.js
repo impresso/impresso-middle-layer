@@ -4,6 +4,7 @@ const {
   getClusterIdsAndTextFromPassagesSolrResponse,
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
+  getPaginationInfoFromPassagesSolrResponse,
 } = require('../../logic/textReuse/solr');
 const { SolrNamespaces } = require('../../solr');
 
@@ -22,14 +23,17 @@ class TextReuseClusters {
   }
 
   async find(params) {
-    const { text } = params.query;
+    const { text, skip = 0, limit = 10 } = params.query;
 
-    const clusterIdsAndText = await this.solrClient
+    const [clusterIdsAndText, info] = await this.solrClient
       .getRaw(
-        getTextReusePassagesClusterIdsSearchRequestForText(text),
+        getTextReusePassagesClusterIdsSearchRequestForText(text, skip, limit),
         SolrNamespaces.TextReusePassages,
       )
-      .then(getClusterIdsAndTextFromPassagesSolrResponse);
+      .then(response => [
+        getClusterIdsAndTextFromPassagesSolrResponse(response),
+        getPaginationInfoFromPassagesSolrResponse(response),
+      ]);
 
     const clusters = await this.solrClient
       .getRaw(
@@ -38,8 +42,10 @@ class TextReuseClusters {
       )
       .then(convertClustersSolrResponseToClusters);
 
-    const response = { clusters: buildResponseClusters(clusters, clusterIdsAndText) };
-    return response;
+    return {
+      clusters: buildResponseClusters(clusters, clusterIdsAndText),
+      info,
+    };
   }
 }
 
