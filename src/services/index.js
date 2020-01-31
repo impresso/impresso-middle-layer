@@ -75,6 +75,9 @@ const errorsCollector = require('./errors-collector/errors-collector.service.js'
 const ngramTrends = require('./ngram-trends/ngram-trends.service.js');
 
 
+const topicsRelated = require('./topics-related/topics-related.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -118,4 +121,5 @@ module.exports = function () {
   app.configure(searchQueries);
   app.configure(errorsCollector);
   app.configure(ngramTrends);
+  app.configure(topicsRelated);
 };
