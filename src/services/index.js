@@ -75,7 +75,7 @@ const errorsCollector = require('./errors-collector/errors-collector.service.js'
 const ngramTrends = require('./ngram-trends/ngram-trends.service.js');
 
 
-const topicsRelated = require('./topics-related/topics-related.service.js');
+const topicsRelated = require('./topics-graph/topics-graph.service.js');
 
 
 module.exports = function () {

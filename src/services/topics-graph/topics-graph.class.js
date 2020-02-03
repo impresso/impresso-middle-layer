@@ -1,10 +1,17 @@
 /* eslint-disable no-unused-vars */
-const debug = require('debug')('impresso/services:topics-related');
+const debug = require('debug')('impresso/services:topics-graph');
 const { NotFound } = require('@feathersjs/errors');
 const { escapeValue } = require('../../util/solr/filterReducers');
 const Topic = require('../../models/topics.model');
 
-class TopicsRelated {
+const toNode = topic => ({
+  id: topic.uid,
+  label: topic.getExcerpt().join(' - '),
+  countItems: -1,
+  degree: 0,
+});
+
+class TopicsGraph {
   constructor({ name }, app) {
     this.name = name;
   }
@@ -61,43 +68,25 @@ class TopicsRelated {
   }
 
   async find(params) {
-    // if there's a q, get all suggested topics matching q in their words (they are 300 max)
-    const topics = {};
-    // fill topics dict with results
-    if (params.sanitized.q) {
-      const q = escapeValue(params.sanitized.q).split(/\s/).join(' OR ');
-      // get uids
-      await this.app.get('solrClient').findAll({
-        q: `topic_suggest:${q}`,
-        highlight_by: 'topic_suggest',
-        order_by: params.query.order_by,
-        namespace: 'topics',
-        limit: 300,
-        skip: 0,
-      }).then(({ response, fragments }) => {
-        response.docs.forEach((d, i) => {
-          topics[d.id] = {
-            order: i,
-            matches: fragments[d.id],
-          };
-          // add suggest result!
-        });
-      });
-    }
-
-    const uids = Object.keys(topics);
-    debug('[find] params.sanitized:', params.sanitized, 'topic uids:', uids);
-    console.log(topics);
+    debug('[find] query:', params, params.sanitized, params.sanitized.sv);
     const solrResponse = await this.app.get('solrClient').findAllPost({
-      q: uids.length ? `topics_dpfs:(${uids.join(' OR ')}) AND (${params.sanitized.sq})` : params.sanitized.sq,
+      q: params.sanitized.sq,
       facets: JSON.stringify({
         topic: {
           type: 'terms',
           field: 'topics_dpfs',
           mincount: 1,
-          limit: params.query.limit,
+          limit: 20,
           offset: params.query.skip,
           numBuckets: true,
+          facet: {
+            topNodes: {
+              type: 'terms',
+              field: 'topics_dpfs',
+              limit: 20,
+              numBuckets: true,
+            },
+          },
         },
       }),
       limit: 0,
@@ -105,41 +94,73 @@ class TopicsRelated {
       fl: 'id',
       vars: params.sanitized.sv,
     });
-    debug('[find] solrResponse:', solrResponse);
+
+    const nodes = [];
+    const links = [];
+    const info = {
+      filters: params.sanitized.filters,
+      limit: 20,
+      offset: params.query.skip,
+      QTime: solrResponse.responseHeader.QTime,
+    };
+
     if (!solrResponse.response.numFound || !solrResponse.facets || !solrResponse.facets.topic) {
       return {
-        data: [],
-        limit: params.query.limit,
-        offset: params.query.skip,
-        info: {
-          QTime: solrResponse.responseHeader.QTime,
-        },
+        nodes,
+        links,
+        info,
       };
     }
 
-    const data = solrResponse.facets.topic.buckets.map((d) => {
-      const topic = Topic.getCached(d.val);
-      if (uids.length && topics[d.val]) {
-        topic.matches = topics[d.val].matches;
+    const nodesIndex = {};
+    const linksIndex = {};
+    // return solrResponse;
+    solrResponse.facets.topic.buckets.forEach((d) => {
+      console.log(d.val, nodesIndex[d.val]);
+
+      if (typeof nodesIndex[d.val] === 'undefined') {
+        nodesIndex[d.val] = nodes.length;
+        nodes.push({
+          ...toNode(Topic.getCached(d.val)),
+          countItems: d.count,
+        });
+        console.log('add', d.val, d.count);
+      } else {
+        nodes[nodesIndex[d.val]].countItems = d.count;
       }
-      topic.countItems = d.count;
-      return topic;
+      // console.log('index', nodesIndex);
+      d.topNodes.buckets.forEach((dd) => {
+        if (typeof nodesIndex[dd.val] === 'undefined') {
+          nodesIndex[dd.val] = nodes.length;
+          nodes.push(toNode(Topic.getCached(dd.val)));
+        }
+        // add link
+        if (dd.val !== d.val) {
+          const linkId = [nodesIndex[d.val], nodesIndex[dd.val]].sort().join('-');
+          if (!linksIndex[linkId]) {
+            links.push({
+              id: linkId,
+              source: nodesIndex[d.val],
+              target: nodesIndex[dd.val],
+              w: dd.count,
+            });
+            nodes[nodesIndex[d.val]].degree += 1;
+            nodes[nodesIndex[dd.val]].degree += 1;
+          }
+        }
+      });
     });
 
     return {
-      total: solrResponse.facets.topic.numBuckets,
-      data,
-      limit: params.query.limit,
-      offset: params.query.skip,
-      info: {
-        QTime: solrResponse.responseHeader.QTime,
-      },
+      nodes,
+      links,
+      info,
     };
   }
 }
 
 module.exports = function (options) {
-  return new TopicsRelated(options);
+  return new TopicsGraph(options);
 };
 
-module.exports.TopicsRelated = TopicsRelated;
+module.exports.TopicsGraph = TopicsGraph;
