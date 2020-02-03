@@ -102,9 +102,28 @@ function filtersToQueryAndVariables(filters) {
   };
 }
 
+function getRegionCoordinatesFromDocument(document) {
+  if (document.rc_plains) {
+    const rcPlainsArray = typeof document.rc_plains === 'string'
+      ? [document.rc_plains] : document.rc_plains;
+    return rcPlainsArray.map((d) => {
+      const page = JSON.parse(d.replace(/'/g, '"'));
+      return {
+        id: page.pid,
+        r: page.c,
+      };
+    });
+  }
+  if (document.pp_plain) {
+    return document.pp_plain;
+  }
+  return [];
+}
+
 
 module.exports = {
   sameTypeFiltersToQuery,
   filtersToQueryAndVariables,
   ContentLanguages,
+  getRegionCoordinatesFromDocument,
 };
