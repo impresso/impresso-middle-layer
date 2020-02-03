@@ -8,6 +8,7 @@ const Newspaper = require('../../models/newspapers.model');
 const Topic = require('../../models/topics.model');
 const Entity = require('../../models/entities.model');
 const Year = require('../../models/years.model');
+const { getRegionCoordinatesFromDocument } = require('../../util/solr');
 
 function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex) {
   const { uid: id, language } = article;
@@ -21,19 +22,7 @@ function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, hig
     fragments,
   });
 
-  let regionCoords = [];
-  if (documentsIndex[id].rc_plains) {
-    regionCoords = documentsIndex[id].rc_plains.map((d) => {
-      const page = JSON.parse(d.replace(/'/g, '"'));
-      return {
-        id: page.pid,
-        r: page.c,
-      };
-    });
-  } else if (documentsIndex[id].pp_plain) {
-    regionCoords = documentsIndex[id].pp_plain;
-  }
-
+  const regionCoords = getRegionCoordinatesFromDocument(documentsIndex[id]);
   const regions = Article.getRegions({
     regionCoords,
   });

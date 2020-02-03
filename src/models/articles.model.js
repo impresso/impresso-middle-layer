@@ -12,6 +12,7 @@ const ArticleTopic = require('./articles-topics.model');
 const {
   toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt,
 } = require('../helpers');
+const { getRegionCoordinatesFromDocument } = require('../util/solr');
 
 const { getExternalFragment } = require('../hooks/iiif');
 
@@ -668,19 +669,7 @@ class Article extends BaseArticle {
   static solrFactory(res) {
     return (doc) => {
       // region coordinates may be loaded directly from the new field rc_plains
-      let rc = [];
-      if (doc.rc_plains) {
-        // new data version will have this in correct JSON format
-        rc = doc.rc_plains.map((d) => {
-          const page = JSON.parse(d.replace(/'/g, '"'));
-          return {
-            id: page.pid,
-            r: page.c,
-          };
-        });
-      } else if (doc.pp_plain) {
-        rc = doc.pp_plain;
-      }
+      const rc = getRegionCoordinatesFromDocument(doc);
 
       const art = new Article({
 
