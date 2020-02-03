@@ -6,7 +6,8 @@ const {
   utils,
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
-// const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+// const { checkCachedContents, returnCachedContents,
+// saveResultsInCache } = require('../../hooks/redis');
 const { eachFilterValidator } = require('../search/search.validators');
 
 module.exports = {

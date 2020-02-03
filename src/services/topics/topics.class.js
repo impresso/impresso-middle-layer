@@ -42,12 +42,28 @@ class Service {
       // set initial query time for suggestions
       qtime = solrSuggestResponse.responseHeader.QTime;
 
+      debug('[find] params.sanitized.q:', params.sanitized, 'load topic uids...');
+      // no ids? return empty stuff
+      if (!solrSuggestResponse.response.numFound) {
+        return {
+          data: [],
+          total: 0,
+          limit: params.query.limit,
+          offset: params.query.skip,
+          info: {
+            QTime: qtime,
+            filters: params.sanitized.filters,
+          },
+        };
+      }
+
       if (!params.sanitized.filters.length) {
         return {
           total: solrSuggestResponse.response.numFound,
-          data: solrSuggestResponse.response.docs.map(d => Topic.getCached(d.id))
+          data: solrSuggestResponse.response.docs
             .slice(params.query.skip, params.query.skip + params.query.limit)
-            .map((t) => {
+            .map((d) => {
+              const t = Topic.getCached(d.id);
               if (solrSuggestResponse.fragments[t.uid].topic_suggest) {
                 t.matches = solrSuggestResponse.fragments[t.uid].topic_suggest;
               }
@@ -63,10 +79,9 @@ class Service {
       }
       // otherwise, fill topic index
       solrSuggestResponse.response.docs.forEach((d, i) => {
-        console.log(d);
         topics[d.id] = {
           order: i,
-          matches: solrSuggestResponse.fragments[d.id],
+          matches: solrSuggestResponse.fragments[d.id].topic_suggest,
         };
       });
     }
@@ -75,7 +90,9 @@ class Service {
     const solrQueryParts = [];
 
     if (uids.length) {
-      solrQueryParts.push(`topics_dpfs:(${uids.join(' OR ')})`);
+      solrQueryParts.push([
+        '(', uids.map(d => `topics_dpfs:${d}`).join(' OR '), ')',
+      ].join(''));
     }
     if (params.sanitized.filters.length) {
       solrQueryParts.push(`(${params.sanitized.sq})`);
@@ -84,7 +101,7 @@ class Service {
       solrQueryParts.push('*:*');
     }
 
-    debug('[find] params.sanitized:', params.sanitized, 'topic uids:', uids.length, 'solr query parts:', solrQueryParts);
+    debug('[find] params.sanitized:', params.sanitized, '- topic uids:', uids.length);
 
     // console.log(topics);
     const solrResponse = await this.app.get('solrClient').findAllPost({
@@ -94,8 +111,8 @@ class Service {
           type: 'terms',
           field: 'topics_dpfs',
           mincount: 1,
-          limit: params.query.limit,
-          offset: params.query.skip,
+          limit: 300,
+          offset: 0,
           numBuckets: true,
         },
       }),
@@ -104,8 +121,10 @@ class Service {
       fl: 'id',
       vars: params.sanitized.sv,
     });
-    debug('[find] solrResponse:', solrResponse);
+
+    debug('[find] solrResponse total document matching:', solrResponse.response.numFound);
     if (!solrResponse.response.numFound || !solrResponse.facets || !solrResponse.facets.topic) {
+      debug('[find] warning, no topic buckets found.');
       return {
         data: [],
         limit: params.query.limit,
@@ -118,7 +137,23 @@ class Service {
       };
     }
 
-    const data = solrResponse.facets.topic.buckets.map((d) => {
+    let total = solrResponse.facets.topic.numBuckets;
+    let data = solrResponse.facets.topic.buckets;
+
+
+    if (uids.length) {
+      debug('[find] filtering out facets, initial total approx:', solrResponse.facets.topic.numBuckets);
+      // filter out facets based on their uid.
+      data = solrResponse.facets.topic.buckets
+        .filter(d => uids.includes(d.val));
+      debug('[find] new total: ', data.length);
+      total = data.length;
+      // get only the portion we need.
+      data = data
+        .slice(params.query.skip, params.query.skip + params.query.limit);
+    }
+    // remap data
+    data = data.map((d) => {
       const topic = Topic.getCached(d.val);
       if (uids.length && topics[d.val]) {
         topic.matches = topics[d.val].matches;
@@ -128,7 +163,7 @@ class Service {
     });
 
     return {
-      total: solrResponse.facets.topic.numBuckets,
+      total,
       data,
       limit: params.query.limit,
       offset: params.query.skip,
