@@ -82,7 +82,7 @@ class TopicsGraph {
 
     if (!params.sanitized.expand) {
       restrictToUids = params.sanitized.filters
-        .filter(d => d.type === 'topic')
+        .filter(d => d.type === 'topic' && d.context === 'visualize')
         // concatenate different q
         .reduce((acc, d) => acc.concat(d.q), [])
         // unique values only
@@ -93,7 +93,7 @@ class TopicsGraph {
         nodesIndex[d] = nodes.length;
         nodes.push({
           ...toNode(Topic.getCached(d)),
-          countItems: -1,
+          countItems: 0,
         });
       });
     }
@@ -150,7 +150,7 @@ class TopicsGraph {
           ...toNode(Topic.getCached(d.val)),
           countItems: d.count,
         });
-        console.log('add', d.val, d.count);
+        // console.log('add', d.val, d.count);
       } else {
         nodes[nodesIndex[d.val]].countItems = d.count;
       }
