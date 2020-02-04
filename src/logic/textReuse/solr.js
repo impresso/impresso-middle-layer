@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {
-  get, has,
+  get, chunk, omitBy, isUndefined,
 } = require('lodash');
 
 const PassageFields = {
@@ -10,7 +10,11 @@ const PassageFields = {
   OffsetStart: 'beg_offset_i',
   OffsetEnd: 'end_offset_i',
   ContentTextFR: 'content_txt_fr',
+  TitleTextFR: 'title_txt_fr',
   Date: 'meta_date_dt',
+  PageNumbers: 'page_nb_is',
+  PageRegions: 'page_regions_plain',
+  JournalId: 'meta_journal_s',
 };
 
 const ClusterFields = {
@@ -32,13 +36,16 @@ const DefaultPassagesLimit = 100;
  * @param {string} articleId article ID
  * @return {object} GET request query parameters
  */
-function getTextReusePassagesRequestForArticle(articleId) {
+function getTextReusePassagesRequestForArticle(articleId, fields = undefined) {
   assert.ok(typeof articleId === 'string' && articleId.length > 0, 'Article ID is required');
-  return {
+  const request = {
     q: `${PassageFields.ContentItemId}:${articleId}`,
     hl: false,
     rows: DefaultPassagesLimit,
   };
+  if (fields) request.fl = fields.join(',');
+
+  return request;
 }
 
 const DefaultClusterFields = [
@@ -64,19 +71,31 @@ function getTextReuseClustersRequestForIds(clusterIds, fields = DefaultClusterFi
   };
 }
 
+function parsePageRegions(pageRegionsPlainText) {
+  if (pageRegionsPlainText == null) return undefined;
+  return chunk(pageRegionsPlainText.split(',').map(v => parseInt(v, 10)), 4);
+}
+
 function convertSolrPassageDocToPassage(doc) {
   const [offsetStart, offsetEnd] = [
     get(doc, PassageFields.OffsetStart),
     get(doc, PassageFields.OffsetEnd),
   ];
 
-  return {
+  return omitBy({
     id: get(doc, PassageFields.Id),
-    clusterId: has(doc, PassageFields.ClusterId)
-      ? String(get(doc, PassageFields.ClusterId)) : undefined,
+    clusterId: get(doc, PassageFields.ClusterId),
+    articleId: get(doc, PassageFields.ContentItemId),
     offsetStart,
     offsetEnd,
-  };
+    content: get(doc, PassageFields.ContentTextFR),
+    title: get(doc, PassageFields.TitleTextFR),
+    // TODO: newspaper
+    language: 'fr',
+    date: get(doc, PassageFields.Date),
+    pageNumbers: get(doc, PassageFields.PageNumbers),
+    pageRegions: parsePageRegions(get(doc, PassageFields.PageRegions)),
+  }, isUndefined);
 }
 
 function convertPassagesSolrResponseToPassages(solrResponse) {
@@ -133,6 +152,16 @@ function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
   };
 }
 
+function getTextReuseClusterPassagesRequest(clusterId, skip, limit) {
+  const request = {
+    q: `${PassageFields.ClusterId}:"${clusterId}"`,
+    hl: false,
+  };
+  if (skip !== undefined) request.start = skip;
+  if (limit !== undefined) request.rows = limit;
+  return request;
+}
+
 module.exports = {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
@@ -146,4 +175,8 @@ module.exports = {
   DefaultClusterFields,
 
   getPaginationInfoFromPassagesSolrResponse,
+
+  getTextReuseClusterPassagesRequest,
+
+  PassageFields,
 };

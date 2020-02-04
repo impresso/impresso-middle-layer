@@ -115,8 +115,15 @@ describe('convertPassagesSolrResponseToPassages', () => {
       {
         id: '-4959285765931909368',
         clusterId: '25769809096',
+        articleId: 'GDL-1938-05-13-a-i0042',
         offsetStart: 1683,
         offsetEnd: 1898,
+        content: passagesSolrResponse.response.docs[0].content_txt_fr,
+        title: passagesSolrResponse.response.docs[0].title_txt_fr,
+        language: 'fr',
+        date: '1938-05-13T00:00:00Z',
+        pageNumbers: [4],
+        pageRegions: [[2600, 1873, 761, 208]],
       },
     ];
 
