@@ -1,5 +1,10 @@
-name: Publish Docker
-on: [push]
+name: Publish develop branch Docker image
+on:
+  # Trigger the workflow on push or pull request,
+  # but only for the develop branch
+  push:
+    branches:
+      - develop
 jobs:
   build:
     runs-on: ubuntu-latest
