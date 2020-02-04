@@ -4,6 +4,7 @@ const {
   convertPassagesSolrResponseToPassages,
 } = require('../../logic/textReuse/solr');
 const { SolrNamespaces } = require('../../solr');
+const Newspaper = require('../../models/newspapers.model');
 
 class TextReuseClusterPassages {
   constructor(options = {}, app) {
@@ -19,12 +20,23 @@ class TextReuseClusterPassages {
         getTextReuseClusterPassagesRequest(clusterId, skip, limit),
         SolrNamespaces.TextReusePassages,
       )
-      .then(response => [
-        convertPassagesSolrResponseToPassages(response),
+      .then(async response => [
+        await Promise.all(convertPassagesSolrResponseToPassages(response)
+          .map(async passage => this.addNewspaperMetadata(passage))),
         getPaginationInfoFromPassagesSolrResponse(response),
       ]);
 
     return { passages, info };
+  }
+
+  async addNewspaperMetadata(passage) {
+    const newspaper = passage.newspaper
+      ? Newspaper.getCached(passage.newspaper.uid)
+      : undefined;
+
+    return newspaper !== undefined
+      ? { ...passage, newspaper }
+      : passage;
   }
 }
 

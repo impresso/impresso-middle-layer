@@ -1,6 +1,7 @@
 const assert = require('assert');
 const {
-  get, chunk, omitBy, isUndefined,
+  get, chunk, omitBy,
+  isUndefined, has,
 } = require('lodash');
 
 const PassageFields = {
@@ -91,6 +92,9 @@ function convertSolrPassageDocToPassage(doc) {
     content: get(doc, PassageFields.ContentTextFR),
     title: get(doc, PassageFields.TitleTextFR),
     // TODO: newspaper
+    newspaper: has(doc, PassageFields.JournalId) ? {
+      uid: get(doc, PassageFields.JournalId),
+    } : undefined,
     language: 'fr',
     date: get(doc, PassageFields.Date),
     pageNumbers: get(doc, PassageFields.PageNumbers),
