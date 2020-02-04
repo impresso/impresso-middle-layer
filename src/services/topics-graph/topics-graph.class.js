@@ -25,7 +25,7 @@ class TopicsGraph {
   }
 
   async get(id, params) {
-    debug('[get] query:', params, params.sanitized, params.sanitized.sv);
+    debug('[get] query:', params.sanitized);
     const topic = Topic.getCached(id);
     if (!topic.uid.length) {
       throw new NotFound();
@@ -72,7 +72,7 @@ class TopicsGraph {
   }
 
   async find(params) {
-    debug('[find] query:', params, params.sanitized, params.sanitized.sv);
+    debug('[find] params:', params.sanitized);
     // consider only topic uids given as filters
     let restrictToUids = [];
     const nodesIndex = {};
@@ -87,7 +87,7 @@ class TopicsGraph {
         .reduce((acc, d) => acc.concat(d.q), [])
         // unique values only
         .filter((value, index, self) => self.indexOf(value) === index);
-      debug('[find] restrictToUids:', restrictToUids);
+      debug('[find] n of restrictToUids:', restrictToUids.length);
       // initial set of nodes
       restrictToUids.forEach((d) => {
         nodesIndex[d] = nodes.length;

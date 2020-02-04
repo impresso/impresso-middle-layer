@@ -174,37 +174,6 @@ class Service {
     };
   }
 
-  async pfind(params) {
-    const solrResult = await this.solrService.solr.findAll({
-      q: params.sanitized.sq || '*:*',
-      highlight_by: params.sanitized.sq ? 'topic_suggest' : false,
-      order_by: params.query.order_by,
-      namespace: 'topics',
-      limit: params.query.limit,
-      skip: params.query.skip,
-    }, this.solrService.Model.solrFactory);
-
-    debug('\'find\' total topics:', solrResult.response.numFound);
-
-    return {
-      total: solrResult.response.numFound,
-      limit: params.query.limit,
-      skip: params.query.skip,
-      data: solrResult.response.docs.map((d) => {
-        if (solrResult.fragments[d.uid].topic_suggest) {
-          d.matches = solrResult.fragments[d.uid].topic_suggest;
-        }
-        const cached = this.solrService.Model.getCached(d.uid);
-        d.relatedTopics = cached.relatedTopics;
-        d.countItems = cached.countItems;
-        return d;
-      }),
-      info: {
-        ...params.originalQuery,
-      },
-    };
-  }
-
   async get(id, params) {
     return this.solrService.get(id, params).then((topic) => {
       const cached = this.solrService.Model.getCached(id);
