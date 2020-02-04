@@ -35,12 +35,14 @@ class TextReuseClusters {
         getPaginationInfoFromPassagesSolrResponse(response),
       ]);
 
-    const clusters = await this.solrClient
-      .getRaw(
-        getTextReuseClustersRequestForIds(clusterIdsAndText.map(({ id }) => id)),
-        SolrNamespaces.TextReuseClusters,
-      )
-      .then(convertClustersSolrResponseToClusters);
+    const clusters = clusterIdsAndText.length > 0
+      ? await this.solrClient
+        .getRaw(
+          getTextReuseClustersRequestForIds(clusterIdsAndText.map(({ id }) => id)),
+          SolrNamespaces.TextReuseClusters,
+        )
+        .then(convertClustersSolrResponseToClusters)
+      : [];
 
     return {
       clusters: buildResponseClusters(clusters, clusterIdsAndText),
