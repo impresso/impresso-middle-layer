@@ -12,6 +12,10 @@ module.exports = {
           min_length: 1,
           max_length: 50,
         },
+        expand: {
+          required: false,
+          defaultValue: false,
+        },
       }),
       validateEach('filters', eachFilterValidator),
       filtersToSolrQuery({

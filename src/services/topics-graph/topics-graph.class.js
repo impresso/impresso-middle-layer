@@ -6,9 +6,13 @@ const Topic = require('../../models/topics.model');
 
 const toNode = topic => ({
   id: topic.uid,
+  uid: topic.uid,
   label: topic.getExcerpt().join(' - '),
   countItems: -1,
   degree: 0,
+  language: topic.language,
+  excerpt: topic.excerpt,
+  model: topic.model,
 });
 
 class TopicsGraph {
@@ -69,6 +73,31 @@ class TopicsGraph {
 
   async find(params) {
     debug('[find] query:', params, params.sanitized, params.sanitized.sv);
+    // consider only topic uids given as filters
+    let restrictToUids = [];
+    const nodesIndex = {};
+    const linksIndex = {};
+    const nodes = [];
+    const links = [];
+
+    if (!params.sanitized.expand) {
+      restrictToUids = params.sanitized.filters
+        .filter(d => d.type === 'topic')
+        // concatenate different q
+        .reduce((acc, d) => acc.concat(d.q), [])
+        // unique values only
+        .filter((value, index, self) => self.indexOf(value) === index);
+      debug('[find] restrictToUids:', restrictToUids);
+      // initial set of nodes
+      restrictToUids.forEach((d) => {
+        nodesIndex[d] = nodes.length;
+        nodes.push({
+          ...toNode(Topic.getCached(d)),
+          countItems: -1,
+        });
+      });
+    }
+
     const solrResponse = await this.app.get('solrClient').findAllPost({
       q: params.sanitized.sq,
       facets: JSON.stringify({
@@ -76,14 +105,14 @@ class TopicsGraph {
           type: 'terms',
           field: 'topics_dpfs',
           mincount: 1,
-          limit: 20,
+          limit: restrictToUids.length ? restrictToUids.length : 20,
           offset: params.query.skip,
           numBuckets: true,
           facet: {
             topNodes: {
               type: 'terms',
               field: 'topics_dpfs',
-              limit: 20,
+              limit: restrictToUids.length ? 30 : 20,
               numBuckets: true,
             },
           },
@@ -95,8 +124,7 @@ class TopicsGraph {
       vars: params.sanitized.sv,
     });
 
-    const nodes = [];
-    const links = [];
+
     const info = {
       filters: params.sanitized.filters,
       limit: 20,
@@ -111,13 +139,11 @@ class TopicsGraph {
         info,
       };
     }
-
-    const nodesIndex = {};
-    const linksIndex = {};
     // return solrResponse;
     solrResponse.facets.topic.buckets.forEach((d) => {
-      console.log(d.val, nodesIndex[d.val]);
-
+      if (restrictToUids.length && !restrictToUids.includes(d.val)) {
+        return;
+      }
       if (typeof nodesIndex[d.val] === 'undefined') {
         nodesIndex[d.val] = nodes.length;
         nodes.push({
@@ -130,6 +156,9 @@ class TopicsGraph {
       }
       // console.log('index', nodesIndex);
       d.topNodes.buckets.forEach((dd) => {
+        if (restrictToUids.length && !restrictToUids.includes(dd.val)) {
+          return;
+        }
         if (typeof nodesIndex[dd.val] === 'undefined') {
           nodesIndex[dd.val] = nodes.length;
           nodes.push(toNode(Topic.getCached(dd.val)));
@@ -137,7 +166,8 @@ class TopicsGraph {
         // add link
         if (dd.val !== d.val) {
           const linkId = [nodesIndex[d.val], nodesIndex[dd.val]].sort().join('-');
-          if (!linksIndex[linkId]) {
+          if (typeof linksIndex[linkId] === 'undefined') {
+            linksIndex[linkId] = links.length;
             links.push({
               id: linkId,
               source: nodesIndex[d.val],
