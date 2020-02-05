@@ -72,6 +72,7 @@ const searchQueries = require('./search-queries/search-queries.service.js');
 
 
 const errorsCollector = require('./errors-collector/errors-collector.service.js');
+const ngramTrends = require('./ngram-trends/ngram-trends.service.js');
 
 
 module.exports = function () {
@@ -116,4 +117,5 @@ module.exports = function () {
   app.configure(me);
   app.configure(searchQueries);
   app.configure(errorsCollector);
+  app.configure(ngramTrends);
 };

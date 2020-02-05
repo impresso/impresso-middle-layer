@@ -12,6 +12,7 @@ const ArticleTopic = require('./articles-topics.model');
 const {
   toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt,
 } = require('../helpers');
+const { getRegionCoordinatesFromDocument } = require('../util/solr');
 
 const { getExternalFragment } = require('../hooks/iiif');
 
@@ -168,9 +169,12 @@ class ArticleRegion {
   } = {}) {
     this.pageUid = String(pageUid);
     this.coords = c;
+    // TODO: Rendering now happens on the client side,
+    // so this field is not used anymore. Consider removing later.
     if (g.length) {
       this.g = render(g);
     }
+    this.isEmpty = g.length === 0;
   }
 }
 
@@ -392,8 +396,11 @@ class Article extends BaseArticle {
     if (regionCoords.length) {
       this.regions = Article.getRegions({
 
-      })
+      });
     }
+    this.contentLineBreaks = lb;
+    this.regionBreaks = rb;
+
     this.enrich(rc, lb, rb);
   }
 
@@ -662,19 +669,7 @@ class Article extends BaseArticle {
   static solrFactory(res) {
     return (doc) => {
       // region coordinates may be loaded directly from the new field rc_plains
-      let rc = [];
-      if (doc.rc_plains) {
-        // new data version will have this in correct JSON format
-        rc = doc.rc_plains.map((d) => {
-          const page = JSON.parse(d.replace(/'/g, '"'));
-          return {
-            id: page.pid,
-            r: page.c,
-          };
-        });
-      } else if (doc.pp_plain) {
-        rc = doc.pp_plain;
-      }
+      const rc = getRegionCoordinatesFromDocument(doc);
 
       const art = new Article({
 
