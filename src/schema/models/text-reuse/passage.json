@@ -51,9 +51,9 @@
       "type": "string",
       "description": "Title of the content item (article) where this passage was found"
     },
-    "newspaper": {
-      "type": "object",
-      "description": "Newspaper object (TODO - define it in a separate model json schema)"
+    "journalId": {
+      "type": "string",
+      "description": "Newspaper / Journal ID"
     },
     "language": {
       "type": "string",

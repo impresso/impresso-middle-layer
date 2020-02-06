@@ -91,10 +91,7 @@ function convertSolrPassageDocToPassage(doc) {
     offsetEnd,
     content: get(doc, PassageFields.ContentTextFR),
     title: get(doc, PassageFields.TitleTextFR),
-    // TODO: newspaper
-    newspaper: has(doc, PassageFields.JournalId) ? {
-      uid: get(doc, PassageFields.JournalId),
-    } : undefined,
+    journalId: get(doc, PassageFields.JournalId),
     language: 'fr',
     date: get(doc, PassageFields.Date),
     pageNumbers: get(doc, PassageFields.PageNumbers),
