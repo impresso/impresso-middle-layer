@@ -9,15 +9,16 @@ class SequelizeService {
   constructor({
     name = '',
     app = null,
+    modelName = null,
   } = {}) {
     this.name = String(name);
-
+    this.modelName = String(modelName || name);
     this.sequelize = sequelize.client(app.get('sequelize'));
 
-    this.Model = require(`../models/${this.name}.model`);
+    this.Model = require(`../models/${this.modelName}.model`);
     this.sequelizeKlass = this.Model.sequelize(this.sequelize);
 
-    debug(`Configuring service: ${this.name} success`);
+    debug(`Configuring service: ${this.name} (model:${this.modelName}) success`);
   }
 
   async bulkCreate(items) {
