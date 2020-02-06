@@ -75,6 +75,9 @@ const errorsCollector = require('./errors-collector/errors-collector.service.js'
 const ngramTrends = require('./ngram-trends/ngram-trends.service.js');
 
 
+const articlesTextReusePassages = require('./articles-text-reuse-passages/articles-text-reuse-passages.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -117,5 +120,6 @@ module.exports = function () {
   app.configure(me);
   app.configure(searchQueries);
   app.configure(errorsCollector);
+  app.configure(articlesTextReusePassages);
   app.configure(ngramTrends);
 };

@@ -201,6 +201,20 @@ const findAllPost = (config, params = {}, factory) => {
   });
 };
 
+const getRaw = async (config, params, namespace) => {
+  const { endpoint } = config[namespace];
+
+  const options = {
+    method: 'GET',
+    url: endpoint,
+    auth: config.auth,
+    qs: params,
+    json: true,
+  };
+
+  return rp(options);
+};
+
 /**
  * request wrapper to get results from solr.
  * TODO Check grouping: https://lucene.apache.org/solr/guide/6_6/result-grouping.html
@@ -407,6 +421,7 @@ const getSolrClient = config => ({
   findAllPost: (params, factory) => findAllPost(config, params, factory),
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
+  getRaw: async (params, namespace) => getRaw(config, params, namespace),
   requestPostRaw: payload => requestPostRaw(config, payload),
   utils: {
     wrapAll,
