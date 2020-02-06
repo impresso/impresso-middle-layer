@@ -25,6 +25,7 @@ const ClusterFields = {
   MinDate: 'min_date_dt',
   MaxDate: 'max_date_dt',
   ClusterSize: 'cluster_size_l',
+  ContentItemsIds: 'member_id_full_ss',
 };
 
 /**
