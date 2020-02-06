@@ -422,6 +422,7 @@ const getSolrClient = config => ({
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
   requestPostRaw: payload => requestPostRaw(config, payload),
+  getRaw: (params, namespace) => getRaw(config, params, namespace),
   utils: {
     wrapAll,
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
