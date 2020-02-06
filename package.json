@@ -35,7 +35,8 @@
     "import-pages": "node scripts/import-pages.js",
     "import-issues": "node scripts/import-issues.js",
     "import-tags": "node scripts/import-tags.js",
-    "import-newspapers": "node scripts/import-newspapers.js"
+    "import-newspapers": "node scripts/import-newspapers.js",
+    "generate-new-service": "feathers generate service"
   },
   "dependencies": {
     "@feathersjs/authentication": "^4.3.3",
@@ -105,6 +106,7 @@
     "xml2js": "^0.4.19"
   },
   "devDependencies": {
+    "@feathersjs/cli": "^4.2.5",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-standard": "^11.0.0",

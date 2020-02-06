@@ -5,6 +5,8 @@ const {
 
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
+
+  DefaultClusterFields,
 } = require('../../../src/logic/textReuse/solr');
 const { validated } = require('../../../src/util/json');
 
@@ -27,7 +29,7 @@ const passagesSolrResponse = {
     docs: [
       {
         id: '-4959285765931909368',
-        cluster_id_l: 25769809096,
+        cluster_id_s: '25769809096',
         cluster_size_l: 20,
         beg_offset_i: 1683,
         end_offset_i: 1898,
@@ -81,6 +83,8 @@ const clustersSolrResponse = {
           'GDL-1972-06-10-a-i0056@39:592',
           'GDL-1971-12-11-a-i0046@127:679',
         ],
+        min_date_dt: '1971-12-11T00:00:00Z',
+        max_date_dt: '1972-12-02T00:00:00Z',
         lex_overlap_d: 22.8571428571,
         cluster_size_l: 3,
         id: '88e0c589-666d-483e-9f64-6289d9fba2b0',
@@ -111,8 +115,16 @@ describe('convertPassagesSolrResponseToPassages', () => {
       {
         id: '-4959285765931909368',
         clusterId: '25769809096',
+        articleId: 'GDL-1938-05-13-a-i0042',
         offsetStart: 1683,
         offsetEnd: 1898,
+        content: passagesSolrResponse.response.docs[0].content_txt_fr,
+        title: passagesSolrResponse.response.docs[0].title_txt_fr,
+        language: 'fr',
+        journalId: 'GDL',
+        date: '1938-05-13T00:00:00Z',
+        pageNumbers: [4],
+        pageRegions: [[2600, 1873, 761, 208]],
       },
     ];
 
@@ -129,6 +141,7 @@ describe('getTextReuseClustersRequestForIds', () => {
       q: 'cluster_id_s:abc123 OR cluster_id_s:cde123',
       rows: 2,
       hl: false,
+      fl: DefaultClusterFields.join(','),
     };
 
     assert.deepEqual(queryParameters, expectedQueryParameters);
@@ -142,6 +155,7 @@ describe('convertClustersSolrResponseToClusters', () => {
     {
       id: '163208759161',
       lexicalOverlap: 22.8571428571,
+      clusterSize: 3,
       timeCoverage: {
         from: '1971-12-11',
         to: '1972-12-02',

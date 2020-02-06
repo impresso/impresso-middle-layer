@@ -78,6 +78,12 @@ const ngramTrends = require('./ngram-trends/ngram-trends.service.js');
 const articlesTextReusePassages = require('./articles-text-reuse-passages/articles-text-reuse-passages.service.js');
 
 
+const textReuseClusters = require('./text-reuse-clusters/text-reuse-clusters.service.js');
+
+
+const textReuseClusterPassages = require('./text-reuse-cluster-passages/text-reuse-cluster-passages.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -122,4 +128,6 @@ module.exports = function () {
   app.configure(errorsCollector);
   app.configure(articlesTextReusePassages);
   app.configure(ngramTrends);
+  app.configure(textReuseClusters);
+  app.configure(textReuseClusterPassages);
 };

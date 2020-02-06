@@ -423,6 +423,7 @@ const getSolrClient = config => ({
   suggest: (params, factory) => suggest(config, params, factory),
   getRaw: async (params, namespace) => getRaw(config, params, namespace),
   requestPostRaw: payload => requestPostRaw(config, payload),
+  getRaw: (params, namespace) => getRaw(config, params, namespace),
   utils: {
     wrapAll,
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
@@ -435,3 +436,16 @@ module.exports = function (app) {
 };
 
 module.exports.client = getSolrClient;
+
+module.exports.SolrNamespaces = Object.freeze({
+  Search: 'search',
+  Mentions: 'mentions',
+  Topics: 'topics',
+  Entities: 'entities',
+  Images: 'images',
+  TextReusePassages: 'tr_passages',
+  TextReuseClusters: 'tr_clusters',
+  EmbeddingsDE: 'embeddings_de',
+  EmbeddingsFR: 'embeddings_fr',
+  EmbeddingsLB: 'embeddings_lb',
+});

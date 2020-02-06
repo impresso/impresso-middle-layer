@@ -5,6 +5,8 @@ const {
 
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
+
+  PassageFields,
 } = require('../../logic/textReuse/solr');
 
 function buildResponse(passages, clusters) {
@@ -26,6 +28,13 @@ function buildResponse(passages, clusters) {
   };
 }
 
+const MinimalPassageFields = [
+  PassageFields.Id,
+  PassageFields.ClusterId,
+  PassageFields.OffsetStart,
+  PassageFields.OffsetEnd,
+];
+
 class ArticlesTextReusePassages {
   constructor(options, app) {
     this.options = options || {};
@@ -37,7 +46,7 @@ class ArticlesTextReusePassages {
 
     // 1. Get passages and clusters
     const passages = await this.solrClient
-      .getRaw(getTextReusePassagesRequestForArticle(articleId), 'tr_passages')
+      .getRaw(getTextReusePassagesRequestForArticle(articleId, MinimalPassageFields), 'tr_passages')
       .then(convertPassagesSolrResponseToPassages);
     const clusterIds = [...new Set(passages.map(({ clusterId }) => clusterId))];
     const clusters = clusterIds.length > 0
