@@ -7,7 +7,7 @@ const {
 
 const eachFilterValidator = {
   context: {
-    choices: ['include', 'exclude'],
+    choices: ['include', 'exclude', 'visualize'],
     defaultValue: 'include',
   },
   op: {

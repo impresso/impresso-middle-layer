@@ -1,13 +1,7 @@
-const {
-  queryWithCommonParams, // validate, utils, REGEX_UID,
-  validate,
-  validateEach,
-  // REGEX_UID,
-  utils,
-} = require('../../hooks/params');
+const { eachFilterValidator } = require('../search/search.validators');
+const { validateEach, queryWithCommonParams, validate } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
-const { eachFilterValidator } = require('../search/search.validators');
 
 module.exports = {
   before: {
@@ -20,15 +14,10 @@ module.exports = {
           min_length: 1,
           max_length: 50,
         },
-        order_by: utils.orderBy({
-          values: {
-            name: 'word_probs_dpf ASC',
-            '-name': 'word_probs_dpf DESC',
-            model: 'tp_model_s ASC',
-            '-model': 'tp_model_s DESC',
-          },
-          defaultValue: 'name',
-        }),
+        expand: {
+          required: false,
+          defaultValue: false,
+        },
       }),
       validateEach('filters', eachFilterValidator),
       filtersToSolrQuery({
@@ -36,7 +25,13 @@ module.exports = {
       }),
       queryWithCommonParams(),
     ],
-    get: [],
+    get: [
+      validateEach('filters', eachFilterValidator),
+      filtersToSolrQuery({
+        overrideOrderBy: false,
+      }),
+      queryWithCommonParams(),
+    ],
     create: [],
     update: [],
     patch: [],
