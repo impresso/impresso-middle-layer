@@ -9,7 +9,11 @@ module.exports = {
         allowUnauthenticated: true,
       }),
     ],
-    get: [],
+    get: [
+      authenticate('jwt', {
+        allowUnauthenticated: true,
+      }),
+    ],
     create: [],
     update: [],
     patch: [],
@@ -21,7 +25,9 @@ module.exports = {
     find: [
       validateWithSchema('services/text-reuse-clusters/schema/find/response.json', 'result'),
     ],
-    get: [],
+    get: [
+      validateWithSchema('services/text-reuse-clusters/schema/get/response.json', 'result'),
+    ],
     create: [],
     update: [],
     patch: [],
