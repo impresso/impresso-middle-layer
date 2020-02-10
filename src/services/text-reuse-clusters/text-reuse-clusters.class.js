@@ -1,10 +1,12 @@
 const { mapValues, groupBy } = require('lodash');
+const { NotFound } = require('@feathersjs/errors');
 const {
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsAndTextFromPassagesSolrResponse,
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
   getPaginationInfoFromPassagesSolrResponse,
+  getLatestTextReusePassageForClusterIdRequest,
 } = require('../../logic/textReuse/solr');
 const { SolrNamespaces } = require('../../solr');
 
@@ -48,6 +50,31 @@ class TextReuseClusters {
       clusters: buildResponseClusters(clusters, clusterIdsAndText),
       info,
     };
+  }
+
+  async get(id) {
+    const sampleTextPromise = this.solrClient
+      .getRaw(
+	getLatestTextReusePassageForClusterIdRequest(id),
+	SolrNamespaces.TextReusePassages,
+      )
+      .then(getClusterIdsAndTextFromPassagesSolrResponse);
+
+    const clusterPromise = this.solrClient
+      .getRaw(
+	getTextReuseClustersRequestForIds([id]),
+	SolrNamespaces.TextReuseClusters,
+      )
+      .then(convertClustersSolrResponseToClusters);
+
+    const [clusterIdsAndText, clusters] = await Promise.all([
+      sampleTextPromise, clusterPromise,
+    ]);
+
+    const clusterItems = buildResponseClusters(clusters, clusterIdsAndText);
+
+    if (clusterItems.length < 1) throw new NotFound();
+    return clusterItems[0];
   }
 }
 
