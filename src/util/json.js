@@ -21,6 +21,7 @@ ajv.addSchema(require('../services/articles-text-reuse-passages/schema/find/resp
 ajv.addSchema(require('../services/ngram-trends/schema/post/payload.json'));
 ajv.addSchema(require('../services/ngram-trends/schema/post/response.json'));
 ajv.addSchema(require('../services/text-reuse-clusters/schema/find/response.json'));
+ajv.addSchema(require('../services/text-reuse-clusters/schema/get/response.json'));
 ajv.addSchema(require('../services/text-reuse-cluster-passages/schema/find/response.json'));
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
