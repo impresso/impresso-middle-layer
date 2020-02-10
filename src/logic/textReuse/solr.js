@@ -128,13 +128,23 @@ function convertClustersSolrResponseToClusters(solrResponse) {
  */
 function getTextReusePassagesClusterIdsSearchRequestForText(text, skip, limit) {
   const request = {
-    q: `${PassageFields.ContentTextFR}:"${text}"`,
+    q: text ? `${PassageFields.ContentTextFR}:"${text}"` : '*:*',
     hl: false,
     fl: [PassageFields.ClusterId, PassageFields.ContentTextFR].join(','),
     fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
   };
   if (skip !== undefined) request.start = skip;
   if (limit !== undefined) request.rows = limit;
+  return request;
+}
+
+function getLatestTextReusePassageForClusterIdRequest(clusterId) {
+  const request = {
+    q: `${PassageFields.ClusterId}:"${clusterId}"`,
+    hl: false,
+    fl: [PassageFields.ClusterId, PassageFields.ContentTextFR].join(','),
+    fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
+  };
   return request;
 }
 
@@ -179,6 +189,8 @@ module.exports = {
   getPaginationInfoFromPassagesSolrResponse,
 
   getTextReuseClusterPassagesRequest,
+
+  getLatestTextReusePassageForClusterIdRequest,
 
   PassageFields,
 };
