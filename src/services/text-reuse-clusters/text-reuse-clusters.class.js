@@ -7,15 +7,30 @@ const {
   convertClustersSolrResponseToClusters,
   getPaginationInfoFromPassagesSolrResponse,
   getLatestTextReusePassageForClusterIdRequest,
+  PassageFields,
 } = require('../../logic/textReuse/solr');
 const { SolrNamespaces } = require('../../solr');
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
-  const mapping = mapValues(groupBy(clusterIdsAndText, 'id'), v => v[0].text);
-  return clusters.map(cluster => ({
-    cluster,
-    textSample: mapping[cluster.id],
+  const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0]);
+  return clusterIdsAndText.map(({ id, text: textSample }) => ({
+    cluster: clustersById[id],
+    textSample,
   }));
+}
+
+const OrderByKeyToField = {
+  'passages-count': PassageFields.ClusterSize,
+};
+
+function parseOrderBy(orderBy) {
+  if (orderBy == null) return []
+  const isDescending = orderBy.startsWith('-');
+  const orderKey = orderBy.replace(/^-/, '');
+  const field = OrderByKeyToField[orderKey];
+  return field != null
+    ? [field, isDescending]
+    : [];
 }
 
 class TextReuseClusters {
@@ -25,11 +40,20 @@ class TextReuseClusters {
   }
 
   async find(params) {
-    const { text, skip = 0, limit = 10 } = params.query;
+    const {
+      text,
+      skip = 0,
+      limit = 10,
+      orderBy,
+    } = params.query;
+
+    const [orderByField, orderByDescending] = parseOrderBy(orderBy);
 
     const [clusterIdsAndText, info] = await this.solrClient
       .getRaw(
-        getTextReusePassagesClusterIdsSearchRequestForText(text, skip, limit),
+        getTextReusePassagesClusterIdsSearchRequestForText(
+          text, skip, limit, orderByField, orderByDescending,
+        ),
         SolrNamespaces.TextReusePassages,
       )
       .then(response => [
