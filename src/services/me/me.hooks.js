@@ -1,5 +1,6 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { discard } = require('feathers-hooks-common');
+const { REGEX_PASSWORD, validate } = require('../../hooks/params');
 
 module.exports = {
   before: {
@@ -8,7 +9,18 @@ module.exports = {
     get: [],
     create: [],
     update: [],
-    patch: [],
+    patch: [
+      validate({
+        previousPassword: {
+          required: false,
+          regex: REGEX_PASSWORD,
+        },
+        newPassword: {
+          required: false,
+          regex: REGEX_PASSWORD,
+        },
+      }, 'POST'),
+    ],
     remove: [],
   },
 
