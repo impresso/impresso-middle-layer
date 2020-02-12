@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:me');
+const BadRequest = require('@feathersjs/errors');
 const SequelizeService = require('../sequelize.service');
 const User = require('../../models/users.model');
 
@@ -21,13 +22,18 @@ class Service {
     const user = await this.sequelizeService.get(params.user.id, {});
     debug('[find] retrieve current user:', user.profile.uid);
     return {
-      email: user.email,
-      uid: user.profile.uid,
       firstname: user.firstname,
       lastname: user.lastname,
-      creationDate: user.creationDate,
+      email: user.email,
+      uid: user.profile.uid,
+      username: user.username,
+      isActive: user.isActive,
+      isStaff: user.isStaff,
+      picture: user.profile.picture,
       pattern: user.profile.pattern,
+      creationDate: user.creationDate,
       emailAccepted: user.profile.emailAccepted,
+      displayName: user.profile.displayName,
     };
   }
 
@@ -36,7 +42,30 @@ class Service {
   }
 
   async patch(id, data, params) {
-    return data;
+    const user = await this.sequelizeService.get(params.user.id, {});
+    const patches = {};
+
+    if (data.sanitized.previousPassword && data.sanitized.newPassword) {
+      const isValid = User.comparePassword({
+        encrypted: user.password,
+        password: data.sanitized.previousPassword,
+      });
+
+      if (!isValid) {
+        throw new BadRequest('Wrong credentials');
+      }
+      // new password
+      const { password } = User.encryptPassword({ password: data.sanitized.newPassword });
+      patches.password = password;
+    }
+    // change other fields, ifany is provided and sanitized
+    ['patterns'].forEach(d => {
+
+    });
+    return {
+      uid: user.uid,
+      patchesApplied: Object.keys(patches),
+    };
   }
 
   async remove(id, params) {
