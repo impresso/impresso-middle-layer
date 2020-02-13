@@ -1,3 +1,5 @@
+// @ts-check
+// @ts-ignore
 const { mapValues, groupBy } = require('lodash');
 const { NotFound } = require('@feathersjs/errors');
 const {
@@ -9,7 +11,6 @@ const {
   getLatestTextReusePassageForClusterIdRequest,
   PassageFields,
 } = require('../../logic/textReuse/solr');
-const { SolrNamespaces } = require('../../solr');
 const { parseOrderBy } = require('../../util/queryParameters');
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
@@ -27,7 +28,8 @@ const OrderByKeyToField = {
 class TextReuseClusters {
   constructor(options, app) {
     this.options = options || {};
-    this.solrClient = app.get('solrClient');
+    /** @type {import('../../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
   }
 
   async find(params) {
@@ -40,12 +42,12 @@ class TextReuseClusters {
 
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField);
 
-    const [clusterIdsAndText, info] = await this.solrClient
-      .requestGetRaw(
+    const [clusterIdsAndText, info] = await this.solr
+      .get(
 	getTextReusePassagesClusterIdsSearchRequestForText(
 	  text, skip, limit, orderByField, orderByDescending,
 	),
-	SolrNamespaces.TextReusePassages,
+	this.solr.namespaces.TextReusePassages,
       )
       .then(response => [
 	getClusterIdsAndTextFromPassagesSolrResponse(response),
@@ -53,10 +55,10 @@ class TextReuseClusters {
       ]);
 
     const clusters = clusterIdsAndText.length > 0
-      ? await this.solrClient
-	.requestGetRaw(
+      ? await this.solr
+	.get(
 	  getTextReuseClustersRequestForIds(clusterIdsAndText.map(({ id }) => id)),
-	  SolrNamespaces.TextReuseClusters,
+	  this.solr.namespaces.TextReuseClusters,
 	)
 	.then(convertClustersSolrResponseToClusters)
       : [];
@@ -68,17 +70,17 @@ class TextReuseClusters {
   }
 
   async get(id) {
-    const sampleTextPromise = this.solrClient
-      .requestGetRaw(
+    const sampleTextPromise = this.solr
+      .get(
 	getLatestTextReusePassageForClusterIdRequest(id),
-	SolrNamespaces.TextReusePassages,
+	this.solr.namespaces.TextReusePassages,
       )
       .then(getClusterIdsAndTextFromPassagesSolrResponse);
 
-    const clusterPromise = this.solrClient
-      .requestGetRaw(
+    const clusterPromise = this.solr
+      .get(
 	getTextReuseClustersRequestForIds([id]),
-	SolrNamespaces.TextReuseClusters,
+	this.solr.namespaces.TextReuseClusters,
       )
       .then(convertClustersSolrResponseToClusters);
 
