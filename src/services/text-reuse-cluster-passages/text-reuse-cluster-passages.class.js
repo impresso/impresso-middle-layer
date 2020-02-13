@@ -2,12 +2,18 @@ const {
   getTextReuseClusterPassagesRequest,
   getPaginationInfoFromPassagesSolrResponse,
   convertPassagesSolrResponseToPassages,
+  PassageFields,
 } = require('../../logic/textReuse/solr');
 const { SolrNamespaces } = require('../../solr');
 const Newspaper = require('../../models/newspapers.model');
 const sequelize = require('../../sequelize');
 const { QueryGetIIIFManifests } = require('../../logic/iiif');
 const { toArticlePageDetails } = require('../../logic/ids');
+const { parseOrderBy } = require('../../util/queryParameters');
+
+const OrderByKeyToField = {
+  date: PassageFields.Date,
+};
 
 class TextReuseClusterPassages {
   constructor(options = {}, app) {
@@ -17,11 +23,18 @@ class TextReuseClusterPassages {
   }
 
   async find(params) {
-    const { clusterId, skip = 0, limit = 10 } = params.query;
+    const {
+      clusterId,
+      skip = 0,
+      limit = 10,
+      orderBy,
+    } = params.query;
+
+    const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField);
 
     const [passages, info] = await this.solrClient
       .requestGetRaw(
-	getTextReuseClusterPassagesRequest(clusterId, skip, limit),
+	getTextReuseClusterPassagesRequest(clusterId, skip, limit, orderByField, orderByDescending),
 	SolrNamespaces.TextReusePassages,
       )
       .then(response => [

@@ -168,13 +168,14 @@ function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
   };
 }
 
-function getTextReuseClusterPassagesRequest(clusterId, skip, limit) {
+function getTextReuseClusterPassagesRequest(clusterId, skip, limit, orderBy, orderByDescending) {
   const request = {
     q: `${PassageFields.ClusterId}:"${clusterId}"`,
     hl: false,
   };
   if (skip !== undefined) request.start = skip;
   if (limit !== undefined) request.rows = limit;
+  if (orderBy != null) request.sort = `${orderBy} ${orderByDescending ? 'desc' : 'asc'}`;
   return request;
 }
 
