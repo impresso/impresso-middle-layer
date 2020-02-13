@@ -6,7 +6,7 @@ const {
 
 class NgramTrends {
   setup(app) {
-    this.solrClient = app.get('solrClient');
+    this.solr = app.get('cachedSolr');
   }
 
   async create({ ngrams, filters, facets = [] }) {
@@ -14,7 +14,11 @@ class NgramTrends {
     const requestPayload = unigramTrendsRequestToSolrQuery(
       ngrams[0], filters, facets, timeInterval,
     );
-    const solrResponse = await this.solrClient.requestPostRaw(requestPayload);
+    const solrResponse = await this.solr.post(
+      requestPayload,
+      this.solr.namespaces.Search,
+      this.solr.ttl.Long,
+    );
     const response = await parseUnigramTrendsResponse(solrResponse, ngrams[0], timeInterval);
 
     return response;

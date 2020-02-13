@@ -344,8 +344,8 @@ const findAll = (config, params = {}, factory) => {
   });
 };
 
-const requestPostRaw = (config, payload) => {
-  const { endpoint } = config.search;
+const requestPostRaw = (config, payload, namespace = 'search') => {
+  const { endpoint } = config[namespace];
   const opts = {
     method: 'POST',
     url: endpoint,
@@ -354,6 +354,20 @@ const requestPostRaw = (config, payload) => {
   };
 
   return rp(opts);
+};
+
+const getRaw = async (config, params, namespace = 'search') => {
+  const { endpoint } = config[namespace];
+
+  const options = {
+    method: 'GET',
+    url: endpoint,
+    auth: config.auth,
+    qs: params,
+    json: true,
+  };
+
+  return rp(options);
 };
 
 /**
@@ -407,7 +421,8 @@ const getSolrClient = config => ({
   findAllPost: (params, factory) => findAllPost(config, params, factory),
   update: (params, factory) => update(config, params, factory),
   suggest: (params, factory) => suggest(config, params, factory),
-  requestPostRaw: payload => requestPostRaw(config, payload),
+  requestGetRaw: async (params, namespace) => getRaw(config, params, namespace),
+  requestPostRaw: async (payload, namespace) => requestPostRaw(config, payload, namespace),
   utils: {
     wrapAll,
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
@@ -420,3 +435,16 @@ module.exports = function (app) {
 };
 
 module.exports.client = getSolrClient;
+
+module.exports.SolrNamespaces = Object.freeze({
+  Search: 'search',
+  Mentions: 'mentions',
+  Topics: 'topics',
+  Entities: 'entities',
+  Images: 'images',
+  TextReusePassages: 'tr_passages',
+  TextReuseClusters: 'tr_clusters',
+  EmbeddingsDE: 'embeddings_de',
+  EmbeddingsFR: 'embeddings_fr',
+  EmbeddingsLB: 'embeddings_lb',
+});
