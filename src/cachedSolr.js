@@ -14,6 +14,7 @@ function getCacheKeyForSolrRequest(request, namespace, isPost = false) {
 const TTL = Object.freeze({
   Short: 60, // 1 minute
   Long: 60 * 60 * 24, // 1 day
+  Default: undefined, // set in cache configuration.
 });
 
 class CachedSolrClient {
@@ -23,7 +24,7 @@ class CachedSolrClient {
   }
 
   get(request, namespace, ttl) {
-    const options = ttl != null ? { ttl } : undefined;
+    const options = ttl != null ? { ttl } : {};
     return this.cacheManager.wrap(
       getCacheKeyForSolrRequest(request, namespace, false),
       () => this.solrClient.requestGetRaw(request, namespace),
@@ -32,7 +33,8 @@ class CachedSolrClient {
   }
 
   post(request, namespace, ttl) {
-    const options = ttl != null ? { ttl } : undefined;
+    const options = ttl != null ? { ttl } : {};
+
     return this.cacheManager.wrap(
       getCacheKeyForSolrRequest(request, namespace, true),
       () => this.solrClient.requestPostRaw(request, namespace),

@@ -4,6 +4,9 @@ const {
   guessTimeIntervalFromFilters,
 } = require('./logic/solrQuery');
 
+/** Default request that should be cached for longer. */
+const DefaultRequest = 'impresso';
+
 class NgramTrends {
   setup(app) {
     this.solr = app.get('cachedSolr');
@@ -14,10 +17,15 @@ class NgramTrends {
     const requestPayload = unigramTrendsRequestToSolrQuery(
       ngrams[0], filters, facets, timeInterval,
     );
+
+    const cacheTtl = ngrams[0] === DefaultRequest
+      ? this.solr.ttl.Long
+      : this.solr.ttl.Default;
+
     const solrResponse = await this.solr.post(
       requestPayload,
       this.solr.namespaces.Search,
-      this.solr.ttl.Long,
+      cacheTtl,
     );
     const response = await parseUnigramTrendsResponse(solrResponse, ngrams[0], timeInterval);
 
