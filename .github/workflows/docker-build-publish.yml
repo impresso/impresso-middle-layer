@@ -6,7 +6,6 @@ on:
     branches:
       - develop
     tags:
-      - *
 jobs:
   build:
     runs-on: ubuntu-latest
