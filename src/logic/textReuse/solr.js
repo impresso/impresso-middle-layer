@@ -1,7 +1,7 @@
 const assert = require('assert');
 const {
   get, chunk, omitBy,
-  isUndefined, has,
+  isUndefined,
 } = require('lodash');
 
 const PassageFields = {
@@ -16,6 +16,7 @@ const PassageFields = {
   PageNumbers: 'page_nb_is',
   PageRegions: 'page_regions_plain',
   JournalId: 'meta_journal_s',
+  ClusterSize: 'cluster_size_l',
 };
 
 const ClusterFields = {
@@ -126,7 +127,9 @@ function convertClustersSolrResponseToClusters(solrResponse) {
  * Build a GET request to find cluster IDs of passages that contain `text`.
  * @param {string} text a text snippet
  */
-function getTextReusePassagesClusterIdsSearchRequestForText(text, skip, limit) {
+function getTextReusePassagesClusterIdsSearchRequestForText(
+  text, skip, limit, orderBy, orderByDescending,
+) {
   const request = {
     q: text ? `${PassageFields.ContentTextFR}:"${text}"` : '*:*',
     hl: false,
@@ -135,6 +138,7 @@ function getTextReusePassagesClusterIdsSearchRequestForText(text, skip, limit) {
   };
   if (skip !== undefined) request.start = skip;
   if (limit !== undefined) request.rows = limit;
+  if (orderBy != null) request.sort = `${orderBy} ${orderByDescending ? 'desc' : 'asc'}`;
   return request;
 }
 
