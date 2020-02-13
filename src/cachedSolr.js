@@ -3,7 +3,7 @@ const { SolrNamespaces } = require('./solr');
 function getCacheKeyForSolrRequest(request, namespace, isPost = false) {
   const requestString = Buffer.from(JSON.stringify(request)).toString('base64');
   return [
-    'caching',
+    'cache',
     'solr',
     namespace != null ? namespace : 'default',
     isPost ? 'post' : 'get',
