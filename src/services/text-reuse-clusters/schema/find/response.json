@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/text-reuse-clusters/schema/find/response.json",
+  "description": "Response for GET /text-reuse-clusters",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "clusters": {
+      "type": "array",
+      "minimum": 0,
+      "items": {
+	"$ref": "#/definitions/clusterItem"
+      }
+    },
+    "info": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json"
+    }
+  },
+  "definitions": {
+    "clusterItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+	"cluster": {
+	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json"
+	},
+	"textSample": {
+	  "type": "string"
+	}
+      },
+      "required": [
+	"cluster",
+	"textSample"
+      ]
+    }
+  },
+  "required": [
+    "clusters",
+    "info"
+  ]
+}
