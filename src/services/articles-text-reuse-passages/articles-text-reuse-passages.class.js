@@ -1,3 +1,5 @@
+// @ts-check
+// @ts-ignore
 const { groupBy, mapValues, first } = require('lodash');
 const {
   getTextReusePassagesRequestForArticle,
@@ -38,20 +40,27 @@ const MinimalPassageFields = [
 class ArticlesTextReusePassages {
   constructor(options, app) {
     this.options = options || {};
-    this.solrClient = app.get('solrClient');
+    /** @type {import('../../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
   }
 
   async find(params) {
     const { articleId } = params.route;
 
     // 1. Get passages and clusters
-    const passages = await this.solrClient
-      .requestGetRaw(getTextReusePassagesRequestForArticle(articleId), 'tr_passages')
+    const passages = await this.solr
+      .get(
+        getTextReusePassagesRequestForArticle(articleId, MinimalPassageFields),
+        this.solr.namespaces.TextReusePassages,
+      )
       .then(convertPassagesSolrResponseToPassages);
     const clusterIds = [...new Set(passages.map(({ clusterId }) => clusterId))];
     const clusters = clusterIds.length > 0
-      ? await this.solrClient
-        .requestGetRaw(getTextReuseClustersRequestForIds(clusterIds), 'tr_clusters')
+      ? await this.solr
+        .get(
+          getTextReuseClustersRequestForIds(clusterIds),
+          this.solr.namespaces.TextReuseClusters,
+        )
         .then(convertClustersSolrResponseToClusters)
       : [];
 

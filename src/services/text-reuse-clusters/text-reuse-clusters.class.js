@@ -69,14 +69,14 @@ class TextReuseClusters {
 
   async get(id) {
     const sampleTextPromise = this.solrClient
-      .getRaw(
+      .requestGetRaw(
         getLatestTextReusePassageForClusterIdRequest(id),
         SolrNamespaces.TextReusePassages,
       )
       .then(getClusterIdsAndTextFromPassagesSolrResponse);
 
     const clusterPromise = this.solrClient
-      .getRaw(
+      .requestGetRaw(
         getTextReuseClustersRequestForIds([id]),
         SolrNamespaces.TextReuseClusters,
       )
