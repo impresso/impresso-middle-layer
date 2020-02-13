@@ -28,6 +28,8 @@ const redis = require('./redis');
 const celery = require('./celery');
 const channels = require('./channels');
 const multer = require('./multer');
+const cache = require('./cache');
+const cachedSolr = require('./cachedSolr');
 
 const app = express(feathers());
 
@@ -56,6 +58,16 @@ app.configure(neo4j);
 app.configure(redis);
 // configure local multer service.
 app.configure(multer);
+
+app.set('cacheManager', cache(
+  app.get('redis'),
+  app.get('cache').enabled,
+  (error) => {
+    console.error('Cache error. Restarting', error.stack);
+    process.exit(1);
+  },
+));
+app.set('cachedSolr', cachedSolr(app));
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
