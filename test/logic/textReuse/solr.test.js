@@ -29,7 +29,7 @@ const passagesSolrResponse = {
     docs: [
       {
 	id: '-4959285765931909368',
-	      cluster_id_s: '25769809096',
+	cluster_id_s: '25769809096',
 	cluster_size_l: 20,
 	beg_offset_i: 1683,
 	end_offset_i: 1898,

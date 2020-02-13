@@ -1,10 +1,10 @@
+// @ts-check
 const {
   getTextReuseClusterPassagesRequest,
   getPaginationInfoFromPassagesSolrResponse,
   convertPassagesSolrResponseToPassages,
   PassageFields,
 } = require('../../logic/textReuse/solr');
-const { SolrNamespaces } = require('../../solr');
 const Newspaper = require('../../models/newspapers.model');
 const sequelize = require('../../sequelize');
 const { QueryGetIIIFManifests } = require('../../logic/iiif');
@@ -18,7 +18,9 @@ const OrderByKeyToField = {
 class TextReuseClusterPassages {
   constructor(options = {}, app) {
     this.options = options;
-    this.solrClient = app.get('solrClient');
+    /** @type {import('../../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
+    /** @type {import('sequelize') & import('sequelize').Sequelize} */
     this.sequelize = sequelize.client(app.get('sequelize'));
   }
 
@@ -32,10 +34,10 @@ class TextReuseClusterPassages {
 
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField);
 
-    const [passages, info] = await this.solrClient
-      .requestGetRaw(
+    const [passages, info] = await this.solr
+      .get(
 	getTextReuseClusterPassagesRequest(clusterId, skip, limit, orderByField, orderByDescending),
-	SolrNamespaces.TextReusePassages,
+	this.solr.namespaces.TextReusePassages,
       )
       .then(response => [
 	convertPassagesSolrResponseToPassages(response),

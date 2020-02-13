@@ -51,3 +51,5 @@ module.exports = app => new CachedSolrClient(
   app.get('solrClient'),
   app.get('cacheManager'),
 );
+
+exports.CachedSolrClient = CachedSolrClient;
