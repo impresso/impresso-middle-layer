@@ -214,7 +214,7 @@ class Service {
       contentType: d.content_type,
       collectionId: collection.uid,
     }));
-
+    debug('[create] with items:', items);
     const results = await this.SequelizeService.bulkCreate(items);
 
     const client = this.app.get('celeryClient');
@@ -224,6 +224,7 @@ class Service {
         args: [
           // collection_uid
           collection.uid,
+          items.map(d => d.itemId),
         ],
       });
     }

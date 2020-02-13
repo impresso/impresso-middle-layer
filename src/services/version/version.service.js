@@ -1,3 +1,9 @@
+const {
+  getGitBranch,
+  getGitRevision,
+  getVersion,
+} = require('./logic');
+
 module.exports = function (app) {
   // Initialize our service with any options it requires
   app.use('/version', {
@@ -19,6 +25,11 @@ module.exports = function (app) {
           dataVersion: sequelizeConfig.dataVersion,
         },
         version: app.get('authentication').jwtOptions.issuer,
+        apiVersion: {
+          branch: await getGitBranch(),
+          revision: await getGitRevision(),
+          version: await getVersion(),
+        },
       };
     },
   });

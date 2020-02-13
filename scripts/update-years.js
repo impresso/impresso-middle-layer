@@ -56,7 +56,7 @@ async function waterfall() {
   }, {}));
 
   await solrClient.findAll({
-    q: '*:*',
+    q: 'filter(_vector_ResNet50_bv:[* TO *])',
     limit: 0,
     fl: 'id',
     facets: JSON.stringify({

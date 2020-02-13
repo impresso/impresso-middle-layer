@@ -24,33 +24,33 @@ describe('\'topics\' service', () => {
     assert.ok(results.data[0]);
   });
 
-  it('use filters to get topics from one model only', async () => {
-    const results = await service.find({
-      query: {
-        filters: [
-          {
-            type: 'topicmodel',
-            q: 'tmJDG',
-          },
-        ],
-      },
-    });
-    assert.equal(results.data[0].model, 'tmJDG');
-  });
-
-  it('use filters to get topics with facets', async () => {
-    const results = await service.find({
-      query: {
-        facets: 'topicmodel',
-        filters: [
-          {
-            type: 'topicmodel',
-            q: 'tmJDG',
-          },
-        ],
-      },
-    });
-    console.log(results.info);
-    assert.equal(results.data[0].model, 'tmJDG');
-  });
+  // it('use filters to get topics from one model only', async () => {
+  //   const results = await service.find({
+  //     query: {
+  //       filters: [
+  //         {
+  //           type: 'topicmodel',
+  //           q: 'tmJDG',
+  //         },
+  //       ],
+  //     },
+  //   });
+  //   assert.equal(results.data[0].model, 'tmJDG');
+  // });
+  //
+  // it('use filters to get topics with facets', async () => {
+  //   const results = await service.find({
+  //     query: {
+  //       facets: 'topicmodel',
+  //       filters: [
+  //         {
+  //           type: 'topicmodel',
+  //           q: 'tmJDG',
+  //         },
+  //       ],
+  //     },
+  //   });
+  //   console.log(results.info);
+  //   assert.equal(results.data[0].model, 'tmJDG');
+  // });
 });
