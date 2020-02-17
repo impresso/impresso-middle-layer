@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:me');
-const BadRequest = require('@feathersjs/errors');
+const { BadRequest } = require('@feathersjs/errors');
 const SequelizeService = require('../sequelize.service');
 const User = require('../../models/users.model');
 
@@ -42,6 +42,7 @@ class Service {
   }
 
   async patch(id, data, params) {
+    debug(`[patch] (user:${params.user.uid}) - id:`, params.user.id);
     const user = await this.sequelizeService.get(params.user.id, {});
     const patches = {};
 
@@ -52,19 +53,24 @@ class Service {
       });
 
       if (!isValid) {
+        debug('[patch] previous password is wrong');
         throw new BadRequest('Wrong credentials');
       }
       // new password
       const { password } = User.encryptPassword({ password: data.sanitized.newPassword });
       patches.password = password;
+      debug(`[patch] (user:${params.user.uid}) set password...`);
     }
-    // change other fields, ifany is provided and sanitized
-    ['patterns'].forEach(d => {
+    // apply patches
+    const patchesApplied = Object.keys(patches);
 
-    });
+    const result = await this.sequelizeService.patch(params.user.id, {
+      patches,
+    }, {});
+    debug(`[patch] (user:${params.user.uid}) patches applied!`);
     return {
       uid: user.uid,
-      patchesApplied: Object.keys(patches),
+      patchesApplied,
     };
   }
 
