@@ -13,7 +13,6 @@ module.exports = {
       validate({
         previousPassword: {
           required: false,
-          regex: REGEX_PASSWORD,
         },
         newPassword: {
           required: false,
