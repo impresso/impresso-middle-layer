@@ -6,12 +6,12 @@ module.exports = {
     all: [],
     find: [
       authenticate('jwt', {
-	allowUnauthenticated: true,
+        allowUnauthenticated: true,
       }),
     ],
     get: [
       authenticate('jwt', {
-	allowUnauthenticated: true,
+        allowUnauthenticated: true,
       }),
     ],
     create: [],

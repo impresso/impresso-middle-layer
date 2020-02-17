@@ -17,14 +17,15 @@ function buildResponse(passages, clusters) {
     passages: passages.map(({
       id, clusterId, offsetStart, offsetEnd,
     }) => {
-      const { lexicalOverlap, timeCoverage } = clustersById[clusterId];
+      const { clusterSize, lexicalOverlap, timeCoverage } = clustersById[clusterId];
       return {
-	id,
-	clusterId,
-	lexicalOverlap,
-	timeCoverage,
-	offsetStart,
-	offsetEnd,
+        id,
+        clusterId,
+        lexicalOverlap,
+        clusterSize,
+        timeCoverage,
+        offsetStart,
+        offsetEnd,
       };
     }),
   };
@@ -50,18 +51,18 @@ class ArticlesTextReusePassages {
     // 1. Get passages and clusters
     const passages = await this.solr
       .get(
-	getTextReusePassagesRequestForArticle(articleId, MinimalPassageFields),
-	this.solr.namespaces.TextReusePassages,
+        getTextReusePassagesRequestForArticle(articleId, MinimalPassageFields),
+        this.solr.namespaces.TextReusePassages,
       )
       .then(convertPassagesSolrResponseToPassages);
     const clusterIds = [...new Set(passages.map(({ clusterId }) => clusterId))];
     const clusters = clusterIds.length > 0
       ? await this.solr
-	.get(
-	  getTextReuseClustersRequestForIds(clusterIds),
-	  this.solr.namespaces.TextReuseClusters,
-	)
-	.then(convertClustersSolrResponseToClusters)
+        .get(
+          getTextReuseClustersRequestForIds(clusterIds),
+          this.solr.namespaces.TextReuseClusters,
+        )
+        .then(convertClustersSolrResponseToClusters)
       : [];
 
     // 2. Construct response
