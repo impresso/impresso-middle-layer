@@ -6,12 +6,12 @@ module.exports = {
     all: [],
     find: [
       authenticate('jwt', {
-	allowUnauthenticated: true,
+        allowUnauthenticated: true,
       }),
       (context) => {
-	if (context.params.query.id) {
-	  context.params.route.articleId = context.params.query.id;
-	}
+        if (context.params.query.id) {
+          context.params.route.articleId = context.params.query.id;
+        }
       },
     ],
     get: [],

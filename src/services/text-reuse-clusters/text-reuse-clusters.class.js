@@ -44,23 +44,23 @@ class TextReuseClusters {
 
     const [clusterIdsAndText, info] = await this.solr
       .get(
-	getTextReusePassagesClusterIdsSearchRequestForText(
-	  text, skip, limit, orderByField, orderByDescending,
-	),
-	this.solr.namespaces.TextReusePassages,
+        getTextReusePassagesClusterIdsSearchRequestForText(
+          text, skip, limit, orderByField, orderByDescending,
+        ),
+        this.solr.namespaces.TextReusePassages,
       )
       .then(response => [
-	getClusterIdsAndTextFromPassagesSolrResponse(response),
-	getPaginationInfoFromPassagesSolrResponse(response),
+        getClusterIdsAndTextFromPassagesSolrResponse(response),
+        getPaginationInfoFromPassagesSolrResponse(response),
       ]);
 
     const clusters = clusterIdsAndText.length > 0
       ? await this.solr
-	.get(
-	  getTextReuseClustersRequestForIds(clusterIdsAndText.map(({ id }) => id)),
-	  this.solr.namespaces.TextReuseClusters,
-	)
-	.then(convertClustersSolrResponseToClusters)
+        .get(
+          getTextReuseClustersRequestForIds(clusterIdsAndText.map(({ id }) => id)),
+          this.solr.namespaces.TextReuseClusters,
+        )
+        .then(convertClustersSolrResponseToClusters)
       : [];
 
     return {
@@ -72,15 +72,15 @@ class TextReuseClusters {
   async get(id) {
     const sampleTextPromise = this.solr
       .get(
-	getLatestTextReusePassageForClusterIdRequest(id),
-	this.solr.namespaces.TextReusePassages,
+        getLatestTextReusePassageForClusterIdRequest(id),
+        this.solr.namespaces.TextReusePassages,
       )
       .then(getClusterIdsAndTextFromPassagesSolrResponse);
 
     const clusterPromise = this.solr
       .get(
-	getTextReuseClustersRequestForIds([id]),
-	this.solr.namespaces.TextReuseClusters,
+        getTextReuseClustersRequestForIds([id]),
+        this.solr.namespaces.TextReuseClusters,
       )
       .then(convertClustersSolrResponseToClusters);
 

@@ -8,7 +8,7 @@
     "passages": {
       "type": "array",
       "items": {
-	"$ref": "#/definitions/passage"
+        "$ref": "#/definitions/passage"
       }
     }
   },
@@ -17,31 +17,34 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-	"id": {
-	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/id"
-	},
-	"clusterId": {
-	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/id"
-	},
-	"lexicalOverlap": {
-	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/lexicalOverlap"
-	},
-	"timeCoverage": {
-	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/timeCoverage"
-	},
-	"offsetStart": {
-	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/offsetStart"
-	},
-	"offsetEnd": {
-	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/offsetEnd"
-	}
+        "id": {
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/id"
+        },
+        "clusterId": {
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/id"
+        },
+        "clusterSize": {
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/clusterSize"
+        },
+        "lexicalOverlap": {
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/lexicalOverlap"
+        },
+        "timeCoverage": {
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/timeCoverage"
+        },
+        "offsetStart": {
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/offsetStart"
+        },
+        "offsetEnd": {
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/offsetEnd"
+        }
       },
       "required": [
-	"id",
-	"clusterId",
-	"lexicalOverlap",
-	"offsetStart",
-	"offsetEnd"
+        "id",
+        "clusterId",
+        "clusterSize",
+        "offsetStart",
+        "offsetEnd"
       ]
     }
   },

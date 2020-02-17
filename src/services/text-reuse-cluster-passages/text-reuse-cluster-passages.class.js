@@ -36,12 +36,12 @@ class TextReuseClusterPassages {
 
     const [passages, info] = await this.solr
       .get(
-	getTextReuseClusterPassagesRequest(clusterId, skip, limit, orderByField, orderByDescending),
-	this.solr.namespaces.TextReusePassages,
+        getTextReuseClusterPassagesRequest(clusterId, skip, limit, orderByField, orderByDescending),
+        this.solr.namespaces.TextReusePassages,
       )
       .then(response => [
-	convertPassagesSolrResponseToPassages(response),
-	getPaginationInfoFromPassagesSolrResponse(response),
+        convertPassagesSolrResponseToPassages(response),
+        getPaginationInfoFromPassagesSolrResponse(response),
       ]);
 
     return { passages: await this.asPassageItems(passages), info };
@@ -51,23 +51,23 @@ class TextReuseClusterPassages {
     const articleIdToPageId = passages
       .map(({ articleId, pageNumbers }) => toArticlePageDetails(articleId, pageNumbers[0]))
       .reduce((acc, { pageId, articleId }) => {
-	acc[articleId] = pageId;
-	return acc;
+        acc[articleId] = pageId;
+        return acc;
       }, {});
 
     const iiifDetails = await this.getIIIFUrlMap(Object.values(articleIdToPageId));
     const pageIdToIIIFUrl = iiifDetails
       .reduce((acc, { id, iiifUrl }) => {
-	acc[id] = iiifUrl;
-	return acc;
+        acc[id] = iiifUrl;
+        return acc;
       }, {});
 
     return Promise.all(passages.map(async (passage) => {
       const iifUrl = pageIdToIIIFUrl[articleIdToPageId[passage.articleId]];
       return {
-	passage,
-	newspaper: Newspaper.getCached(passage.journalId),
-	iiifUrls: iifUrl != null ? [iifUrl] : [],
+        passage,
+        newspaper: Newspaper.getCached(passage.journalId),
+        iiifUrls: iifUrl != null ? [iifUrl] : [],
       };
     }));
   }
@@ -76,8 +76,8 @@ class TextReuseClusterPassages {
     const results = await this.sequelize.query(
       QueryGetIIIFManifests,
       {
-	replacements: { pageIds },
-	type: this.sequelize.QueryTypes.SELECT,
+        replacements: { pageIds },
+        type: this.sequelize.QueryTypes.SELECT,
       },
     );
 
