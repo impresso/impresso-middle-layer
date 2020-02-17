@@ -80,6 +80,7 @@ class SequelizeService {
         id,
       };
     }
+    debug(`[patch] ${this.name} with params:`, params);
     return this.sequelizeKlass.update({
       ...data,
     }, {
