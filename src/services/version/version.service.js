@@ -2,6 +2,7 @@ const {
   getGitBranch,
   getGitRevision,
   getVersion,
+  getFirstAndLastDocumentDates,
 } = require('./logic');
 
 module.exports = function (app) {
@@ -10,6 +11,9 @@ module.exports = function (app) {
     async find() {
       const solrConfig = app.get('solr');
       const sequelizeConfig = app.get('sequelize');
+      const solr = app.get('cachedSolr');
+      const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr);
+
       return {
         solr: {
           dataVersion: solrConfig.dataVersion,
@@ -30,6 +34,7 @@ module.exports = function (app) {
           revision: await getGitRevision(),
           version: await getVersion(),
         },
+        documentsDateSpan: { firstDate, lastDate },
       };
     },
   });
