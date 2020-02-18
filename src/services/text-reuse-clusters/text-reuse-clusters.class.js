@@ -1,7 +1,10 @@
 // @ts-check
 // @ts-ignore
-const { mapValues, groupBy } = require('lodash');
+const {
+  mapValues, groupBy, values, uniq, clone,
+} = require('lodash');
 const { NotFound } = require('@feathersjs/errors');
+const { protobuf } = require('impresso-jscommons');
 const {
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsAndTextFromPassagesSolrResponse,
@@ -12,6 +15,7 @@ const {
   PassageFields,
 } = require('../../logic/textReuse/solr');
 const { parseOrderBy } = require('../../util/queryParameters');
+const { sameTypeFiltersToQuery } = require('../../util/solr');
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
   const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0]);
@@ -21,8 +25,22 @@ function buildResponseClusters(clusters, clusterIdsAndText) {
   }));
 }
 
+const deserializeFilters = serializedFilters => protobuf
+  .searchQuery.deserialize(serializedFilters).filters;
+
+function filtersToSolrQueries(filters) {
+  const filtersGroupsByType = values(groupBy(filters, 'type'));
+  return uniq(filtersGroupsByType.map(sameTypeFiltersToQuery));
+}
+
 const OrderByKeyToField = {
   'passages-count': PassageFields.ClusterSize,
+};
+
+const withExtraQueryParts = (query, parts) => {
+  const updatedQuery = clone(query);
+  updatedQuery.q = [query.q].concat(parts).join(' AND ');
+  return updatedQuery;
 };
 
 class TextReuseClusters {
@@ -38,15 +56,24 @@ class TextReuseClusters {
       skip = 0,
       limit = 10,
       orderBy,
+      filters: serializedFilters,
     } = params.query;
 
+    let filters = [];
+    try {
+      filters = serializedFilters ? deserializeFilters(serializedFilters) : [];
+    } catch (error) {
+      console.warn('Could not deserialize filters', error);
+    }
+    const filterQueryParts = filtersToSolrQueries(filters);
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField);
+    const query = getTextReusePassagesClusterIdsSearchRequestForText(
+      text, skip, limit, orderByField, orderByDescending,
+    );
 
     const [clusterIdsAndText, info] = await this.solr
       .get(
-        getTextReusePassagesClusterIdsSearchRequestForText(
-          text, skip, limit, orderByField, orderByDescending,
-        ),
+        withExtraQueryParts(query, filterQueryParts),
         this.solr.namespaces.TextReusePassages,
       )
       .then(response => [
