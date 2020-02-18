@@ -3,6 +3,7 @@ const debug = require('debug')('impresso/services:me');
 const { BadRequest } = require('@feathersjs/errors');
 const SequelizeService = require('../sequelize.service');
 const User = require('../../models/users.model');
+const Profile = require('../../models/profiles.model');
 
 class Service {
   constructor(options) {
@@ -21,24 +22,52 @@ class Service {
   async find(params) {
     const user = await this.sequelizeService.get(params.user.id, {});
     debug('[find] retrieve current user:', user.profile.uid);
-    return {
-      firstname: user.firstname,
-      lastname: user.lastname,
-      email: user.email,
-      uid: user.profile.uid,
-      username: user.username,
-      isActive: user.isActive,
-      isStaff: user.isStaff,
-      picture: user.profile.picture,
-      pattern: user.profile.pattern,
-      creationDate: user.creationDate,
-      emailAccepted: user.profile.emailAccepted,
-      displayName: user.profile.displayName,
-    };
+    return User.getMe({
+      user,
+      profile: user.profile,
+    });
   }
 
   async update(id, data, params) {
-    return data;
+    debug(`[update] (user:${params.user.uid}) - id:`, params.user.id, data);
+    const client = this.app.get('sequelizeClient');
+    const {
+      firstname, lastname, email, displayName, pattern,
+    } = data.sanitized;
+    // update user ADN its profile:
+    const result = await Promise.all([
+      User.sequelize(client).update({
+        firstname,
+        lastname,
+        email,
+      }, {
+        where: {
+          id: params.user.id,
+        },
+      }),
+      Profile.sequelize(client).update({
+        displayName,
+        pattern,
+      }, {
+        where: {
+          user_id: params.user.id,
+        },
+      }),
+    ]);
+    debug(`[update] (user:${params.user.uid}) success! Result:`, result, params.user);
+    return User.getMe({
+      user: {
+        ...params.user,
+        firstname,
+        lastname,
+        email,
+      },
+      profile: {
+        ...params.user.profile,
+        displayName,
+        pattern: pattern.split(','),
+      },
+    });
   }
 
   async patch(id, data, params) {
@@ -57,15 +86,16 @@ class Service {
         throw new BadRequest('Wrong credentials');
       }
       // new password
-      const { password } = User.encryptPassword({ password: data.sanitized.newPassword });
-      patches.password = password;
+      patches.password = User.buildPassword({ password: data.sanitized.newPassword });
       debug(`[patch] (user:${params.user.uid}) set password...`);
     }
     // apply patches
     const patchesApplied = Object.keys(patches);
-
+    if (!patchesApplied.length) {
+      throw new BadRequest('Nothing to patch');
+    }
     const result = await this.sequelizeService.patch(params.user.id, {
-      patches,
+      ...patches,
     }, {});
     debug(`[patch] (user:${params.user.uid}) patches applied!`);
     return {
