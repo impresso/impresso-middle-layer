@@ -17,6 +17,7 @@ ajv.addSchema(require('../services/search-queries-comparison/schema/post/respons
 ajv.addSchema(require('../services/newspapers/schema/find/query.json'));
 ajv.addSchema(require('../services/ngram-trends/schema/post/payload.json'));
 ajv.addSchema(require('../services/ngram-trends/schema/post/response.json'));
+ajv.addSchema(require('../services/me/schema/post/payload.json'));
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
 
