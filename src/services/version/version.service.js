@@ -3,6 +3,7 @@ const {
   getGitRevision,
   getVersion,
   getFirstAndLastDocumentDates,
+  getNewspaperIndex,
 } = require('./logic');
 
 module.exports = function (app) {
@@ -35,6 +36,7 @@ module.exports = function (app) {
           version: await getVersion(),
         },
         documentsDateSpan: { firstDate, lastDate },
+        newspapers: await getNewspaperIndex(),
       };
     },
   });

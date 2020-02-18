@@ -2,6 +2,7 @@
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const readFile = util.promisify(require('fs').readFile);
+const newspapersIndex = require('../../data')('newspapers');
 
 const PackageJsonPath = `${__dirname}/../../../package.json`;
 
@@ -52,9 +53,20 @@ async function getFirstAndLastDocumentDates(solr) {
   return results.map(searchResponseToDate);
 }
 
+async function getNewspaperIndex() {
+  return Object.values(newspapersIndex.values)
+    .reduce((index, newspaper) => {
+      index[newspaper.uid] = {
+        name: newspaper.name,
+      };
+      return index;
+    }, {});
+}
+
 module.exports = {
   getGitBranch,
   getGitRevision,
   getVersion,
   getFirstAndLastDocumentDates,
+  getNewspaperIndex,
 };
