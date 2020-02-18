@@ -4,7 +4,7 @@ const { encrypt } = require('../crypto');
 
 const Profile = require('./profiles.model');
 
-const CRYPTO_ITERATIONS = 120000;
+const CRYPTO_ITERATIONS = 180000;
 
 class ObfuscatedUser {
   constructor({
@@ -51,6 +51,23 @@ class User {
     } else {
       this.uid = String(uid);
     }
+  }
+
+  static getMe({ user, profile }) {
+    return {
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      uid: profile.uid,
+      username: user.username,
+      isActive: user.isActive,
+      isStaff: user.isStaff,
+      picture: profile.picture,
+      pattern: profile.pattern,
+      creationDate: user.creationDate,
+      emailAccepted: profile.emailAccepted,
+      displayName: profile.displayName,
+    };
   }
 
   static buildPassword({
