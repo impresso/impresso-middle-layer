@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/me/schema/post/payload.json",
+  "description": "Request payload for POST /me (update or create method)",
+  "type": "object",
+  "properties": {
+    "firstname": {
+      "type": "string",
+      "description": "user first name",
+      "maxLength": 30,
+      "minLength": 2
+    },
+    "lastname": {
+      "type": "string",
+      "description": "user last name",
+      "maxLength": 150,
+      "minLength": 2
+    },
+    "email": {
+      "type": "string",
+      "description": "user email",
+      "pattern": "[a-z0-9\\._%+!$&*=^|~#%{}/\\-]+@([a-z0-9\\-]+\\.){1,}([a-z]{2,22})"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "user favourite way of displaying its role (guest, researcher, staff ...)",
+      "maxLength": 30
+    },
+    "pattern": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "set of colors to be used as user pattern background"
+    }
+  },
+  "required": [
+    "firstname",
+    "lastname",
+    "email",
+    "displayName"
+  ]
+}
