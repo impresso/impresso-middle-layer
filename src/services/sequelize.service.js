@@ -80,6 +80,7 @@ class SequelizeService {
         id,
       };
     }
+    debug(`[patch] ${this.name} (model:${this.modelName}) with params:`, params, 'field to update:', Object.keys(data));
     return this.sequelizeKlass.update({
       ...data,
     }, {
