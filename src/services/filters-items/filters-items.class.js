@@ -1,11 +1,20 @@
 const {
   daterangeExtractor,
   newspaperExtractor,
+  topicExtractor,
+  entityExtractor,
+  yearExtractor,
+  collectionExtractor,
 } = require('./extractors');
 
 const ItemsExtractors = Object.freeze({
   daterange: daterangeExtractor,
   newspaper: newspaperExtractor,
+  topic: topicExtractor,
+  person: entityExtractor,
+  location: entityExtractor,
+  year: yearExtractor,
+  collection: collectionExtractor,
 });
 
 class FiltersItems {
