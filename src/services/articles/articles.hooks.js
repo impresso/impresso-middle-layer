@@ -2,12 +2,12 @@ const { authenticate } = require('../../hooks/authenticate');
 const {
   utils, protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
 } = require('../../hooks/params');
-const { filtersToSolrQuery, SOLR_ORDER_BY } = require('../../hooks/search');
+const { filtersToSolrQuery } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
 const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers');
 const { obfuscate } = require('../../hooks/access-rights');
-
+const { SolrMappings } = require('../../data/constants');
 
 module.exports = {
   before: {
@@ -34,7 +34,7 @@ module.exports = {
             return d;
           },
           choices: ['-date', 'date', '-relevance', 'relevance'],
-          transform: d => utils.toOrderBy(d, SOLR_ORDER_BY, true),
+          transform: d => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
           after: (d) => {
             if (Array.isArray(d)) {
               return d.join(',');

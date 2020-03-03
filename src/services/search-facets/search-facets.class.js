@@ -3,7 +3,7 @@ const lodash = require('lodash');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/services:search-facets');
 const SearchFacet = require('../../models/search-facets.model');
-const { SOLR_FACETS } = require('../../hooks/search');
+const { SolrMappings } = require('../../data/constants');
 
 class Service {
   constructor({
@@ -15,8 +15,11 @@ class Service {
   }
 
   async get(type, params) {
+    const { index } = params.query;
+    console.info('**', index);
+
     // availabel facet types
-    const validTypes = Object.keys(SOLR_FACETS);
+    const validTypes = Object.keys(SolrMappings[index].facets);
     // required facet types
     const types = type.split(',').filter(d => validTypes.indexOf(d) !== -1);
 
@@ -42,7 +45,7 @@ class Service {
       .map((d) => {
         const facet = {
           k: d,
-          ...SOLR_FACETS[d],
+          ...SolrMappings[index][d],
           ...facetsq,
         };
         if (type === 'collection') {
