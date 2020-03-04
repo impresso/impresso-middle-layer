@@ -1,5 +1,25 @@
 const assert = require('assert');
 const { constants } = require('impresso-jscommons');
+const { DataIndex } = require('./index');
+
+const facetRanges = new DataIndex({ name: 'facetRanges' });
+
+function getRangeFacetValue(index, facet, key, defaultValue) {
+  const indexData = facetRanges.getValue(index) || {};
+  const { [facet]: descriptor = {} } = indexData;
+  return descriptor[key] == null
+    ? defaultValue
+    : descriptor[key];
+}
+
+function getRangeFacetParametersWithDefault(index, facet, numBuckets, defaultParameters) {
+  const start = getRangeFacetValue(index, facet, 'min', defaultParameters.min);
+  const end = getRangeFacetValue(index, facet, 'max', defaultParameters.max);
+  const gap = Number.isFinite(start) && Number.isFinite(end)
+    ? (end - start) / numBuckets
+    : defaultParameters.gap;
+  return { start, end, gap };
+}
 
 /**
  * Various SOLR mappings per index.
@@ -120,6 +140,44 @@ const SolrMappings = Object.freeze({
       issues: 'meta_issue_id_s',
       articles: 'id',
       raw: 'id',
+    },
+  },
+  tr_clusters: {
+    facets: {
+      newspaper: {
+        type: 'terms',
+        field: 'newspapers_ss',
+        mincount: 1,
+        limit: 20,
+        numBuckets: true,
+      },
+      textReuseClusterSize: {
+        type: 'range',
+        field: 'cluster_size_l',
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterSize', 10, {
+          end: 100000,
+          start: 0,
+          gap: 10000,
+        }),
+      },
+      textReuseLexicalOverlap: {
+        type: 'range',
+        field: 'lex_overlap_d',
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseLexicalOverlap', 10, {
+          end: 100,
+          start: 0,
+          gap: 10,
+        }),
+      },
+      daterange: {
+        type: 'range',
+        field: 'max_date_dt',
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'daterange', 10, {
+          start: '1700-01-01T00:00:00Z',
+          end: '2021-01-01T00:00:00Z',
+          gap: '+1YEAR',
+        }),
+      },
     },
   },
 });

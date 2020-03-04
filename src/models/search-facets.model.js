@@ -46,10 +46,14 @@ class SearchFacet {
     type = 'facet',
     buckets = [],
     numBuckets = -1,
+    min = undefined,
+    max = undefined,
   } = {}) {
     this.type = type;
     this.numBuckets = parseInt(numBuckets, 10);
     this.buckets = buckets.map(d => new SearchFacetBucket({ type, ...d }));
+    this.min = min;
+    this.max = max;
   }
 
   getItems() {
