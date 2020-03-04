@@ -16,9 +16,7 @@ class Service {
 
   async get(type, params) {
     const { index } = params.query;
-    console.info('**', index);
 
-    // availabel facet types
     const validTypes = Object.keys(SolrMappings[index].facets);
     // required facet types
     const types = type.split(',').filter(d => validTypes.indexOf(d) !== -1);
@@ -57,14 +55,16 @@ class Service {
 
     debug('facets:', facets);
     // TODO: transform params.query.filters to match solr syntax
-    const result = await this.app.get('solrClient').findAll({
+    const query = {
       q: params.sanitized.sq,
       facets: JSON.stringify(facets),
       limit: 0,
       skip: 0,
       fl: 'id',
+      hl: false,
       vars: params.sanitized.sv,
-    });
+    };
+    const result = await this.app.get('solrClient').findAll(query);
 
     return types.map(t => new SearchFacet({
       type: t,
