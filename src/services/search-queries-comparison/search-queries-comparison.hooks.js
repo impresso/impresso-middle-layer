@@ -5,9 +5,9 @@ const {
   validate, queryWithCommonParams, utils, sanitize,
 } = require('../../hooks/params');
 const { authenticate } = require('../../hooks/authenticate');
-const { SOLR_FACETS } = require('../../hooks/search');
 const { paramsValidator, eachFilterValidator } = require('../search/search.validators');
 const { validateWithSchema } = require('../../hooks/schema');
+const { SolrMappings } = require('../../data/constants');
 
 const SupportedComparisonMethods = ['intersection'];
 
@@ -51,7 +51,7 @@ module.exports = {
           choices: ['articles'],
         },
         facets: utils.facets({
-          values: SOLR_FACETS,
+          values: SolrMappings.search.facets,
         }),
       }, 'POST'),
       validateQueries,

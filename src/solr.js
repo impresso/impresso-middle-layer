@@ -313,7 +313,6 @@ const findAll = (config, params = {}, factory) => {
     opts.qs = qs;
   }
 
-
   debug(`[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With 'qs':`, JSON.stringify(opts.qs));
   debug(`[findAll][${_params.requestOriginalPath}]: url`, endpoint);
   return rp(opts).then((res) => {

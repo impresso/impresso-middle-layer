@@ -75,7 +75,7 @@
     "feathers-solr": "^1.1.15",
     "helmet": "^3.21.1",
     "http-proxy-middleware": "^0.18.0",
-    "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/master",
+    "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.1.0",
     "json2csv": "^4.3.3",
     "lodash": "^4.17.15",
     "lodash.first": "^3.0.0",
@@ -108,7 +108,7 @@
     "xml2js": "^0.4.19"
   },
   "devDependencies": {
-    "@feathersjs/cli": "^4.2.5",
+    "@feathersjs/cli": "^4.3.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-standard": "^11.0.0",

@@ -3,6 +3,13 @@ const { validateEach, queryWithCommonParams, validate } = require('../../hooks/p
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
+/**
+ * A special case context validator for the 'find' endpoint here.
+ */
+const findEachFilterValidator = { ...eachFilterValidator };
+findEachFilterValidator.context = { ...eachFilterValidator.context };
+findEachFilterValidator.context.choices = eachFilterValidator.context.choices.concat[['visualize']];
+
 module.exports = {
   before: {
     all: [],
@@ -19,7 +26,7 @@ module.exports = {
           defaultValue: false,
         },
       }),
-      validateEach('filters', eachFilterValidator),
+      validateEach('filters', findEachFilterValidator),
       filtersToSolrQuery({
         overrideOrderBy: false,
       }),

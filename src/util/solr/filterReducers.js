@@ -14,7 +14,7 @@ const reduceNumericRangeFilters = (filters, field) => filters
     let q; // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition)
     // or simple string '1 TO X';
     if (Array.isArray(filter.q)) {
-      q = `${filter.q.map(d => `${field}:[${d}]`).join(' OR ')}`;
+      q = `${field}:[${filter.q[0]} TO ${filter.q[1]}]`;
     } else {
       q = `${field}:[${filter.q}]`;
     }
@@ -173,6 +173,12 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 't_s');
     case 'regex':
       return reduceRegexFiltersToSolr(filters);
+    case 'textReuseClusterSize':
+      return reduceNumericRangeFilters(filters, 'cluster_size_l');
+    case 'textReuseClusterLexicalOverlap':
+      return reduceNumericRangeFilters(filters, 'lex_overlap_d');
+    case 'textReuseClusterDayDelta':
+      return reduceNumericRangeFilters(filters, 'day_delta_f');
     default:
       throw new Error(`reduceFilterToSolr: filter function for '${type}' not found`);
   }

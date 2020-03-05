@@ -7,6 +7,10 @@ const {
 } = require('../../hooks/params');
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { resolveCollections } = require('../../hooks/resolvers');
+const { SolrMappings } = require('../../data/constants');
+
+const DefaultIndex = 'search';
+const SupportedIndexes = Object.keys(SolrMappings);
 
 module.exports = {
   before: {
@@ -16,7 +20,11 @@ module.exports = {
         allowUnauthenticated: true,
       }),
       validate({
-        ...paramsValidator,
+        index: {
+          choices: SupportedIndexes,
+          defaultValue: DefaultIndex,
+        },
+        q: paramsValidator.q,
         order_by: {
           before: d => (Array.isArray(d) ? d.pop() : d),
           defaultValue: '-count',
