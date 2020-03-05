@@ -173,6 +173,10 @@ const filtersToSolr = (type, filters) => {
       return reduceFiltersToSolr(filters, 't_s');
     case 'regex':
       return reduceRegexFiltersToSolr(filters);
+    case 'textReuseClusterSize':
+      return reduceNumericRangeFilters(filters, 'cluster_size_l');
+    case 'textReuseLexicalOverlap':
+      return reduceNumericRangeFilters(filters, 'lex_overlap_d');
     default:
       throw new Error(`reduceFilterToSolr: filter function for '${type}' not found`);
   }

@@ -16,7 +16,7 @@ function getRangeFacetParametersWithDefault(index, facet, numBuckets, defaultPar
   const start = getRangeFacetValue(index, facet, 'min', defaultParameters.min);
   const end = getRangeFacetValue(index, facet, 'max', defaultParameters.max);
   const gap = Number.isFinite(start) && Number.isFinite(end)
-    ? (end - start) / numBuckets
+    ? Math.round((end - start) / numBuckets)
     : defaultParameters.gap;
   return { start, end, gap };
 }
