@@ -5,15 +5,17 @@ const Year = require('../../models/years.model');
 
 
 function daterangeExtractor({ q = '' }) {
-  const [start, end] = q.trim().split(' TO ');
+  const [start, end] = Array.isArray(q)
+    ? q
+    : q.trim().split(' TO ');
   return start && end
     ? [{ start, end }]
     : [];
 }
 
 function newspaperExtractor({ q = '' }) {
-  const item = newspapersIndex.values[q.trim()];
-  return item != null ? [item] : [];
+  const codes = Array.isArray(q) ? q : [q.trim()];
+  return codes.map(code => newspapersIndex.values[code] || {});
 }
 
 function topicExtractor({ q = '' }) {
@@ -41,6 +43,15 @@ async function collectionExtractor({ q = '' }, app) {
   }
 }
 
+function numberRangeExtractor({ q = '' }) {
+  const [start, end] = Array.isArray(q)
+    ? q
+    : q.trim().split(' TO ');
+  return start && end
+    ? [{ start: parseInt(start, 10), end: parseInt(end, 10) }]
+    : [];
+}
+
 module.exports = {
   daterangeExtractor,
   newspaperExtractor,
@@ -48,4 +59,5 @@ module.exports = {
   entityExtractor,
   yearExtractor,
   collectionExtractor,
+  numberRangeExtractor,
 };

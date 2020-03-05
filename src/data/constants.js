@@ -160,10 +160,19 @@ const SolrMappings = Object.freeze({
           gap: 10000,
         }),
       },
-      textReuseLexicalOverlap: {
+      textReuseClusterLexicalOverlap: {
         type: 'range',
         field: 'lex_overlap_d',
-        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseLexicalOverlap', 10, {
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterLexicalOverlap', 10, {
+          end: 100,
+          start: 0,
+          gap: 10,
+        }),
+      },
+      textReuseClusterDayDelta: {
+        type: 'range',
+        field: 'day_delta_f',
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterDayDelta', 10, {
           end: 100,
           start: 0,
           gap: 10,

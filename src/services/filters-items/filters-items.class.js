@@ -5,6 +5,7 @@ const {
   entityExtractor,
   yearExtractor,
   collectionExtractor,
+  numberRangeExtractor,
 } = require('./extractors');
 
 const ItemsExtractors = Object.freeze({
@@ -15,6 +16,9 @@ const ItemsExtractors = Object.freeze({
   location: entityExtractor,
   year: yearExtractor,
   collection: collectionExtractor,
+  textReuseClusterSize: numberRangeExtractor,
+  textReuseClusterLexicalOverlap: numberRangeExtractor,
+  textReuseClusterDayDelta: numberRangeExtractor,
 });
 
 class FiltersItems {
