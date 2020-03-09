@@ -11,7 +11,9 @@ const {
 const {
   getFacetsFromSolrResponse,
 } = require('../../../services/search/search.extractors');
-const { SOLR_FACETS } = require('../../../hooks/search');
+const { SolrMappings } = require('../../../data/constants');
+
+const Facets = SolrMappings.search.facets;
 
 const TimeIntervalsFilelds = {
   year: 'meta_year_i',
@@ -61,7 +63,7 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
       'stats.field': statsFields,
       stats: true,
       'json.facet': JSON.stringify(facets.reduce((acc, facet) => {
-        acc[facet] = SOLR_FACETS[facet];
+        acc[facet] = Facets[facet];
         return acc;
       }, {})),
       hl: false, // disable duplicate field "highlighting"

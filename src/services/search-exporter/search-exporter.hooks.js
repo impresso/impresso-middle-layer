@@ -2,7 +2,8 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   validate, validateEach, queryWithCommonParams, REGEX_UID, REGEX_UIDS, utils,
 } = require('../../hooks/params');
-const { filtersToSolrQuery, SOLR_FILTER_TYPES, SOLR_ORDER_BY } = require('../../hooks/search');
+const { filtersToSolrQuery } = require('../../hooks/search');
+const { FilterTypes, Contexts, SolrMappings } = require('../../data/constants');
 
 const {
   eachFilterValidator, paramsValidator,
@@ -40,7 +41,7 @@ module.exports = {
             return d;
           },
           choices: ['-date', 'date', '-relevance', 'relevance'],
-          transform: d => utils.toOrderBy(d, SOLR_ORDER_BY, true),
+          transform: d => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
           after: (d) => {
             if (Array.isArray(d)) {
               return d.join(',');
@@ -51,11 +52,11 @@ module.exports = {
       }),
       validateEach('filters', {
         context: {
-          choices: ['include', 'exclude'],
+          choices: Contexts,
           required: true,
         },
         type: {
-          choices: SOLR_FILTER_TYPES,
+          choices: FilterTypes,
           required: true,
         },
         q: {

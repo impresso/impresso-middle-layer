@@ -3,13 +3,10 @@ const { authenticate } = require('../../hooks/authenticate');
 const {
   validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, utils,
 } = require('../../hooks/params');
-const {
-  filtersToSolrQuery, qToSolrFilter,
-  SOLR_FACETS, SOLR_GROUP_BY,
-} = require('../../hooks/search');
+const { filtersToSolrQuery, qToSolrFilter } = require('../../hooks/search');
 const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info');
 const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = require('./search.validators');
-
+const { SolrMappings } = require('../../data/constants');
 
 module.exports = {
   before: {
@@ -21,7 +18,7 @@ module.exports = {
       validate({
         ...paramsValidator,
         facets: utils.facets({
-          values: SOLR_FACETS,
+          values: SolrMappings.search.facets,
         }),
       }),
 
@@ -55,7 +52,7 @@ module.exports = {
         group_by: {
           required: true,
           choices: ['articles'],
-          transform: d => utils.translate(d, SOLR_GROUP_BY),
+          transform: d => utils.translate(d, SolrMappings.search.groupBy),
         },
       }, 'POST'),
       validateEach('filters', eachFilterValidator, {

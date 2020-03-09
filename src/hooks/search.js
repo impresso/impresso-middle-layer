@@ -6,24 +6,6 @@ const {
   filtersToQueryAndVariables,
 } = require('../util/solr');
 
-const SOLR_FILTER_TYPES = [
-  'hasTextContents',
-  'title',
-  'isFront',
-  'title',
-  'string', 'entity', 'newspaper', 'daterange',
-  'year', 'language', 'type', 'regex',
-  // mention allows to find both mentions of type person and location
-  'mention', 'person', 'location',
-  // today's special
-  'topic',
-  // filter by user collections! Only when authentified
-  'collection',
-  // numeric filters
-  'ocrQuality',
-  'contentLength',
-];
-
 /**
  * Transform q param in a nice string filter.
  * @param  {String} type filter type, gets transkated to actual solr fields.
@@ -83,7 +65,7 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {
       direction = 'asc';
     }
-    const varsOrderBy = Object.keys(vars).map(v => ['${', v, '} ', direction].join(''));
+    const varsOrderBy = Object.keys(vars).map(v => `\${${v}} ${direction}`);
     // if order by is by relevance:
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
       context[prop].sanitized.order_by = varsOrderBy
@@ -160,127 +142,4 @@ module.exports = {
   filtersToSolrQuery,
   qToSolrFilter,
   filtersToSolrFacetQuery,
-
-  SOLR_FILTER_TYPES,
-
-  SOLR_ORDER_BY: {
-    date: 'meta_date_dt',
-    relevance: 'score',
-    id: 'id',
-  },
-
-  SOLR_GROUP_BY: {
-    issues: 'meta_issue_id_s',
-    articles: 'id',
-    raw: 'id',
-  },
-
-  SOLR_INVERTED_GROUP_BY: {
-    meta_issue_id_s: 'issues',
-    id: 'articles',
-  },
-
-  SOLR_FACETS: {
-    year: {
-      type: 'terms',
-      field: 'meta_year_i',
-      mincount: 1,
-      limit: 400, // 400 years
-      numBuckets: true,
-    },
-    size: {
-      type: 'range',
-      field: 'content_length_i',
-      end: 10000,
-      start: 0,
-      gap: 100,
-      other: 'after',
-    },
-    month: {
-      type: 'terms',
-      field: 'meta_month_s',
-      mincount: 1,
-      limit: 120, // ten years granularity
-    },
-    country: {
-      type: 'terms',
-      field: 'meta_country_code_s',
-      mincount: 1,
-      limit: 10,
-      numBuckets: true,
-    },
-    type: {
-      type: 'terms',
-      field: 'item_type_s',
-      mincount: 1,
-      limit: 10,
-      numBuckets: true,
-    },
-    topic: {
-      type: 'terms',
-      field: 'topics_dpfs',
-      mincount: 1,
-      limit: 10,
-      offset: 0,
-      numBuckets: true,
-    },
-    collection: {
-      type: 'terms',
-      field: 'ucoll_ss',
-      mincount: 1,
-      limit: 10,
-      numBuckets: true,
-    },
-    newspaper: {
-      type: 'terms',
-      field: 'meta_journal_s',
-      mincount: 1,
-      limit: 20,
-      numBuckets: true,
-    },
-    date: {
-      type: 'terms',
-      field: 'meta_date_dt',
-      mincount: 1,
-      limit: 100,
-    },
-    language: {
-      type: 'terms',
-      field: 'lg_s',
-      mincount: 1,
-      numBuckets: true,
-    },
-    person: {
-      type: 'terms',
-      field: 'pers_entities_dpfs',
-      mincount: 1,
-      limit: 10,
-      offset: 0,
-      numBuckets: true,
-    },
-    location: {
-      type: 'terms',
-      field: 'loc_entities_dpfs',
-      mincount: 1,
-      limit: 10,
-      offset: 0,
-      numBuckets: true,
-    },
-    accessRight: {
-      type: 'terms',
-      field: 'access_right_s',
-      mincount: 0,
-      limit: 10,
-      offset: 0,
-      numBuckets: true,
-    },
-    partner: {
-      type: 'terms',
-      field: 'meta_partnerid_s',
-      mincount: 0,
-      limit: 10,
-      offset: 0,
-      numBuckets: true,
-    },
-  },
 };

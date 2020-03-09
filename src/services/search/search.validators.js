@@ -2,49 +2,28 @@ const {
   utils, REGEX_UID, REGEX_UIDS,
 } = require('../../hooks/params');
 const {
-  SOLR_ORDER_BY, SOLR_FACETS, SOLR_GROUP_BY,
-} = require('../../hooks/search');
+  SolrMappings,
+  FilterTypes,
+  Contexts,
+  Operators,
+  Precision,
+} = require('../../data/constants');
 
 const eachFilterValidator = {
   context: {
-    choices: ['include', 'exclude', 'visualize'],
+    choices: Contexts,
     defaultValue: 'include',
   },
   op: {
-    choices: ['AND', 'OR'],
+    choices: Operators,
     defaultValue: 'OR',
   },
   type: {
-    choices: [
-      'uid',
-      'hasTextContents',
-      'title',
-      'isFront',
-      'page',
-      'issue',
-      'title',
-      'string', 'entity', 'newspaper', 'daterange',
-      'year', 'language', 'type', 'regex',
-      // mention allows to find both mentions of type person and location
-      'mention', 'person', 'location',
-      // today's special
-      'topic',
-      // filter by user collections! Only when authentified
-      'collection',
-      // numeric filters
-      'ocrQuality',
-      'contentLength',
-      // country of article
-      'country',
-      // access right
-      'accessRight',
-      // meta_partnerid_s
-      'partner',
-    ],
+    choices: FilterTypes,
     required: true,
   },
   precision: {
-    choices: ['fuzzy', 'soft', 'exact', 'partial'],
+    choices: Precision,
     default: 'exact',
   },
   q: {
@@ -88,7 +67,7 @@ const eachFilterValidator = {
 
 const eachFacetFilterValidator = {
   name: {
-    choices: Object.keys(SOLR_FACETS),
+    choices: Object.keys(SolrMappings.search.facets),
     required: true,
   },
   q: {
@@ -111,7 +90,7 @@ const paramsValidator = {
   group_by: {
     required: true,
     choices: ['articles', 'raw'],
-    transform: d => utils.translate(d, SOLR_GROUP_BY),
+    transform: d => utils.translate(d, SolrMappings.search.groupBy),
   },
   order_by: {
     before: (d) => {
@@ -121,7 +100,7 @@ const paramsValidator = {
       return d;
     },
     choices: ['-date', 'date', '-relevance', 'relevance', '-name', 'name', 'id', '-id'],
-    transform: d => utils.toOrderBy(d, SOLR_ORDER_BY, true),
+    transform: d => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
     after: (d) => {
       if (Array.isArray(d)) {
         return d.join(',');
@@ -133,7 +112,7 @@ const paramsValidator = {
 
 const facetsValidator = {
   facets: utils.facets({
-    values: SOLR_FACETS,
+    values: SolrMappings.search.facets,
   }),
 };
 

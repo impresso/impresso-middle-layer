@@ -25,6 +25,11 @@
       "type": "integer",
       "description": "Display N-th page (using 'limit' as the number of items in the page)",
       "minimum": 1
+    },
+    "total": {
+      "type": "integer",
+      "description": "Total items available",
+      "minimum": 0
     }
   }
 }

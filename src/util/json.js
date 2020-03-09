@@ -8,6 +8,8 @@ ajv.addSchema(require('../schema/search/filter.json'));
 // models
 ajv.addSchema(require('../schema/models/base-user.model.json'));
 ajv.addSchema(require('../schema/models/search-query.model.json'));
+ajv.addSchema(require('../schema/models/text-reuse/passage.json'));
+ajv.addSchema(require('../schema/models/text-reuse/cluster.json'));
 
 // services
 ajv.addSchema(require('../services/entities/schema/find/query.json'));
@@ -15,9 +17,13 @@ ajv.addSchema(require('../services/search-queries/schema/post/payload.json'));
 ajv.addSchema(require('../services/search-queries-comparison/schema/post/payload.json'));
 ajv.addSchema(require('../services/search-queries-comparison/schema/post/response.json'));
 ajv.addSchema(require('../services/newspapers/schema/find/query.json'));
+ajv.addSchema(require('../services/articles-text-reuse-passages/schema/find/response.json'));
 ajv.addSchema(require('../services/ngram-trends/schema/post/payload.json'));
 ajv.addSchema(require('../services/ngram-trends/schema/post/response.json'));
 ajv.addSchema(require('../services/me/schema/post/payload.json'));
+ajv.addSchema(require('../services/text-reuse-clusters/schema/find/response.json'));
+ajv.addSchema(require('../services/text-reuse-clusters/schema/get/response.json'));
+ajv.addSchema(require('../services/text-reuse-cluster-passages/schema/find/response.json'));
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
 
