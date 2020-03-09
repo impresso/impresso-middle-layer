@@ -28,11 +28,60 @@
       ],
       "pattern": "^[\\w\\d]+$"
     },
+    "articleId": {
+      "type": "string",
+      "title": "Article ID",
+      "description": "ID of the article where this passage was found",
+      "examples": [
+	"abc123"
+      ],
+      "pattern": "^[\\w\\d-_@]+$"
+    },
     "offsetStart": {
       "$ref": "#/definitions/offset"
     },
     "offsetEnd": {
       "$ref": "#/definitions/offset"
+    },
+    "content": {
+      "type": "string",
+      "description": "Textual content of the passage"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title of the content item (article) where this passage was found"
+    },
+    "journalId": {
+      "type": "string",
+      "description": "Newspaper / Journal ID"
+    },
+    "language": {
+      "type": "string",
+      "description": "Language code"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Publication date"
+    },
+    "pageNumbers": {
+      "type": "array",
+      "items": {
+	"type": "number"
+      },
+      "description": "Numbers of the pages spanned by this passage"
+    },
+    "pageRegions": {
+      "type": "array",
+      "items": {
+	"type": "array",
+	"items": {
+	  "type": "number"
+	},
+	"minItems": 4,
+	"maxItems": 4
+      },
+      "description": "List of page region boundaries (4 boundaries dimensions per page)"
     }
   },
   "definitions": {

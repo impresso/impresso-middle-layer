@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/text-reuse-cluster-passages/schema/find/response.json",
+  "description": "Response for GET /text-reuse-clusters",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "passages": {
+      "type": "array",
+      "minimum": 0,
+      "items": {
+	"$ref": "#/definitions/passageItem"
+      }
+    },
+    "info": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json"
+    }
+  },
+  "definitions": {
+    "passageItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+	"passage": {
+	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json"
+	},
+	"newspaper": {
+	  "type": "object",
+	  "description": "TODO: Newspaper properties"
+	},
+	"iiifUrls": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  },
+	  "description": "IIIF Urls of article pages mentioned in the passage"
+	}
+      },
+      "required": [
+	"passage"
+      ]
+    }
+  },
+  "required": [
+    "passages",
+    "info"
+  ]
+}
