@@ -88,7 +88,7 @@ const textReuseClusterPassages = require('./text-reuse-cluster-passages/text-reu
 const filtersItems = require('./filters-items/filters-items.service.js');
 
 
-const temporalStats = require('./temporal-stats/temporal-stats.service.js');
+const temporalStats = require('./stats/stats.service.js');
 
 
 module.exports = function () {
