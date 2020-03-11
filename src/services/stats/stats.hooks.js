@@ -1,7 +1,10 @@
+// @ts-check
 const assert = require('assert');
 const { BadRequest } = require('@feathersjs/errors');
+const { protobuf } = require('impresso-jscommons');
+
 const { statsConfiguration } = require('../../data');
-const { TimeDomain, SupportedStats } = require('./common');
+const { TimeDomain, SupportedStats, DefaultStats } = require('./common');
 
 const SupportedIndexes = Object.freeze(Object.keys(statsConfiguration.indexes));
 const SupportedFacetsByIndex = SupportedIndexes.reduce((acc, index) => {
@@ -15,12 +18,22 @@ const SupportedDomainsByIndex = SupportedIndexes.reduce((acc, index) => {
   return acc;
 }, {});
 
-function validateQueryParameters(context) {
+const deserializeFilters = (serializedFilters) => {
+  if (serializedFilters == null) return [];
+  try {
+    return protobuf.searchQuery.deserialize(serializedFilters).filters;
+  } catch (error) {
+    throw new BadRequest(`Could not deserialize filters: ${error.message}`);
+  }
+};
+
+function parseAndValidateQueryParameters(context) {
   const {
     facet = '',
     index = 'search',
     domain = 'time',
-    stats = '',
+    stats: statsString,
+    filters: serializedFilters,
   } = context.params.query;
 
   assert.ok(SupportedIndexes.includes(index), new BadRequest(`Unknown index "${index}". Must be one of: ${SupportedIndexes.join(', ')}`));
@@ -31,16 +44,25 @@ function validateQueryParameters(context) {
   const supportedDomains = SupportedDomainsByIndex[index];
   assert.ok(supportedDomains.includes(domain), new BadRequest(`Unknown domain "${facet}". Must be one of: ${supportedDomains.join(', ')}`));
 
-  const unknownStats = stats === ''
-    ? []
-    : stats.split(',').filter(stat => !SupportedStats.includes(stat));
+  const stats = statsString == null ? DefaultStats : statsString.split(',');
+  const unknownStats = stats.filter(stat => !SupportedStats.includes(stat));
   assert.equal(unknownStats.length, 0, new BadRequest(`Unknown stats: ${unknownStats.join(', ')}. Supported stats: ${SupportedStats.join(', ')}`));
+
+  const filters = deserializeFilters(serializedFilters);
+
+  context.params.request = {
+    facet,
+    index,
+    domain,
+    stats,
+    filters,
+  };
 }
 
 module.exports = {
   before: {
     find: [
-      validateQueryParameters,
+      parseAndValidateQueryParameters,
     ],
   },
 };
