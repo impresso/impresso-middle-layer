@@ -192,6 +192,7 @@ async function buildResponse(result, facet, index, domain, filters) {
       facetType,
       domain,
       resolution,
+      filters,
     },
   };
 }
