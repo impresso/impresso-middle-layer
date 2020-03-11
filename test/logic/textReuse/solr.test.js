@@ -74,11 +74,11 @@ const clustersSolrResponse = {
       {
         postproc_id_s: '90217',
         cluster_id_s: '163208759161',
-        day_delta_f: 357.0,
+        day_delta_i: 357,
         newspapers_ss: [
           'GDL', 'IMP',
         ],
-        member_id_full_ss: [
+        passages_ss: [
           'IMP-1972-12-02-a-i0274@157:403',
           'GDL-1972-06-10-a-i0056@39:592',
           'GDL-1971-12-11-a-i0046@127:679',
