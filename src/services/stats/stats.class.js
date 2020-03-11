@@ -2,6 +2,10 @@
 const { statsConfiguration } = require('../../data');
 const { filtersToQueryAndVariables } = require('../../util/solr');
 const { getWidestInclusiveTimeInterval } = require('../../logic/filters');
+const Topic = require('../../models/topics.model');
+const Entity = require('../../models/entities.model');
+const Newspaper = require('../../models/newspapers.model');
+
 const {
   TimeDomain, StatsToSolrFunction,
 } = require('./common');
@@ -15,6 +19,30 @@ const TemporalResolution = Object.freeze({
   Year: 'year',
   Month: 'month',
   Day: 'day',
+});
+
+const entityCacheExtractor = (key) => {
+  const entity = Entity.getCached(key);
+  return entity == null ? key : entity.name;
+};
+
+const FacetLabelCache = Object.freeze({
+  topic: async (key) => {
+    const topic = await Topic.getCached(key);
+    if (topic == null) return key;
+    return topic.words.map(({ w }) => w).join(', ');
+  },
+  newspaper: async (key) => {
+    const newspaper = await Newspaper.getCached(key);
+    return newspaper == null
+      ? key
+      : newspaper.name;
+  },
+  person: entityCacheExtractor,
+  location: entityCacheExtractor,
+  language: key => key,
+  country: key => key,
+  type: key => key,
 });
 
 const getFacetType = (index, facet) => {
@@ -99,9 +127,13 @@ const parseDate = (val, resolution) => {
   }
 };
 
-// TODO: enrich with labels
-// eslint-disable-next-line no-unused-vars
-const withLabel = (val, facet) => ({ label: val, value: val });
+const withLabel = async (val, facet) => {
+  const extractor = FacetLabelCache[facet];
+  return {
+    label: extractor ? await extractor(val) : val,
+    value: val,
+  };
+};
 
 const parseValue = (object, facetType) => {
   switch (facetType) {
@@ -120,26 +152,42 @@ const parseValue = (object, facetType) => {
   }
 };
 
+async function buildItemsDictionary(items, facet) {
+  const terms = new Set(items
+    .flatMap(({ value: { items: subitems = [] } }) => subitems)
+    .map(({ term }) => term));
+
+  const extractor = FacetLabelCache[facet];
+  if (extractor == null) return {};
+
+  return [...terms].reduce(async (accPromise, term) => {
+    const acc = await accPromise;
+    acc[term] = await extractor(term);
+    return acc;
+  }, {});
+}
+
 const itemsSortFn = (a, b) => {
   if (a.domain < b.domain) return -1;
   if (a.domain > b.domain) return 1;
   return 0;
 };
 
-function buildResponse(result, facet, index, domain, filters) {
+async function buildResponse(result, facet, index, domain, filters) {
   const { buckets } = result.facets.domain;
   const facetType = getFacetType(index, facet);
   const resolution = getTemporalResolution(domain, filters);
 
-  const items = buckets.map(({
+  const items = (await Promise.all(buckets.map(async ({
     val, ...rest
   }) => ({
-    domain: domain === TimeDomain ? parseDate(val, resolution) : withLabel(val, domain),
+    domain: domain === TimeDomain ? parseDate(val, resolution) : await withLabel(val, domain),
     value: parseValue(rest, facetType),
-  })).sort(itemsSortFn);
+  })))).sort(itemsSortFn);
 
   return {
     items,
+    itemsDictionary: await buildItemsDictionary(items, facet),
     meta: {
       facetType,
       domain,

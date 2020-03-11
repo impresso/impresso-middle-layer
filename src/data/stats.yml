@@ -19,19 +19,20 @@ indexes:
           limit: 10
         topic:
           field: topics_dpfs
-          limit: 100
-        collection:
-          field: ucoll_ss
           limit: 10
+        # TODO: can we expose collections? Should they be limited by user collections only?
+        # collection:
+        #   field: ucoll_ss
+        #   limit: 10
         language:
           field: lg_s
           limit: 10
         person:
           field: pers_entities_dpfs
-          limit: 100
+          limit: 10
         location:
           field: loc_entities_dpfs
-          limit: 100
+          limit: 10
       # numeric facets for which we calculate statistics
       numeric:
         contentLength:
