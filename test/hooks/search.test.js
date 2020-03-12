@@ -195,7 +195,7 @@ describe('test filtersToSolrQuery hook', () => {
     );
   });
 
-  it.only('with text context, with multiple contents', async () => {
+  it('with text context, with multiple contents', async () => {
     const context = {
       type: 'before',
       params: {
