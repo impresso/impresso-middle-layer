@@ -33,11 +33,22 @@ describe('filtersToSolr', () => {
 
     it('with array', () => {
       const filter = {
-        q: [2, 20],
+        q: ['2', '20'],
         type: 'ocrQuality',
       };
       const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
       assert.equal(query, 'ocrqa_f:[2 TO 20]');
+    });
+
+    it('throws an error with malformed string', () => {
+      const filter = {
+        q: 'foo bar',
+        type: 'ocrQuality',
+      };
+      assert.throws(
+        () => filtersToSolr(filter.type, [filter], SolrNamespaces.Search),
+        new Error(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`),
+      );
     });
   });
 
@@ -57,6 +68,15 @@ describe('filtersToSolr', () => {
       };
       const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
       assert.equal(query, '(title_txt_en:moo OR title_txt_fr:moo OR title_txt_de:moo)');
+    });
+
+    it('with array', () => {
+      const filter = {
+        q: ['foo'],
+        type: 'title',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '(title_txt_en:foo OR title_txt_fr:foo OR title_txt_de:foo)');
     });
   });
 });

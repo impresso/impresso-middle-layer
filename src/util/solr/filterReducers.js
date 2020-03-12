@@ -1,6 +1,5 @@
 const YAML = require('yaml');
 const { readFileSync } = require('fs');
-const config = require('@feathersjs/configuration')()();
 
 const filtersConfig = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString());
 
@@ -12,14 +11,22 @@ const getValueWithFields = (value, fields) => {
   }
   return `${fields}:${escapeValue(value)}`;
 };
+const RangeValueRegex = /^\s*\d+\s+TO\s+\d+\s*$/;
 
-const reduceNumericRangeFilters = (filters, field) => filters
+const reduceNumericRangeFilters = (filters, field) => {
+  return filters
   .reduce((sq, filter) => {
     let q; // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition)
     // or simple string '1 TO X';
     if (Array.isArray(filter.q)) {
+        if (filter.q.length !== 2 || !filter.q.every(v => Number.isFinite(parseInt(v, 10)))) {
+          throw new Error(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`);
+        }
       q = `${field}:[${filter.q[0]} TO ${filter.q[1]}]`;
     } else {
+        if (!filter.q.match(RangeValueRegex)) {
+          throw new Error(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`);
+        }
       q = `${field}:[${filter.q}]`;
     }
     if (filter.context === 'exclude') {
@@ -28,6 +35,7 @@ const reduceNumericRangeFilters = (filters, field) => filters
     sq.push(q);
     return sq;
   }, []).join(' AND ');
+};
 
 const SolrSupportedLanguages = ['en', 'fr', 'de'];
 
@@ -40,7 +48,15 @@ const reduceStringFiltersToSolr = (filters, field) => {
 
   // reduce the string in filters to final SOLR query `sq`
   return filters.reduce((sq, filter) => {
-    let q = filter.q.trim();
+    let q;
+    if (Array.isArray(filter.q)) {
+      if (filter.q.length !== 1) {
+        throw new Error(`"string" filter rule supports only single element arrays in "q": ${JSON.stringify(filter.q)}`);
+      }
+      q = filter.q[0].trim();
+    } else {
+      q = filter.q.trim();
+    }
 
     q = q.replace(/"/g, ' ');
     // const isExact = /^"[^"]+"$/.test(q);
