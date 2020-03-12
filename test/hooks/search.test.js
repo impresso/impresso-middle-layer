@@ -137,6 +137,94 @@ describe('test filtersToSolrQuery hook', () => {
     );
   });
 
+  it('with text context exact by quotes', async () => {
+    const context = {
+      type: 'before',
+      params: {
+        sanitized: {
+          filters: [
+            {
+              type: 'hasTextContents',
+            },
+            {
+              type: 'isFront',
+            },
+            {
+              type: 'string',
+              context: 'include',
+              q: '"ministre portugais"',
+            },
+          ],
+        },
+      },
+    };
+
+    await filtersToSolrQuery()(context);
+    assert.deepEqual(
+      context.params.sanitized.sq,
+      `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")`,
+    );
+  });
+
+  it('with text context, exaped wrong quotes', async () => {
+    const context = {
+      type: 'before',
+      params: {
+        sanitized: {
+          filters: [
+            {
+              type: 'hasTextContents',
+            },
+            {
+              type: 'isFront',
+            },
+            {
+              type: 'string',
+              context: 'include',
+              q: '"ministre "portugais"',
+            },
+          ],
+        },
+      },
+    };
+
+    await filtersToSolrQuery()(context);
+    assert.deepEqual(
+      context.params.sanitized.sq,
+      `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre \\"portugais" OR content_txt_fr:"ministre \\"portugais" OR content_txt_de:"ministre \\"portugais")`,
+    );
+  });
+
+  it.only('with text context, with multiple contents', async () => {
+    const context = {
+      type: 'before',
+      params: {
+        sanitized: {
+          filters: [
+            {
+              type: 'hasTextContents',
+            },
+            {
+              type: 'isFront',
+            },
+            {
+              type: 'string',
+              context: 'include',
+              q: ['"ministre portugais"', '"ministre italien"'],
+            },
+          ],
+        },
+      },
+    };
+
+    await filtersToSolrQuery()(context);
+    assert.deepEqual(
+      context.params.sanitized.sq,
+      'filter(content_length_i:[1 TO *]) AND filter(front_b:1) AND ((content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais") OR (content_txt_en:"ministre italien" OR content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien"))',
+    );
+  });
+
+
   it('with daterange filters', async () => {
     const context = {
       type: 'before',

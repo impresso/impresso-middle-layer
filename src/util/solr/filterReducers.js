@@ -25,46 +25,77 @@ const reduceNumericRangeFilters = (filters, field) => filters
     return sq;
   }, []).join(' AND ');
 
-const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) =>
-  // reduce the string in filters to final SOLR query `sq`
-  // eslint-disable-next-line implicit-arrow-linebreak
-  filters.reduce((sq, filter) => {
-    let q = filter.q.trim();
-
-    q = q.replace(/"/g, ' ');
-    // const isExact = /^"[^"]+"$/.test(q);
-    const hasMultipleWords = q.split(/\s/).length > 1;
-
+const fullyEscapeValue = value => escapeValue(value).replace(/"/g, d => `\\${d}`);
+const getStringQueryWithFields = (value, field, languages, filter) => {
+  let q = value.trim();
+  const hasMultipleWords = q.split(/\s/).length > 1;
+  const isExact = q.match(/^"(.*)"(~[12345])?$/);
+  const isFuzzy = q.match(/^(.*)~([12345])$/);
+  // escape unwanted values
+  // console.log(filter);
+  // console.log('isExact', isExact);
+  // console.log('isFuzzy', isFuzzy);
+  if (isExact && isFuzzy) {
+    q = `"${fullyEscapeValue(isExact[1])}"${isExact[2]}`;
+  } else if (isExact) {
+    q = `"${fullyEscapeValue(isExact[1])}"`;
+  } else if (isFuzzy) {
+    q = `"${fullyEscapeValue(isFuzzy[1])}"`;
+  } else {
+    // use filter properties if set
+    q = fullyEscapeValue(q);
     if (filter.precision === 'soft') {
       q = `(${q.split(/\s+/g).join(' OR ')})`;
     } else if (filter.precision === 'fuzzy') {
       // "richard chase"~1
       q = `"${q.split(/\s+/g).join(' ')}"~1`;
+    } else if (filter.precision === 'exact') {
+      q = `"${q}"`;
     } else if (hasMultipleWords) {
       // text:"Richard Chase"
-      q = q.replace(/"/g, ' ');
-      q = `"${q.split(/\s+/g).join(' ')}"`;
+      q = `(${q.split(/\s+/g).join(' ')})`;
     }
-
-    // q multiplied for languages :(
-    if (languages.length) {
-      const ql = (filter.langs || languages).map(lang => `${field}_${lang}:${q}`);
-
-      if (ql.length > 1) {
-        q = `(${ql.join(' OR ')})`;
-      } else {
-        q = ql[0];
-      }
+  }
+  console.log('q', q);
+  if (languages.length) {
+    const ql = languages.map(lang => `${field}_${lang}:${q}`);
+    if (ql.length > 1) {
+      q = `(${ql.join(' OR ')})`;
     } else {
-      q = `${field}:${q}`;
+      q = ql[0];
     }
+  } else {
+    q = `${field}:${q}`;
+  }
+  return q;
+};
 
-    if (filter.context === 'exclude') {
-      q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
-    }
-    sq.push(q);
-    return sq;
-  }, []).join(' AND ');
+const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) => filters.reduce((sq, filter) => {
+  let qq = '';
+  const op = filter.op || 'OR';
+
+  if (Array.isArray(filter.q)) {
+    qq = filter.q.map(value => getStringQueryWithFields(
+      value,
+      field,
+      filter.langs || languages,
+      filter,
+    )).join(` ${op} `);
+    qq = `(${qq})`;
+  } else {
+    qq = getStringQueryWithFields(
+      filter.q,
+      field,
+      filter.langs || languages,
+      filter,
+    );
+  }
+  if (filter.context === 'exclude') {
+    qq = sq.length > 0 ? `NOT (${qq})` : `*:* AND NOT (${qq})`;
+  }
+  sq.push(qq);
+  return sq;
+}, []).join(' AND ');
 
 const reduceDaterangeFiltersToSolr = filters => filters
   .reduce((sq, filter) => {
