@@ -73,6 +73,7 @@ class TextReuseClusterPassages {
   }
 
   async getIIIFUrlMap(pageIds) {
+    if (pageIds.length === 0) return [];
     const results = await this.sequelize.query(
       QueryGetIIIFManifests,
       {
