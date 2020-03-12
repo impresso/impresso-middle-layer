@@ -11,7 +11,9 @@ const PassageFields = {
   OffsetStart: 'beg_offset_i',
   OffsetEnd: 'end_offset_i',
   ContentTextFR: 'content_txt_fr',
+  ContentTextDE: 'content_txt_de',
   TitleTextFR: 'title_txt_fr',
+  TitleTextDE: 'title_txt_de',
   Date: 'meta_date_dt',
   PageNumbers: 'page_nb_is',
   PageRegions: 'page_regions_plains',
@@ -91,8 +93,8 @@ function convertSolrPassageDocToPassage(doc) {
     articleId: get(doc, PassageFields.ContentItemId),
     offsetStart,
     offsetEnd,
-    content: get(doc, PassageFields.ContentTextFR),
-    title: get(doc, PassageFields.TitleTextFR),
+    content: get(doc, PassageFields.ContentTextFR, get(doc, PassageFields.ContentTextDE)),
+    title: get(doc, PassageFields.TitleTextFR, get(doc, PassageFields.TitleTextDE)),
     journalId: get(doc, PassageFields.JournalId),
     language: 'fr',
     date: get(doc, PassageFields.Date),
@@ -133,7 +135,11 @@ function getTextReusePassagesClusterIdsSearchRequestForText(
   const request = {
     q: text ? `${PassageFields.ContentTextFR}:"${text}"` : '*:*',
     hl: false,
-    fl: [PassageFields.ClusterId, PassageFields.ContentTextFR].join(','),
+    fl: [
+      PassageFields.ClusterId,
+      PassageFields.ContentTextFR,
+      PassageFields.ContentTextDE,
+    ].join(','),
     fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
   };
   if (skip !== undefined) request.start = skip;
@@ -156,7 +162,7 @@ function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
   return get(solrResponse, 'response.docs', [])
     .map(doc => ({
       id: doc[PassageFields.ClusterId],
-      text: doc[PassageFields.ContentTextFR],
+      text: doc[PassageFields.ContentTextFR] || doc[PassageFields.ContentTextDE],
     }));
 }
 
