@@ -9,7 +9,7 @@
       "type": "array",
       "minimum": 0,
       "items": {
-	"$ref": "#/definitions/passageItem"
+        "$ref": "#/definitions/passageItem"
       }
     },
     "info": {
@@ -21,23 +21,23 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-	"passage": {
-	  "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json"
-	},
-	"newspaper": {
-	  "type": "object",
-	  "description": "TODO: Newspaper properties"
-	},
-	"iiifUrls": {
-	  "type": "array",
-	  "items": {
-	    "type": "string"
-	  },
-	  "description": "IIIF Urls of article pages mentioned in the passage"
-	}
+        "passage": {
+          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json"
+        },
+        "newspaper": {
+          "type": "object",
+          "description": "TODO: Newspaper properties"
+        },
+        "iiifUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IIIF Urls of article pages mentioned in the passage"
+        }
       },
       "required": [
-	"passage"
+        "passage"
       ]
     }
   },

@@ -15,25 +15,25 @@
       "title": "Passage ID",
       "description": "ID of the text reuse passage",
       "examples": [
-	"abc123"
+        "abc123"
       ],
-      "pattern": "^[\\w\\d-_@]+$"
+      "pattern": "^[\\w\\d-_@:]+$"
     },
     "clusterId": {
       "type": "string",
       "title": "Cluster ID",
       "description": "ID of the text reuse cluster",
       "examples": [
-	"abc123"
+        "abc123"
       ],
-      "pattern": "^[\\w\\d]+$"
+      "pattern": "^[\\w\\d-_]+$"
     },
     "articleId": {
       "type": "string",
       "title": "Article ID",
       "description": "ID of the article where this passage was found",
       "examples": [
-	"abc123"
+        "abc123"
       ],
       "pattern": "^[\\w\\d-_@]+$"
     },
@@ -67,19 +67,19 @@
     "pageNumbers": {
       "type": "array",
       "items": {
-	"type": "number"
+        "type": "number"
       },
       "description": "Numbers of the pages spanned by this passage"
     },
     "pageRegions": {
       "type": "array",
       "items": {
-	"type": "array",
-	"items": {
-	  "type": "number"
-	},
-	"minItems": 4,
-	"maxItems": 4
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4
       },
       "description": "List of page region boundaries (4 boundaries dimensions per page)"
     }

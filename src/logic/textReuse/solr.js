@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {
-  get, chunk, omitBy,
+  get, omitBy,
   isUndefined,
 } = require('lodash');
 
@@ -14,7 +14,7 @@ const PassageFields = {
   TitleTextFR: 'title_txt_fr',
   Date: 'meta_date_dt',
   PageNumbers: 'page_nb_is',
-  PageRegions: 'page_regions_plain',
+  PageRegions: 'page_regions_plains',
   JournalId: 'meta_journal_s',
   ClusterSize: 'cluster_size_l',
 };
@@ -76,7 +76,7 @@ function getTextReuseClustersRequestForIds(clusterIds, fields = DefaultClusterFi
 
 function parsePageRegions(pageRegionsPlainText) {
   if (pageRegionsPlainText == null) return undefined;
-  return chunk(pageRegionsPlainText.split(',').map(v => parseInt(v, 10)), 4);
+  return pageRegionsPlainText.map(region => region.split(',').map(v => parseInt(v, 10)));
 }
 
 function convertSolrPassageDocToPassage(doc) {

@@ -40,7 +40,7 @@ const passagesSolrResponse = {
         ],
         nb_pages_i: 1,
         front_b: false,
-        page_regions_plain: '2600,1873,761,208',
+        page_regions_plains: ['2600,1873,761,208'],
         meta_journal_s: 'GDL',
         meta_year_i: 1938,
         meta_month_i: 5,

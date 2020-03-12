@@ -175,10 +175,13 @@ const filtersToSolr = (type, filters) => {
       return reduceRegexFiltersToSolr(filters);
     case 'textReuseClusterSize':
       return reduceNumericRangeFilters(filters, 'cluster_size_l');
+    // TODO: the two fields below are for TR passages,
+    // the names for clusters are different. This function should take
+    // index name as a parameter.
     case 'textReuseClusterLexicalOverlap':
-      return reduceNumericRangeFilters(filters, 'lex_overlap_d');
+      return reduceNumericRangeFilters(filters, 'cluster_lex_overlap_d');
     case 'textReuseClusterDayDelta':
-      return reduceNumericRangeFilters(filters, 'day_delta_f');
+      return reduceNumericRangeFilters(filters, 'cluster_day_delta_i');
     default:
       throw new Error(`reduceFilterToSolr: filter function for '${type}' not found`);
   }
