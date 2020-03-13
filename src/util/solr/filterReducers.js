@@ -56,7 +56,6 @@ const getStringQueryWithFields = (value, field, languages, filter) => {
       q = `(${q.split(/\s+/g).join(' ')})`;
     }
   }
-  console.log('q', q);
   if (languages.length) {
     const ql = languages.map(lang => `${field}_${lang}:${q}`);
     if (ql.length > 1) {
