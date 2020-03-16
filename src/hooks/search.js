@@ -5,6 +5,7 @@ const config = require('@feathersjs/configuration')()();
 const {
   filtersToQueryAndVariables,
 } = require('../util/solr');
+const { SolrNamespaces } = require('../solr');
 
 /**
  * Transform q param in a nice string filter.
@@ -36,8 +37,14 @@ const qToSolrFilter = (type = 'string') => (context) => {
  * filtersToSolrQuery transform string filters
  * in `context.params.sanitized.filters` array to a smart SOLR query
  *
+ * @param {function} solrIndexProvider - a function that takes context
+ * and returns the Solr index filters should be validated against.
  */
-const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) => async (context) => {
+const filtersToSolrQuery = ({
+  overrideOrderBy = true,
+  prop = 'params',
+  solrIndexProvider = () => SolrNamespaces.Search,
+} = {}) => async (context) => {
   const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`;
   if (context.type !== 'before') {
     throw new Error(`${prefix} hook should only be used as a 'before' hook.`);
@@ -56,7 +63,10 @@ const filtersToSolrQuery = ({ overrideOrderBy = true, prop = 'params' } = {}) =>
     return;
   }
 
-  const { query, variables: vars } = filtersToQueryAndVariables(context[prop].sanitized.filters);
+  const { query, variables: vars } = filtersToQueryAndVariables(
+    context[prop].sanitized.filters,
+    solrIndexProvider(context),
+  );
 
   // prepend order by if it is not relevance
   if (overrideOrderBy && config.solr.dataVersion > 1 && Object.keys(vars).length) {

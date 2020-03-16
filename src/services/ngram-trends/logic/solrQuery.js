@@ -7,6 +7,7 @@ const {
   filtersToQueryAndVariables,
   ContentLanguages,
 } = require('../../../util/solr');
+const { SolrNamespaces } = require('../../../solr');
 
 const {
   getFacetsFromSolrResponse,
@@ -44,7 +45,7 @@ const getStatsFieldString = (languageCode, unigram) =>
  * @return {object} a POST JSON payload for SOLR search endpoint.
  */
 function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInterval = 'year') {
-  const { query, variables } = filtersToQueryAndVariables(filters);
+  const { query, variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
   const timeIntervalField = TimeIntervalsFilelds[timeInterval];
 
   const facetPivots = ContentLanguages

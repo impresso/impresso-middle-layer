@@ -16,6 +16,7 @@ const {
 } = require('../../logic/textReuse/solr');
 const { parseOrderBy } = require('../../util/queryParameters');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
+const { SolrNamespaces } = require('../../solr');
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
   const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0]);
@@ -30,7 +31,8 @@ const deserializeFilters = serializedFilters => protobuf
 
 function filtersToSolrQueries(filters) {
   const filtersGroupsByType = values(groupBy(filters, 'type'));
-  return uniq(filtersGroupsByType.map(sameTypeFiltersToQuery));
+  return uniq(filtersGroupsByType
+    .map(f => sameTypeFiltersToQuery(f, SolrNamespaces.TextReusePassages)));
 }
 
 const OrderByKeyToField = {
