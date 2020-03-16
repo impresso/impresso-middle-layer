@@ -1,5 +1,5 @@
 indexes:
-  # Index id
+  # Index id (solr namespace)
   search:
     filters:
       # filter type
@@ -97,6 +97,18 @@ indexes:
       textReuseClusterSize:
         field: cluster_size_l
         rule: numericRange
+      daterange:
+        field: min_date_dt
+        rule: dateRange
+      newspaper:
+        field: newspapers_ss
+        rule: value
+      textReuseClusterLexicalOverlap:
+        field: lex_overlap_d
+        rule: numericRange
+      textReuseClusterDayDelta:
+        field: day_delta_i
+        rule: numericRange
   tr_passages:
     filters:
       textReuseClusterSize:
@@ -108,6 +120,12 @@ indexes:
       textReuseClusterDayDelta:
         field: cluster_day_delta_i
         rule: numericRange
+      daterange:
+        field: meta_date_dt
+        rule: dateRange
+      newspaper:
+        field: meta_journal_s
+        rule: value
 
 
 

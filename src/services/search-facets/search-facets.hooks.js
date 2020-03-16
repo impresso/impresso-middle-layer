@@ -8,6 +8,7 @@ const {
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { resolveCollections } = require('../../hooks/resolvers');
 const { SolrMappings } = require('../../data/constants');
+const { SolrNamespaces } = require('../../solr');
 
 const DefaultIndex = 'search';
 const SupportedIndexes = Object.keys(SolrMappings);
@@ -42,6 +43,7 @@ module.exports = {
       validateEach('filters', eachFilterValidator),
       filtersToSolrQuery({
         overrideOrderBy: false,
+        solrIndexProvider: context => context.params.query.index || SolrNamespaces.Search,
       }),
       queryWithCommonParams(),
     ],

@@ -9,6 +9,7 @@ const {
   getTotalFromSolrResponse,
 } = require('../search/search.extractors');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
+const { SolrNamespaces } = require('../../solr');
 
 // TODO: Do we need to make it configurable in request?
 const DefaultSolrFieldsFilter = ['id', 'pp_plain:[json]', 'lg_s'].join(',');
@@ -32,7 +33,8 @@ function intersectionRequestToSolrQuery(request) {
   const allFilters = flatten(queries.map(({ filters }) => filters));
 
   const filtersGroupsByType = values(groupBy(allFilters, 'type'));
-  const solrQueries = uniq(filtersGroupsByType.map(sameTypeFiltersToQuery));
+  const solrQueries = uniq(filtersGroupsByType
+    .map(f => sameTypeFiltersToQuery(f, SolrNamespaces.Search)));
 
   const q = solrQueries.join(' AND ');
   const fl = DefaultSolrFieldsFilter;

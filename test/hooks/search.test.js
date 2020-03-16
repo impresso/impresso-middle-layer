@@ -1,3 +1,4 @@
+// @ts-check
 const assert = require('assert');
 const {
   filtersToSolr,
@@ -12,7 +13,7 @@ NODE_ENV=development mocha test/hooks/search.test.js
 */
 describe('test single reducers in search hook', () => {
   it('for language filters', () => {
-    const sq = filtersToSolr('language', [
+    const sq = filtersToSolr([
       {
         context: 'include',
         type: 'language',
@@ -23,7 +24,7 @@ describe('test single reducers in search hook', () => {
   });
 
   it('exclude language filters', () => {
-    const sq = filtersToSolr('language', [
+    const sq = filtersToSolr([
       {
         context: 'exclude',
         type: 'language',
@@ -34,7 +35,7 @@ describe('test single reducers in search hook', () => {
   });
 
   it('test regex filter, multiple words', () => {
-    const sq = filtersToSolr('regex', [{
+    const sq = filtersToSolr([{
       context: 'include',
       type: 'regex',
       q: '/go[uû]t.*parfait.*/',

@@ -58,7 +58,7 @@ function sameTypeFiltersToQuery(filters, solrNamespace = SolrNamespaces.Search) 
   assert.equal(filtersTypes.length, 1, `Filters must be of the same type but they are of: ${filtersTypes.join(', ')}`);
 
   const type = filtersTypes[0];
-  const statement = filtersToSolr(type, filters, solrNamespace);
+  const statement = filtersToSolr(filters, solrNamespace);
 
   return includes(NON_FILTERED_FIELDS, type)
     ? statement
@@ -88,9 +88,9 @@ function filtersToQueryAndVariables(filters, solrNamespace = SolrNamespaces.Sear
 
   Object.keys(filtersGroupedByType).forEach((key) => {
     if (NON_FILTERED_FIELDS.indexOf(key) !== -1) {
-      queries.push(filtersToSolr(key, filtersGroupedByType[key], solrNamespace));
+      queries.push(filtersToSolr(filtersGroupedByType[key], solrNamespace));
     } else {
-      queries.push(`filter(${filtersToSolr(key, filtersGroupedByType[key], solrNamespace)})`);
+      queries.push(`filter(${filtersToSolr(filtersGroupedByType[key], solrNamespace)})`);
     }
     if (SOLR_FILTER_DPF[key]) {
       // add payload variable. E.g.: payload(topics_dpf,tmGDL_tp04_fr)

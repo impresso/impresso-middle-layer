@@ -217,7 +217,21 @@ const FiltersHandlers = Object.freeze({
   regex: reduceRegexFiltersToSolr,
 });
 
-const filtersToSolr = (type, filters, solrNamespace) => {
+/**
+ * Convert a set of filters of the same type to a SOLR query string.
+ * Types are defined in `solrFilters.yml` for the corresponding namespace
+ *
+ * @param {import('../../models').Filter[]} filters list of filters of the same type.
+ * @param {string} solrNamespace namespace (index) this filter type belongs to.
+ *
+ * @returns {string} a SOLR query string that can be wrapped into a `filter()` statement.
+ */
+const filtersToSolr = (filters, solrNamespace) => {
+  if (filters.length < 1) throw new Error('At least one filter must be provided');
+  const types = [...new Set(filters.map(({ type }) => type))];
+  if (types.length > 1) throw new Error(`Filters must be of the same type. Found types: "${types}"`);
+  const type = types[0];
+
   const filtersRules = filtersConfig.indexes[solrNamespace]
     ? filtersConfig.indexes[solrNamespace].filters
     : {};

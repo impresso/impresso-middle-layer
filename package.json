@@ -23,6 +23,7 @@
   },
   "scripts": {
     "test": "npm run eslint && npm run mocha",
+    "quicktest": "mocha test/hooks --recursive && mocha test/logic --recursive && mocha test/models --recursive && mocha test/util --recursive",
     "eslint": "eslint src/. test/. --config .eslintrc.json --fix",
     "start": "node src/",
     "dev": "nodemon src/",
@@ -110,6 +111,7 @@
   },
   "devDependencies": {
     "@feathersjs/cli": "^4.3.0",
+    "@types/mocha": "^7.0.2",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-standard": "^11.0.0",
