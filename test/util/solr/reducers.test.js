@@ -78,5 +78,115 @@ describe('filtersToSolr', () => {
       const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
       assert.equal(query, '(title_txt_en:foo OR title_txt_fr:foo OR title_txt_de:foo)');
     });
+
+    it('with text context exact by quotes', () => {
+      const filter = {
+        type: 'string',
+        context: 'include',
+        q: '"ministre portugais"',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '(content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")');
+    });
+
+    it('with text context escaped wrong quotes', () => {
+      const filter = {
+        type: 'string',
+        context: 'include',
+        q: '"ministre "portugais"',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '(content_txt_en:"ministre \\"portugais" OR content_txt_fr:"ministre \\"portugais" OR content_txt_de:"ministre \\"portugais")');
+    });
+
+    it('with text context with multiple content', () => {
+      const filter = {
+        type: 'string',
+        context: 'include',
+        q: ['"ministre portugais"', '"ministre italien"'],
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '((content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais") OR (content_txt_en:"ministre italien" OR content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien"))');
+    });
+  });
+
+  describe('handles "dateRange" filter', () => {
+    it('with string', () => {
+      const filter = {
+        q: '1918 TO 2018',
+        type: 'daterange',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, 'meta_date_dt:[1918 TO 2018]');
+    });
+
+    it('with array', () => {
+      const filter = {
+        q: ['1918', '2018'],
+        type: 'daterange',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '(meta_date_dt:[1918] OR meta_date_dt:[2018])');
+    });
+
+    it('throws an error with malformed string', () => {
+      const filter = {
+        q: 'foo bar',
+        type: 'daterange',
+      };
+      assert.throws(
+        () => filtersToSolr(filter.type, [filter], SolrNamespaces.Search),
+        new Error(`"dateRange" filter rule: unknown value encountered in "q": ${filter.q}`),
+      );
+    });
+  });
+
+  describe('handles "value" filter', () => {
+    it('with string', () => {
+      const filter = {
+        q: 'en',
+        type: 'language',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, 'lg_s:en');
+    });
+
+    it('with array', () => {
+      const filter = {
+        q: ['en', 'fr'],
+        type: 'language',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '(lg_s:en OR lg_s:fr)');
+    });
+
+    it('with multiple fields', () => {
+      const filter = {
+        q: ['ab', 'cd'],
+        type: 'mention',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '(pers_mentions:ab OR loc_mentions:ab OR pers_mentions:cd OR loc_mentions:cd)');
+    });
+  });
+
+  describe('handles "regex" filter', () => {
+    it('with string', () => {
+      const filter = {
+        q: 'moo',
+        type: 'regex',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '(content_txt_en:/moo/ OR content_txt_fr:/moo/ OR content_txt_de:/moo/)');
+    });
+
+    it('with array', () => {
+      const filter = {
+        q: ['foo'],
+        type: 'regex',
+      };
+      const query = filtersToSolr(filter.type, [filter], SolrNamespaces.Search);
+      assert.equal(query, '(content_txt_en:/foo/ OR content_txt_fr:/foo/ OR content_txt_de:/foo/)');
+    });
   });
 });

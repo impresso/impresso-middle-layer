@@ -1,8 +1,13 @@
 indexes:
+  # Index id
   search:
     filters:
+      # filter type
       hasTextContents:
+        # corresponding Solr field
         field: content_length_i
+        # rule to parse filter value (q)
+        # rules handlers are in `filterReducers.js`
         rule: minLengthOne
       ocrQuality:
         field: ocrqa_f
@@ -14,6 +19,7 @@ indexes:
         field: front_b
         rule: boolean
       string:
+        # field prefix, will be expanded to supported languages
         field: { prefix: content_txt_ }
         rule: string
       title:
@@ -59,6 +65,7 @@ indexes:
         field: meta_country_code_s
         rule: value
       mention:
+        # multiple fields per one filter
         field: [pers_mentions, loc_mentions]
         rule: value
       entity:

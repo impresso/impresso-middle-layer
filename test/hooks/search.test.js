@@ -1,9 +1,9 @@
 const assert = require('assert');
 const {
-  reduceFiltersToSolr,
-  reduceRegexFiltersToSolr,
+  filtersToSolr,
 } = require('../../src/util/solr/filterReducers');
 const { filtersToSolrQuery, queries } = require('../../src/hooks/search');
+const { SolrNamespaces } = require('../../src/solr');
 
 /*
 ./node_modules/.bin/eslint \
@@ -12,34 +12,34 @@ NODE_ENV=development mocha test/hooks/search.test.js
 */
 describe('test single reducers in search hook', () => {
   it('for language filters', () => {
-    const sq = reduceFiltersToSolr([
+    const sq = filtersToSolr('language', [
       {
         context: 'include',
         type: 'language',
         q: ['fr', 'en'],
       },
-    ], 'lg_s');
+    ], SolrNamespaces.Search);
     assert.deepEqual('(lg_s:fr OR lg_s:en)', sq);
   });
 
   it('exclude language filters', () => {
-    const sq = reduceFiltersToSolr([
+    const sq = filtersToSolr('language', [
       {
         context: 'exclude',
         type: 'language',
         q: ['fr', 'en'],
       },
-    ], 'lg_s');
+    ], SolrNamespaces.Search);
     assert.deepEqual('*:* AND NOT ((lg_s:fr OR lg_s:en))', sq);
   });
 
   it('test regex filter, multiple words', () => {
-    const sq = reduceRegexFiltersToSolr([{
+    const sq = filtersToSolr('regex', [{
       context: 'include',
       type: 'regex',
       q: '/go[uû]t.*parfait.*/',
-    }]);
-    assert.deepEqual('content_txt_fr:/go[uû]t/ AND content_txt_fr:/parfait/', sq);
+    }], SolrNamespaces.Search);
+    assert.deepEqual(sq, '(content_txt_en:/go[uû]t/ OR content_txt_fr:/go[uû]t/ OR content_txt_de:/go[uû]t/) AND (content_txt_en:/parfait/ OR content_txt_fr:/parfait/ OR content_txt_de:/parfait/)');
   });
 });
 
