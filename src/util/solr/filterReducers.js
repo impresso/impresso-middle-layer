@@ -19,14 +19,14 @@ const reduceNumericRangeFilters = (filters, field) => {
     let q; // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition)
     // or simple string '1 TO X';
     if (Array.isArray(filter.q)) {
-        if (filter.q.length !== 2 || !filter.q.every(v => Number.isFinite(parseInt(v, 10)))) {
-          throw new Error(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`);
-        }
+      if (filter.q.length !== 2 || !filter.q.every(v => Number.isFinite(parseInt(v, 10)))) {
+        throw new Error(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`);
+      }
       q = `${field}:[${filter.q[0]} TO ${filter.q[1]}]`;
     } else {
-        if (!filter.q.match(RangeValueRegex)) {
-          throw new Error(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`);
-        }
+      if (!filter.q.match(RangeValueRegex)) {
+        throw new Error(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`);
+      }
       q = `${field}:[${filter.q}]`;
     }
     if (filter.context === 'exclude') {
@@ -185,16 +185,16 @@ const reduceRegexFiltersToSolr = (filters, field) => {
     }
 
     const query = queryString
-  // get rid of first / and last /
-    .replace(/^\/|\/$/g, '')
-  // split on point or spaces
-    .split(/\\?\.[*+]/)
-  // filterout empty stuff
-    .filter(d => d.length)
-  // rebuild;
+    // get rid of first / and last /
+      .replace(/^\/|\/$/g, '')
+    // split on point or spaces
+      .split(/\\?\.[*+]/)
+    // filterout empty stuff
+      .filter(d => d.length)
+    // rebuild;
       .map(d => fields.map(f => `${f}:/${d}/`).join(` ${op} `));
     return reduced.concat(query.map(v => (fields.length > 1 ? `(${v})` : v)));
-}, []).join(' AND ');
+  }, []).join(' AND ');
 };
 
 const minLengthOneHandler = (filters, field, filterRule) => {
