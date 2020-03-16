@@ -47,8 +47,10 @@ const reduceFiltersToVars = filters => filters.reduce((sq, filter) => {
 
 /**
  * Return a section of the Solr query based on the filters **of the same type**.
- * @param {array} filters a list of filters (`src/schema/search/filter.json`).
+ * @param {import('../../models').Filter[]} filters a list of
+ *        filters (`src/schema/search/filter.json`).
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
+ *
  * @return {string} a Solr query.
  */
 function sameTypeFiltersToQuery(filters, solrNamespace = SolrNamespaces.Search) {

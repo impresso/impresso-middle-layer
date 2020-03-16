@@ -46,8 +46,8 @@ const fullyEscapeValue = value => escapeValue(value).replace(/"/g, d => `\\${d}`
 /**
  * Convert filter to a Solr request.
  * @param {string} value filter value
- * @param {*} solrFields Solr fields to apply the value to.
- * @param {*} precision filter precision.
+ * @param {string[]} solrFields Solr fields to apply the value to.
+ * @param {import('../../models').FilterPrecision} precision filter precision.
  */
 const getStringQueryWithFields = (value, solrFields, precision) => {
   let q = value.trim();
@@ -85,15 +85,15 @@ const getStringQueryWithFields = (value, solrFields, precision) => {
 
 /**
  * String type filter handler
- * @param {object[]} filters
+ * @param {import('../../models').Filter[]} filters
  * @param {string | string[] | object} field
  * @return {string} solr query
  */
 const reduceStringFiltersToSolr = (filters, field) => {
+  const languages = SolrSupportedLanguages;
   const items = filters.map(({
     q,
     op = 'OR',
-    langs: languages = SolrSupportedLanguages,
     precision,
     context,
   }, index) => {
