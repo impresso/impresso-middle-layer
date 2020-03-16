@@ -1,0 +1,116 @@
+indexes:
+  search:
+    filters:
+      hasTextContents:
+        field: content_length_i
+        rule: minLengthOne
+      ocrQuality:
+        field: ocrqa_f
+        rule: numericRange
+      contentLength:
+        field: content_length_i
+        rule: numericRange
+      isFront:
+        field: front_b
+        rule: boolean
+      string:
+        field: { prefix: content_txt_ }
+        rule: string
+      title:
+        field: { prefix: title_txt_ }
+        rule: string
+      daterange:
+        field: meta_date_dt
+        rule: dateRange
+      uid:
+        field: id
+        rule: value
+      accessRight:
+        field: access_right_s
+        rule: value
+      partner:
+        field: meta_partnerid_s
+        rule: value
+      language:
+        field: lg_s
+        rule: value
+      page:
+        field: page_id_ss
+        rule: value
+      collection:
+        field: ucoll_ss
+        rule: value
+      issue:
+        field: meta_issue_id_s
+        rule: value
+      newspaper:
+        field: meta_journal_s
+        rule: value
+      topic:
+        field: topics_dpfs
+        rule: value
+      year:
+        field: meta_year_i
+        rule: value
+      type:
+        field: item_type_s
+        rule: value
+      country:
+        field: meta_country_code_s
+        rule: value
+      mention:
+        field: [pers_mentions, loc_mentions]
+        rule: value
+      entity:
+        field: [pers_entities_dpfs, loc_entities_dpfs]
+        rule: value
+      person:
+        field: pers_entities_dpfs
+        rule: value
+      location:
+        field: loc_entities_dpfs
+        rule: value
+      topicmodel:
+        field: tp_model_s
+        rule: value
+      topic-string:
+        field: topic_suggest
+        rule: string
+      entity-string:
+        field: entitySuggest
+        rule: string
+      entity-type:
+        field: t_s
+        rule: value
+      regex:
+        field: { prefix: content_txt_ }
+        rule: regex
+  tr_clusters:
+    filters:
+      textReuseClusterSize:
+        field: cluster_size_l
+        rule: numericRange
+  tr_passages:
+    filters:
+      textReuseClusterSize:
+        field: cluster_size_l
+        rule: numericRange
+      textReuseClusterLexicalOverlap:
+        field: cluster_lex_overlap_d
+        rule: numericRange
+      textReuseClusterDayDelta:
+        field: cluster_day_delta_i
+        rule: numericRange
+
+
+
+
+
+
+
+
+
+
+
+
+      

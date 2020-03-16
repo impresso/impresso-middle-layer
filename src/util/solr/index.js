@@ -2,6 +2,7 @@
 const assert = require('assert');
 const { uniq, includes, groupBy } = require('lodash');
 const { filtersToSolr, escapeValue } = require('./filterReducers');
+const { SolrNamespaces } = require('../../solr');
 
 /**
  * Languages that have content indexes in Solr.
@@ -47,14 +48,17 @@ const reduceFiltersToVars = filters => filters.reduce((sq, filter) => {
 /**
  * Return a section of the Solr query based on the filters **of the same type**.
  * @param {array} filters a list of filters (`src/schema/search/filter.json`).
+ * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  * @return {string} a Solr query.
  */
-function sameTypeFiltersToQuery(filters) {
+function sameTypeFiltersToQuery(filters, solrNamespace = SolrNamespaces.Search) {
+  assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`);
+
   const filtersTypes = uniq(filters.map(f => f.type));
   assert.equal(filtersTypes.length, 1, `Filters must be of the same type but they are of: ${filtersTypes.join(', ')}`);
 
   const type = filtersTypes[0];
-  const statement = filtersToSolr(type, filters);
+  const statement = filtersToSolr(type, filters, solrNamespace);
 
   return includes(NON_FILTERED_FIELDS, type)
     ? statement
@@ -70,10 +74,12 @@ function sameTypeFiltersToQuery(filters) {
 /**
  * Return Solr query string and referenced variables for a set of filters.
  * @param {Array<object>} filters a list of filters of type `src/schema/search/filter.json`.
- *
+ * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  * @return {SolrQueryAndVariables}
  */
-function filtersToQueryAndVariables(filters) {
+function filtersToQueryAndVariables(filters, solrNamespace = SolrNamespaces.Search) {
+  assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`);
+
   const filtersGroupedByType = groupBy(filters, 'type');
 
   /** @type {Object.<string, string>} */
@@ -82,9 +88,9 @@ function filtersToQueryAndVariables(filters) {
 
   Object.keys(filtersGroupedByType).forEach((key) => {
     if (NON_FILTERED_FIELDS.indexOf(key) !== -1) {
-      queries.push(filtersToSolr(key, filtersGroupedByType[key]));
+      queries.push(filtersToSolr(key, filtersGroupedByType[key], solrNamespace));
     } else {
-      queries.push(`filter(${filtersToSolr(key, filtersGroupedByType[key])})`);
+      queries.push(`filter(${filtersToSolr(key, filtersGroupedByType[key], solrNamespace)})`);
     }
     if (SOLR_FILTER_DPF[key]) {
       // add payload variable. E.g.: payload(topics_dpf,tmGDL_tp04_fr)

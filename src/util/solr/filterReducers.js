@@ -1,4 +1,8 @@
+const YAML = require('yaml');
+const { readFileSync } = require('fs');
 const config = require('@feathersjs/configuration')()();
+
+const filtersConfig = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString());
 
 const escapeValue = value => value.replace(/[()\\+&|!{}[\]?:;,]/g, d => `\\${d}`);
 
@@ -25,9 +29,21 @@ const reduceNumericRangeFilters = (filters, field) => filters
     return sq;
   }, []).join(' AND ');
 
-const fullyEscapeValue = value => escapeValue(value).replace(/"/g, d => `\\${d}`);
-const getStringQueryWithFields = (value, field, languages, filter) => {
-  let q = value.trim();
+const SolrSupportedLanguages = ['en', 'fr', 'de'];
+
+const reduceStringFiltersToSolr = (filters, field) => {
+  let fields = [];
+  if (typeof field === 'string') fields = [field];
+  else if (Array.isArray(field)) fields = field;
+  else if (field.prefix != null) fields = SolrSupportedLanguages.map(lang => `${field.prefix}${lang}`);
+  else throw new Error(`Unknown type of Solr field: ${JSON.stringify(field)}`);
+
+  // reduce the string in filters to final SOLR query `sq`
+  return filters.reduce((sq, filter) => {
+    let q = filter.q.trim();
+
+    q = q.replace(/"/g, ' ');
+    // const isExact = /^"[^"]+"$/.test(q);
   const hasMultipleWords = q.split(/\s/).length > 1;
   const isExact = q.match(/^"(.*)"(~[12345])?$/);
   const isFuzzy = q.match(/^(.*)~([12345])$/);
@@ -56,22 +72,24 @@ const getStringQueryWithFields = (value, field, languages, filter) => {
       q = `(${q.split(/\s+/g).join(' ')})`;
     }
   }
-  if (languages.length) {
-    const ql = languages.map(lang => `${field}_${lang}:${q}`);
-    if (ql.length > 1) {
-      q = `(${ql.join(' OR ')})`;
-    } else {
-      q = ql[0];
-    }
-  } else {
-    q = `${field}:${q}`;
-  }
-  return q;
-};
 
-const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de']) => filters.reduce((sq, filter) => {
-  let qq = '';
-  const op = filter.op || 'OR';
+    const ql = fields.map(f => `${f}:${q}`);
+    q = ql.length > 1
+      ? `(${ql.join(' OR ')})`
+      : ql[0];
+
+    // // q multiplied for languages :(
+    // if (languages.length) {
+    //   const ql = (filter.langs || languages).map(lang => `${field}_${lang}:${q}`);
+
+    //   if (ql.length > 1) {
+    //     q = `(${ql.join(' OR ')})`;
+    //   } else {
+    //     q = ql[0];
+    //   }
+    // } else {
+    //   q = `${field}:${q}`;
+    // }
 
   if (Array.isArray(filter.q)) {
     qq = filter.q.map(value => getStringQueryWithFields(
@@ -95,6 +113,7 @@ const reduceStringFiltersToSolr = (filters, field, languages = ['en', 'fr', 'de'
   sq.push(qq);
   return sq;
 }, []).join(' AND ');
+};
 
 const reduceDaterangeFiltersToSolr = filters => filters
   .reduce((sq, filter) => {
@@ -145,76 +164,104 @@ const reduceRegexFiltersToSolr = filters => filters.reduce((reduced, query) => {
   return reduced.concat(q);
 }, []).join(' AND ');
 
-const filtersToSolr = (type, filters) => {
-  switch (type) {
-    case 'hasTextContents':
-      return config.solr.queries.hasTextContents;
-    case 'ocrQuality':
-      return reduceNumericRangeFilters(filters, 'ocrqa_f');
-    case 'contentLength':
-      return reduceNumericRangeFilters(filters, 'content_length_i');
-    case 'isFront':
-      return 'front_b:1';
-    case 'string':
-      return reduceStringFiltersToSolr(filters, 'content_txt');
-    case 'title':
-      return reduceStringFiltersToSolr(filters, 'title_txt');
-    case 'daterange':
-      return reduceDaterangeFiltersToSolr(filters);
-    case 'uid':
-      return reduceFiltersToSolr(filters, 'id');
-    case 'accessRight':
-      return reduceFiltersToSolr(filters, 'access_right_s');
-    case 'partner':
-      return reduceFiltersToSolr(filters, 'meta_partnerid_s');
-    case 'language':
-      return reduceFiltersToSolr(filters, 'lg_s');
-    case 'page':
-      return reduceFiltersToSolr(filters, 'page_id_ss');
-    case 'collection':
-      return reduceFiltersToSolr(filters, 'ucoll_ss');
-    case 'issue':
-      return reduceFiltersToSolr(filters, 'meta_issue_id_s');
-    case 'newspaper':
-      return reduceFiltersToSolr(filters, 'meta_journal_s');
-    case 'topic':
-      return reduceFiltersToSolr(filters, 'topics_dpfs');
-    case 'year':
-      return reduceFiltersToSolr(filters, 'meta_year_i');
-    case 'type':
-      return reduceFiltersToSolr(filters, 'item_type_s');
-    case 'country':
-      return reduceFiltersToSolr(filters, 'meta_country_code_s');
-    case 'mention':
-      return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions']);
-    case 'entity':
-      return reduceFiltersToSolr(filters, ['pers_entities_dpfs', 'loc_entities_dpfs']);
-    case 'person':
-      return reduceFiltersToSolr(filters, 'pers_entities_dpfs');
-    case 'location':
-      return reduceFiltersToSolr(filters, 'loc_entities_dpfs');
-    case 'topicmodel':
-      return reduceFiltersToSolr(filters, 'tp_model_s');
-    case 'topic-string':
-      return reduceStringFiltersToSolr(filters, 'topic_suggest', []);
-    case 'entity-string':
-      return reduceStringFiltersToSolr(filters, 'entitySuggest', []);
-    case 'entity-type':
-      return reduceFiltersToSolr(filters, 't_s');
-    case 'regex':
-      return reduceRegexFiltersToSolr(filters);
-    case 'textReuseClusterSize':
-      return reduceNumericRangeFilters(filters, 'cluster_size_l');
-    // TODO: the two fields below are for TR passages,
-    // the names for clusters are different. This function should take
-    // index name as a parameter.
-    case 'textReuseClusterLexicalOverlap':
-      return reduceNumericRangeFilters(filters, 'cluster_lex_overlap_d');
-    case 'textReuseClusterDayDelta':
-      return reduceNumericRangeFilters(filters, 'cluster_day_delta_i');
-    default:
-      throw new Error(`reduceFilterToSolr: filter function for '${type}' not found`);
-  }
+const minLengthOneHandler = (filters, field, filterRule) => {
+  if (typeof field !== 'string') throw new Error(`"${filterRule}" supports only "string" fields`);
+  return `${field}:[1 TO *]`;
+};
+
+const booleanHandler = (filters, field, filterRule) => {
+  if (typeof field !== 'string') throw new Error(`"${filterRule}" supports only "string" fields`);
+  return `${field}:1`;
+};
+
+const FiltersHandlers = Object.freeze({
+  minLengthOne: minLengthOneHandler,
+  numericRange: reduceNumericRangeFilters,
+  boolean: booleanHandler,
+  string: reduceStringFiltersToSolr,
+});
+
+const filtersToSolr = (type, filters, solrNamespace) => {
+  const filtersRules = filtersConfig.indexes[solrNamespace]
+    ? filtersConfig.indexes[solrNamespace].filters
+    : {};
+  const filterRules = filtersRules[type];
+  if (filterRules == null) throw new Error(`Unknown filter type "${type}" in namespace "${solrNamespace}"`);
+
+  const handler = FiltersHandlers[filterRules.rule];
+  if (handler == null) throw new Error(`Could not find handler for rule ${filterRules.rule}`);
+
+  return handler(filters, filterRules.field, filterRules.rule);
+
+  // switch (type) {
+  //   case 'hasTextContents':
+  //     return config.solr.queries.hasTextContents;
+  //   case 'ocrQuality':
+  //     return reduceNumericRangeFilters(filters, 'ocrqa_f');
+  //   case 'contentLength':
+  //     return reduceNumericRangeFilters(filters, 'content_length_i');
+  //   case 'isFront':
+  //     return 'front_b:1';
+  //   case 'string':
+  //     return reduceStringFiltersToSolr(filters, 'content_txt');
+  //   case 'title':
+  //     return reduceStringFiltersToSolr(filters, 'title_txt');
+  //   case 'daterange':
+  //     return reduceDaterangeFiltersToSolr(filters);
+  //   case 'uid':
+  //     return reduceFiltersToSolr(filters, 'id');
+  //   case 'accessRight':
+  //     return reduceFiltersToSolr(filters, 'access_right_s');
+  //   case 'partner':
+  //     return reduceFiltersToSolr(filters, 'meta_partnerid_s');
+  //   case 'language':
+  //     return reduceFiltersToSolr(filters, 'lg_s');
+  //   case 'page':
+  //     return reduceFiltersToSolr(filters, 'page_id_ss');
+  //   case 'collection':
+  //     return reduceFiltersToSolr(filters, 'ucoll_ss');
+  //   case 'issue':
+  //     return reduceFiltersToSolr(filters, 'meta_issue_id_s');
+  //   case 'newspaper':
+  //     return reduceFiltersToSolr(filters, 'meta_journal_s');
+  //   case 'topic':
+  //     return reduceFiltersToSolr(filters, 'topics_dpfs');
+  //   case 'year':
+  //     return reduceFiltersToSolr(filters, 'meta_year_i');
+  //   case 'type':
+  //     return reduceFiltersToSolr(filters, 'item_type_s');
+  //   case 'country':
+  //     return reduceFiltersToSolr(filters, 'meta_country_code_s');
+  //   case 'mention':
+  //     return reduceFiltersToSolr(filters, ['pers_mentions', 'loc_mentions']);
+  //   case 'entity':
+  //     return reduceFiltersToSolr(filters, ['pers_entities_dpfs', 'loc_entities_dpfs']);
+  //   case 'person':
+  //     return reduceFiltersToSolr(filters, 'pers_entities_dpfs');
+  //   case 'location':
+  //     return reduceFiltersToSolr(filters, 'loc_entities_dpfs');
+  //   case 'topicmodel':
+  //     return reduceFiltersToSolr(filters, 'tp_model_s');
+  //   case 'topic-string':
+  //     return reduceStringFiltersToSolr(filters, 'topic_suggest', []);
+  //   case 'entity-string':
+  //     return reduceStringFiltersToSolr(filters, 'entitySuggest', []);
+  //   case 'entity-type':
+  //     return reduceFiltersToSolr(filters, 't_s');
+  //   case 'regex':
+  //     return reduceRegexFiltersToSolr(filters);
+  //   case 'textReuseClusterSize':
+  //     return reduceNumericRangeFilters(filters, 'cluster_size_l');
+  //   // TODO: the two fields below are for TR passages,
+  //   // the names for clusters are different. This function should take
+  //   // index name as a parameter.
+  //   case 'textReuseClusterLexicalOverlap':
+  //     return reduceNumericRangeFilters(filters, 'cluster_lex_overlap_d');
+  //   case 'textReuseClusterDayDelta':
+  //     return reduceNumericRangeFilters(filters, 'cluster_day_delta_i');
+  //   default:
+  //     throw new Error(`Unknown filter type in namespace "${solrNamespace}": ${type}`);
+  // }
 };
 
 module.exports = {

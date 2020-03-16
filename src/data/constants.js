@@ -171,7 +171,7 @@ const SolrMappings = Object.freeze({
       },
       textReuseClusterDayDelta: {
         type: 'range',
-        field: 'day_delta_f',
+        field: 'day_delta_i',
         ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterDayDelta', 10, {
           end: 100,
           start: 0,

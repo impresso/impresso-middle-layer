@@ -105,7 +105,8 @@
     "truncatise": "0.0.7",
     "wikidata-sdk": "^5.15.10",
     "winston": "^2.4.4",
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.19",
+    "yaml": "^1.8.2"
   },
   "devDependencies": {
     "@feathersjs/cli": "^4.3.0",
