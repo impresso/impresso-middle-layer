@@ -155,8 +155,10 @@ const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   if (Array.isArray(filter.q)) {
     qq = filter.q.map(value => getValueWithFields(value, field)).join(` ${op} `);
     qq = `(${qq})`;
-  } else {
+  } else if (filter.q != null) {
     qq = getValueWithFields(filter.q, field);
+  } else {
+    qq = getValueWithFields('*', field);
   }
   if (filter.context === 'exclude') {
     qq = sq.length > 0 ? `NOT (${qq})` : `*:* AND NOT (${qq})`;

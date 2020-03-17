@@ -156,6 +156,14 @@ describe('filtersToSolr', () => {
       assert.equal(query, 'lg_s:en');
     });
 
+    it('with no value', () => {
+      const filter = {
+        type: 'language',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, 'lg_s:*');
+    });
+
     it('with array', () => {
       const filter = {
         q: ['en', 'fr'],
