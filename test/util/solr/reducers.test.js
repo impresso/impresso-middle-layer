@@ -52,6 +52,14 @@ describe('filtersToSolr', () => {
         new Error(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`),
       );
     });
+
+    it('with no value', () => {
+      const filter = {
+        type: 'ocrQuality',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, 'ocrqa_f:*');
+    });
   });
 
   it('handles "boolean" filter', () => {
@@ -113,6 +121,23 @@ describe('filtersToSolr', () => {
       const query = filtersToSolr([filter], SolrNamespaces.Search);
       assert.equal(query, '((content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais") OR (content_txt_en:"ministre italien" OR content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien"))');
     });
+
+    it('with no value', () => {
+      const filter = {
+        type: 'title',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, '(title_txt_en:* OR title_txt_fr:* OR title_txt_de:*)');
+    });
+
+    it('with empty string', () => {
+      const filter = {
+        type: 'title',
+        q: '',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, '(title_txt_en:* OR title_txt_fr:* OR title_txt_de:*)');
+    });
   });
 
   describe('handles "dateRange" filter', () => {
@@ -132,6 +157,14 @@ describe('filtersToSolr', () => {
       };
       const query = filtersToSolr([filter], SolrNamespaces.Search);
       assert.equal(query, '(meta_date_dt:[1918] OR meta_date_dt:[2018])');
+    });
+
+    it('with no value', () => {
+      const filter = {
+        type: 'daterange',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, 'meta_date_dt:*');
     });
 
     it('throws an error with malformed string', () => {
@@ -154,6 +187,14 @@ describe('filtersToSolr', () => {
       };
       const query = filtersToSolr([filter], SolrNamespaces.Search);
       assert.equal(query, 'lg_s:en');
+    });
+
+    it('with no value', () => {
+      const filter = {
+        type: 'language',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, 'lg_s:*');
     });
 
     it('with array', () => {
@@ -192,6 +233,14 @@ describe('filtersToSolr', () => {
       };
       const query = filtersToSolr([filter], SolrNamespaces.Search);
       assert.equal(query, '(content_txt_en:/foo/ OR content_txt_fr:/foo/ OR content_txt_de:/foo/)');
+    });
+
+    it('with no value', () => {
+      const filter = {
+        type: 'regex',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, '(content_txt_en:/.*/ OR content_txt_fr:/.*/ OR content_txt_de:/.*/)');
     });
   });
 });

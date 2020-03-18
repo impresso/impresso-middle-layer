@@ -23,12 +23,15 @@ const reduceNumericRangeFilters = (filters, field) => {
         throw new Error(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`);
       }
       q = `${field}:[${filter.q[0]} TO ${filter.q[1]}]`;
-    } else {
+    } else if (filter.q != null) {
       if (!filter.q.match(RangeValueRegex)) {
         throw new Error(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`);
       }
       q = `${field}:[${filter.q}]`;
+    } else {
+      q = `${field}:*`;
     }
+
     if (filter.context === 'exclude') {
       q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
     }
@@ -104,7 +107,10 @@ const reduceStringFiltersToSolr = (filters, field) => {
     else if (field.prefix != null) fields = languages.map(lang => `${field.prefix}${lang}`);
     else throw new Error(`Unknown type of Solr field: ${JSON.stringify(field)}`);
 
-    const queryList = Array.isArray(q) ? q : [q];
+    let queryList = ['*'];
+
+    if (Array.isArray(q)) queryList = q;
+    else if (q != null && q !== '') queryList = [q];
 
     let transformedQuery = queryList
       .map(value => getStringQueryWithFields(value, fields, precision))
@@ -133,12 +139,15 @@ const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
       if (filter.q.length > 1) {
         q = `(${q})`;
       }
-    } else {
+    } else if (filter.q != null) {
       if (!filter.q.match(DateRangeValueRegex)) {
         throw new Error(`"${rule}" filter rule: unknown value encountered in "q": ${filter.q}`);
       }
-      q = `meta_date_dt:[${filter.q}]`;
+      q = `${field}:[${filter.q}]`;
+    } else {
+      q = `${field}:*`;
     }
+
     if (filter.context === 'exclude') {
       q = sq.length > 0 ? `NOT (${q})` : `*:* AND NOT (${q})`;
     }
@@ -155,8 +164,10 @@ const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   if (Array.isArray(filter.q)) {
     qq = filter.q.map(value => getValueWithFields(value, field)).join(` ${op} `);
     qq = `(${qq})`;
-  } else {
+  } else if (filter.q != null) {
     qq = getValueWithFields(filter.q, field);
+  } else {
+    qq = getValueWithFields('*', field);
   }
   if (filter.context === 'exclude') {
     qq = sq.length > 0 ? `NOT (${qq})` : `*:* AND NOT (${qq})`;
@@ -180,18 +191,22 @@ const reduceRegexFiltersToSolr = (filters, field) => {
         throw new Error(`"regex" filter rule supports only single element arrays in "q": ${JSON.stringify(q)}`);
       }
       queryString = q[0].trim();
-    } else {
+    } else if (q != null) {
       queryString = q.trim();
+    } else {
+      queryString = '/.*/';
     }
 
-    const query = queryString
-    // get rid of first / and last /
+    const queryValues = queryString
+      // get rid of first / and last /
       .replace(/^\/|\/$/g, '')
-    // split on point or spaces
+      // split on point or spaces
       .split(/\\?\.[*+]/)
-    // filterout empty stuff
-      .filter(d => d.length)
-    // rebuild;
+      // filterout empty stuff
+      .filter(d => d.length);
+
+    const query = (queryValues.length > 0 ? queryValues : ['.*'])
+      // rebuild;
       .map(d => fields.map(f => `${f}:/${d}/`).join(` ${op} `));
     return reduced.concat(query.map(v => (fields.length > 1 ? `(${v})` : v)));
   }, []).join(' AND ');
