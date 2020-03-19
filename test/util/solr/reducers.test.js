@@ -173,6 +173,24 @@ describe('filtersToSolr', () => {
       assert.equal(query, 'meta_date_dt:[1918 TO 2018]');
     });
 
+    it('with ISO dates string', () => {
+      const filter = {
+        q: '1857-01-01T00:00:00Z TO 2014-12-31T23:59:59',
+        type: 'daterange',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]');
+    });
+
+    it('with ISO dates string in array', () => {
+      const filter = {
+        q: ['1857-01-01T00:00:00Z TO 2014-12-31T23:59:59'],
+        type: 'daterange',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]');
+    });
+
     it('with array', () => {
       const filter = {
         q: ['1918', '2018'],
