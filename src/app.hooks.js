@@ -34,13 +34,19 @@ const requireAuthentication = ({
   return context;
 };
 
+const LoggingExcludedStatusCodes = [
+  401, 403, 404,
+];
+
 const errorHandler = (ctx) => {
   if (ctx.error) {
     const error = ctx.error;
-    console.error(
-      `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
-      error.stack,
-    );
+    if (!LoggingExcludedStatusCodes.includes(error.code)) {
+      console.error(
+        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
+        error.stack,
+      );
+    }
 
     if (error.name === 'SequelizeConnectionRefusedError') {
       ctx.error = new BadGateway('SequelizeConnectionRefusedError');
