@@ -4,21 +4,17 @@ const shorthash = require('short-hash');
 const nanoid = require('nanoid');
 const { Op } = require('sequelize');
 const debug = require('debug')('impresso/services:users');
-const { neo4jRecordMapper } = require('../neo4j.utils.js');
-const Neo4jService = require('../neo4j.service').Service;
 const { encrypt } = require('../../crypto');
 const sequelize = require('../../sequelize');
 const { sequelizeErrorHandler } = require('../../services/sequelize.utils');
 const User = require('../../models/users.model');
 const Profile = require('../../models/profiles.model');
 
-class Service extends Neo4jService {
-  constructor(options) {
-    super(options);
-    const config = options.app.get('sequelize');
-    // sequelize
-    this.sequelize = sequelize.client(config);
-    this.sequelizeKlass = User.sequelize(this.sequelize, config);
+class Service {
+  constructor({ app }) {
+    this.sequelizeClient = app.get('sequelizeClient');
+    this.sequelizeKlass = User.sequelize(this.sequelizeClient);
+    this.id = 'id';
   }
 
   async get(id, params) {
@@ -29,11 +25,12 @@ class Service extends Neo4jService {
       },
     });
     if (!user) {
-      debug(`get '${this.name}': uid not found <uid>:`, id);
+      debug('[get] uid not found <uid>:', id);
       throw new NotFound();
-    } else {
-      return new User(user.toJSON());
     }
+    const groups = await user.getGroups().then(res => res.map(d => d.toJSON()));
+    debug('[get] user <uid>:', user.profile.uid, '<groups>:', groups);
+    return user.toJSON({ groups });
   }
 
   async create(data, params) {
@@ -60,7 +57,7 @@ class Service extends Neo4jService {
       user.uid = user.profile.uid;
       user.id = createdUser.id;
 
-      await Profile.sequelize(this.sequelize)
+      await Profile.sequelize(this.sequelizeClient)
         .create({
           ...user.profile,
           user_id: createdUser.id,
