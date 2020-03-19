@@ -35,7 +35,7 @@ const requireAuthentication = ({
 };
 
 const LoggingExcludedStatusCodes = [
-  401, 403, 404,
+  400, 401, 403, 404,
 ];
 
 const errorHandler = (ctx) => {

@@ -138,20 +138,24 @@ const DateRangeValueRegex = /^\s*[TZ:\d-]+\s+TO\s+[TZ:\d-]+\s*$/;
 
 const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
   const items = filters.reduce((sq, filter) => {
+    const query = Array.isArray(filter.q) && filter.q.length === 1
+      ? filter.q[0]
+      : filter.q;
+
     let q;
-    if (Array.isArray(filter.q)) {
-      if (filter.q.length !== 2) {
+    if (Array.isArray(query)) {
+      if (query.length !== 2) {
         throw new Error(`"${rule}" filter rule: unknown values encountered in "q": ${filter.q}`);
       }
-      q = `${filter.q.map(d => `${field}:[${d}]`).join(' OR ')}`;
-      if (filter.q.length > 1) {
+      q = `${query.map(d => `${field}:[${d}]`).join(' OR ')}`;
+      if (query.length > 1) {
         q = `(${q})`;
       }
-    } else if (filter.q != null) {
-      if (!filter.q.match(DateRangeValueRegex)) {
+    } else if (query != null) {
+      if (!query.match(DateRangeValueRegex)) {
         throw new Error(`"${rule}" filter rule: unknown value encountered in "q": ${filter.q}`);
       }
-      q = `${field}:[${filter.q}]`;
+      q = `${field}:[${query}]`;
     } else {
       q = `${field}:*`;
     }
