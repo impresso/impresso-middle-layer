@@ -2,7 +2,7 @@ const debug = require('debug')('impresso/authentication');
 const { AuthenticationService, JWTStrategy } = require('@feathersjs/authentication');
 const { LocalStrategy } = require('@feathersjs/authentication-local');
 const { expressOauth } = require('@feathersjs/authentication-oauth');
-const { BadRequest } = require('@feathersjs/errors');
+const { Unauthorized } = require('@feathersjs/errors');
 const User = require('./models/users.model');
 
 class HashedPasswordVerifier extends LocalStrategy {
@@ -10,7 +10,7 @@ class HashedPasswordVerifier extends LocalStrategy {
     return new Promise((resolve, reject) => {
       if (!(user instanceof User)) {
         debug('_comparePassword: user is not valid', user);
-        return reject(new BadRequest('Login incorrect'));
+        return reject(new Unauthorized('Login incorrect'));
       }
 
       const isValid = User.comparePassword({
@@ -19,7 +19,7 @@ class HashedPasswordVerifier extends LocalStrategy {
       });
 
       if (!isValid) {
-        return reject(new BadRequest('Login incorrect'));
+        return reject(new Unauthorized('Login incorrect'));
       }
       return resolve({
         ...user,
