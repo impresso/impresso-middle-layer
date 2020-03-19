@@ -5,6 +5,20 @@ const { expressOauth } = require('@feathersjs/authentication-oauth');
 const { Unauthorized } = require('@feathersjs/errors');
 const User = require('./models/users.model');
 
+class CustomisedAuthenticationService extends AuthenticationService {
+  async getPayload(authResult, params) {
+    const payload = await super.getPayload(authResult, params);
+    const { user } = authResult;
+    if (user) {
+      payload.userId = user.uid;
+      if (user.groups.length) {
+        payload.userGroups = user.groups.map(d => d.name);
+      }
+    }
+    return payload;
+  }
+}
+
 class HashedPasswordVerifier extends LocalStrategy {
   comparePassword(user, password) {
     return new Promise((resolve, reject) => {
@@ -29,7 +43,7 @@ class HashedPasswordVerifier extends LocalStrategy {
 }
 
 module.exports = (app) => {
-  const authentication = new AuthenticationService(app);
+  const authentication = new CustomisedAuthenticationService(app);
 
   authentication.register('jwt', new JWTStrategy());
   authentication.register('local', new HashedPasswordVerifier());
