@@ -53,32 +53,37 @@ const fullyEscapeValue = value => escapeValue(value).replace(/"/g, d => `\\${d}`
  * @param {import('../../models').FilterPrecision} precision filter precision.
  */
 const getStringQueryWithFields = (value, solrFields, precision) => {
-  let q = value.trim();
-  const hasMultipleWords = q.split(/\s/).length > 1;
-  const isExact = q.match(/^"(.*)"(~[12345])?$/);
-  const isFuzzy = q.match(/^(.*)~([12345])$/);
-  if (isExact && isFuzzy) {
-    q = `"${fullyEscapeValue(isExact[1])}"${isExact[2]}`;
-  } else if (isExact) {
-    q = `"${fullyEscapeValue(isExact[1])}"`;
-  } else if (isFuzzy) {
-    q = `"${fullyEscapeValue(isFuzzy[1])}"`;
-  } else {
-    // use filter properties if set
-    q = fullyEscapeValue(q);
-    if (precision === 'soft') {
-      q = `(${q.split(/\s+/g).join(' OR ')})`;
-    } else if (precision === 'fuzzy') {
-      // "richard chase"~1
-      q = `"${q.split(/\s+/g).join(' ')}"~1`;
-    } else if (precision === 'exact') {
-      q = `"${q}"`;
-    } else if (hasMultipleWords) {
-      // text:"Richard Chase"
-      q = q.replace(/"/g, ' ');
-      q = `"${q.split(/\s+/g).join(' ')}"`;
-      q = `(${q.split(/\s+/g).join(' ')})`;
+  let q;
+  if (value != null) {
+    q = value.trim();
+    const hasMultipleWords = q.split(/\s/).length > 1;
+    const isExact = q.match(/^"(.*)"(~[12345])?$/);
+    const isFuzzy = q.match(/^(.*)~([12345])$/);
+    if (isExact && isFuzzy) {
+      q = `"${fullyEscapeValue(isExact[1])}"${isExact[2]}`;
+    } else if (isExact) {
+      q = `"${fullyEscapeValue(isExact[1])}"`;
+    } else if (isFuzzy) {
+      q = `"${fullyEscapeValue(isFuzzy[1])}"`;
+    } else {
+      // use filter properties if set
+      q = fullyEscapeValue(q);
+      if (precision === 'soft') {
+        q = `(${q.split(/\s+/g).join(' OR ')})`;
+      } else if (precision === 'fuzzy') {
+        // "richard chase"~1
+        q = `"${q.split(/\s+/g).join(' ')}"~1`;
+      } else if (precision === 'exact') {
+        q = `"${q}"`;
+      } else if (hasMultipleWords) {
+        // text:"Richard Chase"
+        q = q.replace(/"/g, ' ');
+        q = `"${q.split(/\s+/g).join(' ')}"`;
+        q = `(${q.split(/\s+/g).join(' ')})`;
+      }
     }
+  } else {
+    q = '*';
   }
 
   const items = solrFields.map(f => `${f}:${q}`);
@@ -107,10 +112,10 @@ const reduceStringFiltersToSolr = (filters, field) => {
     else if (field.prefix != null) fields = languages.map(lang => `${field.prefix}${lang}`);
     else throw new Error(`Unknown type of Solr field: ${JSON.stringify(field)}`);
 
-    let queryList = ['*'];
+    let queryList = [null];
 
-    if (Array.isArray(q)) queryList = q;
-    else if (q != null && q !== '') queryList = [q];
+    if (Array.isArray(q) && q.length > 0) queryList = q;
+    else if (typeof q === 'string' && q != null && q !== '') queryList = [q];
 
     let transformedQuery = queryList
       .map(value => getStringQueryWithFields(value, fields, precision))
@@ -135,6 +140,9 @@ const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
   const items = filters.reduce((sq, filter) => {
     let q;
     if (Array.isArray(filter.q)) {
+      if (filter.q.length !== 2) {
+        throw new Error(`"${rule}" filter rule: unknown values encountered in "q": ${filter.q}`);
+      }
       q = `${filter.q.map(d => `${field}:[${d}]`).join(' OR ')}`;
       if (filter.q.length > 1) {
         q = `(${q})`;
@@ -162,9 +170,10 @@ const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
   const op = filter.op || 'OR';
 
   if (Array.isArray(filter.q)) {
-    qq = filter.q.map(value => getValueWithFields(value, field)).join(` ${op} `);
+    const values = filter.q.length > 0 ? filter.q : ['*'];
+    qq = values.map(value => getValueWithFields(value, field)).join(` ${op} `);
     qq = `(${qq})`;
-  } else if (filter.q != null) {
+  } else if (typeof filter.q === 'string' && filter.q != null && filter.q !== '') {
     qq = getValueWithFields(filter.q, field);
   } else {
     qq = getValueWithFields('*', field);
@@ -187,10 +196,13 @@ const reduceRegexFiltersToSolr = (filters, field) => {
   // cut regexp at any . not preceded by an escape sign.
     let queryString;
     if (Array.isArray(q)) {
-      if (q.length !== 1) {
+      if (q.length > 1) {
         throw new Error(`"regex" filter rule supports only single element arrays in "q": ${JSON.stringify(q)}`);
+      } else if (q.length === 0) {
+        queryString = '/.*/';
+      } else {
+        queryString = q[0].trim();
       }
-      queryString = q[0].trim();
     } else if (q != null) {
       queryString = q.trim();
     } else {

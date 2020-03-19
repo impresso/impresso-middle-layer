@@ -60,6 +60,17 @@ describe('filtersToSolr', () => {
       const query = filtersToSolr([filter], SolrNamespaces.Search);
       assert.equal(query, 'ocrqa_f:*');
     });
+
+    it('with empty array', () => {
+      const filter = {
+        q: [],
+        type: 'ocrQuality',
+      };
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search),
+        new Error(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`),
+      );
+    });
   });
 
   it('handles "boolean" filter', () => {
@@ -138,6 +149,18 @@ describe('filtersToSolr', () => {
       const query = filtersToSolr([filter], SolrNamespaces.Search);
       assert.equal(query, '(title_txt_en:* OR title_txt_fr:* OR title_txt_de:*)');
     });
+
+    it('with empty array', () => {
+      /** @type {import('../../../src/models').Filter} */
+      const filter = {
+        type: 'title',
+        op: 'OR',
+        q: [],
+        precision: 'exact',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, '(title_txt_en:* OR title_txt_fr:* OR title_txt_de:*)');
+    });
   });
 
   describe('handles "dateRange" filter', () => {
@@ -177,6 +200,17 @@ describe('filtersToSolr', () => {
         new Error(`"dateRange" filter rule: unknown value encountered in "q": ${filter.q}`),
       );
     });
+
+    it('throws an error with empty array', () => {
+      const filter = {
+        q: [],
+        type: 'daterange',
+      };
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search),
+        new Error(`"dateRange" filter rule: unknown values encountered in "q": ${filter.q}`),
+      );
+    });
   });
 
   describe('handles "value" filter', () => {
@@ -214,6 +248,24 @@ describe('filtersToSolr', () => {
       const query = filtersToSolr([filter], SolrNamespaces.Search);
       assert.equal(query, '(pers_mentions:ab OR loc_mentions:ab OR pers_mentions:cd OR loc_mentions:cd)');
     });
+
+    it('with empty array', () => {
+      const filter = {
+        q: [],
+        type: 'mention',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, '(pers_mentions:* OR loc_mentions:*)');
+    });
+
+    it('with empty string', () => {
+      const filter = {
+        type: 'language',
+        q: '',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, 'lg_s:*');
+    });
   });
 
   describe('handles "regex" filter', () => {
@@ -237,6 +289,24 @@ describe('filtersToSolr', () => {
 
     it('with no value', () => {
       const filter = {
+        type: 'regex',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, '(content_txt_en:/.*/ OR content_txt_fr:/.*/ OR content_txt_de:/.*/)');
+    });
+
+    it('with empty string', () => {
+      const filter = {
+        type: 'regex',
+        q: '',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, '(content_txt_en:/.*/ OR content_txt_fr:/.*/ OR content_txt_de:/.*/)');
+    });
+
+    it('with empty array', () => {
+      const filter = {
+        q: [],
         type: 'regex',
       };
       const query = filtersToSolr([filter], SolrNamespaces.Search);
