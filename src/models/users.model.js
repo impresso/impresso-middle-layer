@@ -3,6 +3,7 @@ const { DataTypes } = require('sequelize');
 const { encrypt } = require('../crypto');
 
 const Profile = require('./profiles.model');
+const Group = require('./groups.model');
 
 const CRYPTO_ITERATIONS = 180000;
 
@@ -29,6 +30,7 @@ class User {
     isActive = false,
     isSuperuser = false,
     profile = new Profile(),
+    groups = [],
   } = {}) {
     this.id = parseInt(id, 10);
     this.username = String(username);
@@ -51,6 +53,7 @@ class User {
     } else {
       this.uid = String(uid);
     }
+    this.groups = groups;
   }
 
   static getMe({ user, profile }) {
@@ -120,6 +123,7 @@ class User {
 
   static sequelize(client) {
     const profile = Profile.sequelize(client);
+    const group = Group.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     const user = client.define('user', {
@@ -212,6 +216,7 @@ class User {
 
     user.prototype.toJSON = function ({
       obfuscate = false,
+      groups = [],
     } = {}) {
       if (obfuscate) {
         return new ObfuscatedUser({
@@ -219,13 +224,26 @@ class User {
           username: this.username,
         });
       }
-      return new User(this.get());
+      return new User({
+        ...this.get(),
+        groups,
+      });
     };
 
     user.hasOne(profile, {
       foreignKey: {
         fieldName: 'user_id',
       },
+    });
+    user.belongsToMany(group, {
+      as: 'groups',
+      through: 'auth_user_groups',
+      foreignKey: {
+        fieldName: 'user_id',
+      },
+      otherKey: {
+        fieldName: 'group_id',
+      }, // replaces `categoryId`
     });
 
     return user;
