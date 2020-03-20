@@ -197,7 +197,7 @@ async function buildResponse(result, facet, index, domain, filters) {
   };
 }
 
-class TemporalStats {
+class Stats {
   constructor(app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
@@ -217,4 +217,4 @@ class TemporalStats {
   }
 }
 
-module.exports = { TemporalStats };
+module.exports = { Stats };
