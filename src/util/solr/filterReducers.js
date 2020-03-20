@@ -114,8 +114,10 @@ const reduceStringFiltersToSolr = (filters, field) => {
 
     let queryList = [null];
 
-    if (Array.isArray(q) && q.length > 0) queryList = q;
-    else if (typeof q === 'string' && q != null && q !== '') queryList = [q];
+    if (Array.isArray(q) && q.length > 0) {
+      queryList = q.filter(v => v != null && v !== '');
+      if (queryList.length === 0) queryList = [null];
+    } else if (typeof q === 'string' && q != null && q !== '') queryList = [q];
 
     let transformedQuery = queryList
       .map(value => getStringQueryWithFields(value, fields, precision))
