@@ -161,6 +161,18 @@ describe('filtersToSolr', () => {
       const query = filtersToSolr([filter], SolrNamespaces.Search);
       assert.equal(query, '(title_txt_en:* OR title_txt_fr:* OR title_txt_de:*)');
     });
+
+    it('with array of empty strings', () => {
+      /** @type {import('../../../src/models').Filter} */
+      const filter = {
+        type: 'title',
+        op: 'OR',
+        q: ['', ''],
+        precision: 'exact',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Search);
+      assert.equal(query, '(title_txt_en:* OR title_txt_fr:* OR title_txt_de:*)');
+    });
   });
 
   describe('handles "dateRange" filter', () => {
