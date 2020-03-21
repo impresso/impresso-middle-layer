@@ -14,29 +14,39 @@ function daterangeExtractor({ q = '' }) {
 }
 
 function newspaperExtractor({ q = '' }) {
-  const codes = Array.isArray(q) ? q : [q.trim()];
-  return codes.map(code => newspapersIndex.values[code] || {});
+  const codes = Array.isArray(q) ? q : [q];
+  return codes.map(code => newspapersIndex.values[code.trim()] || {});
 }
 
 function topicExtractor({ q = '' }) {
-  const item = Topic.getCached(q.trim());
-  return item != null ? [item] : [];
+  const items = Array.isArray(q) ? q : [q];
+  return items
+    .map(item => Topic.getCached(item.trim()))
+    .filter(item => item != null);
 }
 
 function entityExtractor({ q = '' }) {
-  const item = Entity.getCached(q.trim());
-  return item != null ? [item] : [];
+  const items = Array.isArray(q) ? q : [q];
+  return items
+    .map(item => Entity.getCached(item.trim()))
+    .filter(item => item != null);
 }
 
 function yearExtractor({ q = '' }) {
-  const item = Year.getCached(q.trim());
-  return item != null ? [item] : [];
+  const items = Array.isArray(q) ? q : [q];
+  return items
+    .map(item => Year.getCached(item.trim()))
+    .filter(item => item != null);
 }
 
 async function collectionExtractor({ q = '' }, app) {
+  const items = Array.isArray(q) ? q : [q];
+
   try {
-    const collection = await app.service('collections').get(q.trim(), { query: { nameOnly: true } });
-    return collection ? [collection] : [];
+    return await Promise.all(items.map(async (item) => {
+      const payload = { query: { nameOnly: true } };
+      return app.service('collections').get(item.trim(), payload);
+    }));
   } catch (error) {
     if (error.name === 'NotFound') return [];
     throw error;
