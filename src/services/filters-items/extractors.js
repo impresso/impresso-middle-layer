@@ -52,6 +52,13 @@ function numberRangeExtractor({ q = '' }) {
     : [];
 }
 
+function simpleValueExtractor({ q = '' }) {
+  const items = Array.isArray(q)
+    ? q
+    : [q.trim()];
+  return items.map(uid => ({ uid }));
+}
+
 module.exports = {
   daterangeExtractor,
   newspaperExtractor,
@@ -60,4 +67,5 @@ module.exports = {
   yearExtractor,
   collectionExtractor,
   numberRangeExtractor,
+  simpleValueExtractor,
 };

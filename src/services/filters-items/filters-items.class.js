@@ -6,6 +6,7 @@ const {
   yearExtractor,
   collectionExtractor,
   numberRangeExtractor,
+  simpleValueExtractor,
 } = require('./extractors');
 
 const ItemsExtractors = Object.freeze({
@@ -28,8 +29,8 @@ class FiltersItems {
 
   async find({ filters }) {
     const filtersWithItems = await Promise.all(filters.map(async (filter) => {
-      const extractor = ItemsExtractors[filter.type];
-      const items = extractor != null ? await extractor(filter, this.app) : [];
+      const extractor = ItemsExtractors[filter.type] || simpleValueExtractor;
+      const items = await extractor(filter, this.app);
       return { filter, items };
     }));
 
