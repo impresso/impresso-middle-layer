@@ -174,7 +174,7 @@ const itemsSortFn = (a, b) => {
 };
 
 async function buildResponse(result, facet, index, domain, filters) {
-  const { buckets } = result.facets.domain;
+  const { domain: { buckets = [] } = {} } = result.facets;
   const facetType = getFacetType(index, facet);
   const resolution = getTemporalResolution(domain, filters);
 

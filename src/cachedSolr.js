@@ -1,3 +1,4 @@
+const assert = require('assert');
 const { SolrNamespaces } = require('./solr');
 
 function getCacheKeyForSolrRequest(request, namespace, isPost = false) {
@@ -38,6 +39,17 @@ class CachedSolrClient {
     return this.cacheManager.wrap(
       getCacheKeyForSolrRequest(request, namespace, true),
       () => this.solrClient.requestPostRaw(request, namespace),
+      options,
+    );
+  }
+
+  findAllPost(request, namespace = SolrNamespaces.Search, ttl = TTL.Long) {
+    assert.equal(namespace, SolrNamespaces.Search, `Only "${SolrNamespaces.Search}" namespace is supported`);
+    const options = ttl != null ? { ttl } : {};
+
+    return this.cacheManager.wrap(
+      getCacheKeyForSolrRequest(request, namespace, true),
+      () => this.solrClient.findAllPost(request),
       options,
     );
   }

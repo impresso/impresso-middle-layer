@@ -21,7 +21,7 @@ const SupportedDomainsByIndex = SupportedIndexes.reduce((acc, index) => {
 const deserializeFilters = (serializedFilters) => {
   if (serializedFilters == null) return [];
   try {
-    return protobuf.searchQuery.deserialize(serializedFilters).filters;
+    return protobuf.searchQuery.deserialize(serializedFilters).filters || [];
   } catch (error) {
     throw new BadRequest(`Could not deserialize filters: ${error.message}`);
   }
