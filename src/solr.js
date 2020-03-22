@@ -93,7 +93,7 @@ const suggest = (config, params = {}, factory) => {
     throw preprocessSolrError(error);
   });
 };
-//
+// TODO: `factory` is not used
 const findAllPost = (config, params = {}, factory) => {
   const qp = {
     q: '*:*',

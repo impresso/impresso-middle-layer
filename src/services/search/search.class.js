@@ -1,8 +1,6 @@
 const debug = require('debug')('impresso/services:search');
-const decypher = require('decypher');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const solr = require('../../solr');
-const neo4j = require('../../neo4j');
 const sequelize = require('../../sequelize');
 
 const Article = require('../../models/articles.model');
@@ -26,14 +24,10 @@ class Service {
     name,
   } = {}) {
     this.app = app;
-    this.solr = solr.client(app.get('solr'));
+    this.solr = app.get('cachedSolr');
     this.solrDataVersion = app.get('solr').dataVersion;
     this.sequelize = sequelize.client(app.get('sequelize'));
-    this.neo4j = neo4j.client(app.get('neo4j'));
     this.name = name;
-    this.neo4jQueries = {};
-    this.neo4jQueries.articles = decypher(`${__dirname}/../articles/articles.queries.cyp`);
-    this.neo4jQueries.pages = decypher(`${__dirname}/../pages/pages.queries.cyp`);
   }
 
   static wrap(data, limit, skip, total, info) {
