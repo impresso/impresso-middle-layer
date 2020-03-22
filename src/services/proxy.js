@@ -62,9 +62,7 @@ module.exports = function (app) {
     }
 
     // verify access token and user rights
-    app.passport.verifyJWT(accessToken, {
-      secret: authentication.secret,
-    }).then((payload) => {
+    app.service('/authentication').verifyAccessToken(accessToken.replace(/^Bearer /, '')).then((payload) => {
       debug('proxy: auth found, payload OK. <userId>:', payload.userId);
       req.proxyAuthorization = config.iiif.epflsafe.auth;
       // check authorization level in user service.

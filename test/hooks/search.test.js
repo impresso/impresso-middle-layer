@@ -1,9 +1,10 @@
+// @ts-check
 const assert = require('assert');
 const {
-  reduceFiltersToSolr,
-  reduceRegexFiltersToSolr,
+  filtersToSolr,
 } = require('../../src/util/solr/filterReducers');
 const { filtersToSolrQuery, queries } = require('../../src/hooks/search');
+const { SolrNamespaces } = require('../../src/solr');
 
 /*
 ./node_modules/.bin/eslint \
@@ -12,34 +13,34 @@ NODE_ENV=development mocha test/hooks/search.test.js
 */
 describe('test single reducers in search hook', () => {
   it('for language filters', () => {
-    const sq = reduceFiltersToSolr([
+    const sq = filtersToSolr([
       {
         context: 'include',
         type: 'language',
         q: ['fr', 'en'],
       },
-    ], 'lg_s');
+    ], SolrNamespaces.Search);
     assert.deepEqual('(lg_s:fr OR lg_s:en)', sq);
   });
 
   it('exclude language filters', () => {
-    const sq = reduceFiltersToSolr([
+    const sq = filtersToSolr([
       {
         context: 'exclude',
         type: 'language',
         q: ['fr', 'en'],
       },
-    ], 'lg_s');
+    ], SolrNamespaces.Search);
     assert.deepEqual('*:* AND NOT ((lg_s:fr OR lg_s:en))', sq);
   });
 
   it('test regex filter, multiple words', () => {
-    const sq = reduceRegexFiltersToSolr([{
+    const sq = filtersToSolr([{
       context: 'include',
       type: 'regex',
       q: '/go[uû]t.*parfait.*/',
-    }]);
-    assert.deepEqual('content_txt_fr:/go[uû]t/ AND content_txt_fr:/parfait/', sq);
+    }], SolrNamespaces.Search);
+    assert.deepEqual(sq, '(content_txt_en:/go[uû]t/ OR content_txt_fr:/go[uû]t/ OR content_txt_de:/go[uû]t/) AND (content_txt_en:/parfait/ OR content_txt_fr:/parfait/ OR content_txt_de:/parfait/)');
   });
 });
 
@@ -136,6 +137,94 @@ describe('test filtersToSolrQuery hook', () => {
       `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")`,
     );
   });
+
+  it('with text context exact by quotes', async () => {
+    const context = {
+      type: 'before',
+      params: {
+        sanitized: {
+          filters: [
+            {
+              type: 'hasTextContents',
+            },
+            {
+              type: 'isFront',
+            },
+            {
+              type: 'string',
+              context: 'include',
+              q: '"ministre portugais"',
+            },
+          ],
+        },
+      },
+    };
+
+    await filtersToSolrQuery()(context);
+    assert.deepEqual(
+      context.params.sanitized.sq,
+      `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais")`,
+    );
+  });
+
+  it('with text context, exaped wrong quotes', async () => {
+    const context = {
+      type: 'before',
+      params: {
+        sanitized: {
+          filters: [
+            {
+              type: 'hasTextContents',
+            },
+            {
+              type: 'isFront',
+            },
+            {
+              type: 'string',
+              context: 'include',
+              q: '"ministre "portugais"',
+            },
+          ],
+        },
+      },
+    };
+
+    await filtersToSolrQuery()(context);
+    assert.deepEqual(
+      context.params.sanitized.sq,
+      `filter(${queries.hasTextContents}) AND filter(front_b:1) AND (content_txt_en:"ministre \\"portugais" OR content_txt_fr:"ministre \\"portugais" OR content_txt_de:"ministre \\"portugais")`,
+    );
+  });
+
+  it('with text context, with multiple contents', async () => {
+    const context = {
+      type: 'before',
+      params: {
+        sanitized: {
+          filters: [
+            {
+              type: 'hasTextContents',
+            },
+            {
+              type: 'isFront',
+            },
+            {
+              type: 'string',
+              context: 'include',
+              q: ['"ministre portugais"', '"ministre italien"'],
+            },
+          ],
+        },
+      },
+    };
+
+    await filtersToSolrQuery()(context);
+    assert.deepEqual(
+      context.params.sanitized.sq,
+      'filter(content_length_i:[1 TO *]) AND filter(front_b:1) AND ((content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais") OR (content_txt_en:"ministre italien" OR content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien"))',
+    );
+  });
+
 
   it('with daterange filters', async () => {
     const context = {

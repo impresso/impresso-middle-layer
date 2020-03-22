@@ -88,6 +88,9 @@ const textReuseClusterPassages = require('./text-reuse-cluster-passages/text-reu
 const filtersItems = require('./filters-items/filters-items.service.js');
 
 
+const stats = require('./stats/stats.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -136,4 +139,5 @@ module.exports = function () {
   app.configure(textReuseClusters);
   app.configure(textReuseClusterPassages);
   app.configure(filtersItems);
+  app.configure(stats);
 };

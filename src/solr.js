@@ -1,7 +1,7 @@
 const rp = require('request-promise');
-const { NotImplemented } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/solr');
 const lodash = require('lodash');
+const { preprocessSolrError } = require('./util/solr/errors');
 
 const update = (config, params = {}) => {
   const p = {
@@ -32,6 +32,8 @@ const update = (config, params = {}) => {
   }).then((res) => {
     debug('update received', res);
     return 'ok';
+  }).catch((error) => {
+    throw preprocessSolrError(error);
   });
 };
 
@@ -87,13 +89,11 @@ const suggest = (config, params = {}, factory) => {
         .value();
     }
     return lodash.take(results.suggestions, qs.rows);
-  }).catch((err) => {
-    console.error(err);
-    throw new NotImplemented();
-    // throw feathers errors here.
+  }).catch((error) => {
+    throw preprocessSolrError(error);
   });
 };
-//
+// TODO: `factory` is not used
 const findAllPost = (config, params = {}, factory) => {
   const qp = {
     q: '*:*',
@@ -194,10 +194,8 @@ const findAllPost = (config, params = {}, factory) => {
       result.response.docs = result.response.docs.map(factory(result));
     }
     return result;
-  }).catch((err) => {
-    debug(`[findAllPost][${qp.requestOriginalPath}] error!`);
-    console.error(err);
-    throw new NotImplemented();
+  }).catch((error) => {
+    throw preprocessSolrError(error);
   });
 };
 
@@ -335,11 +333,8 @@ const findAll = (config, params = {}, factory) => {
       result.response.docs = result.response.docs.map(factory(result));
     }
     return result;
-  }).catch((err) => {
-    debug(`[findAll][${_params.requestOriginalPath}] error`);
-    console.error(err);
-    throw new NotImplemented();
-    // throw feathers errors here.
+  }).catch((error) => {
+    throw preprocessSolrError(error);
   });
 };
 
@@ -352,7 +347,9 @@ const requestPostRaw = (config, payload, namespace = 'search') => {
     json: payload,
   };
 
-  return rp(opts);
+  return rp(opts).catch((error) => {
+    throw preprocessSolrError(error);
+  });
 };
 
 const getRaw = async (config, params, namespace = 'search') => {
@@ -366,7 +363,9 @@ const getRaw = async (config, params, namespace = 'search') => {
     json: true,
   };
 
-  return rp(options);
+  return rp(options).catch((error) => {
+    throw preprocessSolrError(error);
+  });
 };
 
 /**

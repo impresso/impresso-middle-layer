@@ -135,12 +135,18 @@ class Service {
     }
 
     debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found');
+    const fl = this.solrDataVersion > 1.0 ? Article.ARTICLE_SOLR_FL_LIST_ITEM.concat([
+      'lb_plain:[json]',
+      'rb_plain:[json]',
+      'pp_plain:[json]',
+      'nem_offset_plain:[json]',
+    ]) : Article.ARTICLE_SOLR_FL;
 
     return Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
       this.SolrService.get(id, {
-        fl: Article.ARTICLE_SOLR_FL,
+        fl,
       }),
 
       // get the newspaper and the version,
