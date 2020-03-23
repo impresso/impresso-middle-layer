@@ -34,6 +34,8 @@ class Topic {
     words = [],
     relatedTopics = [],
     countItems = -1,
+    x = 0,
+    y = 0,
   } = {}, {
     // options
     wordsInExcerpt = 5,
@@ -56,6 +58,8 @@ class Topic {
     }
     this.countItems = countItems;
     this.relatedTopics = relatedTopics;
+    this.x = parseFloat(x);
+    this.y = parseFloat(y);
   }
 
   getExcerpt() {
