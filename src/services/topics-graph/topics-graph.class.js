@@ -1,13 +1,20 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:topics-graph');
+const { min, max } = require('lodash');
 const { NotFound } = require('@feathersjs/errors');
 const { escapeValue } = require('../../util/solr/filterReducers');
 const Topic = require('../../models/topics.model');
+const topicsIndex = require('../../data')('topics');
 
 const toNode = topic => ({
   id: topic.uid,
   uid: topic.uid,
   label: topic.getExcerpt().join(' - '),
+  pos: {
+    // initial position
+    x: topic.x,
+    y: topic.y,
+  },
   countItems: -1,
   degree: 0,
   language: topic.language,
@@ -79,6 +86,32 @@ class TopicsGraph {
     const linksIndex = {};
     const nodes = [];
     const links = [];
+    let info = {};
+
+    if (!params.sanitized.filters.lenght) {
+      debug('[find] no filters, return all topics, no links n.', Object.keys(topicsIndex).length);
+      Object.keys(topicsIndex.values).forEach((uid) => {
+        const topic = new Topic(topicsIndex.getValue(uid));
+        nodes.push(toNode(topic));
+      });
+
+      return {
+        info: {
+          extents: {
+            x: [
+              min(nodes.map(n => n.pos.x)),
+              max(nodes.map(n => n.pos.x)),
+            ],
+            y: [
+              min(nodes.map(n => n.pos.y)),
+              max(nodes.map(n => n.pos.y)),
+            ],
+          },
+        },
+        nodes,
+        links,
+      };
+    }
 
     if (!params.sanitized.expand) {
       restrictToUids = params.sanitized.filters
@@ -125,7 +158,7 @@ class TopicsGraph {
     });
 
 
-    const info = {
+    info = {
       filters: params.sanitized.filters,
       limit: 20,
       offset: params.query.skip,
