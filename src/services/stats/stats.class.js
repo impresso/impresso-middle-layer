@@ -99,7 +99,7 @@ function buildSolrRequest(facet, index, domain, stats, filters) {
   const facetType = getFacetType(index, facet);
   const domainDetails = getDomainDetails(index, domain, filters);
 
-  const { query } = filtersToQueryAndVariables(filters);
+  const { query } = filtersToQueryAndVariables(filters, index);
 
   return {
     query,
@@ -209,10 +209,7 @@ class Stats {
     },
   }) {
     const request = buildSolrRequest(facet, index, domain, stats, filters);
-    const result = await this.solr.post(
-      request, this.solr.namespaces.Search,
-    );
-
+    const result = await this.solr.post(request, index);
     return buildResponse(result, facet, index, domain, filters);
   }
 }
