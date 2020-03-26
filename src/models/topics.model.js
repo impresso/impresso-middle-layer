@@ -36,6 +36,9 @@ class Topic {
     countItems = -1,
     x = 0,
     y = 0,
+    degree = 0,
+    pagerank = 0,
+    community = '',
   } = {}, {
     // options
     wordsInExcerpt = 5,
@@ -60,6 +63,9 @@ class Topic {
     this.relatedTopics = relatedTopics;
     this.x = parseFloat(x);
     this.y = parseFloat(y);
+    this.degree = parseInt(degree, 10);
+    this.pagerank = parseFloat(pagerank);
+    this.community = String(community);
   }
 
   getExcerpt() {
