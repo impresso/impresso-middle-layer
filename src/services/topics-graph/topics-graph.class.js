@@ -15,8 +15,10 @@ const toNode = topic => ({
     x: topic.x,
     y: topic.y,
   },
-  countItems: -1,
-  degree: 0,
+  pagerank: topic.pagerank,
+  community: topic.community,
+  countItems: topic.countItems,
+  degree: topic.degree,
   language: topic.language,
   excerpt: topic.excerpt,
   model: topic.model,
@@ -87,12 +89,42 @@ class TopicsGraph {
     const nodes = [];
     const links = [];
     let info = {};
+    const getOrCreateNode = (node, { forceUpdate = false } = {}) => {
+      if (typeof nodesIndex[node.uid] === 'undefined') {
+        nodesIndex[node.uid] = nodes.length;
+        nodes.push(node);
+      } else if (forceUpdate) {
+        // update
+        nodes[nodesIndex[node.uid]] = node;
+      }
+      return nodesIndex[node.uid];
+    };
 
-    if (!params.sanitized.filters.lenght) {
-      debug('[find] no filters, return all topics, no links n.', Object.keys(topicsIndex).length);
+    const getOrCreateLink = (link) => {
+      if (typeof linksIndex[link.id] === 'undefined') {
+        linksIndex[link.id] = links.length;
+        links.push(link);
+      }
+      return linksIndex[link.id];
+    };
+
+    if (!params.sanitized.filters.length) {
+      debug('[find] no filters, return all topics, n.', Object.keys(topicsIndex).length);
       Object.keys(topicsIndex.values).forEach((uid) => {
         const topic = new Topic(topicsIndex.getValue(uid));
-        nodes.push(toNode(topic));
+        const source = getOrCreateNode(toNode(topic), { forceUpdate: true });
+        topic.relatedTopics.forEach((linked, i) => {
+          if (i <= 5) {
+            const target = getOrCreateNode(linked);
+            const id = [topic.uid, linked.uid].sort().join('-');
+            getOrCreateLink({
+              id,
+              w: linked.w,
+              source,
+              target,
+            });
+          }
+        });
       });
 
       return {
