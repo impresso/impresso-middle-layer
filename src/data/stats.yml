@@ -63,7 +63,31 @@ indexes:
         textReuseClusterLexicalOverlap:
           field: lex_overlap_d
         textReuseClusterDayDelta:
-          field: day_delta_f
+          field: day_delta_i
+      temporal:
+        year:
+          field: meta_year_i
+          limit: 400
+        yearAndMonth:
+          field: meta_yearmonth_s
+          limit: 120
+        date:
+          field: meta_date_dt
+          limit: 186
+  tr_passages:
+    facets:
+      # for term facets we count clusters
+      term:
+        newspaper:
+          field: meta_journal_s
+          limit: 100
+      numeric:
+        textReuseClusterSize:
+          field: cluster_size_l
+        textReuseClusterLexicalOverlap:
+          field: cluster_lex_overlap_d
+        textReuseClusterDayDelta:
+          field: cluster_day_delta_i
       temporal:
         year:
           field: meta_year_i

@@ -2,6 +2,7 @@
 const assert = require('assert');
 const { SolrNamespaces } = require('../../../src/solr');
 const { filtersToSolr } = require('../../../src/util/solr/filterReducers');
+const { InvalidArgumentError } = require('../../../src/util/error');
 
 describe('filtersToSolr', () => {
   it('throws an error for an unknown filter type', () => {
@@ -11,7 +12,7 @@ describe('filtersToSolr', () => {
     };
     assert.throws(
       () => filtersToSolr([filter], SolrNamespaces.Search),
-      new Error(`Unknown filter type "${filter.type}" in namespace "${SolrNamespaces.Search}"`),
+      new InvalidArgumentError(`Unknown filter type "${filter.type}" in namespace "${SolrNamespaces.Search}"`),
     );
   });
 
@@ -49,7 +50,7 @@ describe('filtersToSolr', () => {
       };
       assert.throws(
         () => filtersToSolr([filter], SolrNamespaces.Search),
-        new Error(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`),
+        new InvalidArgumentError(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`),
       );
     });
 
@@ -68,7 +69,7 @@ describe('filtersToSolr', () => {
       };
       assert.throws(
         () => filtersToSolr([filter], SolrNamespaces.Search),
-        new Error(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`),
+        new InvalidArgumentError(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`),
       );
     });
   });
@@ -227,7 +228,7 @@ describe('filtersToSolr', () => {
       };
       assert.throws(
         () => filtersToSolr([filter], SolrNamespaces.Search),
-        new Error(`"dateRange" filter rule: unknown value encountered in "q": ${filter.q}`),
+        new InvalidArgumentError(`"dateRange" filter rule: unknown value encountered in "q": ${filter.q}`),
       );
     });
 
@@ -238,7 +239,7 @@ describe('filtersToSolr', () => {
       };
       assert.throws(
         () => filtersToSolr([filter], SolrNamespaces.Search),
-        new Error(`"dateRange" filter rule: unknown values encountered in "q": ${filter.q}`),
+        new InvalidArgumentError(`"dateRange" filter rule: unknown values encountered in "q": ${filter.q}`),
       );
     });
   });

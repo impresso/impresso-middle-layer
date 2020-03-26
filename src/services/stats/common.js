@@ -12,7 +12,7 @@ const StatsToSolrFunction = {
 };
 
 const SupportedStats = Object.freeze(Object.keys(StatsToSolrFunction));
-const DefaultStats = ['stddev', 'min', 'max', 'mean'];
+const DefaultStats = ['stddev', 'min', 'max', 'mean', 'p99_7'];
 
 module.exports = {
   TimeDomain,

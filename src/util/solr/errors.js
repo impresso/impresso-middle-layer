@@ -10,9 +10,13 @@ const {
 function preprocessSolrError(error) {
   let message = '';
   try {
-    message = JSON.parse(error.response.body).error.msg.replace(/\n/g, ' ');
-    // Solr parser dump after this line. Not useful.
-    message = message.replace(/Was expecting one of:.*/, '');
+    if (typeof error.response.body === 'string') {
+      message = JSON.parse(error.response.body).error.msg.replace(/\n/g, ' ');
+      // Solr parser dump after this line. Not useful.
+      message = message.replace(/Was expecting one of:.*/, '');
+    } else {
+      message = error.response.body.error.msg;
+    }
   } catch (e) {
     message = `${error.response.body.slice(0, 200)}...`;
   }

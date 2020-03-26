@@ -1,6 +1,7 @@
 // @ts-check
 const YAML = require('yaml');
 const { readFileSync } = require('fs');
+const { InvalidArgumentError } = require('../error');
 
 const filtersConfig = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString());
 
@@ -20,12 +21,12 @@ const reduceNumericRangeFilters = (filters, field) => {
     // or simple string '1 TO X';
     if (Array.isArray(filter.q)) {
       if (filter.q.length !== 2 || !filter.q.every(v => Number.isFinite(parseInt(v, 10)))) {
-        throw new Error(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`);
+        throw new InvalidArgumentError(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`);
       }
       q = `${field}:[${filter.q[0]} TO ${filter.q[1]}]`;
     } else if (filter.q != null) {
       if (!filter.q.match(RangeValueRegex)) {
-        throw new Error(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`);
+        throw new InvalidArgumentError(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`);
       }
       q = `${field}:[${filter.q}]`;
     } else {
@@ -110,7 +111,7 @@ const reduceStringFiltersToSolr = (filters, field) => {
     if (typeof field === 'string') fields = [field];
     else if (Array.isArray(field)) fields = field;
     else if (field.prefix != null) fields = languages.map(lang => `${field.prefix}${lang}`);
-    else throw new Error(`Unknown type of Solr field: ${JSON.stringify(field)}`);
+    else throw new InvalidArgumentError(`Unknown type of Solr field: ${JSON.stringify(field)}`);
 
     let queryList = [null];
 
@@ -147,7 +148,7 @@ const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
     let q;
     if (Array.isArray(query)) {
       if (query.length !== 2) {
-        throw new Error(`"${rule}" filter rule: unknown values encountered in "q": ${filter.q}`);
+        throw new InvalidArgumentError(`"${rule}" filter rule: unknown values encountered in "q": ${filter.q}`);
       }
       q = `${query.map(d => `${field}:[${d}]`).join(' OR ')}`;
       if (query.length > 1) {
@@ -155,7 +156,7 @@ const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
       }
     } else if (query != null) {
       if (!query.match(DateRangeValueRegex)) {
-        throw new Error(`"${rule}" filter rule: unknown value encountered in "q": ${filter.q}`);
+        throw new InvalidArgumentError(`"${rule}" filter rule: unknown value encountered in "q": ${filter.q}`);
       }
       q = `${field}:[${query}]`;
     } else {
@@ -196,14 +197,14 @@ const reduceRegexFiltersToSolr = (filters, field) => {
   if (typeof field === 'string') fields = [field];
   else if (Array.isArray(field)) fields = field;
   else if (field.prefix != null) fields = SolrSupportedLanguages.map(lang => `${field.prefix}${lang}`);
-  else throw new Error(`Unknown type of Solr field: ${JSON.stringify(field)}`);
+  else throw new InvalidArgumentError(`Unknown type of Solr field: ${JSON.stringify(field)}`);
 
   return filters.reduce((reduced, { q, op = 'OR' }) => {
   // cut regexp at any . not preceded by an escape sign.
     let queryString;
     if (Array.isArray(q)) {
       if (q.length > 1) {
-        throw new Error(`"regex" filter rule supports only single element arrays in "q": ${JSON.stringify(q)}`);
+        throw new InvalidArgumentError(`"regex" filter rule supports only single element arrays in "q": ${JSON.stringify(q)}`);
       } else if (q.length === 0) {
         queryString = '/.*/';
       } else {
@@ -231,12 +232,12 @@ const reduceRegexFiltersToSolr = (filters, field) => {
 };
 
 const minLengthOneHandler = (filters, field, filterRule) => {
-  if (typeof field !== 'string') throw new Error(`"${filterRule}" supports only "string" fields`);
+  if (typeof field !== 'string') throw new InvalidArgumentError(`"${filterRule}" supports only "string" fields`);
   return `${field}:[1 TO *]`;
 };
 
 const booleanHandler = (filters, field, filterRule) => {
-  if (typeof field !== 'string') throw new Error(`"${filterRule}" supports only "string" fields`);
+  if (typeof field !== 'string') throw new InvalidArgumentError(`"${filterRule}" supports only "string" fields`);
   return `${field}:1`;
 };
 
@@ -260,19 +261,19 @@ const FiltersHandlers = Object.freeze({
  * @returns {string} a SOLR query string that can be wrapped into a `filter()` statement.
  */
 const filtersToSolr = (filters, solrNamespace) => {
-  if (filters.length < 1) throw new Error('At least one filter must be provided');
+  if (filters.length < 1) throw new InvalidArgumentError('At least one filter must be provided');
   const types = [...new Set(filters.map(({ type }) => type))];
-  if (types.length > 1) throw new Error(`Filters must be of the same type. Found types: "${types}"`);
+  if (types.length > 1) throw new InvalidArgumentError(`Filters must be of the same type. Found types: "${types}"`);
   const type = types[0];
 
   const filtersRules = filtersConfig.indexes[solrNamespace]
     ? filtersConfig.indexes[solrNamespace].filters
     : {};
   const filterRules = filtersRules[type];
-  if (filterRules == null) throw new Error(`Unknown filter type "${type}" in namespace "${solrNamespace}"`);
+  if (filterRules == null) throw new InvalidArgumentError(`Unknown filter type "${type}" in namespace "${solrNamespace}"`);
 
   const handler = FiltersHandlers[filterRules.rule];
-  if (handler == null) throw new Error(`Could not find handler for rule ${filterRules.rule}`);
+  if (handler == null) throw new InvalidArgumentError(`Could not find handler for rule ${filterRules.rule}`);
 
   return handler(filters, filterRules.field, filterRules.rule);
 };
