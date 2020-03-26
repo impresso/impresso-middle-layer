@@ -1,15 +1,24 @@
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:topics-graph');
+const { min, max } = require('lodash');
 const { NotFound } = require('@feathersjs/errors');
 const { escapeValue } = require('../../util/solr/filterReducers');
 const Topic = require('../../models/topics.model');
+const topicsIndex = require('../../data')('topics');
 
 const toNode = topic => ({
   id: topic.uid,
   uid: topic.uid,
   label: topic.getExcerpt().join(' - '),
-  countItems: -1,
-  degree: 0,
+  pos: {
+    // initial position
+    x: topic.x,
+    y: topic.y,
+  },
+  pagerank: topic.pagerank,
+  community: topic.community,
+  countItems: topic.countItems,
+  degree: topic.degree,
   language: topic.language,
   excerpt: topic.excerpt,
   model: topic.model,
@@ -79,6 +88,62 @@ class TopicsGraph {
     const linksIndex = {};
     const nodes = [];
     const links = [];
+    let info = {};
+    const getOrCreateNode = (node, { forceUpdate = false } = {}) => {
+      if (typeof nodesIndex[node.uid] === 'undefined') {
+        nodesIndex[node.uid] = nodes.length;
+        nodes.push(node);
+      } else if (forceUpdate) {
+        // update
+        nodes[nodesIndex[node.uid]] = node;
+      }
+      return nodesIndex[node.uid];
+    };
+
+    const getOrCreateLink = (link) => {
+      if (typeof linksIndex[link.id] === 'undefined') {
+        linksIndex[link.id] = links.length;
+        links.push(link);
+      }
+      return linksIndex[link.id];
+    };
+
+    if (!params.sanitized.filters.length) {
+      debug('[find] no filters, return all topics, n.', Object.keys(topicsIndex).length);
+      Object.keys(topicsIndex.values).forEach((uid) => {
+        const topic = new Topic(topicsIndex.getValue(uid));
+        const source = getOrCreateNode(toNode(topic), { forceUpdate: true });
+        topic.relatedTopics.forEach((linked, i) => {
+          if (i <= 5) {
+            const target = getOrCreateNode(linked);
+            const id = [topic.uid, linked.uid].sort().join('-');
+            getOrCreateLink({
+              id,
+              w: linked.w,
+              source,
+              target,
+            });
+          }
+        });
+      });
+
+      return {
+        info: {
+          extents: {
+            x: [
+              min(nodes.map(n => n.pos.x)),
+              max(nodes.map(n => n.pos.x)),
+            ],
+            y: [
+              min(nodes.map(n => n.pos.y)),
+              max(nodes.map(n => n.pos.y)),
+            ],
+          },
+        },
+        nodes,
+        links,
+      };
+    }
 
     if (!params.sanitized.expand) {
       restrictToUids = params.sanitized.filters
@@ -125,7 +190,7 @@ class TopicsGraph {
     });
 
 
-    const info = {
+    info = {
       filters: params.sanitized.filters,
       limit: 20,
       offset: params.query.skip,
