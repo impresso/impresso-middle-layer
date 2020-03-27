@@ -22,9 +22,6 @@
       "type": "string",
       "enum": ["year", "month", "day"],
       "description": "Time interval for domain values"
-    },
-    "info": {
-      "$ref": "#/definitions/info"
     }
   },
   "definitions": {
@@ -49,15 +46,10 @@
           "description": "Total number of times the Ngram has been encountered in the whole range"
         }
       }
-    },
-    "info": {
-      "type": "object",
-      "description": "TODO: add properties. Standard Info response with facets"
     }
   },
   "required": [
     "trends",
-    "domainValues",
-    "info"
+    "domainValues"
   ]
 }

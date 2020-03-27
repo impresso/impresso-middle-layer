@@ -99,8 +99,6 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
 
   const domainValues = domainAndValueItems.map(([domain]) => domain);
   const values = domainAndValueItems.map(([, value]) => value);
-  const facets = await getFacetsFromSolrResponse(solrResponse);
-  const time = get(solrResponse, 'responseHeader.QTime');
 
   const total = sum(values);
 
@@ -114,12 +112,6 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
     ],
     domainValues,
     timeInterval,
-    info: {
-      responseTime: {
-        solr: time,
-      },
-      facets,
-    },
   };
 }
 
