@@ -13,14 +13,14 @@ function mergeResponses(responses) {
     responses.flatMap(({ domainValues }) => domainValues),
   )].sort();
   const mergedTrends = responses.map(({ trends, domainValues }) => {
-    const { ngram, values } = trends[0];
+    const { ngram, values, total } = trends[0];
     const newValues = commonDomainValues.map((domainValue) => {
       const index = domainValues.indexOf(domainValue);
       if (index < 0) return 0;
       return values[index];
     });
 
-    return { ngram, values: newValues };
+    return { ngram, values: newValues, total };
   });
 
   return {
