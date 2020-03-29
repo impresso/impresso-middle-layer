@@ -118,13 +118,14 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
 const DaterangeFilterValueRegex = /([^\s]+)\s+TO\s+([^\s]+)/;
 
 function getTimedeltaInDaterangeFilter(daterangeFilter) {
-  const value = daterangeFilter.q[0];
+  const value = Array.isArray(daterangeFilter.q) ? daterangeFilter.q[0] : daterangeFilter.q;
   const matches = DaterangeFilterValueRegex.exec(value);
   if (matches.length !== 3) return undefined;
   if (daterangeFilter.context === 'exclude') return undefined;
 
-  const [fromDate, toDate] = matches.slice(1).map(v => moment.utc(v));
+  const [fromDate, toDate] = [...matches.slice(1)].map(v => moment.utc(v));
   const years = moment.duration(toDate.diff(fromDate)).as('years');
+
   return years;
 }
 
