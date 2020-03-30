@@ -11,9 +11,11 @@ function mergeResponses(responses, totalsResponse) {
   if (timeIntervals.length > 1) throw new Error(`Conflicting time intervals found: ${timeIntervals.join(', ')}`);
   const timeInterval = timeIntervals[0];
 
+  // Extract domain values (year, month, date), flaten them, create unique list and sort
   const commonDomainValues = [...new Set(
     responses.flatMap(({ domainValues }) => domainValues),
   )].sort();
+
   const mergedTrends = responses.map(({ trends, domainValues }) => {
     const { ngram, values, total } = trends[0];
     const newValues = commonDomainValues.map((domainValue) => {
