@@ -18,6 +18,13 @@
         "description": "Period. Depending on resolution this is either a year (YYYY), month (YYYY-MM) or day (YYYY-MM-DD)"
       }
     },
+    "totals": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "description": "Total count of tokens in this period"
+      }
+    },
     "timeInterval": {
       "type": "string",
       "enum": ["year", "month", "day"],

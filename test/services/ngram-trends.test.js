@@ -3,6 +3,8 @@ const {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
+  unigramTrendsRequestToTotalTokensSolrQuery,
+  getNumbersFromTotalTokensResponse,
 } = require('../../src/services/ngram-trends/logic/solrQuery');
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
@@ -147,12 +149,6 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
       ],
       domainValues: ['1969', '1970'],
       timeInterval: 'year',
-      info: {
-        facets: {},
-        responseTime: {
-          solr: 6345,
-        },
-      },
     };
     const parsedResponse = await parseUnigramTrendsResponse(testResponse, 'Einstein', 'year');
 
@@ -215,5 +211,83 @@ describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
     const timeInterval = guessTimeIntervalFromFilters(filters);
 
     assert.equal(timeInterval, 'year');
+  });
+});
+
+describe('unigramTrendsRequestToTotalTokensSolrQuery', () => {
+  it('builds expected payload', () => {
+    const filters = [
+      {
+        type: 'daterange',
+        q: ['1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z'],
+        op: 'OR',
+      },
+    ];
+    const payload = unigramTrendsRequestToTotalTokensSolrQuery(filters, 'year');
+    const expectedPayload = {
+      query: 'filter(meta_date_dt:[1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z])',
+      limit: 0,
+      params: {
+        vars: {},
+        hl: false,
+      },
+      facet: {
+        year: {
+          type: 'terms',
+          field: 'meta_year_i',
+          limit: -1,
+          facet: {
+            ttc: 'sum(content_length_i)',
+          },
+        },
+      },
+    };
+
+    assert.deepEqual(payload, expectedPayload);
+  });
+});
+
+
+describe('getNumbersFromTotalTokensResponse', () => {
+  const response = {
+    responseHeader: {
+      status: 0,
+      QTime: 1883,
+      params: { json: '{\n  "query": "filter(content_length_i:[2 TO *]) AND filter(meta_date_dt:[1899-06-25T00:00:00Z TO 1930-08-31T23:59:59Z])",\n  "limit": 0,\n  "params": {\n    "vars": {},\n    "hl": false\n  },\n  "facet": {\n    \t"year": {\n\t    \t"type": "terms",\n\t    \t"field": "meta_year_i",\n\t    \t"facet": {\n\t    \t\t"total_tokens_count": "sum(content_length_i)"\n\t    \t}\n    \t}\n    }\n}' },
+    },
+    response: { numFound: 6064606, start: 0, docs: [] },
+    facets: {
+      count: 6064606,
+      year: {
+        buckets: [
+          {
+            val: 1922,
+            count: 223143,
+            ttc: 8.0994937E7,
+          },
+          {
+            val: 1913,
+            count: 219872,
+            ttc: 9.0162505E7,
+          },
+          {
+            val: 1921,
+            count: 217282,
+            ttc: 8.012569E7,
+          },
+        ],
+      },
+    },
+  };
+
+  const expectedNumbers = [
+    { domain: '1913', value: 9.0162505E7 },
+    { domain: '1921', value: 8.012569E7 },
+    { domain: '1922', value: 8.0994937E7 },
+  ];
+
+  it('parses response', () => {
+    const numbers = getNumbersFromTotalTokensResponse(response, 'year');
+    assert.deepEqual(numbers, expectedNumbers);
   });
 });

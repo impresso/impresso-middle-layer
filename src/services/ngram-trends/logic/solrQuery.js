@@ -1,3 +1,4 @@
+// @ts-check
 const moment = require('moment');
 const {
   get, mergeWith, toPairs,
@@ -9,9 +10,6 @@ const {
 } = require('../../../util/solr');
 const { SolrNamespaces } = require('../../../solr');
 
-const {
-  getFacetsFromSolrResponse,
-} = require('../../../services/search/search.extractors');
 const { SolrMappings } = require('../../../data/constants');
 
 const Facets = SolrMappings.search.facets;
@@ -21,6 +19,9 @@ const TimeIntervalsFilelds = {
   month: 'meta_yearmonth_s',
   day: 'meta_date_dt',
 };
+
+const TotalTokensCountFacetField = 'ttc';
+const TokensCountField = 'content_length_i';
 
 // Default facet limit in SOLR is set to 100.
 // We need all data for the stats. -1 means no limit.
@@ -72,6 +73,35 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
   };
 }
 
+/**
+ * @param {import('../../../models').Filter[]} filters
+ * @param {'year' | 'month' | 'day'} timeInterval
+ * @returns {any}
+ */
+function unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval = 'year') {
+  const { query, variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
+  const timeIntervalField = TimeIntervalsFilelds[timeInterval];
+
+  return {
+    query,
+    limit: 0,
+    params: {
+      vars: variables,
+      hl: false, // disable duplicate field "highlighting"
+    },
+    facet: {
+      [timeInterval]: {
+        type: 'terms',
+        field: timeIntervalField,
+        limit: DefaultFacetLimit,
+        facet: {
+          [TotalTokensCountFacetField]: `sum(${TokensCountField})`,
+        },
+      },
+    },
+  };
+}
+
 const mergeFn = (dst, src) => (dst || 0) + (src || 0);
 
 /**
@@ -115,6 +145,24 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
   };
 }
 
+/**
+ *
+ * @param {any} response
+ * @returns {{ domain: string, value: number }[]}
+ */
+function getNumbersFromTotalTokensResponse(response, timeInterval = 'year') {
+  const { facets = {} } = response || {};
+  const { buckets = [] } = facets[timeInterval] || {};
+
+  return buckets
+    .map(({ val, [TotalTokensCountFacetField]: value }) => ({ domain: `${val}`, value }))
+    .sort((a, b) => {
+      if (a.domain < b.domain) return -1;
+      if (a.domain > b.domain) return 1;
+      return 0;
+    });
+}
+
 const DaterangeFilterValueRegex = /([^\s]+)\s+TO\s+([^\s]+)/;
 
 function getTimedeltaInDaterangeFilter(daterangeFilter) {
@@ -148,4 +196,6 @@ module.exports = {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
+  unigramTrendsRequestToTotalTokensSolrQuery,
+  getNumbersFromTotalTokensResponse,
 };

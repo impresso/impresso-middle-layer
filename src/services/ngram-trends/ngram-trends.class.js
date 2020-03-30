@@ -2,9 +2,11 @@ const {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
+  unigramTrendsRequestToTotalTokensSolrQuery,
+  getNumbersFromTotalTokensResponse,
 } = require('./logic/solrQuery');
 
-function mergeResponses(responses) {
+function mergeResponses(responses, totalsResponse) {
   const timeIntervals = [...new Set(responses.map(({ timeInterval }) => timeInterval))];
   if (timeIntervals.length > 1) throw new Error(`Conflicting time intervals found: ${timeIntervals.join(', ')}`);
   const timeInterval = timeIntervals[0];
@@ -23,9 +25,19 @@ function mergeResponses(responses) {
     return { ngram, values: newValues, total };
   });
 
+  // totals
+  const totalsMap = totalsResponse
+    .reduce((acc, { domain, value }) => ({ ...acc, [domain]: value }), {});
+
+  const totals = commonDomainValues.map((domain) => {
+    const value = totalsMap[`${domain}`];
+    return value == null ? 0 : value;
+  });
+
   return {
     trends: mergedTrends,
     domainValues: commonDomainValues,
+    totals,
     timeInterval,
   };
 }
@@ -41,6 +53,7 @@ class NgramTrends {
     const requestPayloads = ngrams.map(ngram => unigramTrendsRequestToSolrQuery(
       ngram, filters, facets, timeInterval,
     ));
+    const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval);
 
     const cacheTtl = this.solr.ttl.Long;
 
@@ -49,7 +62,11 @@ class NgramTrends {
       this.solr.namespaces.Search,
       cacheTtl,
     ));
-    const solrResponses = await Promise.all(requests);
+    const totalsRequest = this.solr.post(
+      totalsRequestPayload, this.solr.namespaces.Search, cacheTtl,
+    );
+
+    const solrResponses = await Promise.all(requests.concat([totalsRequest]));
 
     const responsesPromises = ngrams.map((ngram, index) => parseUnigramTrendsResponse(
       solrResponses[index],
@@ -58,7 +75,12 @@ class NgramTrends {
     ));
     const responses = await Promise.all(responsesPromises);
 
-    return mergeResponses(responses);
+    const totalsResponse = getNumbersFromTotalTokensResponse(
+      solrResponses[solrResponses.length - 1], timeInterval,
+    );
+    console.log('**', totalsResponse);
+
+    return mergeResponses(responses, totalsResponse);
   }
 }
 
