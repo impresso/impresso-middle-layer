@@ -23,7 +23,7 @@
   },
   "scripts": {
     "test": "npm run eslint && npm run mocha",
-    "quicktest": "mocha test/hooks --recursive && mocha test/logic --recursive && mocha test/models --recursive && mocha test/util --recursive",
+    "quicktest": "mocha test/hooks --recursive && mocha test/logic --recursive && mocha test/models --recursive && mocha test/util --recursive && mocha test/services/ngram-trends.* --recursive",
     "eslint": "eslint src/. test/. --config .eslintrc.json --fix",
     "start": "node src/",
     "dev": "nodemon src/",
