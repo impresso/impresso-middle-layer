@@ -78,7 +78,6 @@ class NgramTrends {
     const totalsResponse = getNumbersFromTotalTokensResponse(
       solrResponses[solrResponses.length - 1], timeInterval,
     );
-    console.log('**', totalsResponse);
 
     return mergeResponses(responses, totalsResponse);
   }
