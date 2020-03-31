@@ -37,6 +37,7 @@ module.exports = function (app) {
         },
         documentsDateSpan: { firstDate, lastDate },
         newspapers: await getNewspaperIndex(),
+        features: app.get('features') || {},
       };
     },
   });

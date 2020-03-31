@@ -13,6 +13,9 @@
     "unauthorizedIIIFImageUrl": "unauthorized.png",
     "unauthorizedContent": "content not available for unauthenticated users ..."
   },
+  "features": {
+    "textReuse": { "enabled": true }
+  },
   "redis": {
     "enable": true
   },
