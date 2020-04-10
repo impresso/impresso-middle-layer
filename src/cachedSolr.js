@@ -33,7 +33,7 @@ class CachedSolrClient {
     );
   }
 
-  post(request, namespace, ttl) {
+  async post(request, namespace, ttl) {
     const options = ttl != null ? { ttl } : {};
 
     return this.cacheManager.wrap(

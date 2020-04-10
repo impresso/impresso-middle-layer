@@ -1,14 +1,27 @@
-const debug = require('debug')('impresso/services:search-queries-comparison');
+// @ts-check
+// const debug = require('debug')('impresso/services:search-queries-comparison');
 const {
   flatten, values, groupBy,
   uniq, omitBy, isNil,
 } = require('lodash');
+const { BadRequest } = require('@feathersjs/errors')
+const { logic: { filter: { mergeFilters } } } = require('impresso-jscommons');
+const { SolrMappings } = require('../../data/constants');
+
+/**
+ * @typedef {import('./').Response} Response
+ * @typedef {import('./').Request} Request
+ * @typedef {import('./').FacetRequest} FacetRequest
+ * @typedef {import('impresso-jscommons').Filter} Filter
+ * @typedef {import('impresso-jscommons').Facet} Facet
+ */
+
 const {
   getItemsFromSolrResponse,
   getFacetsFromSolrResponse,
   getTotalFromSolrResponse,
 } = require('../search/search.extractors');
-const { sameTypeFiltersToQuery } = require('../../util/solr');
+const { sameTypeFiltersToQuery, filtersToQueryAndVariables } = require('../../util/solr');
 const { SolrNamespaces } = require('../../solr');
 
 // TODO: Do we need to make it configurable in request?
@@ -49,32 +62,90 @@ function intersectionRequestToSolrQuery(request) {
   }, isNil);
 }
 
+/**
+ * @param {Filter[]} filters
+ * @param {FacetRequest[]} facetsRequests
+ * @returns {any}
+ */
+function createQuery(filters, facetsRequests) {
+  const { query, variables } = filtersToQueryAndVariables(filters);
+
+  const facets = facetsRequests.reduce((acc, { type, skip, limit }) => {
+    const facet = SolrMappings.search.facets[type];
+    if (facet == null) throw new BadRequest(`Unknown facet type: "${type}"`);
+
+    return {
+      ...acc,
+      [type]: {
+        ...facet,
+        skip: skip == null ? facet.skip : skip,
+        limit: limit == null ? facet.limit : limit,
+      },
+    };
+  }, {});
+
+  return {
+    query,
+    limit: 0,
+    params: { hl: false, ...variables },
+    facet: facets,
+  };
+}
+
+/**
+ * @param {any} solrResponse
+ * @returns {Promise<Facet[]>}
+ */
+async function getResponseFacetsFromSolrResponse(solrResponse) {
+  const facets = await getFacetsFromSolrResponse(solrResponse);
+  return Object.keys(facets)
+    .filter(type => typeof facets[type] === 'object')
+    .map(type => ({
+      ...facets[type],
+      type,
+    }));
+}
+
 class SearchQueriesComparison {
   setup(app) {
-    this.solrClient = app.get('solrClient');
-    this.articlesService = app.service('articles');
+    // this.solrClient = app.get('solrClient');
+    // this.articlesService = app.service('articles');
 
-    this.handlers = {
-      intersection: this.findIntersectingItemsBetweenQueries.bind(this),
-    };
+    /** @type {import('../../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
+
+    // this.handlers = {
+    //   intersection: this.findIntersectingItemsBetweenQueries.bind(this),
+    // };
   }
 
   /**
-   * Since there are quite a few query parameters we use
-   * "POST" instead of "GET" to avoid running over the URL limit of 2048 characters.
+   * @param {Request} request
+   * @param {{ user: object, authenticated: boolean}} params
+   *
+   * @returns {Promise<Response>}
    */
-  async create(data, params) {
-    const { sanitized: request } = data;
-    const { method = '' } = params.query;
+  async create(request, params) {
     const userInfo = {
       user: params.user,
-      authenticated: params.authenticated,
+      authenticated: !!params.authenticated,
     };
 
-    const handler = this.handlers[method];
+    const intersectionFilters = request.filtersSets
+      .reduce((mergedFilters, filters) => mergeFilters(mergedFilters.concat(filters)));
 
-    debug(`Executing method "${method}" with request: ${JSON.stringify(request)}`);
-    return handler(request, userInfo);
+    const intersectionSolrQuery = createQuery(intersectionFilters, request.facets);
+    const intersectionFacets = await this.solr
+      .post(intersectionSolrQuery, this.solr.namespaces.Search)
+      .then(getResponseFacetsFromSolrResponse);
+
+    console.log(intersectionSolrQuery, intersectionFacets, userInfo);
+
+    return {
+      facetsSets: request.filtersSets.map(() => request.facets
+        .map(({ type }) => ({ type, numBuckets: 0, buckets: [] }))),
+      intersectionFacets,
+    };
   }
 
   /**
