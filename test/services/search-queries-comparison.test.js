@@ -2,6 +2,7 @@ const assert = require('assert');
 const app = require('../../src/app');
 const {
   createSolrQuery,
+  normaliseFacetsInSolrResponse,
 } = require('../../src/services/search-queries-comparison/search-queries-comparison.class');
 
 /**
@@ -89,5 +90,93 @@ describe('createSolrQuery', () => {
 
     const request = createSolrQuery(filters, facetRequests, facetConstraints);
     assert.deepEqual(request, expectedRequest);
+  });
+});
+
+describe('normaliseFacetsInSolrResponse', () => {
+  const testSolrResponse = {
+    response: {
+      numFound: 2143,
+      start: 0,
+      docs: [],
+    },
+    facets: {
+      count: 2143,
+      constrained__person__0: {
+        count: 20,
+      },
+      constrained__person__1: {
+        count: 2143,
+      },
+      year: {
+        numBuckets: 16,
+        buckets: [
+          {
+            val: 1985,
+            count: 3,
+          },
+          {
+            val: 1946,
+            count: 2,
+          },
+        ],
+      },
+    },
+  };
+
+  const testConstraintFacets = /** @type {Facet[]} */ [
+    {
+      type: 'person',
+      buckets: [
+        {
+          val: 'person-b-id',
+        },
+        {
+          val: 'person-c-id',
+        },
+      ],
+    },
+  ];
+
+  const expectedNormalisedResponse = {
+    response: {
+      numFound: 2143,
+      start: 0,
+      docs: [],
+    },
+    facets: {
+      count: 2143,
+      person: {
+        numBuckets: 2,
+        buckets: [
+          {
+            val: 'person-b-id',
+            count: 20,
+          },
+          {
+            val: 'person-c-id',
+            count: 2143,
+          },
+        ],
+      },
+      year: {
+        numBuckets: 16,
+        buckets: [
+          {
+            val: 1985,
+            count: 3,
+          },
+          {
+            val: 1946,
+            count: 2,
+          },
+        ],
+      },
+    },
+  };
+
+  it('normalises facets', () => {
+    const response = normaliseFacetsInSolrResponse(testSolrResponse, testConstraintFacets);
+    assert.deepEqual(response, expectedNormalisedResponse);
   });
 });
