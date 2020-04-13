@@ -164,16 +164,10 @@ class SearchQueriesComparison {
 
   /**
    * @param {Request} request
-   * @param {{ user: object, authenticated: boolean}} params
    *
    * @returns {Promise<Response>}
    */
-  async create(request, params) {
-    const userInfo = {
-      user: params.user,
-      authenticated: !!params.authenticated,
-    };
-
+  async create(request) {
     const intersectionFilters = request.filtersSets
       .reduce((mergedFilters, filters) => mergeFilters(mergedFilters.concat(filters)));
 
@@ -193,7 +187,7 @@ class SearchQueriesComparison {
     return {
       facetsSets: otherQueriesFacets,
       intersectionFacets,
-      facetsIds: request.facets.map(({ type }) => type)
+      facetsIds: request.facets.map(({ type }) => type),
     };
   }
 }
