@@ -22,6 +22,12 @@
       "items": {
         "$ref": "#/definitions/facet"
       }
+    },
+    "facetsIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "definitions": {
@@ -49,6 +55,7 @@
   },
   "required": [
     "facetsSets",
-    "intersectionFacets"
+    "intersectionFacets",
+    "facetsIds"
   ]
 }

@@ -195,6 +195,7 @@ class SearchQueriesComparison {
     return {
       facetsSets: otherQueriesFacets,
       intersectionFacets,
+      facetsIds: request.facets.map(({ type }) => type)
     };
   }
 }

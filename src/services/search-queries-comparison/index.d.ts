@@ -16,4 +16,5 @@ export interface Request {
 export interface Response {
   facetsSets: Facet[][]
   intersectionFacets: Facet[]
+  facetsIds: string[]
 }
