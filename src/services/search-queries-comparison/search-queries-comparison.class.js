@@ -190,8 +190,6 @@ class SearchQueriesComparison {
       .then(response => normaliseFacetsInSolrResponse(response, intersectionFacets))
       .then(getResponseFacetsFromSolrResponse)));
 
-    console.log(intersectionSolrQuery, intersectionFacets, userInfo, otherQueries);
-
     return {
       facetsSets: otherQueriesFacets,
       intersectionFacets,
