@@ -195,6 +195,9 @@
   "recommender": {
     "byTopics": {
       "endpoint": "https://.../similar"
+    },
+    "articles": {
+      "endpoint": "https://.../recsys"
     }
   }
 }
