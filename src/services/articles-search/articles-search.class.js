@@ -1,4 +1,10 @@
 // @ts-check
+const {
+  relevanceContextItemsToSolrFormula,
+  buildSolrQuery,
+} = require('./logic');
+const { SolrNamespaces } = require('../../solr');
+const { filtersToQueryAndVariables } = require('../../util/solr');
 
 /**
  * @typedef {import('impresso-jscommons').Filter} Filter
@@ -19,6 +25,16 @@ class ArticlesSearch {
    */
   async create({ relevanceContext = {}, filters = [] }) {
     console.log(relevanceContext, filters);
+    const items = relevanceContext.items == null
+      ? []
+      : relevanceContext.items;
+
+    const { query } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
+    const relevanceScoreVariable = relevanceContextItemsToSolrFormula(items);
+
+    const solrQuery = buildSolrQuery(query, relevanceScoreVariable);
+    console.log('SQ', solrQuery);
+
     return [];
   }
 }

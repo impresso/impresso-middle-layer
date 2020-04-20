@@ -81,7 +81,6 @@ function itemContextFormula(type, { entities }) {
 }
 
 /**
- *
  * @param {RelevanceContextItem} relevanceContextItem
  * @returns {string}
  */
@@ -96,7 +95,30 @@ function relevanceContextItemToSolrFormula({ type, parameters, weight }) {
   return `mul(${parametersFormula},${weight})`.replace(/[\s\n]/g, '');
 }
 
+/**
+ * @param {RelevanceContextItem[]} relevanceContextItems
+ * @returns {string}
+ */
+function relevanceContextItemsToSolrFormula(relevanceContextItems) {
+  const items = relevanceContextItems.map(relevanceContextItemToSolrFormula);
+  if (items.length === 0) return '1.0';
+  if (items.length === 1) return items[0];
+  return `sum(${items.join(',')})`;
+}
+
+/**
+ *
+ * @param {string} query
+ * @param {string} scroingVariable
+ * @returns {any}
+ */
+function buildSolrQuery(query, scroingVariable) {
+  return '';
+}
+
 module.exports = {
   relevanceContextItemToSolrFormula,
+  relevanceContextItemsToSolrFormula,
+  buildSolrQuery,
   RelevanceContextItemTypes,
 };
