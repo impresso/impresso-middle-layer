@@ -33,74 +33,38 @@ class Service {
     return user.toJSON({ groups });
   }
 
-  async create(data, params) {
+  async create(data, params = {}) {
     // prepare empty user.
     const user = new User();
-    // case 1:
-    if (data.sanitized.email && data.sanitized.password && data.sanitized.username) {
-      user.password = User.buildPassword({
-        password: data.sanitized.password,
-      });
-      user.email = data.sanitized.email;
-      user.username = data.sanitized.username;
-      user.isActive = !!(params && params.user && params.user.is_staff);
+    user.password = User.buildPassword({
+      password: data.sanitized.password,
+    });
+    user.email = data.sanitized.email;
+    user.username = data.sanitized.username;
+    user.firstname = data.sanitized.firstname;
+    user.lastname = data.sanitized.lastname;
+    // if the request comes from a staff user
+    user.isActive = params.user && params.user.is_staff;
+    // create user
+    const createdUser = await this.sequelizeKlass
+      .create(user)
+      .catch(sequelizeErrorHandler);
 
-      // create user
-      const createdUser = await this.sequelizeKlass
-        .create(user)
-        .catch(sequelizeErrorHandler);
+    debug('[create] user created!', createdUser.id);
+    // N.B. sequelize profile uid is the user uid.
+    user.profile.provider = 'local';
+    user.profile.uid = `local-${nanoid(8)}`; //= > "7hy8hvrX"
+    user.profile.displayName = data.sanitized.displayName;
+    user.uid = user.profile.uid;
+    user.id = createdUser.id;
 
-      debug('create: user created!', createdUser.id);
-      // N.B. sequelize profile uid is the user uid.
-      user.profile.provider = 'local';
-      user.profile.uid = `local-${nanoid(8)}`; //= > "7hy8hvrX"
-      user.uid = user.profile.uid;
-      user.id = createdUser.id;
-
-      await Profile.sequelize(this.sequelizeClient)
-        .create({
-          ...user.profile,
-          user_id: createdUser.id,
-        })
-        .catch(sequelizeErrorHandler);
-
-      // await this._run(this.queries.create, {
-      //   ...data.sanitized,
-      //   ...user,
-      //   provider: user.profile.provider,
-      // }).then(res =>
-      // // console.log(res.records, res);
-      //   res.records.map(neo4jRecordMapper).map(d => ({
-      //     ...d,
-      //     id: d.id,
-      //   })));
-
-      debug(`create user: ${user.uid} success`);
-    }
-    // if (params.oauth && params.oauth.provider === 'github' && data.github) {
-    //   // github oauth success, the github object is filled with interesting data.
-    //   user.uid = `github-${data.githubId}`;
-    //   user.provider = 'github';
-    //   user.username = data.github.profile.username;
-    //   user.password = '';
-    //   user.displayname = data.github.profile.displayName;
-    //   user.picture = data.github.profile.photos.map(d => d.value);
-    // } else if (data.sanitized.email && data.sanitized.password && data.sanitized.username) {
-    //   user.uid = `local-${shorthash(data.sanitized.username)}`; // uid is enforced
-    //   user.provider = 'local';
-    //   user.username = data.sanitized.username;
-    //   Object.assign(user, encrypt(data.sanitized.password));
-    // } else {
-    //   throw new BadRequest({
-    //     message: 'MissingParameters',
-    //   });
-    // }
-    //
-
-
-    //
-    // return result;
-    // return data;
+    await Profile.sequelize(this.sequelizeClient)
+      .create({
+        ...user.profile,
+        user_id: createdUser.id,
+      })
+      .catch(sequelizeErrorHandler);
+    debug(`[create] user with profile: ${user.uid} success`);
     return user;
   }
 
