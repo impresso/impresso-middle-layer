@@ -106,15 +106,36 @@ function relevanceContextItemsToSolrFormula(relevanceContextItems) {
   return `sum(${items.join(',')})`;
 }
 
+const DefaultArticleFields = [
+  'id',
+  'rc_plain',
+  'lg_s',
+];
+
+const CustomScoringField = 'customScore';
+
 /**
- *
+ * Build Solr POST search request payload.
  * @param {string} query
  * @param {string} scroingVariable
+ * @param {{ skip?: number, limit?: number, orderBy?: number }} options
  * @returns {any}
  */
-function buildSolrQuery(query, scroingVariable) {
-  console.info(query, scroingVariable);
-  return '';
+function buildSolrQuery(query, scroingVariable, options = {}) {
+  return {
+    query,
+    fields: DefaultArticleFields.concat([`$${CustomScoringField}`]),
+    sort: `$${CustomScoringField} desc`,
+    start: options.skip,
+    rows: options.limit,
+    params: {
+      hl: true,
+      'hl.fl': 'content_txt_*',
+      'hl.snippets': 10,
+      'hl.fragsize': 100,
+      [CustomScoringField]: scroingVariable,
+    },
+  };
 }
 
 module.exports = {

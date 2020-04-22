@@ -24,7 +24,6 @@ class ArticlesSearch {
    * @param {{ relevanceContext?: RelevanceContext, filters: Filter[] }} payload
    */
   async create({ relevanceContext = {}, filters = [] }) {
-    console.log(relevanceContext, filters);
     const items = relevanceContext.items == null
       ? []
       : relevanceContext.items;
@@ -34,6 +33,8 @@ class ArticlesSearch {
 
     const solrQuery = buildSolrQuery(query, relevanceScoreVariable);
     console.log('SQ', solrQuery);
+    const result = await this.solr.post(solrQuery, SolrNamespaces.Search);
+    console.log('SR', result);
 
     return [];
   }
