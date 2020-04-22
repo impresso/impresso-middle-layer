@@ -1,0 +1,9 @@
+{
+  "diff": true,
+  "package": "./package.json",
+  "reporter": "spec",
+  "ui": "bdd",
+  "recursive": true,
+  "watch-files": ["src/**/*.js", "test/**/*.js"],
+  "ignore": ["node_modules"]
+}

@@ -1,6 +1,5 @@
 const debug = require('debug')('impresso/services:search');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
-const solr = require('../../solr');
 const sequelize = require('../../sequelize');
 
 const Article = require('../../models/articles.model');

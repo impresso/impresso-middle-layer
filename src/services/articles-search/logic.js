@@ -113,6 +113,7 @@ function relevanceContextItemsToSolrFormula(relevanceContextItems) {
  * @returns {any}
  */
 function buildSolrQuery(query, scroingVariable) {
+  console.info(query, scroingVariable);
   return '';
 }
 

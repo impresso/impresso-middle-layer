@@ -1,5 +1,4 @@
 const assert = require('assert');
-const app = require('../../src/app');
 const {
   createSolrQuery,
   normaliseFacetsInSolrResponse,
@@ -11,13 +10,6 @@ const {
  * @typedef {import('impresso-jscommons').Bucket} Bucket
  * @typedef {import('../../src/services/search-queries-comparison').FacetRequest} FacetRequest
  */
-
-describe('\'search-queries-comparison\' service', () => {
-  it('registered the service', () => {
-    const service = app.service('search-queries-comparison');
-    assert.ok(service, 'Registered the service');
-  });
-});
 
 describe('createSolrQuery', () => {
   it('creates a query without constraints', () => {
