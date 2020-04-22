@@ -26,6 +26,7 @@
     "test-watch": "mocha 'test/**/*.test.js' --watch",
     "integration-test": "NODE_ENV=test mocha --config ./.mocharc-integration.json 'test/integration/**/*.test.js'",
     "eslint": "eslint src/. test/. --config .eslintrc.json --fix",
+    "lint": "eslint src/. test/. --config .eslintrc.json",
     "start": "node src/",
     "dev": "nodemon src/",
     "cli": "node src/admin/cli.js",
