@@ -118,7 +118,7 @@ const CustomScoringField = 'customScore';
  * Build Solr POST search request payload.
  * @param {string} query
  * @param {string} scroingVariable
- * @param {{ skip?: number, limit?: number, orderBy?: number }} options
+ * @param {{ skip?: number, limit?: number }} options
  * @returns {any}
  */
 function buildSolrQuery(query, scroingVariable, options = {}) {
@@ -138,9 +138,27 @@ function buildSolrQuery(query, scroingVariable, options = {}) {
   };
 }
 
+/**
+ * Add score to article items
+ * @param {any} solrResponse
+ */
+function withScore(solrResponse) {
+  const itemIdToScore = solrResponse.response.docs
+    .reduce((acc, doc) => ({ ...acc, [doc.id]: doc[`$${CustomScoringField}`] }), {});
+
+  return (articleItem) => {
+    const score = itemIdToScore[articleItem.uid];
+    return {
+      ...articleItem,
+      score,
+    };
+  };
+}
+
 module.exports = {
   relevanceContextItemToSolrFormula,
   relevanceContextItemsToSolrFormula,
   buildSolrQuery,
   RelevanceContextItemTypes,
+  withScore,
 };

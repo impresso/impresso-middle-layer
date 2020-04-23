@@ -1,5 +1,5 @@
 const { validateWithSchema } = require('../../hooks/schema');
-
+const { authenticate } = require('../../hooks/authenticate');
 
 module.exports = {
   before: {
@@ -8,6 +8,9 @@ module.exports = {
     get: [],
     create: [
       validateWithSchema('services/articles-search/schema/create/payload.json'),
+      authenticate('jwt', {
+        allowUnauthenticated: true,
+      }),
     ],
     update: [],
     patch: [],

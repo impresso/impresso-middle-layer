@@ -16,6 +16,20 @@
       "items": {
         "$ref": "#/definitions/relevanceContextItem"
       }
+    },
+    "pagination": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skip": {
+          "type": "integer",
+          "description": "Number of articles to skip"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Number of articles to return"
+        }
+      }
     }
   },
   "required": [],
