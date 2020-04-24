@@ -57,6 +57,16 @@ class Profile {
         defaultValue: false,
         field: 'email_accepted',
       },
+      maxLoopsAllowed: {
+        type: DataTypes.INTEGER,
+        defaultValue: 100,
+        field: 'max_loops_allowed',
+      },
+      maxParallelJobs: {
+        type: DataTypes.INTEGER,
+        defaultValue: 2,
+        field: 'max_parallel_jobs',
+      },
     });
   }
 }

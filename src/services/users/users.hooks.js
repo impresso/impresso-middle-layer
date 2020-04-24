@@ -2,7 +2,7 @@ const { protect } = require('@feathersjs/authentication-local').hooks;
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   queryWithCommonParams, validate, VALIDATE_OPTIONAL_UID, VALIDATE_OPTIONAL_GITHUB_ID,
-  VALIDATE_OPTIONAL_EMAIL, VALIDATE_OPTIONAL_PASSWORD, REGEX_SLUG,
+  VALIDATE_OPTIONAL_EMAIL, VALIDATE_EMAIL, VALIDATE_PASSWORD,VALIDATE_OPTIONAL_PASSWORD, REGEX_SLUG,
 } = require('../../hooks/params');
 
 
@@ -24,16 +24,28 @@ module.exports = {
 
     ],
     create: [
-      authenticate('jwt'), // comment to activate public subscriptions
+      // authenticate('jwt'), // comment to activate public subscriptions
       validate({
         username: {
-          required: false,
+          required: true,
           regex: REGEX_SLUG,
           max_length: 100,
         },
-        ...VALIDATE_OPTIONAL_EMAIL,
-        ...VALIDATE_OPTIONAL_PASSWORD,
-        ...VALIDATE_OPTIONAL_GITHUB_ID,
+        firstname: {
+          required: true,
+          max_length: 30,
+        },
+        lastname: {
+          required: true,
+          max_length: 150,
+        },
+        displayName: {
+          required: true,
+          max_length: 100,
+        },
+        ...VALIDATE_EMAIL,
+        ...VALIDATE_PASSWORD,
+        // ...VALIDATE_OPTIONAL_GITHUB_ID,
       }, 'POST'),
     ],
     update: [
