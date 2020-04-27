@@ -22,10 +22,6 @@ export interface RelevanceContextItem {
   weight?: number
 }
 
-export interface RelevanceContext {
-  items?: RelevanceContextItem[]
-}
-
 export interface Pagination {
   skip?: number
   limit?: number

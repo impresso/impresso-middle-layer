@@ -13,7 +13,7 @@ const {
 
 /**
  * @typedef {import('impresso-jscommons').Filter} Filter
- * @typedef {import('.').RelevanceContext} RelevanceContext
+ * @typedef {import('.').RelevanceContextItem} RelevanceContextItem
  * @typedef {import('.').Pagination} Pagination
  */
 
@@ -29,15 +29,13 @@ class ArticlesSearch {
    * Return articles that match filters constraints. Articles
    * are sorted by relevance calculated from the context.
    * @param {{
-   *  relevanceContext?: RelevanceContext,
+   *  relevanceContext?: RelevanceContextItem[],
    *  filters: Filter[],
    *  pagination: Pagination
    * }} payload
    */
-  async create({ relevanceContext = {}, filters = [], pagination = {} }, params) {
-    const items = relevanceContext.items == null
-      ? []
-      : relevanceContext.items;
+  async create({ relevanceContext = [], filters = [], pagination = {} }, params) {
+    const items = relevanceContext == null ? [] : relevanceContext;
 
     const { query } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
     const relevanceScoreVariable = relevanceContextItemsToSolrFormula(items);
