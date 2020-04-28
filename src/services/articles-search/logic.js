@@ -156,8 +156,8 @@ function buildSolrQuery(query, scroingVariable, options = {}) {
     query,
     fields: DefaultArticleFields.concat([`$${CustomScoringField}`]),
     sort: `$${CustomScoringField} desc`,
-    start: options.skip,
-    rows: options.limit,
+    offset: options.skip,
+    limit: options.limit,
     params: {
       hl: true,
       'hl.fl': 'content_txt_*',
