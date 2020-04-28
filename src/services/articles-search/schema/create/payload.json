@@ -40,7 +40,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["timeRange", "locations", "persons", "topics"],
+          "enum": ["timeRange", "locations", "persons", "topics", "textReuseClusters"],
           "description": "Type of the context item"
         },
         "parameters": {

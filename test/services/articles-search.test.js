@@ -155,4 +155,36 @@ describe('logic', () => {
       });
     });
   });
+
+  describe('"textReuseClusters" relevance context', () => {
+    it('creates correct formula with 2 items', () => {
+      const testContext = {
+        type: RelevanceContextItemTypes.TextReuseClusters,
+        weight: 1.3,
+        parameters: {
+          entities: [
+            { id: 'id-a', weight: 2.5 },
+            { id: 'id-b', weight: 0.2 },
+          ],
+        },
+      };
+      const expectedFormula = `
+        mul(
+          sum(
+            mul(
+              exists(query({!df=cluster_id_ss v=id-a})),
+              2.5
+            ),
+            mul(
+              exists(query({!df=cluster_id_ss v=id-b})),
+              0.2
+            )
+          ),
+          1.3
+        )`.replace(/(\s+\n)|(\n\s+)|(\n)/g, '');
+
+      const formula = relevanceContextItemToSolrFormula(testContext);
+      assert.equal(formula, expectedFormula);
+    });
+  });
 });

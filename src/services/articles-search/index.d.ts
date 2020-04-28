@@ -14,7 +14,7 @@ export interface ItemContextParameters {
   entities: ItemContextEntity[]
 }
 
-export type RelevanceContextItemType = 'timeRange' | 'locations' | 'persons' | 'topics'
+export type RelevanceContextItemType = 'timeRange' | 'locations' | 'persons' | 'topics' | 'textReuseClusters'
 
 export interface RelevanceContextItem {
   type: RelevanceContextItemType

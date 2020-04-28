@@ -12,6 +12,7 @@ const RelevanceContextItemTypes = Object.freeze({
   Locations: /** @type {RelevanceContextItemType} */ ('locations'),
   Persons: /** @type {RelevanceContextItemType} */ ('persons'),
   Topics: /** @type {RelevanceContextItemType} */ ('topics'),
+  TextReuseClusters: /** @type {RelevanceContextItemType} */ ('textReuseClusters'),
 });
 
 /** @type {{ [key: string]: string }} */
@@ -20,6 +21,7 @@ const ContextTypeSolrFields = Object.freeze({
   locations: 'loc_entities_dpfs',
   persons: 'pers_entities_dpfs',
   topics: 'topics_dpfs',
+  textReuseClusters: 'cluster_id_ss',
 });
 
 /**
@@ -81,6 +83,28 @@ function itemContextFormula(type, { entities }) {
 }
 
 /**
+ * @param {RelevanceContextItemType} type
+ * @param {ItemContextParameters} itemContextParameters
+ * @returns {string}
+ */
+function textReuseItemContextFormula(type, { entities }) {
+  const solrField = ContextTypeSolrFields[type];
+  const items = entities.map(entity => `
+    mul(
+      exists(query({!df=${solrField} v=${entity.id}})),
+      ${entity.weight}
+    )`);
+
+  if (items.length > 1) {
+    return `sum(${items.join(',')})`;
+  }
+  if (items.length === 1) {
+    return items[0];
+  }
+  return '1.0';
+}
+
+/**
  * @param {RelevanceContextItem} relevanceContextItem
  * @returns {string}
  */
@@ -91,10 +115,14 @@ function relevanceContextItemToSolrFormula({ type, parameters, weight }) {
 
   if (type === RelevanceContextItemTypes.TimeRange) {
     parametersFormula = timeRangeFormula(/** @type {TimeRangeContextParameters} */ (parameters));
+  } else if (type === RelevanceContextItemTypes.TextReuseClusters) {
+    parametersFormula = textReuseItemContextFormula(
+      type, /** @type {ItemContextParameters} */ (parameters),
+    );
   } else {
     parametersFormula = itemContextFormula(type, /** @type {ItemContextParameters} */ (parameters));
   }
-  return `mul(${parametersFormula},${w})`.replace(/[\s\n]/g, '');
+  return `mul(${parametersFormula},${w})`.replace(/(\s+\n)|(\n\s+)|(\n)/g, '');
 }
 
 /**
