@@ -1,3 +1,5 @@
+// @ts-check
+const { default: fetch } = require('node-fetch');
 const rp = require('request-promise');
 const debug = require('debug')('impresso/solr');
 const lodash = require('lodash');
@@ -338,18 +340,58 @@ const findAll = (config, params = {}, factory) => {
   });
 };
 
+const buildAuthHeaders = (auth) => {
+  const authString = `${auth.user}:${auth.pass}`;
+
+  return {
+    Authorization: `Basic ${Buffer.from(authString).toString('base64')}`,
+  };
+};
+
+/**
+ * Transform Solr response to a JavaScript object.
+ * Impresso Solr comes with a plug-in that creates duplicate "highlighting" keys
+ * in Solr response. To get around this issue we detect duplicate fields and replace
+ * one of them with "fragments".
+ * @param {string} text
+ * @returns {any}
+ */
+const transformSolrResponse = (text) => {
+  const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/mg);
+  const replacedText = matches && matches.length > 1
+    ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{')
+    : text;
+
+  return JSON.parse(replacedText);
+};
+
+const checkFetchResponseStatus = async (res) => {
+  if (res.ok) return res;
+  const error = new Error(res.statusText);
+  // @ts-ignore
+  error.response = {
+    statusCode: res.status,
+    body: await res.text(),
+  };
+  throw error;
+};
+
 const requestPostRaw = (config, payload, namespace = 'search') => {
   const { endpoint } = config[namespace];
   const opts = {
     method: 'POST',
-    url: endpoint,
-    auth: config.auth,
-    json: payload,
+    headers: {
+      ...buildAuthHeaders(config.auth),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   };
 
-  return rp(opts).catch((error) => {
-    throw preprocessSolrError(error);
-  });
+  return fetch(endpoint, opts)
+    .then(checkFetchResponseStatus)
+    .then(response => response.text())
+    .then(transformSolrResponse)
+    .catch((error) => { throw preprocessSolrError(error); });
 };
 
 const getRaw = async (config, params, namespace = 'search') => {

@@ -33,4 +33,4 @@ module.exports = function (name) {
 };
 
 module.exports.DataIndex = DataIndex;
-module.exports.statsConfiguration = YAML.parse(readFileSync(`${__dirname}/stats.yml`).toString())
+module.exports.statsConfiguration = YAML.parse(readFileSync(`${__dirname}/stats.yml`).toString());

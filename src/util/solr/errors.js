@@ -9,19 +9,27 @@ const {
  */
 function preprocessSolrError(error) {
   let message = '';
+  let code = error.statusCode;
   try {
     if (typeof error.response.body === 'string') {
-      message = JSON.parse(error.response.body).error.msg.replace(/\n/g, ' ');
+      const body = JSON.parse(error.response.body);
+      code = body.error.code;
+      message = body.error.msg.replace(/\n/g, ' ');
       // Solr parser dump after this line. Not useful.
       message = message.replace(/Was expecting one of:.*/, '');
     } else {
       message = error.response.body.error.msg;
+      code = error.response.body.error.code;
     }
   } catch (e) {
-    message = `${error.response.body.slice(0, 200)}...`;
+    if (error.response) {
+      message = `${error.response.body.slice(0, 200)}...`;
+    } else {
+      message = error.message;
+    }
   }
 
-  if (error.statusCode === 400) return new BadRequest(message);
+  if (code === 400) return new BadRequest(message);
   return new GeneralError(message);
 }
 

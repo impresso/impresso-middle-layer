@@ -92,6 +92,9 @@ indexes:
       regex:
         field: { prefix: content_txt_ }
         rule: regex
+      textReuseCluster:
+        field: cluster_id_ss
+        rule: value
   tr_clusters:
     filters:
       textReuseClusterSize:

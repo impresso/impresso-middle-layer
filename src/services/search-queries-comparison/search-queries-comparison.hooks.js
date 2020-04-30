@@ -8,7 +8,7 @@ module.exports = {
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
-      validateWithSchema('services/search-queries-comparison/schema/post/payload.json')
+      validateWithSchema('services/search-queries-comparison/schema/post/payload.json'),
     ],
   },
 
