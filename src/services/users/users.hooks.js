@@ -2,7 +2,8 @@ const { protect } = require('@feathersjs/authentication-local').hooks;
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   queryWithCommonParams, validate, VALIDATE_OPTIONAL_UID, VALIDATE_OPTIONAL_GITHUB_ID,
-  VALIDATE_OPTIONAL_EMAIL, VALIDATE_EMAIL, VALIDATE_PASSWORD,VALIDATE_OPTIONAL_PASSWORD, REGEX_SLUG,
+  VALIDATE_OPTIONAL_EMAIL, VALIDATE_EMAIL, VALIDATE_PASSWORD, VALIDATE_OPTIONAL_PASSWORD,
+  REGEX_SLUG,
 } = require('../../hooks/params');
 
 
