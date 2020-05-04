@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/text-reuse-clusters/schema/find/response.json",
+  "description": "Response for GET /text-reuse-clusters",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "clusters": {
+      "type": "array",
+      "minimum": 0,
+      "items": {
+	"$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/text-reuse-clusters/schema/get/response.json"
+      }
+    },
+    "info": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json"
+    }
+  },
+  "required": [
+    "clusters",
+    "info"
+  ]
+}

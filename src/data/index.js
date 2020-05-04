@@ -1,6 +1,7 @@
-/* eslint global-require: "off" */
-/* eslint import/no-dynamic-require: "off" */
+// @ts-check
 const debug = require('debug')('impresso/data');
+const YAML = require('yaml');
+const { readFileSync } = require('fs');
 
 class DataIndex {
   constructor({
@@ -9,6 +10,7 @@ class DataIndex {
     this.name = String(name);
     debug('init index for', this.name);
     try {
+      // eslint-disable-next-line global-require, import/no-dynamic-require
       this.values = require(`../../data/${this.name}.json`);
       debug('init index for', this.name, 'success');
     } catch (e) {
@@ -31,3 +33,4 @@ module.exports = function (name) {
 };
 
 module.exports.DataIndex = DataIndex;
+module.exports.statsConfiguration = YAML.parse(readFileSync(`${__dirname}/stats.yml`).toString());

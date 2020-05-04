@@ -1,7 +1,9 @@
+// @ts-check
+const { default: fetch } = require('node-fetch');
 const rp = require('request-promise');
-const { NotImplemented } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/solr');
 const lodash = require('lodash');
+const { preprocessSolrError } = require('./util/solr/errors');
 
 const update = (config, params = {}) => {
   const p = {
@@ -32,6 +34,8 @@ const update = (config, params = {}) => {
   }).then((res) => {
     debug('update received', res);
     return 'ok';
+  }).catch((error) => {
+    throw preprocessSolrError(error);
   });
 };
 
@@ -87,13 +91,11 @@ const suggest = (config, params = {}, factory) => {
         .value();
     }
     return lodash.take(results.suggestions, qs.rows);
-  }).catch((err) => {
-    console.error(err);
-    throw new NotImplemented();
-    // throw feathers errors here.
+  }).catch((error) => {
+    throw preprocessSolrError(error);
   });
 };
-//
+// TODO: `factory` is not used
 const findAllPost = (config, params = {}, factory) => {
   const qp = {
     q: '*:*',
@@ -194,10 +196,8 @@ const findAllPost = (config, params = {}, factory) => {
       result.response.docs = result.response.docs.map(factory(result));
     }
     return result;
-  }).catch((err) => {
-    debug(`[findAllPost][${qp.requestOriginalPath}] error!`);
-    console.error(err);
-    throw new NotImplemented();
+  }).catch((error) => {
+    throw preprocessSolrError(error);
   });
 };
 
@@ -313,7 +313,6 @@ const findAll = (config, params = {}, factory) => {
     opts.qs = qs;
   }
 
-
   debug(`[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With 'qs':`, JSON.stringify(opts.qs));
   debug(`[findAll][${_params.requestOriginalPath}]: url`, endpoint);
   return rp(opts).then((res) => {
@@ -336,24 +335,63 @@ const findAll = (config, params = {}, factory) => {
       result.response.docs = result.response.docs.map(factory(result));
     }
     return result;
-  }).catch((err) => {
-    debug(`[findAll][${_params.requestOriginalPath}] error`);
-    console.error(err);
-    throw new NotImplemented();
-    // throw feathers errors here.
+  }).catch((error) => {
+    throw preprocessSolrError(error);
   });
+};
+
+const buildAuthHeaders = (auth) => {
+  const authString = `${auth.user}:${auth.pass}`;
+
+  return {
+    Authorization: `Basic ${Buffer.from(authString).toString('base64')}`,
+  };
+};
+
+/**
+ * Transform Solr response to a JavaScript object.
+ * Impresso Solr comes with a plug-in that creates duplicate "highlighting" keys
+ * in Solr response. To get around this issue we detect duplicate fields and replace
+ * one of them with "fragments".
+ * @param {string} text
+ * @returns {any}
+ */
+const transformSolrResponse = (text) => {
+  const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/mg);
+  const replacedText = matches && matches.length > 1
+    ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{')
+    : text;
+
+  return JSON.parse(replacedText);
+};
+
+const checkFetchResponseStatus = async (res) => {
+  if (res.ok) return res;
+  const error = new Error(res.statusText);
+  // @ts-ignore
+  error.response = {
+    statusCode: res.status,
+    body: await res.text(),
+  };
+  throw error;
 };
 
 const requestPostRaw = (config, payload, namespace = 'search') => {
   const { endpoint } = config[namespace];
   const opts = {
     method: 'POST',
-    url: endpoint,
-    auth: config.auth,
-    json: payload,
+    headers: {
+      ...buildAuthHeaders(config.auth),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   };
 
-  return rp(opts);
+  return fetch(endpoint, opts)
+    .then(checkFetchResponseStatus)
+    .then(response => response.text())
+    .then(transformSolrResponse)
+    .catch((error) => { throw preprocessSolrError(error); });
 };
 
 const getRaw = async (config, params, namespace = 'search') => {
@@ -367,7 +405,9 @@ const getRaw = async (config, params, namespace = 'search') => {
     json: true,
   };
 
-  return rp(options);
+  return rp(options).catch((error) => {
+    throw preprocessSolrError(error);
+  });
 };
 
 /**

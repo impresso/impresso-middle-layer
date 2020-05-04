@@ -1,6 +1,8 @@
+// @ts-check
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const readFile = util.promisify(require('fs').readFile);
+const newspapersIndex = require('../../data')('newspapers');
 
 const PackageJsonPath = `${__dirname}/../../../package.json`;
 
@@ -26,13 +28,45 @@ async function getGitRevision() {
 
 async function getVersion() {
   return readFile(PackageJsonPath)
-    .then(JSON.parse)
+    .then(content => JSON.parse(content.toString()))
     .then(({ version }) => version)
     .catch(() => 'N/A');
+}
+
+
+const getSingleDocumentQuery = isFirstDocument => ({
+  q: '*:*',
+  rows: 1,
+  sort: `meta_date_dt ${isFirstDocument ? 'asc' : 'desc'}`,
+});
+
+const searchResponseToDate = response => response.response.docs[0].meta_date_dt;
+
+/**
+ * @param {import('../../cachedSolr').CachedSolrClient} solr
+ */
+async function getFirstAndLastDocumentDates(solr) {
+  const results = await Promise.all([
+    getSingleDocumentQuery(true),
+    getSingleDocumentQuery(false),
+  ].map(query => solr.get(query, solr.namespaces.Search, solr.ttl.Long)));
+  return results.map(searchResponseToDate);
+}
+
+async function getNewspaperIndex() {
+  return Object.values(newspapersIndex.values)
+    .reduce((index, newspaper) => {
+      index[newspaper.uid] = {
+        name: newspaper.name,
+      };
+      return index;
+    }, {});
 }
 
 module.exports = {
   getGitBranch,
   getGitRevision,
   getVersion,
+  getFirstAndLastDocumentDates,
+  getNewspaperIndex,
 };

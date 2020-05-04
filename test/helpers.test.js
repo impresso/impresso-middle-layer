@@ -187,7 +187,7 @@ describe('should latinise a text', () => {
 });
 
 describe('should cut a text around the annotation', () => {
-  it('cut around Navin', () => {
+  xit('cut around Navin', () => {
     const text = 'Im Escher Tageblatt stand es geschlieben, daß der Nechtssozialist Arthur Nozier uuter den Auspizien des demokratischen Blattes einen Vortrag, m...';
     assert.strictEqual(' Nechtssozialist Arthur <span ref="match">Nozier</span> uuter den Auspizien des', toTextWrap({
       text,

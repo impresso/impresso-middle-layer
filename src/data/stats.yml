@@ -1,0 +1,100 @@
+indexes:
+  # index ID
+  search:
+    facets:
+      # term facets for which we do count of articles
+      # these facets can also be used as domain
+      term:
+        # facet ID
+        newspaper:
+          # Solr field
+          field: meta_journal_s
+          # Limit of buckets returned
+          limit: 100
+        country:
+          field: meta_country_code_s
+          limit: 10
+        type:
+          field: item_type_s
+          limit: 10
+        topic:
+          field: topics_dpfs
+          limit: 10
+        # TODO: can we expose collections? Should they be limited by user collections only?
+        # collection:
+        #   field: ucoll_ss
+        #   limit: 10
+        language:
+          field: lg_s
+          limit: 10
+        person:
+          field: pers_entities_dpfs
+          limit: 10
+        location:
+          field: loc_entities_dpfs
+          limit: 10
+      # numeric facets for which we calculate statistics
+      numeric:
+        contentLength:
+          field: content_length_i
+        pagesCount:
+          field: nb_pages_i
+      # temporal facets that can be used as a domain
+      temporal:
+        year:
+          field: meta_year_i
+          limit: 400
+        yearAndMonth:
+          field: meta_yearmonth_s
+          limit: 120
+        date:
+          field: meta_date_dt
+          limit: 186
+  tr_clusters:
+    facets:
+      # for term facets we count clusters
+      term:
+        newspaper:
+          field: newspapers_ss
+          limit: 100
+      numeric:
+        textReuseClusterSize:
+          field: cluster_size_l
+        textReuseClusterLexicalOverlap:
+          field: lex_overlap_d
+        textReuseClusterDayDelta:
+          field: day_delta_i
+      temporal:
+        year:
+          field: meta_year_i
+          limit: 400
+        yearAndMonth:
+          field: meta_yearmonth_s
+          limit: 120
+        date:
+          field: meta_date_dt
+          limit: 186
+  tr_passages:
+    facets:
+      # for term facets we count clusters
+      term:
+        newspaper:
+          field: meta_journal_s
+          limit: 100
+      numeric:
+        textReuseClusterSize:
+          field: cluster_size_l
+        textReuseClusterLexicalOverlap:
+          field: cluster_lex_overlap_d
+        textReuseClusterDayDelta:
+          field: cluster_day_delta_i
+      temporal:
+        year:
+          field: meta_year_i
+          limit: 400
+        yearAndMonth:
+          field: meta_yearmonth_s
+          limit: 120
+        date:
+          field: meta_date_dt
+          limit: 186

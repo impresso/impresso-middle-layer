@@ -1,113 +1,199 @@
-const debug = require('debug')('impresso/services:search-queries-comparison');
-const {
-  flatten, values, groupBy,
-  uniq, omitBy, isNil,
-} = require('lodash');
-const {
-  getItemsFromSolrResponse,
-  getFacetsFromSolrResponse,
-  getTotalFromSolrResponse,
-} = require('../search/search.extractors');
-const { sameTypeFiltersToQuery } = require('../../util/solr');
+// @ts-check
 
-// TODO: Do we need to make it configurable in request?
-const DefaultSolrFieldsFilter = ['id', 'pp_plain:[json]', 'lg_s'].join(',');
+// const debug = require('debug')('impresso/services:search-queries-comparison');
+const { BadRequest } = require('@feathersjs/errors');
+const { logic: { filter: { mergeFilters } } } = require('impresso-jscommons');
+const { SolrMappings } = require('../../data/constants');
 
 /**
- * Given comparison request (`https://github.com/impresso/impresso-middle-layer/tree/master/src/services/search-queries-comparison/schema/intersection/post/request.json`),
- * build queries intersection payload for `solrService.findAll`.
- *
- * @param {object} request - comparison request.
- * @return {object} `solrService.findAll` payload.
+ * @typedef {import('./').Response} Response
+ * @typedef {import('./').Request} Request
+ * @typedef {import('./').FacetRequest} FacetRequest
+ * @typedef {import('impresso-jscommons').Filter} Filter
+ * @typedef {import('impresso-jscommons').Facet} Facet
  */
-function intersectionRequestToSolrQuery(request) {
-  const {
-    order_by: orderBy,
-    facets,
-    limit,
-    skip,
-    queries,
-  } = request;
 
-  const allFilters = flatten(queries.map(({ filters }) => filters));
+const {
+  getFacetsFromSolrResponse,
+} = require('../search/search.extractors');
+const { filtersToQueryAndVariables } = require('../../util/solr');
 
-  const filtersGroupsByType = values(groupBy(allFilters, 'type'));
-  const solrQueries = uniq(filtersGroupsByType.map(sameTypeFiltersToQuery));
 
-  const q = solrQueries.join(' AND ');
-  const fl = DefaultSolrFieldsFilter;
+/**
+ * Create SOLR query for getting facets.
+ * There are two types of facet sections in the query: simple and constrained.
+ *
+ * Simple type is a standard "term" facet for a field which returns N top items.
+ *
+ * Constrained type is created when for a certain field we need to retrieve counts
+ * of certain variables provided in buckets of a facet of particular type in `constraintFacets`.
+ * An example of a constrained facet section could be a "person" facet where we want to retrieve
+ * counts of documents that mention persons with IDs "A", "B" and "C". To achieve this we create
+ * a separate facet entry for every person ID. Such entry has a type "query" and a filter ("q")
+ * matching particular ID.
+ *
+ * See unit tests for examples.
+ *
+ * @param {Filter[]} filters
+ * @param {FacetRequest[]} facetsRequests
+ * @param {Facet[]} constraintFacets
+ * @returns {any}
+ */
+function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
+  const { query } = filtersToQueryAndVariables(filters);
 
-  return omitBy({
-    q,
-    order_by: orderBy,
-    facets,
-    limit,
-    skip,
-    fl,
-  }, isNil);
+  const facets = facetsRequests.reduce((acc, { type, skip, limit }) => {
+    const facet = SolrMappings.search.facets[type];
+    if (facet == null) throw new BadRequest(`Unknown facet type: "${type}"`);
+
+    // 1. See if there is a constraint for this particular facet type.
+    const constraintFacet = constraintFacets.find(({ type: facetType }) => facetType === type);
+
+    // 2. If there is a constraint.
+    if (constraintFacet != null) {
+      // Go through every bucket in the constraint
+      return constraintFacet.buckets.reduce((facetAcc, { val }, index) => {
+        // Create a Solr query for this bucket's value.
+        const { query: constraintQuery } = filtersToQueryAndVariables([
+          { type, q: val },
+        ]);
+        // Create a constrained entry in the query.
+        return {
+          ...facetAcc,
+          [`constrained__${type}__${index}`]: {
+            type: 'query',
+            q: constraintQuery,
+          },
+        };
+      }, acc);
+    }
+
+    // 3. Otherwise create a standard facet entry.
+    return {
+      ...acc,
+      [type]: {
+        ...facet,
+        offset: skip == null ? facet.skip : skip,
+        limit: limit == null ? facet.limit : limit,
+      },
+    };
+  }, {});
+
+  return {
+    query,
+    limit: 0,
+    params: { hl: false },
+    facet: facets,
+  };
+}
+
+const ConstrainedFacetRegex = /^constrained__(.+)__(\d+)$/;
+/**
+ * This method normalises SOLR response to a request created with `createSolrQuery`.
+ * There we constrained certain term facets and in this function we normalise these
+ * facets to the standard term facet form that can be understood by facet parsing code.
+ *
+ * See unit tests for examples.
+ *
+ * @param {object} solrResponse
+ * @param {Facet[]} constraintFacets
+ *
+ * @returns {object}
+ */
+function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = []) {
+  const { facets: responseFacets } = solrResponse;
+  const normalisedFacets = Object.keys(responseFacets).reduce((acc, key) => {
+    if (typeof responseFacets[key] !== 'object') return { ...acc, [key]: responseFacets[key] };
+
+    const constrainedFacetMatch = key.match(ConstrainedFacetRegex);
+    if (constrainedFacetMatch == null) return { ...acc, [key]: responseFacets[key] };
+
+    const [, constrainedFacetType, constrainedIndexString] = constrainedFacetMatch;
+    const constrainedIndex = parseInt(constrainedIndexString, 0);
+
+    const constraintFacet = constraintFacets.find(({ type }) => type === constrainedFacetType);
+    if (constraintFacet == null) throw new Error(`Found constrained facet "${constrainedFacetType}" in response but no facet provided for it`);
+
+    const facet = acc[constrainedFacetType] == null
+      ? { numBuckets: 0, buckets: [] }
+      : acc[constrainedFacetType];
+
+    facet.numBuckets += 1;
+    facet.buckets = facet.buckets.concat([{
+      count: responseFacets[key].count,
+      val: constraintFacet.buckets[constrainedIndex].val,
+    }]);
+
+    acc[constrainedFacetType] = facet;
+
+    return acc;
+  }, {});
+
+  return {
+    ...solrResponse,
+    facets: normalisedFacets,
+  };
+}
+
+/**
+ * @param {any} solrResponse
+ * @returns {Promise<Facet[]>}
+ */
+async function getResponseFacetsFromSolrResponse(solrResponse) {
+  const facets = await getFacetsFromSolrResponse(solrResponse);
+  return Object.keys(facets)
+    .filter(type => typeof facets[type] === 'object')
+    .map(type => ({
+      ...facets[type],
+      type,
+    }));
 }
 
 class SearchQueriesComparison {
   setup(app) {
-    this.solrClient = app.get('solrClient');
-    this.articlesService = app.service('articles');
+    // this.solrClient = app.get('solrClient');
+    // this.articlesService = app.service('articles');
 
-    this.handlers = {
-      intersection: this.findIntersectingItemsBetweenQueries.bind(this),
-    };
+    /** @type {import('../../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
+
+    // this.handlers = {
+    //   intersection: this.findIntersectingItemsBetweenQueries.bind(this),
+    // };
   }
 
   /**
-   * Since there are quite a few query parameters we use
-   * "POST" instead of "GET" to avoid running over the URL limit of 2048 characters.
+   * @param {Request} request
+   *
+   * @returns {Promise<Response>}
    */
-  async create(data, params) {
-    const { sanitized: request } = data;
-    const { method = '' } = params.query;
-    const userInfo = {
-      user: params.user,
-      authenticated: params.authenticated,
-    };
+  async create(request) {
+    const intersectionFilters = request.filtersSets
+      .reduce((mergedFilters, filters) => mergeFilters(mergedFilters.concat(filters)));
 
-    const handler = this.handlers[method];
+    const intersectionSolrQuery = createSolrQuery(intersectionFilters, request.facets);
+    const intersectionFacets = await this.solr
+      .post(intersectionSolrQuery, this.solr.namespaces.Search)
+      .then(getResponseFacetsFromSolrResponse);
 
-    debug(`Executing method "${method}" with request: ${JSON.stringify(request)}`);
-    return handler(request, userInfo);
-  }
+    const otherQueries = request.filtersSets
+      .map(filtersSet => createSolrQuery(filtersSet, request.facets, intersectionFacets));
 
-  /**
-   * Execute `intersection` search that returns results which match all provided queries.
-   * @param {object} request - comparison request
-   * @param {object} userInfo - a `{ user, authenticated }` object
-   * @return {object} response body
-   */
-  async findIntersectingItemsBetweenQueries(request, userInfo) {
-    const solrQuery = intersectionRequestToSolrQuery(request);
-    const response = await this.solrClient.findAll(solrQuery);
-
-    const data = await getItemsFromSolrResponse(response, this.articlesService, userInfo);
-    const facets = await getFacetsFromSolrResponse(response);
-    const total = getTotalFromSolrResponse(response);
-
-    const { limit, skip } = request;
+    const otherQueriesFacets = await Promise.all(otherQueries.map(query => this.solr
+      .post(query, this.solr.namespaces.Search)
+      .then(response => normaliseFacetsInSolrResponse(response, intersectionFacets))
+      .then(getResponseFacetsFromSolrResponse)));
 
     return {
-      data,
-      limit,
-      skip,
-      total,
-      info: {
-        responseTime: {
-          solr: response.responseHeader.QTime,
-        },
-        facets,
-      },
+      facetsSets: otherQueriesFacets,
+      intersectionFacets,
+      facetsIds: request.facets.map(({ type }) => type),
     };
   }
 }
 
 module.exports = {
   SearchQueriesComparison,
-  intersectionRequestToSolrQuery,
-  DefaultSolrFieldsFilter,
+  createSolrQuery,
+  normaliseFacetsInSolrResponse,
 };

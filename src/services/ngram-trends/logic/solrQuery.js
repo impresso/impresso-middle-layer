@@ -1,3 +1,4 @@
+// @ts-check
 const moment = require('moment');
 const {
   get, mergeWith, toPairs,
@@ -7,17 +8,20 @@ const {
   filtersToQueryAndVariables,
   ContentLanguages,
 } = require('../../../util/solr');
+const { SolrNamespaces } = require('../../../solr');
 
-const {
-  getFacetsFromSolrResponse,
-} = require('../../../services/search/search.extractors');
-const { SOLR_FACETS } = require('../../../hooks/search');
+const { SolrMappings } = require('../../../data/constants');
+
+const Facets = SolrMappings.search.facets;
 
 const TimeIntervalsFilelds = {
   year: 'meta_year_i',
   month: 'meta_yearmonth_s',
   day: 'meta_date_dt',
 };
+
+const TotalTokensCountFacetField = 'ttc';
+const TokensCountField = 'content_length_i';
 
 // Default facet limit in SOLR is set to 100.
 // We need all data for the stats. -1 means no limit.
@@ -42,7 +46,7 @@ const getStatsFieldString = (languageCode, unigram) =>
  * @return {object} a POST JSON payload for SOLR search endpoint.
  */
 function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInterval = 'year') {
-  const { query, variables } = filtersToQueryAndVariables(filters);
+  const { query, variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
   const timeIntervalField = TimeIntervalsFilelds[timeInterval];
 
   const facetPivots = ContentLanguages
@@ -61,10 +65,39 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
       'stats.field': statsFields,
       stats: true,
       'json.facet': JSON.stringify(facets.reduce((acc, facet) => {
-        acc[facet] = SOLR_FACETS[facet];
+        acc[facet] = Facets[facet];
         return acc;
       }, {})),
       hl: false, // disable duplicate field "highlighting"
+    },
+  };
+}
+
+/**
+ * @param {import('../../../models').Filter[]} filters
+ * @param {'year' | 'month' | 'day'} timeInterval
+ * @returns {any}
+ */
+function unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval = 'year') {
+  const { query, variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
+  const timeIntervalField = TimeIntervalsFilelds[timeInterval];
+
+  return {
+    query,
+    limit: 0,
+    params: {
+      vars: variables,
+      hl: false, // disable duplicate field "highlighting"
+    },
+    facet: {
+      [timeInterval]: {
+        type: 'terms',
+        field: timeIntervalField,
+        limit: DefaultFacetLimit,
+        facet: {
+          [TotalTokensCountFacetField]: `sum(${TokensCountField})`,
+        },
+      },
     },
   };
 }
@@ -96,8 +129,6 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
 
   const domainValues = domainAndValueItems.map(([domain]) => domain);
   const values = domainAndValueItems.map(([, value]) => value);
-  const facets = await getFacetsFromSolrResponse(solrResponse);
-  const time = get(solrResponse, 'responseHeader.QTime');
 
   const total = sum(values);
 
@@ -111,25 +142,38 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
     ],
     domainValues,
     timeInterval,
-    info: {
-      responseTime: {
-        solr: time,
-      },
-      facets,
-    },
   };
+}
+
+/**
+ *
+ * @param {any} response
+ * @returns {{ domain: string, value: number }[]}
+ */
+function getNumbersFromTotalTokensResponse(response, timeInterval = 'year') {
+  const { facets = {} } = response || {};
+  const { buckets = [] } = facets[timeInterval] || {};
+
+  return buckets
+    .map(({ val, [TotalTokensCountFacetField]: value }) => ({ domain: `${val}`, value }))
+    .sort((a, b) => {
+      if (a.domain < b.domain) return -1;
+      if (a.domain > b.domain) return 1;
+      return 0;
+    });
 }
 
 const DaterangeFilterValueRegex = /([^\s]+)\s+TO\s+([^\s]+)/;
 
 function getTimedeltaInDaterangeFilter(daterangeFilter) {
-  const value = daterangeFilter.q[0];
+  const value = Array.isArray(daterangeFilter.q) ? daterangeFilter.q[0] : daterangeFilter.q;
   const matches = DaterangeFilterValueRegex.exec(value);
   if (matches.length !== 3) return undefined;
   if (daterangeFilter.context === 'exclude') return undefined;
 
-  const [fromDate, toDate] = matches.slice(1).map(v => moment.utc(v));
+  const [fromDate, toDate] = [...matches.slice(1)].map(v => moment.utc(v));
   const years = moment.duration(toDate.diff(fromDate)).as('years');
+
   return years;
 }
 
@@ -152,4 +196,6 @@ module.exports = {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
+  unigramTrendsRequestToTotalTokensSolrQuery,
+  getNumbersFromTotalTokensResponse,
 };

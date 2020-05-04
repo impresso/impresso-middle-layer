@@ -107,29 +107,18 @@ app.use(notFound());
 app.use(express.errorHandler({
   json: {
     404: (err, req, res) => {
-      // make sure to strip off the stack trace in production
-      if (process.env.NODE_ENV === 'production') {
-        delete err.stack;
-      } else {
-        console.error('error 404 Not found', err);
-      }
       res.json({ message: 'Not found' });
     },
     500: (err, req, res) => {
       if (process.env.NODE_ENV === 'production') {
         delete err.stack;
       } else {
-        console.error('error 500', err);
+        console.error('Error [500]', err);
       }
       res.json({ message: 'service unavailable' });
     },
     // unauthentified
     401: (err, req, res) => {
-      if (process.env.NODE_ENV === 'production') {
-        delete err.stack;
-      } else {
-        console.error('error 401 Not authentified', err);
-      }
       res.json({
         message: err.message,
         name: err.name,
@@ -141,7 +130,7 @@ app.use(express.errorHandler({
       if (process.env.NODE_ENV === 'production') {
         delete err.stack;
       } else {
-        console.error('error 400 Bad Request', err.data || err);
+        console.error('Error [400]', err.data || err);
       }
       res.json({
         message: err.message || 'Please check request params',

@@ -13,6 +13,9 @@
     "unauthorizedIIIFImageUrl": "unauthorized.png",
     "unauthorizedContent": "content not available for unauthenticated users ..."
   },
+  "features": {
+    "textReuse": { "enabled": true }
+  },
   "redis": {
     "enable": true
   },
@@ -181,11 +184,20 @@
     "embeddings_lb": {
       "alias": "",
       "endpoint": "https://.../select"
+    },
+    "tr_passages": {
+      "endpoint": "https://.../select"
+    },
+    "tr_clusters": {
+      "endpoint": "https://.../select"
     }
   },
   "recommender": {
     "byTopics": {
       "endpoint": "https://.../similar"
+    },
+    "articles": {
+      "endpoint": "https://.../recsys"
     }
   }
 }

@@ -86,7 +86,7 @@ class Service {
     }
 
     const transform = params.query.nameOnly
-      ? c => pick(c, ['name', 'description'])
+      ? c => pick(c, ['uid', 'name', 'description'])
       : identity;
 
     return this.sequelizeService.get(id, {

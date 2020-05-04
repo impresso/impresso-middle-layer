@@ -1,9 +1,36 @@
-/* eslint-disable no-unused-vars */
+// @ts-check
 const lodash = require('lodash');
-const { NotFound, NotImplemented } = require('@feathersjs/errors');
+const { NotFound, NotImplemented, BadRequest } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/services:search-facets');
 const SearchFacet = require('../../models/search-facets.model');
-const { SOLR_FACETS } = require('../../hooks/search');
+const { SolrMappings } = require('../../data/constants');
+
+const getFacetTypes = (typeString, index) => {
+  const validTypes = Object.keys(SolrMappings[index].facets);
+  const types = typeString.split(',');
+
+  types.forEach((type) => {
+    if (!validTypes.includes(type)) {
+      throw new BadRequest(`Unknown facet type in index ${index}: ${type}`);
+    }
+  });
+
+  if (!types.length) {
+    throw new NotFound();
+  } else if (types.length > 2) {
+    // limit number of facets per requests.
+    throw new NotImplemented();
+  }
+  return types;
+};
+
+const getRangeFacetMetadata = (facet) => {
+  if (facet.type !== 'range') return {};
+  return {
+    min: facet.start,
+    max: facet.end,
+  };
+};
 
 class Service {
   constructor({
@@ -12,20 +39,14 @@ class Service {
   }) {
     this.app = app;
     this.name = name;
+
+    /** @type {import('../../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
   }
 
   async get(type, params) {
-    // availabel facet types
-    const validTypes = Object.keys(SOLR_FACETS);
-    // required facet types
-    const types = type.split(',').filter(d => validTypes.indexOf(d) !== -1);
-
-    if (!types.length) {
-      throw new NotFound();
-    } else if (types.length > 2) {
-      // limit number of facets per requests.
-      throw new NotImplemented();
-    }
+    const { index } = params.query;
+    const types = getFacetTypes(type, index);
 
     // init with limit and skip
     const facetsq = {
@@ -42,7 +63,7 @@ class Service {
       .map((d) => {
         const facet = {
           k: d,
-          ...SOLR_FACETS[d],
+          ...SolrMappings[index].facets[d],
           ...facetsq,
         };
         if (type === 'collection') {
@@ -50,22 +71,24 @@ class Service {
         }
         return facet;
       })
-      .keyBy('k').value();
+      .keyBy('k')
+      .mapValues(v => lodash.omit(v, 'k'))
+      .value();
 
-    debug('facets:', facets);
-    // TODO: transform params.query.filters to match solr syntax
-    const result = await this.app.get('solrClient').findAll({
+    const query = {
       q: params.sanitized.sq,
-      facets: JSON.stringify(facets),
-      limit: 0,
-      skip: 0,
-      fl: 'id',
+      'json.facet': JSON.stringify(facets),
+      start: 0,
+      rows: 0,
+      hl: false,
       vars: params.sanitized.sv,
-    });
+    };
+    const result = await this.solr.get(query, index);
 
     return types.map(t => new SearchFacet({
       type: t,
       ...result.facets[t],
+      ...getRangeFacetMetadata(SolrMappings[index].facets[t]),
     }));
   }
 

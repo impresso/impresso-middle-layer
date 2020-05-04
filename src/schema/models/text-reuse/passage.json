@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json",
+  "type": "object",
+  "title": "Text reuse passage",
+  "description": "Represents a passage of text that was identified as a part of a text reuse cluster",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "clusterId"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "title": "Passage ID",
+      "description": "ID of the text reuse passage",
+      "examples": [
+        "abc123"
+      ],
+      "pattern": "^[\\w\\d-_@:]+$"
+    },
+    "clusterId": {
+      "type": "string",
+      "title": "Cluster ID",
+      "description": "ID of the text reuse cluster",
+      "examples": [
+        "abc123"
+      ],
+      "pattern": "^[\\w\\d-_]+$"
+    },
+    "articleId": {
+      "type": "string",
+      "title": "Article ID",
+      "description": "ID of the article where this passage was found",
+      "examples": [
+        "abc123"
+      ],
+      "pattern": "^[\\w\\d-_@]+$"
+    },
+    "offsetStart": {
+      "$ref": "#/definitions/offset"
+    },
+    "offsetEnd": {
+      "$ref": "#/definitions/offset"
+    },
+    "content": {
+      "type": "string",
+      "description": "Textual content of the passage"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title of the content item (article) where this passage was found"
+    },
+    "journalId": {
+      "type": "string",
+      "description": "Newspaper / Journal ID"
+    },
+    "language": {
+      "type": "string",
+      "description": "Language code"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Publication date"
+    },
+    "pageNumbers": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Numbers of the pages spanned by this passage"
+    },
+    "pageRegions": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4
+      },
+      "description": "List of page region boundaries (4 boundaries dimensions per page)"
+    }
+  },
+  "definitions": {
+    "offset": {
+      "type": "integer",
+      "description": "Offset of the passage in the article text",
+      "minimum": 0
+    }
+  }
+}

@@ -1,8 +1,9 @@
 // Application hooks that run for every service
 const debug = require('debug')('impresso/app.hooks');
-const { GeneralError, BadGateway } = require('@feathersjs/errors');
+const { GeneralError, BadGateway, BadRequest } = require('@feathersjs/errors');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { validateRouteId } = require('./hooks/params');
+const { InvalidArgumentError } = require('./util/error');
 
 const basicParams = () => (context) => {
   if (!context.params) {
@@ -34,18 +35,26 @@ const requireAuthentication = ({
   return context;
 };
 
+const LoggingExcludedStatusCodes = [
+  400, 401, 403, 404,
+];
+
 const errorHandler = (ctx) => {
   if (ctx.error) {
     const error = ctx.error;
-    console.error(
-      `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
-      error.stack,
-    );
+    if (!LoggingExcludedStatusCodes.includes(error.code)) {
+      console.error(
+        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
+        error.stack,
+      );
+    }
 
     if (error.name === 'SequelizeConnectionRefusedError') {
       ctx.error = new BadGateway('SequelizeConnectionRefusedError');
     } else if (error.name === 'SequelizeConnectionError') {
       ctx.error = new BadGateway('SequelizeConnectionError');
+    } else if (error instanceof InvalidArgumentError) {
+      ctx.error = new BadRequest(error);
     } else if (!error.code) {
       ctx.error = new GeneralError('server error');
     }

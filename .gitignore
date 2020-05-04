@@ -25,3 +25,4 @@ protected-media
 *.rdb
 
 data/*.json
+development.json

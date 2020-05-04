@@ -36,13 +36,13 @@ async function waterfall() {
       q: `topics_dpfs:${topicUid}`,
       limit: 0,
       skip: 0,
-      fl: '*',
+      fl: 'id',
       facets: JSON.stringify({
         topic: {
           type: 'terms',
           field: 'topics_dpfs',
-          mincount: 1,
-          limit: 10,
+          mincount: 2, // at least 2 in common
+          limit: 20,
           offset: 0,
           numBuckets: true,
         },
@@ -54,6 +54,8 @@ async function waterfall() {
       console.warn('the topic does not seem to exist...', result.facets, result.response);
       topics[topicUid].relatedTopics = [];
     } else {
+      debug(`${result.facets.topic.numBuckets} rels`);
+      topics[topicUid].degree = result.facets.topic.numBuckets;
       topics[topicUid].relatedTopics = result.facets.topic.buckets.map(d => ({
         uid: d.val,
         w: d.count,
