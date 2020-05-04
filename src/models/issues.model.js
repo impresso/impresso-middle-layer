@@ -68,7 +68,7 @@ class Issue {
     return (doc) => {
       const iss = new Issue({
         uid: doc.meta_issue_id_s,
-        cover: doc.page_id_ss[0],
+        cover: doc.page_id_ss ? doc.page_id_ss[0] : undefined,
         newspaper: doc.meta_journal_s,
       });
       return iss;
