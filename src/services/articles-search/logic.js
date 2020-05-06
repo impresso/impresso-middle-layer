@@ -138,7 +138,7 @@ function relevanceContextItemsToSolrFormula(relevanceContextItems) {
 
 const DefaultArticleFields = [
   'id',
-  'rc_plain',
+  'rc_plains',
   'lg_s',
 ];
 
