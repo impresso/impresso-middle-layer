@@ -140,6 +140,12 @@ class Service {
       'rb_plain:[json]',
       'pp_plain:[json]',
       'nem_offset_plain:[json]',
+      // [RK] Note: The content fields below are missing in
+      // `ARTICLE_SOLR_FL_LIST_ITEM`. Not clear what the reason is
+      // but they are certainly needed.
+      'content_txt_fr',
+      'content_txt_en',
+      'content_txt_de',
     ]) : Article.ARTICLE_SOLR_FL;
 
     return Promise.all([
