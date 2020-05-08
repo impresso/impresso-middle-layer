@@ -24,7 +24,8 @@ class CachedSolrClient {
     this.cacheManager = cacheManager;
   }
 
-  get(request, namespace, ttl) {
+
+  get(request, namespace, ttl = undefined) {
     const options = ttl != null ? { ttl } : {};
     return this.cacheManager.wrap(
       getCacheKeyForSolrRequest(request, namespace, false),
@@ -33,7 +34,7 @@ class CachedSolrClient {
     );
   }
 
-  async post(request, namespace, ttl) {
+  async post(request, namespace, ttl = undefined) {
     const options = ttl != null ? { ttl } : {};
 
     return this.cacheManager.wrap(
