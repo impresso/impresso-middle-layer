@@ -24,7 +24,6 @@ class Service {
   } = {}) {
     this.app = app;
     this.solr = app.get('cachedSolr');
-    this.solrDataVersion = app.get('solr').dataVersion;
     this.sequelize = sequelize.client(app.get('sequelize'));
     this.name = name;
   }
@@ -110,13 +109,11 @@ class Service {
    * @param  {object} params query params. Check hhooks
    */
   async find(params) {
-    debug('[find] query:', params.query, params.sanitized.sv, '- data version:', this.solrDataVersion);
+    debug('[find] query:', params.query, params.sanitized.sv);
     const isRaw = params.originalQuery.group_by === 'raw';
     let fl = 'id,pp_plain:[json],lg_s';
 
-    if (this.solrDataVersion > 0) {
-      fl = 'id,rc_plains,lg_s'; // ,pp_plain:[json]';
-    }
+    fl = 'id,rc_plains,lg_s'; // ,pp_plain:[json]';
 
     const solrQuery = {
       q: params.query.sq,

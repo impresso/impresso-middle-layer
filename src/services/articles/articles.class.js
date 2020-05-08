@@ -15,7 +15,6 @@ class Service {
   } = {}) {
     this.name = String(name);
     this.app = app;
-    this.solrDataVersion = app.get('solr').dataVersion;
     this.SequelizeService = SequelizeService({
       app,
       name,
@@ -43,12 +42,9 @@ class Service {
       fl = Article.ARTICLE_SOLR_FL;
     }
 
-    if (this.solrDataVersion > 1.0) {
-      // most complete data
-      fl = Article.ARTICLE_SOLR_FL_LIST_ITEM;
-    }
+    fl = Article.ARTICLE_SOLR_FL_LIST_ITEM;
 
-    debug('[find] use auth user:', params.user ? params.user.uid : 'no user', '- data version:', this.solrDataVersion);
+    debug('[find] use auth user:', params.user ? params.user.uid : 'no user');
     // if(params.isSafe query.filters)
     const results = await this.SolrService.find({
       ...params,
@@ -135,18 +131,18 @@ class Service {
     }
 
     debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found');
-    const fl = this.solrDataVersion > 1.0 ? Article.ARTICLE_SOLR_FL_LIST_ITEM.concat([
+    const fl = Article.ARTICLE_SOLR_FL_LIST_ITEM.concat([
       'lb_plain:[json]',
       'rb_plain:[json]',
       'pp_plain:[json]',
       'nem_offset_plain:[json]',
       // [RK] Note: The content fields below are missing in
-      // `ARTICLE_SOLR_FL_LIST_ITEM`. Not clear what the reason is
-      // but they are certainly needed.
+      // `ARTICLE_SOLR_FL_LIST_ITEM`. They may not be needed in 'find' endpoint
+      // but are certainly needed here.
       'content_txt_fr',
       'content_txt_en',
       'content_txt_de',
-    ]) : Article.ARTICLE_SOLR_FL;
+    ]);
 
     return Promise.all([
       // we perform a solr request to get
