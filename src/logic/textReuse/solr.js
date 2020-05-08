@@ -12,8 +12,10 @@ const PassageFields = {
   OffsetEnd: 'end_offset_i',
   ContentTextFR: 'content_txt_fr',
   ContentTextDE: 'content_txt_de',
+  ContentTextEN: 'content_txt_en',
   TitleTextFR: 'title_txt_fr',
   TitleTextDE: 'title_txt_de',
+  TitleTextEN: 'title_txt_en',
   Date: 'meta_date_dt',
   PageNumbers: 'page_nb_is',
   PageRegions: 'page_regions_plains',
@@ -61,6 +63,11 @@ const DefaultClusterFields = [
   ClusterFields.ClusterSize,
 ];
 
+const getOneOfFieldsValues = (doc, fields) => fields.reduce((pickedItem, field) => {
+  if (pickedItem != null) return pickedItem;
+  return doc[field];
+}, null);
+
 /**
  * Get Solr query parameters for requesting clusters by their Ids.
  * @param {string[]} clusterIds Ids of clusters
@@ -93,8 +100,16 @@ function convertSolrPassageDocToPassage(doc) {
     articleId: get(doc, PassageFields.ContentItemId),
     offsetStart,
     offsetEnd,
-    content: get(doc, PassageFields.ContentTextFR, get(doc, PassageFields.ContentTextDE)),
-    title: get(doc, PassageFields.TitleTextFR, get(doc, PassageFields.TitleTextDE)),
+    content: getOneOfFieldsValues(doc, [
+      PassageFields.ContentTextFR,
+      PassageFields.ContentTextDE,
+      PassageFields.ContentTextEN,
+    ]),
+    title: getOneOfFieldsValues(doc, [
+      PassageFields.TitleTextFR,
+      PassageFields.TitleTextDE,
+      PassageFields.TitleTextEN,
+    ]),
     journalId: get(doc, PassageFields.JournalId),
     language: 'fr',
     date: get(doc, PassageFields.Date),
@@ -125,6 +140,12 @@ function convertClustersSolrResponseToClusters(solrResponse) {
   return get(solrResponse, 'response.docs', []).map(convertSolrClusterToCluster);
 }
 
+const buildContentSearchStatement = text => [
+  PassageFields.ContentTextFR,
+  PassageFields.ContentTextDE,
+  PassageFields.ContentTextEN,
+].map(field => `${field}:"${text}"`).join(' OR ');
+
 /**
  * Build a GET request to find cluster IDs of passages that contain `text`.
  * @param {string} text a text snippet
@@ -133,12 +154,13 @@ function getTextReusePassagesClusterIdsSearchRequestForText(
   text, skip, limit, orderBy, orderByDescending,
 ) {
   const request = {
-    q: text ? `${PassageFields.ContentTextFR}:"${text}"` : '*:*',
+    q: text ? buildContentSearchStatement(text) : '*:*',
     hl: false,
     fl: [
       PassageFields.ClusterId,
       PassageFields.ContentTextFR,
       PassageFields.ContentTextDE,
+      PassageFields.ContentTextEN,
     ].join(','),
     fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
   };
@@ -152,7 +174,12 @@ function getLatestTextReusePassageForClusterIdRequest(clusterId) {
   const request = {
     q: `${PassageFields.ClusterId}:"${clusterId}"`,
     hl: false,
-    fl: [PassageFields.ClusterId, PassageFields.ContentTextFR].join(','),
+    fl: [
+      PassageFields.ClusterId,
+      PassageFields.ContentTextFR,
+      PassageFields.ContentTextDE,
+      PassageFields.ContentTextEN,
+    ].join(','),
     fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
   };
   return request;
@@ -162,7 +189,14 @@ function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
   return get(solrResponse, 'response.docs', [])
     .map(doc => ({
       id: doc[PassageFields.ClusterId],
-      text: doc[PassageFields.ContentTextFR] || doc[PassageFields.ContentTextDE],
+      text: getOneOfFieldsValues(
+        doc,
+        [
+          PassageFields.ContentTextFR,
+          PassageFields.ContentTextDE,
+          PassageFields.ContentTextEN,
+        ],
+      ),
     }));
 }
 
