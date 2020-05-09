@@ -17,7 +17,6 @@ module.exports = function (app) {
 
       return {
         solr: {
-          dataVersion: solrConfig.dataVersion,
           endpoints: [
             'search', 'mentions', 'topics', 'images', 'entities',
           ].reduce((acc, d) => {
@@ -27,7 +26,6 @@ module.exports = function (app) {
         },
         mysql: {
           endpoint: sequelizeConfig.alias,
-          dataVersion: sequelizeConfig.dataVersion,
         },
         version: app.get('authentication').jwtOptions.issuer,
         apiVersion: {

@@ -3,6 +3,15 @@ const Newspaper = require('../../models/newspapers.model');
 const { BaseArticle } = require('../../models/articles.model');
 const SearchFacet = require('../../models/search-facets.model');
 
+const BaseArticleTocFields = [
+  'id',
+  'content_length_i',
+  'cc_b', 'lg_s', 'page_id_ss', 'item_type_s',
+  'title_txt_fr', 'title_txt_de', 'title_txt_en',
+  'pers_entities_dpfs', 'loc_entities_dpfs', 'ucoll_ss',
+  'snippet_plain',
+];
+
 class Service {
   constructor({ app, name }) {
     this.app = app;
@@ -54,7 +63,7 @@ class Service {
       order_by: 'id ASC',
       highlight_by: 'nd',
       highlightProps,
-      fl: 'id,content_length_i,cc_b,lg_s,page_id_ss,item_type_s,title_txt_fr,title_txt_de,title_txt_en,pers_entities_dpfs,loc_entities_dpfs,ucoll_ss',
+      fl: BaseArticleTocFields,
     }, BaseArticle.solrFactory);
     // get persons and locations from the facet,
     // using the simplified version of their buckets
