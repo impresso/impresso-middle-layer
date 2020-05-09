@@ -231,7 +231,7 @@ class BaseArticle {
     }
 
     this.excerpt = toExcerpt(excerpt, {
-      TruncateLength: 20,
+      TruncateLength: 50,
       excludeTitle: this.title,
     });
 
@@ -272,7 +272,7 @@ class BaseArticle {
       persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
       locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
       collections: doc.ucoll_ss,
-      excerpt: lodash.get(fragments[doc.id], 'nd[0]', ''),
+      excerpt: doc.snippet_plain || lodash.get(fragments[doc.id], 'nd[0]', ''),
     });
   }
 }
