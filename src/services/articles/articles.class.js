@@ -27,22 +27,10 @@ class Service {
   }
 
   async find(params) {
-    let fl = Article.ARTICLE_SOLR_FL_LITE;
-    let pageUids = [];
-
-    if (params.isSafe) {
-      pageUids = params.query.filters
-        .filter(d => d.type === 'page')
-        .map(d => d.q);
-      // As we requested article in a page,
-      // we have to calculate regions for that page.
-    }
-
-    if (pageUids.length === 1) {
-      fl = Article.ARTICLE_SOLR_FL;
-    }
-
-    fl = Article.ARTICLE_SOLR_FL_LIST_ITEM;
+    const fl = Article.ARTICLE_SOLR_FL_LIST_ITEM;
+    const pageUids = (params.query.filters || [])
+      .filter(d => d.type === 'page')
+      .map(d => d.q);
 
     debug('[find] use auth user:', params.user ? params.user.uid : 'no user');
     // if(params.isSafe query.filters)
@@ -57,7 +45,7 @@ class Service {
     }
 
     // add newspapers and other things from this class sequelize method
-    const getAddons = this.SequelizeService.find({
+    const getAddonsPromise = this.SequelizeService.find({
       ...params,
       scope: 'get',
       where: {
@@ -71,7 +59,7 @@ class Service {
     }).then(({ data }) => keyBy(data, 'uid'));
 
     // get accessRights from issues table
-    const getRelatedIssues = Issue.sequelize(this.app.get('sequelizeClient'))
+    const getRelatedIssuesPromise = Issue.sequelize(this.app.get('sequelizeClient'))
       .findAll({
         attributes: [
           'accessRights', 'uid',
@@ -83,8 +71,8 @@ class Service {
 
     // do the loop
     return Promise.all([
-      getAddons,
-      getRelatedIssues,
+      getAddonsPromise,
+      getRelatedIssuesPromise,
     ]).then(([addonsIndex, issuesIndex]) => ({
       ...results,
       data: results.data.map((article) => {
