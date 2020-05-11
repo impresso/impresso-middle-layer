@@ -37,30 +37,30 @@ async function waterfall() {
       limit: 0,
       skip: 0,
       fl: 'id',
-      facets: JSON.stringify({
-        topic: {
-          type: 'terms',
-          field: 'topics_dpfs',
-          mincount: 2, // at least 2 in common
-          limit: 20,
-          offset: 0,
-          numBuckets: true,
-        },
-      }),
+      // facets: JSON.stringify({
+      //   topic: {
+      //     type: 'terms',
+      //     field: 'topics_dpfs',
+      //     mincount: 2, // at least 2 in common
+      //     limit: 20,
+      //     offset: 0,
+      //     numBuckets: true,
+      //   },
+      // }),
       namespace: 'search',
     });
     topics[topicUid].countItems = result.response.numFound;
-    if (!result.facets.topic) {
-      console.warn('the topic does not seem to exist...', result.facets, result.response);
-      topics[topicUid].relatedTopics = [];
-    } else {
-      debug(`${result.facets.topic.numBuckets} rels`);
-      topics[topicUid].degree = result.facets.topic.numBuckets;
-      topics[topicUid].relatedTopics = result.facets.topic.buckets.map(d => ({
-        uid: d.val,
-        w: d.count,
-      }));
-    }
+    // if (!result.facets.topic) {
+    //   console.warn('the topic does not seem to exist...', result.facets, result.response);
+    //   topics[topicUid].relatedTopics = [];
+    // } else {
+    //   debug(`${result.facets.topic.numBuckets} rels`);
+    //   topics[topicUid].degree = result.facets.topic.numBuckets;
+    //   topics[topicUid].relatedTopics = result.facets.topic.buckets.map(d => ({
+    //     uid: d.val,
+    //     w: d.count,
+    //   }));
+    // }
     // enrich topic
     // console.log(result.facets.topic.buckets);
   }, Promise.resolve());
