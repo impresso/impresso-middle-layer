@@ -1,7 +1,7 @@
 {
   "name": "impresso-middle-layer",
   "description": "",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "homepage": "",
   "main": "src",
   "keywords": [
@@ -83,7 +83,7 @@
     "graphology-pagerank": "^1.1.0",
     "helmet": "^3.21.1",
     "http-proxy-middleware": "^0.18.0",
-    "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.3.0",
+    "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.3.1",
     "json2csv": "^4.3.3",
     "lodash": "^4.17.15",
     "lodash.first": "^3.0.0",

@@ -69,7 +69,7 @@ const filtersToSolrQuery = ({
   );
 
   // prepend order by if it is not relevance
-  if (overrideOrderBy && config.solr.dataVersion > 1 && Object.keys(vars).length) {
+  if (overrideOrderBy && Object.keys(vars).length) {
     // relevance direction
     let direction = 'desc';
     if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {
