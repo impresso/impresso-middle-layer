@@ -12,7 +12,7 @@ const RelatedThreshold = parseFloat(process.env.RELATED_THRESHOLD || 0.1);
 const MinArticlesIncommon = parseInt(process.env.MIN_IN_COMMON || 1, 10);
 const MaxRelatedTopicsToKeep = 15;
 const LimitRelatedTopics = 300;
-const RelatedTopicsChunkSize = 5;
+const RelatedTopicsChunkSize = parseInt(process.env.CHUNK_SIZE || 2, 10);
 const initialTopicUids = process.env.TOPICS ? process.env.TOPICS.split(',') : [];
 // topics filename, for fs;
 const filename = path.join(__dirname, '../data/topics.json');
