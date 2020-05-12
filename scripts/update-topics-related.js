@@ -7,14 +7,19 @@ const topics = require('../data/topics.json');
 
 const Threshold = parseFloat(process.env.THRESHOLD || 0.5);
 const RelatedThreshold = parseFloat(process.env.RELATED_THRESHOLD || 0.1);
-const MinArticlesIncommon = parseInt(process.env.MIN_IN_COMMON || 2, 10);
-const MaxRelatedTopicsToKeep = 10;
+const MinArticlesIncommon = parseInt(process.env.MIN_IN_COMMON || 1, 10);
+const MaxRelatedTopicsToKeep = 15;
 const LimitRelatedTopics = 300;
-
+const initialTopicUids = process.env.TOPICS ? process.env.TOPICS.split(',') : [];
 // topics filename, for fs;
 const filename = path.join(__dirname, '../data/topics.json');
 // get all topics where is greater than threshold
-const topicUids = Object.keys(topics);
+let topicUids = Object.keys(topics);
+
+if (initialTopicUids.length) {
+  topicUids = topicUids.filter(d => initialTopicUids.includes(d));
+  debug('limit to', initialTopicUids);
+}
 
 async function waterfall() {
   // eslint-disable-next-line no-restricted-syntax
@@ -66,7 +71,7 @@ async function waterfall() {
 
     // reset relatedTopics;
     // then loop throuh related topics
-    topics[uid].degree = relatedTopicsUids.length;
+    topics[uid].degree = 0;
     topics[uid].relatedTopics = [];
     debug('topic:', uid, '- n. related topics:', relatedTopicsUids.length);
 
@@ -99,21 +104,22 @@ async function waterfall() {
         facets.max_combined_topic_weight,
       ]);
 
-      if (numEdges >= MinArticlesIncommon) {
+      if (numEdges) {
+        topics[uid].degree += 1;
         // add link to relatedTopics in topic.
         topics[uid].relatedTopics.push({
           uid: relatedUid,
           w: numEdges,
-          // avgCombinedTopicWeight,
+          avgCombinedTopicWeight,
           // maxCombinedTopicWeight,
         });
+        debug(
+          'topic:', uid, '-> topic:', relatedUid,
+          '- n. relevant articles in common:', numEdges,
+          '- avgCombinedTopicWeight:', avgCombinedTopicWeight,
+          '- maxCombinedTopicWeight:', maxCombinedTopicWeight,
+        );
       }
-      debug(
-        'topic:', uid, '-> topic:', relatedUid,
-        '- n. relevant articles in common:', numEdges,
-        '- avgCombinedTopicWeight:', avgCombinedTopicWeight,
-        '- maxCombinedTopicWeight:', maxCombinedTopicWeight,
-      );
     }
 
     // limit to top 10 related topics
@@ -125,8 +131,9 @@ async function waterfall() {
     };
 
     topics[uid].relatedTopics = topics[uid].relatedTopics
-      .sort((a, b) => b.w - a.w)
+      .sort((a, b) => (b.w * b.avgCombinedTopicWeight) - (a.w * a.avgCombinedTopicWeight))
       .slice(0, MaxRelatedTopicsToKeep);
+    // console.log(topics[uid].relatedTopics);
     // throw new Error('CUSTOM BREAK');
   }
   // , (err) => {
