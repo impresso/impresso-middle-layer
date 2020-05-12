@@ -136,7 +136,10 @@ async function waterfall() {
       .slice(0, MaxRelatedTopicsToKeep);
 
     eta.iterate();
-    debug(`progress: ${eta.format('{{progress}}')} - eta: ${eta.format('{{etah}}')}`);
+    debug(
+      `ETA - progress: ${parseInt(eta.format('{{progress}}') * 10000, 10) / 100}%`,
+      `- elapsed: ${eta.format('{{elapsed}}')} - eta: ${eta.format('{{etah}}')}`,
+    );
   }
   // , (err) => {
   //   if (err) {
