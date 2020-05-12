@@ -79,6 +79,7 @@
     "feathers-solr": "^1.1.15",
     "graphology": "^0.16.1",
     "graphology-communities-louvain": "^0.2.0",
+    "graphology-hits": "^0.1.0",
     "graphology-layout": "^0.2.0",
     "graphology-layout-forceatlas2": "^0.4.2",
     "graphology-pagerank": "^1.1.0",
