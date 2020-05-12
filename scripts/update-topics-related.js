@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const { chunk } = require('lodash');
 const debug = require('debug')('impresso/scripts:update-topics-related');
+const Eta = require('node-eta');
 const config = require('@feathersjs/configuration')()();
 const solrClient = require('../src/solr').client(config.solr);
 const topics = require('../data/topics.json');
@@ -10,6 +12,7 @@ const RelatedThreshold = parseFloat(process.env.RELATED_THRESHOLD || 0.1);
 const MinArticlesIncommon = parseInt(process.env.MIN_IN_COMMON || 1, 10);
 const MaxRelatedTopicsToKeep = 15;
 const LimitRelatedTopics = 300;
+const RelatedTopicsChunkSize = 5;
 const initialTopicUids = process.env.TOPICS ? process.env.TOPICS.split(',') : [];
 // topics filename, for fs;
 const filename = path.join(__dirname, '../data/topics.json');
@@ -20,6 +23,8 @@ if (initialTopicUids.length) {
   topicUids = topicUids.filter(d => initialTopicUids.includes(d));
   debug('limit to', initialTopicUids);
 }
+// eta instantiation
+const eta = new Eta(topicUids.length, true);
 
 async function waterfall() {
   // eslint-disable-next-line no-restricted-syntax
@@ -73,53 +78,49 @@ async function waterfall() {
     // then loop throuh related topics
     topics[uid].degree = 0;
     topics[uid].relatedTopics = [];
-    debug('topic:', uid, '- n. related topics:', relatedTopicsUids.length);
-
+    const relatedTopicsChunks = chunk(relatedTopicsUids, RelatedTopicsChunkSize);
+    debug(
+      'topic:', uid,
+      '- n. related topics:', relatedTopicsUids.length,
+      '- n. chunks:', relatedTopicsChunks.length,
+    );
     // eslint-disable-next-line no-restricted-syntax
-    for (const relatedUid of relatedTopicsUids) {
+    for (const [i, relatedTopicsChunk] of relatedTopicsChunks.entries()) {
       // where articles are tagged with current topic with relevance at least `Threshold`
       // AND related topic with relevance at least `RelatedThreshold`.
       //
       // eslint-disable-next-line no-await-in-loop
-      const [numEdges, avgCombinedTopicWeight, maxCombinedTopicWeight] = await solrClient.findAll({
-        q: `{!frange l=${Threshold}}payload(topics_dpfs,${uid})`,
-        limit: 0,
-        skip: 0,
-        // eslint-disable-next-line no-template-curly-in-string
-        fl: '*,${combined_topic_weight}',
-        vars: {
-          combined_topic_weight: `sum(payload(topics_dpfs,${uid}),payload(topics_dpfs,${relatedUid}))`,
-        },
-        fq: `{!frange l=${RelatedThreshold}}payload(topics_dpfs,${relatedUid})`,
-        namespace: 'search',
-        facets: JSON.stringify({
+      const relatedTopics = await Promise.all(
+        relatedTopicsChunk.map(relatedUid => solrClient.findAll({
+          q: `{!frange l=${Threshold}}payload(topics_dpfs,${uid})`,
+          limit: 0,
+          skip: 0,
           // eslint-disable-next-line no-template-curly-in-string
-          avg_combined_topic_weight: 'avg(${combined_topic_weight})',
-          // eslint-disable-next-line no-template-curly-in-string
-          max_combined_topic_weight: 'max(${combined_topic_weight})',
-        }),
-      }).then(({ response, facets }) => [
-        response.numFound,
-        facets.avg_combined_topic_weight,
-        facets.max_combined_topic_weight,
-      ]);
-
-      if (numEdges) {
-        topics[uid].degree += 1;
-        // add link to relatedTopics in topic.
-        topics[uid].relatedTopics.push({
+          fl: '*,${combined_topic_weight}',
+          vars: {
+            combined_topic_weight: `sum(payload(topics_dpfs,${uid}),payload(topics_dpfs,${relatedUid}))`,
+          },
+          fq: `{!frange l=${RelatedThreshold}}payload(topics_dpfs,${relatedUid})`,
+          namespace: 'search',
+          facets: JSON.stringify({
+            // eslint-disable-next-line no-template-curly-in-string
+            avg_combined_topic_weight: 'avg(${combined_topic_weight})',
+            // eslint-disable-next-line no-template-curly-in-string
+            // max_combined_topic_weight: 'max(${combined_topic_weight})',
+          }),
+        }).then(({ response, facets }) => ({
           uid: relatedUid,
-          w: numEdges,
-          avgCombinedTopicWeight,
-          // maxCombinedTopicWeight,
-        });
-        debug(
-          'topic:', uid, '-> topic:', relatedUid,
-          '- n. relevant articles in common:', numEdges,
-          '- avgCombinedTopicWeight:', avgCombinedTopicWeight,
-          '- maxCombinedTopicWeight:', maxCombinedTopicWeight,
-        );
-      }
+          w: response.numFound,
+          avg: facets.avg_combined_topic_weight,
+          // maxCombinedTopicWeight: facets.max_combined_topic_weight,
+        }))),
+      );
+      topics[uid].relatedTopics = topics[uid].relatedTopics.concat(
+        relatedTopics.filter(d => d.w > 0),
+      );
+      debug(
+        'topic:', uid, '-> chunk:', i + 1, '/', relatedTopicsChunks.length,
+      );
     }
 
     // limit to top 10 related topics
@@ -129,12 +130,13 @@ async function waterfall() {
       RelatedThreshold,
       Threshold,
     };
-
+    topics[uid].degree = topics[uid].relatedTopics.length;
     topics[uid].relatedTopics = topics[uid].relatedTopics
       .sort((a, b) => (b.w * b.avgCombinedTopicWeight) - (a.w * a.avgCombinedTopicWeight))
       .slice(0, MaxRelatedTopicsToKeep);
-    // console.log(topics[uid].relatedTopics);
-    // throw new Error('CUSTOM BREAK');
+
+    eta.iterate();
+    debug(`progress: ${eta.format('{{progress}}')} - eta: ${eta.format('{{etah}}')}`);
   }
   // , (err) => {
   //   if (err) {

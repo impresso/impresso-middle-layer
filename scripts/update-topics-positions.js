@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { groupBy } = require('lodash');
 const debug = require('debug')('impresso/scripts:update-topics-positions');
 const Graph = require('graphology');
 const forceAtlas2 = require('graphology-layout-forceatlas2');
