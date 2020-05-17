@@ -1,17 +1,17 @@
 {
   "name": "impresso-middle-layer",
   "description": "",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "homepage": "",
   "main": "src",
   "keywords": [
     "feathers"
   ],
-  "author": {
-    "name": "Daniele Guido",
-    "email": "gui.daniele@gmail.com"
-  },
-  "contributors": [],
+  "author": "impresso <info@impresso-project.ch>",
+  "contributors": [
+    "Daniele Guido",
+    "Roman Kalyakin"
+  ],
   "bugs": {},
   "directories": {
     "lib": "src",
