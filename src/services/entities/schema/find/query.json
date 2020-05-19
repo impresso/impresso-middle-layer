@@ -28,7 +28,7 @@
     },
     "q": {
       "type": "string",
-      "maxLength": 50
+      "maxLength": 100
     },
     "order_by": {
       "type": "string",
