@@ -7,6 +7,7 @@ const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 const Article = require('../../models/articles.model');
 const Issue = require('../../models/issues.model');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -34,10 +35,10 @@ class Service {
 
     debug('[find] use auth user:', params.user ? params.user.uid : 'no user');
     // if(params.isSafe query.filters)
-    const results = await this.SolrService.find({
+    const results = await measureTime(() => this.SolrService.find({
       ...params,
       fl,
-    });
+    }), 'articles.find.solr');
 
     // go out if there's nothing to do.
     if (results.total === 0) {
@@ -45,7 +46,7 @@ class Service {
     }
 
     // add newspapers and other things from this class sequelize method
-    const getAddonsPromise = this.SequelizeService.find({
+    const getAddonsPromise = await measureTime(() => this.SequelizeService.find({
       ...params,
       scope: 'get',
       where: {
@@ -56,10 +57,10 @@ class Service {
     }).catch((err) => {
       console.error(err);
       return { data: [] };
-    }).then(({ data }) => keyBy(data, 'uid'));
+    }).then(({ data }) => keyBy(data, 'uid')), 'articles.find.db.articles');
 
     // get accessRights from issues table
-    const getRelatedIssuesPromise = Issue.sequelize(this.app.get('sequelizeClient'))
+    const getRelatedIssuesPromise = await measureTime(() => Issue.sequelize(this.app.get('sequelizeClient'))
       .findAll({
         attributes: [
           'accessRights', 'uid',
@@ -67,7 +68,7 @@ class Service {
         where: {
           uid: { [Op.in]: results.data.map(d => d.issue.uid) },
         },
-      }).then(rows => keyBy(rows.map(d => d.get()), 'uid'));
+      }).then(rows => keyBy(rows.map(d => d.get()), 'uid')), 'articles.find.db.issues');
 
     // do the loop
     return Promise.all([
@@ -135,20 +136,20 @@ class Service {
     return Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
-      this.SolrService.get(id, {
+      measureTime(() => this.SolrService.get(id, {
         fl,
-      }),
+      }), 'articles.get.solr.articles'),
 
       // get the newspaper and the version,
-      this.SequelizeService.get(id, {
+      measureTime(() => this.SequelizeService.get(id, {
         scope: 'get',
         where: {
           uid: id,
         },
       }).catch(() => {
         debug(`[get:${id}]: SequelizeService warning, no data found for ${id} ...`);
-      }),
-      Issue.sequelize(this.app.get('sequelizeClient'))
+      }), 'articles.get.db.articles'),
+      measureTime(() => Issue.sequelize(this.app.get('sequelizeClient'))
         .findOne({
           attributes: [
             'accessRights',
@@ -156,7 +157,7 @@ class Service {
           where: {
             uid: id.split(/-i\d{4}/).shift(),
           },
-        }),
+        }), 'articles.get.db.issue'),
     ]).then(([article, addons, issue]) => {
       if (addons) {
         if (issue) {
