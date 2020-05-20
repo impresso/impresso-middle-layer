@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const debug = require('debug')('impresso/services:mentions');
 const EntityMention = require('../../models/entity-mentions.model');
 const SequelizeService = require('../sequelize.service');
+const { measureTime } = require('../../util/instruments');
 
 /* eslint-disable no-unused-vars */
 class Service {
@@ -26,18 +27,18 @@ class Service {
       where[Op.and] = params.sanitized.sequelizeQuery;
     }
     debug(`[find] with params.isSafe:${params.isSafe} and params.query:`, params.query, findAllOnly);
-    return this.sequelizeService.find({
+    return measureTime(() => this.sequelizeService.find({
       ...params,
       findAllOnly,
       where,
     }).then((res) => {
       debug('[find] success! total:', res.total);
       return res;
-    });
+    }), 'mentions.find.db.mentions');
   }
 
   async get(id, params) {
-    return this.sequelizeService.get(id).then(result => result.toJSON());
+    return measureTime(() => this.sequelizeService.get(id).then(result => result.toJSON()), 'mentions.get.db.mention');
   }
 }
 

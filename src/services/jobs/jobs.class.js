@@ -3,6 +3,7 @@ const debug = require('debug')('impresso/services:jobs');
 const { BadGateway, NotFound, NotImplemented } = require('@feathersjs/errors');
 const SequelizeService = require('../sequelize.service');
 const { STATUS_KILLED, STATUS_DONE } = require('../../models/jobs.model');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor(options) {
@@ -23,12 +24,12 @@ class Service {
       creatorId: params.user.id,
     };
 
-    return this.sequelizeService.find({
+    return measureTime(() => this.sequelizeService.find({
       query: {
         ...params.query,
       },
       where,
-    });
+    }), 'jobs.find.db.find');
   }
 
   async get(id, params) {
@@ -40,8 +41,8 @@ class Service {
     } else {
       where.creatorId = params.user.id;
     }
-    return this.sequelizeService.get(id, { where })
-      .then(job => job.toJSON());
+    return measureTime(() => this.sequelizeService.get(id, { where })
+      .then(job => job.toJSON()), 'jobs.get.db.get');
   }
 
   async create(data, params) {

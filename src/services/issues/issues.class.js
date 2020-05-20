@@ -5,6 +5,7 @@ const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 const Issue = require('../../models/issues.model');
 const Page = require('../../models/pages.model');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -26,15 +27,15 @@ class Service {
 
   async find(params) {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
-    const results = await this.SolrService.find({
+    const results = await measureTime(() => this.SolrService.find({
       ...params,
       fl: Issue.ISSUE_SOLR_FL_MINIMAL,
       collapse_by: 'meta_issue_id_s',
       // get first ARTICLE result
       collapse_fn: 'sort=\'id ASC\'',
-    });
+    }), 'issues.find.solr.find_issues');
     // add Sequelize Rawquery to get proper frontPage
-    const coversIndex = await this.SequelizeService.rawSelect({
+    const coversIndex = await measureTime(() => this.SequelizeService.rawSelect({
       query: `
         SELECT id as uid,
           issue_id as issue_uid,
@@ -49,7 +50,7 @@ class Service {
     }).then(covers => covers.reduce((index, cover) => {
       index[cover.uid] = new Page(cover);
       return index;
-    }, {}));
+    }, {})), 'issues.find.db.get_pages');
 
     results.data = results.data.map((d) => {
       if (coversIndex[d.cover]) {
@@ -65,7 +66,7 @@ class Service {
     return Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
-      this.SolrService.find({
+      measureTime(() => this.SolrService.find({
         query: {
           limit: 1,
           skip: 0,
@@ -76,8 +77,8 @@ class Service {
         // get first ARTICLE result
         collapse_fn: 'sort=\'id ASC\'',
       })
-        .then(res => res.data[0]),
-      this.SequelizeService.rawSelect({
+        .then(res => res.data[0]), 'issues.get.solr.issue'),
+      measureTime(() => this.SequelizeService.rawSelect({
         query: `
           SELECT
             pages.id as uid, pages.iiif_manifest as iiif, pages.page_number as num,
@@ -98,7 +99,7 @@ class Service {
           id,
         },
       })
-        .then(pages => pages.map(d => new Page(d))),
+        .then(pages => pages.map(d => new Page(d))), 'issues.get.db.pages'),
     ])
       .then(([issue, pages]) => {
         if (!issue) {

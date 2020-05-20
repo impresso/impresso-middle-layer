@@ -2,6 +2,7 @@
 const Newspaper = require('../../models/newspapers.model');
 const { BaseArticle } = require('../../models/articles.model');
 const SearchFacet = require('../../models/search-facets.model');
+const { measureTime } = require('../../util/instruments');
 
 const BaseArticleTocFields = [
   'id',
@@ -38,7 +39,7 @@ class Service {
 
     // get all articles for the give issue,
     // at least 1 of content length, max 500 articles
-    const result = await this.app.get('solrClient').findAll({
+    const result = await measureTime(() => this.app.get('solrClient').findAll({
       q: `meta_issue_id_s:${id} AND filter(content_length_i:[1 TO *])`,
       facets: JSON.stringify({
         person: {
@@ -64,7 +65,7 @@ class Service {
       highlight_by: 'nd',
       highlightProps,
       fl: BaseArticleTocFields,
-    }, BaseArticle.solrFactory);
+    }, BaseArticle.solrFactory), 'table-of-contents.get.solr.toc');
     // get persons and locations from the facet,
     // using the simplified version of their buckets
     const [persons, locations] = ['person', 'location'].map((type) => {

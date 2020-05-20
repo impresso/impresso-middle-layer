@@ -9,6 +9,7 @@ const {
   getFacetsFromSolrResponse,
   getTotalFromSolrResponse,
 } = require('../search/search.extractors');
+const { measureTime } = require('../../util/instruments');
 
 
 class Service {
@@ -131,7 +132,7 @@ class Service {
       vars: params.sanitized.sv,
     };
 
-    const solrResponse = await this.solr.findAllPost(solrQuery);
+    const solrResponse = await measureTime(() => this.solr.findAllPost(solrQuery), 'search.find.solr.search');
 
     const total = getTotalFromSolrResponse(solrResponse);
     debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader);
@@ -154,7 +155,10 @@ class Service {
       params.user ? params.user.uid : 'no auth user found',
     );
 
-    const resultItems = await getItemsFromSolrResponse(solrResponse, this.app.service('articles'), userInfo);
+    const resultItems = await measureTime(
+      () => getItemsFromSolrResponse(solrResponse, this.app.service('articles'), userInfo),
+      'search.find.svc.articles',
+    );
     const facets = await getFacetsFromSolrResponse(solrResponse);
 
     return Service.wrap(resultItems, params.query.limit, params.query.skip, total, {
