@@ -5,6 +5,7 @@ const SolrService = require('../solr.service');
 const Image = require('../../models/images.model');
 const Page = require('../../models/pages.model');
 const { getFacetsFromSolrResponse } = require('../search/search.extractors');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -43,11 +44,11 @@ class Service {
     }
     const uids = Object.keys(pagesIndex);
     // load page stuff
-    const pages = await Page.sequelize(this.sequelizeClient).scope('withAccessRights').findAll({
+    const pages = await measureTime(() => Page.sequelize(this.sequelizeClient).scope('withAccessRights').findAll({
       where: {
         uid: uids,
       },
-    });
+    }), 'images.find.db.pages_iiif');
     // missing pages ...!
     if (!pages.length || pages.length !== uids.length) {
       debug('assignIIIF: cannot find some pages, requested:', uids, 'found:', pages);
@@ -76,7 +77,7 @@ class Service {
     let signature;
     if (params.query.similarTo) {
       debug('[find] get signature for params.query.similarTo:', params.query.similarTo, '- vector:', `_vector_${params.query.vectorType}_bv`);
-      signature = await this.SolrService.solr.findAll({
+      signature = await measureTime(() => this.SolrService.solr.findAll({
         q: `id:${params.query.similarTo}`,
         fl: ['id', `signature:_vector_${params.query.vectorType}_bv`],
         namespace: 'images',
@@ -87,7 +88,7 @@ class Service {
         .catch((err) => {
           console.error(err);
           throw new NotFound();
-        });
+        }), 'images.find.solr.image_signatures');
       if (!signature) {
         debug('[find] signature NOT retrieved for params.query.similarTo:', params.query.similarTo);
         throw new NotFound('signature not found');
@@ -116,7 +117,7 @@ class Service {
       }
       debug('[find] find all with the current signature, solr query', fq);
 
-      solrResponse = await this.SolrService.solr.findAll({
+      solrResponse = await measureTime(() => this.SolrService.solr.findAll({
         fq,
         form: {
           q: `{!vectorscoring f="_vector_${params.query.vectorType}_bv" vector_b64="${signature}"}`,
@@ -131,7 +132,7 @@ class Service {
       }, Image.solrFactory).catch((err) => {
         console.error(err);
         throw new BadGateway('unable to load similar images');
-      });
+      }), 'images.find.solr.signature_similar_images');
     } else {
       debug('[find] no signature requested, perform normal solr query');
       // no signature. Filter out images without signature!
@@ -143,7 +144,7 @@ class Service {
 
       if (params.query.randomPage) {
         // calculate a possible random skip value
-        skip = await this.SolrService.solr.findAll({
+        skip = await measureTime(() => this.SolrService.solr.findAll({
           q: params.query.sq,
           limit: 0,
           skip: 0,
@@ -154,7 +155,7 @@ class Service {
             const pages = Math.ceil(total / params.query.limit);
             const page = Math.round(Math.random() * pages);
             return Math.max(0, (page - 1) * params.query.limit);
-          });
+          }), 'images.find.solr.random_images_skip');
         //
         //   Math.round(
         //   Math.random * Math.floor(res.response.numFound / params.query.limit),
@@ -164,7 +165,7 @@ class Service {
       }
 
       // get all pages, then get IIIF manifest
-      solrResponse = await this.SolrService.solr.findAll({
+      solrResponse = await measureTime(() => this.SolrService.solr.findAll({
         q: params.query.sq,
         fl: Image.SOLR_FL,
         namespace: 'images',
@@ -176,7 +177,7 @@ class Service {
       }, Image.solrFactory).catch((err) => {
         console.error(err);
         throw new BadGateway('unable to load similar images');
-      });
+      }), 'images.find.solr.images');
     }
 
     debug(`[find] success, ${solrResponse.response.numFound} results all with the current signature, in QTime:${solrResponse.responseHeader.QTime}ms`);
@@ -192,13 +193,13 @@ class Service {
 
   async get(id, params) {
     debug(`get '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
-    return this.SolrService.get(id, {
+    return measureTime(() => this.SolrService.get(id, {
       fl: Image.SOLR_FL,
       requestOriginalPath: 'images/get',
     }).then(result => this.assignIIIF({
       method: 'get',
       result,
-    }));
+    })), 'images.get.solr.image');
   }
 
   async create(data, params) {
