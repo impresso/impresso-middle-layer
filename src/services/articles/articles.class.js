@@ -9,6 +9,19 @@ const Article = require('../../models/articles.model');
 const Issue = require('../../models/issues.model');
 const { measureTime } = require('../../util/instruments');
 
+function getIssues(request, app) {
+  const sequelize = app.get('sequelizeClient');
+  const cacheManager = app.get('cacheManager');
+  const cacheKey = SequelizeService.getCacheKeyForReadSqlRequest(request, 'issues');
+
+  return cacheManager.wrap(
+    cacheKey,
+    () => Issue.sequelize(sequelize)
+      .findAll(request)
+      .then(rows => rows.map(d => d.get())),
+  ).then(rows => keyBy(rows, 'uid'));
+}
+
 class Service {
   constructor({
     name = '',
@@ -61,15 +74,18 @@ class Service {
     }).then(({ data }) => keyBy(data, 'uid')), 'articles.find.db.articles');
 
     // get accessRights from issues table
-    const getRelatedIssuesPromise = await measureTime(() => Issue.sequelize(this.app.get('sequelizeClient'))
-      .findAll({
-        attributes: [
-          'accessRights', 'uid',
-        ],
-        where: {
-          uid: { [Op.in]: results.data.map(d => d.issue.uid) },
-        },
-      }).then(rows => keyBy(rows.map(d => d.get()), 'uid')), 'articles.find.db.issues');
+    const issuesRequest = {
+      attributes: [
+        'accessRights', 'uid',
+      ],
+      where: {
+        uid: { [Op.in]: results.data.map(d => d.issue.uid) },
+      },
+    };
+    const getRelatedIssuesPromise = await measureTime(
+      () => getIssues(issuesRequest, this.app),
+      'articles.find.db.issues',
+    );
 
     // do the loop
     return Promise.all([

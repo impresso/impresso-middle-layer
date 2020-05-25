@@ -25,10 +25,12 @@ class SolrService {
   }
 
   async get(id, params) {
-    const solr = lodash.intersection(params.fl, NotCachedFields).length > 0
+    const cannotBeCached = lodash.intersection(params.fl, NotCachedFields).length > 0;
+
+    const solr = cannotBeCached
       ? this.solr
       : this.cachedSolr;
-    debug(`get ${id}`, params);
+    debug(`get ${id} (${cannotBeCached ? 'not cached' : 'cached'})`, params);
     const results = await solr.findAll({
       q: `id:${id}`,
       limit: 1,
@@ -41,9 +43,11 @@ class SolrService {
   }
 
   async find(params) {
-    const solr = lodash.intersection(params.fl, NotCachedFields).length > 0
+    const cannotBeCached = lodash.intersection(params.fl, NotCachedFields).length > 0
+    const solr = cannotBeCached
       ? this.solr
       : this.cachedSolr;
+    debug(`find (${cannotBeCached ? 'not cached' : 'cached'})`, params);
 
     const p = {
       q: params.q || params.query.sq || '*:*',

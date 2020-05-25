@@ -197,3 +197,4 @@ module.exports = function (options) {
 };
 
 module.exports.Service = SequelizeService;
+module.exports.getCacheKeyForReadSqlRequest = getCacheKeyForReadSqlRequest;
