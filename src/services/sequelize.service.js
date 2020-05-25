@@ -5,11 +5,22 @@ const { NotFound } = require('@feathersjs/errors');
 const sequelize = require('../sequelize');
 const { sequelizeErrorHandler } = require('./sequelize.utils');
 
+function getCacheKeyForReadSqlRequest(request, modelName) {
+  const requestString = Buffer.from(JSON.stringify(request)).toString('base64');
+  return [
+    'cache',
+    'db',
+    modelName != null ? modelName : 'unk',
+    requestString,
+  ].join(':');
+}
+
 class SequelizeService {
   constructor({
     name = '',
     app = null,
     modelName = null,
+    cacheReads = false,
   } = {}) {
     this.name = String(name);
     this.modelName = String(modelName || name);
@@ -17,6 +28,9 @@ class SequelizeService {
 
     this.Model = require(`../models/${this.modelName}.model`);
     this.sequelizeKlass = this.Model.sequelize(this.sequelize);
+
+    this.cacheReads = cacheReads;
+    this.cacheManager = app.get('cacheManager');
 
     debug(`Configuring service: ${this.name} (model:${this.modelName}) success`);
   }
@@ -102,7 +116,10 @@ class SequelizeService {
     }).catch(sequelizeErrorHandler);
   }
 
-  async find(params) {
+  async find(params, ttl = undefined) {
+    const cacheKey = getCacheKeyForReadSqlRequest(params, this.modelName);
+    const cacheOptions = ttl != null ? { ttl } : {};
+
     // we should be sure that ONLY those ones are in place.
     // should you need more, you can use this.sequelizeKlass
     // directly.
@@ -136,8 +153,7 @@ class SequelizeService {
     }
 
     const promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p);
-
-    return promise
+    const dbResultPromise = promise
       .then((res) => {
         if (params.findAllOnly) {
           debug(`'find' ${this.name} success, no count has been asked.`);
@@ -161,8 +177,17 @@ class SequelizeService {
             skip: params.query.skip,
           },
         },
-      }))
-      .catch(sequelizeErrorHandler);
+      }));
+
+    const cachedPromise = this.cacheReads
+      ? this.cacheManager.wrap(
+        cacheKey,
+        () => dbResultPromise,
+        cacheOptions,
+      )
+      : dbResultPromise;
+
+    return cachedPromise.catch(sequelizeErrorHandler);
   }
 }
 

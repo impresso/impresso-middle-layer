@@ -55,6 +55,28 @@ class CachedSolrClient {
     );
   }
 
+  findAll(request, factory, ttl = TTL.Long) {
+    const { namespace = SolrNamespaces.Search } = request;
+    assert.equal(namespace, SolrNamespaces.Search, `Only "${SolrNamespaces.Search}" namespace is supported`);
+
+    const options = ttl != null ? { ttl } : {};
+
+    return this.cacheManager.wrap(
+      getCacheKeyForSolrRequest(request, namespace, true),
+      () => this.solrClient.findAll(request),
+      options,
+    ).then((result) => {
+      // Same as the code used in `solrClient.findAll`.
+      // It's here because `cacheManager` works with JSON whereas
+      // factory creates a custom JS class instance which cannot be
+      // properly serialised.
+      if (factory) {
+        result.response.docs = result.response.docs.map(factory(result));
+      }
+      return result;
+    });
+  }
+
   get ttl() { return TTL; }
 
   get namespaces() { return SolrNamespaces; }

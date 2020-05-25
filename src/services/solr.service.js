@@ -3,6 +3,10 @@
 const lodash = require('lodash');
 const debug = require('debug')('impresso/services:SolrService');
 
+// Fields that should never be cached.
+const NotCachedFields = [
+  'ucoll_ss', // collections - can be changed by the user.
+];
 
 class SolrService {
   constructor({
@@ -14,14 +18,18 @@ class SolrService {
     this.namespace = String(namespace);
 
     this.solr = app.get('solrClient');
+    this.cachedSolr = app.get('cachedSolr');
 
     this.Model = require(`../models/${this.name}.model`);
     debug(`Configuring service: ${this.name} success`);
   }
 
   async get(id, params) {
+    const solr = lodash.intersection(params.fl, NotCachedFields).length > 0
+      ? this.solr
+      : this.cachedSolr;
     debug(`get ${id}`, params);
-    const results = await this.solr.findAll({
+    const results = await solr.findAll({
       q: `id:${id}`,
       limit: 1,
       skip: 0,
@@ -33,6 +41,10 @@ class SolrService {
   }
 
   async find(params) {
+    const solr = lodash.intersection(params.fl, NotCachedFields).length > 0
+      ? this.solr
+      : this.cachedSolr;
+
     const p = {
       q: params.q || params.query.sq || '*:*',
       fq: params.fq || params.query.sfq || undefined,
@@ -50,7 +62,7 @@ class SolrService {
     // removing unnecessary indefined fields.
     Object.keys(p).forEach(key => p[key] === undefined && delete p[key]);
 
-    const results = await this.solr.findAll(p, this.Model.solrFactory);
+    const results = await solr.findAll(p, this.Model.solrFactory);
 
     return {
       data: results.response.docs,

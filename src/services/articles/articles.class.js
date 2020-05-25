@@ -19,6 +19,7 @@ class Service {
     this.SequelizeService = SequelizeService({
       app,
       name,
+      cacheReads: true,
     });
     this.SolrService = SolrService({
       app,
@@ -86,7 +87,7 @@ class Service {
         }
         // add pages
         if (addonsIndex[article.uid].pages) {
-          article.pages = addonsIndex[article.uid].pages.map(d => d.toJSON());
+          article.pages = addonsIndex[article.uid].pages; // .map(d => d.toJSON());
         }
         if (pageUids.length === 1) {
           article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1);
