@@ -5,6 +5,7 @@ const debug = require('debug')('impresso/services:search-facets');
 const SearchFacet = require('../../models/search-facets.model');
 const { SolrMappings } = require('../../data/constants');
 const { measureTime } = require('../../util/instruments');
+const { areCacheableFacets, isCacheableQuery } = require('../../util/cache');
 
 const getFacetTypes = (typeString, index) => {
   const validTypes = Object.keys(SolrMappings[index].facets);
@@ -56,7 +57,9 @@ class Service {
       sort: params.query.order_by,
     };
 
-    debug(`GET facets query for type "${type}":`, facetsq);
+    const canBeCached = areCacheableFacets(types) && isCacheableQuery(params.sanitized.filters);
+
+    debug(`GET facets query for type "${type}" (${canBeCached ? 'cached' : 'not cached'}):`, facetsq);
     // facets is an Object, will be stringified for the solr query.
     // eslint-disable-next-line max-len
     // '{"newspaper":{"type":"terms","field":"meta_journal_s","mincount":1,"limit":20,"numBuckets":true}}'
@@ -84,7 +87,11 @@ class Service {
       hl: false,
       vars: params.sanitized.sv,
     };
-    const result = await measureTime(() => this.solr.get(query, index), 'search-facets.get.solr.facets');
+
+    const result = await measureTime(
+      () => this.solr.get(query, index, { skipCache: !canBeCached }),
+      'search-facets.get.solr.facets',
+    );
 
     return types.map(t => new SearchFacet({
       type: t,
@@ -96,6 +103,8 @@ class Service {
   async find(params) {
     debug(`find '${this.name}': query:`, params.sanitized, params.sanitized.sv);
 
+    const canBeCached = isCacheableQuery(params.sanitized.filters);
+
     // TODO: transform params.query.filters to match solr syntax
     const result = await await measureTime(() => this.app.get('solrClient').findAll({
       q: params.sanitized.sq,
@@ -105,7 +114,7 @@ class Service {
       skip: 0,
       fl: 'id',
       vars: params.sanitized.sv,
-    }), 'search-facets.find.solr.facets');
+    }, { skipCache: !canBeCached }), 'search-facets.find.solr.facets');
 
     const total = result.response.numFound;
 

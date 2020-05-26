@@ -1,4 +1,3 @@
-const assert = require('assert');
 const { SolrNamespaces } = require('./solr');
 
 function getCacheKeyForSolrRequest(request, namespace, isPost = false) {
@@ -18,54 +17,112 @@ const TTL = Object.freeze({
   Default: undefined, // set in cache configuration.
 });
 
+/**
+ * Standard cache options.
+ * @typedef {{ ttl?: number, skipCache?: boolean }} Options
+ */
+
 class CachedSolrClient {
   constructor(solrClient, cacheManager) {
     this.solrClient = solrClient;
     this.cacheManager = cacheManager;
   }
 
+  /**
+   * Send a `GET` request to Solr.
+   * @param {any} request Solr request parameters
+   * @param {string} namespace namespace to use.
+   * @param {Options} options cache options.
+   *
+   * @returns {any} unmodified Solr response.
+   */
+  get(request, namespace = undefined, options = undefined) {
+    const { ttl = TTL.Long, skipCache = false } = options || {};
 
-  get(request, namespace, ttl = undefined) {
-    const options = ttl != null ? { ttl } : {};
-    return this.cacheManager.wrap(
-      getCacheKeyForSolrRequest(request, namespace, false),
-      () => this.solrClient.requestGetRaw(request, namespace),
-      options,
-    );
-  }
+    const cacheOptions = { ttl };
+    const fn = () => this.solrClient.requestGetRaw(request, namespace);
 
-  async post(request, namespace, ttl = undefined) {
-    const options = ttl != null ? { ttl } : {};
-
-    return this.cacheManager.wrap(
-      getCacheKeyForSolrRequest(request, namespace, true),
-      () => this.solrClient.requestPostRaw(request, namespace),
-      options,
-    );
-  }
-
-  findAllPost(request, namespace = SolrNamespaces.Search, ttl = TTL.Long) {
-    assert.equal(namespace, SolrNamespaces.Search, `Only "${SolrNamespaces.Search}" namespace is supported`);
-    const options = ttl != null ? { ttl } : {};
-
-    return this.cacheManager.wrap(
-      getCacheKeyForSolrRequest(request, namespace, true),
-      () => this.solrClient.findAllPost(request),
-      options,
-    );
-  }
-
-  findAll(request, factory, ttl = TTL.Long) {
-    const { namespace = SolrNamespaces.Search } = request;
-    assert.equal(namespace, SolrNamespaces.Search, `Only "${SolrNamespaces.Search}" namespace is supported`);
-
-    const options = ttl != null ? { ttl } : {};
+    if (skipCache) return fn();
 
     return this.cacheManager.wrap(
       getCacheKeyForSolrRequest(request, namespace, false),
-      () => this.solrClient.findAll(request),
-      options,
-    ).then((result) => {
+      fn,
+      cacheOptions,
+    );
+  }
+
+  /**
+   * Send a `POST` request to Solr.
+   * @param {any} request Solr request body
+   * @param {string} namespace namespace to use.
+   * @param {Options} options cache options.
+   *
+   * @returns {any} unmodified Solr response.
+   */
+  async post(request, namespace = undefined, options = undefined) {
+    const { ttl = TTL.Long, skipCache = false } = options || {};
+
+    const cacheOptions = { ttl };
+    const fn = () => this.solrClient.requestPostRaw(request, namespace);
+
+    if (skipCache) return fn();
+
+    return this.cacheManager.wrap(
+      getCacheKeyForSolrRequest(request, namespace, true),
+      fn,
+      cacheOptions,
+    );
+  }
+
+  /**
+   * Search articles.
+   * NOTE: Deprecated method. Use `get` or `post`.
+   * @param {any} request a semi preprocessed Solr request.
+   * @param {Options} options standard options.
+   *
+   * @returns {any} solr response
+   */
+  findAllPost(request, options = undefined) {
+    const namespace = SolrNamespaces.Search;
+    const { ttl = TTL.Long, skipCache = false } = options || {};
+
+    const cacheOptions = { ttl };
+    const fn = () => this.solrClient.findAllPost(request);
+
+    if (skipCache) return fn();
+
+    return this.cacheManager.wrap(
+      getCacheKeyForSolrRequest(request, namespace, true),
+      fn,
+      cacheOptions,
+    );
+  }
+
+  /**
+   * Search items.
+   * NOTE: Deprecated method. Use `get` or `post`.
+   * @param {any} request a semi preprocessed Solr request.
+   * @param {(any) => any} factory factory method to convert items into something else.
+   * @param {Options} options standard options.
+   *
+   * @returns {any} solr response
+   */
+  findAll(request, factory = undefined, options = undefined) {
+    const { namespace } = request;
+    const { ttl = TTL.Long, skipCache = false } = options || {};
+
+    const cacheOptions = { ttl };
+    const fn = () => this.solrClient.findAll(request);
+    const resultPromise = skipCache
+      ? fn()
+      : this.cacheManager.wrap(
+        getCacheKeyForSolrRequest(request, namespace, false),
+        fn,
+        cacheOptions,
+      );
+
+
+    return resultPromise.then((result) => {
       // Same as the code used in `solrClient.findAll`.
       // It's here because `cacheManager` works with JSON whereas
       // factory creates a custom JS class instance which cannot be

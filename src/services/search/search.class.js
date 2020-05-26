@@ -1,8 +1,7 @@
 const debug = require('debug')('impresso/services:search');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
-const { intersection } = require('lodash');
 const sequelize = require('../../sequelize');
-
+const { isCacheableQuery } = require('../../util/cache');
 const Article = require('../../models/articles.model');
 
 const {
@@ -11,18 +10,6 @@ const {
   getTotalFromSolrResponse,
 } = require('../search/search.extractors');
 const { measureTime } = require('../../util/instruments');
-
-const NotCachedFilterTypes = ['collection'];
-
-/**
- * Certain filters cannot be cached because they can be changed
- * by the user (collections only at the moment).
- * @param {Filter[]} filters
- */
-function canBeCached(filters) {
-  const types = [...new Set(filters.map(({ type }) => type))];
-  return intersection(NotCachedFilterTypes, types).length === 0;
-}
 
 class Service {
   /**
@@ -36,8 +23,8 @@ class Service {
     name,
   } = {}) {
     this.app = app;
-    this.solr = app.get('solrClient');
-    this.cachedSolr = app.get('cachedSolr');
+    /** @type {import('../../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
     this.sequelize = sequelize.client(app.get('sequelize'));
     this.name = name;
   }
@@ -145,12 +132,11 @@ class Service {
       vars: params.sanitized.sv,
     };
 
-    const solr = canBeCached(params.sanitized.filters)
-      ? this.cachedSolr
-      : this.solr;
-
     const solrResponse = await measureTime(
-      () => solr.findAllPost(solrQuery),
+      () => this.solr.findAllPost(
+        solrQuery,
+        { skipCache: !isCacheableQuery(params.sanitized.filters) },
+      ),
       'search.find.solr.search',
     );
 
