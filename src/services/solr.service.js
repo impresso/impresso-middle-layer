@@ -43,7 +43,7 @@ class SolrService {
   }
 
   async find(params) {
-    const cannotBeCached = lodash.intersection(params.fl, NotCachedFields).length > 0
+    const cannotBeCached = lodash.intersection(params.fl, NotCachedFields).length > 0;
     const solr = cannotBeCached
       ? this.solr
       : this.cachedSolr;
