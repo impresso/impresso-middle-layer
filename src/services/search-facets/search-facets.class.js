@@ -103,6 +103,8 @@ class Service {
   async find(params) {
     debug(`find '${this.name}': query:`, params.sanitized, params.sanitized.sv);
 
+    // TODO: we may want to skip caching if facets requested contain 'collection'
+    // However I (RK) could not find where this endpoint is used to understand what `facets` is.
     const canBeCached = isCacheableQuery(params.sanitized.filters);
 
     // TODO: transform params.query.filters to match solr syntax
