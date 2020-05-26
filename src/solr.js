@@ -1,9 +1,47 @@
 // @ts-check
-const { default: fetch } = require('node-fetch');
+// eslint-disable-next-line no-unused-vars
+const { default: fetchFn } = require('node-fetch');
 const rp = require('request-promise');
 const debug = require('debug')('impresso/solr');
 const lodash = require('lodash');
+const { URLSearchParams } = require('url');
 const { preprocessSolrError } = require('./util/solr/errors');
+const { initHttpPool } = require('./httpConnectionPool');
+
+const SolrNamespaces = Object.freeze({
+  Search: 'search',
+  Mentions: 'mentions',
+  Topics: 'topics',
+  Entities: 'entities',
+  Images: 'images',
+  TextReusePassages: 'tr_passages',
+  TextReuseClusters: 'tr_clusters',
+  EmbeddingsDE: 'embeddings_de',
+  EmbeddingsFR: 'embeddings_fr',
+  EmbeddingsLB: 'embeddings_lb',
+});
+
+/**
+ * Build URL.
+ *
+ * @param {string} baseUrl
+ * @param {{[key: string]: any}} queryParams
+ *
+ * @returns {string}
+ */
+function buildUrl(baseUrl, queryParams = {}) {
+  const preparedQueryParameters = Object.keys(queryParams)
+    .reduce((acc, key) => {
+      if (queryParams[key] == null) return acc;
+      return {
+        ...acc,
+        [key]: typeof queryParams[key] === 'string' ? queryParams[key] : JSON.stringify(queryParams[key])
+      };
+    }, {});
+
+  const qp = new URLSearchParams(preparedQueryParameters);
+  return `${baseUrl}?${qp.toString()}`;
+}
 
 const update = (config, params = {}) => {
   const p = {
@@ -376,7 +414,19 @@ const checkFetchResponseStatus = async (res) => {
   throw error;
 };
 
-const requestPostRaw = (config, payload, namespace = 'search') => {
+/**
+ * Send a raw 'POST' request to Solr.
+ *
+ * @param {any} config Solr configuration.
+ * @param {import('generic-pool').Pool<fetchFn>} connectionPool
+ * @param {any} payload request body
+ * @param {string} namespace Solr index to use.
+ *
+ * @returns {Promise<any>} response
+ */
+const requestPostRaw = async (
+  config, connectionPool, payload, namespace = SolrNamespaces.Search,
+) => {
   const { endpoint } = config[namespace];
   const opts = {
     method: 'POST',
@@ -387,6 +437,8 @@ const requestPostRaw = (config, payload, namespace = 'search') => {
     body: JSON.stringify(payload),
   };
 
+  const fetch = await connectionPool.acquire();
+
   return fetch(endpoint, opts)
     .then(checkFetchResponseStatus)
     .then(response => response.text())
@@ -394,20 +446,36 @@ const requestPostRaw = (config, payload, namespace = 'search') => {
     .catch((error) => { throw preprocessSolrError(error); });
 };
 
-const getRaw = async (config, params, namespace = 'search') => {
+/**
+ * Send a raw 'GET' request to Solr.
+ *
+ * @param {any} config Solr configuration.
+ * @param {import('generic-pool').Pool<fetchFn>} connectionPool
+ * @param {any} params query parameters
+ * @param {string} namespace Solr index to use.
+ *
+ * @returns {Promise<any>} response
+ */
+const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces.Search) => {
   const { endpoint } = config[namespace];
+  const url = buildUrl(endpoint, params);
 
   const options = {
     method: 'GET',
-    url: endpoint,
-    auth: config.auth,
+    headers: {
+      ...buildAuthHeaders(config.auth),
+      'Content-Type': 'application/json',
+    },
     qs: params,
-    json: true,
   };
 
-  return rp(options).catch((error) => {
-    throw preprocessSolrError(error);
-  });
+  const fetch = await connectionPool.acquire();
+
+  return fetch(url, options)
+    .then(checkFetchResponseStatus)
+    .then(response => response.text())
+    .then(transformSolrResponse)
+    .catch((error) => { throw preprocessSolrError(error); });
 };
 
 /**
@@ -456,13 +524,18 @@ const resolveAsync = async (config, groups, factory) => {
   return groups;
 };
 
-const getSolrClient = config => ({
+/**
+ * @param {any} config configuration.
+ * @param {import('generic-pool').Pool<fetchFn>} connectionsPool
+ */
+const getSolrClient = (config, connectionsPool) => ({
   findAll: (params, factory) => findAll(config, params, factory),
   findAllPost: (params, factory) => findAllPost(config, params, factory),
-  update: (params, factory) => update(config, params, factory),
+  update: params => update(config, params),
   suggest: (params, factory) => suggest(config, params, factory),
-  requestGetRaw: async (params, namespace) => getRaw(config, params, namespace),
-  requestPostRaw: async (payload, namespace) => requestPostRaw(config, payload, namespace),
+  requestGetRaw: async (params, namespace) => getRaw(config, connectionsPool, params, namespace),
+  requestPostRaw: async (payload, namespace) => requestPostRaw(
+    config, connectionsPool, payload, namespace),
   utils: {
     wrapAll,
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
@@ -471,20 +544,10 @@ const getSolrClient = config => ({
 
 module.exports = function (app) {
   const config = app.get('solr');
-  app.set('solrClient', getSolrClient(config));
+  const connectionPool = initHttpPool(app.get('solrConnectionPool'));
+  app.set('solrClient', getSolrClient(config, connectionPool));
 };
 
 module.exports.client = getSolrClient;
 
-module.exports.SolrNamespaces = Object.freeze({
-  Search: 'search',
-  Mentions: 'mentions',
-  Topics: 'topics',
-  Entities: 'entities',
-  Images: 'images',
-  TextReusePassages: 'tr_passages',
-  TextReuseClusters: 'tr_clusters',
-  EmbeddingsDE: 'embeddings_de',
-  EmbeddingsFR: 'embeddings_fr',
-  EmbeddingsLB: 'embeddings_lb',
-});
+module.exports.SolrNamespaces = SolrNamespaces;

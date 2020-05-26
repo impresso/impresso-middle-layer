@@ -77,6 +77,7 @@
     "feathers-memory": "^2.2.0",
     "feathers-sequelize": "^6.0.1",
     "feathers-solr": "^1.1.15",
+    "generic-pool": "^3.7.1",
     "graphology": "^0.16.1",
     "graphology-communities-louvain": "^0.2.0",
     "graphology-hits": "^0.1.0",
@@ -121,6 +122,7 @@
   },
   "devDependencies": {
     "@feathersjs/cli": "^4.3.0",
+    "@types/generic-pool": "^3.1.9",
     "@types/mocha": "^7.0.2",
     "@types/node-fetch": "^2.5.6",
     "eslint": "6.8",
