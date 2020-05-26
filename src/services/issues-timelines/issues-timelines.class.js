@@ -2,6 +2,7 @@
 const { NotFound } = require('@feathersjs/errors');
 const Timeline = require('../../models/timelines.model');
 const { sequelizeErrorHandler, whereReducer } = require('../sequelize.utils');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -26,7 +27,7 @@ class Service {
     ];
     console.log(queries);
 
-    return Promise.all(queries.map(query => this.sequelize.query(query, {
+    return measureTime(() => Promise.all(queries.map(query => this.sequelize.query(query, {
       type: this.sequelize.QueryTypes.SELECT,
     }))).then(results => new Timeline({
       service: this.name,
@@ -52,7 +53,7 @@ class Service {
 
         return d;
       }),
-    }));
+    })), 'issues-timelines.get.db.timelines');
   }
 
   async get(id, params) {

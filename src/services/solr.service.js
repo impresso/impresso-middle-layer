@@ -2,6 +2,7 @@
 /* eslint import/no-dynamic-require: "off" */
 const lodash = require('lodash');
 const debug = require('debug')('impresso/services:SolrService');
+const { areCacheableSolrFields } = require('../util/cache');
 
 
 class SolrService {
@@ -13,14 +14,17 @@ class SolrService {
     this.name = String(name);
     this.namespace = String(namespace);
 
-    this.solr = app.get('solrClient');
+    /** @type {import('../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
 
     this.Model = require(`../models/${this.name}.model`);
     debug(`Configuring service: ${this.name} success`);
   }
 
   async get(id, params) {
-    debug(`get ${id}`, params);
+    const canBeCached = areCacheableSolrFields(params.fl || []);
+
+    debug(`get ${id} (${canBeCached ? 'cached' : 'not cached'})`, params);
     const results = await this.solr.findAll({
       q: `id:${id}`,
       limit: 1,
@@ -28,11 +32,15 @@ class SolrService {
       fl: params.fl,
       namespace: this.namespace,
       requestOriginalPath: params.requestOriginalPath,
-    }, this.Model.solrFactory);
+    }, this.Model.solrFactory, { skipCache: !canBeCached });
     return lodash.first(results.response.docs);
   }
 
   async find(params) {
+    const canBeCached = areCacheableSolrFields(params.fl || []);
+
+    debug(`find (${canBeCached ? 'cached' : 'not cached'})`, params);
+
     const p = {
       q: params.q || params.query.sq || '*:*',
       fq: params.fq || params.query.sfq || undefined,
@@ -50,7 +58,7 @@ class SolrService {
     // removing unnecessary indefined fields.
     Object.keys(p).forEach(key => p[key] === undefined && delete p[key]);
 
-    const results = await this.solr.findAll(p, this.Model.solrFactory);
+    const results = await this.solr.findAll(p, this.Model.solrFactory, { skipCache: !canBeCached });
 
     return {
       data: results.response.docs,

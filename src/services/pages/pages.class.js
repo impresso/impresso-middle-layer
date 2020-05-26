@@ -5,6 +5,7 @@ const solr = require('../../solr');
 const SequelizeService = require('../sequelize.service');
 const Article = require('../../models/articles.model');
 const Page = require('../../models/pages.model');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -23,19 +24,19 @@ class Service {
     const results = await Promise.all([
       // we perform a solr request to get basic info on the page:
       // number of articles,
-      this.solrClient.findAll({
+      measureTime(() => this.solrClient.findAll({
         q: `page_id_ss:${id}`,
         fl: 'id',
         limit: 0,
-      }),
+      }), 'pages.get.solr.page'),
       // mysql stuff
-      this.SequelizeService.get(id, {}).catch((err) => {
+      measureTime(() => this.SequelizeService.get(id, {}).catch((err) => {
         if (err.code === 404) {
           debug(`'get' (WARNING!) no page found using SequelizeService for page id ${id}`);
           return;
         }
         throw err;
-      }),
+      }), 'pages.get.db.page'),
     ]);
 
     if (results[0].response.numFound === 0) {
@@ -54,7 +55,7 @@ class Service {
   }
 
   async find(params) {
-    return this.SequelizeService.find(params);
+    return measureTime(() => this.SequelizeService.find(params), 'pages.find.db.pages');
   }
 }
 

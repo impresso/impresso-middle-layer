@@ -11,6 +11,7 @@ const Mention = require('../../models/mentions.model');
 const Entity = require('../../models/entities.model');
 const Topic = require('../../models/topics.model');
 const Suggestion = require('../../models/suggestions.model');
+const { measureTime } = require('../../util/instruments');
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
 
@@ -22,7 +23,7 @@ class Service {
   }) {
     this.app = app;
     this.name = name;
-    this.solrClient = this.app.get('solrClient');
+    this.solrClient = this.app.get('cachedSolr');
   }
 
   suggestNewspapers({ q }) {
@@ -68,7 +69,7 @@ class Service {
   }
 
   suggestEntities({ q }) {
-    return this.solrClient.suggest({
+    return measureTime(() => this.solrClient.suggest({
       namespace: 'entities',
       q,
       limit: 3,
@@ -88,11 +89,11 @@ class Service {
         item,
         weight: doc.weight,
       });
-    });
+    }), 'suggestions.solr.entities');
   }
 
   suggestMentions({ q }) {
-    return this.solrClient.suggest({
+    return measureTime(() => this.solrClient.suggest({
       namespace: 'mentions',
       q,
       limit: 3,
@@ -110,11 +111,11 @@ class Service {
         item,
         weight: item.frequence,
       });
-    });
+    }), 'suggestions.solr.mentions');
   }
 
   suggestTopics({ q }) {
-    return this.solrClient.suggest({
+    return measureTime(() => this.solrClient.suggest({
       namespace: 'topics',
       q,
       limit: 3,
@@ -127,7 +128,7 @@ class Service {
         type: 'topic',
         item: topic,
       });
-    });
+    }), 'suggestions.solr.topics');
   }
 
   async get(type, params) {
@@ -251,10 +252,12 @@ class Service {
       asregex(),
       dateranges(), // dates(),
       // entities(),
-      this.suggestCollections({
-        q: qPlainText,
-        user: params.user,
-      }),
+      /* NOTE: we do not suggest collections by default because they
+         cannot be cached. */
+      // this.suggestCollections({
+      //   q: qPlainText,
+      //   user: params.user,
+      // }),
       this.suggestNewspapers({
         q: qPlainText,
       }),

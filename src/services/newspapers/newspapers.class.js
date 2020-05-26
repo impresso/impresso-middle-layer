@@ -1,6 +1,7 @@
 const debug = require('debug')('impresso/services:newspapers');
 const { Op } = require('sequelize');
 const SequelizeService = require('../sequelize.service');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -12,6 +13,7 @@ class Service {
     this.SequelizeService = SequelizeService({
       app,
       name,
+      cacheReads: true,
     });
   }
 
@@ -24,10 +26,10 @@ class Service {
     const where = {
       uid: id,
     };
-    return this.SequelizeService.get(id, {
+    return measureTime(() => this.SequelizeService.get(id, {
       scope: 'get',
       where,
-    }).then(d => d.toJSON());
+    }).then(d => d.toJSON()), 'newspapers.get.db.newspaper');
   }
 
   async find(params) {
@@ -57,12 +59,12 @@ class Service {
       }
     }
 
-    return this.SequelizeService.find({
+    return measureTime(() => this.SequelizeService.find({
       ...params,
       where,
       scope,
       distinct: true,
-    });
+    }), 'newspapers.find.db.newspapers');
   }
 }
 

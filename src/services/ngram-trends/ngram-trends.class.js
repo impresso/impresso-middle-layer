@@ -62,10 +62,10 @@ class NgramTrends {
     const requests = requestPayloads.map(payload => this.solr.post(
       payload,
       this.solr.namespaces.Search,
-      cacheTtl,
+      { ttl: cacheTtl },
     ));
     const totalsRequest = this.solr.post(
-      totalsRequestPayload, this.solr.namespaces.Search, cacheTtl,
+      totalsRequestPayload, this.solr.namespaces.Search, { ttl: cacheTtl },
     );
 
     const solrResponses = await Promise.all(requests.concat([totalsRequest]));

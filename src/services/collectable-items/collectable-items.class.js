@@ -9,6 +9,7 @@ const CollectableItemGroup = require('../../models/collectable-items-groups.mode
 const {
   STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED,
 } = require('../../models/collections.model');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -76,7 +77,7 @@ class Service {
 
     debug('\'find\' fetch with reduced where clause:', reducedWhere);
     const results = await Promise.all([
-      this.SequelizeService.rawSelect({
+      measureTime(() => this.SequelizeService.rawSelect({
         query: `
           SELECT
             JSON_ARRAYAGG(collection_id) AS collectionIds,
@@ -96,8 +97,8 @@ class Service {
           limit: params.query.limit,
           skip: params.query.skip,
         },
-      }),
-      this.SequelizeService.rawSelect({
+      }), 'collectable-items.db.q1'),
+      measureTime(() => this.SequelizeService.rawSelect({
         query: `
           SELECT count(*) as total FROM (
           SELECT
@@ -108,7 +109,7 @@ class Service {
             ON collectableItem.collection_id = collection.id
           WHERE ${reducedWhere}
           GROUP BY item_id) as gps`,
-      }),
+      }), 'collectable-items.db.q2'),
     ]).then(rs => ({
       data: rs[0].map(d => new CollectableItemGroup(d)),
       limit: params.query.limit,

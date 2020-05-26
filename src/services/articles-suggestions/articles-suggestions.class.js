@@ -4,6 +4,8 @@ const { NotFound } = require('@feathersjs/errors');
 const debug = require('debug')('impresso/services:articles-suggestions');
 const Article = require('../../models/articles.model');
 const ArticleTopic = require('../../models/articles-topics.model');
+const { measureTime } = require('../../util/instruments');
+const { utils: { wrapAll } } = require('../../solr');
 
 const SIM_BY_TOPICS = 'topics';
 const SIM_BY_TOPICS_SQEDIST = 'topics_sqedist';
@@ -19,7 +21,7 @@ class Service {
   async get(id, params) {
     if ([SIM_BY_TOPICS_SQEDIST, SIM_BY_TOPICS].indexOf(params.query.method) !== -1) {
       debug(`get(${id}) method: ${params.query.method} load topics ...`);
-      const topics = await this.solrClient.findAll({
+      const topics = await measureTime(() => this.solrClient.findAll({
         q: `id:${id}`,
         fl: 'topics_dpfs',
       })
@@ -27,7 +29,7 @@ class Service {
         .catch((err) => {
           console.error(err);
           throw new NotFound();
-        });
+        }), 'articles-suggestions.solr.topics');
 
       let topicWeight;
       const topicsChoosen = lodash.take(
@@ -55,7 +57,7 @@ class Service {
       }
 
       debug(`get(${id}) method: ${params.query.method} topics loaded, get articles using fn topicWeight`, topicWeight);
-      return this.solrClient.findAll({
+      return measureTime(() => this.solrClient.findAll({
         q: `filter(topics_dpfs:*) AND NOT(id:${id})`,
         // eslint-disable-next-line no-template-curly-in-string
         fl: Article.ARTICLE_SOLR_FL_LIST_ITEM.concat(['dist:${topicWeight}']),
@@ -67,11 +69,11 @@ class Service {
         // eslint-disable-next-line no-template-curly-in-string
         order_by: '${topicWeight} asc',
       }, Article.solrFactory)
-        .then(this.solrClient.utils.wrapAll)
+        .then(wrapAll)
         .catch((err) => {
           console.error(err);
           throw new NotFound();
-        });
+        }), 'articles-suggestions.solr.articles');
     }
 
     return {
