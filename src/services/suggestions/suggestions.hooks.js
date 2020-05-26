@@ -1,7 +1,5 @@
 const { authenticate } = require('../../hooks/authenticate');
 const { queryWithCommonParams, validate } = require('../../hooks/params');
-const { checkCachedContents, saveResultsInCache, returnCachedContents } = require('../../hooks/redis');
-
 
 module.exports = {
   before: {
@@ -20,19 +18,12 @@ module.exports = {
         },
       }),
       queryWithCommonParams(),
-      checkCachedContents({
-        cacheUnauthenticated: false,
-        useAuthenticatedUser: true,
-      }),
     ],
   },
 
   after: {
     all: [],
-    find: [
-      returnCachedContents(),
-      saveResultsInCache(),
-    ],
+    find: [],
     get: [],
     create: [],
     update: [],

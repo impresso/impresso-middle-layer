@@ -23,7 +23,7 @@ class Service {
   }) {
     this.app = app;
     this.name = name;
-    this.solrClient = this.app.get('solrClient');
+    this.solrClient = this.app.get('cachedSolr');
   }
 
   suggestNewspapers({ q }) {
@@ -252,10 +252,12 @@ class Service {
       asregex(),
       dateranges(), // dates(),
       // entities(),
-      this.suggestCollections({
-        q: qPlainText,
-        user: params.user,
-      }),
+      /* NOTE: we do not suggest collections by default because they
+         cannot be cached. */
+      // this.suggestCollections({
+      //   q: qPlainText,
+      //   user: params.user,
+      // }),
       this.suggestNewspapers({
         q: qPlainText,
       }),

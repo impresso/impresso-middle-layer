@@ -62,7 +62,7 @@ class CachedSolrClient {
     const options = ttl != null ? { ttl } : {};
 
     return this.cacheManager.wrap(
-      getCacheKeyForSolrRequest(request, namespace, true),
+      getCacheKeyForSolrRequest(request, namespace, false),
       () => this.solrClient.findAll(request),
       options,
     ).then((result) => {
@@ -74,6 +74,26 @@ class CachedSolrClient {
         result.response.docs = result.response.docs.map(factory(result));
       }
       return result;
+    });
+  }
+
+  suggest(request, factory, ttl = TTL.Long) {
+    const { namespace } = request;
+    const options = ttl != null ? { ttl } : {};
+
+    return this.cacheManager.wrap(
+      getCacheKeyForSolrRequest(request, namespace, false),
+      () => this.solrClient.suggest(request),
+      options,
+    ).then((resultItems) => {
+      // Same as the code used in `solrClient.suggest`.
+      // It's here because `cacheManager` works with JSON whereas
+      // factory creates a custom JS class instance which cannot be
+      // properly serialised.
+      if (factory) {
+        return resultItems.map(factory());
+      }
+      return resultItems;
     });
   }
 

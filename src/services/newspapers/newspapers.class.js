@@ -13,6 +13,7 @@ class Service {
     this.SequelizeService = SequelizeService({
       app,
       name,
+      cacheReads: true,
     });
   }
 
