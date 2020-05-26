@@ -6,6 +6,7 @@ const Image = require('../../models/images.model');
 const Page = require('../../models/pages.model');
 const { getFacetsFromSolrResponse } = require('../search/search.extractors');
 const { measureTime } = require('../../util/instruments');
+const { utils: { wrapAll } } = require('../../solr');
 
 class Service {
   constructor({
@@ -186,7 +187,7 @@ class Service {
 
     return this.assignIIIF({
       method: 'find',
-      result: this.SolrService.solr.utils.wrapAll({ ...solrResponse, facets }),
+      result: wrapAll({ ...solrResponse, facets }),
     });
   }
 

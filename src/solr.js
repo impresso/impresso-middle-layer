@@ -464,7 +464,6 @@ const getSolrClient = config => ({
   requestGetRaw: async (params, namespace) => getRaw(config, params, namespace),
   requestPostRaw: async (payload, namespace) => requestPostRaw(config, payload, namespace),
   utils: {
-    wrapAll,
     resolveAsync: (items, factory) => resolveAsync(config, items, factory),
   },
 });
@@ -488,3 +487,7 @@ module.exports.SolrNamespaces = Object.freeze({
   EmbeddingsFR: 'embeddings_fr',
   EmbeddingsLB: 'embeddings_lb',
 });
+
+module.exports.utils = {
+  wrapAll,
+};

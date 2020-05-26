@@ -5,6 +5,7 @@ const debug = require('debug')('impresso/services:articles-suggestions');
 const Article = require('../../models/articles.model');
 const ArticleTopic = require('../../models/articles-topics.model');
 const { measureTime } = require('../../util/instruments');
+const { utils: { wrapAll } } = require('../../solr');
 
 const SIM_BY_TOPICS = 'topics';
 const SIM_BY_TOPICS_SQEDIST = 'topics_sqedist';
@@ -68,7 +69,7 @@ class Service {
         // eslint-disable-next-line no-template-curly-in-string
         order_by: '${topicWeight} asc',
       }, Article.solrFactory)
-        .then(this.solrClient.utils.wrapAll)
+        .then(wrapAll)
         .catch((err) => {
           console.error(err);
           throw new NotFound();
