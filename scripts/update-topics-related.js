@@ -3,9 +3,11 @@ const path = require('path');
 const { chunk } = require('lodash');
 const debug = require('debug')('impresso/scripts:update-topics-related');
 const Eta = require('node-eta');
-const config = require('@feathersjs/configuration')()();
-const solrClient = require('../src/solr').client(config.solr);
 const topics = require('../data/topics.json');
+const app = require('../src/app');
+
+const solrClient = app.get('cachedSolr');
+
 
 const Threshold = parseFloat(process.env.THRESHOLD || 0.5);
 const RelatedThreshold = parseFloat(process.env.RELATED_THRESHOLD || 0.1);
@@ -58,6 +60,9 @@ async function waterfall() {
           numBuckets: true,
         },
       }),
+    }, undefined, {
+      ttl: solrClient.ttl.Forever,
+      cachePrefix: solrClient.cacheKeyPrefix.Data,
     }).then(({ response, facets }) => {
       if (!facets || !facets.topic) {
         throw new Error(`Exit, threshold is not correct as no relatedtopics has been found for topic ${uid}`);
@@ -101,13 +106,15 @@ async function waterfall() {
             combined_topic_weight: `sum(payload(topics_dpfs,${uid}),payload(topics_dpfs,${relatedUid}))`,
           },
           fq: `{!frange l=${RelatedThreshold}}payload(topics_dpfs,${relatedUid})`,
-          namespace: 'search',
           facets: JSON.stringify({
             // eslint-disable-next-line no-template-curly-in-string
             avg_combined_topic_weight: 'avg(${combined_topic_weight})',
             // eslint-disable-next-line no-template-curly-in-string
             // max_combined_topic_weight: 'max(${combined_topic_weight})',
           }),
+        }, undefined, {
+          ttl: solrClient.ttl.Forever,
+          cachePrefix: solrClient.cacheKeyPrefix.Data,
         }).then(({ response, facets }) => ({
           uid: relatedUid,
           w: response.numFound,
