@@ -1,3 +1,4 @@
+// @ts-check
 const { keyBy } = require('lodash');
 const debug = require('debug')('impresso/services:articles');
 const { Op } = require('sequelize');
@@ -9,14 +10,14 @@ const Article = require('../../models/articles.model');
 const Issue = require('../../models/issues.model');
 const { measureTime } = require('../../util/instruments');
 
-function getIssues(request, app) {
+async function getIssues(request, app) {
   const sequelize = app.get('sequelizeClient');
   const cacheManager = app.get('cacheManager');
   const cacheKey = SequelizeService.getCacheKeyForReadSqlRequest(request, 'issues');
 
   return cacheManager.wrap(
     cacheKey,
-    () => Issue.sequelize(sequelize)
+    async () => Issue.sequelize(sequelize)
       .findAll(request)
       .then(rows => rows.map(d => d.get())),
   ).then(rows => keyBy(rows, 'uid'));
@@ -25,7 +26,7 @@ function getIssues(request, app) {
 class Service {
   constructor({
     name = '',
-    app,
+    app = undefined,
   } = {}) {
     this.name = String(name);
     this.app = app;
@@ -60,7 +61,7 @@ class Service {
     }
 
     // add newspapers and other things from this class sequelize method
-    const getAddonsPromise = await measureTime(() => this.SequelizeService.find({
+    const getAddonsPromise = measureTime(() => this.SequelizeService.find({
       ...params,
       scope: 'get',
       where: {
@@ -82,7 +83,7 @@ class Service {
         uid: { [Op.in]: results.data.map(d => d.issue.uid) },
       },
     };
-    const getRelatedIssuesPromise = await measureTime(
+    const getRelatedIssuesPromise = measureTime(
       () => getIssues(issuesRequest, this.app),
       'articles.find.db.issues',
     );
@@ -103,7 +104,12 @@ class Service {
         }
         // add pages
         if (addonsIndex[article.uid].pages) {
-          article.pages = addonsIndex[article.uid].pages; // .map(d => d.toJSON());
+          // NOTE [RK]: Checking type of object is a quick fix around cached
+          // sequelized results. When a result is a plain Object instance it means
+          // it came from cache. Otherwise it is a model instance and it was loaded from the database.
+          // This should be moved to the SequelizeService layer.
+          article.pages = addonsIndex[article.uid].pages
+            .map(d => (d.constructor === Object ? d : d.toJSON()));
         }
         if (pageUids.length === 1) {
           article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1);
