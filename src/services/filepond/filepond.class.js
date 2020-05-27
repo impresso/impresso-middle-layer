@@ -1,9 +1,25 @@
-/* eslint-disable no-unused-vars */
-const fs = require('fs');
+// @ts-check
+const { default: fetch } = require('node-fetch');
+const FormData = require('form-data');
 const path = require('path');
-const rp = require('request-promise');
 const sharp = require('sharp');
 const debug = require('debug')('impresso/services:filepond');
+
+async function executeImageUploadRequest(url, modelId, filename, buffer) {
+  const formData = new FormData();
+
+  formData.append('model_id', modelId);
+  formData.append('image', buffer, {
+    contentType: 'image/jpeg',
+    filename,
+  });
+
+  const parameters = {
+    method: 'POST',
+    body: formData,
+  };
+  return fetch(url, parameters);
+}
 
 class Service {
   constructor(options) {
@@ -21,21 +37,7 @@ class Service {
     debug('[create] visualSignature service url:', url);
     // Promise: process image
     const fingerprintPromise = this.processImage(file)
-      .then(imageBuffer => rp({
-        url,
-        method: 'POST',
-        json: true,
-        formData: {
-          model_id: 'InceptionResNetV2',
-          image: {
-            value: imageBuffer,
-            options: {
-              filename: params.file.filename,
-              contentType: 'image/jpeg',
-            },
-          },
-        },
-      }));
+      .then(imageBuffer => executeImageUploadRequest(url, 'InceptionResNetV2', params.file.filename, imageBuffer));
     // promise: create base64 representation of the given file
     const thumbnailPromise = sharp(file)
       .resize(200)

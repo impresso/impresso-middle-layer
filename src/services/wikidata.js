@@ -1,4 +1,5 @@
-const rp = require('request-promise');
+// @ts-check
+const { default: fetch } = require('node-fetch');
 const wdk = require('wikidata-sdk');
 const debug = require('debug')('impresso/services:wikidata');
 const lodash = require('lodash');
@@ -200,7 +201,7 @@ const getNamedEntityClass = (entity) => {
 /**
  * Return a new Entity intance with the correct subclass
  * @param  {NamedEntity} entity [description]
- * @return {String}        [description]
+ * @return {any}        [description]
  */
 const createEntity = (entity) => {
   // parse with wikidata sdk
@@ -237,23 +238,25 @@ const resolve = async ({
   const url = wdk.getEntities(ids, languages);
   debug(`resolve: url '${url}', depth: ${depth}`);
 
-  const result = await rp({
-    url,
-    json: true,
-  }).then((res) => {
-    const entities = {};
-    let pendings = [];
+  const result = await fetch(url)
+    .then((res) => {
+      if (res.ok) return res.json();
+      throw new Error(res.statusText);
+    })
+    .then((res) => {
+      const entities = {};
+      let pendings = [];
 
-    Object.keys(res.entities).forEach((id) => {
-      entities[id] = createEntity(res.entities[id]);
-      pendings = pendings.concat(entities[id].getPendings());
+      Object.keys(res.entities).forEach((id) => {
+        entities[id] = createEntity(res.entities[id]);
+        pendings = pendings.concat(entities[id].getPendings());
+      });
+
+      return {
+        entities,
+        pendings,
+      };
     });
-
-    return {
-      entities,
-      pendings,
-    };
-  });
 
   let index;
 
