@@ -106,7 +106,8 @@ class Service {
         if (addonsIndex[article.uid].pages) {
           // NOTE [RK]: Checking type of object is a quick fix around cached
           // sequelized results. When a result is a plain Object instance it means
-          // it came from cache. Otherwise it is a model instance and it was loaded from the database.
+          // it came from cache. Otherwise it is a model instance and it was
+          // loaded from the database.
           // This should be moved to the SequelizeService layer.
           article.pages = addonsIndex[article.uid].pages
             .map(d => (d.constructor === Object ? d : d.toJSON()));

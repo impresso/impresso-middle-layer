@@ -475,7 +475,6 @@ const findAll = (config, connectionPool, params = {}, factory) => {
   debug(`[findAll][${_params.requestOriginalPath}]: url`, endpoint);
 
   return requestPromise.then((result) => {
-
     if (result.grouped) {
       result.response = {
         numFound: result.grouped[_params.group_by].ngroups,
