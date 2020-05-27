@@ -65,8 +65,8 @@ class Service {
             .slice(params.query.skip, params.query.skip + params.query.limit)
             .map((d) => {
               const t = Topic.getCached(d.id);
-              if (solrSuggestResponse.fragments[t.uid].topic_suggest) {
-                t.matches = solrSuggestResponse.fragments[t.uid].topic_suggest;
+              if (solrSuggestResponse.highlighting[t.uid].topic_suggest) {
+                t.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest;
               }
               return t;
             }),
@@ -78,11 +78,12 @@ class Service {
           },
         };
       }
+
       // otherwise, fill topic index
       solrSuggestResponse.response.docs.forEach((d, i) => {
         topics[d.id] = {
           order: i,
-          matches: solrSuggestResponse.fragments[d.id].topic_suggest,
+          matches: solrSuggestResponse.highlighting[d.id].topic_suggest,
         };
       });
     }

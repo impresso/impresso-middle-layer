@@ -82,9 +82,10 @@ class Service {
           // enrich with wikidataID
           d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId;
         }
-        // nerich with fragments, if any provided:
-        if (solrResult.fragments[d.uid].entitySuggest) {
-          d.matches = solrResult.fragments[d.uid].entitySuggest;
+
+        // enrich with fragments, if any provided:
+        if (solrResult.highlighting[d.uid].entitySuggest) {
+          d.matches = solrResult.highlighting[d.uid].entitySuggest;
         }
         return d;
       }),

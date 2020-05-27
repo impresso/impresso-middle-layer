@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-const fs = require('fs');
+// @ts-check
 const path = require('path');
 const rp = require('request-promise');
 const sharp = require('sharp');

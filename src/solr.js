@@ -1,12 +1,15 @@
 // @ts-check
-// eslint-disable-next-line no-unused-vars
-const { default: fetchFn } = require('node-fetch');
-const rp = require('request-promise');
 const debug = require('debug')('impresso/solr');
 const lodash = require('lodash');
 const { URLSearchParams } = require('url');
 const { preprocessSolrError } = require('./util/solr/errors');
 const { initHttpPool } = require('./httpConnectionPool');
+
+/**
+ * @typedef {import('node-fetch').Response} Response
+ * @typedef {import('./httpConnectionPool').ConnectionWrapper} ConnectionWrapper
+ * @typedef {import('generic-pool').Pool<ConnectionWrapper>} ConnectionPool
+ */
 
 const SolrNamespaces = Object.freeze({
   Search: 'search',
@@ -22,6 +25,68 @@ const SolrNamespaces = Object.freeze({
 });
 
 /**
+ * Create headers object out of authentication details.
+ * @param {{ user: string, pass: string }} auth authentication details
+ * @returns {{ [key: string]: string }}
+ */
+const buildAuthHeaders = (auth) => {
+  const authString = `${auth.user}:${auth.pass}`;
+
+  return {
+    Authorization: `Basic ${Buffer.from(authString).toString('base64')}`,
+  };
+};
+
+/**
+ * Transform Solr response to a JavaScript object.
+ * Impresso Solr comes with a plug-in that creates duplicate "highlighting" keys
+ * in Solr response. To get around this issue we detect duplicate fields and replace
+ * one of them with "fragments".
+ * @param {string} text
+ * @returns {any}
+ */
+const transformSolrResponse = (text) => {
+  const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/mg);
+  const replacedText = matches && matches.length > 1
+    ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{')
+    : text;
+
+  return JSON.parse(replacedText);
+};
+
+/**
+ * @param {Response} res response
+ * @returns {Promise<Response>}
+ */
+const checkFetchResponseStatus = async (res) => {
+  if (res.ok) return res;
+  const error = new Error(res.statusText);
+  // @ts-ignore
+  error.response = {
+    statusCode: res.status,
+    body: await res.text(),
+  };
+  throw error;
+};
+
+/**
+ * @param {{[key: string]: any}} queryParmeters
+ * @returns {URLSearchParams}
+ */
+function toUrlSearchParameters(queryParmeters = {}) {
+  const preparedQueryParameters = Object.keys(queryParmeters)
+    .reduce((acc, key) => {
+      if (queryParmeters[key] == null) return acc;
+      return {
+        ...acc,
+        [key]: typeof queryParmeters[key] === 'string' ? queryParmeters[key] : JSON.stringify(queryParmeters[key]),
+      };
+    }, {});
+
+  return new URLSearchParams(preparedQueryParameters);
+}
+
+/**
  * Build URL.
  *
  * @param {string} baseUrl
@@ -30,54 +95,122 @@ const SolrNamespaces = Object.freeze({
  * @returns {string}
  */
 function buildUrl(baseUrl, queryParams = {}) {
-  const preparedQueryParameters = Object.keys(queryParams)
-    .reduce((acc, key) => {
-      if (queryParams[key] == null) return acc;
-      return {
-        ...acc,
-        [key]: typeof queryParams[key] === 'string' ? queryParams[key] : JSON.stringify(queryParams[key])
-      };
-    }, {});
-
-  const qp = new URLSearchParams(preparedQueryParameters);
+  const qp = toUrlSearchParameters(queryParams);
   return `${baseUrl}?${qp.toString()}`;
 }
 
-const update = (config, params = {}) => {
-  const p = {
-    id: '',
-    namespace: '',
-    add: {},
-    set: {},
-    commit: true,
-    ...params,
+/**
+ * @param {string} url
+ * @param {object} params
+ * @param {ConnectionPool} connectionPool
+ */
+async function executeRequest(url, params, connectionPool) {
+  const connection = await connectionPool.acquire();
+  if (connectionPool.available === 0) {
+    console.warn(`No more available Solr connections out of max ${connectionPool.max}`);
+  }
+
+  try {
+    return await connection.fetch(url, params)
+      .then(checkFetchResponseStatus)
+      .then(response => response.text())
+      .then(transformSolrResponse)
+      .catch((error) => { throw preprocessSolrError(error); });
+  } finally {
+    try {
+      await connectionPool.release(connection);
+    } catch (e) {
+      const message = `
+        Could not release Solr connection to the pool: ${e.message}.
+        This does not cause an error for the user but should be looked into.
+      `;
+      console.warn(message);
+    }
+  }
+}
+
+/**
+ * Send a raw 'POST' request to Solr.
+ *
+ * @param {any} config Solr configuration.
+ * @param {ConnectionPool} connectionPool
+ * @param {any} payload request body
+ * @param {string} namespace Solr index to use.
+ *
+ * @returns {Promise<any>} response
+ */
+const postRaw = async (
+  config, connectionPool, payload, queryParams = {}, namespace = SolrNamespaces.Search,
+) => {
+  const { endpoint } = config[namespace];
+  const url = buildUrl(endpoint, queryParams);
+  const opts = {
+    method: 'POST',
+    headers: {
+      ...buildAuthHeaders(config.auth),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
   };
 
-  const url = `${config[p.namespace].update}?commit=${!!p.commit}`;
-  const body = [{
-    id: p.id,
-    ...p.set,
-    ...p.add,
-    // commit: true,
-  }];
-
-  debug('update url:', url);
-  debug('update body:', body);
-  return rp.post({
-    url,
-    auth: config.auth.write,
-    json: true,
-    body,
-    // json: true REMOVED because of duplicate keys
-  }).then((res) => {
-    debug('update received', res);
-    return 'ok';
-  }).catch((error) => {
-    throw preprocessSolrError(error);
-  });
+  return executeRequest(url, opts, connectionPool);
 };
 
-const suggest = (config, params = {}, factory) => {
+/**
+ * Send a raw 'POST' request with form payload to Solr.
+ *
+ * @param {any} config Solr configuration.
+ * @param {ConnectionPool} connectionPool
+ * @param {any} payload request body
+ * @param {string} namespace Solr index to use.
+ *
+ * @returns {Promise<any>} response
+ */
+const postFormRaw = async (
+  config, connectionPool, payload, queryParams = {}, namespace = SolrNamespaces.Search,
+) => {
+  const { endpoint } = config[namespace];
+  const url = buildUrl(endpoint, queryParams);
+  const body = toUrlSearchParameters(payload);
+
+  const opts = {
+    method: 'POST',
+    headers: {
+      ...buildAuthHeaders(config.auth),
+    },
+    body,
+  };
+
+  return executeRequest(url, opts, connectionPool);
+};
+
+/**
+ * Send a raw 'GET' request to Solr.
+ *
+ * @param {any} config Solr configuration.
+ * @param {ConnectionPool} connectionPool
+ * @param {any} params query parameters
+ * @param {string} namespace Solr index to use.
+ *
+ * @returns {Promise<any>} response
+ */
+const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces.Search) => {
+  const { endpoint } = config[namespace];
+  const url = buildUrl(endpoint, params);
+
+  const options = {
+    method: 'GET',
+    headers: {
+      ...buildAuthHeaders(config.auth),
+      'Content-Type': 'application/json',
+    },
+    qs: params,
+  };
+
+  return executeRequest(url, options, connectionPool);
+};
+
+const suggest = async (config, connectionPool, params = {}, factory) => {
   const _params = {
     q: '',
     dictionary: 'm_suggester_infix',
@@ -104,15 +237,7 @@ const suggest = (config, params = {}, factory) => {
 
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
-  const url = `${config[_params.namespace].suggest}`;
-
-  return rp({
-    url,
-    auth: config.auth,
-    json: true,
-    qs,
-    // json: true REMOVED because of duplicate keys
-  }).then((res) => {
+  return getRaw(config, connectionPool, qs, _params.namespace).then((res) => {
     const results = lodash.get(res, `suggest.${qs['suggest.dictionary']}.${qs['suggest.q']}`);
 
     debug(
@@ -134,7 +259,7 @@ const suggest = (config, params = {}, factory) => {
   });
 };
 // TODO: `factory` is not used
-const findAllPost = (config, params = {}, factory) => {
+const findAllPost = (config, connectionsPool, params = {}, factory) => {
   const qp = {
     q: '*:*',
     limit: 10,
@@ -208,16 +333,7 @@ const findAllPost = (config, params = {}, factory) => {
   }
 
   debug(`[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint: '${endpoint}'. Using 'data':`, data);
-  return rp({
-    method: 'POST',
-    url: endpoint,
-    auth: config.auth,
-    form: data,
-    // json: true REMOVED because of duplicate keys
-  }).then((res) => {
-    // dummy handle dupes keys
-    const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
-
+  return postFormRaw(config, connectionsPool, data, {}, qp.namespace).then((result) => {
     if (result.grouped) {
       result.response = {
         numFound: result.grouped[qp.group_by].ngroups,
@@ -245,7 +361,7 @@ const findAllPost = (config, params = {}, factory) => {
  * @param {object} config - config object for solr
  * @param {object} params - `q` with lucene search query; `limit` and `offset`
  */
-const findAll = (config, params = {}, factory) => {
+const findAll = (config, connectionPool, params = {}, factory) => {
   const _params = {
     q: '*:*',
     limit: 10,
@@ -334,6 +450,8 @@ const findAll = (config, params = {}, factory) => {
     // json: true REMOVED because of duplicate keys
   };
 
+  let requestPromise;
+
   if (_params.form) {
     // rewrite query string to get fq and limit the qs params
     opts.form = _params.form;
@@ -347,15 +465,16 @@ const findAll = (config, params = {}, factory) => {
     }
     // opts.form.q = opts.form.q + ' AND ' +
     opts.method = 'POST';
+    requestPromise = postFormRaw(config, connectionPool, opts.form, opts.qs, _params.namespace);
   } else {
     opts.qs = qs;
+    requestPromise = getRaw(config, connectionPool, qs, _params.namespace);
   }
 
   debug(`[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With 'qs':`, JSON.stringify(opts.qs));
   debug(`[findAll][${_params.requestOriginalPath}]: url`, endpoint);
-  return rp(opts).then((res) => {
-    // dummy handle dupes keys
-    const result = JSON.parse(res.replace('"highlighting":{', '"fragments":{'));
+
+  return requestPromise.then((result) => {
 
     if (result.grouped) {
       result.response = {
@@ -376,106 +495,6 @@ const findAll = (config, params = {}, factory) => {
   }).catch((error) => {
     throw preprocessSolrError(error);
   });
-};
-
-const buildAuthHeaders = (auth) => {
-  const authString = `${auth.user}:${auth.pass}`;
-
-  return {
-    Authorization: `Basic ${Buffer.from(authString).toString('base64')}`,
-  };
-};
-
-/**
- * Transform Solr response to a JavaScript object.
- * Impresso Solr comes with a plug-in that creates duplicate "highlighting" keys
- * in Solr response. To get around this issue we detect duplicate fields and replace
- * one of them with "fragments".
- * @param {string} text
- * @returns {any}
- */
-const transformSolrResponse = (text) => {
-  const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/mg);
-  const replacedText = matches && matches.length > 1
-    ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{')
-    : text;
-
-  return JSON.parse(replacedText);
-};
-
-const checkFetchResponseStatus = async (res) => {
-  if (res.ok) return res;
-  const error = new Error(res.statusText);
-  // @ts-ignore
-  error.response = {
-    statusCode: res.status,
-    body: await res.text(),
-  };
-  throw error;
-};
-
-/**
- * Send a raw 'POST' request to Solr.
- *
- * @param {any} config Solr configuration.
- * @param {import('generic-pool').Pool<fetchFn>} connectionPool
- * @param {any} payload request body
- * @param {string} namespace Solr index to use.
- *
- * @returns {Promise<any>} response
- */
-const requestPostRaw = async (
-  config, connectionPool, payload, namespace = SolrNamespaces.Search,
-) => {
-  const { endpoint } = config[namespace];
-  const opts = {
-    method: 'POST',
-    headers: {
-      ...buildAuthHeaders(config.auth),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  };
-
-  const fetch = await connectionPool.acquire();
-
-  return fetch(endpoint, opts)
-    .then(checkFetchResponseStatus)
-    .then(response => response.text())
-    .then(transformSolrResponse)
-    .catch((error) => { throw preprocessSolrError(error); });
-};
-
-/**
- * Send a raw 'GET' request to Solr.
- *
- * @param {any} config Solr configuration.
- * @param {import('generic-pool').Pool<fetchFn>} connectionPool
- * @param {any} params query parameters
- * @param {string} namespace Solr index to use.
- *
- * @returns {Promise<any>} response
- */
-const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces.Search) => {
-  const { endpoint } = config[namespace];
-  const url = buildUrl(endpoint, params);
-
-  const options = {
-    method: 'GET',
-    headers: {
-      ...buildAuthHeaders(config.auth),
-      'Content-Type': 'application/json',
-    },
-    qs: params,
-  };
-
-  const fetch = await connectionPool.acquire();
-
-  return fetch(url, options)
-    .then(checkFetchResponseStatus)
-    .then(response => response.text())
-    .then(transformSolrResponse)
-    .catch((error) => { throw preprocessSolrError(error); });
 };
 
 /**
@@ -502,14 +521,14 @@ const wrapAll = res => ({
  * @param  {Object} config configuration item
  * @param  {Array} groups groups of services, each containing a list of items
  * @param  {Function} factory Instance generator
- * @return {Object} {uid: instance}
+ * @return {Promise<any>} {uid: instance}
  */
-const resolveAsync = async (config, groups, factory) => {
+const resolveAsync = async (config, connectionsPool, groups, factory) => {
   debug(`resolveAsync':  ${groups.length} groups to resolve`);
   await Promise.all(groups.filter(group => group.items.length > 0).map((group, k) => {
     debug(`resolveAsync': findAll for namespace "${group.namespace}"`);
     const ids = group.items.map(d => d[group.idField || 'uid']);
-    return findAll(config, {
+    return findAll(config, connectionsPool, {
       q: `id:${ids.join(' OR id:')}`,
       fl: group.Klass.SOLR_FL,
       limit: ids.length,
@@ -526,18 +545,18 @@ const resolveAsync = async (config, groups, factory) => {
 
 /**
  * @param {any} config configuration.
- * @param {import('generic-pool').Pool<fetchFn>} connectionsPool
+ * @param {ConnectionPool} connectionsPool
  */
 const getSolrClient = (config, connectionsPool) => ({
-  findAll: (params, factory) => findAll(config, params, factory),
-  findAllPost: (params, factory) => findAllPost(config, params, factory),
-  update: params => update(config, params),
-  suggest: (params, factory) => suggest(config, params, factory),
+  findAll: (params, factory) => findAll(config, connectionsPool, params, factory),
+  findAllPost: (params, factory) => findAllPost(config, connectionsPool, params, factory),
+  suggest: (params, factory) => suggest(config, connectionsPool, params, factory),
   requestGetRaw: async (params, namespace) => getRaw(config, connectionsPool, params, namespace),
-  requestPostRaw: async (payload, namespace) => requestPostRaw(
-    config, connectionsPool, payload, namespace),
+  requestPostRaw: async (payload, namespace) => postRaw(
+    config, connectionsPool, payload, {}, namespace,
+  ),
   utils: {
-    resolveAsync: (items, factory) => resolveAsync(config, items, factory),
+    resolveAsync: (items, factory) => resolveAsync(config, connectionsPool, items, factory),
   },
 });
 
