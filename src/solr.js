@@ -191,11 +191,12 @@ const postFormRaw = async (
  * @param {ConnectionPool} connectionPool
  * @param {any} params query parameters
  * @param {string} namespace Solr index to use.
+ * @param {string} endpointKey name of the endpoint property in the config.
  *
  * @returns {Promise<any>} response
  */
-const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces.Search) => {
-  const { endpoint } = config[namespace];
+const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces.Search, endpointKey = 'endpoint') => {
+  const endpoint = config[namespace][endpointKey];
   const url = buildUrl(endpoint, params);
 
   const options = {
@@ -237,7 +238,7 @@ const suggest = async (config, connectionPool, params = {}, factory) => {
 
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
-  return getRaw(config, connectionPool, qs, _params.namespace).then((res) => {
+  return getRaw(config, connectionPool, qs, _params.namespace, 'suggest').then((res) => {
     const results = lodash.get(res, `suggest.${qs['suggest.dictionary']}.${qs['suggest.q']}`);
 
     debug(
