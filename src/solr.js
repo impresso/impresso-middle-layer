@@ -107,7 +107,7 @@ function buildUrl(baseUrl, queryParams = {}) {
 async function executeRequest(url, params, connectionPool) {
   const connection = await connectionPool.acquire();
   if (connectionPool.available === 0) {
-    console.warn(`No more available Solr connections out of max ${connectionPool.max}`);
+    console.warn(`No more available Solr connections out of max ${connectionPool.max}. Next client will be waiting.`);
   }
 
   try {
@@ -362,7 +362,7 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
  * @param {object} config - config object for solr
  * @param {object} params - `q` with lucene search query; `limit` and `offset`
  */
-const findAll = (config, connectionPool, params = {}, factory) => {
+const findAll = (config, connectionPool, params = {}, factory = undefined) => {
   const _params = {
     q: '*:*',
     limit: 10,

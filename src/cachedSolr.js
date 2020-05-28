@@ -130,7 +130,13 @@ class CachedSolrClient {
       // factory creates a custom JS class instance which cannot be
       // properly serialised.
       if (factory) {
-        result.response.docs = result.response.docs.map(factory(result));
+        return {
+          ...result,
+          response: {
+            ...result.response,
+            docs: result.response.docs.map(factory(result)),
+          },
+        };
       }
       return result;
     });
