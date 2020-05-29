@@ -23,7 +23,7 @@ const factory = {
 };
 
 
-function initHttpPool({ maxParallelConnections = 20, acquireTimeoutSec = 30 } = {}) {
+function initHttpPool({ maxParallelConnections = 17, acquireTimeoutSec = 25 } = {}) {
   const opts = {
     min: maxParallelConnections,
     max: maxParallelConnections,

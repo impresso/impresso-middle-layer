@@ -11,7 +11,7 @@ class Service {
   }) {
     this.app = app;
     this.name = name;
-    this.solrClient = this.app.get('solrClient');
+    this.solrClient = this.app.get('cachedSolr');
   }
 
   async find(params) {

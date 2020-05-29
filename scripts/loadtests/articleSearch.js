@@ -3,7 +3,7 @@ import { check, sleep } from 'k6';
 
 export const options = {
   stages: [2, 3, 4, 5, 6]
-    .map(target => ({ duration: '7s', target: target * 20 })),
+    .map(target => ({ duration: '15s', target: target * 20 })),
 };
 
 const tokens = `
@@ -11,7 +11,7 @@ Le 29 février 2020, le premier cas de covid-19 au Grand-Duché était officiell
 Une affirmation basée sur l'analyse plus approfondie d'anciens échantillons d'eau usée, datant d'avril 2019. Si les recherches étaient centrées sur le norovirus, à l'origine de la grippe intestinale, les résultats ont démontré que le covid-19 avait atteint le Luxembourg bien avant le premier décès, recensé le 13 mars dernier. Jour où le pays enregistrait officiellement 26 cas.
 `.split(' ');
 
-export default function() {
+export default function main() {
   const randomIndexes = [1, 2, 3].map(() => Math.round(Math.random() * tokens.length));
 
   const queryParameters = {

@@ -14,20 +14,25 @@ const tokens = `
 function getRandomToken() {
   const randomIndex = Math.floor(Math.random() * tokens.length);
   const token = tokens[randomIndex].replace(/[^A-zÀ-ÿ]/g, '');
-  if (token.length > 0) return token;
-  return getRandomToken();
+  if (token.length < 2) return getRandomToken();
+
+  let randomLength = Math.floor(Math.random() * token.length);
+  randomLength = randomLength < 2 ? 2 : randomLength;
+  const randomStart = Math.floor(Math.random() * (token.length - randomLength));
+
+  return token.slice(randomStart, randomStart + randomLength);
 }
 
 export default function test() {
 
   const queryParameters = {
-    language: 'fr',
     q: encodeURIComponent(getRandomToken()),
   };
+  // console.log('**', JSON.stringify(queryParameters));
   const qs = Object.entries(queryParameters).map(([k, v]) => `${k}=${v}`).join('&');
 
-  const url = `http://localhost:3030/embeddings?${qs}`;
-  // const url = `http://dev.impresso-project.ch/api/embeddings?${qs}`;
+  const url = `http://localhost:3030/suggestions?${qs}`;
+  // const url = `http://dev.impresso-project.ch/api/suggestions?${qs}`;
 
   // console.log(url);
   const res = http.get(url);
