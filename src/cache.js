@@ -7,7 +7,7 @@ function init(configuration, isEnabled, errorHandler) {
     host: configuration.host || 'localhost',
     port: configuration.port || 6379,
     auth_pass: configuration.pass || undefined,
-    ttl: configuration.ttl || 600, // 15 minutes by default
+    ttl: configuration.ttl || 60 * 60 * 24 * 30 * 6, // ~6 months by default
   });
 
   if (isEnabled && errorHandler != null) {
