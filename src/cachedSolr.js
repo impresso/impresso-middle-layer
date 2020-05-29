@@ -13,8 +13,8 @@ function getCacheKeyForSolrRequest(request, namespace, isPost = false) {
 }
 
 const TTL = Object.freeze({
-  Short: 60, // 1 minute
-  Long: 60 * 60 * 24, // 1 day
+  Short: 60, // 1 minute. Use where content may be changed by the user.
+  Long: 60 * 60 * 24 * 30 * 6, // ~6 months. Used by default
   Default: undefined, // set in cache configuration.
 });
 
