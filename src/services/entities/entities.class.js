@@ -9,6 +9,7 @@ const wikidata = require('../wikidata');
 const Entity = require('../../models/entities.model');
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({ app }) {
@@ -29,7 +30,7 @@ class Service {
     debug('[find] with params:', params.query);
 
     // get solr results for the queyr, if any; return raw results.
-    const solrResult = await this.solrService.solr.findAll({
+    const solrResult = await measureTime(() => this.solrService.solr.findAll({
       q: params.sanitized.sq || '*:*',
       fl: 'id,l_s,t_s,article_fq_f,mention_fq_f',
       highlight_by: params.sanitized.sq ? 'entitySuggest' : false,
@@ -37,7 +38,7 @@ class Service {
       namespace: 'entities',
       limit: params.query.limit,
       skip: params.query.skip,
-    }, Entity.solrFactory);
+    }, Entity.solrFactory), 'entities.find.solr.mentions');
 
     debug('[find] total entities:', solrResult.response.numFound);
     // is Empty?
@@ -61,14 +62,14 @@ class Service {
       },
     };
     // get sequelize results
-    const sequelizeResult = await this.sequelizeService.find({
+    const sequelizeResult = await measureTime(() => this.sequelizeService.find({
       findAllOnly: true,
       query: {
         limit: entities.length,
         skip: 0,
       },
       where,
-    });
+    }), 'entities.find.db.entities');
 
     // entities from sequelize, containing wikidata and dbpedia urls
     const sequelizeEntitiesIndex = lodash.keyBy(sequelizeResult.data, 'uid');
@@ -81,9 +82,10 @@ class Service {
           // enrich with wikidataID
           d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId;
         }
-        // nerich with fragments, if any provided:
-        if (solrResult.fragments[d.uid].entitySuggest) {
-          d.matches = solrResult.fragments[d.uid].entitySuggest;
+
+        // enrich with fragments, if any provided:
+        if (solrResult.highlighting[d.uid].entitySuggest) {
+          d.matches = solrResult.highlighting[d.uid].entitySuggest;
         }
         return d;
       }),
@@ -107,12 +109,12 @@ class Service {
     const resolvedEntities = {};
 
     return Promise.all(
-      wkdIds.map(wkdId => wikidata.resolve({
+      wkdIds.map(wkdId => measureTime(() => wikidata.resolve({
         ids: [wkdId],
         cache: this.app.get('redisClient'),
       }).then((resolved) => {
         resolvedEntities[wkdId] = resolved[wkdId];
-      })),
+      }), 'entities.find.wikidata.get')),
     ).then((res) => {
       debug('[find] wikidata success!');
       result.data = result.data.map((d) => {

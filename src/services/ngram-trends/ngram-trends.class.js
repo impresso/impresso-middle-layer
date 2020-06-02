@@ -57,15 +57,12 @@ class NgramTrends {
     ));
     const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval);
 
-    const cacheTtl = this.solr.ttl.Long;
-
     const requests = requestPayloads.map(payload => this.solr.post(
       payload,
       this.solr.namespaces.Search,
-      cacheTtl,
     ));
     const totalsRequest = this.solr.post(
-      totalsRequestPayload, this.solr.namespaces.Search, cacheTtl,
+      totalsRequestPayload, this.solr.namespaces.Search,
     );
 
     const solrResponses = await Promise.all(requests.concat([totalsRequest]));

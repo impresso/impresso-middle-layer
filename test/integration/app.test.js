@@ -1,6 +1,8 @@
+const { default: fetch } = require('node-fetch');
 const assert = require('assert');
-const rp = require('request-promise');
 const app = require('../../src/app');
+
+const rp = async url => fetch(url).then(res => res.text());
 
 describe('Feathers application tests', () => {
   before(function (done) {

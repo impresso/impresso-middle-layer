@@ -10,6 +10,7 @@ const sequelize = require('../../sequelize');
 const { QueryGetIIIFManifests } = require('../../logic/iiif');
 const { toArticlePageDetails } = require('../../logic/ids');
 const { parseOrderBy } = require('../../util/queryParameters');
+const { measureTime } = require('../../util/instruments');
 
 const OrderByKeyToField = {
   date: PassageFields.Date,
@@ -74,13 +75,13 @@ class TextReuseClusterPassages {
 
   async getIIIFUrlMap(pageIds) {
     if (pageIds.length === 0) return [];
-    const results = await this.sequelize.query(
+    const results = await measureTime(() => this.sequelize.query(
       QueryGetIIIFManifests,
       {
         replacements: { pageIds },
         type: this.sequelize.QueryTypes.SELECT,
       },
-    );
+    ), 'text-reuse-cluster-passages.get.db.iiif');
 
     return results;
   }

@@ -4,6 +4,7 @@ const { BadRequest } = require('@feathersjs/errors');
 const SequelizeService = require('../sequelize.service');
 const User = require('../../models/users.model');
 const Profile = require('../../models/profiles.model');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor(options) {
@@ -20,7 +21,7 @@ class Service {
   }
 
   async find(params) {
-    const user = await this.sequelizeService.get(params.user.id, {});
+    const user = await measureTime(() => this.sequelizeService.get(params.user.id, {}), 'me.find.db.user');
     debug('[find] retrieve current user:', user.profile.uid);
     return User.getMe({
       user,

@@ -49,7 +49,7 @@ async function getFirstAndLastDocumentDates(solr) {
   const results = await Promise.all([
     getSingleDocumentQuery(true),
     getSingleDocumentQuery(false),
-  ].map(query => solr.get(query, solr.namespaces.Search, solr.ttl.Long)));
+  ].map(query => solr.get(query, solr.namespaces.Search)));
   return results.map(searchResponseToDate);
 }
 

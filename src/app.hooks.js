@@ -42,7 +42,7 @@ const LoggingExcludedStatusCodes = [
 const errorHandler = (ctx) => {
   if (ctx.error) {
     const error = ctx.error;
-    if (!LoggingExcludedStatusCodes.includes(error.code)) {
+    if (!LoggingExcludedStatusCodes.includes(error.code) || !error.code) {
       console.error(
         `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
         error.stack,

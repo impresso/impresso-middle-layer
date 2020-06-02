@@ -5,6 +5,7 @@ const { escapeValue } = require('../../util/solr/filterReducers');
 const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 const Topic = require('../../models/topics.model');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -31,14 +32,14 @@ class Service {
     // fill topics dict with results
     if (params.sanitized.q && params.sanitized.q.length > 2) {
       const q = escapeValue(params.sanitized.q).split(/\s/).join(' OR ');
-      const solrSuggestResponse = await this.app.get('solrClient').findAll({
+      const solrSuggestResponse = await measureTime(() => this.app.get('solrClient').findAll({
         q: `topic_suggest:${q}`,
         highlight_by: 'topic_suggest',
         order_by: params.query.order_by,
         namespace: 'topics',
         limit: 300,
         skip: 0,
-      });
+      }), 'topics.find.solr.topics_suggest');
       // set initial query time for suggestions
       qtime = solrSuggestResponse.responseHeader.QTime;
 
@@ -64,8 +65,8 @@ class Service {
             .slice(params.query.skip, params.query.skip + params.query.limit)
             .map((d) => {
               const t = Topic.getCached(d.id);
-              if (solrSuggestResponse.fragments[t.uid].topic_suggest) {
-                t.matches = solrSuggestResponse.fragments[t.uid].topic_suggest;
+              if (solrSuggestResponse.highlighting[t.uid].topic_suggest) {
+                t.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest;
               }
               return t;
             }),
@@ -77,11 +78,12 @@ class Service {
           },
         };
       }
+
       // otherwise, fill topic index
       solrSuggestResponse.response.docs.forEach((d, i) => {
         topics[d.id] = {
           order: i,
-          matches: solrSuggestResponse.fragments[d.id].topic_suggest,
+          matches: solrSuggestResponse.highlighting[d.id].topic_suggest,
         };
       });
     }
@@ -104,7 +106,7 @@ class Service {
     debug('[find] params.sanitized:', params.sanitized, '- topic uids:', uids.length);
 
     // console.log(topics);
-    const solrResponse = await this.app.get('solrClient').findAllPost({
+    const solrResponse = await measureTime(() => this.app.get('solrClient').findAllPost({
       q: solrQueryParts.join(' AND '),
       facets: JSON.stringify({
         topic: {
@@ -120,7 +122,7 @@ class Service {
       skip: 0,
       fl: 'id',
       vars: params.sanitized.sv,
-    });
+    }), 'topics.find.solr.posts');
 
     debug('[find] solrResponse total document matching:', solrResponse.response.numFound);
     if (!solrResponse.response.numFound || !solrResponse.facets || !solrResponse.facets.topic) {
@@ -175,12 +177,12 @@ class Service {
   }
 
   async get(id, params) {
-    return this.solrService.get(id, params).then((topic) => {
+    return measureTime(() => this.solrService.get(id, params).then((topic) => {
       const cached = this.solrService.Model.getCached(id);
       topic.countItems = cached.countItems;
       topic.relatedTopics = cached.relatedTopics;
       return topic;
-    });
+    }), 'topics.get.solr.topics');
   }
 
   async create(data, params) {

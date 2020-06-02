@@ -5,6 +5,7 @@ const { NotFound } = require('@feathersjs/errors');
 const { escapeValue } = require('../../util/solr/filterReducers');
 const Topic = require('../../models/topics.model');
 const topicsIndex = require('../../data')('topics');
+const { measureTime } = require('../../util/instruments');
 
 const toNode = topic => ({
   id: topic.uid,
@@ -39,7 +40,7 @@ class TopicsGraph {
     if (!topic.uid.length) {
       throw new NotFound();
     }
-    const solrResponse = await this.app.get('solrClient').findAll({
+    const solrResponse = await measureTime(() => this.app.get('solrClient').findAll({
       q: `topics_dpfs:${id} AND (${params.sanitized.sq})`,
       facets: JSON.stringify({
         topic: {
@@ -55,7 +56,7 @@ class TopicsGraph {
       skip: 0,
       fl: 'id',
       vars: params.sanitized.sv,
-    });
+    }), 'topics-graph.get.solr.topics');
 
     const countItems = solrResponse.response.numFound;
     const relatedTopicsParams = {
@@ -163,7 +164,7 @@ class TopicsGraph {
       });
     }
 
-    const solrResponse = await this.app.get('solrClient').findAllPost({
+    const solrResponse = await measureTime(() => this.app.get('solrClient').findAllPost({
       q: params.sanitized.sq,
       facets: JSON.stringify({
         topic: {
@@ -187,7 +188,7 @@ class TopicsGraph {
       skip: 0,
       fl: 'id',
       vars: params.sanitized.sv,
-    });
+    }), 'topics.find.solr.topics');
 
 
     info = {

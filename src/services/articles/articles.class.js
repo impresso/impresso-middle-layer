@@ -1,3 +1,4 @@
+// @ts-check
 const { keyBy } = require('lodash');
 const debug = require('debug')('impresso/services:articles');
 const { Op } = require('sequelize');
@@ -7,17 +8,32 @@ const SequelizeService = require('../sequelize.service');
 const SolrService = require('../solr.service');
 const Article = require('../../models/articles.model');
 const Issue = require('../../models/issues.model');
+const { measureTime } = require('../../util/instruments');
+
+async function getIssues(request, app) {
+  const sequelize = app.get('sequelizeClient');
+  const cacheManager = app.get('cacheManager');
+  const cacheKey = SequelizeService.getCacheKeyForReadSqlRequest(request, 'issues');
+
+  return cacheManager.wrap(
+    cacheKey,
+    async () => Issue.sequelize(sequelize)
+      .findAll(request)
+      .then(rows => rows.map(d => d.get())),
+  ).then(rows => keyBy(rows, 'uid'));
+}
 
 class Service {
   constructor({
     name = '',
-    app,
+    app = undefined,
   } = {}) {
     this.name = String(name);
     this.app = app;
     this.SequelizeService = SequelizeService({
       app,
       name,
+      cacheReads: true,
     });
     this.SolrService = SolrService({
       app,
@@ -34,10 +50,10 @@ class Service {
 
     debug('[find] use auth user:', params.user ? params.user.uid : 'no user');
     // if(params.isSafe query.filters)
-    const results = await this.SolrService.find({
+    const results = await measureTime(() => this.SolrService.find({
       ...params,
       fl,
-    });
+    }), 'articles.find.solr');
 
     // go out if there's nothing to do.
     if (results.total === 0) {
@@ -45,7 +61,7 @@ class Service {
     }
 
     // add newspapers and other things from this class sequelize method
-    const getAddonsPromise = this.SequelizeService.find({
+    const getAddonsPromise = measureTime(() => this.SequelizeService.find({
       ...params,
       scope: 'get',
       where: {
@@ -56,18 +72,21 @@ class Service {
     }).catch((err) => {
       console.error(err);
       return { data: [] };
-    }).then(({ data }) => keyBy(data, 'uid'));
+    }).then(({ data }) => keyBy(data, 'uid')), 'articles.find.db.articles');
 
     // get accessRights from issues table
-    const getRelatedIssuesPromise = Issue.sequelize(this.app.get('sequelizeClient'))
-      .findAll({
-        attributes: [
-          'accessRights', 'uid',
-        ],
-        where: {
-          uid: { [Op.in]: results.data.map(d => d.issue.uid) },
-        },
-      }).then(rows => keyBy(rows.map(d => d.get()), 'uid'));
+    const issuesRequest = {
+      attributes: [
+        'accessRights', 'uid',
+      ],
+      where: {
+        uid: { [Op.in]: results.data.map(d => d.issue.uid) },
+      },
+    };
+    const getRelatedIssuesPromise = measureTime(
+      () => getIssues(issuesRequest, this.app),
+      'articles.find.db.issues',
+    );
 
     // do the loop
     return Promise.all([
@@ -85,7 +104,13 @@ class Service {
         }
         // add pages
         if (addonsIndex[article.uid].pages) {
-          article.pages = addonsIndex[article.uid].pages.map(d => d.toJSON());
+          // NOTE [RK]: Checking type of object is a quick fix around cached
+          // sequelized results. When a result is a plain Object instance it means
+          // it came from cache. Otherwise it is a model instance and it was
+          // loaded from the database.
+          // This should be moved to the SequelizeService layer.
+          article.pages = addonsIndex[article.uid].pages
+            .map(d => (d.constructor === Object ? d : d.toJSON()));
         }
         if (pageUids.length === 1) {
           article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1);
@@ -135,20 +160,20 @@ class Service {
     return Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
-      this.SolrService.get(id, {
+      measureTime(() => this.SolrService.get(id, {
         fl,
-      }),
+      }), 'articles.get.solr.articles'),
 
       // get the newspaper and the version,
-      this.SequelizeService.get(id, {
+      measureTime(() => this.SequelizeService.get(id, {
         scope: 'get',
         where: {
           uid: id,
         },
       }).catch(() => {
         debug(`[get:${id}]: SequelizeService warning, no data found for ${id} ...`);
-      }),
-      Issue.sequelize(this.app.get('sequelizeClient'))
+      }), 'articles.get.db.articles'),
+      measureTime(() => Issue.sequelize(this.app.get('sequelizeClient'))
         .findOne({
           attributes: [
             'accessRights',
@@ -156,7 +181,7 @@ class Service {
           where: {
             uid: id.split(/-i\d{4}/).shift(),
           },
-        }),
+        }), 'articles.get.db.issue'),
     ]).then(([article, addons, issue]) => {
       if (addons) {
         if (issue) {

@@ -6,6 +6,7 @@ const { BadGateway } = require('@feathersjs/errors');
 
 const Collection = require('../../models/collections.model');
 const SequelizeService = require('../sequelize.service');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor(options) {
@@ -48,12 +49,12 @@ class Service {
       });
     }
 
-    return this.sequelizeService.find({
+    return measureTime(() => this.sequelizeService.find({
       query: {
         ...params.query,
       },
       where,
-    });
+    }), 'collections.db.find');
   }
 
   async get(id, params) {
@@ -89,9 +90,9 @@ class Service {
       ? c => pick(c, ['uid', 'name', 'description'])
       : identity;
 
-    return this.sequelizeService.get(id, {
+    return measureTime(() => this.sequelizeService.get(id, {
       where,
-    }).then(collection => transform(collection.toJSON()));
+    }).then(collection => transform(collection.toJSON())), 'collections.db.get');
   }
 
   async create(data, params) {

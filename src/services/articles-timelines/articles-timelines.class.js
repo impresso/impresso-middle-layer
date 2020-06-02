@@ -2,6 +2,7 @@
 const lodash = require('lodash');
 const { NotFound } = require('@feathersjs/errors');
 const Timeline = require('../../models/timelines.model');
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -14,7 +15,7 @@ class Service {
   }
 
   async total() {
-    return this.solr.findAll({
+    return measureTime(() => this.solr.findAll({
       q: '*:*',
       limit: 0,
       fl: 'id',
@@ -27,11 +28,11 @@ class Service {
         },
       }),
       namespace: 'search',
-    });
+    }), 'articles-timelines.solr.total');
   }
 
   async filtered(params) {
-    return this.solr.findAll({
+    return measureTime(() => this.solr.findAll({
       q: params.q || params.query.sq || '*:*',
       limit: 0,
       fl: 'id',
@@ -44,7 +45,7 @@ class Service {
         },
       }),
       namespace: 'search',
-    });
+    }), 'articles-timelines.solr.filtered');
   }
 
   async stats(params) {

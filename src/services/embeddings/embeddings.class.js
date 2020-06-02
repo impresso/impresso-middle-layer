@@ -2,7 +2,7 @@
 const debug = require('debug')('impresso/services:embeddings');
 const { NotFound } = require('@feathersjs/errors');
 const SolrService = require('../solr.service');
-
+const { measureTime } = require('../../util/instruments');
 
 class Service {
   constructor({
@@ -11,7 +11,7 @@ class Service {
   }) {
     this.app = app;
     this.name = name;
-    this.solrClient = this.app.get('solrClient');
+    this.solrClient = this.app.get('cachedSolr');
   }
 
   async find(params) {
@@ -21,7 +21,7 @@ class Service {
     // https:// solrdev.dhlab.epfl.ch/solr/impresso_embeddings_de/select?q=word_s:amour&fl=embedding_bv
     debug('[find] with params', params.query);
 
-    const bv = await this.solrClient.findAll({
+    const bv = await measureTime(() => this.solrClient.findAll({
       q: `word_s:(${params.query.q})`,
       fl: 'embedding_bv',
       namespace,
@@ -30,9 +30,9 @@ class Service {
         throw new NotFound(`word "${params.query.q}" not found in available embeddings`);
       }
       return res.response.docs[0].embedding_bv;
-    });
+    }), 'embeddings.find.get_embedding');
 
-    const result = await this.solrClient.findAll({
+    const result = await measureTime(() => this.solrClient.findAll({
       form: {
         q: `{!vectorscoring f="embedding_bv" vector_b64="${bv}"}`,
       },
@@ -40,7 +40,7 @@ class Service {
       limit: params.query.limit,
       skip: params.query.skip,
       namespace,
-    }).then(res => res.response);
+    }).then(res => res.response), 'embeddings.find.find_similar_embeddings');
 
     return {
       data: result.docs.map(d => d.word_s),
