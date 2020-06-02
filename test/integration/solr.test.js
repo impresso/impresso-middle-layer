@@ -4,7 +4,7 @@ const solr = require('../../src/solr');
 const Article = require('../../src/models/articles.model');
 const Issue = require('../../src/models/issues.model');
 
-const solrClient = solr.client(config.solr);
+const solrClient = solr.client(config.solr, config.solrConnectionPool);
 
 /*
 ./node_modules/.bin/eslint \

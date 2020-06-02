@@ -3,7 +3,7 @@ const fs = require('fs');
 const lodash = require('lodash');
 const debug = require('debug')('impresso/scripts:update-data');
 const config = require('@feathersjs/configuration')()();
-const solrClient = require('../src/solr').client(config.solr);
+const solrClient = require('../src/solr').client(config.solr, config.solrConnectionPool);
 const Topic = require('../src/models/topics.model');
 
 debug('start!');
