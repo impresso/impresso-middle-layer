@@ -5,7 +5,7 @@
 const fs = require('fs');
 const debug = require('debug')('impresso/scripts:update-timelines');
 const config = require('@feathersjs/configuration')()();
-const solrClient = require('../src/solr').client(config.solr);
+const solrClient = require('../src/solr').client(config.solr, config.solrConnectionPool);
 
 const Year = require('../src/models/years.model');
 

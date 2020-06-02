@@ -3,8 +3,7 @@ const path = require('path');
 const { chunk } = require('lodash');
 const debug = require('debug')('impresso/scripts:update-topics-related');
 const Eta = require('node-eta');
-const config = require('@feathersjs/configuration')()();
-const solrClient = require('../src/solr').client(config.solr);
+const app = require('../src/app');
 const topics = require('../data/topics.json');
 
 const Threshold = parseFloat(process.env.THRESHOLD || 0.5);
@@ -18,6 +17,28 @@ const initialTopicUids = process.env.TOPICS ? process.env.TOPICS.split(',') : []
 const filename = path.join(__dirname, '../data/topics.json');
 // get all topics where is greater than threshold
 let topicUids = Object.keys(topics);
+
+const solrClient = app.get('cachedSolr');
+const cacheManager = app.get('cacheManager');
+
+const TtlFiveYears = 60 * 60 * 24 * 365 * 5;
+const CachePrefix = 'cache:script:update-topics-related:solr';
+
+/**
+ * Get data from Solr.
+ * Using cache manager directly to cache data using custom cache keys to emphasise
+ * that this data is cached differently from standard Solr requests. This data should stay
+ * in cache until manually deleted.
+ * @param {string} cacheKey
+ * @param {*} request
+ */
+async function getDataFromSolr(cacheKey, request) {
+  return cacheManager.wrap(
+    cacheKey,
+    () => solrClient.findAll(request, undefined, { skipCache: true }),
+    { ttl: TtlFiveYears },
+  );
+}
 
 if (initialTopicUids.length) {
   topicUids = topicUids.filter(d => initialTopicUids.includes(d));
@@ -40,8 +61,7 @@ async function waterfall() {
     // payload(topics_dpfs,tm-fr-all-v2.0_tp82_fr)&
     // fl=id,title,topics_dpfs&facet=on&json.facet={"topic":{"type":
     // "terms","field":"topics_dpfs","mincount":10,"limit": 10,"offset": 0,"numBuckets": true}}
-    // eslint-disable-next-line no-await-in-loop
-    const relatedTopicsUids = await solrClient.findAll({
+    const query = {
       q: `topics_dpfs:${uid}`,
       limit: 0,
       skip: 0,
@@ -58,7 +78,12 @@ async function waterfall() {
           numBuckets: true,
         },
       }),
-    }).then(({ response, facets }) => {
+    };
+    // eslint-disable-next-line no-await-in-loop
+    const relatedTopicsUids = await getDataFromSolr(
+      `${CachePrefix}:master-topic:${uid}`,
+      query,
+    ).then(({ response, facets }) => {
       if (!facets || !facets.topic) {
         throw new Error(`Exit, threshold is not correct as no relatedtopics has been found for topic ${uid}`);
       }
@@ -91,29 +116,35 @@ async function waterfall() {
       //
       // eslint-disable-next-line no-await-in-loop
       const relatedTopics = await Promise.all(
-        relatedTopicsChunk.map(relatedUid => solrClient.findAll({
-          q: `{!frange l=${Threshold}}payload(topics_dpfs,${uid})`,
-          limit: 0,
-          skip: 0,
-          // eslint-disable-next-line no-template-curly-in-string
-          fl: '*,${combined_topic_weight}',
-          vars: {
-            combined_topic_weight: `sum(payload(topics_dpfs,${uid}),payload(topics_dpfs,${relatedUid}))`,
-          },
-          fq: `{!frange l=${RelatedThreshold}}payload(topics_dpfs,${relatedUid})`,
-          namespace: 'search',
-          facets: JSON.stringify({
+        relatedTopicsChunk.map((relatedUid) => {
+          const relatedQuery = {
+            q: `{!frange l=${Threshold}}payload(topics_dpfs,${uid})`,
+            limit: 0,
+            skip: 0,
             // eslint-disable-next-line no-template-curly-in-string
-            avg_combined_topic_weight: 'avg(${combined_topic_weight})',
-            // eslint-disable-next-line no-template-curly-in-string
-            // max_combined_topic_weight: 'max(${combined_topic_weight})',
-          }),
-        }).then(({ response, facets }) => ({
-          uid: relatedUid,
-          w: response.numFound,
-          avg: facets.avg_combined_topic_weight,
-          // maxCombinedTopicWeight: facets.max_combined_topic_weight,
-        }))),
+            fl: '*,${combined_topic_weight}',
+            vars: {
+              combined_topic_weight: `sum(payload(topics_dpfs,${uid}),payload(topics_dpfs,${relatedUid}))`,
+            },
+            fq: `{!frange l=${RelatedThreshold}}payload(topics_dpfs,${relatedUid})`,
+            namespace: 'search',
+            facets: JSON.stringify({
+              // eslint-disable-next-line no-template-curly-in-string
+              avg_combined_topic_weight: 'avg(${combined_topic_weight})',
+              // eslint-disable-next-line no-template-curly-in-string
+              // max_combined_topic_weight: 'max(${combined_topic_weight})',
+            }),
+          };
+          return getDataFromSolr(
+            `${CachePrefix}:related-topics:${uid}:${relatedUid}`,
+            relatedQuery,
+          ).then(({ response, facets }) => ({
+            uid: relatedUid,
+            w: response.numFound,
+            avg: facets.avg_combined_topic_weight,
+            // maxCombinedTopicWeight: facets.max_combined_topic_weight,
+          }));
+        }),
       );
       topics[uid].relatedTopics = topics[uid].relatedTopics.concat(
         relatedTopics.filter(d => d.w > 0),
