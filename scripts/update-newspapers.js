@@ -4,7 +4,7 @@ const lodash = require('lodash');
 const debug = require('debug')('impresso/scripts:update-data');
 const config = require('@feathersjs/configuration')()();
 const sequelizeClient = require('../src/sequelize').client(config.sequelize);
-const solrClient = require('../src/solr').client(config.solr);
+const solrClient = require('../src/solr').client(config.solr, config.solrConnectionPool);
 
 const Newspaper = require('../src/models/newspapers.model');
 const Issue = require('../src/models/issues.model');

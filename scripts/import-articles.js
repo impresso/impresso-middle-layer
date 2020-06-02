@@ -4,7 +4,7 @@ const {
 const debug = require('debug')('impresso/scripts:import-articles');
 const fs = require('fs');
 const _ = require('lodash');
-const solr = require('../src/solr').client(config.solr);
+const solr = require('../src/solr').client(config.solr, config.solrConnectionPool);
 const Eta = require('node-eta');
 
 

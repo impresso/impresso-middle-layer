@@ -566,7 +566,10 @@ module.exports = function (app) {
   app.set('solrClient', getSolrClient(config, connectionPool));
 };
 
-module.exports.client = getSolrClient;
+module.exports.client = (solrConfig, poolConfig) => {
+  const connectionPool = initHttpPool(poolConfig);
+  return getSolrClient(solrConfig, connectionPool);
+};
 
 module.exports.SolrNamespaces = Object.freeze({
   Search: 'search',

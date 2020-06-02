@@ -3,7 +3,7 @@ const {
 } = require('./bulk');
 
 const debug = require('debug')('impresso/scripts:import-issues');
-const solr = require('../src/solr').client(config.solr);
+const solr = require('../src/solr').client(config.solr, config.solrConnectionPool);
 const Eta = require('node-eta');
 
 

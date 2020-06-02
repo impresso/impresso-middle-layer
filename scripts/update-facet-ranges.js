@@ -1,7 +1,7 @@
 const fs = require('fs');
 const config = require('@feathersjs/configuration')()();
 
-const solrClient = require('../src/solr').client(config.solr);
+const solrClient = require('../src/solr').client(config.solr, config.solrConnectionPool);
 
 const {
   SolrMappings,
