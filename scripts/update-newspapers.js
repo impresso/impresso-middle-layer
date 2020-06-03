@@ -90,8 +90,8 @@ async function waterfall() {
 
 waterfall().then(() => {
   debug('done, exit.'); // prints 60 after 2 seconds.
-  process.exit();
+  process.exit(0);
 }).catch((err) => {
   console.log(err);
-  process.exit();
+  process.exit(1);
 });

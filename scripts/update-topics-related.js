@@ -187,4 +187,12 @@ async function waterfall() {
   debug('done, exit.');
 }
 
-waterfall();
+waterfall()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((e) => {
+    debug(`Error: ${e}`);
+    console.error(e);
+    process.exit(1);
+  });
