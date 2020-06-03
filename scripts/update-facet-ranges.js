@@ -45,5 +45,4 @@ Promise.all(Object.keys(SolrMappings).map(async index => ({
   const fileName = './data/facetRanges.json';
   fs.writeFileSync(fileName, JSON.stringify(itemsMap));
 }).then(() => { console.info('Done'); process.exit(0); })
-  .catch((error) => { console.error(error.message); process.exit(0); })
-  .finally(() => process.exit());
+  .catch((error) => { console.error(error.message); process.exit(1); });
