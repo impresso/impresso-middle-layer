@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/entities-suggestions/schema/create/response.json",
+  "description": "Response for POST /entities-suggestions",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/entity"
+      }
+    },
+    "pagination": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json"
+    }
+  },
+  "required": [
+    "results",
+    "pagination"
+  ],
+  "definitions": {
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uid",
+        "type",
+        "name",
+        "matches",
+        "countItems",
+        "countMentions"
+      ],
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "ID of the entity",
+          "examples": ["id-john-doe"],
+          "pattern": "^[\\w\\d-_@:]+$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the entity",
+          "enum": ["person", "location"]
+        },
+        "name": {
+          "type": "string",
+          "description": "Label of the entity"
+        },
+        "wikidataId": {
+          "type": "string",
+          "description": "Wikidata ID of the entity",
+          "pattern": "^Q\\d+$"
+        },
+        "matches": {
+          "type": "array",
+          "description": "Matched parts with highlight",
+          "items": {
+            "type": "string"
+          }
+        },
+        "countItems": {
+          "type": "number"
+        },
+        "countMentions": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

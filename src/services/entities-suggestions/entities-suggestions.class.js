@@ -1,36 +1,32 @@
 /* eslint-disable no-unused-vars */
 exports.EntitiesSuggestions = class EntitiesSuggestions {
-  constructor (options) {
-    this.options = options || {};
+  constructor(app) {
+    this.solr = app.get('cachedSolr');
   }
 
-  async find (params) {
-    return [];
-  }
-
-  async get (id, params) {
+  /**
+   * Suggest similar entities.
+   * NOTE: using `create` because of potentially big payloads.
+   * @typedef {{ names: string[] }} Payload
+   * @param {Payload} payload
+   */
+  async create({ names }) {
     return {
-      id, text: `A new message with ID: ${id}!`
+      results: [
+        {
+          uid: '123',
+          type: 'person',
+          name: 'foo',
+          matches: [],
+          countItems: 1,
+          countMentions: 2,
+        },
+      ],
+      pagination: {
+        limit: 20,
+        skip: 0,
+        total: 200,
+      },
     };
-  }
-
-  async create (data, params) {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(current => this.create(current, params)));
-    }
-
-    return data;
-  }
-
-  async update (id, data, params) {
-    return data;
-  }
-
-  async patch (id, data, params) {
-    return data;
-  }
-
-  async remove (id, params) {
-    return { id };
   }
 };

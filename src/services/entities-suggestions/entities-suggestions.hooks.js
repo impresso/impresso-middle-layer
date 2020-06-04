@@ -1,33 +1,14 @@
-
+const { validateWithSchema } = require('../../hooks/schema');
 
 module.exports = {
   before: {
-    all: [],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: []
+    create: [
+      validateWithSchema('services/entities-suggestions/schema/create/payload.json'),
+    ],
   },
-
   after: {
-    all: [],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: []
+    create: [
+      validateWithSchema('services/entities-suggestions/schema/create/response.json', 'result'),
+    ],
   },
-
-  error: {
-    all: [],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: []
-  }
 };
