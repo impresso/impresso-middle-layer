@@ -36,7 +36,7 @@
           "type": "string",
           "description": "ID of the entity",
           "examples": ["id-john-doe"],
-          "pattern": "^[\\w\\d-_@:]+$"
+          "pattern": "^[^\\s]+$"
         },
         "type": {
           "type": "string",
@@ -60,10 +60,12 @@
           }
         },
         "countItems": {
-          "type": "number"
+          "type": "number",
+          "description": "Number of articles the entity is mentioned in"
         },
         "countMentions": {
-          "type": "number"
+          "type": "number",
+          "description": "Number of times the entity is mentioned in corpus"
         }
       }
     }

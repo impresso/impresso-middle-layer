@@ -11,6 +11,14 @@
       "items": {
         "type": "string"
       }
+    },
+    "offset": {
+      "type": "number",
+      "minimum": 0
+    },
+    "limit": {
+      "type": "number",
+      "minimum": 1
     }
   },
   "required": [
