@@ -178,7 +178,6 @@ class EntitiesSuggestions {
     const pagination = getPaginationFromSolrResponse(solrResponse, limit);
     const results = await this.enrichResultsWithWikidataId(solrResults);
 
-    // console.log(solrQuery, solrResponse);
     return {
       results,
       pagination,
