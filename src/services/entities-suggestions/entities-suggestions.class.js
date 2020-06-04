@@ -1,4 +1,7 @@
 // @ts-check
+const { Op } = require('sequelize');
+const SequelizeService = require('../sequelize.service');
+const { measureTime } = require('../../util/instruments');
 
 /**
  * @typedef {{
@@ -103,6 +106,7 @@ function getResultsFromSolrResponse(response) {
   });
 }
 
+
 /**
  * @param {any} response Solr response
  * @returns {Pagination}
@@ -119,6 +123,43 @@ class EntitiesSuggestions {
   constructor(app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
+    this.sequelizeService = SequelizeService({
+      app,
+      name: 'entities',
+      cacheReads: true,
+    });
+  }
+
+  /**
+   * @param {Entity[]} entities
+   * @returns {Promise<Entity[]>}
+   */
+  async enrichResultsWithWikidataId(entities) {
+    if (entities.length === 0) return entities;
+
+    const whereClause = {
+      id: {
+        [Op.in]: entities.map(({ uid }) => uid),
+      },
+    };
+
+    const sequelizeResult = await measureTime(() => this.sequelizeService.find({
+      findAllOnly: true,
+      query: {
+        limit: entities.length,
+        skip: 0,
+      },
+      where: whereClause,
+    }), 'entities-suggestions.find.db.entities');
+    const dbItemsById = sequelizeResult.data.reduce((acc, item) => ({
+      ...acc,
+      [item.uid]: item,
+    }), {});
+    return entities.map((entity) => {
+      const dbItem = dbItemsById[entity.uid];
+      const wikidataId = dbItem ? dbItem.wikidataId : undefined;
+      return wikidataId != null ? { ...entity, wikidataId } : entity;
+    });
   }
 
   /**
@@ -129,9 +170,13 @@ class EntitiesSuggestions {
    */
   async create({ names, offset = 0, limit = DefaultLimit }) {
     const solrQuery = buildSolrQuery(names, offset, limit);
-    const solrResponse = await this.solr.post(solrQuery, this.solr.namespaces.Entities);
-    const results = getResultsFromSolrResponse(solrResponse);
+    const solrResponse = await measureTime(
+      () => this.solr.post(solrQuery, this.solr.namespaces.Entities),
+      'entities-suggestions.solr.find',
+    );
+    const solrResults = getResultsFromSolrResponse(solrResponse);
     const pagination = getPaginationFromSolrResponse(solrResponse, limit);
+    const results = await this.enrichResultsWithWikidataId(solrResults);
 
     // console.log(solrQuery, solrResponse);
     return {
