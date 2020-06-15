@@ -18,7 +18,7 @@ module.exports = {
         q: {
           required: false,
           min_length: 1,
-          max_length: 50,
+          max_length: 100,
         },
         resolve: {
           required: false,

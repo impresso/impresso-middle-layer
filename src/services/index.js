@@ -97,6 +97,9 @@ const articlesRecommendations = require('./articles-recommendations/articles-rec
 const articlesSearch = require('./articles-search/articles-search.service.js');
 
 
+const entitiesSuggestions = require('./entities-suggestions/entities-suggestions.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -148,4 +151,5 @@ module.exports = function () {
   app.configure(stats);
   app.configure(articlesRecommendations);
   app.configure(articlesSearch);
+  app.configure(entitiesSuggestions);
 };
