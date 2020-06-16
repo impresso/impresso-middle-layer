@@ -56,8 +56,8 @@ function buildSearchEntitiesSolrQuery({
   if (skip != null) request.offset = skip;
 
   return request;
-};
+}
 
 module.exports = {
   buildSearchEntitiesSolrQuery,
-}
+};
