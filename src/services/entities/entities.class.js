@@ -8,8 +8,9 @@ const wikidata = require('../wikidata');
 
 const Entity = require('../../models/entities.model');
 const SequelizeService = require('../sequelize.service');
-const SolrService = require('../solr.service');
 const { measureTime } = require('../../util/instruments');
+const { buildSearchEntitiesSolrQuery } = require('./logic');
+
 
 class Service {
   constructor({ app }) {
@@ -19,26 +20,32 @@ class Service {
       app,
       name: this.name,
     });
-    this.solrService = new SolrService({
-      app,
-      name: this.name,
-      namespace: this.name,
-    });
+    /** @type {import('../../cachedSolr').CachedSolrClient} */
+    this.solr = app.get('cachedSolr');
+  }
+
+  async create(data, params) {
+    params.query = data;
+    return this.find(params);
   }
 
   async find(params) {
     debug('[find] with params:', params.query);
 
-    // get solr results for the queyr, if any; return raw results.
-    const solrResult = await measureTime(() => this.solrService.solr.findAll({
-      q: params.sanitized.sq || '*:*',
-      fl: 'id,l_s,t_s,article_fq_f,mention_fq_f',
-      highlight_by: params.sanitized.sq ? 'entitySuggest' : false,
-      order_by: params.query.order_by,
-      namespace: 'entities',
+    const query = buildSearchEntitiesSolrQuery({
+      filters: params.query.filters,
+      orderBy: params.query.order_by,
       limit: params.query.limit,
       skip: params.query.skip,
-    }, Entity.solrFactory), 'entities.find.solr.mentions');
+    });
+    debug('[find] solr query:', query);
+
+    const solrResult = await measureTime(() => this.solr.post(
+      query,
+      this.solr.namespaces.Entities,
+    ), 'entities.find.solr.mentions');
+
+    const entities = solrResult.response.docs.map(Entity.solrFactory());
 
     debug('[find] total entities:', solrResult.response.numFound);
     // is Empty?
@@ -53,8 +60,6 @@ class Service {
         },
       };
     }
-    // get list of uid from solr.
-    const entities = solrResult.response.docs;
     // generate the sequelize clause.
     const where = {
       id: {
@@ -150,14 +155,6 @@ class Service {
       }
       return res.data[0];
     });
-  }
-
-  async create(data, params) {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(current => this.create(current, params)));
-    }
-
-    return data;
   }
 
   async update(id, data, params) {

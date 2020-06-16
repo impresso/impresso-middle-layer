@@ -172,16 +172,23 @@ const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
   return items.join(' AND ');
 };
 
-const reduceFiltersToSolr = (filters, field) => filters.reduce((sq, filter) => {
+const reduceFiltersToSolr = (
+  filters,
+  field,
+  rule,
+  transformValue = v => v,
+) => filters.reduce((sq, filter) => {
   let qq = '';
   const op = filter.op || 'OR';
 
   if (Array.isArray(filter.q)) {
     const values = filter.q.length > 0 ? filter.q : ['*'];
-    qq = values.map(value => getValueWithFields(value, field)).join(` ${op} `);
+    qq = values
+      .map(transformValue)
+      .map(value => getValueWithFields(value, field)).join(` ${op} `);
     qq = `(${qq})`;
   } else if (typeof filter.q === 'string' && filter.q != null && filter.q !== '') {
-    qq = getValueWithFields(filter.q, field);
+    qq = getValueWithFields(transformValue(filter.q), field);
   } else {
     qq = getValueWithFields('*', field);
   }
@@ -241,6 +248,38 @@ const booleanHandler = (filters, field, filterRule) => {
   return `${field}:1`;
 };
 
+const reduceCapitalisedValue = (filters, field, rule) => reduceFiltersToSolr(
+  filters,
+  field,
+  rule,
+  v => v.charAt(0).toUpperCase() + v.slice(1),
+);
+
+const textAsOpenEndedSearchString = (text, field) => {
+  const parts = text.split(' ').filter(v => v !== '');
+  const statement = parts
+    .map(part => part.replace(/"/g, '\\"'))
+    .map((part, index, arr) => {
+      const suffix = index === arr.length - 1 ? '*' : '';
+      return `${field}:${part}${suffix}`;
+    })
+    .join(' AND ');
+  return parts.length > 1 ? `(${statement})` : statement;
+};
+
+const reduceOpenEndedStringValue = (filters, field) => {
+  const outerStatement = filters
+    .map((filter) => {
+      const strings = Array.isArray(filter.q) ? filter.q : [filter.q];
+      const statement = strings
+        .map(v => textAsOpenEndedSearchString(v, field))
+        .join(` ${filter.op || 'OR'} `);
+      return strings.length > 1 ? `(${statement})` : statement;
+    })
+    .join(' AND ');
+  return filters.length > 1 ? `(${outerStatement})` : outerStatement;
+};
+
 const FiltersHandlers = Object.freeze({
   minLengthOne: minLengthOneHandler,
   numericRange: reduceNumericRangeFilters,
@@ -249,6 +288,8 @@ const FiltersHandlers = Object.freeze({
   dateRange: reduceDaterangeFiltersToSolr,
   value: reduceFiltersToSolr,
   regex: reduceRegexFiltersToSolr,
+  capitalisedValue: reduceCapitalisedValue,
+  openEndedString: reduceOpenEndedStringValue,
 });
 
 /**

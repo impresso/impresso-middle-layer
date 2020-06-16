@@ -59,22 +59,24 @@ module.exports = {
           ],
           required: true,
           // trasform is required because they shoyd be related to entities namespace.
-          transform: (d) => {
-            if (d === 'uid') {
-              return d;
-            }
-            return `entity-${d}`;
-          },
+          // transform: (d) => {
+          //   if (d === 'uid') {
+          //     return d;
+          //   }
+          //   return `entity-${d}`;
+          // },
         },
       }, {
         required: false,
       }),
-      qToSolrFilter('entity-string'),
+      qToSolrFilter('string'),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [],
-    create: [],
+    create: [
+      validateWithSchema('services/entities/schema/find/query.json'),
+    ],
     update: [],
     patch: [],
     remove: [],
