@@ -1,5 +1,7 @@
 // @ts-check
-const { uniq, values, groupBy, get } = require('lodash');
+const {
+  uniq, values, groupBy, get,
+} = require('lodash');
 const { SolrNamespaces } = require('../../solr');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
 
@@ -24,6 +26,8 @@ const Fields = Object.freeze({
   Month: 'meta_yearmonth_s',
   PersonEntities: 'pers_entities_dpfs',
   LocationEntities: 'loc_entities_dpfs',
+  PersonMentions: 'pers_mentions',
+  LocationMentions: 'loc_mentions',
 });
 
 const ResolutionToTermField = Object.freeze({
@@ -39,6 +43,11 @@ const ResolutionToLimit = Object.freeze({
 const TypeToEntityField = Object.freeze({
   person: Fields.PersonEntities,
   location: Fields.LocationEntities,
+});
+
+const TypeToMentionField = Object.freeze({
+  person: Fields.PersonMentions,
+  location: Fields.LocationMentions,
 });
 
 
@@ -66,14 +75,58 @@ function buildSolrQueryForEntity(entityId, entityType, filters, resolution) {
   };
 }
 
+
+function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution) {
+
+  const mentionFilter = TypeToMentionField[mentionType] == null
+    ? [
+      [Fields.PersonMentions, mentionLabel].join(':'),
+      [Fields.LocationMentions, mentionLabel].join(':'),
+    ].join(' OR ')
+    : [TypeToMentionField[mentionType], mentionLabel].join(':');
+
+  const facet = {
+    entity: {
+      type: 'terms',
+      field: ResolutionToTermField[resolution || Resolution.Year],
+      mincount: 1,
+      numBuckets: true,
+      limit: ResolutionToLimit[resolution || Resolution.Year],
+      domain: {
+        filter: mentionFilter,
+      },
+    },
+  };
+
+  return {
+    query: filters.length > 0 ? filtersToSolrQuery(filters) : '*:*',
+    limit: 0,
+    params: {
+      hl: false,
+    },
+    facet,
+  };
+}
+
+
 function buildEntityResponse(entity, facetSearchResult) {
   const thumbnailUrl = get(entity, 'wikidata.images.0.value');
   return {
     type: 'entity',
     id: entity.uid,
     label: entity.name,
+    entityType: entity.type,
     wikidataId: entity.wikidataId,
     thumbnailUrl,
+    mentionFrequencies: facetSearchResult.facets.entity.buckets,
+  };
+}
+
+function buildMentionResponse(mentionLabel, mentionType, facetSearchResult) {
+  return {
+    type: 'mention',
+    label: mentionLabel,
+    entityType: mentionType,
     mentionFrequencies: facetSearchResult.facets.entity.buckets,
   };
 }
@@ -89,18 +142,25 @@ class EntityMentionsTimeline {
   }
 
   async create(body) {
-    const { entityId, filters = [] } = body;
+    const {
+      entityId, mentionLabel, mentionType, timeResolution, filters = []
+    } = body;
 
     if (entityId) {
       const entity = await this.entitiesService.get(entityId, {});
 
-      const query = buildSolrQueryForEntity(body.entityId, entity.type, filters);
+      const query = buildSolrQueryForEntity(body.entityId, entity.type, filters, timeResolution);
       const result = await this.solr.post(query, this.solr.namespaces.Search);
       return {
         item: buildEntityResponse(entity, result),
       };
     }
-    return {};
+
+    const query = buildSolrQueryForMention(mentionLabel, mentionType, filters, timeResolution);
+    const result = await this.solr.post(query, this.solr.namespaces.Search);
+    return {
+      item: buildMentionResponse(mentionLabel, mentionType, result),
+    };
   }
 }
 

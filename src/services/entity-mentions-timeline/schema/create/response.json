@@ -25,6 +25,10 @@
           "type": "string",
           "description": "Entity label"
         },
+        "entityType": {
+          "type": "string",
+          "description": "Entity type"
+        },
         "wikidataId": {
           "type": "string"
         },
