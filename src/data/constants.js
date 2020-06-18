@@ -45,7 +45,7 @@ const SolrMappings = Object.freeze({
       // },
       month: {
         type: 'terms',
-        field: 'meta_month_s',
+        field: 'meta_month_i',
         mincount: 1,
         limit: 120, // ten years granularity
       },

@@ -5,5 +5,53 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "item": {
+      "$ref": "#/definitions/entityOrMention"
+    }
+  },
+  "definitions": {
+    "entityOrMention": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["entity", "mention"]
+        },
+        "id": {
+          "type": "string",
+          "description": "Entity Id"
+        },
+        "label": {
+          "type": "string",
+          "description": "Entity label"
+        },
+        "wikidataId": {
+          "type": "string"
+        },
+        "thumbnailUrl": {
+          "type": "string"
+        },
+        "mentionFrequencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "val": {
+                "anyOf": [
+                  { "type": "string" },
+                  { "type": "integer" }
+                ]
+              },
+              "count": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["label", "type"]
+    }
   }
 }

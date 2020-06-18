@@ -19,6 +19,11 @@
       "type": "string",
       "description": "Label of mention to get timeline for"
     },
+    "timeResolution": {
+      "type": "string",
+      "enum": ["year", "month"],
+      "description": "Time resolution for the timeline. Default is year"
+    },
     "limit": {
       "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit"
     },
