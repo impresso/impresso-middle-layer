@@ -344,4 +344,68 @@ describe('filtersToSolr', () => {
       assert.equal(query, '(content_txt_en:/.*/ OR content_txt_fr:/.*/ OR content_txt_de:/.*/)');
     });
   });
+
+  describe('handles "capitalisedValue" filter', () => {
+    it('with string', () => {
+      const filter = {
+        q: 'person',
+        type: 'type',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Entities);
+      assert.equal(query, 't_s:Person');
+    });
+
+    it('with array', () => {
+      const filter = {
+        q: ['person', 'location'],
+        type: 'type',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Entities);
+      assert.equal(query, '(t_s:Person OR t_s:Location)');
+    });
+
+    it('with no value', () => {
+      const filter = {
+        type: 'type',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Entities);
+      assert.equal(query, 't_s:*');
+    });
+
+    it('with empty array', () => {
+      const filter = {
+        q: [],
+        type: 'type',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Entities);
+      assert.equal(query, '(t_s:*)');
+    });
+  });
+
+  describe('handles "openEndedString" filter', () => {
+    it('with string', () => {
+      const filter = {
+        q: 'Jacques Chira',
+        type: 'string',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Entities);
+      assert.equal(query, '(entitySuggest:Jacques AND entitySuggest:Chira*)');
+    });
+    it('with unigram', () => {
+      const filter = {
+        q: 'Jacques ',
+        type: 'string',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Entities);
+      assert.equal(query, 'entitySuggest:Jacques*');
+    });
+    it('with array', () => {
+      const filter = {
+        q: ['Jacques Chirac', 'Foo Bar'],
+        type: 'string',
+      };
+      const query = filtersToSolr([filter], SolrNamespaces.Entities);
+      assert.equal(query, '((entitySuggest:Jacques AND entitySuggest:Chirac*) OR (entitySuggest:Foo AND entitySuggest:Bar*))');
+    });
+  });
 });
