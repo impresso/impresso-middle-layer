@@ -38,7 +38,7 @@ function buildSearchEntitiesSolrQuery({
   filters, orderBy, limit, skip,
 }) {
   const request = {
-    query: filtersToSolrQuery(filters),
+    query: filters.length > 0 ? filtersToSolrQuery(filters) : '*:*',
     params: {
       hl: true,
       fl: [
