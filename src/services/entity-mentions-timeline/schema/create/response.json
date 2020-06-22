@@ -7,6 +7,12 @@
   "properties": {
     "item": {
       "$ref": "#/definitions/entityOrMention"
+    },
+    "subitems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/entityOrMention"
+      }
     }
   },
   "definitions": {
