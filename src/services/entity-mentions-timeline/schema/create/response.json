@@ -13,6 +13,10 @@
       "items": {
         "$ref": "#/definitions/entityOrMention"
       }
+    },
+    "totalSubitems": {
+      "type": "integer",
+      "description": "Total number of subitems available"
     }
   },
   "definitions": {

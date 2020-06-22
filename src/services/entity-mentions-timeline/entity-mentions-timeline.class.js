@@ -130,6 +130,15 @@ function buildMentionResponse(mentionLabel, mentionType, facetSearchResult) {
   };
 }
 
+function getMockSubitems(entity, result, skip = 0, limit = 4) {
+  return [...Array(limit).keys()].map(i => ({
+    type: 'mention',
+    label: `${entity.name} (mock mention ${skip + i})`,
+    entityType: entity.type,
+    mentionFrequencies: result.facets.entity.buckets,
+  }));
+}
+
 class EntityMentionsTimeline {
   constructor(app) {
     this.app = app;
@@ -142,7 +151,7 @@ class EntityMentionsTimeline {
 
   async create(body) {
     const {
-      entityId, mentionLabel, mentionType, timeResolution, filters = [],
+      entityId, mentionLabel, mentionType, timeResolution, filters = [], limit = 4, skip = 0,
     } = body;
 
     if (entityId) {
@@ -152,6 +161,7 @@ class EntityMentionsTimeline {
       const result = await this.solr.post(query, this.solr.namespaces.Search);
       return {
         item: buildEntityResponse(entity, result),
+        subitems: getMockSubitems(entity, result, skip, limit),
       };
     }
 

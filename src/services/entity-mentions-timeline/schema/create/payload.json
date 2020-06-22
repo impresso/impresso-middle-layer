@@ -30,10 +30,12 @@
       "description": "Time resolution for the timeline. Default is year"
     },
     "limit": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit"
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit",
+      "description": "Limit of the subitems to return. Default: 4"
     },
     "skip": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/skip"
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/skip",
+      "description": "Skip this many subitems. Default: 0"
     }
   },
   "oneOf": [
