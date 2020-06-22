@@ -12,7 +12,7 @@ const { sameTypeFiltersToQuery } = require('../../util/solr');
 function filtersToSolrQuery(filters) {
   const filtersGroupsByType = values(groupBy(filters, 'type'));
   return uniq(filtersGroupsByType
-    .map(f => sameTypeFiltersToQuery(f, SolrNamespaces.Entities)))
+    .map(f => sameTypeFiltersToQuery(f, SolrNamespaces.Search)))
     .join(' AND ');
 }
 
@@ -77,7 +77,6 @@ function buildSolrQueryForEntity(entityId, entityType, filters, resolution) {
 
 
 function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution) {
-
   const mentionFilter = TypeToMentionField[mentionType] == null
     ? [
       [Fields.PersonMentions, mentionLabel].join(':'),
@@ -143,7 +142,7 @@ class EntityMentionsTimeline {
 
   async create(body) {
     const {
-      entityId, mentionLabel, mentionType, timeResolution, filters = []
+      entityId, mentionLabel, mentionType, timeResolution, filters = [],
     } = body;
 
     if (entityId) {
