@@ -30,6 +30,11 @@ const Fields = Object.freeze({
   LocationMentions: 'loc_mentions',
 });
 
+const EntityMentionFields = Object.freeze({
+  MentionLabel: 'surface_s',
+  EntityId: 'entity_id_s',
+});
+
 const ResolutionToTermField = Object.freeze({
   [Resolution.Year]: Fields.Year,
   [Resolution.Month]: Fields.Month,
@@ -50,8 +55,35 @@ const TypeToMentionField = Object.freeze({
   location: Fields.LocationMentions,
 });
 
+function buildLinkedMentionsSolrQuery(entityId, skip = 0, limit = 4) {
+  const facet = {
+    mentionLabel: {
+      type: 'terms',
+      field: EntityMentionFields.MentionLabel,
+      numBuckets: true,
+      mincount: 1,
+      offset: skip,
+      limit,
+    },
+  };
 
-function buildSolrQueryForEntity(entityId, entityType, filters, resolution) {
+  return {
+    query: `${EntityMentionFields.EntityId}:"${entityId}"`,
+    limit: 0,
+    facet,
+  };
+}
+
+/**
+ * Response parser for `buildLinkedMentionsSolrQuery`.
+ * @param {any} response
+ */
+function getMentionLabelsFromSolrResponse(response) {
+  if (response.facets.mentionLabel == null) return [];
+  return response.facets.mentionLabel.buckets.map(bucket => bucket.val);
+}
+
+function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filters, resolution) {
   const facet = {
     entity: {
       type: 'terms',
@@ -60,10 +92,24 @@ function buildSolrQueryForEntity(entityId, entityType, filters, resolution) {
       numBuckets: true,
       limit: ResolutionToLimit[resolution || Resolution.Year],
       domain: {
-        filter: [TypeToEntityField[entityType], entityId].join(':'),
+        filter: [TypeToEntityField[entityType], `"${entityId}"`].join(':'),
       },
     },
   };
+
+  entityMentionLabels.forEach((label, index) => {
+    facet[`mention_${index}`] = {
+      type: 'terms',
+      field: ResolutionToTermField[resolution || Resolution.Year],
+      mincount: 1,
+      numBuckets: true,
+      limit: ResolutionToLimit[resolution || Resolution.Year],
+      domain: {
+        // NOTE: we are assuming that all mention labels are of the same type as the entity.
+        filter: [TypeToMentionField[entityType], `"${label}"`].join(':'),
+      },
+    };
+  });
 
   return {
     query: filters.length > 0 ? filtersToSolrQuery(filters) : '*:*',
@@ -79,10 +125,10 @@ function buildSolrQueryForEntity(entityId, entityType, filters, resolution) {
 function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution) {
   const mentionFilter = TypeToMentionField[mentionType] == null
     ? [
-      [Fields.PersonMentions, mentionLabel].join(':'),
-      [Fields.LocationMentions, mentionLabel].join(':'),
+      [Fields.PersonMentions, `"${mentionLabel}"`].join(':'),
+      [Fields.LocationMentions, `"${mentionLabel}"`].join(':'),
     ].join(' OR ')
-    : [TypeToMentionField[mentionType], mentionLabel].join(':');
+    : [TypeToMentionField[mentionType], `"${mentionLabel}"`].join(':');
 
   const facet = {
     entity: {
@@ -121,6 +167,15 @@ function buildEntityResponse(entity, facetSearchResult) {
   };
 }
 
+function buildEntitySubitemsResponse(entity, result, entityMentionLabels) {
+  return entityMentionLabels.map((label, index) => ({
+    type: 'mention',
+    label,
+    entityType: entity.type,
+    mentionFrequencies: result.facets[`mention_${index}`].buckets,
+  }));
+}
+
 function buildMentionResponse(mentionLabel, mentionType, facetSearchResult) {
   return {
     type: 'mention',
@@ -128,15 +183,6 @@ function buildMentionResponse(mentionLabel, mentionType, facetSearchResult) {
     entityType: mentionType,
     mentionFrequencies: facetSearchResult.facets.entity.buckets,
   };
-}
-
-function getMockSubitems(entity, result, skip = 0, limit = 4) {
-  return [...Array(limit).keys()].map(i => ({
-    type: 'mention',
-    label: `${entity.name} (mock mention ${skip + i})`,
-    entityType: entity.type,
-    mentionFrequencies: result.facets.entity.buckets,
-  }));
 }
 
 class EntityMentionsTimeline {
@@ -155,13 +201,30 @@ class EntityMentionsTimeline {
     } = body;
 
     if (entityId) {
-      const entity = await this.entitiesService.get(entityId, {});
+      // Get linked entities
+      const linkedMentionsQuery = buildLinkedMentionsSolrQuery(body.entityId, skip, limit);
+      const linkedMentionsPromise = this.solr.post(
+        linkedMentionsQuery, this.solr.namespaces.EntitiesMentions,
+      ).then(getMentionLabelsFromSolrResponse);
+      const entityPromise = this.entitiesService.get(entityId, {});
 
-      const query = buildSolrQueryForEntity(body.entityId, entity.type, filters, timeResolution);
+      const [entity, entityMentionLabels] = await Promise.all([
+        entityPromise,
+        linkedMentionsPromise,
+      ]);
+
+      const query = buildSolrQueryForEntity(
+        body.entityId,
+        entity.type,
+        entityMentionLabels,
+        filters,
+        timeResolution,
+      );
+
       const result = await this.solr.post(query, this.solr.namespaces.Search);
       return {
         item: buildEntityResponse(entity, result),
-        subitems: getMockSubitems(entity, result, skip, limit),
+        subitems: buildEntitySubitemsResponse(entity, result, entityMentionLabels),
       };
     }
 
