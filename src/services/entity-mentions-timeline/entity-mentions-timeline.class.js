@@ -77,10 +77,14 @@ function buildLinkedMentionsSolrQuery(entityId, skip = 0, limit = 4) {
 /**
  * Response parser for `buildLinkedMentionsSolrQuery`.
  * @param {any} response
+ * @returns {{ labels: any[], total: number }}
  */
 function getMentionLabelsFromSolrResponse(response) {
-  if (response.facets.mentionLabel == null) return [];
-  return response.facets.mentionLabel.buckets.map(bucket => bucket.val);
+  if (response.facets.mentionLabel == null) return { labels: [], total: 0 };
+  return {
+    labels: response.facets.mentionLabel.buckets.map(bucket => bucket.val),
+    total: response.facets.mentionLabel.numBuckets,
+  };
 }
 
 function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filters, resolution) {
@@ -208,7 +212,7 @@ class EntityMentionsTimeline {
       ).then(getMentionLabelsFromSolrResponse);
       const entityPromise = this.entitiesService.get(entityId, {});
 
-      const [entity, entityMentionLabels] = await Promise.all([
+      const [entity, { labels: entityMentionLabels, total: totalSubitems }] = await Promise.all([
         entityPromise,
         linkedMentionsPromise,
       ]);
@@ -225,6 +229,7 @@ class EntityMentionsTimeline {
       return {
         item: buildEntityResponse(entity, result),
         subitems: buildEntitySubitemsResponse(entity, result, entityMentionLabels),
+        totalSubitems,
       };
     }
 
