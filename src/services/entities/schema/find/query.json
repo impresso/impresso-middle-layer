@@ -14,7 +14,7 @@
             "enum": ["string", "type", "uid"]
           },
           "q": {
-            "type": "string"
+            "type": ["string", "array"]
           },
           "op": {
             "type": "string",

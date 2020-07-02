@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/entity-mentions-timeline/schema/create/payload.json",
+  "description": "Payload validation for POST /entity-mentions-timeline",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "filters": {
+      "type": "array",
+      "items": {
+        "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/search/filter.json"
+      }
+    },
+    "entityId": {
+      "type": "string",
+      "description": "Entity to get timeline for"
+    },
+    "mentionLabel": {
+      "type": "string",
+      "description": "Label of mention to get timeline for"
+    },
+    "mentionType": {
+      "type": "string",
+      "description": "Type of mention",
+      "enum": ["person", "location"]
+    },
+    "timeResolution": {
+      "type": "string",
+      "enum": ["year", "month"],
+      "description": "Time resolution for the timeline. Default is year"
+    },
+    "limit": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit",
+      "description": "Limit of the subitems to return. Default: 4"
+    },
+    "skip": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/skip",
+      "description": "Skip this many subitems. Default: 0"
+    }
+  },
+  "oneOf": [
+    { "required": ["entityId"] },
+    { "required": ["mentionLabel"] }
+  ]
+}

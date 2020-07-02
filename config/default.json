@@ -188,6 +188,9 @@
     },
     "tr_clusters": {
       "endpoint": "https://.../select"
+    },
+    "entities_mentions": {
+      "endpoint": "https://.../select"
     }
   },
   "recommender": {
