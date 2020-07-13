@@ -34,15 +34,14 @@ const SolrMappings = Object.freeze({
         limit: 400, // 400 years
         numBuckets: true,
       },
-      /* NOTE: not used yet but most likely will be the 'contentLength' filter */
-      // size: {
-      //   type: 'range',
-      //   field: 'content_length_i',
-      //   end: 10000,
-      //   start: 0,
-      //   gap: 100,
-      //   other: 'after',
-      // },
+      contentLength: {
+        type: 'range',
+        field: 'content_length_i',
+        end: 10000,
+        start: 0,
+        gap: 100,
+        other: 'after',
+      },
       month: {
         type: 'terms',
         field: 'meta_month_i',
