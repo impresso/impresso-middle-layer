@@ -198,6 +198,13 @@ const SolrMappings = Object.freeze({
         limit: 20,
         numBuckets: true,
       },
+      type: {
+        type: 'terms',
+        field: 'item_type_s',
+        mincount: 1,
+        limit: 10,
+        numBuckets: true,
+      },
     },
   },
 });

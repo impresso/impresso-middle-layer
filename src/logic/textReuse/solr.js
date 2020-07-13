@@ -227,6 +227,7 @@ function buildSolrRequestForExtraClusterDetails(clusterId) {
     limit: 0,
     facet: {
       newspaper: { ...SolrMappings.tr_passages.facets.newspaper, limit: undefined },
+      type: { ...SolrMappings.tr_passages.facets.type, limit: undefined },
     },
   };
 }
@@ -235,7 +236,7 @@ function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
   const facetsObject = get(solrResponse, 'facets', {});
   const facetsIds = Object.keys(facetsObject).filter(key => key !== 'count');
 
-  return facetsIds.map((id) => {
+  const facets = facetsIds.map((id) => {
     const facetObject = facetsObject[id];
 
     return {
@@ -244,6 +245,7 @@ function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
       buckets: facetObject.buckets,
     };
   });
+  return facets;
 }
 
 module.exports = {

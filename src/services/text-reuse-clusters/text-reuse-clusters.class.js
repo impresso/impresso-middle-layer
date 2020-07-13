@@ -1,7 +1,7 @@
 // @ts-check
 // @ts-ignore
 const {
-  mapValues, groupBy, values, uniq, clone,
+  mapValues, groupBy, values, uniq, clone, get,
 } = require('lodash');
 const { NotFound } = require('@feathersjs/errors');
 const { protobuf } = require('impresso-jscommons');
@@ -61,6 +61,35 @@ async function facetsWithItems(facets) {
     }
     return facet;
   }));
+}
+
+/**
+ * Text Reuse Passages index does not have a "country" field. But we can get country
+ * from newspaper bucket items and recreate buckets for a virtual "country" facet.
+ */
+function facetsWithCountry(facets) {
+  const newspaperFacet = facets.find(({ type }) => type === 'newspaper');
+  if (newspaperFacet == null) return facets;
+
+  const countsByCountry = newspaperFacet.buckets.reduce((counts, bucket) => {
+    const countryCodeProperty = get(bucket, 'item.properties', []).find(({ name }) => name === 'countryCode');
+    if (countryCodeProperty != null) {
+      const countryCount = get(counts, countryCodeProperty.value, 0);
+      counts[countryCodeProperty.value] = countryCount + bucket.count;
+    }
+    return counts;
+  }, {});
+
+  const countriesBuckets = Object.entries(countsByCountry).map(([countryCode, count]) => ({
+    val: countryCode,
+    count,
+  }));
+
+  return facets.concat([{
+    type: 'country',
+    numBuckets: countriesBuckets.length,
+    buckets: countriesBuckets,
+  }]);
 }
 
 class TextReuseClusters {
@@ -153,6 +182,8 @@ class TextReuseClusters {
     const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse);
 
     cluster.details = { facets: await facetsWithItems(facets) };
+
+    cluster.details.facets = facetsWithCountry(cluster.details.facets);
     return cluster;
   }
 }
