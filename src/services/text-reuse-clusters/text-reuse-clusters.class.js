@@ -118,7 +118,7 @@ class TextReuseClusters {
 
   async get(id, { query = {} }) {
     // @ts-ignore
-    const includeDetails = query.includeDetails === 'true';
+    const includeDetails = query.includeDetails === true || query.includeDetails === 'true';
 
     const sampleTextPromise = this.solr
       .get(
