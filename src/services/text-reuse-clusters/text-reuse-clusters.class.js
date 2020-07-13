@@ -13,10 +13,13 @@ const {
   getPaginationInfoFromPassagesSolrResponse,
   getLatestTextReusePassageForClusterIdRequest,
   PassageFields,
+  buildSolrRequestForExtraClusterDetails,
+  getFacetsFromExtraClusterDetailsResponse,
 } = require('../../logic/textReuse/solr');
 const { parseOrderBy } = require('../../util/queryParameters');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
 const { SolrNamespaces } = require('../../solr');
+const Newspaper = require('../../models/newspapers.model');
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
   const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0]);
@@ -44,6 +47,21 @@ const withExtraQueryParts = (query, parts) => {
   updatedQuery.q = [query.q].concat(parts).join(' AND ');
   return updatedQuery;
 };
+
+async function facetsWithItems(facets) {
+  return Promise.all(facets.map(async (facet) => {
+    if (facet.type === 'newspaper') {
+      return {
+        ...facet,
+        buckets: await Promise.all(facet.buckets.map(async bucket => ({
+          ...bucket,
+          item: await Newspaper.getCached(bucket.val),
+        }))),
+      };
+    }
+    return facet;
+  }));
+}
 
 class TextReuseClusters {
   constructor(options, app) {
@@ -98,7 +116,10 @@ class TextReuseClusters {
     };
   }
 
-  async get(id) {
+  async get(id, { query = {} }) {
+    // @ts-ignore
+    const includeDetails = query.includeDetails === 'true';
+
     const sampleTextPromise = this.solr
       .get(
         getLatestTextReusePassageForClusterIdRequest(id),
@@ -120,7 +141,19 @@ class TextReuseClusters {
     const clusterItems = buildResponseClusters(clusters, clusterIdsAndText);
 
     if (clusterItems.length < 1) throw new NotFound();
-    return clusterItems[0];
+    const cluster = clusterItems[0];
+
+    if (!includeDetails) return cluster;
+
+    // fetch cluster extra details
+
+    const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(id);
+    const extraClusterDetailsResponse = await this.solr
+      .post(extraClusterDetailsRequest, this.solr.namespaces.TextReusePassages);
+    const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse);
+
+    cluster.details = { facets: await facetsWithItems(facets) };
+    return cluster;
   }
 }
 

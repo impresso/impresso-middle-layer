@@ -189,6 +189,17 @@ const SolrMappings = Object.freeze({
       },
     },
   },
+  tr_passages: {
+    facets: {
+      newspaper: {
+        type: 'terms',
+        field: 'meta_journal_s',
+        mincount: 1,
+        limit: 20,
+        numBuckets: true,
+      },
+    },
+  },
 });
 
 /* Check that facets are a subset of filter types */

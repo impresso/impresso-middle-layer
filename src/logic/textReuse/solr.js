@@ -3,6 +3,7 @@ const {
   get, omitBy,
   isUndefined,
 } = require('lodash');
+const { SolrMappings } = require('../../data/constants')
 
 const PassageFields = {
   Id: 'id',
@@ -219,6 +220,32 @@ function getTextReuseClusterPassagesRequest(clusterId, skip, limit, orderBy, ord
   return request;
 }
 
+
+function buildSolrRequestForExtraClusterDetails(clusterId) {
+  return {
+    query: `${PassageFields.ClusterId}:${clusterId}`,
+    limit: 0,
+    facet: {
+      newspaper: { ...SolrMappings.tr_passages.facets.newspaper, limit: undefined },
+    },
+  };
+}
+
+function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
+  const facetsObject = get(solrResponse, 'facets', {});
+  const facetsIds = Object.keys(facetsObject).filter(key => key !== 'count');
+
+  return facetsIds.map((id) => {
+    const facetObject = facetsObject[id];
+
+    return {
+      type: id,
+      numBuckets: facetObject.numBuckets,
+      buckets: facetObject.buckets,
+    };
+  });
+}
+
 module.exports = {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
@@ -238,4 +265,7 @@ module.exports = {
   getLatestTextReusePassageForClusterIdRequest,
 
   PassageFields,
+
+  buildSolrRequestForExtraClusterDetails,
+  getFacetsFromExtraClusterDetailsResponse,
 };
