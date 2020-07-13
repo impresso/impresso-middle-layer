@@ -21,6 +21,7 @@ const ItemsExtractors = Object.freeze({
   textReuseClusterSize: numberRangeExtractor,
   textReuseClusterLexicalOverlap: numberRangeExtractor,
   textReuseClusterDayDelta: numberRangeExtractor,
+  contentLength: numberRangeExtractor,
 });
 
 class FiltersItems {
