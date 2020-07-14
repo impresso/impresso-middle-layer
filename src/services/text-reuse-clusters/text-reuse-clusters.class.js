@@ -176,7 +176,10 @@ class TextReuseClusters {
 
     // fetch cluster extra details
 
-    const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(id);
+    const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(
+      id, cluster.cluster.timeCoverage,
+    );
+
     const extraClusterDetailsResponse = await this.solr
       .post(extraClusterDetailsRequest, this.solr.namespaces.TextReusePassages);
     const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse);

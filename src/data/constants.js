@@ -13,8 +13,8 @@ function getRangeFacetValue(index, facet, key, defaultValue) {
 }
 
 function getRangeFacetParametersWithDefault(index, facet, numBuckets, defaultParameters) {
-  const start = getRangeFacetValue(index, facet, 'min', defaultParameters.min);
-  const end = getRangeFacetValue(index, facet, 'max', defaultParameters.max);
+  const start = getRangeFacetValue(index, facet, 'min', defaultParameters.start);
+  const end = getRangeFacetValue(index, facet, 'max', defaultParameters.end);
   const gap = Number.isFinite(start) && Number.isFinite(end)
     ? Math.round((end - start) / numBuckets)
     : defaultParameters.gap;
@@ -202,6 +202,31 @@ const SolrMappings = Object.freeze({
         field: 'item_type_s',
         mincount: 1,
         limit: 10,
+        numBuckets: true,
+      },
+      daterange: {
+        type: 'range',
+        field: 'meta_date_dt',
+        ...getRangeFacetParametersWithDefault('tr_passages', 'daterange', 10, {
+          start: '1700-01-01T00:00:00Z',
+          end: '2021-01-01T00:00:00Z',
+          gap: '+1DAY',
+        }),
+        mincount: 1,
+        numBuckets: true,
+      },
+      yearmonth: {
+        type: 'terms',
+        field: 'meta_yearmonth_s',
+        mincount: 1,
+        limit: 400 * 12, // 400 years x 12 months
+        numBuckets: true,
+      },
+      year: {
+        type: 'terms',
+        field: 'meta_year_i',
+        mincount: 1,
+        limit: 400, // 400 years
         numBuckets: true,
       },
     },

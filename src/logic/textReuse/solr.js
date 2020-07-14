@@ -220,14 +220,51 @@ function getTextReuseClusterPassagesRequest(clusterId, skip, limit, orderBy, ord
   return request;
 }
 
+/**
+ *
+ * @param {string} from ISO date
+ * @param {string} to ISO date
+ * @returns {string} either 'year', 'month' or 'day'
+ */
+function getTimelineResolution(from, to) {
+  const diffMs = new Date(to).getTime() - new Date(from).getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
-function buildSolrRequestForExtraClusterDetails(clusterId) {
+  if (diffDays <= 31) return 'day';
+  if (diffDays <= 365 * 3) return 'month';
+  return 'year';
+}
+
+const asISOTime = (date, eod) => {
+  if (eod) return `${date}T23:59:59Z`;
+  return `${date}T00:00:00Z`;
+};
+
+/**
+ * @param {string} clusterId
+ * @param {{ from: string, to: string }} timeSpan
+ */
+function buildSolrRequestForExtraClusterDetails(clusterId, { from, to } = {}) {
+  const timeResolution = getTimelineResolution(from, to);
+  let date = { ...SolrMappings.tr_passages.facets.year };
+  if (timeResolution === 'month') date = { ...SolrMappings.tr_passages.facets.yearmonth };
+  if (timeResolution === 'day') {
+    // "daterange" is a "range" facet. To speed up the query we constrain it by
+    // actual timespan.
+    date = {
+      ...SolrMappings.tr_passages.facets.daterange,
+      start: asISOTime(from),
+      end: asISOTime(to, true),
+    };
+  }
+
   return {
     query: `${PassageFields.ClusterId}:${clusterId}`,
     limit: 0,
     facet: {
       newspaper: { ...SolrMappings.tr_passages.facets.newspaper, limit: undefined },
       type: { ...SolrMappings.tr_passages.facets.type, limit: undefined },
+      date,
     },
   };
 }
@@ -241,7 +278,7 @@ function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
 
     return {
       type: id,
-      numBuckets: facetObject.numBuckets,
+      numBuckets: facetObject.numBuckets >= 0 ? facetObject.numBuckets : facetObject.buckets.length,
       buckets: facetObject.buckets,
     };
   });
