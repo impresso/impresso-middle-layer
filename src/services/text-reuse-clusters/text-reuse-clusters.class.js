@@ -15,6 +15,7 @@ const {
   PassageFields,
   buildSolrRequestForExtraClusterDetails,
   getFacetsFromExtraClusterDetailsResponse,
+  getTimelineResolution,
 } = require('../../logic/textReuse/solr');
 const { parseOrderBy } = require('../../util/queryParameters');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
@@ -187,6 +188,11 @@ class TextReuseClusters {
     cluster.details = { facets: await facetsWithItems(facets) };
 
     cluster.details.facets = facetsWithCountry(cluster.details.facets);
+    cluster.details.resolution = getTimelineResolution(
+      cluster.cluster.timeCoverage.from,
+      cluster.cluster.timeCoverage.to,
+    );
+
     return cluster;
   }
 }

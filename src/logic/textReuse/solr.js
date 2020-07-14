@@ -307,4 +307,5 @@ module.exports = {
 
   buildSolrRequestForExtraClusterDetails,
   getFacetsFromExtraClusterDetailsResponse,
+  getTimelineResolution,
 };

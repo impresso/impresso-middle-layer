@@ -14,6 +14,11 @@
       "items": {
         "$ref": "#/definitions/facet"
       }
+    },
+    "resolution": {
+      "type": "string",
+      "enum": ["year", "month", "day"],
+      "description": "Resolution for the 'date' facet"
     }
   },
   "definitions": {
