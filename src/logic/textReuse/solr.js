@@ -3,7 +3,7 @@ const {
   get, omitBy,
   isUndefined,
 } = require('lodash');
-const { SolrMappings } = require('../../data/constants')
+const { SolrMappings } = require('../../data/constants');
 
 const PassageFields = {
   Id: 'id',
