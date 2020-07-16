@@ -10,6 +10,7 @@ ajv.addSchema(require('../schema/models/base-user.model.json'));
 ajv.addSchema(require('../schema/models/search-query.model.json'));
 ajv.addSchema(require('../schema/models/text-reuse/passage.json'));
 ajv.addSchema(require('../schema/models/text-reuse/cluster.json'));
+ajv.addSchema(require('../schema/models/text-reuse/clusterDetails.json'));
 
 // services
 ajv.addSchema(require('../services/entities/schema/find/query.json'));

@@ -10,6 +10,9 @@
     },
     "textSample": {
       "type": "string"
+    },
+    "details": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/clusterDetails.json"
     }
   },
   "required": [
