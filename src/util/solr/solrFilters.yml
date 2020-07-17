@@ -196,3 +196,11 @@ indexes:
       uid:
         field: id
         rule: value
+  entities_mentions:
+    filters:
+      string:
+        field: [m_name_s, e_master_label]
+        rule: openEndedString
+      mentionFunction:
+        field: m_function_s
+        rule: value
