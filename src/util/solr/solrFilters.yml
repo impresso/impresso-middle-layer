@@ -199,7 +199,7 @@ indexes:
   entities_mentions:
     filters:
       string:
-        field: [m_name_s, e_master_label]
+        field: [mentionSuggest, entitySuggest]
         rule: openEndedString
       mentionFunction:
         field: m_function_s
