@@ -7,6 +7,7 @@ const { SolrNamespaces } = require('../../solr');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
 const { getCacheKeyForReadSqlRequest } = require('../sequelize.service');
 const { measureTime } = require('../../util/instruments');
+const wikidata = require('../wikidata');
 
 const QueryGetEntityTypeMap = `SELECT id, name
   FROM meta_entities
@@ -21,6 +22,7 @@ const Fields = Object.freeze({
   WikidataId: 'wkd_id_s',
   Name: 'm_name_text',
   TypeCode: 'm_type_s',
+  Function: 'm_function_s',
 });
 
 function filtersToSolrQuery(filters) {
@@ -37,7 +39,7 @@ function filtersToSolrQuery(filters) {
  */
 function buildSolrQuery(filters, limit = 10, skip = 0) {
   return {
-    query: filtersToSolrQuery(filters),
+    query: filters.length > 0 ? filtersToSolrQuery(filters) : '*:*',
     params: {
       group: true,
       'group.field': Fields.EntityId,
@@ -55,6 +57,7 @@ function documentToEntitOrMention(doc, entityTypeMapping) {
     label: doc[Fields.Name],
     entityType: entityTypeMapping[doc[Fields.TypeCode]],
     wikidataId: doc[Fields.WikidataId],
+    entityFunction: doc[Fields.Function],
   };
 }
 
@@ -75,6 +78,7 @@ class EntitiesMentions {
     this.sequelize = app.get('sequelizeClient');
     /** @type {import('cache-manager').Cache} */
     this.cacheManager = app.get('cacheManager');
+    this.redisClient = app.get('redisClient');
   }
 
   /**
@@ -94,6 +98,34 @@ class EntitiesMentions {
   }
 
   /**
+   * @param {string[]} wikidataIds
+   * @returns {Promise<{[key: string]: any}>}
+   */
+  async getWikidataEntries(wikidataIds) {
+    if (wikidataIds.length === 0) return {};
+    return measureTime(
+      () => wikidata.resolve({ ids: wikidataIds, cache: this.redisClient }),
+      'entities-mentions.find.wikidata.resolve',
+    );
+  }
+
+  async enrichEntitiesWithThumbnails(items) {
+    const wikidataIds = items
+      .map(({ wikidataId }) => wikidataId)
+      .filter(item => item != null);
+
+    const wikidataMapping = await this.getWikidataEntries(wikidataIds);
+
+    return items.map((item) => {
+      const wikidataEntry = wikidataMapping[item.wikidataId];
+      if (wikidataEntry == null
+        || wikidataEntry.images == null
+        || wikidataEntry.images.length === 0) return item;
+      return { ...item, thumbnailUrl: wikidataEntry.images[0].value };
+    });
+  }
+
+  /**
    * Find mentions and entities
    * @param {{ filters: Filter[], limit?: number, skip?: number }} body
    */
@@ -103,10 +135,10 @@ class EntitiesMentions {
     const query = buildSolrQuery(filters, limit, skip);
     const solrResponse = await this.solr.post(query, this.solr.namespaces.EntitiesMentions);
     const response = parseSolrResponse(solrResponse, entityTypeMapping);
+    response.items = await this.enrichEntitiesWithThumbnails(response.items);
 
     response.skip = skip;
     response.limit = limit;
-    // TODO: enrich with wikidata' thumbnail url
 
     return response;
   }

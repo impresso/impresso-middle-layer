@@ -47,6 +47,9 @@
         "thumbnailUrl": {
           "type": "string"
         },
+        "entityFunction": {
+          "type": "string"
+        },
         "countArticles": {
           "type": "integer"
         },
