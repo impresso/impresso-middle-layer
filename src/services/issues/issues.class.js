@@ -32,7 +32,7 @@ class Service {
       fl: Issue.ISSUE_SOLR_FL_MINIMAL,
       collapse_by: 'meta_issue_id_s',
       // get first ARTICLE result
-      collapse_fn: 'sort=\'id ASC\'',
+      collapse_fn: 'sort=\'page_id_ss ASC\'',
     }), 'issues.find.solr.find_issues');
     // add Sequelize Rawquery to get proper frontPage
     const coversIndex = await measureTime(() => this.SequelizeService.rawSelect({
