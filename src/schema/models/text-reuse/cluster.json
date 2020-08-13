@@ -29,6 +29,11 @@
       "description": "Number of passages in cluster",
       "minimum": 0
     },
+    "connectedClustersCount": {
+      "type": "number",
+      "description": "Number of connected clusters",
+      "minimum": 0
+    },
     "timeCoverage": {
       "type": "object",
       "description": "Time window covered by documents in the cluster",

@@ -103,6 +103,9 @@ const entitiesSuggestions = require('./entities-suggestions/entities-suggestions
 const entityMentionsTimeline = require('./entity-mentions-timeline/entity-mentions-timeline.service.js');
 
 
+const textReuseConnectedClusters = require('./text-reuse-connected-clusters/text-reuse-connected-clusters.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
 
@@ -156,4 +159,5 @@ module.exports = function () {
   app.configure(articlesSearch);
   app.configure(entitiesSuggestions);
   app.configure(entityMentionsTimeline);
+  app.configure(textReuseConnectedClusters);
 };

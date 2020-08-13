@@ -134,6 +134,7 @@ function convertSolrClusterToCluster(doc) {
       from: getDateFromISODateString(get(doc, ClusterFields.MinDate)),
       to: getDateFromISODateString(get(doc, ClusterFields.MaxDate)),
     },
+    connectedClustersCount: Math.round(100 * Math.random()), // TODO: Mocked until data is available
   };
 }
 
