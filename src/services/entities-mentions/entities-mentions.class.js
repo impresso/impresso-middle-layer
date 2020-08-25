@@ -50,7 +50,13 @@ function buildSolrQuery(filters, limit = 10, skip = 0) {
   };
 }
 
-function documentToEntitOrMention(doc, entityTypeMapping) {
+const escapeId = id => id.replace(/:/g, '\\:');
+
+function buildGetByIdSolrQuery(id) {
+  return { query: `${Fields.EntityId}:${escapeId(id)}` };
+}
+
+function documentToEntityOrMention(doc, entityTypeMapping) {
   return {
     type: doc[Fields.WikidataId] == null ? 'mention' : 'entity',
     id: doc[Fields.EntityId],
@@ -66,8 +72,13 @@ function parseSolrResponse(response, entityTypeMapping) {
   const docs = get(response, `grouped.${Fields.EntityId}.doclist.docs`, []);
   return {
     total,
-    items: docs.map(doc => documentToEntitOrMention(doc, entityTypeMapping)),
+    items: docs.map(doc => documentToEntityOrMention(doc, entityTypeMapping)),
   };
+}
+
+function parseSingleItemSolrResponse(response, entityTypeMapping) {
+  const docs = get(response, 'response.docs', []);
+  return docs.map(doc => documentToEntityOrMention(doc, entityTypeMapping))[0]
 }
 
 class EntitiesMentions {
@@ -84,7 +95,7 @@ class EntitiesMentions {
   /**
    * @returns {Promise<{[key: string]: string}>}
    */
-  async getEntityTypeByCodeMap() {
+  async getEntityTypeByCodeMapping() {
     const cacheKey = getCacheKeyForReadSqlRequest(QueryGetEntityTypeMap);
     const result = await measureTime(() => this.cacheManager.wrap(
       cacheKey,
@@ -130,7 +141,7 @@ class EntitiesMentions {
    * @param {{ filters: Filter[], limit?: number, skip?: number }} body
    */
   async create({ filters, limit = 10, skip = 0 }) {
-    const entityTypeMapping = await this.getEntityTypeByCodeMap();
+    const entityTypeMapping = await this.getEntityTypeByCodeMapping();
 
     const query = buildSolrQuery(filters, limit, skip);
     const solrResponse = await this.solr.post(query, this.solr.namespaces.EntitiesMentions);
@@ -141,6 +152,14 @@ class EntitiesMentions {
     response.limit = limit;
 
     return response;
+  }
+
+  async get(id) {
+    const entityTypeMapping = await this.getEntityTypeByCodeMapping();
+    const query = buildGetByIdSolrQuery(id);
+    const solrResponse = await this.solr.post(query, this.solr.namespaces.EntitiesMentions);
+    const item = parseSingleItemSolrResponse(solrResponse, entityTypeMapping);
+    return item;
   }
 }
 
