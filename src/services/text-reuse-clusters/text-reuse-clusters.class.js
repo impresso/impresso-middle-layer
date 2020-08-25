@@ -1,7 +1,7 @@
 // @ts-check
 // @ts-ignore
 const {
-  mapValues, groupBy, values, uniq, clone,
+  mapValues, groupBy, values, uniq, clone, get,
 } = require('lodash');
 const { NotFound } = require('@feathersjs/errors');
 const { protobuf } = require('impresso-jscommons');
@@ -13,10 +13,14 @@ const {
   getPaginationInfoFromPassagesSolrResponse,
   getLatestTextReusePassageForClusterIdRequest,
   PassageFields,
+  buildSolrRequestForExtraClusterDetails,
+  getFacetsFromExtraClusterDetailsResponse,
+  getTimelineResolution,
 } = require('../../logic/textReuse/solr');
 const { parseOrderBy } = require('../../util/queryParameters');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
 const { SolrNamespaces } = require('../../solr');
+const Newspaper = require('../../models/newspapers.model');
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
   const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0]);
@@ -44,6 +48,50 @@ const withExtraQueryParts = (query, parts) => {
   updatedQuery.q = [query.q].concat(parts).join(' AND ');
   return updatedQuery;
 };
+
+async function facetsWithItems(facets) {
+  return Promise.all(facets.map(async (facet) => {
+    if (facet.type === 'newspaper') {
+      return {
+        ...facet,
+        buckets: await Promise.all(facet.buckets.map(async bucket => ({
+          ...bucket,
+          item: await Newspaper.getCached(bucket.val),
+        }))),
+      };
+    }
+    return facet;
+  }));
+}
+
+/**
+ * Text Reuse Passages index does not have a "country" field. But we can get country
+ * from newspaper bucket items and recreate buckets for a virtual "country" facet.
+ */
+function facetsWithCountry(facets) {
+  const newspaperFacet = facets.find(({ type }) => type === 'newspaper');
+  if (newspaperFacet == null) return facets;
+
+  const countsByCountry = newspaperFacet.buckets.reduce((counts, bucket) => {
+    const countryCodeProperty = get(bucket, 'item.properties', []).find(({ name }) => name === 'countryCode');
+    if (countryCodeProperty != null) {
+      const countryCount = get(counts, countryCodeProperty.value, 0);
+      counts[countryCodeProperty.value] = countryCount + bucket.count;
+    }
+    return counts;
+  }, {});
+
+  const countriesBuckets = Object.entries(countsByCountry).map(([countryCode, count]) => ({
+    val: countryCode,
+    count,
+  }));
+
+  return facets.concat([{
+    type: 'country',
+    numBuckets: countriesBuckets.length,
+    buckets: countriesBuckets,
+  }]);
+}
 
 class TextReuseClusters {
   constructor(options, app) {
@@ -98,7 +146,10 @@ class TextReuseClusters {
     };
   }
 
-  async get(id) {
+  async get(id, { query = {} }) {
+    // @ts-ignore
+    const includeDetails = query.includeDetails === true || query.includeDetails === 'true';
+
     const sampleTextPromise = this.solr
       .get(
         getLatestTextReusePassageForClusterIdRequest(id),
@@ -120,7 +171,29 @@ class TextReuseClusters {
     const clusterItems = buildResponseClusters(clusters, clusterIdsAndText);
 
     if (clusterItems.length < 1) throw new NotFound();
-    return clusterItems[0];
+    const cluster = clusterItems[0];
+
+    if (!includeDetails) return cluster;
+
+    // fetch cluster extra details
+
+    const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(
+      id, cluster.cluster.timeCoverage,
+    );
+
+    const extraClusterDetailsResponse = await this.solr
+      .post(extraClusterDetailsRequest, this.solr.namespaces.TextReusePassages);
+    const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse);
+
+    cluster.details = { facets: await facetsWithItems(facets) };
+
+    cluster.details.facets = facetsWithCountry(cluster.details.facets);
+    cluster.details.resolution = getTimelineResolution(
+      cluster.cluster.timeCoverage.from,
+      cluster.cluster.timeCoverage.to,
+    );
+
+    return cluster;
   }
 }
 

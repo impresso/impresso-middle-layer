@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/clusterDetails.json",
+  "type": "object",
+  "title": "Text reuse cluster details",
+  "description": "Extra details of the cluster",
+  "additionalProperties": false,
+  "required": [
+    "facets"
+  ],
+  "properties": {
+    "facets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/facet"
+      }
+    },
+    "resolution": {
+      "type": "string",
+      "enum": ["year", "month", "day"],
+      "description": "Resolution for the 'date' facet"
+    }
+  },
+  "definitions": {
+    "facet": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Facet type"
+        },
+        "numBuckets": {
+          "type": "integer",
+          "description": "Number of buckets"
+        },
+        "buckets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "description": "TODO: define bucket fields"
+          }
+        }
+      }
+    }
+  }
+}

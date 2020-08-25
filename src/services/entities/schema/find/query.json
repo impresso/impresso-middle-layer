@@ -14,7 +14,7 @@
             "enum": ["string", "type", "uid"]
           },
           "q": {
-            "type": "string"
+            "type": ["string", "array"]
           },
           "op": {
             "type": "string",
@@ -28,7 +28,7 @@
     },
     "q": {
       "type": "string",
-      "maxLength": 50
+      "maxLength": 100
     },
     "order_by": {
       "type": "string",

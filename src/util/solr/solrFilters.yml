@@ -129,16 +129,14 @@ indexes:
       newspaper:
         field: meta_journal_s
         rule: value
-
-
-
-
-
-
-
-
-
-
-
-
-      
+  entities:
+    filters:
+      string:
+        field: entitySuggest
+        rule: openEndedString
+      type:
+        field: t_s
+        rule: capitalisedValue
+      uid:
+        field: id
+        rule: value  

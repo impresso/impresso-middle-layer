@@ -15,11 +15,13 @@ const ItemsExtractors = Object.freeze({
   topic: topicExtractor,
   person: entityExtractor,
   location: entityExtractor,
+  entity: entityExtractor,
   year: yearExtractor,
   collection: collectionExtractor,
   textReuseClusterSize: numberRangeExtractor,
   textReuseClusterLexicalOverlap: numberRangeExtractor,
   textReuseClusterDayDelta: numberRangeExtractor,
+  contentLength: numberRangeExtractor,
 });
 
 class FiltersItems {

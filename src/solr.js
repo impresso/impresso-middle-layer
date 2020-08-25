@@ -22,6 +22,7 @@ const SolrNamespaces = Object.freeze({
   EmbeddingsDE: 'embeddings_de',
   EmbeddingsFR: 'embeddings_fr',
   EmbeddingsLB: 'embeddings_lb',
+  EntitiesMentions: 'entities_mentions',
 });
 
 /**
@@ -571,18 +572,7 @@ module.exports.client = (solrConfig, poolConfig) => {
   return getSolrClient(solrConfig, connectionPool);
 };
 
-module.exports.SolrNamespaces = Object.freeze({
-  Search: 'search',
-  Mentions: 'mentions',
-  Topics: 'topics',
-  Entities: 'entities',
-  Images: 'images',
-  TextReusePassages: 'tr_passages',
-  TextReuseClusters: 'tr_clusters',
-  EmbeddingsDE: 'embeddings_de',
-  EmbeddingsFR: 'embeddings_fr',
-  EmbeddingsLB: 'embeddings_lb',
-});
+module.exports.SolrNamespaces = SolrNamespaces;
 
 module.exports.utils = {
   wrapAll,

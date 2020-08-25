@@ -1,7 +1,7 @@
 {
   "name": "impresso-middle-layer",
   "description": "",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "homepage": "",
   "main": "src",
   "keywords": [
@@ -51,7 +51,7 @@
     "@feathersjs/express": "^4.3.3",
     "@feathersjs/feathers": "^4.3.3",
     "@feathersjs/socketio": "^4.3.3",
-    "ajv": "^6.10.2",
+    "ajv": "^6.12.2",
     "async": "^2.6.1",
     "async-redis": "^1.1.5",
     "aws-sdk": "^2.395.0",
@@ -89,7 +89,7 @@
     "http-proxy-middleware": "^0.18.0",
     "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.3.1",
     "json2csv": "^4.3.3",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "lodash.first": "^3.0.0",
     "lodash.groupby": "^4.6.0",
     "lodash.keyby": "^4.6.0",
@@ -121,7 +121,7 @@
     "yaml": "^1.8.2"
   },
   "devDependencies": {
-    "@feathersjs/cli": "^4.3.0",
+    "@feathersjs/cli": "^4.4.0",
     "@types/cache-manager": "^2.10.3",
     "@types/generic-pool": "^3.1.9",
     "@types/mocha": "^7.0.2",

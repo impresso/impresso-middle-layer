@@ -10,6 +10,7 @@ ajv.addSchema(require('../schema/models/base-user.model.json'));
 ajv.addSchema(require('../schema/models/search-query.model.json'));
 ajv.addSchema(require('../schema/models/text-reuse/passage.json'));
 ajv.addSchema(require('../schema/models/text-reuse/cluster.json'));
+ajv.addSchema(require('../schema/models/text-reuse/clusterDetails.json'));
 
 // services
 ajv.addSchema(require('../services/entities/schema/find/query.json'));
@@ -25,6 +26,10 @@ ajv.addSchema(require('../services/text-reuse-clusters/schema/find/response.json
 ajv.addSchema(require('../services/text-reuse-clusters/schema/get/response.json'));
 ajv.addSchema(require('../services/text-reuse-cluster-passages/schema/find/response.json'));
 ajv.addSchema(require('../services/articles-search/schema/create/payload.json'));
+ajv.addSchema(require('../services/entities-suggestions/schema/create/payload.json'));
+ajv.addSchema(require('../services/entities-suggestions/schema/create/response.json'));
+ajv.addSchema(require('../services/entity-mentions-timeline/schema/create/payload.json'));
+ajv.addSchema(require('../services/entity-mentions-timeline/schema/create/response.json'));
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
 
