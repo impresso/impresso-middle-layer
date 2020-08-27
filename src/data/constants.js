@@ -27,6 +27,17 @@ function getRangeFacetParametersWithDefault(index, facet, numBuckets, defaultPar
 const SolrMappings = Object.freeze({
   search: {
     facets: {
+      daterange: {
+        type: 'range',
+        field: 'meta_date_dt',
+        ...getRangeFacetParametersWithDefault('search', 'daterange', 10, {
+          start: '1700-01-01T00:00:00Z',
+          end: '2021-01-01T00:00:00Z',
+          gap: '+1YEAR',
+        }),
+        mincount: 1,
+        numBuckets: true,
+      },
       year: {
         type: 'terms',
         field: 'meta_year_i',
