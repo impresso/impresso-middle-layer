@@ -144,13 +144,14 @@ const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
     const query = Array.isArray(filter.q) && filter.q.length === 1
       ? filter.q[0]
       : filter.q;
+    const op = filter.op || 'OR';
 
     let q;
     if (Array.isArray(query)) {
       if (query.length !== 2) {
         throw new InvalidArgumentError(`"${rule}" filter rule: unknown values encountered in "q": ${filter.q}`);
       }
-      q = `${query.map(d => `${field}:[${d}]`).join(' OR ')}`;
+      q = `${query.map(d => `${field}:[${d}]`).join(` ${op} `)}`;
       if (query.length > 1) {
         q = `(${q})`;
       }
