@@ -25,7 +25,7 @@ const PassageFields = {
 };
 
 const ClusterFields = {
-  Id: 'cluster_id_s',
+  Id: 'id',
   LexicalOverlap: 'lex_overlap_d',
   TimeDifferenceDay: 'day_delta_i',
   MinDate: 'min_date_dt',
