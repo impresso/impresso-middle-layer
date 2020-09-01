@@ -302,7 +302,7 @@ function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
  * @returns {Record<string, any>}
  */
 function buildConnectedClustersRequest(clusterId, limit = 10, skip = 0) {
-  return {
+  const request = {
     query: `${PassageFields.ClusterId}:${clusterId}`,
     limit: 0,
     params: { hl: false },
@@ -310,10 +310,11 @@ function buildConnectedClustersRequest(clusterId, limit = 10, skip = 0) {
       connectedClusters: {
         ...SolrMappings.tr_passages.facets.connectedClusters,
         limit,
-        skip,
+        offset: skip,
       },
     },
   };
+  return request;
 }
 
 /**

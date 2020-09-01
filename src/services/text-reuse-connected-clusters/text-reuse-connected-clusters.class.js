@@ -18,6 +18,12 @@ function buildResponseClusters(clusters, clusterIdsAndText) {
   }));
 }
 
+/** @returns {{ clusterId: string, skip: number, limit: number }} */
+function getArguments(params) {
+  const { clusterId, skip = 0, limit = 9 } = params.query;
+  return { clusterId, skip: parseInt(skip, 10), limit: parseInt(limit, 10) };
+}
+
 class TextReuseConnectedClusters {
   constructor(app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
@@ -28,13 +34,17 @@ class TextReuseConnectedClusters {
   }
 
   async find(params) {
-    const { clusterId } = params.query;
-    const request = buildConnectedClustersRequest(clusterId);
+    const { clusterId, skip, limit } = getArguments(params);
+    const request = buildConnectedClustersRequest(clusterId, limit, skip);
     const { clustersIds, total } = await this.solr
       .post(request, this.solr.namespaces.TextReusePassages)
       .then(parseConnectedClustersResponse);
 
-    if (clustersIds.length === 0) return [];
+    if (clustersIds.length === 0) {
+      return {
+        skip, limit, total, clusters: [],
+      };
+    }
 
     const sampleTextsPromise = this.solr
       .get(
@@ -55,7 +65,9 @@ class TextReuseConnectedClusters {
     ]);
 
     const clusterItems = buildResponseClusters(clusters, clusterIdsAndText);
-    return clusterItems;
+    return {
+      skip, limit, total, clusters: clusterItems,
+    };
   }
 }
 
