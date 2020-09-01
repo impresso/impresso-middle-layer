@@ -22,6 +22,7 @@ const PassageFields = {
   PageRegions: 'page_regions_plains',
   JournalId: 'meta_journal_s',
   ClusterSize: 'cluster_size_l',
+  ConnectedClusters: 'connected_clusters_ss',
 };
 
 const ClusterFields = {
@@ -171,10 +172,18 @@ function getTextReusePassagesClusterIdsSearchRequestForText(
   return request;
 }
 
-function getLatestTextReusePassageForClusterIdRequest(clusterId) {
+function getLatestTextReusePassageForClusterIdRequest(clusterIdOrClusterIds) {
+  const clusterId = Array.isArray(clusterIdOrClusterIds) ? undefined : clusterIdOrClusterIds;
+  const clusterIds = Array.isArray(clusterIdOrClusterIds) ? clusterIdOrClusterIds : undefined;
+
+  const q = clusterId != null
+    ? `${PassageFields.ClusterId}:"${clusterId}"`
+    : clusterIds.map(id => `${PassageFields.ClusterId}:${id}`).join(' OR ');
+
   const request = {
-    q: `${PassageFields.ClusterId}:"${clusterId}"`,
+    q,
     hl: false,
+    limit: clusterId != null ? 1 : clusterIds.length,
     fl: [
       PassageFields.ClusterId,
       PassageFields.ContentTextFR,
@@ -285,6 +294,68 @@ function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
   return facets;
 }
 
+/**
+ * @param {string} clusterId cluster ID
+ * @param {number} limit
+ * @param {number} skip
+ * @returns {Record<string, any>}
+ */
+function buildConnectedClustersRequest(clusterId, limit = 10, skip = 0) {
+  const request = {
+    query: `${PassageFields.ClusterId}:${clusterId}`,
+    limit: 0,
+    params: { hl: false },
+    facet: {
+      connectedClusters: {
+        ...SolrMappings.tr_passages.facets.connectedClusters,
+        limit,
+        offset: skip,
+      },
+    },
+  };
+  return request;
+}
+
+/**
+ * @param {Record<string, any>} response
+ * @returns {{ clustersIds: string[], total: number }}
+ */
+function parseConnectedClustersResponse(response) {
+  const buckets = get(response, 'facets.connectedClusters.buckets', []);
+  const clustersIds = buckets.map(bucket => bucket.val);
+  const total = get(response, 'facets.connectedClusters.numBuckets', 0);
+
+  return { clustersIds, total };
+}
+
+/**
+ * @param {string} clusterId cluster ID
+ * @returns {Record<string, any>}
+ */
+function buildConnectedClustersCountRequest(clusterId) {
+  const request = {
+    query: `${PassageFields.ClusterId}:${clusterId}`,
+    limit: 0,
+    params: { hl: false },
+    facet: {
+      connectedClusters: {
+        ...SolrMappings.tr_passages.facets.connectedClusters,
+        limit: 0,
+        offset: 0,
+      },
+    },
+  };
+  return request;
+}
+
+/**
+ * @param {Record<string, any>} response
+ * @returns {number}
+ */
+function parseConnectedClustersCountResponse(response) {
+  return get(response, 'facets.connectedClusters.numBuckets', 0);
+}
+
 module.exports = {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
@@ -308,4 +379,10 @@ module.exports = {
   buildSolrRequestForExtraClusterDetails,
   getFacetsFromExtraClusterDetailsResponse,
   getTimelineResolution,
+
+  buildConnectedClustersRequest,
+  parseConnectedClustersResponse,
+
+  buildConnectedClustersCountRequest,
+  parseConnectedClustersCountResponse,
 };

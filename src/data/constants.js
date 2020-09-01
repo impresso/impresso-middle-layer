@@ -240,6 +240,13 @@ const SolrMappings = Object.freeze({
         limit: 400, // 400 years
         numBuckets: true,
       },
+      connectedClusters: {
+        type: 'terms',
+        field: 'connected_clusters_ss',
+        mincount: 1,
+        limit: 10,
+        numBuckets: true,
+      },
     },
   },
 });
