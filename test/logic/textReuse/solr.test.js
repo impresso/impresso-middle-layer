@@ -155,7 +155,6 @@ describe('convertClustersSolrResponseToClusters', () => {
       id: '163208759161',
       lexicalOverlap: 22.8571428571,
       clusterSize: 3,
-      connectedClustersCount: 0,
       timeCoverage: {
         from: '1971-12-11',
         to: '1972-12-02',

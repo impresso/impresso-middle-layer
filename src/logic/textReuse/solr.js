@@ -135,7 +135,6 @@ function convertSolrClusterToCluster(doc) {
       from: getDateFromISODateString(get(doc, ClusterFields.MinDate)),
       to: getDateFromISODateString(get(doc, ClusterFields.MaxDate)),
     },
-    connectedClustersCount: Math.round(100 * Math.random()), // TODO: Mocked until data is available
   };
 }
 
@@ -329,6 +328,34 @@ function parseConnectedClustersResponse(response) {
   return { clustersIds, total };
 }
 
+/**
+ * @param {string} clusterId cluster ID
+ * @returns {Record<string, any>}
+ */
+function buildConnectedClustersCountRequest(clusterId) {
+  const request = {
+    query: `${PassageFields.ClusterId}:${clusterId}`,
+    limit: 0,
+    params: { hl: false },
+    facet: {
+      connectedClusters: {
+        ...SolrMappings.tr_passages.facets.connectedClusters,
+        limit: 0,
+        offset: 0,
+      },
+    },
+  };
+  return request;
+}
+
+/**
+ * @param {Record<string, any>} response
+ * @returns {number}
+ */
+function parseConnectedClustersCountResponse(response) {
+  return get(response, 'facets.connectedClusters.numBuckets', 0);
+}
+
 module.exports = {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
@@ -355,4 +382,7 @@ module.exports = {
 
   buildConnectedClustersRequest,
   parseConnectedClustersResponse,
+
+  buildConnectedClustersCountRequest,
+  parseConnectedClustersCountResponse,
 };
