@@ -1,7 +1,7 @@
 // @ts-check
 const debug = require('debug')('impresso/solr');
 const lodash = require('lodash');
-const { URLSearchParams } = require('url');
+const { URL, URLSearchParams } = require('url');
 const { preprocessSolrError } = require('./util/solr/errors');
 const { initHttpPool } = require('./httpConnectionPool');
 
@@ -101,6 +101,33 @@ function buildUrl(baseUrl, queryParams = {}) {
 }
 
 /**
+ * Check if the request is `GET` and then convert it to a `POST` request
+ * using the Solr JSON API rules (https://lucene.apache.org/solr/guide/7_1/json-request-api.html#parameters-mapping).
+ *
+ * This is here to rectify a problem when a GET request is too large for Solr to process which
+ * causes it to return a 431 "request header fields too large" error.
+ *
+ * @param {string} url
+ * @param {object} requestParams
+ */
+function maybeConvertGetToPostParams(url, requestParams) {
+  if (requestParams.method !== 'GET') return [url, requestParams];
+
+  // get rid of possible query string in the URL.
+  const u = new URL(url);
+  const updatedUrl = [u.origin, u.pathname].join('');
+
+  return [updatedUrl, {
+    ...requestParams,
+    method: 'POST',
+    qs: undefined, // unset query string
+    body: JSON.stringify({
+      params: requestParams.qs || {},
+    }),
+  }];
+}
+
+/**
  * @param {string} url
  * @param {object} params
  * @param {ConnectionPool} connectionPool
@@ -112,11 +139,14 @@ async function executeRequest(url, params, connectionPool) {
   }
 
   try {
-    return await connection.fetch(url, params)
+    const [u, p] = maybeConvertGetToPostParams(url, params);
+    return await connection.fetch(u, p)
       .then(checkFetchResponseStatus)
       .then(response => response.text())
       .then(transformSolrResponse)
-      .catch((error) => { throw preprocessSolrError(error); });
+      .catch((error) => {
+        throw preprocessSolrError(error);
+      });
   } finally {
     try {
       await connectionPool.release(connection);

@@ -63,7 +63,7 @@ const clustersSolrResponse = {
     status: 0,
     QTime: 0,
     params: {
-      q: 'cluster_id_s:*',
+      q: 'id:*',
       rows: '1',
     },
   },
@@ -73,7 +73,6 @@ const clustersSolrResponse = {
     docs: [
       {
         postproc_id_s: '90217',
-        cluster_id_s: '163208759161',
         day_delta_i: 357,
         newspapers_ss: [
           'GDL', 'IMP',
@@ -87,7 +86,7 @@ const clustersSolrResponse = {
         max_date_dt: '1972-12-02T00:00:00Z',
         lex_overlap_d: 22.8571428571,
         cluster_size_l: 3,
-        id: '88e0c589-666d-483e-9f64-6289d9fba2b0',
+        id: '163208759161',
         _version_: 1656447964590112778,
       },
     ],
@@ -138,7 +137,7 @@ describe('getTextReuseClustersRequestForIds', () => {
   it('returns expected response', () => {
     const queryParameters = getTextReuseClustersRequestForIds(['abc123', 'cde123']);
     const expectedQueryParameters = {
-      q: 'cluster_id_s:abc123 OR cluster_id_s:cde123',
+      q: 'id:abc123 OR id:cde123',
       rows: 2,
       hl: false,
       fl: DefaultClusterFields.join(','),

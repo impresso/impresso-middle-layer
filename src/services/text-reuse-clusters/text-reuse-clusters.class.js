@@ -16,6 +16,8 @@ const {
   buildSolrRequestForExtraClusterDetails,
   getFacetsFromExtraClusterDetailsResponse,
   getTimelineResolution,
+  buildConnectedClustersCountRequest,
+  parseConnectedClustersCountResponse,
 } = require('../../logic/textReuse/solr');
 const { parseOrderBy } = require('../../util/queryParameters');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
@@ -164,14 +166,22 @@ class TextReuseClusters {
       )
       .then(convertClustersSolrResponseToClusters);
 
-    const [clusterIdsAndText, clusters] = await Promise.all([
-      sampleTextPromise, clusterPromise,
+    const connectedClustersCountPromise = this.solr
+      .post(
+        buildConnectedClustersCountRequest(id),
+        this.solr.namespaces.TextReusePassages,
+      )
+      .then(parseConnectedClustersCountResponse);
+
+    const [clusterIdsAndText, clusters, connectedClustersCount] = await Promise.all([
+      sampleTextPromise, clusterPromise, connectedClustersCountPromise,
     ]);
 
     const clusterItems = buildResponseClusters(clusters, clusterIdsAndText);
 
     if (clusterItems.length < 1) throw new NotFound();
     const cluster = clusterItems[0];
+    cluster.cluster.connectedClustersCount = connectedClustersCount;
 
     if (!includeDetails) return cluster;
 

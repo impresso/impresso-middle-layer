@@ -27,6 +27,17 @@ function getRangeFacetParametersWithDefault(index, facet, numBuckets, defaultPar
 const SolrMappings = Object.freeze({
   search: {
     facets: {
+      daterange: {
+        type: 'range',
+        field: 'meta_date_dt',
+        ...getRangeFacetParametersWithDefault('search', 'daterange', 10, {
+          start: '1700-01-01T00:00:00Z',
+          end: '2021-01-01T00:00:00Z',
+          gap: '+1YEAR',
+        }),
+        mincount: 1,
+        numBuckets: true,
+      },
       year: {
         type: 'terms',
         field: 'meta_year_i',
@@ -210,7 +221,7 @@ const SolrMappings = Object.freeze({
         ...getRangeFacetParametersWithDefault('tr_passages', 'daterange', 10, {
           start: '1700-01-01T00:00:00Z',
           end: '2021-01-01T00:00:00Z',
-          gap: '+1DAY',
+          gap: '+1YEAR',
         }),
         mincount: 1,
         numBuckets: true,
@@ -227,6 +238,47 @@ const SolrMappings = Object.freeze({
         field: 'meta_year_i',
         mincount: 1,
         limit: 400, // 400 years
+        numBuckets: true,
+      },
+      connectedClusters: {
+        type: 'terms',
+        field: 'connected_clusters_ss',
+        mincount: 1,
+        limit: 10,
+        numBuckets: true,
+      },
+      textReuseClusterSize: {
+        type: 'range',
+        field: 'cluster_size_l',
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterSize', 10, {
+          end: 100000,
+          start: 0,
+          gap: 10000,
+        }),
+      },
+      textReuseClusterLexicalOverlap: {
+        type: 'range',
+        field: 'cluster_lex_overlap_d',
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterLexicalOverlap', 10, {
+          end: 100,
+          start: 0,
+          gap: 10,
+        }),
+      },
+      textReuseClusterDayDelta: {
+        type: 'range',
+        field: 'cluster_day_delta_i',
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterDayDelta', 10, {
+          end: 100,
+          start: 0,
+          gap: 10,
+        }),
+      },
+      collection: {
+        type: 'terms',
+        field: 'ucoll_ss',
+        mincount: 1,
+        limit: 10,
         numBuckets: true,
       },
     },
