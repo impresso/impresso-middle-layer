@@ -211,13 +211,11 @@ class Service {
     }
     const items = data.sanitized.items.map(d => ({
       itemId: d.uid,
-
       contentType: d.content_type,
       collectionId: collection.uid,
     }));
     debug('[create] with items:', items);
     const results = await this.SequelizeService.bulkCreate(items);
-
     const client = this.app.get('celeryClient');
     if (client) {
       client.run({
@@ -257,6 +255,19 @@ class Service {
         })),
       },
     });
+    debug('[remove] item:', id, parseInt(results, 10));
+    const client = this.app.get('celeryClient');
+    if (client) {
+      client.run({
+        task: 'impresso.tasks.store_collection',
+        args: [
+          // collection_uid
+          collection.uid,
+          params.sanitized.items.map(({ uid }) => uid),
+          'METHOD_DEL_FROM_INDEX',
+        ],
+      });
+    }
     return {
       params: params.sanitized,
       removed: parseInt(results, 10),
