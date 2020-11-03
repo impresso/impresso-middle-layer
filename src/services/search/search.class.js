@@ -1,4 +1,5 @@
 const debug = require('debug')('impresso/services:search');
+const { protobuf } = require('impresso-jscommons');
 const { NotFound, NotImplemented } = require('@feathersjs/errors');
 const sequelize = require('../../sequelize');
 const { isCacheableQuery } = require('../../util/cache');
@@ -73,10 +74,16 @@ class Service {
 
     // quickly save the data!
     const q = data.sanitized.sq;
-
+    const sq = protobuf.searchQuery.serialize({
+      filters: data.sanitized.filters,
+    });
     // create new search query :TODO
     debug(`[create] from solr query: ${q} from user:${params.user.uid}`);
-
+    // Celery task:
+    // def add_to_collection_from_query(
+    //     self, collection_id, user_id, query, content_type,
+    //     fq=None, serialized_query=None
+    // ):
     return client.run({
       task: 'impresso.tasks.add_to_collection_from_query',
       args: [
@@ -84,10 +91,13 @@ class Service {
         data.sanitized.collection_uid,
         // user id
         params.user.id,
-        // query ID
+        // query
         q,
         // content_type, A for article
         'A',
+        // fq
+        '',
+        sq,
       ],
     }).catch((err) => {
       if (err.result.exc_type === 'DoesNotExist') {
