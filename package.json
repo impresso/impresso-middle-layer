@@ -89,7 +89,7 @@
     "http-proxy-middleware": "^0.18.0",
     "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.3.1",
     "json2csv": "^4.3.3",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "lodash.first": "^3.0.0",
     "lodash.groupby": "^4.6.0",
     "lodash.keyby": "^4.6.0",
