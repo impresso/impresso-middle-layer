@@ -78,7 +78,7 @@ function parseSolrResponse(response, entityTypeMapping) {
 
 function parseSingleItemSolrResponse(response, entityTypeMapping) {
   const docs = get(response, 'response.docs', []);
-  return docs.map(doc => documentToEntityOrMention(doc, entityTypeMapping))[0]
+  return docs.map(doc => documentToEntityOrMention(doc, entityTypeMapping))[0];
 }
 
 class EntitiesMentions {
