@@ -1,9 +1,9 @@
 const assert = require('assert');
-const app = require('../../../src/app');
-const User = require('../../../src/models/users.model');
+const app = require('../../src/app');
+const User = require('../../src/models/users.model');
 /**
  * use with
-  ./node_modules/.bin/eslint test/services/users.test.js  \
+  ./node_modules/.bin/eslint test/integration/services/users.test.js  \
   src/models/users.model.js  \
   src/models/profiles.model.js  \
   src/services/users src/hooks --fix \
@@ -19,16 +19,27 @@ describe('\'users\' service', function () {
 
   const user = {
     username: 'local-user-test-only',
+    firstname: 'test',
+    lastname: 'TEST',
+    displayName: 'local-user-test-only',
     password: 'Impresso2018!',
     email: 'local-user-test-only@impresso-project.ch',
   };
+  before(async () => {
+    await service.remove(user.username, {
+      user: {
+        is_staff: true,
+      },
+    });
+  });
   //
   it('encrypt password as django does by default', async () => {
     const result = User.encryptPassword({
       salt: 'tdhWFyUPmubt',
       password: user.password,
+      iterations: 10,
     });
-    assert.equal('dxdsTpCg+uC0lStatlWdn/NyeQb0ogwfNRqbqxexxCQ=', result.password);
+    assert.equal('HEq5bZCHEHRBX6UoBmSdye/UMdEyoS4QeQwKIbZQdSo=', result.password);
   });
 
   it('compare password with django ones', async () => {
@@ -40,19 +51,14 @@ describe('\'users\' service', function () {
   });
 
   it('create the user', async () => {
-    const removed = await service.remove(user.username, {
-      user: {
-        is_staff: true,
-      },
-    });
-    assert.ok(removed);
     const created = await service.create(user, {
       user: {
         is_staff: true,
       },
     });
     assert.ok(created instanceof User);
-    assert.ok(created.profile);
+    assert.deepEqual(user.displayName, created.profile.displayName);
+    assert.deepEqual(user.email, created.email);
     assert.ok(created.isActive);
   });
 
