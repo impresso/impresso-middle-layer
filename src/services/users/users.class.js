@@ -15,6 +15,7 @@ class Service {
     this.sequelizeClient = app.get('sequelizeClient');
     this.sequelizeKlass = User.sequelize(this.sequelizeClient);
     this.id = 'id';
+    this.app = app;
   }
 
   async get(id, params) {
@@ -65,6 +66,16 @@ class Service {
       })
       .catch(sequelizeErrorHandler);
     debug(`[create] user with profile: ${user.uid} success`);
+    const client = this.app.get('celeryClient');
+    if (client) {
+      debug(`[create] inform impresso admin to activate this user: ${user.uid}`);
+      await client.run({
+        task: 'impresso.tasks.after_user_registered',
+        args: [user.id],
+      }).catch((err) => {
+        debug('Error', err);
+      });
+    }
     return user;
   }
 
