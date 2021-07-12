@@ -28,7 +28,7 @@ module.exports = function (app) {
   const proxyhost = app.get('proxy').host;
 
   const authentication = app.get('authentication');
-
+  debug('proxy: configuring proxy ', proxyhost);
   logger.info('configuring proxy ...');
 
   const proxyPublicAuthorization = config.iiif.epfl.auth;
@@ -118,6 +118,13 @@ module.exports = function (app) {
         credentials = Buffer.from(`${proxyPublicAuthorization.user}:${proxyPublicAuthorization.pass}`).toString('base64');
       }
       proxyReq.setHeader('Authorization', `Basic ${credentials}`);
+    },
+    onError: (err, req, res) => {
+      debug('proxy: @onError <path>', req.path, err);
+      res.writeHead(500, {
+        'Content-Type': 'text/plain',
+      });
+      res.end(`Something went wrong. And we are reporting a custom error message. Code: ${err.code}`);
     },
     onProxyRes: (proxyRes, req, res) => {
       debug('proxy: @onProxyRes <res.statusCode>:', proxyRes.statusCode, proxyRes.headers['content-type']);
