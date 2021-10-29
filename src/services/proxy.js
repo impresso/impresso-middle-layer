@@ -5,6 +5,8 @@ const modifyResponse = require('node-http-proxy-json');
 const nodePath = require('path');
 const { QueryTypes } = require('sequelize');
 const { ACCESS_RIGHT_OPEN_PUBLIC } = require('../models/articles.model');
+
+
 /**
  * Internal redirect using X accel Redirect (NGINX) to speed up (and cache) image delivery.
  * @param  {Response} res             Eprress response object
@@ -24,33 +26,42 @@ const internalRedirect = ({
   res.end();
 };
 
-const isFilepathOpenPublic = async (filepath, { sequelizeClient }) => {
+
+/**
+ * Return boolean response if specific issueUid is OpenPublic. This function
+ * always returns false if an exception is raised during its execution.
+ * @param  {String} filepath
+ * @param  {Object} sequelizeClient
+ * @return
+ */
+const isIssueOpenPublic = async (issueUid, sequelizeClient) => {
+  debug('isIssueOpenPublic issueUid:', issueUid, '...');
   try {
-    const [, issueUid] = filepath
-      .match(/([A-Za-z]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/);
-    debug('proxy: isFilepathOpenPublic', filepath, 'issue n:', issueUid, 'rr', ACCESS_RIGHT_OPEN_PUBLIC);
     const result = await sequelizeClient.query('SELECT access_rights FROM issues WHERE id = ? LIMIT 1', {
       replacements: [issueUid],
       type: QueryTypes.SELECT,
     });
+    debug('isIssueOpenPublic issueUid:', issueUid, '- access_rights:', result[0].access_rights);
     // if there's an error, we put false.
     return result[0].access_rights === ACCESS_RIGHT_OPEN_PUBLIC;
   } catch (e) {
+    debug('isIssueOpenPublic exception thrown, discarded.', e);
     return false;
   }
 };
+
 
 module.exports = function (app) {
   const config = app.get('proxy');
   const proxyhost = app.get('proxy').host;
   const sequelizeClient = app.get('sequelizeClient');
   const authentication = app.get('authentication');
-  debug('proxy: configuring proxy ', proxyhost);
+  debug('configuring proxy host:', proxyhost);
   logger.info('configuring proxy ...');
 
   const proxyPublicAuthorization = config.iiif.epfl.auth;
 
-  app.use('/proxy/iiif', (req, res, next) => {
+  app.use('/proxy/iiif', async (req, res, next) => {
     // get extension
     const isImage = ['png'].indexOf(req.originalUrl.split('.').pop()) !== -1;
     const filepath = req.originalUrl.replace('/proxy/iiif', '/');
@@ -63,10 +74,13 @@ module.exports = function (app) {
     }
 
     if (!accessToken) {
-      debug('proxy: no auth found, return public contents only.');
       // check filepath
-      const isOpenPublic = isFilepathOpenPublic(filepath, { sequelizeClient });
+      const [contentItemId, issueUid] = filepath
+        .match(/([A-Za-z]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/);
+
+      const isOpenPublic = await isIssueOpenPublic(issueUid, sequelizeClient);
       if (isOpenPublic) {
+        debug('no auth found, but contentItemId:', contentItemId, 'is OpenPublic.');
         req.proxyAuthorization = config.iiif.epflsafe.auth;
         if (config.iiif.internalOnly && isImage) {
           internalRedirect({
@@ -77,6 +91,7 @@ module.exports = function (app) {
         }
         next();
       } else if (config.iiif.internalOnly && isImage) {
+        debug('proxy: no auth found, try public endpoint directly.');
         // do nothing, try "public" endpoint with xaccel
         internalRedirect({
           res,
