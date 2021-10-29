@@ -3,7 +3,8 @@ const debug = require('debug')('verbose:impresso/proxy');
 const proxy = require('http-proxy-middleware');
 const modifyResponse = require('node-http-proxy-json');
 const nodePath = require('path');
-
+const { QueryTypes } = require('sequelize');
+const { ACCESS_RIGHT_OPEN_PUBLIC } = require('../models/articles.model');
 /**
  * Internal redirect using X accel Redirect (NGINX) to speed up (and cache) image delivery.
  * @param  {Response} res             Eprress response object
@@ -23,10 +24,26 @@ const internalRedirect = ({
   res.end();
 };
 
+const isFilepathOpenPublic = async (filepath, { sequelizeClient }) => {
+  try {
+    const [, issueUid] = filepath
+      .match(/([A-Za-z]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/);
+    debug('proxy: isFilepathOpenPublic', filepath, 'issue n:', issueUid, 'rr', ACCESS_RIGHT_OPEN_PUBLIC);
+    const result = await sequelizeClient.query('SELECT access_rights FROM issues WHERE id = ? LIMIT 1', {
+      replacements: [issueUid],
+      type: QueryTypes.SELECT,
+    });
+    // if there's an error, we put false.
+    return result[0].access_rights === ACCESS_RIGHT_OPEN_PUBLIC;
+  } catch (e) {
+    return false;
+  }
+};
+
 module.exports = function (app) {
   const config = app.get('proxy');
   const proxyhost = app.get('proxy').host;
-
+  const sequelizeClient = app.get('sequelizeClient');
   const authentication = app.get('authentication');
   debug('proxy: configuring proxy ', proxyhost);
   logger.info('configuring proxy ...');
@@ -47,9 +64,20 @@ module.exports = function (app) {
 
     if (!accessToken) {
       debug('proxy: no auth found, return public contents only.');
-      // do nothing, we're going for the "public" endpoint
-      if (config.iiif.internalOnly && isImage) {
-        // xaccel
+      // check filepath
+      const isOpenPublic = isFilepathOpenPublic(filepath, { sequelizeClient });
+      if (isOpenPublic) {
+        req.proxyAuthorization = config.iiif.epflsafe.auth;
+        if (config.iiif.internalOnly && isImage) {
+          internalRedirect({
+            res,
+            filepath,
+            protectedPath: config.iiif.protected.endpoint,
+          });
+        }
+        next();
+      } else if (config.iiif.internalOnly && isImage) {
+        // do nothing, try "public" endpoint with xaccel
         internalRedirect({
           res,
           filepath,
