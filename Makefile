@@ -1,9 +1,12 @@
+BUILD_TAG ?= latest
+
 build:
 	docker build \
-		-t impresso/impresso-middle-layer \
+		-t impresso/impresso-middle-layer:${BUILD_TAG} \
 		--build-arg GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
+		--build-arg GIT_TAG=$(shell git describe --tags --abbrev=0 HEAD) \
 		--build-arg GIT_REVISION=$(shell git rev-parse --short HEAD) .
-
+		
 run:
 	docker run --rm -it \
 		--name impresso_middle_layer \
