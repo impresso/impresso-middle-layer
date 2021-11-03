@@ -55,7 +55,6 @@ module.exports = function (app) {
   const config = app.get('proxy');
   const proxyhost = app.get('proxy').host;
   const sequelizeClient = app.get('sequelizeClient');
-  const authentication = app.get('authentication');
   debug('configuring proxy host:', proxyhost);
   logger.info('configuring proxy ...');
 
@@ -65,14 +64,15 @@ module.exports = function (app) {
     // get extension
     const isImage = ['png'].indexOf(req.originalUrl.split('.').pop()) !== -1;
     const filepath = req.originalUrl.replace('/proxy/iiif', '/');
-    //  authentication.cookie.name, req.cookies, req.isAuthenticated());
-    // access token from cookies
-    let accessToken = req.headers.authorization;
-
-    if (req.cookies && req.cookies[authentication.cookie.name]) {
-      accessToken = req.cookies[authentication.cookie.name] || req.headers.authorization;
-    }
-
+    const accessToken = req.headers.authorization;
+    // do not accept cookies anymore. The following is now deprecated:
+    // ```
+    // const authentication = app.get('authentication');
+    // ...
+    // if (req.cookies && req.cookies[authentication.cookie.name]) {
+    //   accessToken = req.cookies[authentication.cookie.name] || req.headers.authorization;
+    // }
+    // ```
     if (!accessToken) {
       // check filepath
       const [contentItemId, issueUid] = filepath
