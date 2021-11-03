@@ -1,6 +1,6 @@
 const logger = require('winston');
 const debug = require('debug')('verbose:impresso/proxy');
-const proxy = require('http-proxy-middleware');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const modifyResponse = require('node-http-proxy-json');
 const nodePath = require('path');
 const { QueryTypes } = require('sequelize');
@@ -134,7 +134,7 @@ module.exports = function (app) {
         next();
       }
     });
-  }, proxy({
+  }, createProxyMiddleware({
     target: config.iiif.epfl.endpoint, // https://dhlabsrv17.epfl.ch/iiif_impresso/"GDL-1900-01-10-a-p0002/full/full/0/default.jpg
     pathRewrite: (path) => {
       const extension = nodePath.extname(path);
