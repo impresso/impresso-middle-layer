@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/entities-mentions/schema/create/payload.json",
+  "description": "Payload validation for POST /entities-mentions",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "filters": {
+      "type": "array",
+      "items": {
+        "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/search/filter.json"
+      }
+    },
+    "limit": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit",
+      "description": "Limit of the subitems to return. Default: 10"
+    },
+    "skip": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/skip",
+      "description": "Skip this many subitems. Default: 0"
+    }
+  },
+  "required": ["filters"]
+}

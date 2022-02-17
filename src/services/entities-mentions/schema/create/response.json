@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/entities-mentions/schema/create/response.json",
+  "description": "Response validation for POST /entities-mentions",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/entityOrMention"
+      }
+    },
+    "limit": {
+      "type": "integer"
+    },
+    "skip": {
+      "type": "integer"
+    },
+    "total": {
+      "type": "integer"
+    }
+  },
+  "definitions": {
+    "entityOrMention": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["entity", "mention"]
+        },
+        "id": {
+          "type": "string",
+          "description": "Entity Id"
+        },
+        "label": {
+          "type": "string",
+          "description": "Entity label"
+        },
+        "entityType": {
+          "type": "string",
+          "description": "Entity type"
+        },
+        "wikidataId": {
+          "type": "string"
+        },
+        "thumbnailUrl": {
+          "type": "string"
+        },
+        "entityFunction": {
+          "type": "string"
+        },
+        "countArticles": {
+          "type": "integer"
+        },
+        "countMentions": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["label", "type"]
+    }
+  }
+}

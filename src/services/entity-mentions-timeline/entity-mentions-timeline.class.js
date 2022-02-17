@@ -31,8 +31,8 @@ const Fields = Object.freeze({
 });
 
 const EntityMentionFields = Object.freeze({
-  MentionLabel: 'surface_s',
-  EntityId: 'entity_id_s',
+  MentionLabel: 'm_surface_s',
+  EntityId: 'e_id_s',
 });
 
 const ResolutionToTermField = Object.freeze({
@@ -87,6 +87,8 @@ function getMentionLabelsFromSolrResponse(response) {
   };
 }
 
+const escapeId = id => id.replace(/:/g, '\\:');
+
 function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filters, resolution) {
   const facet = {
     entity: {
@@ -96,7 +98,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
       numBuckets: true,
       limit: ResolutionToLimit[resolution || Resolution.Year],
       domain: {
-        filter: [TypeToEntityField[entityType], `"${entityId}"`].join(':'),
+        filter: [TypeToEntityField[entityType.toLowerCase()], `"${escapeId(entityId)}"`].join(':'),
       },
     },
   };
@@ -110,7 +112,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
       limit: ResolutionToLimit[resolution || Resolution.Year],
       domain: {
         // NOTE: we are assuming that all mention labels are of the same type as the entity.
-        filter: [TypeToMentionField[entityType], `"${label}"`].join(':'),
+        filter: [TypeToMentionField[entityType.toLowerCase()], `"${label}"`].join(':'),
       },
     };
   });
@@ -162,9 +164,9 @@ function buildEntityResponse(entity, facetSearchResult) {
   const thumbnailUrl = get(entity, 'wikidata.images.0.value');
   return {
     type: 'entity',
-    id: entity.uid,
-    label: entity.name,
-    entityType: entity.type,
+    id: entity.id,
+    label: entity.label,
+    entityType: entity.entityType.toLowerCase(),
     wikidataId: entity.wikidataId,
     thumbnailUrl,
     mentionFrequencies: facetSearchResult.facets.entity.buckets,
@@ -175,7 +177,7 @@ function buildEntitySubitemsResponse(entity, result, entityMentionLabels) {
   return entityMentionLabels.map((label, index) => ({
     type: 'mention',
     label,
-    entityType: entity.type,
+    entityType: entity.entityType.toLowerCase(),
     mentionFrequencies: result.facets[`mention_${index}`].buckets,
   }));
 }
@@ -194,8 +196,6 @@ class EntityMentionsTimeline {
     this.app = app;
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
-    /** @type {import('../entities/entities.class').Service} */
-    this.entitiesService = app.service('entities');
     this.app = app;
   }
 
@@ -210,7 +210,7 @@ class EntityMentionsTimeline {
       const linkedMentionsPromise = this.solr.post(
         linkedMentionsQuery, this.solr.namespaces.EntitiesMentions,
       ).then(getMentionLabelsFromSolrResponse);
-      const entityPromise = this.entitiesService.get(entityId, {});
+      const entityPromise = this.app.service('entities-mentions').get(entityId);
 
       const [entity, { labels: entityMentionLabels, total: totalSubitems }] = await Promise.all([
         entityPromise,
@@ -219,7 +219,7 @@ class EntityMentionsTimeline {
 
       const query = buildSolrQueryForEntity(
         body.entityId,
-        entity.type,
+        entity.entityType,
         entityMentionLabels,
         filters,
         timeResolution,

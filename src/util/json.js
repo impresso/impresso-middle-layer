@@ -30,6 +30,8 @@ ajv.addSchema(require('../services/entities-suggestions/schema/create/payload.js
 ajv.addSchema(require('../services/entities-suggestions/schema/create/response.json'));
 ajv.addSchema(require('../services/entity-mentions-timeline/schema/create/payload.json'));
 ajv.addSchema(require('../services/entity-mentions-timeline/schema/create/response.json'));
+ajv.addSchema(require('../services/entities-mentions/schema/create/payload.json'));
+ajv.addSchema(require('../services/entities-mentions/schema/create/response.json'));
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
 

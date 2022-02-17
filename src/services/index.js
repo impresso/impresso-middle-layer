@@ -40,71 +40,50 @@ const logs = require('./logs/logs.service.js');
 
 const images = require('./images/images.service.js');
 
-
 const articlesSuggestions = require('./articles-suggestions/articles-suggestions.service.js');
-
 
 const uploadedImages = require('./uploaded-images/uploaded-images.service.js');
 
-
 const mentions = require('./mentions/mentions.service.js');
-
 
 const filepond = require('./filepond/filepond.service.js');
 
-
 const embeddings = require('./embeddings/embeddings.service.js');
-
 
 const searchFacets = require('./search-facets/search-facets.service.js');
 
-
 const tableOfContents = require('./table-of-contents/table-of-contents.service.js');
-
 
 const searchQueriesComparison = require('./search-queries-comparison/search-queries-comparison.service.js');
 
-
 const me = require('./me/me.service.js');
 
-
 const searchQueries = require('./search-queries/search-queries.service.js');
-
 
 const errorsCollector = require('./errors-collector/errors-collector.service.js');
 const ngramTrends = require('./ngram-trends/ngram-trends.service.js');
 const topicsGraph = require('./topics-graph/topics-graph.service.js');
 
-
 const articlesTextReusePassages = require('./articles-text-reuse-passages/articles-text-reuse-passages.service.js');
-
 
 const textReuseClusters = require('./text-reuse-clusters/text-reuse-clusters.service.js');
 
-
 const textReuseClusterPassages = require('./text-reuse-cluster-passages/text-reuse-cluster-passages.service.js');
-
 
 const filtersItems = require('./filters-items/filters-items.service.js');
 
-
 const stats = require('./stats/stats.service.js');
-
 
 const articlesRecommendations = require('./articles-recommendations/articles-recommendations.service.js');
 
-
 const articlesSearch = require('./articles-search/articles-search.service.js');
-
 
 const entitiesSuggestions = require('./entities-suggestions/entities-suggestions.service.js');
 
-
 const entityMentionsTimeline = require('./entity-mentions-timeline/entity-mentions-timeline.service.js');
 
-
+const entitiesMentions = require('./entities-mentions/entities-mentions.service.js');
 const textReuseConnectedClusters = require('./text-reuse-connected-clusters/text-reuse-connected-clusters.service.js');
-
 
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
@@ -159,5 +138,6 @@ module.exports = function () {
   app.configure(articlesSearch);
   app.configure(entitiesSuggestions);
   app.configure(entityMentionsTimeline);
+  app.configure(entitiesMentions);
   app.configure(textReuseConnectedClusters);
 };
