@@ -1,8 +1,11 @@
 const logger = require('winston');
 const debug = require('debug')('verbose:impresso/proxy');
-const proxy = require('http-proxy-middleware');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const modifyResponse = require('node-http-proxy-json');
 const nodePath = require('path');
+const { QueryTypes } = require('sequelize');
+const { ACCESS_RIGHT_OPEN_PUBLIC } = require('../models/articles.model');
+
 
 /**
  * Internal redirect using X accel Redirect (NGINX) to speed up (and cache) image delivery.
@@ -23,33 +26,73 @@ const internalRedirect = ({
   res.end();
 };
 
+
+/**
+ * Return boolean response if specific issueUid is OpenPublic. This function
+ * always returns false if an exception is raised during its execution.
+ * @param  {String} filepath
+ * @param  {Object} sequelizeClient
+ * @return
+ */
+const isIssueOpenPublic = async (issueUid, sequelizeClient) => {
+  debug('isIssueOpenPublic issueUid:', issueUid, '...');
+  try {
+    const result = await sequelizeClient.query('SELECT access_rights FROM issues WHERE id = ? LIMIT 1', {
+      replacements: [issueUid],
+      type: QueryTypes.SELECT,
+    });
+    debug('isIssueOpenPublic issueUid:', issueUid, '- access_rights:', result[0].access_rights);
+    // if there's an error, we put false.
+    return result[0].access_rights === ACCESS_RIGHT_OPEN_PUBLIC;
+  } catch (e) {
+    debug('isIssueOpenPublic exception thrown, discarded.', e);
+    return false;
+  }
+};
+
+
 module.exports = function (app) {
   const config = app.get('proxy');
   const proxyhost = app.get('proxy').host;
-
-  const authentication = app.get('authentication');
-  debug('proxy: configuring proxy ', proxyhost);
+  const sequelizeClient = app.get('sequelizeClient');
+  debug('configuring proxy host:', proxyhost);
   logger.info('configuring proxy ...');
 
   const proxyPublicAuthorization = config.iiif.epfl.auth;
 
-  app.use('/proxy/iiif', (req, res, next) => {
+  app.use('/proxy/iiif', async (req, res, next) => {
     // get extension
     const isImage = ['png'].indexOf(req.originalUrl.split('.').pop()) !== -1;
     const filepath = req.originalUrl.replace('/proxy/iiif', '/');
-    //  authentication.cookie.name, req.cookies, req.isAuthenticated());
-    // access token from cookies
-    let accessToken = req.headers.authorization;
-
-    if (req.cookies && req.cookies[authentication.cookie.name]) {
-      accessToken = req.cookies[authentication.cookie.name] || req.headers.authorization;
-    }
-
+    const accessToken = req.headers.authorization;
+    // do not accept cookies anymore. The following is now deprecated:
+    // ```
+    // const authentication = app.get('authentication');
+    // ...
+    // if (req.cookies && req.cookies[authentication.cookie.name]) {
+    //   accessToken = req.cookies[authentication.cookie.name] || req.headers.authorization;
+    // }
+    // ```
     if (!accessToken) {
-      debug('proxy: no auth found, return public contents only.');
-      // do nothing, we're going for the "public" endpoint
-      if (config.iiif.internalOnly && isImage) {
-        // xaccel
+      // check filepath
+      const [contentItemId, issueUid] = filepath
+        .match(/([A-Za-z]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/);
+
+      const isOpenPublic = await isIssueOpenPublic(issueUid, sequelizeClient);
+      if (isOpenPublic) {
+        debug('no auth found, but contentItemId:', contentItemId, 'is OpenPublic.');
+        req.proxyAuthorization = config.iiif.epflsafe.auth;
+        if (config.iiif.internalOnly && isImage) {
+          internalRedirect({
+            res,
+            filepath,
+            protectedPath: config.iiif.protected.endpoint,
+          });
+        }
+        next();
+      } else if (config.iiif.internalOnly && isImage) {
+        debug('proxy: no auth found, try public endpoint directly.');
+        // do nothing, try "public" endpoint with xaccel
         internalRedirect({
           res,
           filepath,
@@ -91,7 +134,7 @@ module.exports = function (app) {
         next();
       }
     });
-  }, proxy({
+  }, createProxyMiddleware({
     target: config.iiif.epfl.endpoint, // https://dhlabsrv17.epfl.ch/iiif_impresso/"GDL-1900-01-10-a-p0002/full/full/0/default.jpg
     pathRewrite: (path) => {
       const extension = nodePath.extname(path);
