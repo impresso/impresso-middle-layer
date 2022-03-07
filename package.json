@@ -54,7 +54,7 @@
     "ajv": "^6.12.2",
     "async": "^2.6.1",
     "async-redis": "^2.0.0",
-    "aws-sdk": "^2.395.0",
+    "aws-sdk": "^2.814.0",
     "body-parser": "^1.18.3",
     "cache-manager": "^2.11.1",
     "cache-manager-redis-store": "^2.0.0",
