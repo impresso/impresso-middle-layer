@@ -36,7 +36,7 @@ class SequelizeService {
   }
 
   async bulkCreate(items) {
-    return this.sequelizeKlass.bulkCreate(items).catch(this.onError);
+    return this.sequelizeKlass.bulkCreate(items, { ignoreDuplicates: true }).catch(this.onError);
   }
 
   async create(item) {

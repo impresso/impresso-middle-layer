@@ -533,18 +533,31 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
  */
-const wrapAll = res => ({
-  data: res.response.docs,
-  total: res.response.numFound,
-  limit: parseInt(res.responseHeader.params.rows, 10),
-  skip: parseInt(res.responseHeader.params.start, 10),
-  info: {
-    responseTime: {
-      solr: res.responseHeader.QTime,
+const wrapAll = (res) => {
+  let limit = parseInt(res.responseHeader.params.rows, 10);
+  let skip = parseInt(res.responseHeader.params.start, 10);
+  if (typeof res.responseHeader.params.json === 'string') {
+    try {
+      const { params } = JSON.parse(res.responseHeader.params.json);
+      limit = typeof params.rows === 'number' ? params.rows : limit;
+      skip = typeof params.start === 'number' ? params.start : skip;
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+  return {
+    data: res.response.docs,
+    total: res.response.numFound,
+    limit,
+    skip,
+    info: {
+      responseTime: {
+        solr: res.responseHeader.QTime,
+      },
+      facets: res.facets,
     },
-    facets: res.facets,
-  },
-});
+  };
+};
 
 /**
  * [resolveAsync description]
