@@ -17,3 +17,10 @@ run:
 
 run-redis:
 	docker run --rm -it --name redis -p 6379:6379 redis
+
+run-dev:
+	GIT_TAG=$(shell git describe --tags --abbrev=0 HEAD) \
+	GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
+	GIT_REVISION=$(shell git rev-parse --short HEAD) \
+	NODE_ENV=development DEBUG=impresso* \
+	npm run dev
