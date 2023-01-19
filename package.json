@@ -89,6 +89,7 @@
     "http-proxy-middleware": "^2.0.1",
     "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.3.1",
     "json2csv": "^4.3.3",
+    "jsonschema": "^1.4.1",
     "lodash": "^4.17.21",
     "lodash.first": "^3.0.0",
     "lodash.groupby": "^4.6.0",
@@ -126,14 +127,11 @@
     "@types/generic-pool": "^3.1.9",
     "@types/mocha": "^7.0.2",
     "@types/node-fetch": "^2.5.6",
-    "eslint": "7.32.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-config-standard": "^11.0.0",
-    "eslint-config-strongloop": "^2.1.0",
-    "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
+    "eslint": "^8.18.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.3",
+    "eslint-plugin-promise": "^6.0.0",
     "mocha": "^9.1.3"
   }
 }
