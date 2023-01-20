@@ -30,6 +30,11 @@
       "type": "string",
       "description": "enrich text reuse clusters with passages",
       "enum": ["text"]
+    },
+    "newspaper": {
+      "type": "string",
+      "description": "enrich newspaper object with metadata",
+      "enum": ["metadata", "text"]
     }
   },
   "properties": {
@@ -37,7 +42,8 @@
     "matches": { "$ref": "#/definitions/matches" },
     "contents": { "$ref": "#/definitions/contents" },
     "iiif": { "$ref": "#/definitions/iiif" },
-    "trc": { "$ref": "#/definitions/trc" }
+    "trc": { "$ref": "#/definitions/trc" },
+    "newspaper": { "$ref": "#/definitions/newspaper" }
   },
   "required": [],
   "additionalProperties": false

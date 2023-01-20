@@ -2,13 +2,14 @@ const debug = require('debug')('impresso/services/text-reuse-passages')
 const { filtersToQueryAndVariables } = require('../../util/solr')
 const TextReusePassage = require('../../models/text-reuse-passages.model')
 const { NotFound } = require('@feathersjs/errors')
+const Newspaper = require('../../models/newspapers.model')
 
 class TextReusePassages {
-  constructor (app) {
+  constructor(app) {
     this.solr = app.get('cachedSolr')
   }
 
-  async find (params) {
+  async find(params) {
     // retrieve all fields
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query.filters
@@ -19,7 +20,9 @@ class TextReusePassages {
         q: '*:*',
       }
     )
+
     debug('find q:', query, this.solr.namespaces.TextReusePassages)
+
     return this.solr
       .get(
         {
@@ -35,9 +38,14 @@ class TextReusePassages {
           total: response.numFound, // "<total number of records>",
           limit: params.query.limit, // "<max number of items per page>",
           skip: params.query.skip, // "<number of skipped items (offset)>",
-          data: response.docs.map((doc) =>
-            TextReusePassage.CreateFromSolr()(doc)
-          ),
+          data: response.docs.map((doc) => {
+            const result = TextReusePassage.CreateFromSolr()(doc)
+            if (params.query.addons.newspaper) {
+              result.newspaper = Newspaper.getCached(result.newspaper.id)
+              result.newspaper.id = result.newspaper.uid
+            }
+            return result
+          }),
           // org: response.docs,
           info: {
             responseTime: {
@@ -49,7 +57,7 @@ class TextReusePassages {
       })
   }
 
-  async get (ids = [], { query = {} }) {
+  async get(ids = [], { query = {} }) {
     // for each id in ids, return the corresponding textReusePassages instance.
     const textReusePassages = await this.solr
       .get(
