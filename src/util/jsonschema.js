@@ -9,7 +9,7 @@ ajv.addSchema(require('../schema/filters.json'))
 ajv.addSchema(require('../schema/find.json'))
 ajv.addSchema(require('../schema/addons.json'))
 
-function validated(obj, schemaUri) {
+function validated (obj, schemaUri) {
   const uri = schemaUri.startsWith('http')
     ? schemaUri
     : `${BaseSchemaURI}/${schemaUri}`
@@ -37,13 +37,13 @@ function validated(obj, schemaUri) {
  * @param {Array} errors
  * @returns {Object}
  */
-function formatValidationErrors(errors = []) {
+function formatValidationErrors (errors = []) {
   return errors.reduce((acc, error) => {
     if (!Array.isArray(acc[error.keyword])) {
       acc[error.keyword] = []
     }
     acc[error.keyword].push(error)
-    acc[error.keyword]
+    // acc[error.keyword]
     return acc
   }, {})
 }

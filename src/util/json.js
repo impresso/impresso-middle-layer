@@ -33,7 +33,7 @@ ajv.addSchema(require('../services/entity-mentions-timeline/schema/create/respon
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
 
-function validated(obj, schemaUri) {
+function validated (obj, schemaUri) {
   const uri = schemaUri.startsWith('http') ? schemaUri : `${BaseSchemaURI}/${schemaUri}`;
   const validate = ajv.getSchema(uri);
 
@@ -50,7 +50,7 @@ function validated(obj, schemaUri) {
   return obj;
 }
 
-function formatValidationErrors(errors) {
+function formatValidationErrors (errors) {
   return (errors || []).map((error) => {
     const dataPath = error.dataPath.startsWith('.') ? error.dataPath.slice(1) : error.dataPath;
 

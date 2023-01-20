@@ -11,28 +11,27 @@ const Commands = Object.freeze({
   GetGitRevision: 'git rev-parse --short HEAD',
 });
 
-async function getGitDetail(envVar, command) {
+async function getGitDetail (envVar, command) {
   if (process.env[envVar] != null) return process.env[envVar];
   return exec(command)
     .then(({ stdout }) => stdout.replace(/\n/g, ''))
     .catch(() => 'N/A');
 }
 
-async function getGitBranch() {
+async function getGitBranch () {
   return getGitDetail('IMPRESSO_GIT_BRANCH', Commands.GetGitBranch);
 }
 
-async function getGitRevision() {
+async function getGitRevision () {
   return getGitDetail('IMPRESSO_GIT_REVISION', Commands.GetGitRevision);
 }
 
-async function getVersion() {
+async function getVersion () {
   return readFile(PackageJsonPath)
     .then(content => JSON.parse(content.toString()))
     .then(({ version }) => version)
     .catch(() => 'N/A');
 }
-
 
 const getSingleDocumentQuery = isFirstDocument => ({
   q: '*:*',
@@ -45,7 +44,7 @@ const searchResponseToDate = response => response.response.docs[0].meta_date_dt;
 /**
  * @param {import('../../cachedSolr').CachedSolrClient} solr
  */
-async function getFirstAndLastDocumentDates(solr) {
+async function getFirstAndLastDocumentDates (solr) {
   const results = await Promise.all([
     getSingleDocumentQuery(true),
     getSingleDocumentQuery(false),
@@ -53,7 +52,7 @@ async function getFirstAndLastDocumentDates(solr) {
   return results.map(searchResponseToDate);
 }
 
-async function getNewspaperIndex() {
+async function getNewspaperIndex () {
   return Object.values(newspapersIndex.values)
     .reduce((index, newspaper) => {
       index[newspaper.uid] = {

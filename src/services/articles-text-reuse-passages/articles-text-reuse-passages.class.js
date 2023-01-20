@@ -11,7 +11,7 @@ const {
   PassageFields,
 } = require('../../logic/textReuse/solr');
 
-function buildResponse(passages, clusters) {
+function buildResponse (passages, clusters) {
   const clustersById = mapValues(groupBy(clusters, 'id'), first);
   return {
     passages: passages.map(({
@@ -39,13 +39,13 @@ const MinimalPassageFields = [
 ];
 
 class ArticlesTextReusePassages {
-  constructor(options, app) {
+  constructor (options, app) {
     this.options = options || {};
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
   }
 
-  async find(params) {
+  async find (params) {
     const { articleId } = params.route;
 
     // 1. Get passages and clusters

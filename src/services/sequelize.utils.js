@@ -66,7 +66,6 @@ const resolveAsync = async (client, groups) => {
   const promises = groups.map((g, k) => {
     const klass = models[g.service].sequelize(client);
 
-
     const idxs = {};
 
     if (!g.items.length) {

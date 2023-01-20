@@ -5,9 +5,8 @@ const lodash = require('lodash');
 const debug = require('debug')('impresso/services:SolrService');
 const { areCacheableSolrFields } = require('../util/cache');
 
-
 class SolrService {
-  constructor({
+  constructor ({
     name = '',
     namespace = '',
     app = null,
@@ -22,7 +21,7 @@ class SolrService {
     debug(`Configuring service: ${this.name} success`);
   }
 
-  async get(id, params) {
+  async get (id, params) {
     const canBeCached = areCacheableSolrFields(params.fl || []);
 
     debug(`get ${id} (${canBeCached ? 'cached' : 'not cached'})`, params);
@@ -37,7 +36,7 @@ class SolrService {
     return lodash.first(results.response.docs);
   }
 
-  async find(params) {
+  async find (params) {
     const canBeCached = areCacheableSolrFields(params.fl || []);
 
     debug(`find (${canBeCached ? 'cached' : 'not cached'})`, params);
@@ -77,7 +76,6 @@ class SolrService {
     };
   }
 }
-
 
 module.exports = function (options) {
   return new SolrService(options);

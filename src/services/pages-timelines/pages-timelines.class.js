@@ -5,7 +5,7 @@ const { sequelizeErrorHandler, whereReducer } = require('../sequelize.utils');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor({
+  constructor ({
     name = '',
     app,
   }) {
@@ -14,7 +14,7 @@ class Service {
     this.sequelize = this.app.get('sequelizeClient');
   }
 
-  async stats(where) {
+  async stats (where) {
     const queries = [
       `SELECT issues.year AS t, COUNT(pages.id) AS w
        FROM pages INNER JOIN issues
@@ -64,7 +64,7 @@ class Service {
     })), 'pages-timelines.get.db.pages');
   }
 
-  async get(id, params) {
+  async get (id, params) {
     // simplified where for sequelize raw queries.
     const where = [];
 

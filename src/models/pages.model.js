@@ -5,7 +5,7 @@ const ArticleTag = require('./articles-tags.model');
 const { getJSON, getThumbnail, getExternalThumbnail } = require('../hooks/iiif.js');
 
 class Page {
-  constructor({
+  constructor ({
     uid = '',
     iiif = '',
     labels = ['page'],
@@ -87,7 +87,7 @@ class Page {
     }
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const issue = Issue.sequelize(client);
 
     const page = client.define('page', {
@@ -155,6 +155,5 @@ class Page {
     return page;
   }
 }
-
 
 module.exports = Page;

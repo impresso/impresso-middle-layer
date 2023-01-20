@@ -7,9 +7,8 @@ const STATUS_SHARED = 'SHA';
 const STATUS_PUBLIC = 'PUB';
 const STATUS_DELETED = 'DEL';
 
-
 class Collection {
-  constructor({
+  constructor ({
     uid = '',
     name = '',
     description = '',
@@ -51,7 +50,7 @@ class Collection {
     }
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const creator = User.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.

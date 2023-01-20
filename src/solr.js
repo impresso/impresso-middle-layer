@@ -74,7 +74,7 @@ const checkFetchResponseStatus = async (res) => {
  * @param {{[key: string]: any}} queryParmeters
  * @returns {URLSearchParams}
  */
-function toUrlSearchParameters(queryParmeters = {}) {
+function toUrlSearchParameters (queryParmeters = {}) {
   const preparedQueryParameters = Object.keys(queryParmeters)
     .reduce((acc, key) => {
       if (queryParmeters[key] == null) return acc;
@@ -95,7 +95,7 @@ function toUrlSearchParameters(queryParmeters = {}) {
  *
  * @returns {string}
  */
-function buildUrl(baseUrl, queryParams = {}) {
+function buildUrl (baseUrl, queryParams = {}) {
   const qp = toUrlSearchParameters(queryParams);
   return `${baseUrl}?${qp.toString()}`;
 }
@@ -110,7 +110,7 @@ function buildUrl(baseUrl, queryParams = {}) {
  * @param {string} url
  * @param {object} requestParams
  */
-function maybeConvertGetToPostParams(url, requestParams) {
+function maybeConvertGetToPostParams (url, requestParams) {
   if (requestParams.method !== 'GET') return [url, requestParams];
 
   // get rid of possible query string in the URL.
@@ -132,7 +132,7 @@ function maybeConvertGetToPostParams(url, requestParams) {
  * @param {object} params
  * @param {ConnectionPool} connectionPool
  */
-async function executeRequest(url, params, connectionPool) {
+async function executeRequest (url, params, connectionPool) {
   const connection = await connectionPool.acquire();
   if (connectionPool.available === 0) {
     console.warn(`No more available Solr connections out of max ${connectionPool.max}. Next client will be waiting.`);
@@ -302,7 +302,6 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
     ...params,
   };
 
-
   debug(`[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint. With PARAMS:`, qp);
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
@@ -435,7 +434,6 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
   if (_params.order_by) {
     qs.sort = _params.order_by;
   }
-
 
   // transform facets if any
   //

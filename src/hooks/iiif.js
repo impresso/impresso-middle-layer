@@ -79,7 +79,6 @@ const assignIIIF = (...props) => async (context) => {
   }
 };
 
-
 const proxyIIIFOnKey = (listName = 'items', fromKey = 'cover', toKey = 'iiif') => async (context) => {
   if (context.type !== 'after') {
     throw new Error('The \'proxyIIIFOnKey\' hook should only be used as a \'after\' hook.');
@@ -92,7 +91,6 @@ const proxyIIIFOnKey = (listName = 'items', fromKey = 'cover', toKey = 'iiif') =
       .map(_IIIFmapper(context, fromKey, toKey));
   }
 };
-
 
 module.exports = {
   // proxyIIIF,

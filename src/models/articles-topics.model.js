@@ -1,5 +1,5 @@
 class ArticleTopic {
-  constructor({
+  constructor ({
     topic = null,
     topicUid = '',
     article = null,
@@ -31,7 +31,7 @@ class ArticleTopic {
    * @param  {[type]} dpfs [description]
    * @return {Array}  array of Topic instances
    */
-  static solrDPFsFactory(dpfs) {
+  static solrDPFsFactory (dpfs) {
     if (!dpfs || !dpfs.length) {
       return [];
     }
@@ -44,7 +44,6 @@ class ArticleTopic {
     });
   }
 }
-
 
 module.exports = ArticleTopic;
 module.exports.Model = ArticleTopic;

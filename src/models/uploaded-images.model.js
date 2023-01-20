@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const User = require('./users.model');
 
 class UploadedImage {
-  constructor({
+  constructor ({
     uid = '',
     name = '',
     checksum = '',
@@ -18,7 +18,7 @@ class UploadedImage {
     this.creationDate = new Date(creationDate);
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const creator = User.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
@@ -98,6 +98,5 @@ class UploadedImage {
     return uploadedImage;
   }
 }
-
 
 module.exports = UploadedImage;

@@ -24,7 +24,6 @@ const filtersValidator = {
   },
 };
 
-
 module.exports = {
   before: {
     all: [],

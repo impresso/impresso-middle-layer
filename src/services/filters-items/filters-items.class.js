@@ -25,11 +25,11 @@ const ItemsExtractors = Object.freeze({
 });
 
 class FiltersItems {
-  constructor(app) {
+  constructor (app) {
     this.app = app;
   }
 
-  async find({ filters }) {
+  async find ({ filters }) {
     const filtersWithItems = await Promise.all(filters.map(async (filter) => {
       const extractor = ItemsExtractors[filter.type] || simpleValueExtractor;
       const items = await extractor(filter, this.app);

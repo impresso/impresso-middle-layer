@@ -9,7 +9,7 @@ const { sameTypeFiltersToQuery } = require('../../util/solr');
  * @typedef {import('../../models').Filter} Filter
  */
 
-function filtersToSolrQuery(filters) {
+function filtersToSolrQuery (filters) {
   const filtersGroupsByType = values(groupBy(filters, 'type'));
   return uniq(filtersGroupsByType
     .map(f => sameTypeFiltersToQuery(f, SolrNamespaces.Search)))
@@ -55,7 +55,7 @@ const TypeToMentionField = Object.freeze({
   location: Fields.LocationMentions,
 });
 
-function buildLinkedMentionsSolrQuery(entityId, skip = 0, limit = 4) {
+function buildLinkedMentionsSolrQuery (entityId, skip = 0, limit = 4) {
   const facet = {
     mentionLabel: {
       type: 'terms',
@@ -79,7 +79,7 @@ function buildLinkedMentionsSolrQuery(entityId, skip = 0, limit = 4) {
  * @param {any} response
  * @returns {{ labels: any[], total: number }}
  */
-function getMentionLabelsFromSolrResponse(response) {
+function getMentionLabelsFromSolrResponse (response) {
   if (response.facets.mentionLabel == null) return { labels: [], total: 0 };
   return {
     labels: response.facets.mentionLabel.buckets.map(bucket => bucket.val),
@@ -87,7 +87,7 @@ function getMentionLabelsFromSolrResponse(response) {
   };
 }
 
-function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filters, resolution) {
+function buildSolrQueryForEntity (entityId, entityType, entityMentionLabels, filters, resolution) {
   const facet = {
     entity: {
       type: 'terms',
@@ -125,8 +125,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
   };
 }
 
-
-function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution) {
+function buildSolrQueryForMention (mentionLabel, mentionType, filters, resolution) {
   const mentionFilter = TypeToMentionField[mentionType] == null
     ? [
       [Fields.PersonMentions, `"${mentionLabel}"`].join(':'),
@@ -157,8 +156,7 @@ function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution
   };
 }
 
-
-function buildEntityResponse(entity, facetSearchResult) {
+function buildEntityResponse (entity, facetSearchResult) {
   const thumbnailUrl = get(entity, 'wikidata.images.0.value');
   return {
     type: 'entity',
@@ -171,7 +169,7 @@ function buildEntityResponse(entity, facetSearchResult) {
   };
 }
 
-function buildEntitySubitemsResponse(entity, result, entityMentionLabels) {
+function buildEntitySubitemsResponse (entity, result, entityMentionLabels) {
   return entityMentionLabels.map((label, index) => ({
     type: 'mention',
     label,
@@ -180,7 +178,7 @@ function buildEntitySubitemsResponse(entity, result, entityMentionLabels) {
   }));
 }
 
-function buildMentionResponse(mentionLabel, mentionType, facetSearchResult) {
+function buildMentionResponse (mentionLabel, mentionType, facetSearchResult) {
   return {
     type: 'mention',
     label: mentionLabel,
@@ -190,7 +188,7 @@ function buildMentionResponse(mentionLabel, mentionType, facetSearchResult) {
 }
 
 class EntityMentionsTimeline {
-  constructor(app) {
+  constructor (app) {
     this.app = app;
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
@@ -199,7 +197,7 @@ class EntityMentionsTimeline {
     this.app = app;
   }
 
-  async create(body) {
+  async create (body) {
     const {
       entityId, mentionLabel, mentionType, timeResolution, filters = [], limit = 4, skip = 0,
     } = body;

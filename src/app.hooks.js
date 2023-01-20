@@ -19,7 +19,6 @@ const basicParams = () => (context) => {
   });
 };
 
-
 /**
  * Ensure JWT has been sent, except for the authentication andpoint.
  * @return {[type]} [description]
@@ -65,7 +64,6 @@ const errorHandler = (ctx) => {
   }
   return null;
 };
-
 
 const hooks = {
   before: {

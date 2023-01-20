@@ -12,7 +12,7 @@ const FACET_TYPES_WITH_CACHED_ITEMS = {
 };
 
 class SearchFacetBucket {
-  constructor({
+  constructor ({
     type = 'facet',
     val = '',
     count = -1,
@@ -42,7 +42,7 @@ class SearchFacetBucket {
 }
 
 class SearchFacet {
-  constructor({
+  constructor ({
     type = 'facet',
     buckets = [],
     numBuckets = -1,
@@ -56,7 +56,7 @@ class SearchFacet {
     this.max = max;
   }
 
-  getItems() {
+  getItems () {
     return this.buckets.map(({ item, count }) => ({
       ...item,
       count,

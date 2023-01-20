@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 class ErrorsCollector {
-  async create(data = {}) {
+  async create (data = {}) {
     const {
       type = '',
       name = '',

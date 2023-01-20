@@ -1,7 +1,6 @@
 const assert = require('assert');
 const { neo4jToLucene } = require('../src/services/neo4j.utils');
 
-
 /**
  * Usage, eslint + mocha
  * ./node_modules/.bin/eslint

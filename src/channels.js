@@ -50,7 +50,6 @@ module.exports = function (app) {
     }
   });
 
-
   app.on('logout', (payload, socket) => { // }, { socket: { _feathers: connection } }) => {
     if (payload.user) {
       debug('@logout received for user:', payload.user.username);

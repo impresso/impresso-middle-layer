@@ -6,7 +6,7 @@ const {
   getNumbersFromTotalTokensResponse,
 } = require('./logic/solrQuery');
 
-function mergeResponses(responses, totalsResponse) {
+function mergeResponses (responses, totalsResponse) {
   const timeIntervals = [...new Set(responses.map(({ timeInterval }) => timeInterval))];
   if (timeIntervals.length > 1) throw new Error(`Conflicting time intervals found: ${timeIntervals.join(', ')}`);
   const timeInterval = timeIntervals[0];
@@ -45,11 +45,11 @@ function mergeResponses(responses, totalsResponse) {
 }
 
 class NgramTrends {
-  setup(app) {
+  setup (app) {
     this.solr = app.get('cachedSolr');
   }
 
-  async create({ ngrams, filters, facets = [] }) {
+  async create ({ ngrams, filters, facets = [] }) {
     const timeInterval = guessTimeIntervalFromFilters(filters);
 
     const requestPayloads = ngrams.map(ngram => unigramTrendsRequestToSolrQuery(

@@ -18,7 +18,6 @@ describe('\'articles-timelines\' service', function () {
     assert.ok(service, 'Registered the service');
   });
 
-
   it('should filter timeline based on topic uid', async () => {
     const results = await service.get('stats', {
       query: {

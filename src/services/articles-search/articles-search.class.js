@@ -18,7 +18,7 @@ const {
  */
 
 class ArticlesSearch {
-  constructor(options, app) {
+  constructor (options, app) {
     this.options = options || {};
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
@@ -34,7 +34,7 @@ class ArticlesSearch {
    *  pagination: Pagination
    * }} payload
    */
-  async create({ relevanceContext = [], filters = [], pagination = {} }, params) {
+  async create ({ relevanceContext = [], filters = [], pagination = {} }, params) {
     const items = relevanceContext == null ? [] : relevanceContext;
 
     const { query } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);

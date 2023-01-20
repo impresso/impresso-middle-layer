@@ -19,7 +19,6 @@ describe('\'pages\' service', function () {
     email: 'guest-test-2@impresso-project.ch',
   };
 
-
   it('registered the service', () => {
     assert.ok(service, 'Registered the service');
   });

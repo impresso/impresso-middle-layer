@@ -27,7 +27,7 @@ const deserializeFilters = (serializedFilters) => {
   }
 };
 
-function parseAndValidateQueryParameters(context) {
+function parseAndValidateQueryParameters (context) {
   const {
     facet = '',
     index = 'search',

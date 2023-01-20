@@ -17,7 +17,7 @@ const OrderByKeyToField = {
 };
 
 class TextReuseClusterPassages {
-  constructor(options = {}, app) {
+  constructor (options = {}, app) {
     this.options = options;
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
@@ -25,7 +25,7 @@ class TextReuseClusterPassages {
     this.sequelize = sequelize.client(app.get('sequelize'));
   }
 
-  async find(params) {
+  async find (params) {
     const {
       clusterId,
       skip = 0,
@@ -48,7 +48,7 @@ class TextReuseClusterPassages {
     return { passages: await this.asPassageItems(passages), info };
   }
 
-  async asPassageItems(passages) {
+  async asPassageItems (passages) {
     const articleIdToPageId = passages
       .map(({ articleId, pageNumbers }) => toArticlePageDetails(articleId, pageNumbers[0]))
       .reduce((acc, { pageId, articleId }) => {
@@ -73,7 +73,7 @@ class TextReuseClusterPassages {
     }));
   }
 
-  async getIIIFUrlMap(pageIds) {
+  async getIIIFUrlMap (pageIds) {
     if (pageIds.length === 0) return [];
     const results = await measureTime(() => this.sequelize.query(
       QueryGetIIIFManifests,

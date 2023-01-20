@@ -2,7 +2,7 @@
 const { default: fetch } = require('node-fetch');
 
 class ArticlesRecommendations {
-  constructor({ recommenderServiceUrl }) {
+  constructor ({ recommenderServiceUrl }) {
     this.recommenderServiceUrl = recommenderServiceUrl;
   }
 
@@ -11,7 +11,7 @@ class ArticlesRecommendations {
    * @param {any} data payload
    * @returns {Promise<any>}
    */
-  async create(data) {
+  async create (data) {
     return fetch(this.recommenderServiceUrl, {
       method: 'POST',
       body: JSON.stringify(data),

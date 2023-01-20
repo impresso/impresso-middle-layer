@@ -1,58 +1,69 @@
-const { DataTypes } = require('sequelize');
-
+const { DataTypes } = require('sequelize')
 
 class Property {
-  constructor({
+  constructor ({
     name = '',
     label = '',
     // eslint-disable-next-line camelcase
     newspapers_metadata = {},
   } = {}) {
-    this.name = name;
-    this.value = newspapers_metadata.value;
-    this.label = label;
+    this.name = name
+    // eslint-disable-next-line camelcase
+    this.value = newspapers_metadata.value
+    this.label = label
     if (!this.value) {
-      console.warn('Property', name, 'doesn\'t have a value', newspapers_metadata.get());
+      // eslint-disable-next-line no-console
+      console.warn(
+        'Property',
+        name,
+        // eslint-disable-next-line quotes
+        "doesn't have a value",
+        // eslint-disable-next-line camelcase
+        newspapers_metadata.get()
+      )
     }
     if (this.value && this.value.match(/https?:\/\//)) {
-      this.isUrl = true;
+      this.isUrl = true
     }
   }
 
-
-  static sequelize(client) {
-    const prop = client.define('prop', {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        unique: true,
+  static sequelize (client) {
+    const prop = client.define(
+      'prop',
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          unique: true,
+        },
+        prefix: {
+          type: DataTypes.CHAR,
+          length: 4,
+          allowNull: false,
+        },
+        name: {
+          type: DataTypes.STRING,
+          unique: true,
+        },
+        label: {
+          type: DataTypes.STRING,
+          lenght: 200,
+        },
       },
-      prefix: {
-        type: DataTypes.CHAR,
-        length: 4,
-        allowNull: false,
-      },
-      name: {
-        type: DataTypes.STRING,
-        unique: true,
-      },
-      label: {
-        type: DataTypes.STRING,
-        lenght: 200,
-      },
-    }, {
-      tableName: 'meta_properties',
-    });
+      {
+        tableName: 'meta_properties',
+      }
+    )
 
     prop.prototype.toJSON = function () {
       return new Property({
         ...this.get(),
-      });
-    };
-    return prop;
+      })
+    }
+    return prop
   }
 }
-module.exports = Property;
+module.exports = Property
 //
 // module.exports = function (app) {
 //   const config = app.get('sequelize');

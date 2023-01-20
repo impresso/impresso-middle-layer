@@ -49,7 +49,7 @@ const passagesSolrResponse = {
         meta_ed_s: 'a',
         meta_date_dt: '1938-05-13T00:00:00Z',
         meta_issue_id_s: 'GDL-1938-05-13-a',
-        content_txt_fr: "Le taux d'escompte. — La\nBanque de Franco a abaissé son taux d'es-\ncompte de 3 à 2 A % La Banque de France\na abaissé, d'autre part, le taux des avances\nsur titres de 4 à 3 Y, % et celui des avances\nà 30 jours de 3 à",
+        content_txt_fr: 'Le taux d\'escompte. — La\nBanque de Franco a abaissé son taux d\'es-\ncompte de 3 à 2 A % La Banque de France\na abaissé, d\'autre part, le taux des avances\nsur titres de 4 à 3 Y, % et celui des avances\nà 30 jours de 3 à',
         content_length_i: 215,
         title_txt_fr: 'mEIIIEillEIIIEIIiailslllEIIIEIIIEIIIEIIIiEIIIEIIIEIII^II^. m ÉCONOMIE ET FINANCE •i ItMItEIIIEIIIEIIIEIIIEIIIEIIIEIIIElllEIIIEIIIEIBBEIIIEHIE m',
         _version_: 1656008109002326017,

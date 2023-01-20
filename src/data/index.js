@@ -4,7 +4,7 @@ const YAML = require('yaml');
 const { readFileSync } = require('fs');
 
 class DataIndex {
-  constructor({
+  constructor ({
     name = '',
   } = {}) {
     this.name = String(name);
@@ -18,7 +18,7 @@ class DataIndex {
     }
   }
 
-  getValue(key) {
+  getValue (key) {
     if (this.values) {
       return this.values[key];
     }

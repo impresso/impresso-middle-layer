@@ -22,7 +22,7 @@ class Service extends Neo4jService {
    * @param  {object} params access to user__uid and other query params
    * @return {object}        object
    */
-  async create(data, params) {
+  async create (data, params) {
     const result = await this._run(this.queries.create, {
       _exec_user_uid: params.user.uid,
       bucket_uid: data.sanitized.bucket_uid,
@@ -34,7 +34,7 @@ class Service extends Neo4jService {
   }
 
   // resolve bucket-items based on ther own label
-  async find(params) {
+  async find (params) {
     // neo4j service find method, perform cypher query
     const results = await super.find(params);
 
@@ -85,7 +85,7 @@ class Service extends Neo4jService {
     });
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     //
     const result = await this._run(this.queries.remove, {
       _exec_user_uid: params.user.uid,

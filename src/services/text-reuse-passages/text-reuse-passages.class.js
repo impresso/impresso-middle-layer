@@ -4,11 +4,11 @@ const TextReusePassage = require('../../models/text-reuse-passages.model')
 const { NotFound } = require('@feathersjs/errors')
 
 class TextReusePassages {
-  constructor(app) {
+  constructor (app) {
     this.solr = app.get('cachedSolr')
   }
 
-  async find(params) {
+  async find (params) {
     // retrieve all fields
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query.filters
@@ -49,7 +49,7 @@ class TextReusePassages {
       })
   }
 
-  async get(ids = [], { query = {} }) {
+  async get (ids = [], { query = {} }) {
     // for each id in ids, return the corresponding textReusePassages instance.
     const textReusePassages = await this.solr
       .get(

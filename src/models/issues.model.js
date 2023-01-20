@@ -13,7 +13,7 @@ const ACCESS_RIGHTS = [
 ];
 
 class Issue {
-  constructor({
+  constructor ({
     // collections = [],
     // countArticles = 0,
     // countPages = 0,
@@ -64,7 +64,7 @@ class Issue {
    *
    * @return {function} {Issue} issue instance.
    */
-  static solrFactory() {
+  static solrFactory () {
     return (doc) => {
       const iss = new Issue({
         uid: doc.meta_issue_id_s,
@@ -75,7 +75,7 @@ class Issue {
     };
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const newspaper = Newspaper.sequelize(client);
     const issue = client.define('issue', {
       uid: {

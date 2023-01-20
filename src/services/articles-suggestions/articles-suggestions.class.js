@@ -11,14 +11,14 @@ const SIM_BY_TOPICS = 'topics';
 const SIM_BY_TOPICS_SQEDIST = 'topics_sqedist';
 
 class Service {
-  constructor(options) {
+  constructor (options) {
     this.app = options.app;
     this.solrClient = options.app.get('solrClient');
     this.name = options.name;
     this.options = options;
   }
 
-  async get(id, params) {
+  async get (id, params) {
     if ([SIM_BY_TOPICS_SQEDIST, SIM_BY_TOPICS].indexOf(params.query.method) !== -1) {
       debug(`get(${id}) method: ${params.query.method} load topics ...`);
       const topics = await measureTime(() => this.solrClient.findAll({

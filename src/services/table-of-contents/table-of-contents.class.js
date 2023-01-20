@@ -14,12 +14,12 @@ const BaseArticleTocFields = [
 ];
 
 class Service {
-  constructor({ app, name }) {
+  constructor ({ app, name }) {
     this.app = app;
     this.name = name;
   }
 
-  async get(id, params) {
+  async get (id, params) {
     const newspaper = new Newspaper({
       uid: id.split('-').shift(),
     });

@@ -10,7 +10,7 @@ const Article = require('../../models/articles.model');
 const Issue = require('../../models/issues.model');
 const { measureTime } = require('../../util/instruments');
 
-async function getIssues(request, app) {
+async function getIssues (request, app) {
   const sequelize = app.get('sequelizeClient');
   const cacheManager = app.get('cacheManager');
   const cacheKey = SequelizeService.getCacheKeyForReadSqlRequest(request, 'issues');
@@ -24,7 +24,7 @@ async function getIssues(request, app) {
 }
 
 class Service {
-  constructor({
+  constructor ({
     name = '',
     app = undefined,
   } = {}) {
@@ -42,7 +42,7 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     const fl = Article.ARTICLE_SOLR_FL_LIST_ITEM;
     const pageUids = (params.query.filters || [])
       .filter(d => d.type === 'page')
@@ -121,7 +121,7 @@ class Service {
     }));
   }
 
-  async get(id, params) {
+  async get (id, params) {
     const uids = id.split(',');
     if (uids.length > 1 || params.findAll) {
       debug(`[get] with ${uids.length} ids -> redirect to 'find', user:`, params.user ? params.user.uid : 'no user found');

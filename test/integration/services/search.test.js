@@ -1,7 +1,6 @@
 const assert = require('assert');
 const app = require('../../../src/app');
 
-
 /**
  * Test for search endpoint. Usage:
  *

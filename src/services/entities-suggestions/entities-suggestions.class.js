@@ -34,7 +34,7 @@ const DefaultLimit = 20;
  * @param {string[]} names
  * @returns {string}
  */
-function buildQueryValue(names) {
+function buildQueryValue (names) {
   return names
     .map((name) => {
       const tokens = name.split(' ').map(token => token.trim().replace(/"/g, ''));
@@ -50,7 +50,7 @@ function buildQueryValue(names) {
  * @param {number} offset
  * @returns {any}
  */
-function buildSolrQuery(names, offset = 0, limit = DefaultLimit) {
+function buildSolrQuery (names, offset = 0, limit = DefaultLimit) {
   const query = buildQueryValue(names);
   return {
     query,
@@ -75,7 +75,7 @@ function buildSolrQuery(names, offset = 0, limit = DefaultLimit) {
  * @param {any} solrDocument
  * @returns {Entity}
  */
-function documentToEntity(solrDocument) {
+function documentToEntity (solrDocument) {
   return {
     uid: solrDocument[EntitySolrFields.Id],
     type: solrDocument[EntitySolrFields.Type].toLowerCase(),
@@ -90,7 +90,7 @@ function documentToEntity(solrDocument) {
  * @param {any} response Solr response
  * @returns {Entity[]}
  */
-function getResultsFromSolrResponse(response) {
+function getResultsFromSolrResponse (response) {
   /** @type {any[]} */
   const docs = response.response.docs || [];
 
@@ -106,12 +106,11 @@ function getResultsFromSolrResponse(response) {
   });
 }
 
-
 /**
  * @param {any} response Solr response
  * @returns {Pagination}
  */
-function getPaginationFromSolrResponse(response, limit) {
+function getPaginationFromSolrResponse (response, limit) {
   return {
     limit,
     total: response.response.numFound,
@@ -120,7 +119,7 @@ function getPaginationFromSolrResponse(response, limit) {
 }
 
 class EntitiesSuggestions {
-  constructor(app) {
+  constructor (app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
     this.sequelizeService = SequelizeService({
@@ -134,7 +133,7 @@ class EntitiesSuggestions {
    * @param {Entity[]} entities
    * @returns {Promise<Entity[]>}
    */
-  async enrichResultsWithWikidataId(entities) {
+  async enrichResultsWithWikidataId (entities) {
     if (entities.length === 0) return entities;
 
     const whereClause = {
@@ -168,7 +167,7 @@ class EntitiesSuggestions {
    * @typedef {{ names: string[], offset?: number, limit?: number }} Payload
    * @param {Payload} payload
    */
-  async create({ names, offset = 0, limit = DefaultLimit }) {
+  async create ({ names, offset = 0, limit = DefaultLimit }) {
     const solrQuery = buildSolrQuery(names, offset, limit);
     const solrResponse = await measureTime(
       () => this.solr.post(solrQuery, this.solr.namespaces.Entities),

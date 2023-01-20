@@ -6,7 +6,7 @@ const TYPES = {
 };
 
 class MentionAncillary {
-  constructor({
+  constructor ({
     firstname = '',
     surname = '',
     title = '',
@@ -22,7 +22,7 @@ class MentionAncillary {
     this.demonym = String(demonym);
   }
 
-  static sequelize(client, {
+  static sequelize (client, {
     tableName = 'mentions_ancillary',
   } = {}) {
     const mentionAncillary = client.define('mentionAncillary', {
@@ -54,7 +54,6 @@ class MentionAncillary {
       tableName,
     });
 
-
     mentionAncillary.prototype.toJSON = function () {
       return new MentionAncillary({
         ...this.get(),
@@ -65,7 +64,7 @@ class MentionAncillary {
 }
 
 class EntityMention {
-  constructor({
+  constructor ({
     offsetStart = 0,
     offsetLength = 0,
     confidence = null,
@@ -92,7 +91,7 @@ class EntityMention {
     }
   }
 
-  static sequelize(client, {
+  static sequelize (client, {
     tableName = 'mentions',
   } = {}) {
     const mentionAncillary = MentionAncillary.sequelize(client);
@@ -266,6 +265,5 @@ class EntityMention {
 //     return entityMention;
 //   }
 // }
-
 
 module.exports = EntityMention;

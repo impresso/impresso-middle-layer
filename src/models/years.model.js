@@ -1,7 +1,7 @@
 const yearsIndex = require('../data')('years');
 
 class Weights {
-  constructor({
+  constructor ({
     // number of content items
     c,
     // number of articles
@@ -32,7 +32,7 @@ class Weights {
 }
 
 class Year {
-  constructor({
+  constructor ({
     y,
     values = null,
     refs = null,
@@ -56,7 +56,7 @@ class Year {
    * Normalize values against a specific weight
    * @return {Weights} new Weights instances with normalized values
    */
-  normalize() {
+  normalize () {
     const normalized = new Weights();
     Object.keys(this.values).forEach((k) => {
       if (typeof this.refs[k] === 'undefined' || this.refs[k] === 0) {
@@ -68,7 +68,7 @@ class Year {
     return normalized;
   }
 
-  static getCached(y) {
+  static getCached (y) {
     return new Year(yearsIndex.getValue(y));
   }
 }

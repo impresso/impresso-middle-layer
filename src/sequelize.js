@@ -18,7 +18,7 @@ const getSequelizeClient = config => new Sequelize({
   // define: {
   //   freezeTableName: true
   // }
-  logging(str) {
+  logging (str) {
     verbose('cursor:', config.host, config.port, config.database);
     verbose(str);
   },

@@ -1,5 +1,5 @@
 class CollectableItemGroup {
-  constructor({
+  constructor ({
     itemId = '',
     contentType = '',
     collections = [],
@@ -23,7 +23,7 @@ class CollectableItemGroup {
     }
   }
 
-  getService() {
+  getService () {
     const services = {
       A: 'articles',
       E: 'entities',

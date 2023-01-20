@@ -10,7 +10,7 @@ const {
 } = require('./neo4j.utils');
 
 class Neo4jService {
-  constructor(options) {
+  constructor (options) {
     this.options = options || {};
     this.config = options.config || options.app.get('neo4j');
     this.name = options.name;
@@ -38,7 +38,7 @@ class Neo4jService {
     this.queries = this.options.queries || decypher(`${__dirname}/${this.options.name}/${this.options.name}.queries.cyp`);
   }
 
-  _run(cypherQuery, params, queryname) {
+  _run (cypherQuery, params, queryname) {
     const session = this.driver.session();
     return neo4jRun(session, cypherQuery, {
       ...params,
@@ -46,10 +46,9 @@ class Neo4jService {
     }, queryname);
   }
 
-  _finalizeOne(res) {
+  _finalizeOne (res) {
     return res.records.map(neo4jRecordMapper);
   }
-
 
   /**
    * _finalizeCreateOne - used as callback of _run for create() service method
@@ -58,7 +57,7 @@ class Neo4jService {
    * @param  {object} res Neo4j response
    * @return {object} custom response containing `data` and `info`.
    */
-  _finalizeCreateOne(res) {
+  _finalizeCreateOne (res) {
     let data;
 
     if (res.records.length) {
@@ -73,14 +72,13 @@ class Neo4jService {
     };
   }
 
-
   /**
    * _finalizeRemove - callback of _run method for remove() service method.
    *
    * @param  {object} res Neo4j response
    * @return {object}     description
    */
-  _finalizeRemove(res) {
+  _finalizeRemove (res) {
     return {
       info: {
         resultAvailableAfter: res.summary.resultAvailableAfter.low,
@@ -90,7 +88,7 @@ class Neo4jService {
   }
 
   // add
-  static wrap(data, limit, skip, total, info) {
+  static wrap (data, limit, skip, total, info) {
     return {
       data,
       limit,
@@ -100,7 +98,7 @@ class Neo4jService {
     };
   }
 
-  _finalizeCreate(res) {
+  _finalizeCreate (res) {
     return {
       data: res.records.map(neo4jRecordMapper),
       info: {
@@ -110,11 +108,10 @@ class Neo4jService {
     };
   }
 
-  _finalize(res) {
+  _finalize (res) {
     // add "total" field to extra. This enables next and prev.
     // console.log(res.records, res.records[0])
     let count;
-
 
     debug('_finalize: resultAvailableAfter', neo4jToInt(res.summary.resultAvailableAfter), 'ms');
     if (Array.isArray(res.records)) {
@@ -153,14 +150,13 @@ class Neo4jService {
     return res.records.map(neo4jRecordMapper);
   }
 
-
-  async find(params) {
+  async find (params) {
     debug(`find: with params.isSafe:${params.isSafe} and params.query:`, params.query);
     return this._run(this.queries.find, params.isSafe ? params.query : params.sanitized)
       .then(this._finalize);
   }
 
-  async get(id, params) {
+  async get (id, params) {
     debug(`get: ${this.name} with id:${id} and params.isSafe:${params.isSafe} and params.query:`, params.query);
     const uids = id.split(',');
 
@@ -209,7 +205,7 @@ class Neo4jService {
     });
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     if (!this.queries.remove) {
       throw new errors.NotImplemented();
     } else if (!params.user.uid) {

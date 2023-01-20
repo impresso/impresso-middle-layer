@@ -12,7 +12,7 @@ const CONTENT_TYPES = {
 };
 
 class CollectableItem {
-  constructor({
+  constructor ({
     id = -1,
     uid = null,
     itemId = '',
@@ -48,11 +48,11 @@ class CollectableItem {
     }
   }
 
-  getContentType() {
+  getContentType () {
     return CONTENT_TYPES[this.contentType];
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const collection = Collection.sequelize(client);
     const searchQuery = SearchQuery.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/

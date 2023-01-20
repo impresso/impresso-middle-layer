@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
 class Service {
-  constructor({
+  constructor ({
     app,
   } = {}) {
     this.app = app;
   }
 
-  async find(params) {
+  async find (params) {
     const newspapers = await this.app.service('newspapers').find({
       query: {
         limit: 1000,

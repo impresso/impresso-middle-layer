@@ -19,7 +19,7 @@ class Service {
    * Add solr
    * @param  {object} options pass the current app in app
    */
-  constructor({
+  constructor ({
     app,
     name,
   } = {}) {
@@ -30,7 +30,7 @@ class Service {
     this.name = name;
   }
 
-  static wrap(data, limit, skip, total, info) {
+  static wrap (data, limit, skip, total, info) {
     return {
       data,
       limit,
@@ -40,7 +40,7 @@ class Service {
     };
   }
 
-  static asRawResponse(solrResponse, params, total) {
+  static asRawResponse (solrResponse, params, total) {
     return Service.wrap(solrResponse.response.docs.map((d) => {
       // console.log(_solr.fragments[d.id]);
       const contentField = Object.keys(solrResponse.fragments[d.id])[0];
@@ -66,7 +66,7 @@ class Service {
    * @param  {[type]}  params [description]
    * @return {Promise}        [description]
    */
-  async create(data, params) {
+  async create (data, params) {
     const client = this.app.get('celeryClient');
     if (!client) {
       return {};
@@ -119,7 +119,7 @@ class Service {
    *
    * @param  {object} params query params. Check hhooks
    */
-  async find(params) {
+  async find (params) {
     debug('[find] query:', params.query, params.sanitized.sv);
     const isRaw = params.originalQuery.group_by === 'raw';
     let fl = 'id,pp_plain:[json],lg_s';

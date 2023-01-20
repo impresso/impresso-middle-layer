@@ -1,5 +1,5 @@
 class ArticleTag {
-  constructor({
+  constructor ({
     articleUid = '',
     tagUid = '',
     creationDate = new Date(),

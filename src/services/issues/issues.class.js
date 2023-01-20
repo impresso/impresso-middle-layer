@@ -8,7 +8,7 @@ const Page = require('../../models/pages.model');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor({
+  constructor ({
     app,
     name = '',
   } = {}) {
@@ -25,7 +25,7 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
     const results = await measureTime(() => this.SolrService.find({
       ...params,
@@ -62,7 +62,7 @@ class Service {
   }
 
   // eslint-disable-next-line no-unused-vars
-  async get(id, params) {
+  async get (id, params) {
     return Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article

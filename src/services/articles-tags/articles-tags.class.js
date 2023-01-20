@@ -5,7 +5,7 @@ const { NotImplemented } = require('@feathersjs/errors');
 const Neo4jService = require('../neo4j.service').Service;
 
 class Service extends Neo4jService {
-  async create(data, params) {
+  async create (data, params) {
     const tagUid = [
       params.user.uid,
       shash(`${data.sanitized.tag}`),
@@ -23,7 +23,7 @@ class Service extends Neo4jService {
     return this._finalizeCreateOne(result);
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     //
     const result = await this._run(this.queries.remove, {
       user_uid: params.user.uid,
@@ -34,7 +34,7 @@ class Service extends Neo4jService {
     return this._finalizeRemove(result);
   }
 
-  async find(params) {
+  async find (params) {
     throw new NotImplemented();
   }
 }

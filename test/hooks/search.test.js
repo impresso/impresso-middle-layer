@@ -225,7 +225,6 @@ describe('test filtersToSolrQuery hook', () => {
     );
   });
 
-
   it('with daterange filters', async () => {
     const context = {
       type: 'before',

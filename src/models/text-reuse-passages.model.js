@@ -31,7 +31,7 @@ const SolrFields = {
 const SolrFieldsToPropsMapper = invert(SolrFields)
 
 class TextReusePassage {
-  constructor({
+  constructor ({
     id = 'id',
     contentItemId = 'ci_id_s',
     clusterId = 'cluster_id_s',
@@ -57,7 +57,7 @@ class TextReusePassage {
   }) {
     this.id = id
     this.article = { id: contentItemId }
-    this.textReuseCluster = { id: clusterId, clusterSize: clusterSize }
+    this.textReuseCluster = { id: clusterId, clusterSize }
     this.offsetStart = parseInt(offsetStart, 10)
     this.offsetEnd = parseInt(offsetEnd, 10)
     this.content = contentTextEn || contentTextDe || contentTextFr || ''
@@ -96,7 +96,7 @@ class TextReusePassage {
     this.pageNumbers = pageNumbers
   }
 
-  static CreateFromSolr(fieldsToPropsMapper = SolrFieldsToPropsMapper) {
+  static CreateFromSolr (fieldsToPropsMapper = SolrFieldsToPropsMapper) {
     const mapFn = solrDocsMapCallbackFn(fieldsToPropsMapper, TextReusePassage)
     return (doc) => mapFn(doc)
   }

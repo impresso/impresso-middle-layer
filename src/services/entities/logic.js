@@ -3,7 +3,6 @@ const { uniq, values, groupBy } = require('lodash');
 const { SolrNamespaces } = require('../../solr');
 const { sameTypeFiltersToQuery } = require('../../util/solr');
 
-
 const SolrFields = Object.freeze({
   Id: 'id',
   Label: 'l_s',
@@ -16,13 +15,12 @@ const SolrFields = Object.freeze({
  * @typedef {import('../../models').Filter} Filter
  */
 
-function filtersToSolrQuery(filters) {
+function filtersToSolrQuery (filters) {
   const filtersGroupsByType = values(groupBy(filters, 'type'));
   return uniq(filtersGroupsByType
     .map(f => sameTypeFiltersToQuery(f, SolrNamespaces.Entities)))
     .join(' AND ');
 }
-
 
 /**
  * @param {{
@@ -34,7 +32,7 @@ function filtersToSolrQuery(filters) {
  *
  * @return {any}
  */
-function buildSearchEntitiesSolrQuery({
+function buildSearchEntitiesSolrQuery ({
   filters, orderBy, limit, skip,
 }) {
   const request = {
