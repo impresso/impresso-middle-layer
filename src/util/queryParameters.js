@@ -1,5 +1,5 @@
 
-function parseOrderBy(orderBy, keyFieldMap = {}) {
+function parseOrderBy (orderBy, keyFieldMap = {}) {
   if (orderBy == null) return [];
   const isDescending = orderBy.startsWith('-');
   const orderKey = orderBy.replace(/^-/, '');

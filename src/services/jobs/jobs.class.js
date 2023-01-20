@@ -6,11 +6,11 @@ const { STATUS_KILLED, STATUS_DONE } = require('../../models/jobs.model');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor(options) {
+  constructor (options) {
     this.options = options;
   }
 
-  setup(app) {
+  setup (app) {
     this.app = app;
     this.name = 'jobs';
     this.sequelizeService = new SequelizeService({
@@ -19,7 +19,7 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     const where = {
       creatorId: params.user.id,
     };
@@ -32,7 +32,7 @@ class Service {
     }), 'jobs.find.db.find');
   }
 
-  async get(id, params) {
+  async get (id, params) {
     const where = {
       id,
     };
@@ -45,7 +45,7 @@ class Service {
       .then(job => job.toJSON()), 'jobs.get.db.get');
   }
 
-  async create(data, params) {
+  async create (data, params) {
     // create a test job
     const client = this.app.get('celeryClient');
 
@@ -72,11 +72,11 @@ class Service {
     });
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     return data;
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     const where = {
       creatorId: params.user.id,
     };
@@ -86,7 +86,7 @@ class Service {
     }, { where });
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     debug(`[remove] id:${id}, params.user.uid:${params.user.uid}`);
     return this.sequelizeService.bulkRemove({
       id,

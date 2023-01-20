@@ -29,7 +29,7 @@ const ContextTypeSolrFields = Object.freeze({
  * @param {TimeRangeContextParameters} parameters
  * @returns {string}
  */
-function timeRangeFormula({ startYear, endYear }) {
+function timeRangeFormula ({ startYear, endYear }) {
   if (startYear != null && endYear == null) {
     return `
       if(
@@ -65,7 +65,7 @@ function timeRangeFormula({ startYear, endYear }) {
  * @param {ItemContextParameters} itemContextParameters
  * @returns {string}
  */
-function itemContextFormula(type, { entities }) {
+function itemContextFormula (type, { entities }) {
   const solrField = ContextTypeSolrFields[type];
   const items = entities.map(entity => `
     mul(
@@ -87,7 +87,7 @@ function itemContextFormula(type, { entities }) {
  * @param {ItemContextParameters} itemContextParameters
  * @returns {string}
  */
-function textReuseItemContextFormula(type, { entities }) {
+function textReuseItemContextFormula (type, { entities }) {
   const solrField = ContextTypeSolrFields[type];
   const items = entities.map(entity => `
     mul(
@@ -108,7 +108,7 @@ function textReuseItemContextFormula(type, { entities }) {
  * @param {RelevanceContextItem} relevanceContextItem
  * @returns {string}
  */
-function relevanceContextItemToSolrFormula({ type, parameters, weight }) {
+function relevanceContextItemToSolrFormula ({ type, parameters, weight }) {
   let parametersFormula = '1.0';
   // eslint-disable-next-line no-restricted-globals
   const w = isFinite(weight) ? weight : '1.0';
@@ -129,7 +129,7 @@ function relevanceContextItemToSolrFormula({ type, parameters, weight }) {
  * @param {RelevanceContextItem[]} relevanceContextItems
  * @returns {string}
  */
-function relevanceContextItemsToSolrFormula(relevanceContextItems) {
+function relevanceContextItemsToSolrFormula (relevanceContextItems) {
   const items = relevanceContextItems.map(relevanceContextItemToSolrFormula);
   if (items.length === 0) return '1.0';
   if (items.length === 1) return items[0];
@@ -151,7 +151,7 @@ const CustomScoringField = 'customScore';
  * @param {{ skip?: number, limit?: number }} options
  * @returns {any}
  */
-function buildSolrQuery(query, scroingVariable, options = {}) {
+function buildSolrQuery (query, scroingVariable, options = {}) {
   return {
     query,
     fields: DefaultArticleFields.concat([`$${CustomScoringField}`]),
@@ -172,7 +172,7 @@ function buildSolrQuery(query, scroingVariable, options = {}) {
  * Add score to article items
  * @param {any} solrResponse
  */
-function withScore(solrResponse) {
+function withScore (solrResponse) {
   const itemIdToScore = solrResponse.response.docs
     .reduce((acc, doc) => ({ ...acc, [doc.id]: doc[`$${CustomScoringField}`] }), {});
 

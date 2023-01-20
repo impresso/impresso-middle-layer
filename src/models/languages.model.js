@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 class Language {
-  constructor({
+  constructor ({
     uid = '',
     code = '',
     uri = '',
@@ -11,7 +11,7 @@ class Language {
     this.uri = String(uri);
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     return client.define('language', {
       id: {
         type: DataTypes.INTEGER,

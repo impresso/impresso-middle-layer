@@ -9,7 +9,7 @@ const sequelize = require('../sequelize');
 const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('./neo4j.utils');
 
 class FusionService {
-  constructor(options) {
+  constructor (options) {
     this.neo4j = neo4j.client(options.app.get('neo4j'));
     this.sequelize = sequelize.client(options.app.get('sequelize'));
     // then solr when is ready.
@@ -20,12 +20,11 @@ class FusionService {
     this.Klass = require(modelKlass);
     this.sequelizeKlass = this.Klass.sequelize(this.sequelize);
 
-
     this.name = options.name;
     debug(`Configuring service: ${options.name}`);
   }
 
-  async get(id) {
+  async get (id) {
     // neo4j
     // get newspaper, purely.
     const itemFromSequelize = await this.sequelizeKlass.scope('get').findById(id);
@@ -55,7 +54,7 @@ class FusionService {
     };
   }
 
-  async find(params) {
+  async find (params) {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
     const session = this.neo4j.session();
     // pure findAll, limit and offset only
@@ -63,7 +62,6 @@ class FusionService {
       offset: params.query.skip,
       limit: params.query.limit,
     });
-
 
     // console.log(itemsFromSequelize.map(d => d.dataValues));
     // enrich with network data
@@ -88,7 +86,7 @@ class FusionService {
     return FusionService.wrap(results, params.query.limit, params.query.skip, 0);
   }
 
-  static wrap(data, limit, skip, total, info) {
+  static wrap (data, limit, skip, total, info) {
     return {
       data,
       limit,

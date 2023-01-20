@@ -5,7 +5,7 @@ const path = require('path');
 const sharp = require('sharp');
 const debug = require('debug')('impresso/services:filepond');
 
-async function executeImageUploadRequest(url, modelId, filename, buffer) {
+async function executeImageUploadRequest (url, modelId, filename, buffer) {
   const formData = new FormData();
 
   formData.append('model_id', modelId);
@@ -22,15 +22,15 @@ async function executeImageUploadRequest(url, modelId, filename, buffer) {
 }
 
 class Service {
-  constructor(options) {
+  constructor (options) {
     this.options = options || {};
   }
 
-  setup(app) {
+  setup (app) {
     this.app = app;
   }
 
-  async create(data, params) {
+  async create (data, params) {
     const file = path.join(this.app.get('multer').dest, params.file.filename);
     debug('[create] filepath:', file);
     const url = this.app.get('images').visualSignature.endpoint;
@@ -62,7 +62,7 @@ class Service {
     return image;
   }
 
-  processImage(file, maxWidth = 1000, maxHeight = 1000) {
+  processImage (file, maxWidth = 1000, maxHeight = 1000) {
     return sharp(file)
       .trim()
       .resize(maxWidth, maxHeight, {

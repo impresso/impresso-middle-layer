@@ -6,7 +6,7 @@ const { NotAuthenticated } = require('@feathersjs/errors');
 const User = require('./models/users.model');
 
 class CustomisedAuthenticationService extends AuthenticationService {
-  async getPayload(authResult, params) {
+  async getPayload (authResult, params) {
     const payload = await super.getPayload(authResult, params);
     const { user } = authResult;
     if (user) {
@@ -20,7 +20,7 @@ class CustomisedAuthenticationService extends AuthenticationService {
 }
 
 class HashedPasswordVerifier extends LocalStrategy {
-  comparePassword(user, password) {
+  comparePassword (user, password) {
     return new Promise((resolve, reject) => {
       if (!(user instanceof User)) {
         debug('_comparePassword: user is not valid', user);

@@ -3,7 +3,7 @@ const moment = require('moment');
 
 const DaterangeFilterValueRegex = /([^\s]+)\s+TO\s+([^\s]+)/;
 
-function getTimedeltaInDaterangeFilterAsDays(daterangeFilter) {
+function getTimedeltaInDaterangeFilterAsDays (daterangeFilter) {
   const value = Array.isArray(daterangeFilter.q) ? daterangeFilter.q[0] : daterangeFilter.q;
   const matches = DaterangeFilterValueRegex.exec(value);
 
@@ -19,7 +19,7 @@ function getTimedeltaInDaterangeFilterAsDays(daterangeFilter) {
  * @param {object[]} filters query filters
  * @return {number} time interval in days.
  */
-function getWidestInclusiveTimeInterval(filters) {
+function getWidestInclusiveTimeInterval (filters) {
   const daterangeFilters = filters.filter(({ type }) => type === 'daterange');
   const timedeltas = daterangeFilters
     .map(getTimedeltaInDaterangeFilterAsDays)

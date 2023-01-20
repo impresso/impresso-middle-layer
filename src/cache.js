@@ -1,7 +1,7 @@
 const cacheManager = require('cache-manager');
 const redisStore = require('cache-manager-redis-store');
 
-function init(configuration, isEnabled, errorHandler) {
+function init (configuration, isEnabled, errorHandler) {
   const cache = cacheManager.caching({
     store: isEnabled ? redisStore : 'none',
     host: configuration.host || 'localhost',
@@ -16,6 +16,5 @@ function init(configuration, isEnabled, errorHandler) {
 
   return cache;
 }
-
 
 module.exports = init;

@@ -10,7 +10,6 @@ const authenticateWrapper = (strategy = 'jwt', { allowUnauthenticated = false } 
   }
 });
 
-
 module.exports = {
   authenticate: authenticateWrapper,
 };

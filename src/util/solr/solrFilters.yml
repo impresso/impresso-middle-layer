@@ -114,6 +114,19 @@ indexes:
         rule: numericRange
   tr_passages:
     filters:
+      id:
+        field: id
+        rule: value
+      textReuseClusterId:
+        field: cluster_id_s
+        rule: value
+      title:
+        field: { prefix: title_txt_ }
+        rule: string
+      string:
+        # field prefix, will be expanded to supported languages
+        field: { prefix: content_txt_ }
+        rule: string
       textReuseClusterSize:
         field: cluster_size_l
         rule: numericRange
@@ -142,4 +155,4 @@ indexes:
         rule: capitalisedValue
       uid:
         field: id
-        rule: value  
+        rule: value

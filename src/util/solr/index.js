@@ -53,7 +53,7 @@ const reduceFiltersToVars = filters => filters.reduce((sq, filter) => {
  *
  * @return {string} a Solr query.
  */
-function sameTypeFiltersToQuery(filters, solrNamespace = SolrNamespaces.Search) {
+function sameTypeFiltersToQuery (filters, solrNamespace = SolrNamespaces.Search) {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`);
 
   const filtersTypes = uniq(filters.map(f => f.type));
@@ -79,7 +79,7 @@ function sameTypeFiltersToQuery(filters, solrNamespace = SolrNamespaces.Search) 
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  * @return {SolrQueryAndVariables}
  */
-function filtersToQueryAndVariables(filters, solrNamespace = SolrNamespaces.Search) {
+function filtersToQueryAndVariables (filters, solrNamespace = SolrNamespaces.Search) {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`);
 
   const filtersGroupedByType = groupBy(filters, 'type');
@@ -110,10 +110,11 @@ function filtersToQueryAndVariables(filters, solrNamespace = SolrNamespaces.Sear
   };
 }
 
-function getRegionCoordinatesFromDocument(document) {
+function getRegionCoordinatesFromDocument (document) {
   if (document.rc_plains) {
     const rcPlainsArray = typeof document.rc_plains === 'string'
-      ? [document.rc_plains] : document.rc_plains;
+      ? [document.rc_plains]
+      : document.rc_plains;
     return rcPlainsArray.map((d) => {
       const page = JSON.parse(d.replace(/'/g, '"'));
       return {
@@ -127,7 +128,6 @@ function getRegionCoordinatesFromDocument(document) {
   }
   return [];
 }
-
 
 module.exports = {
   sameTypeFiltersToQuery,

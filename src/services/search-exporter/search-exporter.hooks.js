@@ -9,7 +9,6 @@ const {
   eachFilterValidator, paramsValidator,
 } = require('../search/search.validators');
 
-
 module.exports = {
   before: {
     all: [

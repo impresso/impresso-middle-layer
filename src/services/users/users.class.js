@@ -11,14 +11,14 @@ const User = require('../../models/users.model');
 const Profile = require('../../models/profiles.model');
 
 class Service {
-  constructor({ app }) {
+  constructor ({ app }) {
     this.sequelizeClient = app.get('sequelizeClient');
     this.sequelizeKlass = User.sequelize(this.sequelizeClient);
     this.id = 'id';
     this.app = app;
   }
 
-  async get(id, params) {
+  async get (id, params) {
     // if you're staff; otherwise get your own.
     const user = await this.sequelizeKlass.scope('isActive', 'get').findOne({
       where: {
@@ -34,7 +34,7 @@ class Service {
     return user.toJSON({ groups });
   }
 
-  async create(data, params = {}) {
+  async create (data, params = {}) {
     // prepare empty user.
     const user = new User();
     user.password = User.buildPassword({
@@ -79,11 +79,11 @@ class Service {
     return user;
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     return data;
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     // e.g we can change here the picture or the password
     if (data.sanitized.password && params.user.is_staff) {
       // change password directly.
@@ -98,7 +98,7 @@ class Service {
     };
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     if (!params.user.is_staff) {
       return { id };
     }
@@ -118,7 +118,6 @@ class Service {
     if (user.profile) {
       await user.profile.destroy();
     }
-
 
     // no way, should be a cascade...
     debug(`remove: user ${user.username}`);
@@ -146,7 +145,7 @@ class Service {
     };
   }
 
-  async find(params) {
+  async find (params) {
     debug('find: ', params);
     let uid;
 

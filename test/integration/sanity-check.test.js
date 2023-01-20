@@ -113,7 +113,7 @@ describe('\'Luxwort\' contents', function () {
   it('get article "actionfem-1927-10-15-a-i0012", check custom iiif and title FR and content DE', async () => {
     const result = await service.get('actionfem-1927-10-15-a-i0012');
     assert.strictEqual(result.title, 'Unsere Einstellung.');
-    assert.strictEqual(result.excerpt, "Es gereicht uns zur besonderen Genugtuung, am heutigen Tage die erste Nummer L'Action Féminine der Oeffentlichteit zu übergeben. Unsere Monatsschrift...");
+    assert.strictEqual(result.excerpt, 'Es gereicht uns zur besonderen Genugtuung, am heutigen Tage die erste Nummer L\'Action Féminine der Oeffentlichteit zu übergeben. Unsere Monatsschrift...');
     // assert.strictEqual(result.pages[0].iiif, 'https://iiif.eluxemburgensia.lu/iiif/2/ark:%2f70795%2fs8qgx6%2fpages%2f1/info.json', 'external iiif');
   });
 });

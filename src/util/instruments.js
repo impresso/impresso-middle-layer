@@ -1,4 +1,4 @@
-async function measureTime(fn, label, doLog = undefined) {
+async function measureTime (fn, label, doLog = undefined) {
   const hrstart = process.hrtime();
   const onEnd = () => {
     const hrend = process.hrtime(hrstart);

@@ -7,11 +7,11 @@ const Profile = require('../../models/profiles.model');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor(options) {
+  constructor (options) {
     this.options = options || {};
   }
 
-  setup(app) {
+  setup (app) {
     this.app = app;
     this.sequelizeService = new SequelizeService({
       app,
@@ -20,7 +20,7 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     const user = await measureTime(() => this.sequelizeService.get(params.user.id, {}), 'me.find.db.user');
     debug('[find] retrieve current user:', user.profile.uid);
     return User.getMe({
@@ -29,7 +29,7 @@ class Service {
     });
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     debug(`[update] (user:${params.user.uid}) - id:`, params.user.id, data);
     const client = this.app.get('sequelizeClient');
     const {
@@ -71,7 +71,7 @@ class Service {
     });
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     debug(`[patch] (user:${params.user.uid}) - id:`, params.user.id);
     const user = await this.sequelizeService.get(params.user.id, {});
     const patches = {};
@@ -105,7 +105,7 @@ class Service {
     };
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     // ask for user removal !
     return { id };
   }

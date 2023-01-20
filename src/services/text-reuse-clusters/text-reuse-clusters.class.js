@@ -24,7 +24,7 @@ const { sameTypeFiltersToQuery } = require('../../util/solr');
 const { SolrNamespaces } = require('../../solr');
 const Newspaper = require('../../models/newspapers.model');
 
-function buildResponseClusters(clusters, clusterIdsAndText) {
+function buildResponseClusters (clusters, clusterIdsAndText) {
   const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0]);
   return clusterIdsAndText.map(({ id, text: textSample }) => ({
     cluster: clustersById[id],
@@ -35,7 +35,7 @@ function buildResponseClusters(clusters, clusterIdsAndText) {
 const deserializeFilters = serializedFilters => protobuf
   .searchQuery.deserialize(serializedFilters).filters;
 
-function filtersToSolrQueries(filters) {
+function filtersToSolrQueries (filters) {
   const filtersGroupsByType = values(groupBy(filters, 'type'));
   return uniq(filtersGroupsByType
     .map(f => sameTypeFiltersToQuery(f, SolrNamespaces.TextReusePassages)));
@@ -51,7 +51,7 @@ const withExtraQueryParts = (query, parts) => {
   return updatedQuery;
 };
 
-async function facetsWithItems(facets) {
+async function facetsWithItems (facets) {
   return Promise.all(facets.map(async (facet) => {
     if (facet.type === 'newspaper') {
       return {
@@ -70,7 +70,7 @@ async function facetsWithItems(facets) {
  * Text Reuse Passages index does not have a "country" field. But we can get country
  * from newspaper bucket items and recreate buckets for a virtual "country" facet.
  */
-function facetsWithCountry(facets) {
+function facetsWithCountry (facets) {
   const newspaperFacet = facets.find(({ type }) => type === 'newspaper');
   if (newspaperFacet == null) return facets;
 
@@ -96,13 +96,13 @@ function facetsWithCountry(facets) {
 }
 
 class TextReuseClusters {
-  constructor(options, app) {
+  constructor (options, app) {
     this.options = options || {};
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
   }
 
-  async find(params) {
+  async find (params) {
     const {
       text,
       skip = 0,
@@ -148,7 +148,7 @@ class TextReuseClusters {
     };
   }
 
-  async get(id, { query = {} }) {
+  async get (id, { query = {} }) {
     // @ts-ignore
     const includeDetails = query.includeDetails === true || query.includeDetails === 'true';
 

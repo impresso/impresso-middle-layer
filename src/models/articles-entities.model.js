@@ -1,5 +1,5 @@
 class ArticleEntity {
-  constructor({
+  constructor ({
     articleUid = '',
     entityUid = '',
     frequence = 0,

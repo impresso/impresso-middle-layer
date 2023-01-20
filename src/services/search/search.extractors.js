@@ -10,7 +10,7 @@ const Entity = require('../../models/entities.model');
 const Year = require('../../models/years.model');
 const { getRegionCoordinatesFromDocument } = require('../../util/solr');
 
-function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex) {
+function getAricleMatchesAndRegions (article, documentsIndex, fragmentsIndex, highlightingIndex) {
   const { uid: id, language } = article;
 
   const fragments = fragmentsIndex[id][`content_txt_${language}`];
@@ -39,7 +39,7 @@ function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, hig
  *
  * @return {array} a list of `Article` items.
  */
-async function getItemsFromSolrResponse(response, articlesService, userInfo = {}) {
+async function getItemsFromSolrResponse (response, articlesService, userInfo = {}) {
   const { user, authenticated } = userInfo;
 
   const documentsIndex = keyBy(response.response.docs, 'id');
@@ -77,7 +77,7 @@ async function getItemsFromSolrResponse(response, articlesService, userInfo = {}
   });
 }
 
-async function addCachedItems(bucket, provider) {
+async function addCachedItems (bucket, provider) {
   if (isUndefined(provider)) return bucket;
   return {
     ...bucket,
@@ -99,7 +99,7 @@ const CacheProvider = {
  * @param {object} response Solr response
  * @return {object} facets object.
  */
-async function getFacetsFromSolrResponse(response) {
+async function getFacetsFromSolrResponse (response) {
   const { facets = {} } = response;
 
   const facetPairs = await Promise.all(Object.keys(facets).map(async (facetLabel) => {
@@ -120,7 +120,7 @@ async function getFacetsFromSolrResponse(response) {
  * @param {object} response Solr response.
  * @return {number}
  */
-function getTotalFromSolrResponse(response) {
+function getTotalFromSolrResponse (response) {
   return response.response.numFound;
 }
 

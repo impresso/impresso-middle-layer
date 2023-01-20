@@ -26,15 +26,15 @@ const toNode = topic => ({
 });
 
 class TopicsGraph {
-  constructor({ name }, app) {
+  constructor ({ name }, app) {
     this.name = name;
   }
 
-  setup(app) {
+  setup (app) {
     this.app = app;
   }
 
-  async get(id, params) {
+  async get (id, params) {
     debug('[get] query:', params.sanitized);
     const topic = Topic.getCached(id);
     if (!topic.uid.length) {
@@ -81,7 +81,7 @@ class TopicsGraph {
     return topic;
   }
 
-  async find(params) {
+  async find (params) {
     debug('[find] params:', params.sanitized);
     // consider only topic uids given as filters
     let restrictToUids = [];
@@ -189,7 +189,6 @@ class TopicsGraph {
       fl: 'id',
       vars: params.sanitized.sv,
     }), 'topics.find.solr.topics');
-
 
     info = {
       filters: params.sanitized.filters,

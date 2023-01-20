@@ -7,7 +7,7 @@ const {
  * with a sensible message.
  * @param {Error} error a `requests` error.
  */
-function preprocessSolrError(error) {
+function preprocessSolrError (error) {
   let message = '';
   let code = error.statusCode;
   try {

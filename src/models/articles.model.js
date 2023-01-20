@@ -136,7 +136,7 @@ const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
 ]);
 
 class ArticleDPF {
-  constructor({
+  constructor ({
     uid = '',
     relevance = '',
   } = {}) {
@@ -144,7 +144,7 @@ class ArticleDPF {
     this.relevance = parseFloat(relevance);
   }
 
-  static solrDPFsFactory(dpfs) {
+  static solrDPFsFactory (dpfs) {
     if (!dpfs || !dpfs.length) {
       return [];
     }
@@ -162,7 +162,7 @@ class ArticleDPF {
 }
 
 class ArticleRegion {
-  constructor({
+  constructor ({
     pageUid = '',
     g = [],
     c = [],
@@ -179,7 +179,7 @@ class ArticleRegion {
 }
 
 class Fragment {
-  constructor({
+  constructor ({
     fragment = '',
   } = {}) {
     this.fragment = String(fragment);
@@ -187,7 +187,7 @@ class Fragment {
 }
 
 class ArticleMatch extends Fragment {
-  constructor({
+  constructor ({
     coords = [],
     fragment = '',
     pageUid = '',
@@ -201,7 +201,7 @@ class ArticleMatch extends Fragment {
 }
 
 class BaseArticle {
-  constructor({
+  constructor ({
     uid = '',
     type = '',
     title = '',
@@ -256,7 +256,7 @@ class BaseArticle {
    * @param {Object} res Solr response object
    * @return {function} {Article} mapper with a single doc.
    */
-  static solrFactory(res) {
+  static solrFactory (res) {
     const fragments = res.fragments || {};
     return doc => new BaseArticle({
       uid: doc.id,
@@ -278,7 +278,7 @@ class BaseArticle {
 }
 
 class Article extends BaseArticle {
-  constructor({
+  constructor ({
     uid = '',
     type = '',
     language = '',
@@ -404,7 +404,7 @@ class Article extends BaseArticle {
     this.enrich(rc, lb, rb);
   }
 
-  enrich(rc, lb, rb) {
+  enrich (rc, lb, rb) {
     // get regions from rc field:
     // rc is a list of page objects, containing a r property
     // which contains an array of coordinates [x,y,w,h]
@@ -459,7 +459,7 @@ class Article extends BaseArticle {
     //
   }
 
-  assignIIIF(props = ['regions', 'matches']) {
+  assignIIIF (props = ['regions', 'matches']) {
     // get iiif of pages
     const pagesIndex = lodash.keyBy(this.pages, 'uid'); // d => d.iiif);
     props.forEach((prop) => {
@@ -476,7 +476,7 @@ class Article extends BaseArticle {
     });
   }
 
-  static assignIIIF(article, props = ['regions', 'matches']) {
+  static assignIIIF (article, props = ['regions', 'matches']) {
     // get iiif of pages
     const pagesIndex = lodash.keyBy(article.pages, 'uid'); // d => d.iiif);
     props.forEach((prop) => {
@@ -508,7 +508,7 @@ class Article extends BaseArticle {
    * @param  {Array}  regionCoords=[]
    * @return {Array}  List of ArticleRegion
    */
-  static getRegions({
+  static getRegions ({
     regionCoords = [],
   }) {
     return regionCoords.reduce((acc, pag) => acc.concat(pag.r.map(reg => new ArticleRegion({
@@ -527,15 +527,15 @@ class Article extends BaseArticle {
    * @param  {Object} [highlights={}] [description]
    * @return {Array}                 Array of ArticleMatch matches
    */
-  static getMatches({
+  static getMatches ({
     solrDocument,
     fragments = [],
     highlights = {},
   } = {}) {
-    if (!solrDocument.pp_plain
-      || !highlights
-      || !highlights.offsets
-      || !highlights.offsets.length
+    if (!solrDocument.pp_plain ||
+      !highlights ||
+      !highlights.offsets ||
+      !highlights.offsets.length
     ) {
       return fragments.map(fragment => new Fragment({ fragment }));
     }
@@ -563,7 +563,7 @@ class Article extends BaseArticle {
     }).filter(d => d);
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const page = Page.sequelize(client);
     const collection = Collection.sequelize(client);
     const collectableItem = CollectableItem.sequelize(client);
@@ -646,7 +646,7 @@ class Article extends BaseArticle {
    * @param  {Array}  langs =['fr', 'de', 'en'] Array of language suffixes
    * @return {String}       the field value
    */
-  static getUncertainField(doc, field, langs = ['fr', 'de', 'en']) {
+  static getUncertainField (doc, field, langs = ['fr', 'de', 'en']) {
     let value = doc[`${field}_txt_${doc.lg_s}`];
 
     if (!value) {
@@ -666,7 +666,7 @@ class Article extends BaseArticle {
    * @param {Object} res Solr response object
    * @return {function} {Article} mapper with a single doc.
    */
-  static solrFactory(res) {
+  static solrFactory (res) {
     return (doc) => {
       // region coordinates may be loaded directly from the new field rc_plains
       const rc = getRegionCoordinatesFromDocument(doc);
@@ -692,10 +692,12 @@ class Article extends BaseArticle {
         country: doc.meta_country_code_s,
         year: doc.meta_year_i,
         date: new Date(doc.meta_date_dt),
-        pages: Array.isArray(doc.page_id_ss) ? doc.page_id_ss.map((d, i) => new Page({
-          uid: d,
-          num: doc.page_nb_is[i],
-        })) : [],
+        pages: Array.isArray(doc.page_id_ss)
+          ? doc.page_id_ss.map((d, i) => new Page({
+            uid: d,
+            num: doc.page_nb_is[i],
+          }))
+          : [],
         nbPages: doc.nb_pages_i,
         // front_b
         isFront: doc.front_b,
@@ -735,7 +737,6 @@ class Article extends BaseArticle {
         fragments,
         highlights,
       });
-
 
       return art;
     };

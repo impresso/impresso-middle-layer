@@ -1,7 +1,7 @@
 // @ts-check
 const { SolrNamespaces } = require('./solr');
 
-function getCacheKeyForSolrRequest(request, namespace, isPost = false) {
+function getCacheKeyForSolrRequest (request, namespace, isPost = false) {
   const requestString = Buffer.from(JSON.stringify(request)).toString('base64');
   return [
     'cache',
@@ -24,7 +24,7 @@ const TTL = Object.freeze({
  */
 
 class CachedSolrClient {
-  constructor(solrClient, cacheManager) {
+  constructor (solrClient, cacheManager) {
     this.solrClient = solrClient;
     /** @type {import('cache-manager').Cache} */
     this.cacheManager = cacheManager;
@@ -38,7 +38,7 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} unmodified Solr response.
    */
-  async get(request, namespace = undefined, options = undefined) {
+  async get (request, namespace = undefined, options = undefined) {
     const { ttl = TTL.Long, skipCache = false } = options || {};
 
     const cacheOptions = { ttl };
@@ -61,7 +61,7 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} unmodified Solr response.
    */
-  async post(request, namespace = undefined, options = undefined) {
+  async post (request, namespace = undefined, options = undefined) {
     const { ttl = TTL.Long, skipCache = false } = options || {};
 
     const cacheOptions = { ttl };
@@ -84,7 +84,7 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} solr response
    */
-  async findAllPost(request, options = undefined) {
+  async findAllPost (request, options = undefined) {
     const namespace = SolrNamespaces.Search;
     const { ttl = TTL.Long, skipCache = false } = options || {};
 
@@ -109,7 +109,7 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} solr response
    */
-  async findAll(request, factory = undefined, options = undefined) {
+  async findAll (request, factory = undefined, options = undefined) {
     const { namespace } = request;
     const { ttl = TTL.Long, skipCache = false } = options || {};
 
@@ -122,7 +122,6 @@ class CachedSolrClient {
         fn,
         cacheOptions,
       );
-
 
     return resultPromise.then((result) => {
       // Same as the code used in `solrClient.findAll`.
@@ -151,7 +150,7 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} solr response
    */
-  async suggest(request, factory, options = undefined) {
+  async suggest (request, factory, options = undefined) {
     const { namespace } = request;
     const { ttl = TTL.Long, skipCache = false } = options || {};
 
@@ -178,9 +177,9 @@ class CachedSolrClient {
     });
   }
 
-  get ttl() { return TTL; }
+  get ttl () { return TTL; }
 
-  get namespaces() { return SolrNamespaces; }
+  get namespaces () { return SolrNamespaces; }
 }
 
 module.exports = app => new CachedSolrClient(

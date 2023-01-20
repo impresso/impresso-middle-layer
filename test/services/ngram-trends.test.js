@@ -23,9 +23,9 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
           '{!stats=tf_stats_de key=de}meta_year_i',
         ],
         'stats.field': [
-          "{!tag=tf_stats_en key=tf_stats_en sum=true func}termfreq(content_txt_en,'Einstein')",
-          "{!tag=tf_stats_fr key=tf_stats_fr sum=true func}termfreq(content_txt_fr,'Einstein')",
-          "{!tag=tf_stats_de key=tf_stats_de sum=true func}termfreq(content_txt_de,'Einstein')",
+          '{!tag=tf_stats_en key=tf_stats_en sum=true func}termfreq(content_txt_en,\'Einstein\')',
+          '{!tag=tf_stats_fr key=tf_stats_fr sum=true func}termfreq(content_txt_fr,\'Einstein\')',
+          '{!tag=tf_stats_de key=tf_stats_de sum=true func}termfreq(content_txt_de,\'Einstein\')',
         ],
         stats: true,
         'json.facet': JSON.stringify({
@@ -246,7 +246,6 @@ describe('unigramTrendsRequestToTotalTokensSolrQuery', () => {
     assert.deepEqual(payload, expectedPayload);
   });
 });
-
 
 describe('getNumbersFromTotalTokensResponse', () => {
   const response = {

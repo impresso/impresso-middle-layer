@@ -10,7 +10,7 @@ const {
   getClusterIdsAndTextFromPassagesSolrResponse,
 } = require('../../logic/textReuse/solr');
 
-function buildResponseClusters(clusters, clusterIdsAndText) {
+function buildResponseClusters (clusters, clusterIdsAndText) {
   const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0]);
   return clusterIdsAndText.map(({ id, text: textSample }) => ({
     cluster: clustersById[id],
@@ -19,13 +19,13 @@ function buildResponseClusters(clusters, clusterIdsAndText) {
 }
 
 /** @returns {{ clusterId: string, skip: number, limit: number }} */
-function getArguments(params) {
+function getArguments (params) {
   const { clusterId, skip = 0, limit = 9 } = params.query;
   return { clusterId, skip: parseInt(skip, 10), limit: parseInt(limit, 10) };
 }
 
 class TextReuseConnectedClusters {
-  constructor(app) {
+  constructor (app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
 
@@ -33,7 +33,7 @@ class TextReuseConnectedClusters {
     this.textReuseClustersService = app.service('text-reuse-clusters');
   }
 
-  async find(params) {
+  async find (params) {
     const { clusterId, skip, limit } = getArguments(params);
     const request = buildConnectedClustersRequest(clusterId, limit, skip);
     const { clustersIds, total } = await this.solr

@@ -7,11 +7,11 @@ const { measureTime } = require('../../util/instruments');
 
 /* eslint-disable no-unused-vars */
 class Service {
-  constructor(options) {
+  constructor (options) {
     this.options = options;
   }
 
-  setup(app) {
+  setup (app) {
     this.app = app;
     this.sequelizeService = SequelizeService({
       app,
@@ -19,7 +19,7 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     const where = {};
 
     const findAllOnly = params.query.faster || !params.sanitized.sequelizeQuery;
@@ -37,7 +37,7 @@ class Service {
     }), 'mentions.find.db.mentions');
   }
 
-  async get(id, params) {
+  async get (id, params) {
     return measureTime(() => this.sequelizeService.get(id).then(result => result.toJSON()), 'mentions.get.db.mention');
   }
 }

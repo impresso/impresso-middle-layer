@@ -2,7 +2,7 @@
  *
  */
 class Suggestion {
-  constructor({
+  constructor ({
     // the text for the search query, cleaned. E.g, Suiss
     q = '',
     // the query, with the matching part highlighted with html like SOLR.

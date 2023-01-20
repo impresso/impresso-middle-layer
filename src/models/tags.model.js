@@ -1,5 +1,5 @@
 class Tag {
-  constructor({
+  constructor ({
     uid = '',
     name = '',
     labels = ['bucket', 'tag'],

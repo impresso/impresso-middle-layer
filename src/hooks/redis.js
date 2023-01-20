@@ -76,7 +76,6 @@ const checkCachedContents = ({
   // generate key from parameters.
   context.params.cacheKey = keyParts.join('::');
 
-
   // look for cache
   const value = await client.get(context.params.cacheKey);
 

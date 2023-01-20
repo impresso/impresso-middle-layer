@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 // const SearchQuery = require('./searchQueries.model');
 
 class Attachment {
-  constructor({
+  constructor ({
     id = 0,
     path = '',
     createdDate = new Date(),
@@ -24,7 +24,7 @@ class Attachment {
     }
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     // const searchQuery = SearchQuery.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.

@@ -4,7 +4,7 @@ const { DataIndex } = require('./index');
 
 const facetRanges = new DataIndex({ name: 'facetRanges' });
 
-function getRangeFacetValue(index, facet, key, defaultValue) {
+function getRangeFacetValue (index, facet, key, defaultValue) {
   const indexData = facetRanges.getValue(index) || {};
   const { [facet]: descriptor = {} } = indexData;
   return descriptor[key] == null
@@ -12,7 +12,7 @@ function getRangeFacetValue(index, facet, key, defaultValue) {
     : descriptor[key];
 }
 
-function getRangeFacetParametersWithDefault(index, facet, numBuckets, defaultParameters) {
+function getRangeFacetParametersWithDefault (index, facet, numBuckets, defaultParameters) {
   const start = getRangeFacetValue(index, facet, 'min', defaultParameters.start);
   const end = getRangeFacetValue(index, facet, 'max', defaultParameters.end);
   const gap = Number.isFinite(start) && Number.isFinite(end)

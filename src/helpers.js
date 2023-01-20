@@ -8,7 +8,6 @@ const verbose = require('debug')('verbose:impresso/helpers');
  */
 const hasOverlaps = (a, b) => !(a.r <= b.l || a.l >= b.r);
 
-
 // const lodash = require('lodash');
 /**
  * create a markdown
@@ -34,7 +33,6 @@ const annotate = (tokens, uid, left, right, attr = 'ref') => {
     }
   }
 };
-
 
 const seek = (tokens, splitpoints) => {
   let offsetIndex = 0;
@@ -193,7 +191,6 @@ const toHierarchy = (chunks, thresholds, ...otherThresholds) => {
   otherThresholds.forEach((threshold) => {
     clusters = seek(clusters, threshold);
   });
-
 
   debug('toHierarchy: done.');
   return clusters;

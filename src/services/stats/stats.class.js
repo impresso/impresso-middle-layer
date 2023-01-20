@@ -53,21 +53,21 @@ const getFacetType = (index, facet) => {
 const getFacetQueryPart = (facet, index, type, stats) => {
   const facetDetails = statsConfiguration.indexes[index].facets[type][facet];
   switch (type) {
-    case FacetTypes.Numeric:
-      return stats.reduce((acc, stat) => {
-        acc[stat] = StatsToSolrFunction[stat](facetDetails.field);
-        return acc;
-      }, {});
-    case FacetTypes.Term:
-      return {
-        items: {
-          type: 'terms',
-          field: facetDetails.field,
-          limit: facetDetails.limit,
-        },
-      };
-    default:
-      throw new Error(`Unknown facet type provided: ${type}`);
+  case FacetTypes.Numeric:
+    return stats.reduce((acc, stat) => {
+      acc[stat] = StatsToSolrFunction[stat](facetDetails.field);
+      return acc;
+    }, {});
+  case FacetTypes.Term:
+    return {
+      items: {
+        type: 'terms',
+        field: facetDetails.field,
+        limit: facetDetails.limit,
+      },
+    };
+  default:
+    throw new Error(`Unknown facet type provided: ${type}`);
   }
 };
 
@@ -84,18 +84,18 @@ const getDomainDetails = (index, domain, filters) => {
   if (domain === TimeDomain) {
     const { date, yearAndMonth, year } = statsConfiguration.indexes[index].facets.temporal;
     switch (getTemporalResolution(domain, filters)) {
-      case TemporalResolution.Day:
-        return date;
-      case TemporalResolution.Month:
-        return yearAndMonth;
-      default:
-        return year;
+    case TemporalResolution.Day:
+      return date;
+    case TemporalResolution.Month:
+      return yearAndMonth;
+    default:
+      return year;
     }
   }
   return statsConfiguration.indexes[index].facets.term[domain];
 };
 
-function buildSolrRequest(facet, index, domain, stats, filters) {
+function buildSolrRequest (facet, index, domain, stats, filters) {
   const facetType = getFacetType(index, facet);
   const domainDetails = getDomainDetails(index, domain, filters);
 
@@ -118,12 +118,12 @@ function buildSolrRequest(facet, index, domain, stats, filters) {
 
 const parseDate = (val, resolution) => {
   switch (resolution) {
-    case TemporalResolution.Day:
-      return val.split('T')[0];
-    case TemporalResolution.Month:
-      return `${val}-01`;
-    default:
-      return `${val}-01-01`;
+  case TemporalResolution.Day:
+    return val.split('T')[0];
+  case TemporalResolution.Month:
+    return `${val}-01`;
+  default:
+    return `${val}-01-01`;
   }
 };
 
@@ -137,22 +137,22 @@ const withLabel = async (val, facet) => {
 
 const parseValue = (object, facetType) => {
   switch (facetType) {
-    case FacetTypes.Numeric:
-      return object;
-    case FacetTypes.Term:
-      return {
-        count: object.count,
-        items: object.items.buckets.map(({ val: term, count }) => ({
-          term,
-          count,
-        })),
-      };
-    default:
-      throw new Error(`Unknown facet type provided: ${facetType}`);
+  case FacetTypes.Numeric:
+    return object;
+  case FacetTypes.Term:
+    return {
+      count: object.count,
+      items: object.items.buckets.map(({ val: term, count }) => ({
+        term,
+        count,
+      })),
+    };
+  default:
+    throw new Error(`Unknown facet type provided: ${facetType}`);
   }
 };
 
-async function buildItemsDictionary(items, facet) {
+async function buildItemsDictionary (items, facet) {
   const terms = new Set(items
     .flatMap(({ value: { items: subitems = [] } }) => subitems)
     .map(({ term }) => term));
@@ -173,7 +173,7 @@ const itemsSortFn = (a, b) => {
   return 0;
 };
 
-async function buildResponse(result, facet, index, domain, filters) {
+async function buildResponse (result, facet, index, domain, filters) {
   const { domain: { buckets = [] } = {} } = result.facets;
   const facetType = getFacetType(index, facet);
   const resolution = getTemporalResolution(domain, filters);
@@ -198,12 +198,12 @@ async function buildResponse(result, facet, index, domain, filters) {
 }
 
 class Stats {
-  constructor(app) {
+  constructor (app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr');
   }
 
-  async find({
+  async find ({
     request: {
       facet, index, domain, stats, filters,
     },

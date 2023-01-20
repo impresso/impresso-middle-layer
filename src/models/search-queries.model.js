@@ -3,7 +3,7 @@ const { DataTypes } = require('sequelize');
 const User = require('./users.model');
 
 class SearchQuery {
-  constructor({
+  constructor ({
     uid = '',
     name = '',
     description = '',
@@ -29,7 +29,7 @@ class SearchQuery {
     }
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const creator = User.sequelize(client);
 
     const searchQuery = client.define('searchquery', {

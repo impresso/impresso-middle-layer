@@ -7,9 +7,8 @@ const Language = require('./languages.model');
 const Property = require('./properties.model');
 const newspapersIndex = require('../data')('newspapers');
 
-
 class Newspaper {
-  constructor({
+  constructor ({
     acronym = '',
     countArticles = -1,
     countIssues = -1,
@@ -56,11 +55,11 @@ class Newspaper {
   }
 
   // TODO: when cache is moved to Redis this will become an async function
-  static getCached(uid) {
+  static getCached (uid) {
     return new Newspaper(newspapersIndex.getValue(uid));
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const language = Language.sequelize(client);
     const prop = Property.sequelize(client);
     const stats = client.define('stats', {

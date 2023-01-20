@@ -8,7 +8,7 @@ const Page = require('../../models/pages.model');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor({
+  constructor ({
     app,
     name,
   }) {
@@ -20,7 +20,7 @@ class Service {
     });
   }
 
-  async get(id, params) {
+  async get (id, params) {
     const results = await Promise.all([
       // we perform a solr request to get basic info on the page:
       // number of articles,
@@ -54,7 +54,7 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     return measureTime(() => this.SequelizeService.find(params), 'pages.find.db.pages');
   }
 }

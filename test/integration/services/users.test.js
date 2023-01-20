@@ -68,7 +68,6 @@ describe('\'users\' service', function () {
     assert.ok(result.id);
   });
 
-
   // it('change password', async () => {
   //   const result = await service.patch(user.username, {
   //     password: 'Apitchapong!84',

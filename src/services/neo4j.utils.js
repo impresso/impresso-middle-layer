@@ -7,7 +7,6 @@ const {
   Conflict, BadRequest, BadGateway, Unavailable,
 } = require('@feathersjs/errors');
 
-
 const neo4jToInt = neo4jInteger => (typeof neo4jInteger === 'object' ? neo4jInteger.low : neo4jInteger);
 
 const neo4jNow = () => {
@@ -19,14 +18,12 @@ const neo4jNow = () => {
   };
 };
 
-
 const neo4jPrepare = (cypherQuery, params) =>
   // use Mustache renderer to pre-prepare cypehr query.
   // This allows to use if, unless and each templates without
   // adding unwanted complexification in code.
   // eslint-disable-next-line implicit-arrow-linebreak
   mustache.render(cypherQuery, params);
-
 
 const neo4jRun = (session, cypherQuery, params, queryname) => {
   const preparedQuery = neo4jPrepare(cypherQuery, params);
@@ -83,7 +80,6 @@ const neo4jSummary = (res, asVerbose = false) => {
     resultAvailableAfter: res.summary.resultAvailableAfter.low,
   };
 };
-
 
 const neo4jFieldMapper = (field) => {
   if (typeof field === 'undefined' || field === null) { return null; }
@@ -143,7 +139,6 @@ const neo4jRecordMapper = (record) => {
   // special fields starting with '_' are NOT idenitites
   const identities = keys.filter(d => d.indexOf('_') !== 0);
 
-
   if (identities.length !== 1) {
     verbose('neo4jRecordMapper: more than one items in list <identities>:', identities);
     // nothing to do, the query is like this.
@@ -184,16 +179,16 @@ const neo4jNodeMapper = (node) => {
     }
     if (node.properties[k] && node.properties[k].constructor) {
       switch (node.properties[k].constructor.name) {
-        case 'Integer':
-          props[k] = neo4jToInt(node.properties[k]);
-          break;
-        case 'Node':
-          props[k] = neo4jNodeMapper(node.properties[k]);
-          break;
-        default:
-          props[k] = node.properties[k];
-          // none
-          break;
+      case 'Integer':
+        props[k] = neo4jToInt(node.properties[k]);
+        break;
+      case 'Node':
+        props[k] = neo4jNodeMapper(node.properties[k]);
+        break;
+      default:
+        props[k] = node.properties[k];
+        // none
+        break;
       }
     }
   });
@@ -228,7 +223,6 @@ const neo4jPathMapper = (path) => {
     segments: path.segments.map(neo4jPathSegmentMapper),
   };
 };
-
 
 /**
  * Transform a natural language query to suitable lucene query string for apoc.index.search

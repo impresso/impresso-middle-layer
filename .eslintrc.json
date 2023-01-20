@@ -1,21 +1,22 @@
 {
-    "root": true,
-    "extends": "airbnb-base",
-    "rules":{
-      "no-underscore-dangle": "off",
-      "func-names": "off",
-      "class-methods-use-this": "off",
-      "no-console": "off",
-      "prefer-destructuring": "off",
-      "no-param-reassign": ["error",
-        {
-          "props": false 
-        }
-      ]
-    },
-    "env": {
-      "mocha": true,
-      "es6": true,
-      "node": true
-    }
+  "root": true,
+  "extends": "airbnb-base",
+  "rules": {
+    "no-underscore-dangle": "off",
+    "func-names": "off",
+    "class-methods-use-this": "off",
+    "no-console": "off",
+    "prefer-destructuring": "off",
+    "no-param-reassign": [
+      "error",
+      {
+        "props": false
+      }
+    ]
+  },
+  "env": {
+    "mocha": true,
+    "es6": true,
+    "node": true
+  }
 }

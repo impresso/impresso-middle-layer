@@ -3,7 +3,6 @@ const queries = require('decypher')(`${__dirname}/projects.queries.cyp`);
 const createService = require('./projects.class.js');
 const hooks = require('./projects.hooks');
 
-
 module.exports = function (app) {
   const paginate = app.get('paginate');
 

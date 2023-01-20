@@ -18,7 +18,6 @@ const {
 } = require('../search/search.extractors');
 const { filtersToQueryAndVariables } = require('../../util/solr');
 
-
 /**
  * Create SOLR query for getting facets.
  * There are two types of facet sections in the query: simple and constrained.
@@ -39,7 +38,7 @@ const { filtersToQueryAndVariables } = require('../../util/solr');
  * @param {Facet[]} constraintFacets
  * @returns {any}
  */
-function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
+function createSolrQuery (filters, facetsRequests, constraintFacets = []) {
   const { query } = filtersToQueryAndVariables(filters);
 
   const facets = facetsRequests.reduce((acc, { type, skip, limit }) => {
@@ -100,7 +99,7 @@ const ConstrainedFacetRegex = /^constrained__(.+)__(\d+)$/;
  *
  * @returns {object}
  */
-function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = []) {
+function normaliseFacetsInSolrResponse (solrResponse = {}, constraintFacets = []) {
   const { facets: responseFacets } = solrResponse;
   const normalisedFacets = Object.keys(responseFacets).reduce((acc, key) => {
     if (typeof responseFacets[key] !== 'object') return { ...acc, [key]: responseFacets[key] };
@@ -139,7 +138,7 @@ function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = [])
  * @param {any} solrResponse
  * @returns {Promise<Facet[]>}
  */
-async function getResponseFacetsFromSolrResponse(solrResponse) {
+async function getResponseFacetsFromSolrResponse (solrResponse) {
   const facets = await getFacetsFromSolrResponse(solrResponse);
   return Object.keys(facets)
     .filter(type => typeof facets[type] === 'object')
@@ -150,7 +149,7 @@ async function getResponseFacetsFromSolrResponse(solrResponse) {
 }
 
 class SearchQueriesComparison {
-  setup(app) {
+  setup (app) {
     // this.solrClient = app.get('solrClient');
     // this.articlesService = app.service('articles');
 
@@ -167,7 +166,7 @@ class SearchQueriesComparison {
    *
    * @returns {Promise<Response>}
    */
-  async create(request) {
+  async create (request) {
     const intersectionFilters = request.filtersSets
       .reduce((mergedFilters, filters) => mergeFilters(mergedFilters.concat(filters)));
 

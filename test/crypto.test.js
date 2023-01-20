@@ -1,7 +1,6 @@
 const assert = require('assert');
 const { encrypt } = require('../src/crypto');
 
-
 /**
  * use with
   ./node_modules/.bin/eslint test/crypto.test.js  \

@@ -1,8 +1,7 @@
 const { DataTypes } = require('sequelize');
 
-
 class Profile {
-  constructor({
+  constructor ({
     uid = '',
     provider = 'local',
     displayname = '',
@@ -18,11 +17,11 @@ class Profile {
     }
   }
 
-  isValid() {
+  isValid () {
     return !!this.uid.length;
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     return client.define('profile', {

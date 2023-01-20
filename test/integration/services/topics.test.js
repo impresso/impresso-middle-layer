@@ -1,7 +1,6 @@
 const assert = require('assert');
 const app = require('../../../src/app');
 
-
 /**
 ./node_modules/.bin/eslint  \
 src/models src/services/topics src/hooks test/services/topics.test.js \

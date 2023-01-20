@@ -35,7 +35,7 @@ const getRangeFacetMetadata = (facet) => {
 };
 
 class Service {
-  constructor({
+  constructor ({
     app,
     name,
   }) {
@@ -46,7 +46,7 @@ class Service {
     this.solr = app.get('cachedSolr');
   }
 
-  async get(type, params) {
+  async get (type, params) {
     const { index } = params.query;
     const types = getFacetTypes(type, index);
 
@@ -100,7 +100,7 @@ class Service {
     }));
   }
 
-  async find(params) {
+  async find (params) {
     debug(`find '${this.name}': query:`, params.sanitized, params.sanitized.sv);
 
     // TODO: we may want to skip caching if facets requested contain 'collection'

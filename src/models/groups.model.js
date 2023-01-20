@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 
 class Group {
-  constructor({
+  constructor ({
     id = '',
     name = '',
   } = {}) {
@@ -9,11 +9,11 @@ class Group {
     this.name = String(name);
   }
 
-  isValid() {
+  isValid () {
     return !!this.uid.length;
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     const group = client.define('group', {

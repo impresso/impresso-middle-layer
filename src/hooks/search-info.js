@@ -44,7 +44,6 @@ const filtersToSolrFacetQuery = () => async (context) => {
   context.params.sanitized.facets = JSON.stringify(facets);
 };
 
-
 const resolveFacets = () => async (context) => {
   if (context.result && context.result.info && context.result.info.facets) {
     // enrich facets
@@ -69,7 +68,6 @@ const resolveFacets = () => async (context) => {
     }
   }
 };
-
 
 const resolveQueryComponents = () => async (context) => {
   debug('resolveQueryComponents', context.params.sanitized.queryComponents);

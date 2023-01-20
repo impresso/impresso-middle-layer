@@ -3,7 +3,6 @@ const { queryWithCurrentUser } = require('feathers-authentication-hooks');
 const { normalizeEmptyRecords, raiseErrorIfEmpty, parseJsonProperty } = require('../../hooks/neo4j');
 const { validate, queryWithCommonParams, REGEX_SLUG } = require('../../hooks/params');
 
-
 module.exports = {
   before: {
     all: [
@@ -55,7 +54,7 @@ module.exports = {
     ],
     create: [
       raiseErrorIfEmpty({
-        explanation: "Can't create query object, please check your parent__uid value",
+        explanation: 'Can\'t create query object, please check your parent__uid value',
       }),
     ],
     update: [],
