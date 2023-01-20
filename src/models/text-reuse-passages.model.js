@@ -18,6 +18,7 @@ const SolrFields = {
   date: 'meta_date_dt',
   pageNumbers: 'page_nb_is',
   pageRegions: 'page_regions_plains',
+
   newspaperId: 'meta_journal_s',
   issueId: 'meta_issue_id_s',
   clusterSize: 'cluster_size_l',
@@ -43,7 +44,7 @@ class TextReusePassage {
     titleTextDe,
     titleTextEn,
     date,
-    pageNumbers = 'page_nb_is',
+    pageNumbers = [],
     pageRegions,
     clusterSize,
     connectedClusters,
@@ -92,6 +93,7 @@ class TextReusePassage {
     if (pageRegions) {
       this.pageRegions = pageRegions
     }
+    this.pageNumbers = pageNumbers
   }
 
   static CreateFromSolr(fieldsToPropsMapper = SolrFieldsToPropsMapper) {
