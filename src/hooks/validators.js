@@ -52,10 +52,11 @@ const validateWithSchemaUri =
       }
       throw new BadRequest(`${labelPath} is required.`)
     }
-    if (asJSON) {
+    if (asJSON && typeof candidate === 'string') {
       try {
         candidate = JSON.parse(candidate)
       } catch (e) {
+        console.error(e)
         throw new BadRequest('Bad JSON received, check your input data.', {
           [labelPath]: 'should be a valid JSON parameter',
         })
