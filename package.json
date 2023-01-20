@@ -52,7 +52,7 @@
     "@feathersjs/feathers": "^4.3.3",
     "@feathersjs/socketio": "^4.3.3",
     "ajv": "^6.12.2",
-    "async": "^2.6.1",
+    "async": "^2.6.4",
     "async-redis": "^2.0.0",
     "aws-sdk": "^2.395.0",
     "body-parser": "^1.18.3",
