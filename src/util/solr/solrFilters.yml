@@ -117,7 +117,7 @@ indexes:
       id:
         field: id
         rule: value
-      textReuseClusterId:
+      textReuseCluster:
         field: cluster_id_s
         rule: value
       title:
