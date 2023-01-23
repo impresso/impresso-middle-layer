@@ -7,7 +7,10 @@ module.exports = {
   },
   extends: ['standard'],
   parserOptions: {
-    ecmaVersion: 'latest',
+    // ecmaVersion: 'latest',
+    parser: 'babel-eslint',
+    ecmaVersion: 2018,
+    sourceType: 'module',
   },
   rules: {
     indent: 'off',
