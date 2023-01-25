@@ -3,16 +3,29 @@ const { filtersToQueryAndVariables } = require('../../util/solr')
 const TextReusePassage = require('../../models/text-reuse-passages.model')
 const { NotFound } = require('@feathersjs/errors')
 const Newspaper = require('../../models/newspapers.model')
+const { parseOrderBy } = require('../../util/queryParameters')
+
+const OrderByKeyToField = {
+  clusterSize: TextReusePassage.SolrFields.clusterSize,
+  lexicalOverlap: TextReusePassage.SolrFields.lexicalOverlap,
+  timeDifferenceDay: TextReusePassage.SolrFields.timeDifferenceDay,
+  size: TextReusePassage.SolrFields.size,
+  date: TextReusePassage.SolrFields.date,
+}
 
 class TextReusePassages {
-  constructor (app) {
+  constructor(app) {
     this.solr = app.get('cachedSolr')
   }
 
-  async find (params) {
+  async find(params) {
     // retrieve all fields
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query.filters
+    const [orderByField, orderByDescending] = parseOrderBy(
+      params.query.orderBy,
+      OrderByKeyToField
+    )
     const { query } = filtersToQueryAndVariables(
       filters,
       this.solr.namespaces.TextReusePassages,
@@ -20,6 +33,9 @@ class TextReusePassages {
         q: '*:*',
       }
     )
+    const sort = orderByField
+      ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc`
+      : null
 
     debug('find q:', query, this.solr.namespaces.TextReusePassages)
 
@@ -30,6 +46,7 @@ class TextReusePassages {
           fl,
           rows: params.query.limit,
           start: params.query.skip,
+          sort,
         },
         this.solr.namespaces.TextReusePassages
       )
@@ -57,7 +74,7 @@ class TextReusePassages {
       })
   }
 
-  async get (ids = [], { query = {} }) {
+  async get(ids = [], { query = {} }) {
     // for each id in ids, return the corresponding textReusePassages instance.
     const textReusePassages = await this.solr
       .get(

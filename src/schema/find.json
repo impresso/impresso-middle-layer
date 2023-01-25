@@ -10,6 +10,10 @@
       "items": {
         "$ref": "https://github.com/impresso/impresso-public-api/tree/master/src/schema/filter.json"
       }
+    },
+    "orderBy": {
+      "type": "string",
+      "pattern": "^-?[a-zA-Z-_]+$"
     }
   }
 }
