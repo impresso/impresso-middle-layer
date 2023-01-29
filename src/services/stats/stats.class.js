@@ -95,7 +95,7 @@ const getDomainDetails = (index, domain, filters) => {
   return statsConfiguration.indexes[index].facets.term[domain];
 };
 
-function buildSolrRequest (facet, index, domain, stats, filters) {
+function buildSolrRequest (facet, index, domain, stats, filters, sort) {
   const facetType = getFacetType(index, facet);
   const domainDetails = getDomainDetails(index, domain, filters);
 
@@ -110,6 +110,7 @@ function buildSolrRequest (facet, index, domain, stats, filters) {
         type: 'terms',
         field: domainDetails.field,
         limit: domainDetails.limit,
+        sort: sort,
         facet: getFacetQueryPart(facet, index, facetType, stats),
       },
     },
@@ -205,10 +206,10 @@ class Stats {
 
   async find ({
     request: {
-      facet, index, domain, stats, filters,
+      facet, index, domain, stats, filters, sort
     },
   }) {
-    const request = buildSolrRequest(facet, index, domain, stats, filters);
+    const request = buildSolrRequest(facet, index, domain, stats, filters, sort);
     const result = await this.solr.post(request, index);
     return buildResponse(result, facet, index, domain, filters);
   }
