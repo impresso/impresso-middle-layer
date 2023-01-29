@@ -34,6 +34,7 @@ function parseAndValidateQueryParameters (context) {
     domain = 'time',
     stats: statsString,
     filters: serializedFilters,
+    sort
   } = context.params.query;
 
   assert.ok(SupportedIndexes.includes(index), new BadRequest(`Unknown index "${index}". Must be one of: ${SupportedIndexes.join(', ')}`));
@@ -56,6 +57,7 @@ function parseAndValidateQueryParameters (context) {
     domain,
     stats,
     filters,
+    sort
   };
 }
 
