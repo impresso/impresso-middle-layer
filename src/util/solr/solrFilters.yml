@@ -145,6 +145,9 @@ indexes:
       collection:
         field: ucoll_ss
         rule: value
+      isFront:
+        field: front_b
+        rule: boolean
   entities:
     filters:
       string:

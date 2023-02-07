@@ -26,6 +26,7 @@ const SolrFields = {
   connectedClustersSize: 'n_connected_clusters_i',
   lexicalOverlap: 'cluster_lex_overlap_d',
   timeDifferenceDay: 'cluster_day_delta_i',
+  collections: 'ucoll_ss',
 }
 
 const SolrFieldsToPropsMapper = invert(SolrFields)
@@ -54,6 +55,7 @@ class TextReusePassage {
     lexicalOverlap,
     timeDifferenceDay,
     size,
+    collections = [],
   }) {
     this.id = id
     this.article = { id: contentItemId }
@@ -94,6 +96,7 @@ class TextReusePassage {
       this.pageRegions = pageRegions
     }
     this.pageNumbers = pageNumbers
+    this.collections = collections
   }
 
   static CreateFromSolr (fieldsToPropsMapper = SolrFieldsToPropsMapper) {
