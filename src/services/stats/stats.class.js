@@ -110,7 +110,7 @@ function buildSolrRequest (facet, index, domain, stats, filters, sort) {
         type: 'terms',
         field: domainDetails.field,
         limit: domainDetails.limit,
-        sort: sort,
+        sort,
         facet: getFacetQueryPart(facet, index, facetType, stats),
       },
     },
