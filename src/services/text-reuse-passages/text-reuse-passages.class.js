@@ -37,7 +37,22 @@ class TextReusePassages {
       ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc`
       : null
 
-    debug('find q:', query, this.solr.namespaces.TextReusePassages)
+    const groupby = params.query.groupby
+      ? {
+        fq: `{!collapse field=${
+          TextReusePassage.SolrFields[params.query.groupby]
+        }}`,
+      }
+      : null
+    debug(
+      'find q:',
+      query,
+      '- index:',
+      this.solr.namespaces.TextReusePassages,
+      '- groupby:',
+      groupby,
+      params.query
+    )
 
     return this.solr
       .get(
@@ -47,6 +62,7 @@ class TextReusePassages {
           rows: params.query.limit,
           start: params.query.skip,
           sort,
+          ...groupby,
         },
         this.solr.namespaces.TextReusePassages
       )

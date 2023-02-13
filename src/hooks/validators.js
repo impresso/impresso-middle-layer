@@ -1,11 +1,12 @@
+/* eslint-disable max-len */
 const debug = require('debug')('impresso/hooks/validators')
 const { get, set } = require('lodash')
 const { BadRequest } = require('@feathersjs/errors')
 const Validator = require('jsonschema').Validator
 const { validated, formatValidationErrors } = require('../util/jsonschema')
 
-// eslint-disable-next-line max-len
-const RegExpEmail = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+const RegExpEmail =
+  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 const RegExpPassword =
   /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/
 const RegExpSlug = /^[A-Za-z0-9-,]+$/
@@ -20,6 +21,7 @@ const RegExpIntegersOnly = /^\d+$/
  * @param {Object} params optional settings
  * @return {Object} context
  */
+
 const validateWithSchemaUri =
   (
     objectPath = 'data',
@@ -116,6 +118,21 @@ const validatePagination =
       })
       return context
     }
+
+const validateAgainstOptions =
+  (objectPath = 'params.query.enum', options = [], defaultValue = null) =>
+    async (context) => {
+      const value = get(context, objectPath)
+      debug('validateAgainstOptions received:', objectPath, value, typeof value)
+      if (typeof value !== 'string') {
+        set(context, objectPath, defaultValue)
+      } else if (!options.includes(value)) {
+        debug('validateAgainstOptions: value not in options', value, options)
+        throw new BadRequest(`"${value}" is not a valid value`)
+      }
+      return context
+    }
+
 /**
  * This Hook validate query params agains a custom schema
  */
@@ -154,6 +171,7 @@ module.exports = {
   RegExpSlug,
   RegExpExtendedString,
   RegExpIntegersOnly,
+  validateAgainstOptions,
   validateQueryUsingJSONSchema,
   validateId,
   validatePagination,

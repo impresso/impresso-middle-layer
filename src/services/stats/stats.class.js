@@ -1,63 +1,62 @@
 // @ts-check
-const { statsConfiguration } = require('../../data');
-const { filtersToQueryAndVariables } = require('../../util/solr');
-const { getWidestInclusiveTimeInterval } = require('../../logic/filters');
-const Topic = require('../../models/topics.model');
-const Entity = require('../../models/entities.model');
-const Newspaper = require('../../models/newspapers.model');
+const debug = require('debug')('impresso/services:stats')
+const { statsConfiguration } = require('../../data')
+const { filtersToQueryAndVariables } = require('../../util/solr')
+const { getWidestInclusiveTimeInterval } = require('../../logic/filters')
+const Topic = require('../../models/topics.model')
+const Entity = require('../../models/entities.model')
+const Newspaper = require('../../models/newspapers.model')
 
-const {
-  TimeDomain, StatsToSolrFunction,
-} = require('./common');
+const { TimeDomain, StatsToSolrFunction } = require('./common')
 
 const FacetTypes = Object.freeze({
   Term: 'term',
   Numeric: 'numeric',
-});
+})
 
 const TemporalResolution = Object.freeze({
   Year: 'year',
   Month: 'month',
   Day: 'day',
-});
+})
 
 const entityCacheExtractor = (key) => {
-  const entity = Entity.getCached(key);
-  return entity == null ? key : entity.name;
-};
+  const entity = Entity.getCached(key)
+  return entity == null ? key : entity.name
+}
 
 const FacetLabelCache = Object.freeze({
   topic: async (key) => {
-    const topic = await Topic.getCached(key);
-    if (topic == null) return key;
-    return topic.words.map(({ w }) => w).join(', ');
+    const topic = await Topic.getCached(key)
+    if (topic == null) return key
+    return topic.words.map(({ w }) => w).join(', ')
   },
   newspaper: async (key) => {
-    const newspaper = await Newspaper.getCached(key);
-    return newspaper == null
-      ? key
-      : newspaper.name;
+    const newspaper = await Newspaper.getCached(key)
+    return newspaper == null ? key : newspaper.name
   },
   person: entityCacheExtractor,
   location: entityCacheExtractor,
-  language: key => key,
-  country: key => key,
-  type: key => key,
-});
+  language: (key) => key,
+  country: (key) => key,
+  type: (key) => key,
+})
 
 const getFacetType = (index, facet) => {
-  const indexFacets = statsConfiguration.indexes[index].facets;
-  return Object.keys(indexFacets).find(type => Object.keys(indexFacets[type]).includes(facet));
-};
+  const indexFacets = statsConfiguration.indexes[index].facets
+  return Object.keys(indexFacets).find((type) =>
+    Object.keys(indexFacets[type]).includes(facet)
+  )
+}
 
 const getFacetQueryPart = (facet, index, type, stats) => {
-  const facetDetails = statsConfiguration.indexes[index].facets[type][facet];
+  const facetDetails = statsConfiguration.indexes[index].facets[type][facet]
   switch (type) {
   case FacetTypes.Numeric:
     return stats.reduce((acc, stat) => {
-      acc[stat] = StatsToSolrFunction[stat](facetDetails.field);
-      return acc;
-    }, {});
+      acc[stat] = StatsToSolrFunction[stat](facetDetails.field)
+      return acc
+    }, {})
   case FacetTypes.Term:
     return {
       items: {
@@ -65,41 +64,42 @@ const getFacetQueryPart = (facet, index, type, stats) => {
         field: facetDetails.field,
         limit: facetDetails.limit,
       },
-    };
+    }
   default:
-    throw new Error(`Unknown facet type provided: ${type}`);
+    throw new Error(`Unknown facet type provided: ${type}`)
   }
-};
+}
 
 const getTemporalResolution = (domain, filters) => {
-  if (domain !== TimeDomain) return undefined;
-  const days = getWidestInclusiveTimeInterval(filters);
-  if (!Number.isFinite(days)) return TemporalResolution.Year;
-  if (days < 6 * 31) return TemporalResolution.Day;
-  if (days < 5 * 365) return TemporalResolution.Month;
-  return TemporalResolution.Year;
-};
+  if (domain !== TimeDomain) return undefined
+  const days = getWidestInclusiveTimeInterval(filters)
+  if (!Number.isFinite(days)) return TemporalResolution.Year
+  if (days < 6 * 31) return TemporalResolution.Day
+  if (days < 5 * 365) return TemporalResolution.Month
+  return TemporalResolution.Year
+}
 
 const getDomainDetails = (index, domain, filters) => {
   if (domain === TimeDomain) {
-    const { date, yearAndMonth, year } = statsConfiguration.indexes[index].facets.temporal;
+    const { date, yearAndMonth, year } =
+      statsConfiguration.indexes[index].facets.temporal
     switch (getTemporalResolution(domain, filters)) {
     case TemporalResolution.Day:
-      return date;
+      return date
     case TemporalResolution.Month:
-      return yearAndMonth;
+      return yearAndMonth
     default:
-      return year;
+      return year
     }
   }
-  return statsConfiguration.indexes[index].facets.term[domain];
-};
+  return statsConfiguration.indexes[index].facets.term[domain]
+}
 
 function buildSolrRequest (facet, index, domain, stats, filters, sort) {
-  const facetType = getFacetType(index, facet);
-  const domainDetails = getDomainDetails(index, domain, filters);
+  const facetType = getFacetType(index, facet)
+  const domainDetails = getDomainDetails(index, domain, filters)
 
-  const { query } = filtersToQueryAndVariables(filters, index);
+  const { query } = filtersToQueryAndVariables(filters, index)
 
   return {
     query,
@@ -114,32 +114,32 @@ function buildSolrRequest (facet, index, domain, stats, filters, sort) {
         facet: getFacetQueryPart(facet, index, facetType, stats),
       },
     },
-  };
+  }
 }
 
 const parseDate = (val, resolution) => {
   switch (resolution) {
   case TemporalResolution.Day:
-    return val.split('T')[0];
+    return val.split('T')[0]
   case TemporalResolution.Month:
-    return `${val}-01`;
+    return `${val}-01`
   default:
-    return `${val}-01-01`;
+    return `${val}-01-01`
   }
-};
+}
 
 const withLabel = async (val, facet) => {
-  const extractor = FacetLabelCache[facet];
+  const extractor = FacetLabelCache[facet]
   return {
     label: extractor ? await extractor(val) : val,
     value: val,
-  };
-};
+  }
+}
 
 const parseValue = (object, facetType) => {
   switch (facetType) {
   case FacetTypes.Numeric:
-    return object;
+    return object
   case FacetTypes.Term:
     return {
       count: object.count,
@@ -147,44 +147,51 @@ const parseValue = (object, facetType) => {
         term,
         count,
       })),
-    };
+    }
   default:
-    throw new Error(`Unknown facet type provided: ${facetType}`);
+    throw new Error(`Unknown facet type provided: ${facetType}`)
   }
-};
+}
 
 async function buildItemsDictionary (items, facet) {
-  const terms = new Set(items
-    .flatMap(({ value: { items: subitems = [] } }) => subitems)
-    .map(({ term }) => term));
+  const terms = new Set(
+    items
+      .flatMap(({ value: { items: subitems = [] } }) => subitems)
+      .map(({ term }) => term)
+  )
 
-  const extractor = FacetLabelCache[facet];
-  if (extractor == null) return {};
+  const extractor = FacetLabelCache[facet]
+  if (extractor == null) return {}
 
   return [...terms].reduce(async (accPromise, term) => {
-    const acc = await accPromise;
-    acc[term] = await extractor(term);
-    return acc;
-  }, {});
+    const acc = await accPromise
+    acc[term] = await extractor(term)
+    return acc
+  }, {})
 }
 
 const itemsSortFn = (a, b) => {
-  if (a.domain < b.domain) return -1;
-  if (a.domain > b.domain) return 1;
-  return 0;
-};
+  if (a.domain < b.domain) return -1
+  if (a.domain > b.domain) return 1
+  return 0
+}
 
 async function buildResponse (result, facet, index, domain, filters) {
-  const { domain: { buckets = [] } = {} } = result.facets;
-  const facetType = getFacetType(index, facet);
-  const resolution = getTemporalResolution(domain, filters);
+  const { domain: { buckets = [] } = {} } = result.facets
+  const facetType = getFacetType(index, facet)
+  const resolution = getTemporalResolution(domain, filters)
 
-  const items = (await Promise.all(buckets.map(async ({
-    val, ...rest
-  }) => ({
-    domain: domain === TimeDomain ? parseDate(val, resolution) : await withLabel(val, domain),
-    value: parseValue(rest, facetType),
-  })))).sort(itemsSortFn);
+  const items = (
+    await Promise.all(
+      buckets.map(async ({ val, ...rest }) => ({
+        domain:
+          domain === TimeDomain
+            ? parseDate(val, resolution)
+            : await withLabel(val, domain),
+        value: parseValue(rest, facetType),
+      }))
+    )
+  ).sort(itemsSortFn)
 
   return {
     items,
@@ -195,24 +202,27 @@ async function buildResponse (result, facet, index, domain, filters) {
       resolution,
       filters,
     },
-  };
+  }
 }
 
 class Stats {
   constructor (app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.get('cachedSolr');
+    this.solr = app.get('cachedSolr')
   }
 
-  async find ({
-    request: {
-      facet, index, domain, stats, filters, sort
-    },
-  }) {
-    const request = buildSolrRequest(facet, index, domain, stats, filters, sort);
-    const result = await this.solr.post(request, index);
-    return buildResponse(result, facet, index, domain, filters);
+  async find ({ request: { facet, index, domain, stats, filters, sort } }) {
+    const request = buildSolrRequest(facet, index, domain, stats, filters, sort)
+    debug(
+      'stats request',
+      index,
+      request.query,
+      JSON.stringify(request.facet, null, 2)
+    )
+    const result = await this.solr.post(request, index)
+    debug('stats result', result.facets)
+    return buildResponse(result, facet, index, domain, filters)
   }
 }
 
-module.exports = { Stats };
+module.exports = { Stats }
