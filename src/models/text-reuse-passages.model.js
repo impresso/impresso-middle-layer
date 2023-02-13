@@ -5,7 +5,7 @@ const SolrFields = {
   id: 'id',
   contentItemId: 'ci_id_s',
   size: 'content_length_i',
-  clusterId: 'cluster_id_s',
+  textReuseClusterId: 'cluster_id_s',
   isFront: 'front_b',
   offsetStart: 'beg_offset_i',
   offsetEnd: 'end_offset_i',
@@ -35,7 +35,7 @@ class TextReusePassage {
   constructor ({
     id = 'id',
     contentItemId = 'ci_id_s',
-    clusterId = 'cluster_id_s',
+    textReuseClusterId = 'cluster_id_s',
     offsetStart = 'beg_offset_i',
     offsetEnd = 'end_offset_i',
     contentTextFr,
@@ -59,7 +59,7 @@ class TextReusePassage {
   }) {
     this.id = id
     this.article = { id: contentItemId }
-    this.textReuseCluster = { id: clusterId, clusterSize }
+    this.textReuseCluster = { id: textReuseClusterId, clusterSize }
     this.offsetStart = parseInt(offsetStart, 10)
     this.offsetEnd = parseInt(offsetEnd, 10)
     this.content = contentTextEn || contentTextDe || contentTextFr || ''
