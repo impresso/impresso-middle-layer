@@ -41,7 +41,7 @@ class TextReusePassages {
       ? {
         fq: `{!collapse field=${
           TextReusePassage.SolrFields[params.query.groupby]
-        }}`,
+        } max=ms(${TextReusePassage.SolrFields.date})}`,
       }
       : null
     debug(
