@@ -1,6 +1,7 @@
 const { splitId } = require('../../hooks/parameters')
 const {
   validateId,
+  validateAgainstOptions,
   validatePagination,
   validateWithSchemaUri,
 } = require('../../hooks/validators')
@@ -31,6 +32,7 @@ module.exports = {
         label: '"filters" query string parameter',
         defaultValue: [],
       }),
+      validateAgainstOptions('params.query.groupby', ['textReuseClusterId']),
     ],
   },
 }
