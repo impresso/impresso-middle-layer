@@ -1,9 +1,9 @@
 // @ts-check
-const debug = require('debug')('impresso/solr');
-const lodash = require('lodash');
-const { URL, URLSearchParams } = require('url');
-const { preprocessSolrError } = require('./util/solr/errors');
-const { initHttpPool } = require('./httpConnectionPool');
+const debug = require('debug')('impresso/solr')
+const lodash = require('lodash')
+const { URL, URLSearchParams } = require('url')
+const { preprocessSolrError } = require('./util/solr/errors')
+const { initHttpPool } = require('./httpConnectionPool')
 
 /**
  * @typedef {import('node-fetch').Response} Response
@@ -23,7 +23,7 @@ const SolrNamespaces = Object.freeze({
   EmbeddingsFR: 'embeddings_fr',
   EmbeddingsLB: 'embeddings_lb',
   EntitiesMentions: 'entities_mentions',
-});
+})
 
 /**
  * Create headers object out of authentication details.
@@ -31,12 +31,12 @@ const SolrNamespaces = Object.freeze({
  * @returns {{ [key: string]: string }}
  */
 const buildAuthHeaders = (auth) => {
-  const authString = `${auth.user}:${auth.pass}`;
+  const authString = `${auth.user}:${auth.pass}`
 
   return {
     Authorization: `Basic ${Buffer.from(authString).toString('base64')}`,
-  };
-};
+  }
+}
 
 /**
  * Transform Solr response to a JavaScript object.
@@ -47,44 +47,50 @@ const buildAuthHeaders = (auth) => {
  * @returns {any}
  */
 const transformSolrResponse = (text) => {
-  const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/mg);
-  const replacedText = matches && matches.length > 1
-    ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{')
-    : text;
+  const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/gm)
+  const replacedText =
+    matches && matches.length > 1
+      ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{')
+      : text
 
-  return JSON.parse(replacedText);
-};
+  return JSON.parse(replacedText)
+}
 
 /**
  * @param {Response} res response
  * @returns {Promise<Response>}
  */
 const checkFetchResponseStatus = async (res) => {
-  if (res.ok) return res;
-  const error = new Error(res.statusText);
+  if (res.ok) return res
+  const error = new Error(res.statusText)
   // @ts-ignore
   error.response = {
     statusCode: res.status,
     body: await res.text(),
-  };
-  throw error;
-};
+  }
+  throw error
+}
 
 /**
  * @param {{[key: string]: any}} queryParmeters
  * @returns {URLSearchParams}
  */
 function toUrlSearchParameters (queryParmeters = {}) {
-  const preparedQueryParameters = Object.keys(queryParmeters)
-    .reduce((acc, key) => {
-      if (queryParmeters[key] == null) return acc;
+  const preparedQueryParameters = Object.keys(queryParmeters).reduce(
+    (acc, key) => {
+      if (queryParmeters[key] == null) return acc
       return {
         ...acc,
-        [key]: typeof queryParmeters[key] === 'string' ? queryParmeters[key] : JSON.stringify(queryParmeters[key]),
-      };
-    }, {});
+        [key]:
+          typeof queryParmeters[key] === 'string'
+            ? queryParmeters[key]
+            : JSON.stringify(queryParmeters[key]),
+      }
+    },
+    {}
+  )
 
-  return new URLSearchParams(preparedQueryParameters);
+  return new URLSearchParams(preparedQueryParameters)
 }
 
 /**
@@ -96,8 +102,8 @@ function toUrlSearchParameters (queryParmeters = {}) {
  * @returns {string}
  */
 function buildUrl (baseUrl, queryParams = {}) {
-  const qp = toUrlSearchParameters(queryParams);
-  return `${baseUrl}?${qp.toString()}`;
+  const qp = toUrlSearchParameters(queryParams)
+  return `${baseUrl}?${qp.toString()}`
 }
 
 /**
@@ -111,20 +117,23 @@ function buildUrl (baseUrl, queryParams = {}) {
  * @param {object} requestParams
  */
 function maybeConvertGetToPostParams (url, requestParams) {
-  if (requestParams.method !== 'GET') return [url, requestParams];
+  if (requestParams.method !== 'GET') return [url, requestParams]
 
   // get rid of possible query string in the URL.
-  const u = new URL(url);
-  const updatedUrl = [u.origin, u.pathname].join('');
+  const u = new URL(url)
+  const updatedUrl = [u.origin, u.pathname].join('')
 
-  return [updatedUrl, {
-    ...requestParams,
-    method: 'POST',
-    qs: undefined, // unset query string
-    body: JSON.stringify({
-      params: requestParams.qs || {},
-    }),
-  }];
+  return [
+    updatedUrl,
+    {
+      ...requestParams,
+      method: 'POST',
+      qs: undefined, // unset query string
+      body: JSON.stringify({
+        params: requestParams.qs || {},
+      }),
+    },
+  ]
 }
 
 /**
@@ -133,29 +142,32 @@ function maybeConvertGetToPostParams (url, requestParams) {
  * @param {ConnectionPool} connectionPool
  */
 async function executeRequest (url, params, connectionPool) {
-  const connection = await connectionPool.acquire();
+  const connection = await connectionPool.acquire()
   if (connectionPool.available === 0) {
-    console.warn(`No more available Solr connections out of max ${connectionPool.max}. Next client will be waiting.`);
+    console.warn(
+      `No more available Solr connections out of max ${connectionPool.max}. Next client will be waiting.`
+    )
   }
 
   try {
-    const [u, p] = maybeConvertGetToPostParams(url, params);
-    return await connection.fetch(u, p)
+    const [u, p] = maybeConvertGetToPostParams(url, params)
+    return await connection
+      .fetch(u, p)
       .then(checkFetchResponseStatus)
-      .then(response => response.text())
+      .then((response) => response.text())
       .then(transformSolrResponse)
       .catch((error) => {
-        throw preprocessSolrError(error);
-      });
+        throw preprocessSolrError(error)
+      })
   } finally {
     try {
-      await connectionPool.release(connection);
+      await connectionPool.release(connection)
     } catch (e) {
       const message = `
         Could not release Solr connection to the pool: ${e.message}.
         This does not cause an error for the user but should be looked into.
-      `;
-      console.warn(message);
+      `
+      console.warn(message)
     }
   }
 }
@@ -171,10 +183,14 @@ async function executeRequest (url, params, connectionPool) {
  * @returns {Promise<any>} response
  */
 const postRaw = async (
-  config, connectionPool, payload, queryParams = {}, namespace = SolrNamespaces.Search,
+  config,
+  connectionPool,
+  payload,
+  queryParams = {},
+  namespace = SolrNamespaces.Search
 ) => {
-  const { endpoint } = config[namespace];
-  const url = buildUrl(endpoint, queryParams);
+  const { endpoint } = config[namespace]
+  const url = buildUrl(endpoint, queryParams)
   const opts = {
     method: 'POST',
     headers: {
@@ -182,10 +198,10 @@ const postRaw = async (
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
-  };
-
-  return executeRequest(url, opts, connectionPool);
-};
+  }
+  console.log('postRaw', url, opts)
+  return executeRequest(url, opts, connectionPool)
+}
 
 /**
  * Send a raw 'POST' request with form payload to Solr.
@@ -198,11 +214,15 @@ const postRaw = async (
  * @returns {Promise<any>} response
  */
 const postFormRaw = async (
-  config, connectionPool, payload, queryParams = {}, namespace = SolrNamespaces.Search,
+  config,
+  connectionPool,
+  payload,
+  queryParams = {},
+  namespace = SolrNamespaces.Search
 ) => {
-  const { endpoint } = config[namespace];
-  const url = buildUrl(endpoint, queryParams);
-  const body = toUrlSearchParameters(payload);
+  const { endpoint } = config[namespace]
+  const url = buildUrl(endpoint, queryParams)
+  const body = toUrlSearchParameters(payload)
 
   const opts = {
     method: 'POST',
@@ -210,10 +230,10 @@ const postFormRaw = async (
       ...buildAuthHeaders(config.auth),
     },
     body,
-  };
+  }
 
-  return executeRequest(url, opts, connectionPool);
-};
+  return executeRequest(url, opts, connectionPool)
+}
 
 /**
  * Send a raw 'GET' request to Solr.
@@ -226,9 +246,15 @@ const postFormRaw = async (
  *
  * @returns {Promise<any>} response
  */
-const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces.Search, endpointKey = 'endpoint') => {
-  const endpoint = config[namespace][endpointKey];
-  const url = buildUrl(endpoint, params);
+const getRaw = async (
+  config,
+  connectionPool,
+  params,
+  namespace = SolrNamespaces.Search,
+  endpointKey = 'endpoint'
+) => {
+  const endpoint = config[namespace][endpointKey]
+  const url = buildUrl(endpoint, params)
 
   const options = {
     method: 'GET',
@@ -237,10 +263,10 @@ const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces
       'Content-Type': 'application/json',
     },
     qs: params,
-  };
+  }
 
-  return executeRequest(url, options, connectionPool);
-};
+  return executeRequest(url, options, connectionPool)
+}
 
 const suggest = async (config, connectionPool, params = {}, factory) => {
   const _params = {
@@ -252,7 +278,7 @@ const suggest = async (config, connectionPool, params = {}, factory) => {
     excerptLength: 30,
     namespace: 'mentions',
     ...params,
-  };
+  }
 
   const qs = {
     'suggest.q': _params.q,
@@ -262,34 +288,39 @@ const suggest = async (config, connectionPool, params = {}, factory) => {
     rows: _params.limit,
     wt: 'json',
     // wt: 'xml'
-  };
+  }
 
   // suggest?suggest.q=Vic&suggest.dictionary=m_suggester_infix&suggest.cfq=Person
-  debug(`suggest: request to '${_params.namespace}' url: `, qs);
+  debug(`suggest: request to '${_params.namespace}' url: `, qs)
 
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
-  return getRaw(config, connectionPool, qs, _params.namespace, 'suggest').then((res) => {
-    const results = lodash.get(res, `suggest.${qs['suggest.dictionary']}.${qs['suggest.q']}`);
+  return getRaw(config, connectionPool, qs, _params.namespace, 'suggest')
+    .then((res) => {
+      const results = lodash.get(
+        res,
+        `suggest.${qs['suggest.dictionary']}.${qs['suggest.q']}`
+      )
 
-    debug(
-      `'suggest' success, ${results.numFound} results in ${res.responseHeader.QTime}ms`,
-      factory ? 'with factory' : 'but no factory specified',
-    );
-    if (!results) {
-      return [];
-    }
-    if (factory) {
-      results.suggestions = lodash(results.suggestions)
-        .take(qs.rows)
-        .map(factory())
-        .value();
-    }
-    return lodash.take(results.suggestions, qs.rows);
-  }).catch((error) => {
-    throw preprocessSolrError(error);
-  });
-};
+      debug(
+        `'suggest' success, ${results.numFound} results in ${res.responseHeader.QTime}ms`,
+        factory ? 'with factory' : 'but no factory specified'
+      )
+      if (!results) {
+        return []
+      }
+      if (factory) {
+        results.suggestions = lodash(results.suggestions)
+          .take(qs.rows)
+          .map(factory())
+          .value()
+      }
+      return lodash.take(results.suggestions, qs.rows)
+    })
+    .catch((error) => {
+      throw preprocessSolrError(error)
+    })
+}
 // TODO: `factory` is not used
 const findAllPost = (config, connectionsPool, params = {}, factory) => {
   const qp = {
@@ -300,42 +331,45 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
     namespace: 'search',
     requestOriginalPath: '...',
     ...params,
-  };
+  }
 
-  debug(`[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint. With PARAMS:`, qp);
+  debug(
+    `[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint. With PARAMS:`,
+    qp
+  )
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
-  const endpoint = `${config[qp.namespace].endpoint}`;
+  const endpoint = `${config[qp.namespace].endpoint}`
 
   const data = {
     q: qp.q,
     start: qp.skip,
     rows: qp.limit,
     wt: 'json',
-  };
+  }
 
   if (qp.fq && qp.fq.length) {
-    data.fq = qp.fq;
+    data.fq = qp.fq
   }
   if (qp.highlight_by) {
-    data.hl = 'on';
-    data['hl.fl'] = qp.highlight_by;
+    data.hl = 'on'
+    data['hl.fl'] = qp.highlight_by
     if (qp.highlightProps) {
-      Object.assign(data, qp.highlightProps);
+      Object.assign(data, qp.highlightProps)
     }
   }
   if (qp.vars) {
-    Object.assign(data, qp.vars);
+    Object.assign(data, qp.vars)
   }
   // transform order by if any
   if (qp.order_by) {
-    data.sort = qp.order_by;
+    data.sort = qp.order_by
   }
 
   // transform facets if any
   //
   if (qp.facets) {
-    data['json.facet'] = qp.facets;
+    data['json.facet'] = qp.facets
   }
 
   if (qp.group_by && qp.group_by !== 'id') {
@@ -345,46 +379,51 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
       // 'group.main': true,
       'group.limit': 3, // top 3
       'group.ngroups': true,
-    });
+    })
   } else if (qp.collapse_by) {
     // using https://lucene.apache.org/solr/guide/6_6/collapse-and-expand-results.html
     if (!qp.collapse_fn) {
-      data.collapse_fn = '';
+      data.collapse_fn = ''
     }
     if (qp.expand) {
-      data.expand = true;
+      data.expand = true
     }
     Object.assign(data, {
       fq: `{!collapse field=${qp.collapse_by} ${qp.collapse_fn}}`, // top 1 document matching.
-    });
+    })
   }
 
   if (qp.fl) {
-    data.fl = Array.isArray(qp.fl) ? qp.fl.join(',') : qp.fl;
+    data.fl = Array.isArray(qp.fl) ? qp.fl.join(',') : qp.fl
   }
 
-  debug(`[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint: '${endpoint}'. Using 'data':`, data);
-  return postFormRaw(config, connectionsPool, data, {}, qp.namespace).then((result) => {
-    if (result.grouped) {
-      result.response = {
-        numFound: result.grouped[qp.group_by].ngroups,
-        docs: result.grouped[qp.group_by].groups,
-      };
-    }
+  debug(
+    `[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint: '${endpoint}'. Using 'data':`,
+    data
+  )
+  return postFormRaw(config, connectionsPool, data, {}, qp.namespace)
+    .then((result) => {
+      if (result.grouped) {
+        result.response = {
+          numFound: result.grouped[qp.group_by].ngroups,
+          docs: result.grouped[qp.group_by].groups,
+        }
+      }
 
-    debug(
-      `[findAllPost][${qp.requestOriginalPath}] success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
-      factory ? 'with factory' : '(no factory specified)',
-    );
+      debug(
+        `[findAllPost][${qp.requestOriginalPath}] success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
+        factory ? 'with factory' : '(no factory specified)'
+      )
 
-    if (factory) {
-      result.response.docs = result.response.docs.map(factory(result));
-    }
-    return result;
-  }).catch((error) => {
-    throw preprocessSolrError(error);
-  });
-};
+      if (factory) {
+        result.response.docs = result.response.docs.map(factory(result))
+      }
+      return result
+    })
+    .catch((error) => {
+      throw preprocessSolrError(error)
+    })
+}
 
 /**
  * request wrapper to get results from solr.
@@ -401,13 +440,16 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
     namespace: 'search',
     requestOriginalPath: '',
     ...params,
-  };
+  }
 
-  debug(`[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With PARAMS`, _params);
+  debug(
+    `[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With PARAMS`,
+    _params
+  )
 
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
-  const endpoint = `${config[_params.namespace].endpoint}`;
+  const endpoint = `${config[_params.namespace].endpoint}`
 
   let qs = {
     q: _params.q,
@@ -416,29 +458,29 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
     rows: _params.limit,
     wt: 'json',
     // wt: 'xml'
-  };
+  }
   if (_params.fq && _params.fq.length) {
-    qs.fq = _params.fq;
+    qs.fq = _params.fq
   }
   if (_params.highlight_by) {
-    qs.hl = 'on';
-    qs['hl.fl'] = _params.highlight_by;
+    qs.hl = 'on'
+    qs['hl.fl'] = _params.highlight_by
     if (_params.highlightProps) {
-      Object.assign(qs, _params.highlightProps);
+      Object.assign(qs, _params.highlightProps)
     }
   }
   if (_params.vars) {
-    Object.assign(qs, _params.vars);
+    Object.assign(qs, _params.vars)
   }
   // transform order by if any
   if (_params.order_by) {
-    qs.sort = _params.order_by;
+    qs.sort = _params.order_by
   }
 
   // transform facets if any
   //
   if (_params.facets) {
-    qs['json.facet'] = _params.facets;
+    qs['json.facet'] = _params.facets
   }
 
   if (_params.group_by && _params.group_by !== 'id') {
@@ -449,26 +491,25 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
       // 'group.main': true,
       'group.limit': 3, // top 3
       'group.ngroups': true,
-    };
+    }
   } else if (_params.collapse_by) {
     // using https://lucene.apache.org/solr/guide/6_6/collapse-and-expand-results.html
     if (!_params.collapse_fn) {
-      _params.collapse_fn = '';
+      _params.collapse_fn = ''
     }
     if (_params.expand) {
-      qs.expand = true;
+      qs.expand = true
     }
     qs = {
       ...qs,
       fq: `{!collapse field=${_params.collapse_by} ${_params.collapse_fn}}`, // top 1 document matching.
-    };
+    }
   }
 
   if (_params.fl) {
-    qs.fl = Array.isArray(_params.fl) ? _params.fl.join(',') : _params.fl;
+    qs.fl = Array.isArray(_params.fl) ? _params.fl.join(',') : _params.fl
   } else {
     // default values for fields
-
   }
 
   const opts = {
@@ -478,53 +519,64 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
     // qs,
     // form: _params.form,
     // json: true REMOVED because of duplicate keys
-  };
+  }
 
-  let requestPromise;
+  let requestPromise
 
   if (_params.form) {
     // rewrite query string to get fq and limit the qs params
-    opts.form = _params.form;
-    opts.form.fq = _params.fq;
+    opts.form = _params.form
+    opts.form.fq = _params.fq
     opts.qs = {
       start: _params.skip,
       rows: _params.limit,
-    };
+    }
     if (qs['json.facet']) {
-      opts.qs['json.facet'] = qs['json.facet'];
+      opts.qs['json.facet'] = qs['json.facet']
     }
     // opts.form.q = opts.form.q + ' AND ' +
-    opts.method = 'POST';
-    requestPromise = postFormRaw(config, connectionPool, opts.form, opts.qs, _params.namespace);
+    opts.method = 'POST'
+    requestPromise = postFormRaw(
+      config,
+      connectionPool,
+      opts.form,
+      opts.qs,
+      _params.namespace
+    )
   } else {
-    opts.qs = qs;
-    requestPromise = getRaw(config, connectionPool, qs, _params.namespace);
+    opts.qs = qs
+    requestPromise = getRaw(config, connectionPool, qs, _params.namespace)
   }
 
-  debug(`[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With 'qs':`, JSON.stringify(opts.qs));
-  debug(`[findAll][${_params.requestOriginalPath}]: url`, endpoint);
+  debug(
+    `[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With 'qs':`,
+    JSON.stringify(opts.qs)
+  )
+  debug(`[findAll][${_params.requestOriginalPath}]: url`, endpoint)
 
-  return requestPromise.then((result) => {
-    if (result.grouped) {
-      result.response = {
-        numFound: result.grouped[_params.group_by].ngroups,
-        docs: result.grouped[_params.group_by].groups,
-      };
-    }
+  return requestPromise
+    .then((result) => {
+      if (result.grouped) {
+        result.response = {
+          numFound: result.grouped[_params.group_by].ngroups,
+          docs: result.grouped[_params.group_by].groups,
+        }
+      }
 
-    debug(
-      `[findAll][${_params.requestOriginalPath}] success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
-      factory ? 'with factory' : 'but no factory specified',
-    );
+      debug(
+        `[findAll][${_params.requestOriginalPath}] success, ${result.response.numFound} results in ${result.responseHeader.QTime}ms`,
+        factory ? 'with factory' : 'but no factory specified'
+      )
 
-    if (factory) {
-      result.response.docs = result.response.docs.map(factory(result));
-    }
-    return result;
-  }).catch((error) => {
-    throw preprocessSolrError(error);
-  });
-};
+      if (factory) {
+        result.response.docs = result.response.docs.map(factory(result))
+      }
+      return result
+    })
+    .catch((error) => {
+      throw preprocessSolrError(error)
+    })
+}
 
 /**
  * Return a classic data response for lazy people
@@ -532,15 +584,15 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
  * @return {[type]}     [description]
  */
 const wrapAll = (res) => {
-  let limit = parseInt(res.responseHeader.params.rows, 10);
-  let skip = parseInt(res.responseHeader.params.start, 10);
+  let limit = parseInt(res.responseHeader.params.rows, 10)
+  let skip = parseInt(res.responseHeader.params.start, 10)
   if (typeof res.responseHeader.params.json === 'string') {
     try {
-      const { params } = JSON.parse(res.responseHeader.params.json);
-      limit = typeof params.rows === 'number' ? params.rows : limit;
-      skip = typeof params.start === 'number' ? params.start : skip;
+      const { params } = JSON.parse(res.responseHeader.params.json)
+      limit = typeof params.rows === 'number' ? params.rows : limit
+      skip = typeof params.start === 'number' ? params.start : skip
     } catch (e) {
-      console.warn(e);
+      console.warn(e)
     }
   }
   return {
@@ -554,8 +606,8 @@ const wrapAll = (res) => {
       },
       facets: res.facets,
     },
-  };
-};
+  }
+}
 
 /**
  * [resolveAsync description]
@@ -566,55 +618,68 @@ const wrapAll = (res) => {
  * @return {Promise<any>} {uid: instance}
  */
 const resolveAsync = async (config, connectionsPool, groups, factory) => {
-  debug(`resolveAsync':  ${groups.length} groups to resolve`);
-  await Promise.all(groups.filter(group => group.items.length > 0).map((group, k) => {
-    debug(`resolveAsync': findAll for namespace "${group.namespace}"`);
-    const ids = group.items.map(d => d[group.idField || 'uid']);
-    return findAll(config, connectionsPool, {
-      q: `id:${ids.join(' OR id:')}`,
-      fl: group.Klass.SOLR_FL,
-      limit: ids.length,
-      namespace: group.namespace,
-    }, factory || group.factory || group.Klass.solrFactory).then((res) => {
-      res.response.docs.forEach((doc) => {
-        const idx = ids.indexOf(doc.uid);
-        groups[k].items[idx][group.itemField || 'item'] = doc;
-      });
-    });
-  }));
-  return groups;
-};
+  debug(`resolveAsync':  ${groups.length} groups to resolve`)
+  await Promise.all(
+    groups
+      .filter((group) => group.items.length > 0)
+      .map((group, k) => {
+        debug(`resolveAsync': findAll for namespace "${group.namespace}"`)
+        const ids = group.items.map((d) => d[group.idField || 'uid'])
+        return findAll(
+          config,
+          connectionsPool,
+          {
+            q: `id:${ids.join(' OR id:')}`,
+            fl: group.Klass.SOLR_FL,
+            limit: ids.length,
+            namespace: group.namespace,
+          },
+          factory || group.factory || group.Klass.solrFactory
+        ).then((res) => {
+          res.response.docs.forEach((doc) => {
+            const idx = ids.indexOf(doc.uid)
+            groups[k].items[idx][group.itemField || 'item'] = doc
+          })
+        })
+      })
+  )
+  return groups
+}
 
 /**
  * @param {any} config configuration.
  * @param {ConnectionPool} connectionsPool
  */
 const getSolrClient = (config, connectionsPool) => ({
-  findAll: (params, factory) => findAll(config, connectionsPool, params, factory),
-  findAllPost: (params, factory) => findAllPost(config, connectionsPool, params, factory),
-  suggest: (params, factory) => suggest(config, connectionsPool, params, factory),
-  requestGetRaw: async (params, namespace) => getRaw(config, connectionsPool, params, namespace),
-  requestPostRaw: async (payload, namespace) => postRaw(
-    config, connectionsPool, payload, {}, namespace,
-  ),
+  findAll: (params, factory) =>
+    findAll(config, connectionsPool, params, factory),
+  findAllPost: (params, factory) =>
+    findAllPost(config, connectionsPool, params, factory),
+  suggest: (params, factory) =>
+    suggest(config, connectionsPool, params, factory),
+  requestGetRaw: async (params, namespace) =>
+    getRaw(config, connectionsPool, params, namespace),
+  requestPostRaw: async (payload, namespace) =>
+    postRaw(config, connectionsPool, payload, {}, namespace),
   utils: {
-    resolveAsync: (items, factory) => resolveAsync(config, connectionsPool, items, factory),
+    resolveAsync: (items, factory) =>
+      resolveAsync(config, connectionsPool, items, factory),
   },
-});
+})
 
 module.exports = function (app) {
-  const config = app.get('solr');
-  const connectionPool = initHttpPool(app.get('solrConnectionPool'));
-  app.set('solrClient', getSolrClient(config, connectionPool));
-};
+  const config = app.get('solr')
+  const connectionPool = initHttpPool(app.get('solrConnectionPool'))
+  app.set('solrClient', getSolrClient(config, connectionPool))
+}
 
 module.exports.client = (solrConfig, poolConfig) => {
-  const connectionPool = initHttpPool(poolConfig);
-  return getSolrClient(solrConfig, connectionPool);
-};
+  const connectionPool = initHttpPool(poolConfig)
+  return getSolrClient(solrConfig, connectionPool)
+}
 
-module.exports.SolrNamespaces = SolrNamespaces;
+module.exports.SolrNamespaces = SolrNamespaces
 
 module.exports.utils = {
   wrapAll,
-};
+}
