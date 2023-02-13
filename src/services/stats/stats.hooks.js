@@ -1,4 +1,5 @@
 // @ts-check
+const debug = require('debug')('impresso/services:stats');
 const assert = require('assert');
 const { BadRequest } = require('@feathersjs/errors');
 const { protobuf } = require('impresso-jscommons');
@@ -36,7 +37,6 @@ function parseAndValidateQueryParameters (context) {
     filters: serializedFilters,
     sort
   } = context.params.query;
-
   assert.ok(SupportedIndexes.includes(index), new BadRequest(`Unknown index "${index}". Must be one of: ${SupportedIndexes.join(', ')}`));
 
   const supportedFacets = SupportedFacetsByIndex[index];
@@ -50,6 +50,7 @@ function parseAndValidateQueryParameters (context) {
   assert.equal(unknownStats.length, 0, new BadRequest(`Unknown stats: ${unknownStats.join(', ')}. Supported stats: ${SupportedStats.join(', ')}`));
 
   const filters = deserializeFilters(serializedFilters);
+  debug('parseAndValidateQueryParameters', filters)
 
   context.params.request = {
     facet,
