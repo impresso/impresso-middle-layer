@@ -97,6 +97,9 @@ indexes:
         rule: value
   tr_clusters:
     filters:
+      textReuseCluster:
+        field: id
+        rule: value
       textReuseClusterSize:
         field: cluster_size_l
         rule: numericRange
