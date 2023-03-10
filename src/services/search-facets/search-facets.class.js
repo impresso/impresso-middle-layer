@@ -31,6 +31,7 @@ const getRangeFacetMetadata = (facet) => {
   return {
     min: facet.start,
     max: facet.end,
+    gap: facet.gap,
   }
 }
 
@@ -61,7 +62,11 @@ class Service {
       `GET facets query for type "${type}" (${
         canBeCached ? 'cached' : 'not cached'
       }):`,
-      facetsq
+      `index: ${index}`,
+      'facets:',
+      facetsq,
+      'groupby',
+      params.sanitized.groupby
     )
     // facets is an Object, will be stringified for the solr query.
     // eslint-disable-next-line max-len
@@ -91,10 +96,15 @@ class Service {
       vars: params.sanitized.sv,
     }
 
+    if (params.sanitized.groupby) {
+      query.fq = `{!collapse field=${params.sanitized.groupby}}`
+    }
+    debug('query:', query)
     const result = await measureTime(
-      () => this.solr.get(query, index, { skipCache: !canBeCached }),
+      () => this.solr.get(query, index, { skipCache: true }), //! canBeCached }),
       'search-facets.get.solr.facets'
     )
+    debug('result:', types)
     return types.map(
       (t) =>
         new SearchFacet({

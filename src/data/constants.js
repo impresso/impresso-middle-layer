@@ -4,13 +4,13 @@ const { DataIndex } = require('./index')
 
 const facetRanges = new DataIndex({ name: 'facetRanges' })
 
-function getRangeFacetValue(index, facet, key, defaultValue) {
+function getRangeFacetValue (index, facet, key, defaultValue) {
   const indexData = facetRanges.getValue(index) || {}
   const { [facet]: descriptor = {} } = indexData
   return descriptor[key] == null ? defaultValue : descriptor[key]
 }
 
-function getRangeFacetParametersWithDefault(
+function getRangeFacetParametersWithDefault (
   index,
   facet,
   numBuckets,
@@ -269,16 +269,9 @@ const SolrMappings = Object.freeze({
       textReuseClusterSize: {
         type: 'range',
         field: 'cluster_size_l',
-        ...getRangeFacetParametersWithDefault(
-          'tr_clusters',
-          'textReuseClusterSize',
-          200,
-          {
-            end: 50000,
-            start: 0,
-            gap: 250,
-          }
-        ),
+        end: 50000,
+        start: 2,
+        gap: 250,
       },
       textReuseClusterLexicalOverlap: {
         type: 'range',
