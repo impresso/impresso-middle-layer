@@ -48,6 +48,20 @@ module.exports = {
             }),
         },
       }),
+      // validate groupby params against index
+      (context) => {
+        const { index, groupby } = context.params.query
+        // if group by exists and it is a string
+        if (typeof groupby === 'string' && groupby.length > 0) {
+          if (!Object.keys(SolrMappings[index].facets).includes(groupby)) {
+            throw new Error(
+              `Invalid groupby parameter for index ${index}: ${groupby}`
+            )
+          }
+          context.params.groupby = context.params.sanitized.groupby =
+            SolrMappings[index].facets[groupby].field
+        }
+      },
       validateEach('filters', eachFilterValidator),
       filtersToSolrQuery({
         overrideOrderBy: false,

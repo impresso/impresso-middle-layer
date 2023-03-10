@@ -31,11 +31,12 @@ const getRangeFacetMetadata = (facet) => {
   return {
     min: facet.start,
     max: facet.end,
+    gap: facet.gap,
   }
 }
 
 class Service {
-  constructor ({ app, name }) {
+  constructor({ app, name }) {
     this.app = app
     this.name = name
 
@@ -43,7 +44,7 @@ class Service {
     this.solr = app.get('cachedSolr')
   }
 
-  async get (type, params) {
+  async get(type, params) {
     const { index } = params.query
     const types = getFacetTypes(type, index)
 
@@ -61,7 +62,11 @@ class Service {
       `GET facets query for type "${type}" (${
         canBeCached ? 'cached' : 'not cached'
       }):`,
-      facetsq
+      `index: ${index}`,
+      'facets:',
+      facetsq,
+      'groupby',
+      params.sanitized.groupby
     )
     // facets is an Object, will be stringified for the solr query.
     // eslint-disable-next-line max-len
@@ -91,10 +96,15 @@ class Service {
       vars: params.sanitized.sv,
     }
 
+    if (params.sanitized.groupby) {
+      query.fq = `{!collapse field=${params.sanitized.groupby}}`
+    }
+    debug('query:', query)
     const result = await measureTime(
-      () => this.solr.get(query, index, { skipCache: !canBeCached }),
+      () => this.solr.get(query, index, { skipCache: true }), //!canBeCached }),
       'search-facets.get.solr.facets'
     )
+    debug('result:', types)
     return types.map(
       (t) =>
         new SearchFacet({
@@ -105,7 +115,7 @@ class Service {
     )
   }
 
-  async find (params) {
+  async find(params) {
     debug(`find '${this.name}': query:`, params.sanitized, params.sanitized.sv)
 
     // TODO: we may want to skip caching if facets requested contain 'collection'
