@@ -269,16 +269,9 @@ const SolrMappings = Object.freeze({
       textReuseClusterSize: {
         type: 'range',
         field: 'cluster_size_l',
-        ...getRangeFacetParametersWithDefault(
-          'tr_clusters',
-          'textReuseClusterSize',
-          200,
-          {
-            end: 50000,
-            start: 0,
-            gap: 250,
-          }
-        ),
+        end: 50000,
+        start: 2,
+        gap: 250,
       },
       textReuseClusterLexicalOverlap: {
         type: 'range',
