@@ -50,8 +50,8 @@ class TextReusePassages {
       '- index:',
       this.solr.namespaces.TextReusePassages,
       '- groupby:',
-      groupby,
-      params.query
+      groupby
+      // params.query
     )
 
     return this.solr

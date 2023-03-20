@@ -22,5 +22,5 @@ run-dev:
 	GIT_TAG=$(shell git describe --tags --abbrev=0 HEAD) \
 	GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD) \
 	GIT_REVISION=$(shell git rev-parse --short HEAD) \
-	NODE_ENV=development DEBUG=impresso* \
+	NODE_ENV=development \
 	npm run dev
