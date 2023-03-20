@@ -1,12 +1,25 @@
-const { protect } = require('@feathersjs/authentication-local').hooks;
-const { authenticate } = require('../../hooks/authenticate');
+const { protect } = require('@feathersjs/authentication-local').hooks
+const { authenticate } = require('../../hooks/authenticate')
 const {
-  validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID, utils,
-} = require('../../hooks/params');
-const { filtersToSolrQuery, qToSolrFilter } = require('../../hooks/search');
-const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info');
-const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = require('./search.validators');
-const { SolrMappings } = require('../../data/constants');
+  validate,
+  validateEach,
+  queryWithCommonParams,
+  displayQueryParams,
+  REGEX_UID,
+  utils,
+} = require('../../hooks/params')
+const { filtersToSolrQuery, qToSolrFilter } = require('../../hooks/search')
+const {
+  resolveQueryComponents,
+  filtersToSolrFacetQuery,
+} = require('../../hooks/search-info')
+const {
+  paramsValidator,
+  eachFilterValidator,
+  eachFacetFilterValidator,
+} = require('./search.validators')
+const { SolrMappings } = require('../../data/constants')
+const { SolrNamespaces } = require('../../solr')
 
 module.exports = {
   before: {
@@ -44,17 +57,33 @@ module.exports = {
     get: [],
     create: [
       authenticate('jwt'),
-      validate({
-        collection_uid: {
-          required: true,
-          regex: REGEX_UID,
+      validate(
+        {
+          collection_uid: {
+            required: true,
+            regex: REGEX_UID,
+          },
+          group_by: {
+            required: true,
+            choices: ['articles'],
+            transform: (d) => utils.translate(d, SolrMappings.search.groupBy),
+          },
+          taskname: {
+            required: false,
+            choices: [
+              'add_to_collection_from_query',
+              'add_to_collection_from_tr_passages_query',
+            ],
+            defaultValue: 'add_to_collection_from_query',
+          },
+          index: {
+            required: false,
+            choices: [SolrNamespaces.Search, SolrNamespaces.TextReusePassages],
+            defaultValue: SolrNamespaces.Search,
+          },
         },
-        group_by: {
-          required: true,
-          choices: ['articles'],
-          transform: d => utils.translate(d, SolrMappings.search.groupBy),
-        },
-      }, 'POST'),
+        'POST'
+      ),
       validateEach('filters', eachFilterValidator, {
         required: true,
         method: 'POST',
@@ -62,6 +91,8 @@ module.exports = {
       filtersToSolrQuery({
         prop: 'data',
         overrideOrderBy: false,
+        solrIndexProvider: (context) =>
+          context.data.index || SolrNamespaces.Search,
       }),
     ],
     update: [],
@@ -92,4 +123,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}
