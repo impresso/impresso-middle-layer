@@ -27,6 +27,7 @@ module.exports = {
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
+
       validate({
         index: {
           choices: SupportedIndexes,
@@ -48,6 +49,7 @@ module.exports = {
             }),
         },
       }),
+
       // validate groupby params against index
       (context) => {
         const { index, groupby } = context.params.query
@@ -62,12 +64,35 @@ module.exports = {
             SolrMappings[index].facets[groupby].field
         }
       },
+
       validateEach('filters', eachFilterValidator),
       filtersToSolrQuery({
         overrideOrderBy: false,
         solrIndexProvider: (context) =>
           context.params.query.index || SolrNamespaces.Search,
       }),
+      (context) => {
+        const { rangeStart, rangeEnd, rangeGap, rangeInclude } =
+          context.params.query
+        if (['edge', 'all', 'upper'].includes(rangeInclude)) {
+          context.params.sanitized.rangeInclude = rangeInclude
+        }
+        // if they are all provided, verify that they are integer
+        if (!isNaN(rangeStart) && !isNaN(rangeEnd) && !isNaN(rangeGap)) {
+          if (
+            !Number.isInteger(Number(rangeStart)) ||
+            !Number.isInteger(Number(rangeEnd)) ||
+            !Number.isInteger(Number(rangeGap))
+          ) {
+            throw new Error(
+              `Invalid range parameters: rangeStart=${rangeStart}, rangeEnd=${rangeEnd}, rangeGap=${rangeGap}`
+            )
+          }
+          context.params.sanitized.rangeGap = context.params.query.rangeGap
+          context.params.sanitized.rangeStart = context.params.query.rangeStart
+          context.params.sanitized.rangeEnd = context.params.query.rangeEnd
+        }
+      },
       queryWithCommonParams(),
     ],
     create: [],
