@@ -84,6 +84,12 @@ indexes:
         collection:
           field: ucoll_ss
           limit: 100
+        textReuseClusterNewspapers:
+          field: cluster_newspapers_ss
+          limit: 50
+        textReuseCluster:
+          field: cluster_id_s
+          limit: 50
       numeric:
         textReuseClusterSize:
           field: cluster_size_l
