@@ -7,7 +7,12 @@ const Topic = require('../../models/topics.model')
 const Entity = require('../../models/entities.model')
 const Newspaper = require('../../models/newspapers.model')
 
-const { TimeDomain, StatsToSolrFunction } = require('./common')
+const {
+  TimeDomain,
+  StatsToSolrFunction,
+  SupportedStatistics,
+  StatsToSolrStatistics,
+} = require('./common')
 
 const FacetTypes = Object.freeze({
   Term: 'term',
@@ -52,21 +57,21 @@ const getFacetType = (index, facet) => {
 const getFacetQueryPart = (facet, index, type, stats) => {
   const facetDetails = statsConfiguration.indexes[index].facets[type][facet]
   switch (type) {
-  case FacetTypes.Numeric:
-    return stats.reduce((acc, stat) => {
-      acc[stat] = StatsToSolrFunction[stat](facetDetails.field)
-      return acc
-    }, {})
-  case FacetTypes.Term:
-    return {
-      items: {
-        type: 'terms',
-        field: facetDetails.field,
-        limit: facetDetails.limit,
-      },
-    }
-  default:
-    throw new Error(`Unknown facet type provided: ${type}`)
+    case FacetTypes.Numeric:
+      return stats.reduce((acc, stat) => {
+        acc[stat] = StatsToSolrFunction[stat](facetDetails.field)
+        return acc
+      }, {})
+    case FacetTypes.Term:
+      return {
+        items: {
+          type: 'terms',
+          field: facetDetails.field,
+          limit: facetDetails.limit,
+        },
+      }
+    default:
+      throw new Error(`Unknown facet type provided: ${type}`)
   }
 }
 
@@ -84,27 +89,33 @@ const getDomainDetails = (index, domain, filters) => {
     const { date, yearAndMonth, year } =
       statsConfiguration.indexes[index].facets.temporal
     switch (getTemporalResolution(domain, filters)) {
-    case TemporalResolution.Day:
-      return date
-    case TemporalResolution.Month:
-      return yearAndMonth
-    default:
-      return year
+      case TemporalResolution.Day:
+        return date
+      case TemporalResolution.Month:
+        return yearAndMonth
+      default:
+        return year
     }
   }
   return statsConfiguration.indexes[index].facets.term[domain]
 }
 
-function buildSolrRequest (facet, index, domain, stats, filters, sort) {
+function buildSolrRequest(facet, index, domain, stats, filters, sort, groupby) {
   const facetType = getFacetType(index, facet)
   const domainDetails = getDomainDetails(index, domain, filters)
 
   const { query } = filtersToQueryAndVariables(filters, index)
+  // add
+  const collapse = groupby
+    ? {
+        fq: `{!collapse field=${groupby}}`,
+      }
+    : null
 
   return {
     query,
     limit: 0,
-    params: { hl: false },
+    params: { hl: false, ...collapse },
     facet: {
       domain: {
         type: 'terms',
@@ -119,12 +130,12 @@ function buildSolrRequest (facet, index, domain, stats, filters, sort) {
 
 const parseDate = (val, resolution) => {
   switch (resolution) {
-  case TemporalResolution.Day:
-    return val.split('T')[0]
-  case TemporalResolution.Month:
-    return `${val}-01`
-  default:
-    return `${val}-01-01`
+    case TemporalResolution.Day:
+      return val.split('T')[0]
+    case TemporalResolution.Month:
+      return `${val}-01`
+    default:
+      return `${val}-01-01`
   }
 }
 
@@ -138,22 +149,22 @@ const withLabel = async (val, facet) => {
 
 const parseValue = (object, facetType) => {
   switch (facetType) {
-  case FacetTypes.Numeric:
-    return object
-  case FacetTypes.Term:
-    return {
-      count: object.count,
-      items: object.items.buckets.map(({ val: term, count }) => ({
-        term,
-        count,
-      })),
-    }
-  default:
-    throw new Error(`Unknown facet type provided: ${facetType}`)
+    case FacetTypes.Numeric:
+      return object
+    case FacetTypes.Term:
+      return {
+        count: object.count,
+        items: object.items.buckets.map(({ val: term, count }) => ({
+          term,
+          count,
+        })),
+      }
+    default:
+      throw new Error(`Unknown facet type provided: ${facetType}`)
   }
 }
 
-async function buildItemsDictionary (items, facet) {
+async function buildItemsDictionary(items, facet) {
   const terms = new Set(
     items
       .flatMap(({ value: { items: subitems = [] } }) => subitems)
@@ -176,7 +187,7 @@ const itemsSortFn = (a, b) => {
   return 0
 }
 
-async function buildResponse (result, facet, index, domain, filters) {
+async function buildResponse(result, facet, index, domain, filters) {
   const { domain: { buckets = [] } = {} } = result.facets
   const facetType = getFacetType(index, facet)
   const resolution = getTemporalResolution(domain, filters)
@@ -206,22 +217,90 @@ async function buildResponse (result, facet, index, domain, filters) {
 }
 
 class Stats {
-  constructor (app) {
+  constructor(app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.get('cachedSolr')
   }
 
-  async find ({ request: { facet, index, domain, stats, filters, sort } }) {
-    const request = buildSolrRequest(facet, index, domain, stats, filters, sort)
+  /** Get simple stats for a single dimension, always numeric stats */
+  async get(id, params) {
+    const { index, stats, filters } = params.query
+    // get field name from config stats.yml (numeric only)
+    const field = statsConfiguration.indexes[index].facets.numeric[id].field
+    // transform ["min","max"] in their corresponding solr function to build the query
+    // {!min=true+max=true}field
+    const statsField = `{!key=statistics ${stats
+      .split(',')
+      .map((s) => StatsToSolrStatistics[s])
+      .join(' ')}}${field}`
+
     debug(
-      'stats request',
+      '[get] index:',
       index,
-      request.query,
+      'field:',
+      field,
+      'stats:',
+      stats,
+      'n.filters:',
+      filters.length,
+      'statsField:',
+      statsField
+    )
+    const { query } = filtersToQueryAndVariables(filters, index)
+    const result = await this.solr.post(
+      {
+        query,
+        limit: 0,
+        params: { hl: false, stats: true, 'stats.field': statsField },
+      },
+      index
+    )
+    debug(
+      '[get] index:',
+      index,
+      'stats result',
+      result.stats.stats_fields.statistics
+    )
+    return {
+      statistics: result.stats.stats_fields.statistics,
+      total: result.response.numFound,
+    }
+  }
+
+  async find({
+    request: { facet, index, domain, stats, filters, sort, groupby },
+  }) {
+    const request = buildSolrRequest(
+      facet,
+      index,
+      domain,
+      stats,
+      filters,
+      sort,
+      groupby
+    )
+    debug(
+      '[find] index:',
+      index,
+      'groupby:',
+      groupby,
+      'domain:',
+      domain,
+      'stats:',
+      stats,
+      'filters:',
+      filters,
+      'sort:',
+      sort,
+      'facet:',
       JSON.stringify(request.facet, null, 2)
     )
     const result = await this.solr.post(request, index)
     debug('stats result', result.facets)
-    return buildResponse(result, facet, index, domain, filters)
+    const response = await buildResponse(result, facet, index, domain, filters)
+    debug('stats response', response.query)
+    return response
+    // return buildResponse(result, facet, index, domain, filters)
   }
 }
 
