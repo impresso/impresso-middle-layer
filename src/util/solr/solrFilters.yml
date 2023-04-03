@@ -151,6 +151,18 @@ indexes:
       isFront:
         field: front_b
         rule: boolean
+      topic:
+        field: topics_dpfs
+        rule: value
+      language:
+        field: lg_s
+        rule: value
+      type:
+        field: item_type_s
+        rule: value
+      country:
+        field: meta_country_code_s
+        rule: value
   entities:
     filters:
       string:
