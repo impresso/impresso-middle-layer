@@ -315,6 +315,27 @@ const SolrMappings = Object.freeze({
         limit: 10,
         numBuckets: true,
       },
+      topic: {
+        type: 'terms',
+        field: 'topics_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      language: {
+        type: 'terms',
+        field: 'lg_s',
+        mincount: 1,
+        numBuckets: true,
+      },
+      country: {
+        type: 'terms',
+        field: 'meta_country_code_s',
+        mincount: 1,
+        limit: 10,
+        numBuckets: true,
+      },
     },
   },
 })

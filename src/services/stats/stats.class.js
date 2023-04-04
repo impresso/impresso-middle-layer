@@ -7,7 +7,11 @@ const Topic = require('../../models/topics.model')
 const Entity = require('../../models/entities.model')
 const Newspaper = require('../../models/newspapers.model')
 
-const { TimeDomain, StatsToSolrFunction } = require('./common')
+const {
+  TimeDomain,
+  StatsToSolrFunction,
+  StatsToSolrStatistics,
+} = require('./common')
 
 const FacetTypes = Object.freeze({
   Term: 'term',
@@ -95,16 +99,22 @@ const getDomainDetails = (index, domain, filters) => {
   return statsConfiguration.indexes[index].facets.term[domain]
 }
 
-function buildSolrRequest (facet, index, domain, stats, filters, sort) {
+function buildSolrRequest (facet, index, domain, stats, filters, sort, groupby) {
   const facetType = getFacetType(index, facet)
   const domainDetails = getDomainDetails(index, domain, filters)
 
   const { query } = filtersToQueryAndVariables(filters, index)
+  // add
+  const collapse = groupby
+    ? {
+      fq: `{!collapse field=${groupby}}`,
+    }
+    : null
 
   return {
     query,
     limit: 0,
-    params: { hl: false },
+    params: { hl: false, ...collapse },
     facet: {
       domain: {
         type: 'terms',
@@ -211,17 +221,85 @@ class Stats {
     this.solr = app.get('cachedSolr')
   }
 
-  async find ({ request: { facet, index, domain, stats, filters, sort } }) {
-    const request = buildSolrRequest(facet, index, domain, stats, filters, sort)
+  /** Get simple stats for a single dimension, always numeric stats */
+  async get (id, params) {
+    const { index, stats, filters } = params.query
+    // get field name from config stats.yml (numeric only)
+    const field = statsConfiguration.indexes[index].facets.numeric[id].field
+    // transform ["min","max"] in their corresponding solr function to build the query
+    // {!min=true+max=true}field
+    const statsField = `{!key=statistics ${stats
+      .split(',')
+      .map((s) => StatsToSolrStatistics[s])
+      .join(' ')}}${field}`
+
     debug(
-      'stats request',
+      '[get] index:',
       index,
-      request.query,
+      'field:',
+      field,
+      'stats:',
+      stats,
+      'n.filters:',
+      filters.length,
+      'statsField:',
+      statsField
+    )
+    const { query } = filtersToQueryAndVariables(filters, index)
+    const result = await this.solr.post(
+      {
+        query,
+        limit: 0,
+        params: { hl: false, stats: true, 'stats.field': statsField },
+      },
+      index
+    )
+    debug(
+      '[get] index:',
+      index,
+      'stats result',
+      result.stats.stats_fields.statistics
+    )
+    return {
+      statistics: result.stats.stats_fields.statistics,
+      total: result.response.numFound,
+    }
+  }
+
+  async find ({
+    request: { facet, index, domain, stats, filters, sort, groupby },
+  }) {
+    const request = buildSolrRequest(
+      facet,
+      index,
+      domain,
+      stats,
+      filters,
+      sort,
+      groupby
+    )
+    debug(
+      '[find] index:',
+      index,
+      'groupby:',
+      groupby,
+      'domain:',
+      domain,
+      'stats:',
+      stats,
+      'filters:',
+      filters,
+      'sort:',
+      sort,
+      'facet:',
       JSON.stringify(request.facet, null, 2)
     )
     const result = await this.solr.post(request, index)
     debug('stats result', result.facets)
-    return buildResponse(result, facet, index, domain, filters)
+    const response = await buildResponse(result, facet, index, domain, filters)
+    debug('stats response', response.query)
+    return response
+    // return buildResponse(result, facet, index, domain, filters)
   }
 }
 

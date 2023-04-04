@@ -47,10 +47,16 @@ class SearchFacetBucket {
 
 class SearchFacetRangeBucket {
   constructor ({ val = undefined, count = -1, min = 0, max = 0, gap = 0 } = {}) {
-    this.count = parseInt(count, 10)
-    this.lower = parseInt(val, 10) - min
-    this.upper = Math.min(this.lower + gap, max)
     this.val = val
+    this.count = parseInt(count, 10)
+    // if value is integer and gap is 1, then it's a single value
+    if (val === parseInt(val, 10) && gap === 1) {
+      // single value
+      this.lower = this.upper = this.val
+    } else {
+      this.lower = val
+      this.upper = val + gap
+    }
   }
 }
 
