@@ -36,7 +36,7 @@ const getRangeFacetMetadata = (facet) => {
 }
 
 class Service {
-  constructor({ app, name }) {
+  constructor ({ app, name }) {
     this.app = app
     this.name = name
 
@@ -44,7 +44,7 @@ class Service {
     this.solr = app.get('cachedSolr')
   }
 
-  async get(type, params) {
+  async get (type, params) {
     const { index } = params.query
     const types = getFacetTypes(type, index)
 
@@ -114,22 +114,19 @@ class Service {
       () => this.solr.get(query, index, { skipCache: true }), //! canBeCached }),
       'search-facets.get.solr.facets'
     )
-    if (type === 'textReuseClusterSize') {
-      debug(
-        '[get] facets:',
-        type,
-        'result:',
-        JSON.stringify(result),
-        result.facets.textReuseClusterSize
-      )
-    }
+
     return types.map((t) => {
       const rangeFacetMetadata = getRangeFacetMetadata(
         SolrMappings[index].facets[t]
       )
-      if (facetsq.start && facetsq.end && facetsq.gap) {
+      // check that facetsq params are all defined
+      if (!isNaN(facetsq.start)) {
         rangeFacetMetadata.min = facetsq.start
+      }
+      if (!isNaN(facetsq.end)) {
         rangeFacetMetadata.max = facetsq.end
+      }
+      if (!isNaN(facetsq.gap)) {
         rangeFacetMetadata.gap = facetsq.gap
       }
 
@@ -143,7 +140,7 @@ class Service {
     })
   }
 
-  async find(params) {
+  async find (params) {
     debug(`find '${this.name}': query:`, params.sanitized, params.sanitized.sv)
 
     // TODO: we may want to skip caching if facets requested contain 'collection'
