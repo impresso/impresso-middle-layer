@@ -20,7 +20,7 @@ const FACET_TYPES_WITH_CACHED_ITEMS = {
 }
 
 class SearchFacetBucket {
-  constructor({ type = 'facet', val = '', count = -1 } = {}) {
+  constructor ({ type = 'facet', val = '', count = -1 } = {}) {
     this.count = parseInt(count, 10)
     this.val = String(val)
 
@@ -46,7 +46,7 @@ class SearchFacetBucket {
 }
 
 class SearchFacetRangeBucket {
-  constructor({ val = undefined, count = -1, min = 0, max = 0, gap = 0 } = {}) {
+  constructor ({ val = undefined, count = -1, min = 0, max = 0, gap = 0 } = {}) {
     this.val = val
     this.count = parseInt(count, 10)
     // if value is integer and gap is 1, then it's a single value
@@ -61,7 +61,7 @@ class SearchFacetRangeBucket {
 }
 
 class SearchFacet {
-  constructor({
+  constructor ({
     type = 'facet',
     buckets = [],
     numBuckets = -1,
@@ -79,7 +79,7 @@ class SearchFacet {
     this.gap = gap
   }
 
-  getItems() {
+  getItems () {
     return this.buckets.map(({ item, count }) => ({
       ...item,
       count,

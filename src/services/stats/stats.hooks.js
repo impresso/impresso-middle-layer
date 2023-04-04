@@ -6,7 +6,6 @@ const { protobuf } = require('impresso-jscommons')
 
 const { statsConfiguration } = require('../../data')
 const { TimeDomain, SupportedStats, DefaultStats } = require('./common')
-const { validate, validateRouteId } = require('../../hooks/params')
 
 const SupportedIndexes = Object.freeze(Object.keys(statsConfiguration.indexes))
 const SupportedFacetsByIndex = SupportedIndexes.reduce((acc, index) => {
@@ -29,7 +28,7 @@ const deserializeFilters = (serializedFilters) => {
   }
 }
 
-function parseAndValidateQueryParameters(context) {
+function parseAndValidateQueryParameters (context) {
   const {
     facet = '',
     index = 'search',
