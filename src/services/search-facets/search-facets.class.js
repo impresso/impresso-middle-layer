@@ -96,7 +96,7 @@ class Service {
       'facets:',
       facets,
       'groupby',
-      params.sanitized.groupby
+      params.sanitized.groupby || 'none'
     )
     const query = {
       q: params.sanitized.sq,
@@ -114,7 +114,6 @@ class Service {
       () => this.solr.get(query, index, { skipCache: true }), //! canBeCached }),
       'search-facets.get.solr.facets'
     )
-
     return types.map((t) => {
       const rangeFacetMetadata = getRangeFacetMetadata(
         SolrMappings[index].facets[t]
@@ -135,7 +134,7 @@ class Service {
         // default min max and gap values from default solr config
         ...result.facets[t],
         ...rangeFacetMetadata,
-        numBuckets: result.facets[t].buckets.length,
+        numBuckets: result.facets[t] ? result.facets[t].buckets.length : 0,
       })
     })
   }
