@@ -128,13 +128,14 @@ class Service {
       if (!isNaN(facetsq.gap)) {
         rangeFacetMetadata.gap = facetsq.gap
       }
-
       return new SearchFacet({
         type: t,
         // default min max and gap values from default solr config
         ...result.facets[t],
         ...rangeFacetMetadata,
-        numBuckets: result.facets[t] ? result.facets[t].buckets.length : 0,
+        numBuckets: result.facets[t]
+          ? result.facets[t].numBuckets || result.facets[t].buckets.length
+          : 0,
       })
     })
   }
