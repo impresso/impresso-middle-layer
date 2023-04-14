@@ -323,6 +323,22 @@ const SolrMappings = Object.freeze({
         offset: 0,
         numBuckets: true,
       },
+      person: {
+        type: 'terms',
+        field: 'pers_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      location: {
+        type: 'terms',
+        field: 'loc_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
       language: {
         type: 'terms',
         field: 'lg_s',
