@@ -120,6 +120,9 @@ indexes:
       id:
         field: id
         rule: value
+      textReusePassage:
+        field: id
+        rule: value
       textReuseCluster:
         field: cluster_id_s
         rule: value
@@ -162,6 +165,19 @@ indexes:
         rule: value
       country:
         field: meta_country_code_s
+        rule: value
+      mention:
+        # multiple fields per one filter
+        field: [pers_mentions, loc_mentions]
+        rule: value
+      entity:
+        field: [pers_entities_dpfs, loc_entities_dpfs]
+        rule: value
+      person:
+        field: pers_entities_dpfs
+        rule: value
+      location:
+        field: loc_entities_dpfs
         rule: value
   entities:
     filters:
