@@ -4,13 +4,13 @@ const { DataIndex } = require('./index')
 
 const facetRanges = new DataIndex({ name: 'facetRanges' })
 
-function getRangeFacetValue (index, facet, key, defaultValue) {
+function getRangeFacetValue(index, facet, key, defaultValue) {
   const indexData = facetRanges.getValue(index) || {}
   const { [facet]: descriptor = {} } = indexData
   return descriptor[key] == null ? defaultValue : descriptor[key]
 }
 
-function getRangeFacetParametersWithDefault (
+function getRangeFacetParametersWithDefault(
   index,
   facet,
   numBuckets,
@@ -123,6 +123,14 @@ const SolrMappings = Object.freeze({
       location: {
         type: 'terms',
         field: 'loc_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      nag: {
+        type: 'terms',
+        field: 'nag_entities_dpfs',
         mincount: 1,
         limit: 10,
         offset: 0,
@@ -334,6 +342,14 @@ const SolrMappings = Object.freeze({
       location: {
         type: 'terms',
         field: 'loc_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      nag: {
+        type: 'terms',
+        field: 'nag_entities_dpfs',
         mincount: 1,
         limit: 10,
         offset: 0,

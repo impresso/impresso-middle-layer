@@ -77,6 +77,9 @@ indexes:
       location:
         field: loc_entities_dpfs
         rule: value
+      nag:
+        field: nag_entities_dpfs
+        rule: value
       topicmodel:
         field: tp_model_s
         rule: value
@@ -168,16 +171,19 @@ indexes:
         rule: value
       mention:
         # multiple fields per one filter
-        field: [pers_mentions, loc_mentions]
+        field: [pers_mentions, loc_mentions, nag_mentions]
         rule: value
       entity:
-        field: [pers_entities_dpfs, loc_entities_dpfs]
+        field: [pers_entities_dpfs, loc_entities_dpfs, nag_entities_dpfs]
         rule: value
       person:
         field: pers_entities_dpfs
         rule: value
       location:
         field: loc_entities_dpfs
+        rule: value
+      nag:
+        field: nag_entities_dpfs
         rule: value
   entities:
     filters:
