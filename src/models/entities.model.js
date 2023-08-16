@@ -45,6 +45,9 @@ class Entity {
   }
 
   static getNameFromUid (uid) {
+    if (uid.indexOf('bert-') === 0) {
+      return uid.replace(/^bert-[a-z]+-\d+-/, '').split('_').join(' ');
+    }
     return uid
       .replace(/^aida-\d+-\d+-/, '')
       .replace(/\$([^$]+)\$/g, (m, n) => String.fromCharCode(`0x${n}`))

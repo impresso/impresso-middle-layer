@@ -33,6 +33,9 @@ indexes:
         location:
           field: loc_entities_dpfs
           limit: 10
+        nag:
+          field: nag_entities_dpfs
+          limit: 10
       # numeric facets for which we calculate statistics
       numeric:
         contentLength:

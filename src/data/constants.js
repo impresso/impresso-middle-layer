@@ -128,6 +128,14 @@ const SolrMappings = Object.freeze({
         offset: 0,
         numBuckets: true,
       },
+      nag: {
+        type: 'terms',
+        field: 'nag_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
       accessRight: {
         type: 'terms',
         field: 'access_right_s',
@@ -334,6 +342,14 @@ const SolrMappings = Object.freeze({
       location: {
         type: 'terms',
         field: 'loc_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      nag: {
+        type: 'terms',
+        field: 'nag_entities_dpfs',
         mincount: 1,
         limit: 10,
         offset: 0,
