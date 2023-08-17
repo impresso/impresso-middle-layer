@@ -1,4 +1,7 @@
 {
+  "callbackUrls": {
+    "passwordReset": "http://localhost:8080/password-reset"
+  },
   "host": "localhost",
   "port": 3030,
   "public": "../public/",
@@ -14,10 +17,7 @@
   },
   "authentication": {
     "secret": "********",
-    "strategies": [
-      "jwt",
-      "local"
-    ],
+    "strategies": ["jwt", "local"],
     "path": "/authentication",
     "service": "users",
     "jwt": {
