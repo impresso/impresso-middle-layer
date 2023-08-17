@@ -86,6 +86,8 @@ const entityMentionsTimeline = require('./entity-mentions-timeline/entity-mentio
 
 const textReuseConnectedClusters = require('./text-reuse-connected-clusters/text-reuse-connected-clusters.service.js')
 
+const passwordReset = require('./password-reset/password-reset.service.js')
+
 module.exports = function () {
   const app = this // eslint-disable-line no-unused-vars
 
@@ -141,4 +143,5 @@ module.exports = function () {
   app.configure(entitiesSuggestions)
   app.configure(entityMentionsTimeline)
   app.configure(textReuseConnectedClusters)
+  app.configure(passwordReset)
 }
