@@ -16,10 +16,8 @@ const debug = require('debug')('impresso/services:password-reset')
  *
  *   {
  *     "response": "ok",
- *     "token": " <token> ",
  *     "callbackUrl": " <callbackUrl> "
  *   }
- *   If the user does not exist, the response contains an unvalid token (bad secret).
  *
  * - then use the token in the patch method together with the password to change, e.g with CURL:
  *
@@ -64,16 +62,13 @@ class PasswordReset {
       debug('[get] uid not found <uid>:', data.email)
       return {
         response: 'ok',
-        token: jwt.sign({ email }, 'thiswontwork-verybadsecret', {
-          expiresIn: '1h',
-        }),
         callbackUrl: this.callbackUrl,
       }
     }
     // Generate a unique token for the user's password reset request
     const token = jwt.sign({ email }, this.config.secret, { expiresIn: '1h' })
 
-    client
+    return client
       .run({
         task: 'impresso.tasks.email_password_reset',
         args: [
@@ -91,17 +86,18 @@ class PasswordReset {
         } else if (err.result.exc_type === 'OperationalError') {
           // probably db is not availabe
           throw new NotImplemented()
+        } else if (err.result.exc_type === 'gaierror') {
+          // probably a service related to the task is not available (smtp?)
+          throw new NotImplemented('email service not available')
         }
         console.error(err)
         throw new NotImplemented()
       })
-
+      .then(() => ({
+        response: 'ok',
+        callbackUrl: this.callbackUrl,
+      }))
     // send an email to the user with a link to reset password
-    return {
-      response: 'ok',
-      token,
-      callbackUrl: this.callbackUrl,
-    }
   }
 
   /**
