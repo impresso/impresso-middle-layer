@@ -29,7 +29,7 @@ class PasswordReset {
    * @param {Object} options - The options object.
    * @param {Object} options.app - The Feathers app instance.
    */
-  constructor({ app }) {
+  constructor ({ app }) {
     this.sequelizeClient = app.get('sequelizeClient')
     this.config = app.get('authentication')
     this.callbackUrl = app.get('callbackUrls').passwordReset
@@ -46,7 +46,7 @@ class PasswordReset {
    * @returns {Object} The response object.
    * @throws {NotImplemented} If the celery client is not available.
    */
-  async create(data) {
+  async create (data) {
     const { email } = data
     debug(`[${this.name}] method: create for email: ${email}`)
     const client = this.app.get('celeryClient')
@@ -110,7 +110,7 @@ class PasswordReset {
    * @returns {Object} The response object.
    * @throws {BadRequest} If the token is invalid.
    */
-  async patch(unusedIdParam, data) {
+  async patch (unusedIdParam, data) {
     // Validate the token
     const { token, password } = data
     try {

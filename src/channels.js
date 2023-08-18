@@ -70,10 +70,7 @@ module.exports = function (app) {
           .leave(socket.connection)
       }
       app.channel('authenticated').leave(socket.connection)
-      debug(
-        '@logout (reconnecting with anonymous channel) for user:',
-        socket.connection.user?.username
-      )
+      // debug('@logout (reconnecting with anonymous channel) for anonymous user.')
       app.channel('anonymous').join(socket.connection)
     }
   })
