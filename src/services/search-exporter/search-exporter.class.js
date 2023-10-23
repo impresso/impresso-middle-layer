@@ -6,14 +6,14 @@ const solr = require('../../solr');
 const article = require('../../models/articles.model');
 
 class Service {
-  constructor(options) {
+  constructor (options) {
     this.solr = solr.client(options.app.get('solr'), options.app.get('solrConnectionPool'));
     this.name = options.name;
     this.options = options || {};
     this.app = options.app;
   }
 
-  async create(data, params) {
+  async create (data, params) {
     const client = this.app.get('celeryClient');
     if (!client) {
       return {};
@@ -26,7 +26,6 @@ class Service {
       filters: params.sanitized.filters,
     });
     debug('[create] protobuffered:', pq);
-
 
     return client.run({
       task: 'impresso.tasks.export_query_as_csv',

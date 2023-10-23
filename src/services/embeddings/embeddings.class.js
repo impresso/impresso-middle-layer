@@ -5,7 +5,7 @@ const SolrService = require('../solr.service');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor({
+  constructor ({
     app = null,
     name = '',
   }) {
@@ -14,7 +14,7 @@ class Service {
     this.solrClient = this.app.get('cachedSolr');
   }
 
-  async find(params) {
+  async find (params) {
     const namespace = `embeddings_${params.query.language}`;
     // use en to get embedding vector for the queried word
     //
@@ -54,13 +54,13 @@ class Service {
     };
   }
 
-  async get(id, params) {
+  async get (id, params) {
     return {
       id, text: `A new message with ID: ${id}!`,
     };
   }
 
-  async create(data, params) {
+  async create (data, params) {
     if (Array.isArray(data)) {
       return Promise.all(data.map(current => this.create(current, params)));
     }
@@ -68,15 +68,15 @@ class Service {
     return data;
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     return data;
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     return data;
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     return { id };
   }
 }

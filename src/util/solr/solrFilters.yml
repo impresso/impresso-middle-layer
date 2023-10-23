@@ -77,6 +77,9 @@ indexes:
       location:
         field: loc_entities_dpfs
         rule: value
+      nag:
+        field: nag_entities_dpfs
+        rule: value
       topicmodel:
         field: tp_model_s
         rule: value
@@ -97,6 +100,9 @@ indexes:
         rule: value
   tr_clusters:
     filters:
+      textReuseCluster:
+        field: id
+        rule: value
       textReuseClusterSize:
         field: cluster_size_l
         rule: numericRange
@@ -114,6 +120,22 @@ indexes:
         rule: numericRange
   tr_passages:
     filters:
+      id:
+        field: id
+        rule: value
+      textReusePassage:
+        field: id
+        rule: value
+      textReuseCluster:
+        field: cluster_id_s
+        rule: value
+      title:
+        field: { prefix: title_txt_ }
+        rule: string
+      string:
+        # field prefix, will be expanded to supported languages
+        field: { prefix: content_txt_ }
+        rule: string
       textReuseClusterSize:
         field: cluster_size_l
         rule: numericRange
@@ -132,6 +154,37 @@ indexes:
       collection:
         field: ucoll_ss
         rule: value
+      isFront:
+        field: front_b
+        rule: boolean
+      topic:
+        field: topics_dpfs
+        rule: value
+      language:
+        field: lg_s
+        rule: value
+      type:
+        field: item_type_s
+        rule: value
+      country:
+        field: meta_country_code_s
+        rule: value
+      mention:
+        # multiple fields per one filter
+        field: [pers_mentions, loc_mentions, nag_mentions]
+        rule: value
+      entity:
+        field: [pers_entities_dpfs, loc_entities_dpfs, nag_entities_dpfs]
+        rule: value
+      person:
+        field: pers_entities_dpfs
+        rule: value
+      location:
+        field: loc_entities_dpfs
+        rule: value
+      nag:
+        field: nag_entities_dpfs
+        rule: value
   entities:
     filters:
       string:
@@ -142,4 +195,4 @@ indexes:
         rule: capitalisedValue
       uid:
         field: id
-        rule: value  
+        rule: value

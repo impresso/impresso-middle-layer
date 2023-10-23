@@ -4,11 +4,11 @@ const SequelizeService = require('../sequelize.service');
 const SearchQuery = require('../../models/search-queries.model');
 
 exports.SearchQueries = class SearchQueries {
-  constructor(options) {
+  constructor (options) {
     this.options = options || {};
   }
 
-  setup(app) {
+  setup (app) {
     this.name = 'search-queries';
     this.sequelizeService = new SequelizeService({
       app,
@@ -17,7 +17,7 @@ exports.SearchQueries = class SearchQueries {
     debug('[setup] completed');
   }
 
-  async find(params) {
+  async find (params) {
     debug('[find] ...');
     return this.sequelizeService.find(params).then((res) => {
       debug('[find] success', res.total);
@@ -25,7 +25,7 @@ exports.SearchQueries = class SearchQueries {
     });
   }
 
-  async get(id, params) {
+  async get (id, params) {
     debug(`[get] id:${id} - params.user.uid: ${params.user.uid}`);
     const item = await this.sequelizeService.get(id, {
       where: {
@@ -37,7 +37,7 @@ exports.SearchQueries = class SearchQueries {
     return item.toJSON();
   }
 
-  async create(data, params) {
+  async create (data, params) {
     debug('[create] params.user.uid:', params.user.uid, data);
     const searchQuery = new SearchQuery({
       ...data,
@@ -50,15 +50,15 @@ exports.SearchQueries = class SearchQueries {
     });
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     return data;
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     return data;
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     debug(`[remove] id: ${id} - params.user.uid: ${params.user.uid}`);
     return this.sequelizeService.bulkRemove({
       uid: id,

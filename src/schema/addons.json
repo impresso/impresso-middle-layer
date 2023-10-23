@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-public-api/tree/master/src/schema/addons.json",
+  "description": "Validate the 'addons' parameter. Every service can implement one or more 'addon'.",
+  "type": "object",
+  "definitions": {
+    "matches": {
+      "type": "string",
+      "description": "enrich matches object with page coordinates (or snippet only)",
+      "enum": ["text", "text-coords"]
+    },
+    "iiif": {
+      "description": "enrich all objects and coordinates with available IIIF endpoint",
+      "type": "boolean"
+    },
+    "contents": {
+      "type": "string",
+      "description": "level of contents to show",
+      "enum": ["text", "coords", "text-coords"]
+    },
+    "dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "dpfs fields to load, availability according to the service.",
+        "enum": ["topics", "entities", "words", "all"]
+      }
+    },
+    "trc": {
+      "type": "string",
+      "description": "enrich text reuse clusters with passages",
+      "enum": ["text"]
+    },
+    "newspaper": {
+      "type": "string",
+      "description": "enrich newspaper object with metadata",
+      "enum": ["metadata", "text"]
+    }
+  },
+  "properties": {
+    "dpfs": { "$ref": "#/definitions/dpfs" },
+    "matches": { "$ref": "#/definitions/matches" },
+    "contents": { "$ref": "#/definitions/contents" },
+    "iiif": { "$ref": "#/definitions/iiif" },
+    "trc": { "$ref": "#/definitions/trc" },
+    "newspaper": { "$ref": "#/definitions/newspaper" }
+  },
+  "required": [],
+  "additionalProperties": false
+}

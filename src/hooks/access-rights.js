@@ -72,32 +72,32 @@ const obfuscate = () => (context) => {
     debug(`${prefix} skipping obfuscation as the user ${context.params.user.uid} has the right credentials`);
   } else {
     switch (fullpath) {
-      case 'issues.get':
-        if (shouldBeObfuscated(context.result.accessRights)) {
-          debug(`${prefix} issue obfuscated due to context.result.accessRights: ${context.result.accessRights}`);
-          context.result = obfuscateIssueMapper(context.result);
-        } else {
-          debug(`${prefix} issue NOT obfuscated due to context.result.accessRights: ${context.result.accessRights}`);
+    case 'issues.get':
+      if (shouldBeObfuscated(context.result.accessRights)) {
+        debug(`${prefix} issue obfuscated due to context.result.accessRights: ${context.result.accessRights}`);
+        context.result = obfuscateIssueMapper(context.result);
+      } else {
+        debug(`${prefix} issue NOT obfuscated due to context.result.accessRights: ${context.result.accessRights}`);
+      }
+      break;
+    case 'articles.get':
+      if (shouldBeObfuscated(context.result.issue.accessRights)) {
+        debug(`${prefix} issue obfuscated due to context.result.issue.accessRights: ${context.result.issue.accessRights}`);
+        context.result = obfuscateArticleMapper(context.result);
+      }
+      break;
+    case 'articles.find':
+    case 'articles-suggestions.get':
+      debug(`${prefix} verify accessRights per article issue`);
+      for (let i = 0, l = context.result.data.length; i < l; i += 1) {
+        if (shouldBeObfuscated(context.result.data[i].issue.accessRights)) {
+          context.result.data[i] = obfuscateArticleMapper(context.result.data[i]);
         }
-        break;
-      case 'articles.get':
-        if (shouldBeObfuscated(context.result.issue.accessRights)) {
-          debug(`${prefix} issue obfuscated due to context.result.issue.accessRights: ${context.result.issue.accessRights}`);
-          context.result = obfuscateArticleMapper(context.result);
-        }
-        break;
-      case 'articles.find':
-      case 'articles-suggestions.get':
-        debug(`${prefix} verify accessRights per article issue`);
-        for (let i = 0, l = context.result.data.length; i < l; i += 1) {
-          if (shouldBeObfuscated(context.result.data[i].issue.accessRights)) {
-            context.result.data[i] = obfuscateArticleMapper(context.result.data[i]);
-          }
-        }
-        break;
-      default:
-        debug(`${prefix} WARNING no fullpath rule matching: '${fullpath}'`);
-        throw new Error(`${prefix} cannot use 'obfuscate()' on this service.`);
+      }
+      break;
+    default:
+      debug(`${prefix} WARNING no fullpath rule matching: '${fullpath}'`);
+      throw new Error(`${prefix} cannot use 'obfuscate()' on this service.`);
     }
   }
 };

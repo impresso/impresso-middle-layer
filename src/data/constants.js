@@ -1,24 +1,28 @@
-const assert = require('assert');
-const { constants } = require('impresso-jscommons');
-const { DataIndex } = require('./index');
+const assert = require('assert')
+const { constants } = require('impresso-jscommons')
+const { DataIndex } = require('./index')
 
-const facetRanges = new DataIndex({ name: 'facetRanges' });
+const facetRanges = new DataIndex({ name: 'facetRanges' })
 
-function getRangeFacetValue(index, facet, key, defaultValue) {
-  const indexData = facetRanges.getValue(index) || {};
-  const { [facet]: descriptor = {} } = indexData;
-  return descriptor[key] == null
-    ? defaultValue
-    : descriptor[key];
+function getRangeFacetValue (index, facet, key, defaultValue) {
+  const indexData = facetRanges.getValue(index) || {}
+  const { [facet]: descriptor = {} } = indexData
+  return descriptor[key] == null ? defaultValue : descriptor[key]
 }
 
-function getRangeFacetParametersWithDefault(index, facet, numBuckets, defaultParameters) {
-  const start = getRangeFacetValue(index, facet, 'min', defaultParameters.start);
-  const end = getRangeFacetValue(index, facet, 'max', defaultParameters.end);
-  const gap = Number.isFinite(start) && Number.isFinite(end)
-    ? Math.round((end - start) / numBuckets)
-    : defaultParameters.gap;
-  return { start, end, gap };
+function getRangeFacetParametersWithDefault (
+  index,
+  facet,
+  numBuckets,
+  defaultParameters
+) {
+  const start = getRangeFacetValue(index, facet, 'min', defaultParameters.start)
+  const end = getRangeFacetValue(index, facet, 'max', defaultParameters.end)
+  const gap =
+    Number.isFinite(start) && Number.isFinite(end)
+      ? Math.round((end - start) / numBuckets)
+      : defaultParameters.gap
+  return { start, end, gap }
 }
 
 /**
@@ -124,6 +128,14 @@ const SolrMappings = Object.freeze({
         offset: 0,
         numBuckets: true,
       },
+      nag: {
+        type: 'terms',
+        field: 'nag_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
       accessRight: {
         type: 'terms',
         field: 'access_right_s',
@@ -164,29 +176,44 @@ const SolrMappings = Object.freeze({
       textReuseClusterSize: {
         type: 'range',
         field: 'cluster_size_l',
-        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterSize', 10, {
-          end: 100000,
-          start: 0,
-          gap: 10000,
-        }),
+        ...getRangeFacetParametersWithDefault(
+          'tr_clusters',
+          'textReuseClusterSize',
+          10,
+          {
+            end: 100000,
+            start: 0,
+            gap: 10000,
+          }
+        ),
       },
       textReuseClusterLexicalOverlap: {
         type: 'range',
         field: 'lex_overlap_d',
-        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterLexicalOverlap', 10, {
-          end: 100,
-          start: 0,
-          gap: 10,
-        }),
+        ...getRangeFacetParametersWithDefault(
+          'tr_clusters',
+          'textReuseClusterLexicalOverlap',
+          10,
+          {
+            end: 100,
+            start: 0,
+            gap: 10,
+          }
+        ),
       },
       textReuseClusterDayDelta: {
         type: 'range',
         field: 'day_delta_i',
-        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterDayDelta', 10, {
-          end: 100,
-          start: 0,
-          gap: 10,
-        }),
+        ...getRangeFacetParametersWithDefault(
+          'tr_clusters',
+          'textReuseClusterDayDelta',
+          10,
+          {
+            end: 100,
+            start: 0,
+            gap: 10,
+          }
+        ),
       },
       daterange: {
         type: 'range',
@@ -250,29 +277,44 @@ const SolrMappings = Object.freeze({
       textReuseClusterSize: {
         type: 'range',
         field: 'cluster_size_l',
-        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterSize', 10, {
-          end: 100000,
-          start: 0,
-          gap: 10000,
-        }),
+        end: 50000,
+        start: 2,
+        gap: 250,
       },
       textReuseClusterLexicalOverlap: {
         type: 'range',
         field: 'cluster_lex_overlap_d',
-        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterLexicalOverlap', 10, {
-          end: 100,
-          start: 0,
-          gap: 10,
-        }),
+        ...getRangeFacetParametersWithDefault(
+          'tr_clusters',
+          'textReuseClusterLexicalOverlap',
+          200,
+          {
+            end: 100,
+            start: 0,
+            gap: 0.5,
+          }
+        ),
       },
       textReuseClusterDayDelta: {
         type: 'range',
         field: 'cluster_day_delta_i',
-        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterDayDelta', 10, {
-          end: 100,
-          start: 0,
-          gap: 10,
-        }),
+        ...getRangeFacetParametersWithDefault(
+          'tr_clusters',
+          'textReuseClusterDayDelta',
+          800,
+          {
+            end: 80000,
+            start: 0,
+            gap: 100,
+          }
+        ),
+      },
+      textReuseCluster: {
+        type: 'terms',
+        field: 'cluster_id_s',
+        mincount: 1,
+        limit: 10,
+        numBuckets: true,
       },
       collection: {
         type: 'terms',
@@ -281,14 +323,62 @@ const SolrMappings = Object.freeze({
         limit: 10,
         numBuckets: true,
       },
+      topic: {
+        type: 'terms',
+        field: 'topics_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      person: {
+        type: 'terms',
+        field: 'pers_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      location: {
+        type: 'terms',
+        field: 'loc_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      nag: {
+        type: 'terms',
+        field: 'nag_entities_dpfs',
+        mincount: 1,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      language: {
+        type: 'terms',
+        field: 'lg_s',
+        mincount: 1,
+        numBuckets: true,
+      },
+      country: {
+        type: 'terms',
+        field: 'meta_country_code_s',
+        mincount: 1,
+        limit: 10,
+        numBuckets: true,
+      },
     },
   },
-});
+})
 
 /* Check that facets are a subset of filter types */
-Object
-  .keys(SolrMappings.search.facets)
-  .forEach(type => assert(constants.filter.Types.includes(type), `Unknown filter type found in facets: ${type}`));
+Object.keys(SolrMappings.search.facets).forEach((type) =>
+  assert(
+    constants.filter.Types.includes(type),
+    `Unknown filter type found in facets: ${type}`
+  )
+)
 
 module.exports = {
   SolrMappings,
@@ -296,4 +386,4 @@ module.exports = {
   Contexts: constants.filter.Contexts,
   Operators: constants.filter.Operators,
   Precision: constants.filter.Precision,
-};
+}

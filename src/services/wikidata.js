@@ -11,9 +11,8 @@ const PLACE_COUNTRY = 'P17';
 const PLACE_COORDINATES = 'P625';
 // const PLACE_ADMIN_AREA = 'P131';
 
-
 class NamedEntity {
-  constructor({
+  constructor ({
     id = '',
     type = '',
     labels = [],
@@ -37,18 +36,18 @@ class NamedEntity {
     }
   }
 
-  addPending(property, id) {
+  addPending (property, id) {
     if (!this._pendings[id]) {
       this._pendings[id] = [];
     }
     this._pendings[id].push(property);
   }
 
-  getPendings() {
+  getPendings () {
     return Object.keys(this._pendings);
   }
 
-  resolvePendings(entities) {
+  resolvePendings (entities) {
     // console.log('RESOLVE', entities, this.getPendings());
     debug(`resolvePendings for ${this.id}`);
     this.getPendings().forEach((id) => {
@@ -60,7 +59,7 @@ class NamedEntity {
     });
   }
 
-  toJSON() {
+  toJSON () {
     return {
       id: this.id,
       type: this.type,
@@ -72,7 +71,7 @@ class NamedEntity {
 }
 
 class Location extends NamedEntity {
-  constructor({
+  constructor ({
     id = '',
     claims = {},
     labels = [],
@@ -108,7 +107,7 @@ class Location extends NamedEntity {
     }
   }
 
-  toJSON() {
+  toJSON () {
     return {
       ...super.toJSON(),
       coordinates: this.coordinates,
@@ -125,7 +124,7 @@ class Location extends NamedEntity {
  * @return {[type]}       [description]
  */
 class Human extends NamedEntity {
-  constructor({
+  constructor ({
     id = '',
     claims = {},
     labels = [],
@@ -169,7 +168,7 @@ class Human extends NamedEntity {
     }
   }
 
-  toJSON() {
+  toJSON () {
     return {
       ...super.toJSON(),
       birthDate: this.birthDate,
@@ -179,7 +178,6 @@ class Human extends NamedEntity {
     };
   }
 }
-
 
 const getNamedEntityClass = (entity) => {
   const iof = lodash.get(
@@ -196,7 +194,6 @@ const getNamedEntityClass = (entity) => {
   }
   return NamedEntity;
 };
-
 
 /**
  * Return a new Entity intance with the correct subclass

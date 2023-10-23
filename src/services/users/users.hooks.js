@@ -6,7 +6,6 @@ const {
   REGEX_SLUG,
 } = require('../../hooks/params');
 
-
 module.exports = {
   before: {
     all: [],
@@ -70,7 +69,6 @@ module.exports = {
       // Always must be the last hook
       protect('password'),
       protect('salt'),
-
 
     ],
     find: [

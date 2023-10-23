@@ -6,7 +6,6 @@ const nodePath = require('path');
 const { QueryTypes } = require('sequelize');
 const { ACCESS_RIGHT_OPEN_PUBLIC } = require('../models/articles.model');
 
-
 /**
  * Internal redirect using X accel Redirect (NGINX) to speed up (and cache) image delivery.
  * @param  {Response} res             Eprress response object
@@ -25,7 +24,6 @@ const internalRedirect = ({
   res.send();
   res.end();
 };
-
 
 /**
  * Return boolean response if specific issueUid is OpenPublic. This function
@@ -49,7 +47,6 @@ const isIssueOpenPublic = async (issueUid, sequelizeClient) => {
     return false;
   }
 };
-
 
 module.exports = function (app) {
   const config = app.get('proxy');

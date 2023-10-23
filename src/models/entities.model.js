@@ -5,9 +5,8 @@ const TYPES = {
   54: 'location',
 };
 
-
 class Entity {
-  constructor({
+  constructor ({
     uid = '',
     name = '',
     wikidataId = null,
@@ -45,18 +44,21 @@ class Entity {
     }
   }
 
-  static getNameFromUid(uid) {
+  static getNameFromUid (uid) {
+    if (uid.indexOf('bert-') === 0) {
+      return uid.replace(/^bert-[a-z]+-\d+-/, '').split('_').join(' ');
+    }
     return uid
       .replace(/^aida-\d+-\d+-/, '')
       .replace(/\$([^$]+)\$/g, (m, n) => String.fromCharCode(`0x${n}`))
       .split('_').join(' ');
   }
 
-  static getTypeFromUid(uid) {
+  static getTypeFromUid (uid) {
     return uid.replace(/^aida-\d+-(\d+)-.*/, '$1');
   }
 
-  static getCached(uid) {
+  static getCached (uid) {
     return new Entity({
       uid,
       name: Entity.getNameFromUid(uid),
@@ -64,7 +66,7 @@ class Entity {
     });
   }
 
-  static sequelize(client, {
+  static sequelize (client, {
     tableName = 'entities',
   } = {}) {
     const entity = client.define('entity', {
@@ -107,7 +109,7 @@ class Entity {
     return entity;
   }
 
-  static solrFactory() {
+  static solrFactory () {
     return doc => new Entity({
       uid: doc.id,
       name: (doc.l_s || '').split('_').join(' '),

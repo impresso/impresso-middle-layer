@@ -4,7 +4,7 @@ const { NotImplemented } = require('@feathersjs/errors');
 const Neo4jService = require('../neo4j.service').Service;
 
 class Service extends Neo4jService {
-  async get(id, params) {
+  async get (id, params) {
     const result = await super.get(id, params);
     return result;
   }
@@ -16,7 +16,7 @@ class Service extends Neo4jService {
   "parent__uid": "github-1181642-cc0a89e5da3d0c8aa783de2837826b9d"
 }
   */
-  async create(data, params) {
+  async create (data, params) {
     if (Array.isArray(data)) {
       // return not available
       throw new NotImplemented('create method not available with data type: Array');

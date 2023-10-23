@@ -15,9 +15,8 @@ const STATUS_ARCHIVED = 'ARC';
 const STATUS_STOPPING = 'STO';
 const STATUS_KILLED = 'RIP';
 
-
 class Job {
-  constructor({
+  constructor ({
     id = -1,
     labels = ['job'],
     creationDate = new Date(),
@@ -62,7 +61,7 @@ class Job {
     this.creator = creator;
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const creator = User.sequelize(client);
     const attachment = Attachment.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/

@@ -45,7 +45,7 @@ const getStatsFieldString = (languageCode, unigram) =>
  *
  * @return {object} a POST JSON payload for SOLR search endpoint.
  */
-function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInterval = 'year') {
+function unigramTrendsRequestToSolrQuery (unigram, filters, facets = [], timeInterval = 'year') {
   const { query, variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
   const timeIntervalField = TimeIntervalsFilelds[timeInterval];
 
@@ -78,7 +78,7 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
  * @param {'year' | 'month' | 'day'} timeInterval
  * @returns {any}
  */
-function unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval = 'year') {
+function unigramTrendsRequestToTotalTokensSolrQuery (filters, timeInterval = 'year') {
   const { query, variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
   const timeIntervalField = TimeIntervalsFilelds[timeInterval];
 
@@ -108,7 +108,7 @@ const mergeFn = (dst, src) => (dst || 0) + (src || 0);
  * Convert raw SOLR response to `ngram-trends/schema/post/response.json`.
  * @param {object} solrResponse SOLR trends response
  */
-async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
+async function parseUnigramTrendsResponse (solrResponse, unigram, timeInterval) {
   const pivots = get(solrResponse, 'facet_counts.facet_pivot', {});
   const languageCodes = Object.keys(pivots);
   const domainToValuesMapping = languageCodes.reduce((acc, languageCode) => {
@@ -150,7 +150,7 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
  * @param {any} response
  * @returns {{ domain: string, value: number }[]}
  */
-function getNumbersFromTotalTokensResponse(response, timeInterval = 'year') {
+function getNumbersFromTotalTokensResponse (response, timeInterval = 'year') {
   const { facets = {} } = response || {};
   const { buckets = [] } = facets[timeInterval] || {};
 
@@ -165,7 +165,7 @@ function getNumbersFromTotalTokensResponse(response, timeInterval = 'year') {
 
 const DaterangeFilterValueRegex = /([^\s]+)\s+TO\s+([^\s]+)/;
 
-function getTimedeltaInDaterangeFilter(daterangeFilter) {
+function getTimedeltaInDaterangeFilter (daterangeFilter) {
   const value = Array.isArray(daterangeFilter.q) ? daterangeFilter.q[0] : daterangeFilter.q;
   const matches = DaterangeFilterValueRegex.exec(value);
   if (matches.length !== 3) return undefined;
@@ -177,7 +177,7 @@ function getTimedeltaInDaterangeFilter(daterangeFilter) {
   return years;
 }
 
-function guessTimeIntervalFromFilters(filters = []) {
+function guessTimeIntervalFromFilters (filters = []) {
   const daterangeFilters = filters.filter(({ type }) => type === 'daterange');
   const timedeltas = daterangeFilters
     .map(getTimedeltaInDaterangeFilter)

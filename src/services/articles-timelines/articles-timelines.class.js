@@ -5,7 +5,7 @@ const Timeline = require('../../models/timelines.model');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor({
+  constructor ({
     name = '',
     app,
   }) {
@@ -14,7 +14,7 @@ class Service {
     this.solr = this.app.get('solrClient');
   }
 
-  async total() {
+  async total () {
     return measureTime(() => this.solr.findAll({
       q: '*:*',
       limit: 0,
@@ -31,7 +31,7 @@ class Service {
     }), 'articles-timelines.solr.total');
   }
 
-  async filtered(params) {
+  async filtered (params) {
     return measureTime(() => this.solr.findAll({
       q: params.q || params.query.sq || '*:*',
       limit: 0,
@@ -48,7 +48,7 @@ class Service {
     }), 'articles-timelines.solr.filtered');
   }
 
-  async stats(params) {
+  async stats (params) {
     if (params.query.filters && params.query.filters.length) {
       return Promise.all([
         this.total(),
@@ -86,7 +86,7 @@ class Service {
     }));
   }
 
-  async get(id, params) {
+  async get (id, params) {
     let result;
 
     if (id === 'stats') {

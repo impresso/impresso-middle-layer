@@ -15,9 +15,8 @@ const { measureTime } = require('../../util/instruments');
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/;
 
-
 class Service {
-  constructor({
+  constructor ({
     app,
     name,
   }) {
@@ -26,7 +25,7 @@ class Service {
     this.solrClient = this.app.get('cachedSolr');
   }
 
-  suggestNewspapers({ q }) {
+  suggestNewspapers ({ q }) {
     debug('suggestNewspapers for q:', q);
     return this.app.service('newspapers').find({
       query: {
@@ -46,7 +45,7 @@ class Service {
     })));
   }
 
-  suggestCollections({ q, user }) {
+  suggestCollections ({ q, user }) {
     if (!user || !user.id) {
       return [];
     }
@@ -68,7 +67,7 @@ class Service {
     })));
   }
 
-  suggestEntities({ q }) {
+  suggestEntities ({ q }) {
     return measureTime(() => this.solrClient.suggest({
       namespace: 'entities',
       q,
@@ -92,7 +91,7 @@ class Service {
     }), 'suggestions.solr.entities');
   }
 
-  suggestMentions({ q }) {
+  suggestMentions ({ q }) {
     return measureTime(() => this.solrClient.suggest({
       namespace: 'mentions',
       q,
@@ -114,7 +113,7 @@ class Service {
     }), 'suggestions.solr.mentions');
   }
 
-  suggestTopics({ q }) {
+  suggestTopics ({ q }) {
     return measureTime(() => this.solrClient.suggest({
       namespace: 'topics',
       q,
@@ -131,38 +130,38 @@ class Service {
     }), 'suggestions.solr.topics');
   }
 
-  async get(type, params) {
+  async get (type, params) {
     switch (type) {
-      case 'topic':
-        return this.suggestTopics({
-          q: toPlainText(params.query.q),
-        });
-      case 'newspaper':
-        return this.suggestNewspapers({
-          q: toPlainText(params.query.q),
-        });
-      case 'collection':
-        return this.suggestCollections({
-          q: toPlainText(params.query.q),
-          user: params.user,
-        });
-      case 'person':
-      case 'location':
-      case 'entity':
-        return this.suggestEntities({
-          q: toPlainText(params.query.q),
-          type,
-        });
-      case 'mention':
-        return this.suggestMentions({
-          q: toPlainText(params.query.q),
-        });
-      default:
-        throw new NotFound();
+    case 'topic':
+      return this.suggestTopics({
+        q: toPlainText(params.query.q),
+      });
+    case 'newspaper':
+      return this.suggestNewspapers({
+        q: toPlainText(params.query.q),
+      });
+    case 'collection':
+      return this.suggestCollections({
+        q: toPlainText(params.query.q),
+        user: params.user,
+      });
+    case 'person':
+    case 'location':
+    case 'entity':
+      return this.suggestEntities({
+        q: toPlainText(params.query.q),
+        type,
+      });
+    case 'mention':
+      return this.suggestMentions({
+        q: toPlainText(params.query.q),
+      });
+    default:
+      throw new NotFound();
     }
   }
 
-  async find(params) {
+  async find (params) {
     const self = this;
     debug('[find] params.query.q:', params.query.q);
     const asregex = async () => {

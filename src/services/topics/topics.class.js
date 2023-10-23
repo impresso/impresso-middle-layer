@@ -8,7 +8,7 @@ const Topic = require('../../models/topics.model');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor({
+  constructor ({
     app = null,
     name = '',
   }) {
@@ -25,7 +25,7 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     // if there's a q, get all suggested topics matching q in their words (they are 300 max)
     const topics = {};
     let qtime = 0;
@@ -142,7 +142,6 @@ class Service {
     let total = solrResponse.facets.topic.numBuckets;
     let data = solrResponse.facets.topic.buckets;
 
-
     if (uids.length) {
       debug('[find] filtering out facets, initial total approx:', solrResponse.facets.topic.numBuckets);
       // filter out facets based on their uid.
@@ -176,7 +175,7 @@ class Service {
     };
   }
 
-  async get(id, params) {
+  async get (id, params) {
     return measureTime(() => this.solrService.get(id, params).then((topic) => {
       const cached = this.solrService.Model.getCached(id);
       topic.countItems = cached.countItems;
@@ -185,7 +184,7 @@ class Service {
     }), 'topics.get.solr.topics');
   }
 
-  async create(data, params) {
+  async create (data, params) {
     if (Array.isArray(data)) {
       return Promise.all(data.map(current => this.create(current, params)));
     }
@@ -193,15 +192,15 @@ class Service {
     return data;
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     return data;
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     return data;
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     return { id };
   }
 }

@@ -11,9 +11,8 @@ const SequelizeService = require('../sequelize.service');
 const { measureTime } = require('../../util/instruments');
 const { buildSearchEntitiesSolrQuery } = require('./logic');
 
-
 class Service {
-  constructor({ app }) {
+  constructor ({ app }) {
     this.app = app;
     this.name = 'entities';
     this.sequelizeService = new SequelizeService({
@@ -24,12 +23,12 @@ class Service {
     this.solr = app.get('cachedSolr');
   }
 
-  async create(data, params) {
+  async create (data, params) {
     params.query = data;
     return this.find(params);
   }
 
-  async find(params) {
+  async find (params) {
     debug('[find] with params:', params.query);
 
     const query = buildSearchEntitiesSolrQuery({
@@ -135,7 +134,7 @@ class Service {
     });
   }
 
-  async get(id, params) {
+  async get (id, params) {
     return this.find({
       ...params,
       query: {
@@ -157,15 +156,15 @@ class Service {
     });
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     return data;
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     return data;
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     return { id };
   }
 }

@@ -12,18 +12,17 @@ class ConnectionWrapper {
    * @param {import('node-fetch').RequestInit} init
    * @returns {Promise<import('node-fetch').Response>}
    */
-  async fetch(url, init = undefined) { return fetch(url, init); }
+  async fetch (url, init = undefined) { return fetch(url, init); }
 }
 
 const factory = {
-  async create() {
+  async create () {
     return new ConnectionWrapper();
   },
-  async destroy() { /* nothing to destroy */ },
+  async destroy () { /* nothing to destroy */ },
 };
 
-
-function initHttpPool({ maxParallelConnections = 17, acquireTimeoutSec = 25 } = {}) {
+function initHttpPool ({ maxParallelConnections = 17, acquireTimeoutSec = 25 } = {}) {
   const opts = {
     min: maxParallelConnections,
     max: maxParallelConnections,

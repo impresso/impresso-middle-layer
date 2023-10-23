@@ -52,7 +52,6 @@ const generateUser = async (user) => {
     ...user,
   };
 
-
   await removeGeneratedUser(userToGenerate);
   debug('generateUser username=', userToGenerate.username);
   const result = await app.service('users').create({
@@ -61,7 +60,6 @@ const generateUser = async (user) => {
   debug('generateUser: ok', result.username);
   return result;
 };
-
 
 module.exports = {
   generateUser,

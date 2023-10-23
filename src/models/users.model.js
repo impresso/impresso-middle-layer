@@ -8,7 +8,7 @@ const Group = require('./groups.model');
 const CRYPTO_ITERATIONS = 180000;
 
 class ObfuscatedUser {
-  constructor({
+  constructor ({
     uid = '',
     username = '',
   } = {}) {
@@ -18,7 +18,7 @@ class ObfuscatedUser {
 }
 
 class User {
-  constructor({
+  constructor ({
     id = 0,
     uid = '',
     firstname = '',
@@ -56,7 +56,7 @@ class User {
     this.groups = groups;
   }
 
-  static getMe({ user, profile }) {
+  static getMe ({ user, profile }) {
     return {
       firstname: user.firstname,
       lastname: user.lastname,
@@ -73,7 +73,7 @@ class User {
     };
   }
 
-  static buildPassword({
+  static buildPassword ({
     password, salt, iterations,
   } = {}) {
     const pwd = User.encryptPassword({
@@ -85,7 +85,7 @@ class User {
     ].join('$');
   }
 
-  static encryptPassword({
+  static encryptPassword ({
     password, salt, iterations,
   } = {}) {
     return encrypt(password, {
@@ -99,7 +99,7 @@ class User {
   }
 
   // true or false.
-  static comparePassword({
+  static comparePassword ({
     encrypted = '',
     password = '',
   } = {}) {
@@ -121,7 +121,7 @@ class User {
     return result.password === parts[3];
   }
 
-  static sequelize(client) {
+  static sequelize (client) {
     const profile = Profile.sequelize(client);
     const group = Group.sequelize(client);
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/

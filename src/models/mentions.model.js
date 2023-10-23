@@ -4,7 +4,7 @@ const MENTION_TYPES = [
 ];
 
 class Mention {
-  constructor({
+  constructor ({
     name = '',
     frequence = 0,
     type = '',
@@ -14,7 +14,7 @@ class Mention {
     this.type = MENTION_TYPES.indexOf(type) !== -1 ? type.toLowerCase() : 'mention';
   }
 
-  static solrFactory() {
+  static solrFactory () {
     return suggestion => new Mention({
       name: suggestion.term,
       type: suggestion.payload,

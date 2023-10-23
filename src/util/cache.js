@@ -29,7 +29,7 @@ const NotCacheableSolrFields = [
  * @param {import('../models').Filter[]} filters
  * @returns {boolean}
  */
-function isCacheableQuery(filters) {
+function isCacheableQuery (filters) {
   const filtersTypes = [...new Set(filters.map(({ type }) => type))];
   return intersection(filtersTypes, NotCacheableFilterTypes).length === 0;
 }
@@ -39,7 +39,7 @@ function isCacheableQuery(filters) {
  * @param {string[]} facetTypes
  * @returns {boolean}
  */
-function areCacheableFacets(facetTypes) {
+function areCacheableFacets (facetTypes) {
   return intersection(facetTypes, NotCacheableFacetTypes).length === 0;
 }
 
@@ -48,7 +48,7 @@ function areCacheableFacets(facetTypes) {
  * @param {string[]} solrFields
  * @returns {boolean}
  */
-function areCacheableSolrFields(solrFields) {
+function areCacheableSolrFields (solrFields) {
   return intersection(solrFields, NotCacheableSolrFields).length === 0;
 }
 

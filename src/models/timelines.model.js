@@ -1,7 +1,7 @@
 const lodash = require('lodash');
 
 class Timeline {
-  constructor({
+  constructor ({
     name = '',
     legend = {
       w: 'count',
@@ -24,6 +24,5 @@ class Timeline {
     });
   }
 }
-
 
 module.exports = Timeline;

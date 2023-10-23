@@ -5,7 +5,7 @@ const { NotImplemented } = require('@feathersjs/errors');
 const Neo4jService = require('../neo4j.service').Service;
 
 class Service extends Neo4jService {
-  async create(data, params) {
+  async create (data, params) {
     if (Array.isArray(data)) {
       throw new NotImplemented();
       // return await Promise.all(data.map(current => this.create(current)));
@@ -37,7 +37,7 @@ class Service extends Neo4jService {
    * @param  {type} params description
    * @return {type}        description
    */
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     const result = await this._run(this.queries.patch, {
       user__uid: params.query.user__uid,
       uid: id,
@@ -48,7 +48,7 @@ class Service extends Neo4jService {
     return this._finalizeCreateOne(result);
   }
 
-  async get(id, params) {
+  async get (id, params) {
     const results = await super.get(id, params);
 
     const groups = {

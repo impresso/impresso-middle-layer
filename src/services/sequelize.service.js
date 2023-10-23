@@ -5,7 +5,7 @@ const { NotFound } = require('@feathersjs/errors');
 const sequelize = require('../sequelize');
 const { sequelizeErrorHandler } = require('./sequelize.utils');
 
-function getCacheKeyForReadSqlRequest(request, modelName) {
+function getCacheKeyForReadSqlRequest (request, modelName) {
   const requestString = Buffer.from(JSON.stringify(request)).toString('base64');
   return [
     'cache',
@@ -16,7 +16,7 @@ function getCacheKeyForReadSqlRequest(request, modelName) {
 }
 
 class SequelizeService {
-  constructor({
+  constructor ({
     name = '',
     app = null,
     modelName = null,
@@ -35,25 +35,25 @@ class SequelizeService {
     debug(`Configuring service: ${this.name} (model:${this.modelName}) success`);
   }
 
-  async bulkCreate(items) {
+  async bulkCreate (items) {
     return this.sequelizeKlass.bulkCreate(items, { ignoreDuplicates: true }).catch(this.onError);
   }
 
-  async create(item) {
+  async create (item) {
     return this.sequelizeKlass.create(item).catch(this.onError);
   }
 
-  onError(err) {
+  onError (err) {
     sequelizeErrorHandler(err);
   }
 
-  async bulkRemove(where) {
+  async bulkRemove (where) {
     return this.sequelizeKlass.destroy({
       where,
     }).catch(this.onError);
   }
 
-  async get(id, params) {
+  async get (id, params) {
     let fn = this.sequelizeKlass;
 
     const where = params.where || {
@@ -87,7 +87,7 @@ class SequelizeService {
    * @param  {[type]}  params [description]
    * @return {Promise}        [description]
    */
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     if (id) {
       params.where = {
         ...params.where,
@@ -106,7 +106,7 @@ class SequelizeService {
     }));
   }
 
-  async rawSelect({
+  async rawSelect ({
     query = '',
     replacements = {},
   } = {}) {
@@ -116,7 +116,7 @@ class SequelizeService {
     }).catch(sequelizeErrorHandler);
   }
 
-  async find(params, ttl = undefined) {
+  async find (params, ttl = undefined) {
     const cacheKey = getCacheKeyForReadSqlRequest(params, this.modelName);
     const cacheOptions = ttl != null ? { ttl } : {};
 
@@ -190,7 +190,6 @@ class SequelizeService {
     return cachedPromise.catch(sequelizeErrorHandler);
   }
 }
-
 
 module.exports = function (options) {
   return new SequelizeService(options);

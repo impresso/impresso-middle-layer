@@ -33,6 +33,9 @@ indexes:
         location:
           field: loc_entities_dpfs
           limit: 10
+        nag:
+          field: nag_entities_dpfs
+          limit: 10
       # numeric facets for which we calculate statistics
       numeric:
         contentLength:
@@ -81,6 +84,15 @@ indexes:
         newspaper:
           field: meta_journal_s
           limit: 100
+        collection:
+          field: ucoll_ss
+          limit: 100
+        textReuseClusterNewspapers:
+          field: cluster_newspapers_ss
+          limit: 50
+        textReuseCluster:
+          field: cluster_id_s
+          limit: 50
       numeric:
         textReuseClusterSize:
           field: cluster_size_l

@@ -9,11 +9,11 @@ const SequelizeService = require('../sequelize.service');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor(options) {
+  constructor (options) {
     this.options = options || {};
   }
 
-  setup(app) {
+  setup (app) {
     this.app = app;
     this.name = 'collections';
     this.sequelizeService = new SequelizeService({
@@ -23,7 +23,7 @@ class Service {
     debug('[setup] completed');
   }
 
-  async find(params) {
+  async find (params) {
     const where = {
       [Op.not]: { status: Collection.STATUS_DELETED },
       [Op.and]: [{
@@ -57,7 +57,7 @@ class Service {
     }), 'collections.db.find');
   }
 
-  async get(id, params) {
+  async get (id, params) {
     const uids = id.split(',');
     if (params.findAll || (uids.length > 1 && uids.length < 20)) {
       return this.find({
@@ -95,7 +95,7 @@ class Service {
     }).then(collection => transform(collection.toJSON())), 'collections.db.get');
   }
 
-  async create(data, params) {
+  async create (data, params) {
     debug('[create]', data);
     const collection = new Collection({
       ...data.sanitized,
@@ -108,11 +108,11 @@ class Service {
     });
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     return data;
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     // get the collection
     return this.sequelizeService.patch(id, data.sanitized, {
       where: {
@@ -121,7 +121,7 @@ class Service {
     });
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     debug(`[remove] id:${id}, params.user.uid:${params.user.uid}`);
     const result = await this.sequelizeService.patch(id, {
       status: Collection.STATUS_DELETED,

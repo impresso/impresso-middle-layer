@@ -1,17 +1,24 @@
-const { authenticate } = require('../../hooks/authenticate');
+const { authenticate } = require('../../hooks/authenticate')
 const {
-  eachFilterValidator, paramsValidator,
-} = require('../search/search.validators');
+  eachFilterValidator,
+  paramsValidator,
+} = require('../search/search.validators')
 const {
-  validate, validateEach, queryWithCommonParams, utils,
-} = require('../../hooks/params');
-const { filtersToSolrQuery } = require('../../hooks/search');
-const { resolveCollections } = require('../../hooks/resolvers');
-const { SolrMappings } = require('../../data/constants');
-const { SolrNamespaces } = require('../../solr');
+  validate,
+  validateEach,
+  queryWithCommonParams,
+  utils,
+} = require('../../hooks/params')
+const { filtersToSolrQuery } = require('../../hooks/search')
+const {
+  resolveCollections,
+  resolveTextReuseClusters,
+} = require('../../hooks/resolvers')
+const { SolrMappings } = require('../../data/constants')
+const { SolrNamespaces } = require('../../solr')
 
-const DefaultIndex = 'search';
-const SupportedIndexes = Object.keys(SolrMappings);
+const DefaultIndex = 'search'
+const SupportedIndexes = Object.keys(SolrMappings)
 
 module.exports = {
   before: {
@@ -20,6 +27,7 @@ module.exports = {
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
+
       validate({
         index: {
           choices: SupportedIndexes,
@@ -27,24 +35,64 @@ module.exports = {
         },
         q: paramsValidator.q,
         order_by: {
-          before: d => (Array.isArray(d) ? d.pop() : d),
+          before: (d) => (Array.isArray(d) ? d.pop() : d),
           defaultValue: '-count',
           choices: ['-count', 'count'],
-          transform: d => utils.translate(d, {
-            '-count': {
-              count: 'desc',
-            },
-            count: {
-              count: 'asc',
-            },
-          }),
+          transform: (d) =>
+            utils.translate(d, {
+              '-count': {
+                count: 'desc',
+              },
+              count: {
+                count: 'asc',
+              },
+            }),
         },
       }),
+
+      // validate groupby params against index
+      (context) => {
+        const { index, groupby } = context.params.query
+        // if group by exists and it is a string
+        if (typeof groupby === 'string' && groupby.length > 0) {
+          if (!Object.keys(SolrMappings[index].facets).includes(groupby)) {
+            throw new Error(
+              `Invalid groupby parameter for index ${index}: ${groupby}`
+            )
+          }
+          context.params.groupby = context.params.sanitized.groupby =
+            SolrMappings[index].facets[groupby].field
+        }
+      },
+
       validateEach('filters', eachFilterValidator),
       filtersToSolrQuery({
         overrideOrderBy: false,
-        solrIndexProvider: context => context.params.query.index || SolrNamespaces.Search,
+        solrIndexProvider: (context) =>
+          context.params.query.index || SolrNamespaces.Search,
       }),
+      (context) => {
+        const { rangeStart, rangeEnd, rangeGap, rangeInclude } =
+          context.params.query
+        if (['edge', 'all', 'upper'].includes(rangeInclude)) {
+          context.params.sanitized.rangeInclude = rangeInclude
+        }
+        // if they are all provided, verify that they are integer
+        if (!isNaN(rangeStart) && !isNaN(rangeEnd) && !isNaN(rangeGap)) {
+          if (
+            !Number.isInteger(Number(rangeStart)) ||
+            !Number.isInteger(Number(rangeEnd)) ||
+            !Number.isInteger(Number(rangeGap))
+          ) {
+            throw new Error(
+              `Invalid range parameters: rangeStart=${rangeStart}, rangeEnd=${rangeEnd}, rangeGap=${rangeGap}`
+            )
+          }
+          context.params.sanitized.rangeGap = context.params.query.rangeGap
+          context.params.sanitized.rangeStart = context.params.query.rangeStart
+          context.params.sanitized.rangeEnd = context.params.query.rangeEnd
+        }
+      },
       queryWithCommonParams(),
     ],
     create: [],
@@ -58,9 +106,7 @@ module.exports = {
     find: [
       // resolve(),
     ],
-    get: [
-      resolveCollections(),
-    ],
+    get: [resolveCollections(), resolveTextReuseClusters()],
     create: [],
     update: [],
     patch: [],
@@ -76,4 +122,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

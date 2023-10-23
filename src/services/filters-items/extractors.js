@@ -6,7 +6,7 @@ const Year = require('../../models/years.model');
 const isDateRangeString = v => v.match(/.+ TO .+/) != null;
 const getDateStrings = v => v.match(/(.+) TO (.+)/).slice(1, 3);
 
-function daterangeExtractor({ q = '' }) {
+function daterangeExtractor ({ q = '' }) {
   const values = Array.isArray(q) ? q : [q];
 
   // if `q` is an array with two date strings, return one item for them
@@ -23,33 +23,33 @@ function daterangeExtractor({ q = '' }) {
   });
 }
 
-function newspaperExtractor({ q = '' }) {
+function newspaperExtractor ({ q = '' }) {
   const codes = Array.isArray(q) ? q : [q];
   return codes.map(code => newspapersIndex.values[code.trim()] || {});
 }
 
-function topicExtractor({ q = '' }) {
+function topicExtractor ({ q = '' }) {
   const items = Array.isArray(q) ? q : [q];
   return items
     .map(item => Topic.getCached(item.trim()))
     .filter(item => item != null);
 }
 
-function entityExtractor({ q = '' }) {
+function entityExtractor ({ q = '' }) {
   const items = Array.isArray(q) ? q : [q];
   return items
     .map(item => Entity.getCached(item.trim()))
     .filter(item => item != null);
 }
 
-function yearExtractor({ q = '' }) {
+function yearExtractor ({ q = '' }) {
   const items = Array.isArray(q) ? q : [q];
   return items
     .map(item => Year.getCached(item.trim()))
     .filter(item => item != null);
 }
 
-async function collectionExtractor({ q = '' }, app) {
+async function collectionExtractor ({ q = '' }, app) {
   const items = Array.isArray(q) ? q : [q];
 
   try {
@@ -63,7 +63,7 @@ async function collectionExtractor({ q = '' }, app) {
   }
 }
 
-function numberRangeExtractor({ q = '' }) {
+function numberRangeExtractor ({ q = '' }) {
   const [start, end] = Array.isArray(q)
     ? q
     : q.trim().split(' TO ');
@@ -72,7 +72,7 @@ function numberRangeExtractor({ q = '' }) {
     : [];
 }
 
-function simpleValueExtractor({ q = '' }) {
+function simpleValueExtractor ({ q = '' }) {
   const items = Array.isArray(q)
     ? q
     : [q.trim()];

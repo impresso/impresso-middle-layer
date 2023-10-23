@@ -2,7 +2,7 @@ const lodash = require('lodash');
 const topicsIndex = require('../data')('topics');
 
 class TopicWord {
-  constructor({
+  constructor ({
     w = '',
     p = 0.0,
   } = {}, {
@@ -15,7 +15,7 @@ class TopicWord {
     }
   }
 
-  static create(pipe) {
+  static create (pipe) {
     const parts = pipe.split('|');
     return new TopicWord({
       w: parts.shift(),
@@ -24,9 +24,8 @@ class TopicWord {
   }
 }
 
-
 class Topic {
-  constructor({
+  constructor ({
     uid = '',
     language = '',
     model = '',
@@ -68,15 +67,15 @@ class Topic {
     this.community = String(community);
   }
 
-  getExcerpt() {
+  getExcerpt () {
     return this.excerpt.map(d => d.w || d);
   }
 
-  static getCached(uid) {
+  static getCached (uid) {
     return new Topic(topicsIndex.getValue(uid));
   }
 
-  static solrFactory() {
+  static solrFactory () {
     return topic => new Topic({
       uid: topic.id,
       language: topic.lg_s,
@@ -85,7 +84,7 @@ class Topic {
     });
   }
 
-  static solrFacetFactory() {
+  static solrFacetFactory () {
     return (doc) => {
       const topic = new Topic({
         uid: doc.id,
@@ -100,7 +99,7 @@ class Topic {
     };
   }
 
-  static solrSuggestFactory() {
+  static solrSuggestFactory () {
     const opts = {
       checkHighlight: true,
     };
@@ -121,7 +120,6 @@ const SOLR_FL = [
   'word_probs_dpf',
   'tp_model_s',
 ];
-
 
 module.exports = Topic;
 module.exports.SOLR_FL = SOLR_FL;

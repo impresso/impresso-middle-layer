@@ -5,7 +5,7 @@ const Article = require('./articles.model');
 const { getExternalFragment } = require('../hooks/iiif.js');
 
 class Image {
-  constructor({
+  constructor ({
     uid = '',
     type = 'image',
     coords = [],
@@ -49,7 +49,7 @@ class Image {
     }
   }
 
-  assignIIIF() {
+  assignIIIF () {
     this.regions = this.pages.map(page => ({
       pageUid: page.uid,
       coords: this.coords,
@@ -62,7 +62,7 @@ class Image {
    *
    * @return {function} {Image} image instance.
    */
-  static solrFactory() {
+  static solrFactory () {
     return (doc) => {
       const img = new Image({
         uid: doc.id,
@@ -72,10 +72,12 @@ class Image {
         issue: new Issue({
           uid: doc.meta_issue_id_s,
         }),
-        pages: Array.isArray(doc.page_nb_is) ? doc.page_nb_is.map(num => new Page({
-          uid: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
-          num,
-        })) : [],
+        pages: Array.isArray(doc.page_nb_is)
+          ? doc.page_nb_is.map(num => new Page({
+            uid: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
+            num,
+          }))
+          : [],
         title: Article.getUncertainField(doc, 'title'),
         type: doc.item_type_s,
         year: doc.meta_year_i,

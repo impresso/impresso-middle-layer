@@ -4,7 +4,7 @@ const SequelizeService = require('../sequelize.service');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor({
+  constructor ({
     app,
     name = '',
   } = {}) {
@@ -22,7 +22,7 @@ class Service {
    * @param  {String}  id     uid or acronym of the newspaper
    * @return {Promise}        [description]
    */
-  async get(id) {
+  async get (id) {
     const where = {
       uid: id,
     };
@@ -32,7 +32,7 @@ class Service {
     }).then(d => d.toJSON()), 'newspapers.get.db.newspaper');
   }
 
-  async find(params) {
+  async find (params) {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query);
 
     const where = {};

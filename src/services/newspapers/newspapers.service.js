@@ -2,7 +2,6 @@
 const createService = require('./newspapers.class');
 const hooks = require('./newspapers.hooks');
 
-
 module.exports = function (app) {
   const options = {
     name: 'newspapers',

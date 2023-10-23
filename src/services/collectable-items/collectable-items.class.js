@@ -12,7 +12,7 @@ const {
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor({
+  constructor ({
     name = '',
     app = null,
   } = {}) {
@@ -24,7 +24,7 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     // simplified where for sequelize raw queries.
     const where = [
       { '[Op.not]': [{ 'collection.status': STATUS_DELETED }] },
@@ -193,13 +193,13 @@ class Service {
     // });
   }
 
-  async get(id, params) {
+  async get (id, params) {
     return {
       id, text: `A new message with ID: ${id}!`,
     };
   }
 
-  async create(data, params) {
+  async create (data, params) {
     // get collection, only if it does belongs to the user
     const collection = await this.app
       .service('collections')
@@ -236,8 +236,7 @@ class Service {
     };
   }
 
-
-  async remove(id, params) {
+  async remove (id, params) {
     // get collection, only if it does belongs to the user
     const collection = await this.app
       .service('collections')

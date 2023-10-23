@@ -8,7 +8,6 @@ const {
   filtersToSolrQuery,
 } = require('../../hooks/search');
 
-
 module.exports = {
   before: {
     all: [],

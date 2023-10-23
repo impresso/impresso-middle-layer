@@ -9,7 +9,7 @@ const {
 module.exports = function (app) {
   // Initialize our service with any options it requires
   app.use('/version', {
-    async find() {
+    async find () {
       const solrConfig = app.get('solr');
       const sequelizeConfig = app.get('sequelize');
       const solr = app.get('cachedSolr');

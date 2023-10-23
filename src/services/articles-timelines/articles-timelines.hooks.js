@@ -4,7 +4,6 @@ const {
 const { filtersToSolrQuery } = require('../../hooks/search');
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
 
-
 module.exports = {
   before: {
     all: [],

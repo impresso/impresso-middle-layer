@@ -8,7 +8,7 @@ const SequelizeService = require('../sequelize.service');
 
 /* eslint-disable no-unused-vars */
 class Service {
-  constructor({
+  constructor ({
     name = '',
     app = null,
   } = {}) {
@@ -20,11 +20,11 @@ class Service {
     });
   }
 
-  async find(params) {
+  async find (params) {
     return this.SequelizeService.find(params);
   }
 
-  async get(id, params) {
+  async get (id, params) {
     debug(`[get] id: ${id} check REDIS if an image has been uploaded KEY:"img:${id}"`);
     const cachedImage = await this.app.get('redisClient').get(`img:${id}`);
 
@@ -48,7 +48,7 @@ class Service {
     });
   }
 
-  create(data, params) {
+  create (data, params) {
     const app = this.app;
     debug('create', data);
     return new Promise((resolve, reject) => {
@@ -67,15 +67,15 @@ class Service {
     });
   }
 
-  async update(id, data, params) {
+  async update (id, data, params) {
     return data;
   }
 
-  async patch(id, data, params) {
+  async patch (id, data, params) {
     return data;
   }
 
-  async remove(id, params) {
+  async remove (id, params) {
     return { id };
   }
 }

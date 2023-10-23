@@ -1,4 +1,7 @@
 {
+  "callbackUrls": {
+    "passwordReset": "http://localhost:8080/password-reset"
+  },
   "host": "localhost",
   "port": 3030,
   "public": "../public/",
@@ -43,10 +46,7 @@
     "entity": "user",
     "service": "users",
     "secret": "***********",
-    "authStrategies": [
-      "jwt",
-      "local"
-    ],
+    "authStrategies": ["jwt", "local"],
     "jwtOptions": {
       "header": {
         "typ": "access"
@@ -80,9 +80,7 @@
     "host": "http://localhost:3030",
     "path": "/media",
     "protectedPath": "/protected-media",
-    "services": [
-      "jobs"
-    ]
+    "services": ["jobs"]
   },
   "multer": {
     "dest": "/tmp/multer"
