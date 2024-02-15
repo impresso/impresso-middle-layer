@@ -1,7 +1,8 @@
+const path = require('path')
+const debug = require('debug')('impresso:app')
 const compress = require('compression')
 const cors = require('cors')
 const helmet = require('helmet')
-const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 
 const feathers = require('@feathersjs/feathers')
@@ -32,14 +33,16 @@ app.configure(configuration())
 app.use(cors())
 app.use(helmet())
 app.use(compress())
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+// Turn on JSON parser for REST services
+app.use(express.json())
+// Turn on URL-encoded parser for REST services
+app.use(express.urlencoded({ extended: true }))
+// app.use(bodyParser.json())
+// app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser())
 // app.use(favicon(path.join(app.get('public'), 'favicon.ico')))
 // Host the public folder
-app.use('/', express.static(app.get('public')))
-
-app.configure(socketio())
+app.use('/', express.static(path.join(__dirname, app.get('public'))))
 
 // configure database adapters
 app.configure(sequelize)
@@ -116,5 +119,27 @@ app.use(
   })
 )
 app.configure(appHooks)
+// Register REST service handler
+debug('registering rest handler')
+app.configure(
+  socketio((io) => {
+    debug('registering socketio handler')
+    io.on('connection', (socket) => {
+      // Do something here
+      debug('socket connected')
+    })
+    io.on('disconnect', (socket) => {
+      // Do something here
+      debug('socket disconnected')
+    })
 
+    // Registering Socket.io middleware
+    io.use(function (socket, next) {
+      // Exposing a request property to services and hooks
+      socket.feathers.referrer = socket.request.referrer
+      next()
+    })
+  })
+)
+app.configure(express.rest())
 module.exports = app
