@@ -1,10 +1,32 @@
-/* eslint-disable no-console */
-const logger = require('winston');
-const app = require('./app');
+const debug = require('debug')('impresso/index')
+const app = require('./app')
+const port = app.get('port')
+const host = app.get('host')
 
-const port = app.get('port');
-const server = app.listen(port);
+process.on('unhandledRejection', (reason) => {
+  // show track
+  debug(
+    'process@unhandledRejection:',
+    reason.message,
+    'err:',
+    reason.stack || reason
+  )
+})
+process.on('uncaughtException', (err) => {
+  debug('process@uncaughtException:', err)
+})
 
-process.on('unhandledRejection', (reason, p) => logger.error('Unhandled Rejection at: Promise ', p, reason));
+async function start() {
+  debug(`Server: starting on http://${host}:${port}...`)
+  const server = await app.listen(port, () => {
+    debug(`Server @listening application started on http://${host}:${port}`)
+  })
 
-server.on('listening', () => logger.info('Feathers application started on http://%s:%d', app.get('host'), port));
+  server.on('error', (err) => {
+    debug('server@error:', err)
+  })
+  server.on('close', () => {
+    debug('server@close:', 'server closed')
+  })
+}
+start()

@@ -1,6 +1,6 @@
 // @ts-check
-const { default: fetch } = require('node-fetch');
-const genericPool = require('generic-pool');
+const axios = require('axios')
+const genericPool = require('generic-pool')
 
 /**
  * Using a class to return by pool instead of a function
@@ -12,27 +12,34 @@ class ConnectionWrapper {
    * @param {import('node-fetch').RequestInit} init
    * @returns {Promise<import('node-fetch').Response>}
    */
-  async fetch (url, init = undefined) { return fetch(url, init); }
+  async fetch(url, init = undefined) {
+    return await axios(url, init)
+  }
 }
 
 const factory = {
-  async create () {
-    return new ConnectionWrapper();
+  async create() {
+    return new ConnectionWrapper()
   },
-  async destroy () { /* nothing to destroy */ },
-};
+  async destroy() {
+    /* nothing to destroy */
+  },
+}
 
-function initHttpPool ({ maxParallelConnections = 17, acquireTimeoutSec = 25 } = {}) {
+function initHttpPool({
+  maxParallelConnections = 17,
+  acquireTimeoutSec = 25,
+} = {}) {
   const opts = {
     min: maxParallelConnections,
     max: maxParallelConnections,
     acquireTimeoutMillis: acquireTimeoutSec * 1000,
-  };
-  return genericPool.createPool(factory, opts);
+  }
+  return genericPool.createPool(factory, opts)
 }
 
 module.exports = {
   initHttpPool,
-};
+}
 
-exports.ConnectionWrapper = ConnectionWrapper;
+exports.ConnectionWrapper = ConnectionWrapper

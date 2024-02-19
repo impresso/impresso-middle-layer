@@ -83,7 +83,7 @@ const getCeleryClient = (config, app) => {
 
 module.exports = function (app) {
   const config = app.get('celery');
-  if (!config || !config.enable) {
+  if (!config?.enable) {
     debug('Celery is not configured. No task management is available.');
     app.set('celeryClient', null);
   } else {
