@@ -25,7 +25,25 @@ const multer = require('./multer')
 const cache = require('./cache')
 const cachedSolr = require('./cachedSolr')
 
+const swagger = require('feathers-swagger');
+
 const app = express(feathers())
+
+app.configure(express.rest())
+
+app.configure(swagger({
+  specs: {
+    info: {
+      title: 'Impresso Public API',
+      description: 'Impresso Public API Documentation',
+      version: require('../package.json').version,
+    },
+  },
+  include: {
+    paths: [/^search$/]
+  },
+  ui: swagger.swaggerUI(),
+}));
 
 // Load app configuration
 app.configure(configuration())

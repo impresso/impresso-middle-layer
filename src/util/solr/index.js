@@ -1,4 +1,3 @@
-// @ts-check
 const assert = require('assert');
 const { uniq, includes, groupBy } = require('lodash');
 const { filtersToSolr, escapeValue } = require('./filterReducers');

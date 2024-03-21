@@ -1,4 +1,3 @@
-// @ts-check
 const assert = require('assert');
 const { SolrNamespaces } = require('../../../src/solr');
 const { filtersToSolr } = require('../../../src/util/solr/filterReducers');

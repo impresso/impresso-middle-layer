@@ -1,5 +1,3 @@
-// @ts-check
-// @ts-ignore
 const {
   mapValues, groupBy, values, uniq, clone, get,
 } = require('lodash');

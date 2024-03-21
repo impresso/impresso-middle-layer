@@ -1,3 +1,6 @@
+import { hooks as schemaHooks } from '@feathersjs/schema'
+import { searchQueryParametersValidator, searchQueryParametersResolver } from './search.schema'
+
 const { protect } = require('@feathersjs/authentication-local').hooks
 const { authenticate } = require('../../hooks/authenticate')
 const {
@@ -22,12 +25,14 @@ const { SolrMappings } = require('../../data/constants')
 const { SolrNamespaces } = require('../../solr')
 
 module.exports = {
+
   before: {
     all: [],
     find: [
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
+      // schemaHooks.validateQuery(searchQueryParametersValidator), schemaHooks.resolveQuery(searchQueryParametersResolver),
       validate({
         ...paramsValidator,
         facets: utils.facets({

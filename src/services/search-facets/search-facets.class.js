@@ -1,4 +1,3 @@
-// @ts-check
 const lodash = require('lodash')
 const { NotFound, NotImplemented, BadRequest } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:search-facets')

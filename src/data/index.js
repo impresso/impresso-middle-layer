@@ -1,4 +1,3 @@
-// @ts-check
 const debug = require('debug')('impresso/data');
 const YAML = require('yaml');
 const { readFileSync } = require('fs');

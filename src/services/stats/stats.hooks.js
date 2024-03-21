@@ -1,4 +1,3 @@
-// @ts-check
 const debug = require('debug')('impresso/services:stats.hooks')
 const assert = require('assert')
 const { BadRequest } = require('@feathersjs/errors')

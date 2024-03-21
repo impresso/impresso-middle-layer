@@ -1,4 +1,3 @@
-// @ts-check
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
 const lodash = require('lodash');

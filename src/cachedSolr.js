@@ -1,4 +1,3 @@
-// @ts-check
 const { SolrNamespaces } = require('./solr');
 
 function getCacheKeyForSolrRequest (request, namespace, isPost = false) {
