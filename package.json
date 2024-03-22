@@ -22,15 +22,14 @@
     "npm": ">= 3.0.0"
   },
   "scripts": {
-    "copy-files": "npx copyfiles --up 1 src/**/*.cyp dist/ && npx copyfiles --up 1 src/**/*.yml dist/ && npx copyfiles --up 1 src/**/*.json dist/",
-    "watch": "tsc -p ./tsconfig.json --watch",
+    "watch": "tsc -p ./tsconfig.json -w & tscp -w",
     "test": "mocha 'test/**/*.test.js'",
     "test-watch": "mocha 'test/**/*.test.js' --watch",
     "integration-test": "NODE_ENV=test mocha --config ./.mocharc-integration.json 'test/integration/**/*.test.js'",
     "lintfix": "eslint src/. --config .eslintrc.js --fix",
     "lint": "eslint src/. --config .eslintrc.js",
     "start": "node dist/",
-    "dev": "nodemon --inspect dist/",
+    "dev": "nodemon --enable-source-maps --inspect dist/",
     "cli": "node src/admin/cli.js",
     "update-newspapers": "node scripts/update-newspapers.js",
     "update-years": "node scripts/update-years.js",
@@ -139,6 +138,6 @@
     "nodemon": "3.1.0",
     "typescript": "5.4.3",
     "prettier": "3.2.5",
-    "copyfiles": "2.4.1"
+    "typescript-cp": "0.1.9"
   }
 }
