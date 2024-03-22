@@ -1,6 +1,3 @@
-import { hooks as schemaHooks } from '@feathersjs/schema'
-import { searchQueryParametersValidator, searchQueryParametersResolver } from './search.schema'
-
 const { protect } = require('@feathersjs/authentication-local').hooks
 const { authenticate } = require('../../hooks/authenticate')
 const {
@@ -32,7 +29,6 @@ module.exports = {
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
-      // schemaHooks.validateQuery(searchQueryParametersValidator), schemaHooks.resolveQuery(searchQueryParametersResolver),
       validate({
         ...paramsValidator,
         facets: utils.facets({

@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/authencation/user.json",
+  "title": "User",
+  "description": "User details",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "integer" },
+    "username": { "type": "string" },
+    "firstname": { "type": "string" },
+    "lastname": { "type": "string" },
+    "isStaff": { "type": "boolean" },
+    "isActive": { "type": "boolean" },
+    "isSuperuser": { "type": "boolean" },
+    "uid": { "type": "string" }
+
+  },
+  "required": ["id", "username", "firstname", "lastname", "isStaff", "isActive", "isSuperuser", "uid"]
+}

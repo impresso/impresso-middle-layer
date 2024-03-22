@@ -1,0 +1,33 @@
+{
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/search/response.json",
+  "type": "object",
+  "title": "Article Search Response",
+  "description": "Article search response",
+  "additionalProperties": false,
+  "required": ["data", "limit", "skip", "total", "info"],
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/search/article.json"
+      }
+    },
+    "limit": {
+      "type": "integer",
+      "description": "The number of articles returned in this response"
+    },
+    "skip": {
+      "type": "integer",
+      "description": "The number of articles skipped in this response"
+    },
+    "total": {
+      "type": "integer",
+      "description": "The total number of articles matching the query"
+    },
+    "info": {
+      "type": "object",
+      "description": "Additional information about the search response.",
+      "properties": {}
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import { createSwaggerServiceOptions } from 'feathers-swagger';
-import { docs } from './search.schema.js';
+import { docs } from './search.schema';
 
 // Initializes the `search` service on path `/search`
 const createService = require('./search.class.js');
@@ -11,15 +11,12 @@ module.exports = function (app) {
   const options = {
     name: 'search',
     paginate,
-    app,
+    app
   };
 
   app.use('/search', createService(options), {
     methods: ['find'],
-    docs: createSwaggerServiceOptions({
-      schemas: { },
-      docs: docs,
-    }),
+    docs: createSwaggerServiceOptions({ schemas: {}, docs })
   });
 
   app.service('search').hooks(hooks);

@@ -4,6 +4,7 @@ const compress = require('compression')
 const cors = require('cors')
 const helmet = require('helmet')
 const cookieParser = require('cookie-parser')
+const bodyParser = require('body-parser')
 
 const feathers = require('@feathersjs/feathers')
 const express = require('@feathersjs/express')
@@ -29,8 +30,6 @@ const swagger = require('feathers-swagger');
 
 const app = express(feathers())
 
-app.configure(express.rest())
-
 app.configure(swagger({
   specs: {
     info: {
@@ -38,9 +37,18 @@ app.configure(swagger({
       description: 'Impresso Public API Documentation',
       version: require('../package.json').version,
     },
+    components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+        },
+      },
+    },
+    security: [{ BearerAuth: [] }],
   },
   include: {
-    paths: [/^search$/]
+    paths: [/^search$/, /^authentication$/]
   },
   ui: swagger.swaggerUI(),
 }));
@@ -79,6 +87,8 @@ app.set(
   })
 )
 app.set('cachedSolr', cachedSolr(app))
+
+app.configure(express.rest())
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware)
@@ -159,5 +169,5 @@ app.configure(
     })
   })
 )
-app.configure(express.rest())
+// app.configure(express.rest())
 module.exports = app
