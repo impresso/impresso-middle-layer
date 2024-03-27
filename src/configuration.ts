@@ -4,6 +4,7 @@ import { Ajv, getValidator } from '@feathersjs/schema';
 
 export interface Configuration {
   isPublicApi?: boolean;
+  allowedCorsOrigins?: string[];
 }
 
 const configurationSchema: JSONSchemaDefinition = {
@@ -13,6 +14,13 @@ const configurationSchema: JSONSchemaDefinition = {
     isPublicApi: {
       type: 'boolean',
       description: 'If `true`, the app serves a public API',
+    },
+    allowedCorsOrigins: {
+      type: 'array',
+      items: {
+        type: 'string',
+      },
+      description: 'List of allowed origins for CORS',
     },
   },
 } as const;

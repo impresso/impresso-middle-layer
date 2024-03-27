@@ -3,10 +3,9 @@ import { logger } from '../logger';
 import media from './media';
 import proxy from './proxy';
 
-const publicApiServices = ['search'];
+const publicApiServices = ['search', 'articles'];
 const internalApiServices = [
   'users',
-  'articles',
   'entities',
   'newspapers',
   'issues',
@@ -57,6 +56,7 @@ const internalApiServices = [
 
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi');
+  console.log('ooo', publicApiServices);
   const services = isPublicApi ? publicApiServices : publicApiServices.concat(internalApiServices);
 
   logger.info(`Loading services: ${services.join(', ')}`);
