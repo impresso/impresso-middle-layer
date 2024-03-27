@@ -56,7 +56,6 @@ const internalApiServices = [
 
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi');
-  console.log('ooo', publicApiServices);
   const services = isPublicApi ? publicApiServices : publicApiServices.concat(internalApiServices);
 
   logger.info(`Loading services: ${services.join(', ')}`);

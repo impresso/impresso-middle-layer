@@ -2,21 +2,25 @@
 
 Internal API for the impresso web application and public API.
 
-```
+```shell
 git clone impresso-middle-layer
 cd path/to/impresso-middle-layer && npm install
 
-# In one terminal:
+# Watch and compile/copy files in one terminal:
 npm run watch
 
-# In another terminal:
+# Run the app in another terminal:
 make run-dev
 ```
 
 ## About
 
 This project uses [Feathers](http://feathersjs.com). An open source web framework for building modern real-time applications.
-We also use: SOlR, mysql, neo4j, redis.
+We also use: SolR, mysql, neo4j, redis.
+
+This project contains code for both the internal API and the public API. The internal API is used by the impresso web application, while the public API is used by third party clients. The internal API is enabled by default. To enable the public API, set the configuration flag in the [config file](config/default.json) `isPublicApi` to `true`.
+
+The Public API exposes a Swagger page at `/docs` URL.
 
 ## Getting started using docker development stack
 
