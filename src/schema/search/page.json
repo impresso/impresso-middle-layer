@@ -5,7 +5,17 @@
   "description": "A page of an article",
   "additionalProperties": false,
   "required": [
-    "uid", "num", "issueUid", "newspaperUid", "iif", "iiifThumbnail", "accessRights", "labels", "hasCoords", "hasErrors", "regions"
+    "uid",
+    "num",
+    "issueUid",
+    "newspaperUid",
+    "iif",
+    "iiifThumbnail",
+    "accessRights",
+    "labels",
+    "hasCoords",
+    "hasErrors",
+    "regions"
   ],
   "properties": {
     "uid": {
@@ -24,7 +34,7 @@
       "type": "string",
       "description": "Unique ID of the newspaper"
     },
-    "iif": {
+    "iiif": {
       "type": "string",
       "description": "The IIF image file name of the page"
     },
