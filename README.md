@@ -1,8 +1,15 @@
 # impresso-middle-layer
 
+Internal API for the impresso web application and public API.
+
 ```
 git clone impresso-middle-layer
 cd path/to/impresso-middle-layer && npm install
+
+# In one terminal:
+npm run watch
+
+# In another terminal:
 make run-dev
 ```
 

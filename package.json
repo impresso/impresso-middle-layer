@@ -120,7 +120,7 @@
     "supports-color": "^6.1.0",
     "truncatise": "0.0.7",
     "wikidata-sdk": "^5.15.10",
-    "winston": "^2.4.4",
+    "winston": "3.13.0",
     "xml2js": "^0.6.2",
     "yaml": "^2.1.1"
   },
