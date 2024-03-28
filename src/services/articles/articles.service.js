@@ -1,9 +1,12 @@
+import { createSwaggerServiceOptions } from 'feathers-swagger';
+import { docs } from './articles.schema';
+
 // Initializes the `articles` service on path `/articles`
-const createService = require('./articles.class')
-const hooks = require('./articles.hooks')
+const createService = require('./articles.class');
+const hooks = require('./articles.hooks');
 
 module.exports = function (app) {
-  const paginate = app.get('paginate')
+  const paginate = app.get('paginate');
 
   const options = {
     name: 'articles',
@@ -11,13 +14,16 @@ module.exports = function (app) {
     // need to pass config and queries to neo4j.service
     config: app.get('neo4j'),
     app,
-  }
+  };
 
   // Initialize our service with any options it requires
-  app.use('/articles', createService(options))
+  app.use('/articles', createService(options), {
+    methods: ['find', 'get'],
+    docs: createSwaggerServiceOptions({ schemas: {}, docs }),
+  });
 
   // Get our initialized service so that we can register hooks and filters
-  const service = app.service('articles')
+  const service = app.service('articles');
 
-  service.hooks(hooks)
-}
+  service.hooks(hooks);
+};

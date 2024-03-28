@@ -1,7 +1,7 @@
 import { paramsValidator } from './search.validators';
 import { SolrMappings } from '../../data/constants';
 import { ServiceSwaggerOptions } from 'feathers-swagger';
-import { JSONSchema } from 'json-schema-to-ts';
+import { QueryParameter } from '../../types';
 
 const filterSchema = require('../../schema/search/filter.json');
 const articleSchema = require('../../schema/search/article.json');
@@ -27,14 +27,6 @@ responseSchema.properties.data.items.$ref = '#/components/schemas/article';
 
 export { articleSchema, pageSchema, entitySchema };
 
-interface QueryParameter {
-  in: 'query';
-  name: string;
-  required: boolean;
-  schema: JSONSchema;
-  description: string;
-}
-
 const findParameters: QueryParameter[] = [
   {
     in: 'query',
@@ -43,9 +35,9 @@ const findParameters: QueryParameter[] = [
     schema: {
       type: 'string',
       minLength: 2,
-      maxLength: 1000
+      maxLength: 1000,
     },
-    description: 'Search query term'
+    description: 'Search query term',
   },
   {
     in: 'query',
@@ -53,9 +45,9 @@ const findParameters: QueryParameter[] = [
     required: paramsValidator.group_by.required,
     schema: {
       type: 'string',
-      enum: paramsValidator.group_by.choices
+      enum: paramsValidator.group_by.choices,
     },
-    description: 'Group by term'
+    description: 'Group by term',
   },
   {
     in: 'query',
@@ -63,9 +55,9 @@ const findParameters: QueryParameter[] = [
     required: false,
     schema: {
       type: 'string',
-      enum: paramsValidator.order_by.choices
+      enum: paramsValidator.order_by.choices,
     },
-    description: 'Order by term'
+    description: 'Order by term',
   },
   {
     in: 'query',
@@ -73,9 +65,9 @@ const findParameters: QueryParameter[] = [
     required: false,
     schema: {
       type: 'string',
-      enum: Object.keys(SolrMappings.search.facets)
+      enum: Object.keys(SolrMappings.search.facets),
     },
-    description: 'Facet to return'
+    description: 'Facet to return',
   },
   {
     in: 'query',
@@ -83,9 +75,9 @@ const findParameters: QueryParameter[] = [
     required: false,
     schema: {
       type: 'array',
-      items: filterSchema
+      items: filterSchema,
     },
-    description: 'Filters to apply'
+    description: 'Filters to apply',
   },
   {
     in: 'query',
@@ -94,9 +86,9 @@ const findParameters: QueryParameter[] = [
     schema: {
       type: 'integer',
       minimum: 1,
-      maximum: 1000
+      maximum: 1000,
     },
-    description: 'Total items to return'
+    description: 'Total items to return',
   },
   {
     in: 'query',
@@ -104,10 +96,10 @@ const findParameters: QueryParameter[] = [
     required: false,
     schema: {
       type: 'integer',
-      minimum: 0
+      minimum: 0,
     },
-    description: 'Items to skip'
-  }
+    description: 'Items to skip',
+  },
 ];
 
 /**
@@ -120,7 +112,7 @@ export const docs: ServiceSwaggerOptions = {
   operations: {
     find: {
       description: 'Find articles that match the given query',
-      parameters: findParameters
-    }
-  }
+      parameters: findParameters,
+    },
+  },
 };
