@@ -102,6 +102,24 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
    NODE_ENV=development DEBUG=impresso* npm run dev
    ```
 
+
+## Building and running with Docker
+
+For local testing:
+
+```shell
+docker build \
+  --progress plain \
+  -f Dockerfile \
+  -t impresso_middle_layer .
+```
+
+```shell
+docker run \
+  -p 8080:8080 \
+  --rm -it impresso_middle_layer
+```
+
 ## Deployment with forever
 
 Make sure you have correctly set and tested the file `config/production.json` (is _.gitignored_).
