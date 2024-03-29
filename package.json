@@ -56,7 +56,7 @@
     "@feathersjs/schema": "5.0.24",
     "feathers-swagger": "3.0.0",
     "swagger-ui-dist": "5.12.0",
-    "ajv": "^8.11.0",
+    "ajv": "8.12.0",
     "async": "^2.6.1",
     "async-redis": "^2.0.0",
     "aws-sdk": "^2.395.0",
