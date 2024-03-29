@@ -1,4 +1,3 @@
-// @ts-check
 const axios = require('axios')
 
 class ArticlesRecommendations {

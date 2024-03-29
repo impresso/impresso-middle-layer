@@ -1,4 +1,3 @@
-// @ts-check
 const {
   uniq, values, groupBy, get,
 } = require('lodash');

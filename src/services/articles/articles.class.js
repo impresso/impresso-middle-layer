@@ -1,4 +1,3 @@
-// @ts-check
 const { keyBy } = require('lodash');
 const debug = require('debug')('impresso/services:articles');
 const { Op } = require('sequelize');

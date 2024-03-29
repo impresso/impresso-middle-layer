@@ -1,6 +1,8 @@
 const Ajv = require('ajv');
+const addFormats = require('ajv-formats');
 
-const ajv = new Ajv({ allErrors: true, strictKeywords: true });
+const ajv = new Ajv({ allErrors: true, strict: true });
+addFormats(ajv);
 
 ajv.addSchema(require('../schema/common/pagination.json'));
 ajv.addSchema(require('../schema/search/filter.json'));
@@ -33,7 +35,7 @@ ajv.addSchema(require('../services/entity-mentions-timeline/schema/create/respon
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src';
 
-function validated (obj, schemaUri) {
+function validated(obj, schemaUri) {
   const uri = schemaUri.startsWith('http') ? schemaUri : `${BaseSchemaURI}/${schemaUri}`;
   const validate = ajv.getSchema(uri);
 
@@ -50,28 +52,32 @@ function validated (obj, schemaUri) {
   return obj;
 }
 
-function formatValidationErrors (errors) {
-  return (errors || []).map((error) => {
-    const dataPath = error.dataPath.startsWith('.') ? error.dataPath.slice(1) : error.dataPath;
+function formatValidationErrors(errors) {
+  return (errors || [])
+    .map(error => {
+      const dataPath = error.dataPath.startsWith('.') ? error.dataPath.slice(1) : error.dataPath;
 
-    if (error.keyword === 'additionalProperties') {
-      const currentPath = dataPath ? `${dataPath}.${error.params.additionalProperty}` : error.params.additionalProperty;
-      return [currentPath, 'unexpected additional property'];
-    }
-    if (error.keyword === 'required') {
-      const currentPath = dataPath ? `${dataPath}.${error.params.missingProperty}` : error.params.missingProperty;
-      return [currentPath, 'missing required property'];
-    }
+      if (error.keyword === 'additionalProperties') {
+        const currentPath = dataPath
+          ? `${dataPath}.${error.params.additionalProperty}`
+          : error.params.additionalProperty;
+        return [currentPath, 'unexpected additional property'];
+      }
+      if (error.keyword === 'required') {
+        const currentPath = dataPath ? `${dataPath}.${error.params.missingProperty}` : error.params.missingProperty;
+        return [currentPath, 'missing required property'];
+      }
 
-    if (error.keyword === 'propertyNames') {
-      return undefined; // this will be covered by next error
-    }
-    if (error.propertyName !== undefined) {
-      return [`${dataPath}['${error.propertyName}']`, `invalid property name: ${error.message}`];
-    }
+      if (error.keyword === 'propertyNames') {
+        return undefined; // this will be covered by next error
+      }
+      if (error.propertyName !== undefined) {
+        return [`${dataPath}['${error.propertyName}']`, `invalid property name: ${error.message}`];
+      }
 
-    return [dataPath, error.message];
-  }).filter(e => e !== undefined);
+      return [dataPath, error.message];
+    })
+    .filter(e => e !== undefined);
 }
 
 module.exports = {

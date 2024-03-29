@@ -1,4 +1,3 @@
-// @ts-check
 const { Op } = require('sequelize');
 const SequelizeService = require('../sequelize.service');
 const { measureTime } = require('../../util/instruments');

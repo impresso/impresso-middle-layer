@@ -1,4 +1,3 @@
-// @ts-check
 const moment = require('moment');
 
 const DaterangeFilterValueRegex = /([^\s]+)\s+TO\s+([^\s]+)/;

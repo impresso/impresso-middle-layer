@@ -1,4 +1,3 @@
-// @ts-check
 
 // const debug = require('debug')('impresso/services:search-queries-comparison');
 const { BadRequest } = require('@feathersjs/errors');

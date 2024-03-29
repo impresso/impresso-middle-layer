@@ -1,5 +1,3 @@
-// @ts-check
-// @ts-ignore
 const { groupBy, mapValues, first } = require('lodash');
 const {
   getTextReusePassagesRequestForArticle,

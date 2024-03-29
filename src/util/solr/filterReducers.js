@@ -1,4 +1,3 @@
-// @ts-check
 const YAML = require('yaml');
 const { readFileSync } = require('fs');
 const { InvalidArgumentError } = require('../error');

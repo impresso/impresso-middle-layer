@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/authencation/request.json",
+  "title": "Authentication Request",
+  "description": "Authentication request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "strategy": { "type": "string", "enum": ["local"] },
+    "email": { "type": "string" },
+    "password": { "type": "string" }
+  },
+  "required": ["strategy", "email", "password"]
+}

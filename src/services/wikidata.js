@@ -1,4 +1,3 @@
-// @ts-check
 const axios = require('axios')
 const wdk = require('wikidata-sdk')
 const debug = require('debug')('impresso/services:wikidata')

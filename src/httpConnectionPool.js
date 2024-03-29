@@ -1,5 +1,4 @@
-// @ts-check
-const axios = require('axios')
+const { default: fetch } = require('node-fetch')
 const genericPool = require('generic-pool')
 
 /**
@@ -13,7 +12,7 @@ class ConnectionWrapper {
    * @returns {Promise<import('node-fetch').Response>}
    */
   async fetch(url, init = undefined) {
-    return await axios(url, init)
+    return fetch(url, init)
   }
 }
 

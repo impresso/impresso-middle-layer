@@ -1,4 +1,3 @@
-// @ts-check
 const debug = require('debug')('impresso/solr')
 const lodash = require('lodash')
 const { URL, URLSearchParams } = require('url')

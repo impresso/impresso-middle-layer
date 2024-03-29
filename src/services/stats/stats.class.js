@@ -1,4 +1,3 @@
-// @ts-check
 const debug = require('debug')('impresso/services:stats')
 const { statsConfiguration } = require('../../data')
 const { filtersToQueryAndVariables } = require('../../util/solr')

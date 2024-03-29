@@ -5,18 +5,14 @@
   "title": "Text reuse cluster",
   "description": "Represents a cluster of text reuse passages",
   "additionalProperties": false,
-  "required": [
-    "id"
-  ],
+  "required": ["id"],
   "properties": {
     "id": {
       "type": "string",
       "title": "Passage ID",
       "description": "ID of the text reuse passage",
-      "examples": [
-        "abc123"
-      ],
-      "pattern": "^[\\w\\d-_]+$"
+      "examples": ["abc123"],
+      "pattern": "^[a-zA-Z0-9-_]+$"
     },
     "lexicalOverlap": {
       "type": "number",

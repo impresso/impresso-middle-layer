@@ -22,6 +22,7 @@ const { SolrMappings } = require('../../data/constants')
 const { SolrNamespaces } = require('../../solr')
 
 module.exports = {
+
   before: {
     all: [],
     find: [

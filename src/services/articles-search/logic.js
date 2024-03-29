@@ -1,4 +1,3 @@
-// @ts-check
 
 /**
  * @typedef {import('.').RelevanceContextItem} RelevanceContextItem

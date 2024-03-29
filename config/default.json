@@ -1,4 +1,10 @@
 {
+  "isPublicApi": true,
+  "allowedCorsOrigins": [
+    "http://localhost:8080",
+    "https://impresso-project.ch/app",
+    "https://dev.impresso-project.ch/app"
+  ],
   "callbackUrls": {
     "passwordReset": "http://localhost:8080/password-reset"
   },
@@ -33,14 +39,7 @@
   },
   "appHooks": {
     "alwaysRequired": true,
-    "excludePaths": [
-      "newspapers",
-      "pages-timelines",
-      "issues-timelines",
-      "articles-timelines",
-      "search",
-      "images"
-    ]
+    "excludePaths": ["newspapers", "pages-timelines", "issues-timelines", "articles-timelines", "search", "images"]
   },
   "authentication": {
     "entity": "user",
