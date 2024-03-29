@@ -1,4 +1,4 @@
-name: Build and publish Docker image for Release
+name: Build and publish Docker image for Epic branch
 on:
   # Trigger the workflow on push or pull request,
   # for any `epic/<name>` branch
