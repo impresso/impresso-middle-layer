@@ -16,8 +16,8 @@ pageSchema.$id = '#/components/schemas/page';
 const entitySchema = require('../../schema/search/entity.json');
 entitySchema.$id = '#/components/schemas/entity';
 
-const responseSchema = require('../../schema/search/response.json');
-responseSchema.properties.data.items.$ref = '#/components/schemas/article';
+const searchResponseSchema = require('../../schema/search/response.json');
+searchResponseSchema.properties.data.items.$ref = '#/components/schemas/article';
 
 // const articleListSchema = {
 //   title: 'Article list',
@@ -46,6 +46,7 @@ const findParameters: QueryParameter[] = [
     schema: {
       type: 'string',
       enum: paramsValidator.group_by.choices,
+      default: paramsValidator.group_by.choices[0],
     },
     description: 'Group by term',
   },
@@ -108,7 +109,8 @@ const findParameters: QueryParameter[] = [
 export const docs: ServiceSwaggerOptions = {
   description: 'Search articles',
   securities: ['find'],
-  schemas: { entity: entitySchema, page: pageSchema, article: articleSchema, searchList: responseSchema },
+  schemas: { entity: entitySchema, page: pageSchema, article: articleSchema, searchResponseSchema },
+  refs: { findResponse: 'searchResponseSchema' },
   operations: {
     find: {
       description: 'Find articles that match the given query',

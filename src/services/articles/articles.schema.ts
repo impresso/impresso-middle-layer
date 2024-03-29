@@ -73,7 +73,7 @@ const findParameters: QueryParameter[] = [
 export const docs: ServiceSwaggerOptions = {
   description: 'Articles',
   securities: ['find', 'get'],
-  refs: { getResponse: 'article', findResponse: 'searchList' },
+  refs: { getResponse: 'article', findResponse: 'searchResponseSchema' },
   operations: {
     find: {
       description: 'Find articles that match the given query',
