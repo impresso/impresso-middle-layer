@@ -29,6 +29,9 @@ export default (app: ImpressoApplication) => {
     include: {
       // paths: [/^this$/],
     },
+    ignore: {
+      paths: [/^users/],
+    },
     ui: swaggerUI({}),
   });
   return app.configure(swaggerItem);

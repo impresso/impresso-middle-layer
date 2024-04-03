@@ -3,7 +3,7 @@ import { logger } from '../logger';
 import media from './media';
 import proxy from './proxy';
 
-const publicApiServices = ['search', 'articles'];
+const publicApiServices = ['search', 'articles', 'users'];
 const internalApiServices = [
   'users',
   'entities',
