@@ -3,7 +3,7 @@ import { logger } from '../logger';
 import media from './media';
 import proxy from './proxy';
 
-const publicApiServices = ['search', 'articles', 'users'];
+const publicApiServices = ['search', 'articles', 'users', 'collectable-items'];
 const internalApiServices = [
   'users',
   'entities',
@@ -18,7 +18,6 @@ const internalApiServices = [
   'buckets-items',
   'search-exporter',
   'collections',
-  'collectable-items',
   'topics',
   'init',
   'pages-timelines',

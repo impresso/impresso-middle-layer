@@ -38,7 +38,7 @@ const findParameters: QueryParameter[] = [
         },
         q: {
           type: 'string',
-          pattern: String(REGEX_UID),
+          pattern: String(REGEX_UID).slice(1, -1),
         },
       },
     },
@@ -78,6 +78,20 @@ export const docs: ServiceSwaggerOptions = {
     find: {
       description: 'Find articles that match the given query',
       parameters: findParameters,
+    },
+    get: {
+      description: 'Get an article by its UID',
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+          },
+          description: 'UID of the article',
+        },
+      ],
     },
   },
 };
