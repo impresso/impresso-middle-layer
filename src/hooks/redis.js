@@ -20,75 +20,77 @@ const { generateHash } = require('../crypto');
  *
  * @return {feathers.SKIP or undefined} if undefined, following hooks will be loaded
  */
-const checkCachedContents = ({
-  useAuthenticatedUser = false,
-  useAuthentication = false,
-  cacheUnauthenticated = true,
-} = {}) => async (context) => {
-  if (!context.params.provider) {
-    debug('checkCachedContents: skipping, internal call');
-    return;
-  }
-  if (!context.app.get('cache').enabled) {
-    debug('checkCachedContents: disabled by config');
-    return;
-  }
+// prettier-ignore
+const checkCachedContents =
+  ({
+    useAuthenticatedUser = false, //
+    useAuthentication = false,
+    cacheUnauthenticated = true,
+  } = {}) => async context => {
+    if (!context.params.provider) {
+      debug('checkCachedContents: skipping, internal call');
+      return;
+    }
+    if (!context.app.get('cache').enabled) {
+      debug('checkCachedContents: disabled by config');
+      return;
+    }
 
-  const client = context.app.get('redisClient');
-  if (!client) {
-    debug('checkCachedContents: disabled, redis is not available');
-    return;
-  }
-  debug('checkCachedContents with provider:', context.params.provider);
+    const client = context.app.service('redisClient').client;
+    if (!client) {
+      debug('checkCachedContents: disabled, redis is not available');
+      return;
+    }
+    debug('checkCachedContents with provider:', context.params.provider);
 
-  const keyParts = [`${context.service.name}.${context.method}`];
+    const keyParts = [`${context.service.name}.${context.method}`];
 
-  if (!context.params) {
-    context.params = {};
-  }
+    if (!context.params) {
+      context.params = {};
+    }
 
-  if (!cacheUnauthenticated && !context.params.user) {
-    debug('checkCachedContents: disabled, hooks required to cache authenticated only, no user has been given');
-    return;
-  }
+    if (!cacheUnauthenticated && !context.params.user) {
+      debug('checkCachedContents: disabled, hooks required to cache authenticated only, no user has been given');
+      return;
+    }
 
-  if (useAuthenticatedUser && context.params.user) {
-    debug('checkCachedContents prefix key with user:', context.params.user.uid);
-    // prepend user specific cache.
-    keyParts.shift(context.params.user.uid);
-  }
+    if (useAuthenticatedUser && context.params.user) {
+      debug('checkCachedContents prefix key with user:', context.params.user.uid);
+      // prepend user specific cache.
+      keyParts.shift(context.params.user.uid);
+    }
 
-  if (useAuthentication && context.params.authenticated) {
-    debug('checkCachedContents prefix key with authentication');
-    // prepend user specific cache.
-    keyParts.shift('auth');
-  }
+    if (useAuthentication && context.params.authenticated) {
+      debug('checkCachedContents prefix key with authentication');
+      // prepend user specific cache.
+      keyParts.shift('auth');
+    }
 
-  if (context.id) {
-    keyParts.push(context.id);
-  }
+    if (context.id) {
+      keyParts.push(context.id);
+    }
 
-  if (context.params.query) {
-    const qs = JSON.stringify(context.params.query);
-    keyParts.push(qs.length < 64 ? qs : generateHash(context.params.query));
-  }
+    if (context.params.query) {
+      const qs = JSON.stringify(context.params.query);
+      keyParts.push(qs.length < 64 ? qs : generateHash(context.params.query));
+    }
 
-  // generate key from parameters.
-  context.params.cacheKey = keyParts.join('::');
+    // generate key from parameters.
+    context.params.cacheKey = keyParts.join('::');
 
-  // look for cache
-  const value = await client.get(context.params.cacheKey);
+    // look for cache
+    const value = await client.get(context.params.cacheKey);
 
-  debug(`checkCachedContents; cacheKey: ${context.params.cacheKey}, exists: ${!!value}`);
+    debug(`checkCachedContents; cacheKey: ${context.params.cacheKey}, exists: ${!!value}`);
 
-  if (value) {
-    // setting `result` makes feathers ignore
-    // following before hooks and service method.
-    context.result = JSON.parse(value);
-    context.params.isCached = true;
-    return feathers.SKIP;
-  }
-};
+    if (value) {
+      // setting `result` makes feathers ignore
+      // following before hooks and service method.
+      context.result = JSON.parse(value);
+      context.params.isCached = true;
+      return feathers.SKIP;
+    }
+  };
 
 /**
  * Use in after hooks, should be the first hook.
@@ -96,25 +98,25 @@ const checkCachedContents = ({
  *
  * @return {feathers.SKIP or undefined}
  */
-const returnCachedContents = ({
-  skipHooks = false,
-} = {}) => (context) => {
-  debug(`returnCachedContents: ${!!context.params.isCached}`);
-  if (context.params.isCached) {
-    if (typeof context.result === 'object') {
-      context.result.cached = true;
+const returnCachedContents =
+  ({ skipHooks = false } = {}) =>
+  context => {
+    debug(`returnCachedContents: ${!!context.params.isCached}`);
+    if (context.params.isCached) {
+      if (typeof context.result === 'object') {
+        context.result.cached = true;
+      }
+      if (skipHooks) {
+        return feathers.SKIP;
+      }
     }
-    if (skipHooks) {
-      return feathers.SKIP;
-    }
-  }
-};
+  };
 
 /**
  * [saveResultsInCache description]
  * @return {[type]} [description]
  */
-const saveResultsInCache = () => async (context) => {
+const saveResultsInCache = () => async context => {
   if (context.params.isCached) {
     debug('saveResultsInCache: skipping saving, cached content already served.');
     return;
@@ -122,7 +124,7 @@ const saveResultsInCache = () => async (context) => {
   if (!context.params.cacheKey) {
     return;
   }
-  const client = context.app.get('redisClient');
+  const client = context.app.service('redisClient').client;
   if (!client) {
     return;
   }

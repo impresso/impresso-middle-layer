@@ -8,10 +8,7 @@ const SequelizeService = require('../sequelize.service');
 
 /* eslint-disable no-unused-vars */
 class Service {
-  constructor ({
-    name = '',
-    app = null,
-  } = {}) {
+  constructor({ name = '', app = null } = {}) {
     this.name = String(name);
     this.app = app;
     this.SequelizeService = SequelizeService({
@@ -20,13 +17,13 @@ class Service {
     });
   }
 
-  async find (params) {
+  async find(params) {
     return this.SequelizeService.find(params);
   }
 
-  async get (id, params) {
+  async get(id, params) {
     debug(`[get] id: ${id} check REDIS if an image has been uploaded KEY:"img:${id}"`);
-    const cachedImage = await this.app.get('redisClient').get(`img:${id}`);
+    const cachedImage = await this.app.service('redisClient').client.get(`img:${id}`);
 
     if (cachedImage) {
       debug('[get] id:', id, 'found uploaded image in REDIS, with hash:', cachedImage.uid);
@@ -36,46 +33,48 @@ class Service {
     debug('[get] id:', id, 'looking for existing images');
     return this.SequelizeService.get(id, {
       where: {
-        [Op.or]: [
-          { uid: id },
-          { checksum: id },
-        ],
+        [Op.or]: [{ uid: id }, { checksum: id }],
       },
-    }).then((result) => {
+    }).then(result => {
       console.log(result);
       debug('get result:', result);
       return result;
     });
   }
 
-  create (data, params) {
+  create(data, params) {
     const app = this.app;
     debug('create', data);
     return new Promise((resolve, reject) => {
-      const redisClient = app.get('redisClient');
+      const redisClient = app.service('redisClient').client;
 
-      redisClient.hgetall(data.id).then((image) => {
-        redisClient.del(data.id);
+      redisClient
+        .hgetall(data.id)
+        .then(image => {
+          redisClient.del(data.id);
 
-        const uploadedImage = new UploadedImage(image);
+          const uploadedImage = new UploadedImage(image);
 
-        this.SequelizeService.create({
-          ...uploadedImage,
-          creatorId: params.user.id,
-        }).then(resolve, reject).catch(reject);
-      }, reject).catch(reject);
+          this.SequelizeService.create({
+            ...uploadedImage,
+            creatorId: params.user.id,
+          })
+            .then(resolve, reject)
+            .catch(reject);
+        }, reject)
+        .catch(reject);
     });
   }
 
-  async update (id, data, params) {
+  async update(id, data, params) {
     return data;
   }
 
-  async patch (id, data, params) {
+  async patch(id, data, params) {
     return data;
   }
 
-  async remove (id, params) {
+  async remove(id, params) {
     return { id };
   }
 }

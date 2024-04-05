@@ -6,7 +6,8 @@ const createService = require('./filepond.class.js');
 module.exports = function (app) {
   const upload = app.get('multerClient');
   // Initialize our service with any options it requires
-  app.use('/filepond',
+  app.use(
+    '/filepond',
     upload.single('filepond'),
     (req, res, next) => {
       if (req.method === 'POST') {
@@ -15,8 +16,10 @@ module.exports = function (app) {
 
         verbose('/filepond - uploaded file checksum:', req.feathers.checksum);
 
-        app.get('redisClient')
-          .get(`img:${req.feathers.checksum}`).then((image) => {
+        app
+          .service('redisClient')
+          .client.get(`img:${req.feathers.checksum}`)
+          .then(image => {
             if (image) {
               verbose('/filepond, found image with the checksum', req.feathers.checksum);
               res.send(req.feathers.checksum);
@@ -24,7 +27,8 @@ module.exports = function (app) {
               verbose('/filepond, we did not find any image with the checksum');
               next();
             }
-          }).catch(next);
+          })
+          .catch(next);
 
         // app.service('uploaded-images').find({
         //   query: {
@@ -53,5 +57,6 @@ module.exports = function (app) {
       console.log('result', req.feathers.checksum);
       // Format the message as text/plain
       res.send(req.feathers.checksum);
-    });
+    }
+  );
 };

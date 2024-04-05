@@ -1,7 +1,5 @@
 import { ImpressoApplication } from '../types';
 import { logger } from '../logger';
-import media from './media';
-import proxy from './proxy';
 
 const publicApiServices = ['search', 'articles', 'users', 'collectable-items'];
 const internalApiServices = [
@@ -64,6 +62,4 @@ export default (app: ImpressoApplication) => {
     const module = require(path);
     app.configure(module);
   });
-  app.configure(media);
-  app.configure(proxy);
 };
