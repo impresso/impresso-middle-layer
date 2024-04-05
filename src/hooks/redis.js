@@ -98,9 +98,9 @@ const checkCachedContents =
  *
  * @return {feathers.SKIP or undefined}
  */
+// prettier-ignore
 const returnCachedContents =
-  ({ skipHooks = false } = {}) =>
-  context => {
+  ({ skipHooks = false } = {}) => context => {
     debug(`returnCachedContents: ${!!context.params.isCached}`);
     if (context.params.isCached) {
       if (typeof context.result === 'object') {
