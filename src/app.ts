@@ -70,8 +70,8 @@ app.use('/', express.static(path.join(__dirname, app.get('public'))));
 app.configure(transport);
 
 // Set up our services (see `services/index.ts`)
-app.configure(services);
 app.configure(authentication);
+app.configure(services);
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);

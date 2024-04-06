@@ -1,7 +1,7 @@
 import { ImpressoApplication } from '../types';
 import { logger } from '../logger';
 
-const publicApiServices = ['search', 'articles', 'users', 'collectable-items'];
+const publicApiServices = ['search', 'articles', 'users', 'collectable-items', 'collections'];
 const internalApiServices = [
   'users',
   'entities',
@@ -15,7 +15,6 @@ const internalApiServices = [
   'articles-tags',
   'buckets-items',
   'search-exporter',
-  'collections',
   'topics',
   'init',
   'pages-timelines',

@@ -1,15 +1,11 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const {
-  queryWithCommonParams, validate, utils, REGEX_UIDS,
-} = require('../../hooks/params');
+const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params');
 
 const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model');
 
 module.exports = {
   before: {
-    all: [
-      authenticate('jwt'),
-    ],
+    all: [authenticate('jwt')],
     find: [
       validate({
         uids: {
@@ -25,62 +21,67 @@ module.exports = {
         order_by: {
           choices: ['-date', 'date', '-size', 'size'],
           defaultValue: '-date',
-          transform: d => utils.translate(d, {
-            date: [['date_last_modified', 'ASC']],
-            '-date': [['date_last_modified', 'DESC']],
-            size: [['count_items', 'ASC']],
-            '-size': [['count_items', 'DESC']],
-          }),
+          transform: d =>
+            utils.translate(d, {
+              date: [['date_last_modified', 'ASC']],
+              '-date': [['date_last_modified', 'DESC']],
+              size: [['count_items', 'ASC']],
+              '-size': [['count_items', 'DESC']],
+            }),
         },
       }),
       queryWithCommonParams(),
     ],
     get: [],
     create: [
-      validate({
-        // request must contain a name - from which we will create a UID
-        name: {
-          required: true,
-          min_length: 3,
-          max_length: 50,
+      validate(
+        {
+          // request must contain a name - from which we will create a UID
+          name: {
+            required: true,
+            min_length: 3,
+            max_length: 50,
+          },
+          // optionally
+          description: {
+            required: false,
+            max_length: 500,
+          },
+          // optionally
+          status: {
+            required: false,
+            choices: [STATUS_PRIVATE, STATUS_PUBLIC],
+            defaultValue: STATUS_PRIVATE,
+          },
         },
-        // optionally
-        description: {
-          required: false,
-          max_length: 500,
-        },
-        // optionally
-        status: {
-          required: false,
-          choices: [STATUS_PRIVATE, STATUS_PUBLIC],
-          defaultValue: STATUS_PRIVATE,
-        },
-      }, 'POST'),
+        'POST'
+      ),
     ],
     update: [],
     patch: [
-      validate({
-        // request must contain a name - from which we will create a UID
-        name: {
-          required: false,
-          min_length: 3,
-          max_length: 50,
+      validate(
+        {
+          // request must contain a name - from which we will create a UID
+          name: {
+            required: false,
+            min_length: 3,
+            max_length: 50,
+          },
+          description: {
+            required: false,
+            min_length: 0,
+            max_length: 500,
+          },
         },
-        description: {
-          required: false,
-          min_length: 0,
-          max_length: 500,
-        },
-      }, 'POST'),
+        'POST'
+      ),
     ],
-    remove: [
-    ],
+    remove: [],
   },
 
   after: {
     all: [],
-    find: [
-    ],
+    find: [],
     get: [],
     create: [],
     update: [],
