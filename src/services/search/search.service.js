@@ -7,16 +7,18 @@ const hooks = require('./search.hooks');
 
 module.exports = function (app) {
   const paginate = app.get('paginate');
+  const isPublicApi = app.get('isPublicApi');
 
   const options = {
     name: 'search',
     paginate,
-    app
+    app,
   };
 
   app.use('/search', createService(options), {
-    methods: ['find'],
-    docs: createSwaggerServiceOptions({ schemas: {}, docs })
+    methods: isPublicApi ? ['find'] : undefined,
+    events: [],
+    docs: createSwaggerServiceOptions({ schemas: {}, docs }),
   });
 
   app.service('search').hooks(hooks);

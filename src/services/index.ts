@@ -1,11 +1,20 @@
 import { ImpressoApplication } from '../types';
 import { logger } from '../logger';
-import media from './media';
-import proxy from './proxy';
 
-const publicApiServices = ['search', 'articles', 'users', 'collectable-items'];
+/**
+ * Some public services are declared here but are only required internally by
+ * other services. Whether a service is available publicly or not is determined
+ * in the service files. Look for the `optionsDisabledInPublicApi` method.
+ */
+const publicApiServices = [
+  'search', // search items
+  'articles', // get articles
+  'users', // required for authentication
+  'collectable-items', // required by 'search'
+  'collections', // required by 'collectable-items'
+];
+
 const internalApiServices = [
-  'users',
   'entities',
   'newspapers',
   'issues',
@@ -17,7 +26,6 @@ const internalApiServices = [
   'articles-tags',
   'buckets-items',
   'search-exporter',
-  'collections',
   'topics',
   'init',
   'pages-timelines',
@@ -64,6 +72,4 @@ export default (app: ImpressoApplication) => {
     const module = require(path);
     app.configure(module);
   });
-  app.configure(media);
-  app.configure(proxy);
 };

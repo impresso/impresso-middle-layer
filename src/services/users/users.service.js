@@ -12,7 +12,9 @@ module.exports = function (app) {
   };
 
   // Initialize our service with any options it requires
-  app.use('/users', createService(options));
+  app.use('/users', createService(options), {
+    methods: [] /* disable all public methods - using internally. */,
+  });
 
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('users');

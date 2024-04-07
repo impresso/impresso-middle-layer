@@ -29,7 +29,7 @@ const SolrNamespaces = Object.freeze({
  * @param {{ user: string, pass: string }} auth authentication details
  * @returns {{ [key: string]: string }}
  */
-const buildAuthHeaders = (auth) => {
+const buildAuthHeaders = auth => {
   const authString = `${auth.user}:${auth.pass}`
 
   return {
@@ -45,12 +45,10 @@ const buildAuthHeaders = (auth) => {
  * @param {string} text
  * @returns {any}
  */
-const transformSolrResponse = (text) => {
+const transformSolrResponse = text => {
   const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/gm)
   const replacedText =
-    matches && matches.length > 1
-      ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{')
-      : text
+    matches && matches.length > 1 ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{') : text
 
   return JSON.parse(replacedText)
 }
@@ -59,7 +57,7 @@ const transformSolrResponse = (text) => {
  * @param {Response} res response
  * @returns {Promise<Response>}
  */
-const checkFetchResponseStatus = async (res) => {
+const checkFetchResponseStatus = async res => {
   if (res.ok) return res
   const error = new Error(res.statusText)
   // @ts-ignore
@@ -74,20 +72,14 @@ const checkFetchResponseStatus = async (res) => {
  * @param {{[key: string]: any}} queryParmeters
  * @returns {URLSearchParams}
  */
-function toUrlSearchParameters (queryParmeters = {}) {
-  const preparedQueryParameters = Object.keys(queryParmeters).reduce(
-    (acc, key) => {
-      if (queryParmeters[key] == null) return acc
-      return {
-        ...acc,
-        [key]:
-          typeof queryParmeters[key] === 'string'
-            ? queryParmeters[key]
-            : JSON.stringify(queryParmeters[key]),
-      }
-    },
-    {}
-  )
+function toUrlSearchParameters(queryParmeters = {}) {
+  const preparedQueryParameters = Object.keys(queryParmeters).reduce((acc, key) => {
+    if (queryParmeters[key] == null) return acc
+    return {
+      ...acc,
+      [key]: typeof queryParmeters[key] === 'string' ? queryParmeters[key] : JSON.stringify(queryParmeters[key]),
+    }
+  }, {})
 
   return new URLSearchParams(preparedQueryParameters)
 }
@@ -100,7 +92,7 @@ function toUrlSearchParameters (queryParmeters = {}) {
  *
  * @returns {string}
  */
-function buildUrl (baseUrl, queryParams = {}) {
+function buildUrl(baseUrl, queryParams = {}) {
   const qp = toUrlSearchParameters(queryParams)
   return `${baseUrl}?${qp.toString()}`
 }
@@ -115,7 +107,7 @@ function buildUrl (baseUrl, queryParams = {}) {
  * @param {string} url
  * @param {object} requestParams
  */
-function maybeConvertGetToPostParams (url, requestParams) {
+function maybeConvertGetToPostParams(url, requestParams) {
   if (requestParams.method !== 'GET') return [url, requestParams]
 
   // get rid of possible query string in the URL.
@@ -140,12 +132,10 @@ function maybeConvertGetToPostParams (url, requestParams) {
  * @param {object} params
  * @param {ConnectionPool} connectionPool
  */
-async function executeRequest (url, params, connectionPool) {
+async function executeRequest(url, params, connectionPool) {
   const connection = await connectionPool.acquire()
   if (connectionPool.available === 0) {
-    console.warn(
-      `No more available Solr connections out of max ${connectionPool.max}. Next client will be waiting.`
-    )
+    console.warn(`No more available Solr connections out of max ${connectionPool.max}. Next client will be waiting.`)
   }
 
   try {
@@ -153,9 +143,9 @@ async function executeRequest (url, params, connectionPool) {
     return await connection
       .fetch(u, p)
       .then(checkFetchResponseStatus)
-      .then((response) => response.text())
+      .then(response => response.text())
       .then(transformSolrResponse)
-      .catch((error) => {
+      .catch(error => {
         throw preprocessSolrError(error)
       })
   } finally {
@@ -181,13 +171,7 @@ async function executeRequest (url, params, connectionPool) {
  *
  * @returns {Promise<any>} response
  */
-const postRaw = async (
-  config,
-  connectionPool,
-  payload,
-  queryParams = {},
-  namespace = SolrNamespaces.Search
-) => {
+const postRaw = async (config, connectionPool, payload, queryParams = {}, namespace = SolrNamespaces.Search) => {
   const { endpoint } = config[namespace]
   const url = buildUrl(endpoint, queryParams)
   const opts = {
@@ -198,7 +182,6 @@ const postRaw = async (
     },
     body: JSON.stringify(payload),
   }
-  console.log('postRaw', url, opts)
   return executeRequest(url, opts, connectionPool)
 }
 
@@ -212,13 +195,7 @@ const postRaw = async (
  *
  * @returns {Promise<any>} response
  */
-const postFormRaw = async (
-  config,
-  connectionPool,
-  payload,
-  queryParams = {},
-  namespace = SolrNamespaces.Search
-) => {
+const postFormRaw = async (config, connectionPool, payload, queryParams = {}, namespace = SolrNamespaces.Search) => {
   const { endpoint } = config[namespace]
   const url = buildUrl(endpoint, queryParams)
   const body = toUrlSearchParameters(payload)
@@ -245,13 +222,7 @@ const postFormRaw = async (
  *
  * @returns {Promise<any>} response
  */
-const getRaw = async (
-  config,
-  connectionPool,
-  params,
-  namespace = SolrNamespaces.Search,
-  endpointKey = 'endpoint'
-) => {
+const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces.Search, endpointKey = 'endpoint') => {
   const endpoint = config[namespace][endpointKey]
   const url = buildUrl(endpoint, params)
 
@@ -295,11 +266,8 @@ const suggest = async (config, connectionPool, params = {}, factory) => {
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
   return getRaw(config, connectionPool, qs, _params.namespace, 'suggest')
-    .then((res) => {
-      const results = lodash.get(
-        res,
-        `suggest.${qs['suggest.dictionary']}.${qs['suggest.q']}`
-      )
+    .then(res => {
+      const results = lodash.get(res, `suggest.${qs['suggest.dictionary']}.${qs['suggest.q']}`)
 
       debug(
         `'suggest' success, ${results.numFound} results in ${res.responseHeader.QTime}ms`,
@@ -309,14 +277,11 @@ const suggest = async (config, connectionPool, params = {}, factory) => {
         return []
       }
       if (factory) {
-        results.suggestions = lodash(results.suggestions)
-          .take(qs.rows)
-          .map(factory())
-          .value()
+        results.suggestions = lodash(results.suggestions).take(qs.rows).map(factory()).value()
       }
       return lodash.take(results.suggestions, qs.rows)
     })
-    .catch((error) => {
+    .catch(error => {
       throw preprocessSolrError(error)
     })
 }
@@ -332,10 +297,7 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
     ...params,
   }
 
-  debug(
-    `[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint. With PARAMS:`,
-    qp
-  )
+  debug(`[findAllPost][${qp.requestOriginalPath}] request to '${qp.namespace}' endpoint. With PARAMS:`, qp)
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
   const endpoint = `${config[qp.namespace].endpoint}`
@@ -401,7 +363,7 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
     data
   )
   return postFormRaw(config, connectionsPool, data, {}, qp.namespace)
-    .then((result) => {
+    .then(result => {
       if (result.grouped) {
         result.response = {
           numFound: result.grouped[qp.group_by].ngroups,
@@ -419,7 +381,7 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
       }
       return result
     })
-    .catch((error) => {
+    .catch(error => {
       throw preprocessSolrError(error)
     })
 }
@@ -441,10 +403,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
     ...params,
   }
 
-  debug(
-    `[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With PARAMS`,
-    _params
-  )
+  debug(`[findAll][${_params.requestOriginalPath}]: request to '${_params.namespace}' endpoint. With PARAMS`, _params)
 
   // you can have multiple namespace for the same solr
   // configuration corresponding to  different solr on the same machine.
@@ -535,13 +494,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
     }
     // opts.form.q = opts.form.q + ' AND ' +
     opts.method = 'POST'
-    requestPromise = postFormRaw(
-      config,
-      connectionPool,
-      opts.form,
-      opts.qs,
-      _params.namespace
-    )
+    requestPromise = postFormRaw(config, connectionPool, opts.form, opts.qs, _params.namespace)
   } else {
     opts.qs = qs
     requestPromise = getRaw(config, connectionPool, qs, _params.namespace)
@@ -554,7 +507,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
   debug(`[findAll][${_params.requestOriginalPath}]: url`, endpoint)
 
   return requestPromise
-    .then((result) => {
+    .then(result => {
       if (result.grouped) {
         result.response = {
           numFound: result.grouped[_params.group_by].ngroups,
@@ -572,7 +525,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
       }
       return result
     })
-    .catch((error) => {
+    .catch(error => {
       throw preprocessSolrError(error)
     })
 }
@@ -582,7 +535,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
  */
-const wrapAll = (res) => {
+const wrapAll = res => {
   let limit = parseInt(res.responseHeader.params.rows, 10)
   let skip = parseInt(res.responseHeader.params.start, 10)
   if (typeof res.responseHeader.params.json === 'string') {
@@ -620,10 +573,10 @@ const resolveAsync = async (config, connectionsPool, groups, factory) => {
   debug(`resolveAsync':  ${groups.length} groups to resolve`)
   await Promise.all(
     groups
-      .filter((group) => group.items.length > 0)
+      .filter(group => group.items.length > 0)
       .map((group, k) => {
         debug(`resolveAsync': findAll for namespace "${group.namespace}"`)
-        const ids = group.items.map((d) => d[group.idField || 'uid'])
+        const ids = group.items.map(d => d[group.idField || 'uid'])
         return findAll(
           config,
           connectionsPool,
@@ -634,8 +587,8 @@ const resolveAsync = async (config, connectionsPool, groups, factory) => {
             namespace: group.namespace,
           },
           factory || group.factory || group.Klass.solrFactory
-        ).then((res) => {
-          res.response.docs.forEach((doc) => {
+        ).then(res => {
+          res.response.docs.forEach(doc => {
             const idx = ids.indexOf(doc.uid)
             groups[k].items[idx][group.itemField || 'item'] = doc
           })
@@ -650,19 +603,13 @@ const resolveAsync = async (config, connectionsPool, groups, factory) => {
  * @param {ConnectionPool} connectionsPool
  */
 const getSolrClient = (config, connectionsPool) => ({
-  findAll: (params, factory) =>
-    findAll(config, connectionsPool, params, factory),
-  findAllPost: (params, factory) =>
-    findAllPost(config, connectionsPool, params, factory),
-  suggest: (params, factory) =>
-    suggest(config, connectionsPool, params, factory),
-  requestGetRaw: async (params, namespace) =>
-    getRaw(config, connectionsPool, params, namespace),
-  requestPostRaw: async (payload, namespace) =>
-    postRaw(config, connectionsPool, payload, {}, namespace),
+  findAll: (params, factory) => findAll(config, connectionsPool, params, factory),
+  findAllPost: (params, factory) => findAllPost(config, connectionsPool, params, factory),
+  suggest: (params, factory) => suggest(config, connectionsPool, params, factory),
+  requestGetRaw: async (params, namespace) => getRaw(config, connectionsPool, params, namespace),
+  requestPostRaw: async (payload, namespace) => postRaw(config, connectionsPool, payload, {}, namespace),
   utils: {
-    resolveAsync: (items, factory) =>
-      resolveAsync(config, connectionsPool, items, factory),
+    resolveAsync: (items, factory) => resolveAsync(config, connectionsPool, items, factory),
   },
 })
 

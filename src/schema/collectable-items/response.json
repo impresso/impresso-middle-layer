@@ -1,0 +1,36 @@
+{
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/collectable-items/response.json",
+  "type": "object",
+  "title": "CollectableItemsSearchResponse",
+  "description": "Collectable Items Search Response",
+  "additionalProperties": false,
+  "required": ["data", "limit", "skip", "total", "toBeResolved", "resolved"],
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/search/article.json"
+      }
+    },
+    "limit": {
+      "type": "integer",
+      "description": "The number of articles returned in this response"
+    },
+    "skip": {
+      "type": "integer",
+      "description": "The number of articles skipped in this response"
+    },
+    "total": {
+      "type": "integer",
+      "description": "The total number of articles matching the query"
+    },
+    "toBeResolved": {
+      "type": "array",
+      "description": "TBD."
+    },
+    "resolved": {
+      "type": "array",
+      "description": "TBD."
+    }
+  }
+}

@@ -61,11 +61,6 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@feathers-plus/batch-loader@^0.3.6":
-  version "0.3.6"
-  resolved "https://registry.npmjs.org/@feathers-plus/batch-loader/-/batch-loader-0.3.6.tgz"
-  integrity sha512-r+n31iZ/B5Rl1mLkC9/S20UI445MdkZvE3VBmjupep2t8OuyTYHPkFEgR25HY6khH+RothK1VL3B5eumk9N2QQ==
-
 "@feathersjs/adapter-commons@^4.5.15":
   version "4.5.15"
   resolved "https://registry.npmjs.org/@feathersjs/adapter-commons/-/adapter-commons-4.5.15.tgz"
@@ -192,15 +187,15 @@
   dependencies:
     debug "^4.3.3"
 
+"@feathersjs/errors@^5.0.14", "@feathersjs/errors@^5.0.24", "@feathersjs/errors@5.0.24":
+  version "5.0.24"
+  resolved "https://registry.npmjs.org/@feathersjs/errors/-/errors-5.0.24.tgz"
+  integrity sha512-7XnTWogwA1da3VT3zjjD+oaMZXtxueadm5gP9e4+aD8dYcW6djPk2KvBL38OWEhXZ/iMgPpA7p0JETcbDYE44w==
+
 "@feathersjs/errors@^5.0.22", "@feathersjs/errors@5.0.22":
   version "5.0.22"
   resolved "https://registry.npmjs.org/@feathersjs/errors/-/errors-5.0.22.tgz"
   integrity sha512-vKizG6tDz8meNx5IiFjkMy08PmzdeDHmH7JnvQYl2MuKkWW0sx0qgAEP4ik7NT3MlCsrmtNUK+4BhXODfXnT7A==
-
-"@feathersjs/errors@^5.0.24", "@feathersjs/errors@5.0.24":
-  version "5.0.24"
-  resolved "https://registry.npmjs.org/@feathersjs/errors/-/errors-5.0.24.tgz"
-  integrity sha512-7XnTWogwA1da3VT3zjjD+oaMZXtxueadm5gP9e4+aD8dYcW6djPk2KvBL38OWEhXZ/iMgPpA7p0JETcbDYE44w==
 
 "@feathersjs/express@^5.0.24", "@feathersjs/express@5.0.24":
   version "5.0.24"
@@ -230,7 +225,7 @@
     events "^3.3.0"
     uberproto "^2.0.6"
 
-"@feathersjs/feathers@^5.0.22", "@feathersjs/feathers@^5.0.24", "@feathersjs/feathers@5.0.24":
+"@feathersjs/feathers@^5.0.0", "@feathersjs/feathers@^5.0.22", "@feathersjs/feathers@^5.0.24", "@feathersjs/feathers@5.0.24":
   version "5.0.24"
   resolved "https://registry.npmjs.org/@feathersjs/feathers/-/feathers-5.0.24.tgz"
   integrity sha512-Vz2/byMxIBVNUUw0nNY+Z0yaWpcZKA1ohSLfvUx3eCgc1ulViS0a2BpadMq3NtgszvcUVP3US4Y+2f6yPe8v6w==
@@ -364,6 +359,40 @@
   version "0.11.0"
   resolved "https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
+
+"@redis/bloom@1.2.0":
+  version "1.2.0"
+  resolved "https://registry.npmjs.org/@redis/bloom/-/bloom-1.2.0.tgz"
+  integrity sha512-HG2DFjYKbpNmVXsa0keLHp/3leGJz1mjh09f2RLGGLQZzSHpkmZWuwJbAvo3QcRY8p80m5+ZdXZdYOSBLlp7Cg==
+
+"@redis/client@^1.0.0", "@redis/client@1.5.14":
+  version "1.5.14"
+  resolved "https://registry.npmjs.org/@redis/client/-/client-1.5.14.tgz"
+  integrity sha512-YGn0GqsRBFUQxklhY7v562VMOP0DcmlrHHs3IV1mFE3cbxe31IITUkqhBcIhVSI/2JqtWAJXg5mjV4aU+zD0HA==
+  dependencies:
+    cluster-key-slot "1.1.2"
+    generic-pool "3.9.0"
+    yallist "4.0.0"
+
+"@redis/graph@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.npmjs.org/@redis/graph/-/graph-1.1.1.tgz"
+  integrity sha512-FEMTcTHZozZciLRl6GiiIB4zGm5z5F3F6a6FZCyrfxdKOhFlGkiAqlexWMBzCi4DcRoyiOsuLfW+cjlGWyExOw==
+
+"@redis/json@1.0.6":
+  version "1.0.6"
+  resolved "https://registry.npmjs.org/@redis/json/-/json-1.0.6.tgz"
+  integrity sha512-rcZO3bfQbm2zPRpqo82XbW8zg4G/w4W3tI7X8Mqleq9goQjAGLL7q/1n1ZX4dXEAmORVZ4s1+uKLaUOg7LrUhw==
+
+"@redis/search@1.1.6":
+  version "1.1.6"
+  resolved "https://registry.npmjs.org/@redis/search/-/search-1.1.6.tgz"
+  integrity sha512-mZXCxbTYKBQ3M2lZnEddwEAks0Kc7nauire8q20oA0oA/LoA+E/b5Y5KZn232ztPb1FkIGqo12vh3Lf+Vw5iTw==
+
+"@redis/time-series@1.0.5":
+  version "1.0.5"
+  resolved "https://registry.npmjs.org/@redis/time-series/-/time-series-1.0.5.tgz"
+  integrity sha512-IFjIgTusQym2B5IZJG3XKr5llka7ey84fw/NOYqESP5WUfQs9zz1ww/9+qoz4ka/S6KcGBodzlCeZ5UImKbscg==
 
 "@socket.io/component-emitter@~3.1.0":
   version "3.1.0"
@@ -841,13 +870,6 @@ asn1.js@^5.3.0:
     minimalistic-assert "^1.0.0"
     safer-buffer "^2.1.0"
 
-async-redis@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/async-redis/-/async-redis-2.0.0.tgz"
-  integrity sha512-cGv40n9h3gpAGMGnX1v5ncgHJ2C3TsRmK6Ekt282jVftiky3v0X13PSfnLoRix9uva7ctb2j9lwA3d2qc4KKTA==
-  dependencies:
-    redis "3.1.2"
-
 async@^2.6.1:
   version "2.6.4"
   resolved "https://registry.npmjs.org/async/-/async-2.6.4.tgz"
@@ -1237,6 +1259,11 @@ cliui@^7.0.2:
     string-width "^4.2.0"
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
+
+cluster-key-slot@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.npmjs.org/cluster-key-slot/-/cluster-key-slot-1.1.2.tgz"
+  integrity sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==
 
 co-body@^6.1.0:
   version "6.1.0"
@@ -2267,20 +2294,17 @@ feathers-authentication-hooks@^1.0.2:
     debug "^4.1.1"
     lodash "^4.17.15"
 
-feathers-hooks-common@^6.1.3:
-  version "6.1.5"
-  resolved "https://registry.npmjs.org/feathers-hooks-common/-/feathers-hooks-common-6.1.5.tgz"
-  integrity sha512-xbAm8lKHBLghMgPoGvetg+mlTm04kG9sVy1IaPjRDAXOR3fblZDpMamqWjQ8vuHLU5zZ1SnrdEN9gmr53Xk+PA==
+feathers-hooks-common@8.1.2:
+  version "8.1.2"
+  resolved "https://registry.npmjs.org/feathers-hooks-common/-/feathers-hooks-common-8.1.2.tgz"
+  integrity sha512-y7tFE8Tpey46rQwqI2ejZpAZBzLW1OiJGA987V/ajWkiX79kfb088+rkn1nHaYqRvt4dBv3dfHrRY0GyR5uiRQ==
   dependencies:
-    "@feathers-plus/batch-loader" "^0.3.6"
-    "@feathersjs/commons" "^4.5.15"
-    "@feathersjs/errors" "^4.5.15"
-    "@feathersjs/feathers" "^4.5.15"
+    "@feathersjs/errors" "^5.0.14"
     ajv "^6.12.6"
     debug "^4.3.4"
-    graphql "^16.5.0"
+    graphql "^16.8.1"
     lodash "^4.17.21"
-    traverse "^0.6.6"
+    traverse "^0.6.8"
 
 feathers-memory@^2.2.0:
   version "2.2.0"
@@ -2506,7 +2530,7 @@ generate-function@^2.3.1:
   dependencies:
     is-property "^1.0.2"
 
-generic-pool@^3.8.2:
+generic-pool@^3.8.2, generic-pool@3.9.0:
   version "3.9.0"
   resolved "https://registry.npmjs.org/generic-pool/-/generic-pool-3.9.0.tgz"
   integrity sha512-hymDOu5B53XvN4QT9dBmZxPX4CWhBPPLguTZ9MMFeFa/Kg0xWVfylOVNlJji/E7yTZWFd/q9GO5TxDLq156D7g==
@@ -2738,7 +2762,7 @@ graphology@^0.7.0:
   dependencies:
     events "^1.1.1"
 
-graphql@^16.5.0:
+graphql@^16.8.1:
   version "16.8.1"
   resolved "https://registry.npmjs.org/graphql/-/graphql-16.8.1.tgz"
   integrity sha512-59LZHPdGZVh695Ud9lRzPBVTtlX9ZCV150Er2W43ro37wVof0ctenSaskPPjN7lVTIN8mSZt8PHUNKZuNQUuxw==
@@ -4548,16 +4572,28 @@ redis-commands@^1.7.0:
 redis-errors@^1.0.0, redis-errors@^1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/redis-errors/-/redis-errors-1.2.0.tgz"
-  integrity sha1-62LSrbFeTq9GEMBK/hUpOEJQq60=
+  integrity sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w==
 
 redis-parser@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/redis-parser/-/redis-parser-3.0.0.tgz"
-  integrity sha1-tm2CjNyv5rS4pCin3vTGvKwxyLQ=
+  integrity sha512-DJnGAeenTdpMEH6uAJRK/uiyEIH9WVsUmoLwzudwGJUwZPp80PDBWPHXSAGNPwNvIXAbe7MSUB1zQFugFml66A==
   dependencies:
     redis-errors "^1.0.0"
 
-redis@*, redis@^3.0.2, redis@3.1.2:
+redis@*, redis@4.6.13:
+  version "4.6.13"
+  resolved "https://registry.npmjs.org/redis/-/redis-4.6.13.tgz"
+  integrity sha512-MHgkS4B+sPjCXpf+HfdetBwbRz6vCtsceTmw1pHNYJAsYxrfpOP6dz+piJWGos8wqG7qb3vj/Rrc5qOlmInUuA==
+  dependencies:
+    "@redis/bloom" "1.2.0"
+    "@redis/client" "1.5.14"
+    "@redis/graph" "1.1.1"
+    "@redis/json" "1.0.6"
+    "@redis/search" "1.1.6"
+    "@redis/time-series" "1.0.5"
+
+redis@^3.0.2:
   version "3.1.2"
   resolved "https://registry.npmjs.org/redis/-/redis-3.1.2.tgz"
   integrity sha512-grn5KoZLr/qrRQVwoSkmzdbw6pwF+/rwODtrOr6vuBRiR/f3rjSTGupbF90Zpqm2oenix8Do6RV7pYEkGwlKkw==
@@ -5271,10 +5307,10 @@ tr46@~0.0.3:
   resolved "https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz"
   integrity sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
 
-traverse@^0.6.6:
-  version "0.6.6"
-  resolved "https://registry.npmjs.org/traverse/-/traverse-0.6.6.tgz"
-  integrity sha1-y99WD9e5r2MlAv7UD5GMFX6pcTc=
+traverse@^0.6.8:
+  version "0.6.8"
+  resolved "https://registry.npmjs.org/traverse/-/traverse-0.6.8.tgz"
+  integrity sha512-aXJDbk6SnumuaZSANd21XAo15ucCDE38H4fkqiGsc3MhCK+wOlZvLP9cB/TvpHT0mOyWgC4Z8EwRlzqYSUzdsA==
 
 triple-beam@^1.3.0:
   version "1.4.1"
@@ -5651,7 +5687,7 @@ yallist@^2.1.2:
   resolved "https://registry.npmjs.org/yallist/-/yallist-2.1.2.tgz"
   integrity sha1-HBH5IY8HYImkfdUS+TxmmaaoHVI=
 
-yallist@^4.0.0:
+yallist@^4.0.0, yallist@4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/yallist/-/yallist-4.0.0.tgz"
   integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==

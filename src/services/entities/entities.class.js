@@ -12,7 +12,7 @@ const { measureTime } = require('../../util/instruments');
 const { buildSearchEntitiesSolrQuery } = require('./logic');
 
 class Service {
-  constructor ({ app }) {
+  constructor({ app }) {
     this.app = app;
     this.name = 'entities';
     this.sequelizeService = new SequelizeService({
@@ -23,12 +23,12 @@ class Service {
     this.solr = app.get('cachedSolr');
   }
 
-  async create (data, params) {
+  async create(data, params) {
     params.query = data;
     return this.find(params);
   }
 
-  async find (params) {
+  async find(params) {
     debug('[find] with params:', params.query);
 
     const query = buildSearchEntitiesSolrQuery({
@@ -39,10 +39,10 @@ class Service {
     });
     debug('[find] solr query:', query);
 
-    const solrResult = await measureTime(() => this.solr.post(
-      query,
-      this.solr.namespaces.Entities,
-    ), 'entities.find.solr.mentions');
+    const solrResult = await measureTime(
+      () => this.solr.post(query, this.solr.namespaces.Entities),
+      'entities.find.solr.mentions'
+    );
 
     const entities = solrResult.response.docs.map(Entity.solrFactory());
 
@@ -66,14 +66,18 @@ class Service {
       },
     };
     // get sequelize results
-    const sequelizeResult = await measureTime(() => this.sequelizeService.find({
-      findAllOnly: true,
-      query: {
-        limit: entities.length,
-        skip: 0,
-      },
-      where,
-    }), 'entities.find.db.entities');
+    const sequelizeResult = await measureTime(
+      () =>
+        this.sequelizeService.find({
+          findAllOnly: true,
+          query: {
+            limit: entities.length,
+            skip: 0,
+          },
+          where,
+        }),
+      'entities.find.db.entities'
+    );
 
     // entities from sequelize, containing wikidata and dbpedia urls
     const sequelizeEntitiesIndex = lodash.keyBy(sequelizeResult.data, 'uid');
@@ -81,7 +85,7 @@ class Service {
       total: solrResult.response.numFound,
       limit: params.query.limit,
       skip: params.query.skip,
-      data: entities.map((d) => {
+      data: entities.map(d => {
         if (sequelizeEntitiesIndex[d.uid]) {
           // enrich with wikidataID
           d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId;
@@ -98,43 +102,51 @@ class Service {
       },
     };
 
-    if (!params.sanitized.resolve) { // no need to resolve?
+    if (!params.sanitized.resolve) {
+      // no need to resolve?
       debug('[find] completed, no param resolve, then SKIP wikidata.');
       return result;
     }
 
     // get wikidata ids
-    const wkdIds = lodash(sequelizeEntitiesIndex)
-      .map('wikidataId')
-      .compact()
-      .value();
+    const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value();
 
     debug('[find] wikidata loading:', wkdIds.length);
     const resolvedEntities = {};
 
     return Promise.all(
-      wkdIds.map(wkdId => measureTime(() => wikidata.resolve({
-        ids: [wkdId],
-        cache: this.app.get('redisClient'),
-      }).then((resolved) => {
-        resolvedEntities[wkdId] = resolved[wkdId];
-      }), 'entities.find.wikidata.get')),
-    ).then((res) => {
-      debug('[find] wikidata success!');
-      result.data = result.data.map((d) => {
-        if (d.wikidataId) {
-          d.wikidata = resolvedEntities[d.wikidataId];
-        }
-        return d;
+      wkdIds.map(wkdId =>
+        measureTime(
+          () =>
+            wikidata
+              .resolve({
+                ids: [wkdId],
+                cache: this.app.service('redisClient').client,
+              })
+              .then(resolved => {
+                resolvedEntities[wkdId] = resolved[wkdId];
+              }),
+          'entities.find.wikidata.get'
+        )
+      )
+    )
+      .then(res => {
+        debug('[find] wikidata success!');
+        result.data = result.data.map(d => {
+          if (d.wikidataId) {
+            d.wikidata = resolvedEntities[d.wikidataId];
+          }
+          return d;
+        });
+        return result;
+      })
+      .catch(err => {
+        console.error(err);
+        return result;
       });
-      return result;
-    }).catch((err) => {
-      console.error(err);
-      return result;
-    });
   }
 
-  async get (id, params) {
+  async get(id, params) {
     return this.find({
       ...params,
       query: {
@@ -148,7 +160,7 @@ class Service {
           },
         ],
       },
-    }).then((res) => {
+    }).then(res => {
       if (!res.data.length) {
         throw new NotFound();
       }
@@ -156,15 +168,15 @@ class Service {
     });
   }
 
-  async update (id, data, params) {
+  async update(id, data, params) {
     return data;
   }
 
-  async patch (id, data, params) {
+  async patch(id, data, params) {
     return data;
   }
 
-  async remove (id, params) {
+  async remove(id, params) {
     return { id };
   }
 }

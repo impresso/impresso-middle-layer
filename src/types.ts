@@ -1,8 +1,15 @@
 import type { Application } from '@feathersjs/feathers';
+import type { JSONSchema } from 'json-schema-to-ts';
 import type { Configuration } from './configuration';
-import { JSONSchema } from 'json-schema-to-ts';
+import type { IRateLimiter } from './services/internal/rateLimiter/redis';
+import type { IRedisClientContainer } from './redis';
 
-export type ImpressoApplication = Application<{}, Configuration>;
+interface AppServices {
+  redisClient?: IRedisClientContainer;
+  rateLimiter?: IRateLimiter;
+}
+
+export type ImpressoApplication = Application<AppServices, Configuration>;
 
 export interface QueryParameter {
   in: 'query';
