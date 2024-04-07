@@ -2,6 +2,37 @@ import swagger, { swaggerUI } from 'feathers-swagger';
 import { logger } from '../logger';
 import { ImpressoApplication } from '../types';
 
+function getRedirectPrefix({ req, ctx }: any) {
+  const headers = (req && req.headers) || (ctx && ctx.headers) || {};
+  return headers['x-forwarded-prefix'] ? headers['x-forwarded-prefix'] : '';
+}
+
+/**
+ * Copied from `feathers-swagger`. Added `persistAuthorization` option.
+ */
+function generateSwaggerUIInitializerScript({ docsJsonPath, ctx, req }: any) {
+  const basePath = getRedirectPrefix({ req, ctx });
+
+  return `
+    window.onload = function() {
+      window.ui = SwaggerUIBundle({
+        url: "${basePath}${docsJsonPath}",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        persistAuthorization: true
+      });
+    };
+  `;
+}
+
 export default (app: ImpressoApplication) => {
   if (!app.get('isPublicApi')) {
     logger.info('Internal API - swagger middleware is disabled');
@@ -26,13 +57,9 @@ export default (app: ImpressoApplication) => {
       },
       security: [{ BearerAuth: [] }],
     },
-    include: {
-      // paths: [/^this$/],
-    },
-    ignore: {
-      paths: [/^users/],
-    },
-    ui: swaggerUI({}),
+    ui: swaggerUI({
+      getSwaggerInitializerScript: generateSwaggerUIInitializerScript,
+    }),
   });
   return app.configure(swaggerItem);
 };

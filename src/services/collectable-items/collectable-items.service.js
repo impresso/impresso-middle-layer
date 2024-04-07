@@ -1,5 +1,6 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger';
-import { docs } from './collectable-items.schema';
+// import { createSwaggerServiceOptions } from 'feathers-swagger';
+import { optionsDisabledInPublicApi } from '../../hooks/public-api';
+// import { docs } from './collectable-items.schema';
 
 // Initializes the `collectable-items` service on path `/collectable-items`
 const createService = require('./collectable-items.class.js');
@@ -16,8 +17,10 @@ module.exports = function (app) {
 
   // Initialize our service with any options it requires
   app.use('/collectable-items', createService(options), {
+    ...optionsDisabledInPublicApi(app),
     events: [],
-    docs: createSwaggerServiceOptions({ schemas: {}, docs }),
+    // disabled for now while it's not public
+    // docs: createSwaggerServiceOptions({ schemas: {}, docs }),
   });
 
   // Get our initialized service so that we can register hooks

@@ -1,9 +1,20 @@
 import { ImpressoApplication } from '../types';
 import { logger } from '../logger';
 
-const publicApiServices = ['search', 'articles', 'users', 'collectable-items', 'collections'];
+/**
+ * Some public services are declared here but are only required internally by
+ * other services. Whether a service is available publicly or not is determined
+ * in the service files. Look for the `optionsDisabledInPublicApi` method.
+ */
+const publicApiServices = [
+  'search', // search items
+  'articles', // get articles
+  'users', // required for authentication
+  'collectable-items', // required by 'search'
+  'collections', // required by 'collectable-items'
+];
+
 const internalApiServices = [
-  'users',
   'entities',
   'newspapers',
   'issues',

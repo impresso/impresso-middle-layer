@@ -1,11 +1,12 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params');
+const { disableInPublicApi } = require('../../hooks/public-api');
 
 const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model');
 
 module.exports = {
   before: {
-    all: [authenticate('jwt')],
+    all: [disableInPublicApi, authenticate('jwt')],
     find: [
       validate({
         uids: {
