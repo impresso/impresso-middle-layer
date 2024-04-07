@@ -13,7 +13,6 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    indent: 'off',
     'space-before-function-paren': 'off',
     quotes: ['error', 'single', { avoidEscape: true }],
     'n/no-path-concat': 'off',
@@ -25,5 +24,6 @@ module.exports = {
     // we want to avoid extraneous spaces
     'no-multi-spaces': ['error'],
     'max-len': ['error', { code: 150 }],
+    'no-console': ['error', { allow: ['warn', 'error'] }],
   },
 };
