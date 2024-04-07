@@ -37,7 +37,6 @@ export const rateLimit =
 export const rollbackRateLimit =
   (resource: string) => async (context: HookContext<ImpressoApplication>, next: NextFunction) => {
     // Only roll back for unexpected server errors.
-    console.log('oo', context.error);
     const errorCode: number | undefined = context.error?.code;
     if (context.error != null && errorCode != null && errorCode < 500) return next();
 
