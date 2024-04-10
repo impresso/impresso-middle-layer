@@ -1,14 +1,16 @@
-import { default as feathersConfiguration } from '@feathersjs/configuration';
-import type { FromSchema, JSONSchemaDefinition } from '@feathersjs/schema';
-import { Ajv, getValidator } from '@feathersjs/schema';
-import type { RedisClientOptions } from 'redis';
-import type { RateLimiterConfiguration } from './services/internal/rateLimiter/redis';
+import { default as feathersConfiguration } from '@feathersjs/configuration'
+import type { FromSchema, JSONSchemaDefinition } from '@feathersjs/schema'
+import { Ajv, getValidator } from '@feathersjs/schema'
+import type { RedisClientOptions } from 'redis'
+import type { RateLimiterConfiguration } from './services/internal/rateLimiter/redis'
+
+export type RedisConfiguration = RedisClientOptions & { enable?: boolean; host?: string }
 
 export interface Configuration {
-  isPublicApi?: boolean;
-  allowedCorsOrigins?: string[];
-  redis?: RedisClientOptions & { enable?: boolean };
-  rateLimiter?: RateLimiterConfiguration & { enabled?: boolean };
+  isPublicApi?: boolean
+  allowedCorsOrigins?: string[]
+  redis?: RedisConfiguration
+  rateLimiter?: RateLimiterConfiguration & { enabled?: boolean }
 }
 
 const configurationSchema: JSONSchemaDefinition = {
@@ -27,13 +29,13 @@ const configurationSchema: JSONSchemaDefinition = {
       description: 'List of allowed origins for CORS',
     },
   },
-} as const;
+} as const
 
-export type ConfigurationType = FromSchema<typeof configurationSchema>;
+export type ConfigurationType = FromSchema<typeof configurationSchema>
 
-const configurationValidator = getValidator(configurationSchema, new Ajv());
+const configurationValidator = getValidator(configurationSchema, new Ajv())
 
 export default function configuration() {
-  const x = feathersConfiguration(configurationValidator);
-  return x;
+  const x = feathersConfiguration(configurationValidator)
+  return x
 }
