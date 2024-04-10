@@ -14,7 +14,7 @@ const getRedisClient = (config: RedisConfiguration): RedisClient => {
   if (host != null) {
     redisConfig.url = `redis://${host}`
   }
-  const client = createClient(config)
+  const client = createClient(redisConfig)
   client.on('error', (err: Error) => logger.error(`Error setting up redis: ${err}`))
   client.on('ready', () => logger.info('Redis connected.'))
   ;(client as any).create = function () {}
