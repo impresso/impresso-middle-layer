@@ -2,6 +2,7 @@ import { paramsValidator } from './search.validators'
 import { SolrMappings } from '../../data/constants'
 import { ServiceSwaggerOptions } from 'feathers-swagger'
 import { QueryParameter } from '../../types'
+import { getStandardResponses } from '../../util/openapi'
 
 const filterSchema = require('../../schema/search/filter.json')
 const articleSchema = require('../../schema/search/article.json')
@@ -110,11 +111,15 @@ export const docs: ServiceSwaggerOptions = {
   description: 'Search articles',
   securities: ['find'],
   schemas: { entity: entitySchema, page: pageSchema, article: articleSchema, searchResponseSchema },
-  refs: { findResponse: 'searchResponseSchema' },
+  // refs: { findResponse: 'searchResponseSchema' },
   operations: {
     find: {
       description: 'Find articles that match the given query',
       parameters: findParameters,
+      responses: getStandardResponses({
+        method: 'find',
+        schema: 'searchResponseSchema',
+      }),
     },
   },
 }

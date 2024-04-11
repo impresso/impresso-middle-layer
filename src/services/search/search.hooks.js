@@ -1,5 +1,5 @@
-const { protect } = require('@feathersjs/authentication-local').hooks;
-const { authenticate } = require('../../hooks/authenticate');
+const { protect } = require('@feathersjs/authentication-local').hooks
+const { authenticate } = require('../../hooks/authenticate')
 const {
   validate,
   validateEach,
@@ -7,13 +7,13 @@ const {
   displayQueryParams,
   REGEX_UID,
   utils,
-} = require('../../hooks/params');
-const { filtersToSolrQuery, qToSolrFilter } = require('../../hooks/search');
-const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info');
-const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = require('./search.validators');
-const { SolrMappings } = require('../../data/constants');
-const { SolrNamespaces } = require('../../solr');
-const { rateLimit, rollbackRateLimit, DefaultResource } = require('../../hooks/rateLimiter');
+} = require('../../hooks/params')
+const { filtersToSolrQuery, qToSolrFilter } = require('../../hooks/search')
+const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info')
+const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = require('./search.validators')
+const { SolrMappings } = require('../../data/constants')
+const { SolrNamespaces } = require('../../solr')
+const { rateLimit, rollbackRateLimit, DefaultResource, addRateLimitingHeader } = require('../../hooks/rateLimiter')
 
 module.exports = {
   before: {
@@ -93,7 +93,12 @@ module.exports = {
 
   after: {
     all: [],
-    find: [displayQueryParams(['queryComponents', 'filters']), resolveQueryComponents(), protect('content')],
+    find: [
+      displayQueryParams(['queryComponents', 'filters']),
+      resolveQueryComponents(),
+      protect('content'),
+      addRateLimitingHeader,
+    ],
     get: [],
     create: [],
     update: [],
@@ -110,4 +115,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

@@ -38,4 +38,5 @@ local new_tokens = math.min(remaining_tokens + 1, capacity)
 redis.call('HSET', key, 'tokens', new_tokens, 'last_refreshed_sec', current_time_sec)
 
 -- Allow request if there is space for new tokens
-return remaining_tokens < capacity
+-- return remaining_tokens < capacity
+return remaining_tokens
