@@ -1,23 +1,23 @@
-import { paramsValidator } from './search.validators';
-import { SolrMappings } from '../../data/constants';
-import { ServiceSwaggerOptions } from 'feathers-swagger';
-import { QueryParameter } from '../../types';
+import { paramsValidator } from './search.validators'
+import { SolrMappings } from '../../data/constants'
+import { ServiceSwaggerOptions } from 'feathers-swagger'
+import { QueryParameter } from '../../types'
 
-const filterSchema = require('../../schema/search/filter.json');
-const articleSchema = require('../../schema/search/article.json');
-articleSchema.$id = '#/components/schemas/article';
-articleSchema.properties.pages.items.$ref = '#/components/schemas/page';
-articleSchema.properties.locations.items.$ref = '#/components/schemas/entity';
-articleSchema.properties.persons.items.$ref = '#/components/schemas/entity';
+const filterSchema = require('../../schema/search/filter.json')
+const articleSchema = require('../../schema/search/article.json')
+articleSchema.$id = '#/components/schemas/article'
+articleSchema.properties.pages.items.$ref = '#/components/schemas/page'
+articleSchema.properties.locations.items.$ref = '#/components/schemas/entity'
+articleSchema.properties.persons.items.$ref = '#/components/schemas/entity'
 
-const pageSchema = require('../../schema/search/page.json');
-pageSchema.$id = '#/components/schemas/page';
+const pageSchema = require('../../schema/search/page.json')
+pageSchema.$id = '#/components/schemas/page'
 
-const entitySchema = require('../../schema/search/entity.json');
-entitySchema.$id = '#/components/schemas/entity';
+const entitySchema = require('../../schema/search/entity.json')
+entitySchema.$id = '#/components/schemas/entity'
 
-const searchResponseSchema = require('../../schema/search/response.json');
-searchResponseSchema.properties.data.items.$ref = '#/components/schemas/article';
+const searchResponseSchema = require('../../schema/search/response.json')
+searchResponseSchema.properties.data.items.$ref = '#/components/schemas/article'
 
 // const articleListSchema = {
 //   title: 'Article list',
@@ -25,7 +25,7 @@ searchResponseSchema.properties.data.items.$ref = '#/components/schemas/article'
 //   items: { $ref: '#/components/schemas/article' }
 // };
 
-export { articleSchema, pageSchema, entitySchema };
+export { articleSchema, pageSchema, entitySchema }
 
 const findParameters: QueryParameter[] = [
   {
@@ -101,7 +101,7 @@ const findParameters: QueryParameter[] = [
     },
     description: 'Items to skip',
   },
-];
+]
 
 /**
  * NOTE: Keep this in sync with validators in search.hooks.ts
@@ -117,4 +117,4 @@ export const docs: ServiceSwaggerOptions = {
       parameters: findParameters,
     },
   },
-};
+}

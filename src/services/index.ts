@@ -1,5 +1,5 @@
-import { ImpressoApplication } from '../types';
-import { logger } from '../logger';
+import { ImpressoApplication } from '../types'
+import { logger } from '../logger'
 
 /**
  * Some public services are declared here but are only required internally by
@@ -12,7 +12,7 @@ const publicApiServices = [
   'users', // required for authentication
   'collectable-items', // required by 'search'
   'collections', // required by 'collectable-items'
-];
+]
 
 const internalApiServices = [
   'entities',
@@ -59,17 +59,17 @@ const internalApiServices = [
   'entity-mentions-timeline',
   'text-reuse-connected-clusters',
   'password-reset',
-];
+]
 
 export default (app: ImpressoApplication) => {
-  const isPublicApi = app.get('isPublicApi');
-  const services = isPublicApi ? publicApiServices : publicApiServices.concat(internalApiServices);
+  const isPublicApi = app.get('isPublicApi')
+  const services = isPublicApi ? publicApiServices : publicApiServices.concat(internalApiServices)
 
-  logger.info(`Loading services: ${services.join(', ')}`);
+  logger.info(`Loading services: ${services.join(', ')}`)
 
   services.forEach((service: string) => {
-    const path = `./${service}/${service}.service`;
-    const module = require(path);
-    app.configure(module);
-  });
-};
+    const path = `./${service}/${service}.service`
+    const module = require(path)
+    app.configure(module)
+  })
+}
