@@ -12,6 +12,7 @@ const publicApiServices = [
   'users', // required for authentication
   'collectable-items', // required by 'search'
   'collections', // required by 'collectable-items'
+  'version',
 ]
 
 const internalApiServices = [
@@ -22,7 +23,6 @@ const internalApiServices = [
   'projects',
   'pages',
   'tags',
-  'version',
   'articles-tags',
   'buckets-items',
   'search-exporter',
