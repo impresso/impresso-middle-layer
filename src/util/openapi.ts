@@ -3,7 +3,7 @@ interface StatusResponse {
   content?: string | object
 }
 
-const jsonSchemaRef = (ref: string) => {
+export const jsonSchemaRef = (ref: string) => {
   return {
     'application/json': {
       schema: {

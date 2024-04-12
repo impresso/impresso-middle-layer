@@ -11,7 +11,7 @@ const publicApiServices = [
   'articles', // get articles
   'users', // required for authentication
   'collectable-items', // required by 'search'
-  'collections', // required by 'collectable-items'
+  'collections', // CRUD collections
   'version',
 ]
 
