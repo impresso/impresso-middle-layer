@@ -75,7 +75,6 @@ class RateLimiter implements IRateLimiter {
       keys: [getKey(userId, resource)],
       arguments: [String(this.configuration.capacity), String(this.configuration.refillRate)],
     })
-    console.log('UUUUU', usedTokens)
     return {
       usedTokens: Number(usedTokens) + 1,
       totalTokens: this.configuration.capacity,
