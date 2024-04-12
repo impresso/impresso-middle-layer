@@ -1,12 +1,15 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
-const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params');
-const { disableInPublicApi } = require('../../hooks/public-api');
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { rateLimit } from '../../hooks/rateLimiter'
+const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params')
 
-const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model');
+const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model')
 
 module.exports = {
+  around: {
+    all: [authenticate(), rateLimit()],
+  },
   before: {
-    all: [disableInPublicApi, authenticate('jwt')],
+    all: [],
     find: [
       validate({
         uids: {
@@ -99,4 +102,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}
