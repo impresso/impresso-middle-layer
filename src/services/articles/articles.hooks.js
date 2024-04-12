@@ -1,13 +1,21 @@
-const { authenticate } = require('../../hooks/authenticate');
-const {
-  utils, protect, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
-} = require('../../hooks/params');
-const { filtersToSolrQuery } = require('../../hooks/search');
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+import { rateLimit, rollbackRateLimit, DefaultResource, addRateLimitingHeader } from '../../hooks/rateLimiter'
 
-const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers');
-const { obfuscate } = require('../../hooks/access-rights');
-const { SolrMappings } = require('../../data/constants');
+const { authenticate } = require('../../hooks/authenticate')
+const {
+  utils,
+  protect,
+  validate,
+  validateEach,
+  queryWithCommonParams,
+  displayQueryParams,
+  REGEX_UID,
+} = require('../../hooks/params')
+const { filtersToSolrQuery } = require('../../hooks/search')
+const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
+
+const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers')
+const { obfuscate } = require('../../hooks/access-rights')
+const { SolrMappings } = require('../../data/constants')
 
 module.exports = {
   before: {
@@ -15,6 +23,7 @@ module.exports = {
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
+      rateLimit(DefaultResource),
       checkCachedContents({
         useAuthenticatedUser: false,
         useAuthentication: true,
@@ -27,36 +36,40 @@ module.exports = {
           choices: ['collection', 'tags'],
         },
         order_by: {
-          before: (d) => {
+          before: d => {
             if (typeof d === 'string') {
-              return d.split(',');
+              return d.split(',')
             }
-            return d;
+            return d
           },
           choices: ['-date', 'date', '-relevance', 'relevance'],
           transform: d => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
-          after: (d) => {
+          after: d => {
             if (Array.isArray(d)) {
-              return d.join(',');
+              return d.join(',')
             }
-            return d;
+            return d
           },
         },
       }),
-      validateEach('filters', {
-        type: {
-          choices: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
-          required: true,
+      validateEach(
+        'filters',
+        {
+          type: {
+            choices: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
+            required: true,
+          },
+          q: {
+            regex: REGEX_UID,
+            required: false,
+            // we cannot transform since Mustache is render the filters...
+            // transform: d => d.split(',')
+          },
         },
-        q: {
-          regex: REGEX_UID,
+        {
           required: false,
-          // we cannot transform since Mustache is render the filters...
-          // transform: d => d.split(',')
-        },
-      }, {
-        required: false,
-      }),
+        }
+      ),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
@@ -68,9 +81,7 @@ module.exports = {
   },
 
   after: {
-    all: [
-
-    ],
+    all: [addRateLimitingHeader],
     find: [
       displayQueryParams(['filters']),
       protect('content'),
@@ -98,7 +109,7 @@ module.exports = {
   },
 
   error: {
-    all: [],
+    all: [rollbackRateLimit(DefaultResource)],
     find: [],
     get: [],
     create: [],
@@ -106,4 +117,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

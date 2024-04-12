@@ -1,6 +1,7 @@
-import { ServiceSwaggerOptions } from 'feathers-swagger';
-import { QueryParameter } from '../../types';
-import { REGEX_UID } from '../../hooks/params';
+import { ServiceSwaggerOptions } from 'feathers-swagger'
+import { QueryParameter } from '../../types'
+import { REGEX_UID } from '../../hooks/params'
+import { getStandardResponses } from '../../util/openapi'
 
 const findParameters: QueryParameter[] = [
   {
@@ -65,7 +66,7 @@ const findParameters: QueryParameter[] = [
     },
     description: 'Items to skip',
   },
-];
+]
 
 /**
  * NOTE: Keep this in sync with validators in search.hooks.ts
@@ -73,11 +74,14 @@ const findParameters: QueryParameter[] = [
 export const docs: ServiceSwaggerOptions = {
   description: 'Articles',
   securities: ['find', 'get'],
-  refs: { getResponse: 'article', findResponse: 'searchResponseSchema' },
   operations: {
     find: {
       description: 'Find articles that match the given query',
       parameters: findParameters,
+      responses: getStandardResponses({
+        method: 'find',
+        schema: 'searchResponseSchema',
+      }),
     },
     get: {
       description: 'Get an article by its UID',
@@ -92,6 +96,10 @@ export const docs: ServiceSwaggerOptions = {
           description: 'UID of the article',
         },
       ],
+      responses: getStandardResponses({
+        method: 'get',
+        schema: 'article',
+      }),
     },
   },
-};
+}

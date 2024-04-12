@@ -1,26 +1,34 @@
-import { ServiceSwaggerOptions } from 'feathers-swagger';
+import { ServiceSwaggerOptions } from 'feathers-swagger'
 
-const authRequestSchema = require('../../schema/authentication/request.json');
+const authRequestSchema = require('../../schema/authentication/request.json')
 
-const authResponseSchema = require('../../schema/authentication/response.json');
-authResponseSchema.properties.user.$ref = '#/components/schemas/user';
+const authResponseSchema = require('../../schema/authentication/response.json')
+authResponseSchema.properties.user.$ref = '#/components/schemas/user'
 
-const userSchema = require('../../schema/authentication/user.json');
-userSchema.$id = 'user';
+const userSchema = require('../../schema/authentication/user.json')
+userSchema.$id = 'user'
 
-export { authRequestSchema, authResponseSchema, userSchema };
+const defaultErrorResponseSchema = require('../../schema/common/defaultErrorResponse.json')
+defaultErrorResponseSchema.$id = '#/components/schemas/defaultErrorResponse'
+
+export { authRequestSchema, authResponseSchema, userSchema }
 
 export const docs: ServiceSwaggerOptions = {
   description: 'Issue a token for the user',
   securities: ['create'],
-  schemas: { user: userSchema, authRequestSchema, authResponseSchema },
+  schemas: {
+    user: userSchema,
+    authRequestSchema,
+    authResponseSchema,
+    defaultErrorResponse: defaultErrorResponseSchema,
+  },
   refs: {
     createRequest: 'authRequestSchema',
-    createResponse: 'authResponseSchema'
+    createResponse: 'authResponseSchema',
   },
   operations: {
     create: {
-      description: 'Authenticate user'
-    }
-  }
-};
+      description: 'Authenticate user',
+    },
+  },
+}
