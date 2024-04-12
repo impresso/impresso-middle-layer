@@ -27,7 +27,7 @@ export interface IRateLimiter {
    * an error caused by us. We don't want to penalize the user for
    * it.
    */
-  undo(userId: string, resource: string): Promise<void>
+  undo(userId: string, resource: string): Promise<RateLimitingResult>
 }
 
 /**
@@ -81,12 +81,18 @@ class RateLimiter implements IRateLimiter {
       isAllowed: Number(usedTokens) < this.configuration.capacity,
     }
   }
-  async undo(userId: string, resource: string): Promise<void> {
+  async undo(userId: string, resource: string): Promise<RateLimitingResult> {
     if (this.rateLimiterRevertScriptSha == null) throw new Error('Rate limiter not initialized')
 
-    await this.redisClient.evalSha(this.rateLimiterRevertScriptSha, {
+    const usedTokens = await this.redisClient.evalSha(this.rateLimiterRevertScriptSha, {
       keys: [getKey(userId, resource)],
     })
+
+    return {
+      usedTokens: Number(usedTokens) + 1,
+      totalTokens: this.configuration.capacity,
+      isAllowed: Number(usedTokens) < this.configuration.capacity,
+    }
   }
 }
 

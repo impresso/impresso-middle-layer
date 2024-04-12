@@ -1,5 +1,7 @@
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { rateLimit } from '../../hooks/rateLimiter'
+
 const { protect } = require('@feathersjs/authentication-local').hooks
-const { authenticate } = require('../../hooks/authenticate')
 const {
   validate,
   validateEach,
@@ -13,16 +15,15 @@ const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks
 const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = require('./search.validators')
 const { SolrMappings } = require('../../data/constants')
 const { SolrNamespaces } = require('../../solr')
-const { rateLimit, rollbackRateLimit, DefaultResource, addRateLimitingHeader } = require('../../hooks/rateLimiter')
 
 module.exports = {
+  around: {
+    find: [authenticate({ allowUnauthenticated: true }), rateLimit()],
+    create: [authenticate()],
+  },
   before: {
     all: [],
     find: [
-      authenticate('jwt', {
-        allowUnauthenticated: true,
-      }),
-      rateLimit(DefaultResource),
       validate({
         ...paramsValidator,
         facets: utils.facets({
@@ -51,7 +52,6 @@ module.exports = {
     ],
     get: [],
     create: [
-      authenticate('jwt'),
       validate(
         {
           collection_uid: {
@@ -93,12 +93,7 @@ module.exports = {
 
   after: {
     all: [],
-    find: [
-      displayQueryParams(['queryComponents', 'filters']),
-      resolveQueryComponents(),
-      protect('content'),
-      addRateLimitingHeader,
-    ],
+    find: [displayQueryParams(['queryComponents', 'filters']), resolveQueryComponents(), protect('content')],
     get: [],
     create: [],
     update: [],
@@ -108,7 +103,7 @@ module.exports = {
 
   error: {
     all: [],
-    find: [rollbackRateLimit(DefaultResource)],
+    find: [],
     get: [],
     create: [],
     update: [],

@@ -1,6 +1,6 @@
-import { rateLimit, rollbackRateLimit, DefaultResource, addRateLimitingHeader } from '../../hooks/rateLimiter'
+import { rateLimit } from '../../hooks/rateLimiter'
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
 
-const { authenticate } = require('../../hooks/authenticate')
 const {
   utils,
   protect,
@@ -18,12 +18,11 @@ const { obfuscate } = require('../../hooks/access-rights')
 const { SolrMappings } = require('../../data/constants')
 
 module.exports = {
+  around: {
+    all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
+  },
   before: {
     all: [
-      authenticate('jwt', {
-        allowUnauthenticated: true,
-      }),
-      rateLimit(DefaultResource),
       checkCachedContents({
         useAuthenticatedUser: false,
         useAuthentication: true,
@@ -81,7 +80,7 @@ module.exports = {
   },
 
   after: {
-    all: [addRateLimitingHeader],
+    all: [],
     find: [
       displayQueryParams(['filters']),
       protect('content'),
@@ -109,7 +108,7 @@ module.exports = {
   },
 
   error: {
-    all: [rollbackRateLimit(DefaultResource)],
+    all: [],
     find: [],
     get: [],
     create: [],
