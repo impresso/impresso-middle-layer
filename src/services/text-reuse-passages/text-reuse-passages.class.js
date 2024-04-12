@@ -5,7 +5,7 @@ const { NotFound } = require('@feathersjs/errors')
 const Newspaper = require('../../models/newspapers.model')
 const { parseOrderBy } = require('../../util/queryParameters')
 
-const OrderByKeyToField = {
+export const OrderByKeyToField = {
   clusterSize: TextReusePassage.SolrFields.clusterSize,
   lexicalOverlap: TextReusePassage.SolrFields.lexicalOverlap,
   timeDifferenceDay: TextReusePassage.SolrFields.timeDifferenceDay,
@@ -13,37 +13,28 @@ const OrderByKeyToField = {
   date: TextReusePassage.SolrFields.date,
 }
 
-class TextReusePassages {
-  constructor (app) {
+export const GroupByValues = ['textReuseClusterId']
+
+export class TextReusePassages {
+  constructor(app) {
     this.solr = app.get('cachedSolr')
   }
 
-  async find (params) {
+  async find(params) {
     // retrieve all fields
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query.filters
-    const [orderByField, orderByDescending] = parseOrderBy(
-      params.query.orderBy,
-      OrderByKeyToField
-    )
-    const { query } = filtersToQueryAndVariables(
-      filters,
-      this.solr.namespaces.TextReusePassages,
-      {
-        q: '*:*',
-      }
-    )
-    const sort = orderByField
-      ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc`
-      : null
+    const [orderByField, orderByDescending] = parseOrderBy(params.query.orderBy, OrderByKeyToField)
+    const { query } = filtersToQueryAndVariables(filters, this.solr.namespaces.TextReusePassages, {
+      q: '*:*',
+    })
+    const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
 
-    const groupby = params.query.groupby
-      ? {
-        fq: `{!collapse field=${
-          TextReusePassage.SolrFields[params.query.groupby]
-        } max=ms(${TextReusePassage.SolrFields.date})}`,
-      }
-      : null
+    const fq = `{!collapse field=${
+      TextReusePassage.SolrFields[params.query.groupby]
+    } max=ms(${TextReusePassage.SolrFields.date})}`
+    const groupby = params.query.groupby ? { fq } : null
+
     debug(
       'find q:',
       query,
@@ -71,7 +62,7 @@ class TextReusePassages {
           total: response.numFound, // "<total number of records>",
           limit: params.query.limit, // "<max number of items per page>",
           skip: params.query.skip, // "<number of skipped items (offset)>",
-          data: response.docs.map((doc) => {
+          data: response.docs.map(doc => {
             const result = TextReusePassage.CreateFromSolr()(doc)
             if (params.query.addons.newspaper) {
               result.newspaper = Newspaper.getCached(result.newspaper.id)
@@ -90,17 +81,12 @@ class TextReusePassages {
       })
   }
 
-  async get (ids = [], { query = {} }) {
+  async get(ids = [], { query = {} }) {
     // for each id in ids, return the corresponding textReusePassages instance.
     const textReusePassages = await this.solr
       .get(
         {
-          q: ids
-            .map(
-              (d) =>
-                `${TextReusePassage.SolrFields.id}:${d.split(':').join('\\:')}`
-            )
-            .join(' OR '),
+          q: ids.map(d => `${TextReusePassage.SolrFields.id}:${d.split(':').join('\\:')}`).join(' OR '),
           hl: false,
           rows: ids.length,
           // all of them
@@ -109,9 +95,7 @@ class TextReusePassages {
         this.solr.namespaces.TextReusePassages
       )
       .then(({ response }) =>
-        response.numFound
-          ? response.docs.map((doc) => TextReusePassage.CreateFromSolr()(doc))
-          : []
+        response.numFound ? response.docs.map(doc => TextReusePassage.CreateFromSolr()(doc)) : []
       )
     debug('textReusePassages:', textReusePassages)
     if (!textReusePassages.length) {
@@ -123,5 +107,3 @@ class TextReusePassages {
     return textReusePassages
   }
 }
-
-module.exports = TextReusePassages

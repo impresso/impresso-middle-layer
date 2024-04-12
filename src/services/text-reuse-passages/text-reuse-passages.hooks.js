@@ -1,3 +1,4 @@
+import { GroupByValues } from './text-reuse-passages.class'
 const { splitId } = require('../../hooks/parameters')
 const {
   validateId,
@@ -32,7 +33,7 @@ module.exports = {
         label: '"filters" query string parameter',
         defaultValue: [],
       }),
-      validateAgainstOptions('params.query.groupby', ['textReuseClusterId']),
+      validateAgainstOptions('params.query.groupby', GroupByValues),
     ],
   },
 }

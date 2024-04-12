@@ -12,6 +12,7 @@ const publicApiServices = [
   'users', // required for authentication
   'collectable-items', // required by 'search'
   'collections', // CRUD collections
+  'text-reuse-passages',
   'version',
 ]
 
@@ -50,7 +51,6 @@ const internalApiServices = [
   'articles-text-reuse-passages',
   'text-reuse-clusters',
   'text-reuse-cluster-passages',
-  'text-reuse-passages',
   'filters-items',
   'stats',
   'articles-recommendations',
