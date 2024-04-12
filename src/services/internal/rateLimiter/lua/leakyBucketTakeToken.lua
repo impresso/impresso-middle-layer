@@ -22,5 +22,5 @@ local tokens = tonumber(items['tokens'] or 0)
 
 if tokens > 0 then
   redis.call('HSET', key, 'tokens', tokens - 1)
-  return true
+  return tokens - 1
 end
