@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-public-api/tree/master/src/schema/services/text-reuse-passages/addons.json",
   "description": "Validate add-ons.",
   "type": "object",
   "properties": {

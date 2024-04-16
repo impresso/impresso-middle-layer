@@ -1,5 +1,5 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { QueryParameter } from '../../types'
+import type { QueryParameter } from '../../util/openapi'
 import { getStandardResponses, jsonSchemaRef } from '../../util/openapi'
 import { REGEX_UIDS } from '../../hooks/params'
 

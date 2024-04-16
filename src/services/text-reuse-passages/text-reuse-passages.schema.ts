@@ -1,20 +1,11 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { QueryParameter } from '../../types'
-import { getStandardResponses } from '../../util/openapi'
+import type { MethodParameter } from '../../util/openapi'
+import { getFindResponse, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { GroupByValues, OrderByKeyToField } from './text-reuse-passages.class'
-import { SolrFields } from '../../models/text-reuse-passages.model'
 
-const filterSchema = require('../../schema/search/filter.json')
-const addonsSchema = require('../../schema/services/text-reuse-passages/addons.json')
+const passage = require('./schema/passage.json')
 
-const passageSchema = require('../../schema/services/text-reuse-passages/passage.json')
-passageSchema.$id = 'passage'
-
-const findPassagesSchema = require('../../schema/services/text-reuse-passages/findResponse.json')
-findPassagesSchema.$id = 'findPassagesResponse'
-findPassagesSchema.properties.data.items.$ref = '#/components/schemas/passage'
-
-const findParameters: QueryParameter[] = [
+const findParameters: MethodParameter[] = [
   {
     in: 'query',
     name: 'orderBy',
@@ -43,7 +34,7 @@ const findParameters: QueryParameter[] = [
     required: false,
     schema: {
       type: 'array',
-      items: filterSchema,
+      items: require('../../schema/filter.json'),
     },
     description: 'Filters to apply',
   },
@@ -52,61 +43,29 @@ const findParameters: QueryParameter[] = [
     name: 'addons',
     required: false,
     schema: {
-      type: 'array',
-      items: addonsSchema,
+      ...require('./schema/addons.json'),
     },
     description: 'Add-ons to apply',
   },
-  {
-    in: 'query',
-    name: 'limit',
-    required: false,
-    schema: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 1000,
-    },
-    description: 'Total items to return',
-  },
-  {
-    in: 'query',
-    name: 'skip',
-    required: false,
-    schema: {
-      type: 'integer',
-      minimum: 0,
-    },
-    description: 'Items to skip',
-  },
+  ...getStandardParameters({ method: 'find', maxPageSize: 20 }),
 ]
 
 export const docs: ServiceSwaggerOptions = {
   description: 'Text Reuse Passages',
   securities: ['find', 'get'],
-  schemas: { passage: passageSchema, findPassagesResponse: findPassagesSchema },
+  schemas: { passage, passagesFindResponse: getFindResponse({ itemRef: 'passage', title: passage.title }) },
   operations: {
     find: {
       description: 'Find text reuse passages',
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'findPassagesResponse',
+        schema: 'passagesFindResponse',
       }),
     },
     get: {
       description: 'Get text reuse passage by ID',
-      parameters: [
-        {
-          in: 'path',
-          name: 'id',
-          required: true,
-          schema: {
-            type: 'string',
-            minLength: 1,
-          },
-          description: 'ID of the passage',
-        },
-      ],
+      parameters: getStandardParameters({ method: 'get', idPattern: '^[A-Za-z0-9-,:@]+$' }),
       responses: getStandardResponses({
         method: 'get',
         schema: 'passage',

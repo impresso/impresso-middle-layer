@@ -59,17 +59,17 @@ export class TextReusePassages {
       )
       .then(({ responseHeader, response }) => {
         return {
-          total: response.numFound, // "<total number of records>",
-          limit: params.query.limit, // "<max number of items per page>",
-          skip: params.query.skip, // "<number of skipped items (offset)>",
           data: response.docs.map(doc => {
             const result = TextReusePassage.CreateFromSolr()(doc)
-            if (params.query.addons.newspaper) {
+            if (params.query?.addons?.newspaper) {
               result.newspaper = Newspaper.getCached(result.newspaper.id)
               result.newspaper.id = result.newspaper.uid
             }
             return result
           }),
+          total: response.numFound, // "<total number of records>",
+          limit: params.query.limit, // "<max number of items per page>",
+          skip: params.query.skip, // "<number of skipped items (offset)>",
           // org: response.docs,
           info: {
             responseTime: {

@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/services/text-reuse-passages/passage.json",
   "type": "object",
   "title": "Text Reuse Passage",
   "description": "Represents a passage of text that was identified as a part of a text reuse cluster",

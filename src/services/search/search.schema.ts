@@ -1,8 +1,8 @@
-import { paramsValidator } from './search.validators'
-import { SolrMappings } from '../../data/constants'
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { QueryParameter } from '../../types'
+import { SolrMappings } from '../../data/constants'
+import type { QueryParameter } from '../../util/openapi'
 import { getStandardResponses } from '../../util/openapi'
+import { paramsValidator } from './search.validators'
 
 const filterSchema = require('../../schema/search/filter.json')
 const articleSchema = require('../../schema/search/article.json')
@@ -26,7 +26,7 @@ searchResponseSchema.properties.data.items.$ref = '#/components/schemas/article'
 //   items: { $ref: '#/components/schemas/article' }
 // };
 
-export { articleSchema, pageSchema, entitySchema }
+export { articleSchema, entitySchema, pageSchema }
 
 const findParameters: QueryParameter[] = [
   {
