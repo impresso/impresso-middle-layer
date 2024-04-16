@@ -81,14 +81,14 @@ export class TextReusePassages {
       })
   }
 
-  async get(ids = [], { query = {} }) {
-    // for each id in ids, return the corresponding textReusePassages instance.
+  async get(id, { query = {} }) {
+    // return the corresponding textReusePassages instance.
     const textReusePassages = await this.solr
       .get(
         {
-          q: ids.map(d => `${TextReusePassage.SolrFields.id}:${d.split(':').join('\\:')}`).join(' OR '),
+          q: [id].map(d => `${TextReusePassage.SolrFields.id}:${d.split(':').join('\\:')}`).join(' OR '),
           hl: false,
-          rows: ids.length,
+          rows: 1,
           // all of them
           fl: Object.values(TextReusePassage.SolrFields).join(','),
         },
@@ -99,11 +99,8 @@ export class TextReusePassages {
       )
     debug('textReusePassages:', textReusePassages)
     if (!textReusePassages.length) {
-      return NotFound()
+      return new NotFound(id)
     }
-    if (ids.length === 1) {
-      return textReusePassages[0]
-    }
-    return textReusePassages
+    return textReusePassages[0]
   }
 }

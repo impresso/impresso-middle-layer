@@ -30,7 +30,7 @@ const findParameters: MethodParameter[] = [
   },
   {
     in: 'query',
-    name: 'filters',
+    name: 'filters[]',
     required: false,
     schema: {
       type: 'array',
@@ -65,7 +65,7 @@ export const docs: ServiceSwaggerOptions = {
     },
     get: {
       description: 'Get text reuse passage by ID',
-      parameters: getStandardParameters({ method: 'get', idPattern: '^[A-Za-z0-9-,:@]+$' }),
+      parameters: getStandardParameters({ method: 'get', idPattern: '[A-Za-z0-9-:@]+' }),
       responses: getStandardResponses({
         method: 'get',
         schema: 'passage',
