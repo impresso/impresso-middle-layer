@@ -11,13 +11,7 @@ const PLACE_COORDINATES = 'P625'
 // const PLACE_ADMIN_AREA = 'P131';
 
 class NamedEntity {
-  constructor({
-    id = '',
-    type = '',
-    labels = [],
-    descriptions = [],
-    claims = {},
-  } = {}) {
+  constructor({ id = '', type = '', labels = [], descriptions = [], claims = {} } = {}) {
     this.id = String(id)
     this.type = String(type)
     this.labels = labels
@@ -25,7 +19,7 @@ class NamedEntity {
     this._pendings = {}
 
     if (Array.isArray(claims.P18)) {
-      this.images = claims.P18.map((d) => ({
+      this.images = claims.P18.map(d => ({
         value: d.mainsnak.datavalue.value,
         rank: d.rank,
         datatype: d.mainsnak.datatype,
@@ -49,9 +43,9 @@ class NamedEntity {
   resolvePendings(entities) {
     // console.log('RESOLVE', entities, this.getPendings());
     debug(`resolvePendings for ${this.id}`)
-    this.getPendings().forEach((id) => {
+    this.getPendings().forEach(id => {
       if (entities[id]) {
-        this._pendings[id].forEach((property) => {
+        this._pendings[id].forEach(property => {
           this[property] = entities[id]
         })
       }
@@ -86,15 +80,9 @@ class Location extends NamedEntity {
     //  "altitude": null,
     //  "precision": 0.00027777777777778,
     // }
-    this.coordinates = lodash.get(
-      claims,
-      `${PLACE_COORDINATES}[0].mainsnak.datavalue.value`
-    )
+    this.coordinates = lodash.get(claims, `${PLACE_COORDINATES}[0].mainsnak.datavalue.value`)
 
-    this.country = lodash.get(
-      claims,
-      `${PLACE_COUNTRY}[0].mainsnak.datavalue.value`
-    )
+    this.country = lodash.get(claims, `${PLACE_COUNTRY}[0].mainsnak.datavalue.value`)
 
     if (this.country && this.country.id) {
       this.addPending('country', this.country.id)
@@ -156,11 +144,8 @@ class Human extends NamedEntity {
   }
 }
 
-const getNamedEntityClass = (entity) => {
-  const iof = lodash.get(
-    entity.claims,
-    `${IS_INSTANCE_OF}[0]mainsnak.datavalue.value.id`
-  )
+const getNamedEntityClass = entity => {
+  const iof = lodash.get(entity.claims, `${IS_INSTANCE_OF}[0]mainsnak.datavalue.value.id`)
   debug('getNamedEntityClass: iof', iof)
   if (iof === IS_HUMAN) {
     return Human
@@ -177,7 +162,7 @@ const getNamedEntityClass = (entity) => {
  * @param  {NamedEntity} entity [description]
  * @return {any}        [description]
  */
-const createEntity = (entity) => {
+const createEntity = entity => {
   // parse with wikidata sdk
   const simplified = wdk.simplify.entity(entity)
   const Klass = getNamedEntityClass(entity)
@@ -213,15 +198,15 @@ const resolve = async ({
   debug(`resolve: url '${url}', depth: ${depth}`)
 
   const result = await axios(url)
-    .then((res) => {
-      if (res.ok) return res.json()
+    .then(res => {
+      if (res.status === 200) return res.data
       throw new Error(res.statusText)
     })
-    .then((res) => {
+    .then(res => {
       const entities = {}
       let pendings = []
 
-      Object.keys(res.entities).forEach((id) => {
+      Object.keys(res.entities).forEach(id => {
         entities[id] = createEntity(res.entities[id])
         pendings = pendings.concat(entities[id].getPendings())
       })
@@ -243,17 +228,15 @@ const resolve = async ({
       languages,
       cache,
     })
-    debug(
-      `resolve: with ${Object.keys(resolvedPendings).length} pending entities`
-    )
+    debug(`resolve: with ${Object.keys(resolvedPendings).length} pending entities`)
 
     // console.log(resolvedPendings);
-    index = lodash.mapValues(result.entities, (d) => {
+    index = lodash.mapValues(result.entities, d => {
       d.resolvePendings(resolvedPendings)
       return d.toJSON()
     })
   } else {
-    index = lodash.mapValues(result.entities, (d) => d.toJSON())
+    index = lodash.mapValues(result.entities, d => d.toJSON())
   }
 
   if (cache) {
