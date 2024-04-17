@@ -1,0 +1,32 @@
+{
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/services/text-reuse-passages/findResponse.json",
+  "type": "object",
+  "title": "Text Reuse Passage search response",
+  "additionalProperties": false,
+  "required": ["data", "limit", "skip", "total", "info"],
+  "properties": {
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/services/text-reuse-passages/passage.model.json"
+      }
+    },
+    "limit": {
+      "type": "integer",
+      "description": "The number of items returned in this response"
+    },
+    "skip": {
+      "type": "integer",
+      "description": "The number of items skipped in this response"
+    },
+    "total": {
+      "type": "integer",
+      "description": "The total number of items matching the query"
+    },
+    "info": {
+      "type": "object",
+      "description": "Additional information about the search response.",
+      "properties": {}
+    }
+  }
+}

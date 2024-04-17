@@ -1,6 +1,6 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { QueryParameter } from '../../types'
 import { REGEX_UID } from '../../hooks/params'
+import type { QueryParameter } from '../../util/openapi'
 import { getStandardResponses } from '../../util/openapi'
 
 const findParameters: QueryParameter[] = [

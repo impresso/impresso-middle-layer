@@ -1,38 +1,21 @@
-const { splitId } = require('../../hooks/parameters')
-const {
-  validateId,
-  validateAgainstOptions,
-  validatePagination,
-  validateWithSchemaUri,
-} = require('../../hooks/validators')
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { decodeJsonQueryParameters, decodePathParameters } from '../../hooks/parameters'
+import { rateLimit } from '../../hooks/rateLimiter'
+import { validateParameters } from '../../util/openapi'
+import { docs } from './text-reuse-passages.schema'
 
 module.exports = {
+  around: {
+    all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
+  },
   before: {
     get: [
-      validateId(/^[A-Za-z0-9-,:@]+$/),
-      splitId(),
-      validateWithSchemaUri('params.query.addons', 'addons.json', {
-        asJSON: true,
-        isOptional: true,
-        label: '"addons" query string parameter',
-        defaultValue: {},
-      }),
+      decodePathParameters(['id']), //
+      validateParameters(docs.operations.get.parameters), //
     ],
     find: [
-      validatePagination('params.query', { max_limit: 20 }),
-      validateWithSchemaUri('params.query.addons', 'addons.json', {
-        asJSON: true,
-        isOptional: true,
-        label: '"addons" query string parameter',
-        defaultValue: {},
-      }),
-      validateWithSchemaUri('params.query.filters', 'filters.json', {
-        asJSON: true,
-        isOptional: true,
-        label: '"filters" query string parameter',
-        defaultValue: [],
-      }),
-      validateAgainstOptions('params.query.groupby', ['textReuseClusterId']),
+      decodeJsonQueryParameters(['filters', 'addons']), //
+      validateParameters(docs.operations.find.parameters), //
     ],
   },
 }

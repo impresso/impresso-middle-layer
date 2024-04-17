@@ -1,21 +1,21 @@
-import { ServiceSwaggerOptions } from 'feathers-swagger';
-import { QueryParameter } from '../../types';
-import { REGEX_UIDS } from '../../hooks/params';
+import { ServiceSwaggerOptions } from 'feathers-swagger'
+import { QueryParameter } from '../../util/openapi'
+import { REGEX_UIDS } from '../../hooks/params'
 
-const baseUserSchema = require('../../schema/models/base-user.model.json');
-baseUserSchema.$id = '#/components/schemas/base-user';
+const baseUserSchema = require('../../schema/models/base-user.model.json')
+baseUserSchema.$id = '#/components/schemas/base-user'
 
-const collectionSchema = require('../../schema/models/collection.model.json');
-collectionSchema.$id = '#/components/schemas/collection';
-collectionSchema.properties.creator.$ref = '#/components/schemas/baseUser';
+const collectionSchema = require('../../schema/models/collection.model.json')
+collectionSchema.$id = '#/components/schemas/collection'
+collectionSchema.properties.creator.$ref = '#/components/schemas/baseUser'
 
-const collectableItemGroupSchema = require('../../schema/collectable-items/CollectableItemGroup.json');
-collectableItemGroupSchema.$id = '#/components/schemas/CollectableItemGroup';
-collectableItemGroupSchema.properties.collections.items.$ref = '#/components/schemas/collection';
+const collectableItemGroupSchema = require('../../schema/collectable-items/CollectableItemGroup.json')
+collectableItemGroupSchema.$id = '#/components/schemas/CollectableItemGroup'
+collectableItemGroupSchema.properties.collections.items.$ref = '#/components/schemas/collection'
 
-const collectableItemsFindResponseSchema = require('../../schema/collectable-items/response.json');
-collectableItemsFindResponseSchema.$id = '#/components/schemas/findResponse';
-collectableItemsFindResponseSchema.properties.data.items.$ref = '#/components/schemas/CollectableItemGroup';
+const collectableItemsFindResponseSchema = require('../../schema/collectable-items/response.json')
+collectableItemsFindResponseSchema.$id = '#/components/schemas/findResponse'
+collectableItemsFindResponseSchema.properties.data.items.$ref = '#/components/schemas/CollectableItemGroup'
 
 const findParameters: QueryParameter[] = [
   {
@@ -81,7 +81,7 @@ const findParameters: QueryParameter[] = [
     },
     description: 'Items to skip',
   },
-];
+]
 
 /**
  * NOTE: Keep this in sync with validators in search.hooks.ts
@@ -102,4 +102,4 @@ export const docs: ServiceSwaggerOptions = {
       parameters: findParameters,
     },
   },
-};
+}
