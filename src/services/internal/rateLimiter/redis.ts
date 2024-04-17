@@ -30,6 +30,15 @@ export interface IRateLimiter {
   undo(userId: string, resource: string): Promise<RateLimitingResult>
 }
 
+class NullRateLimiter implements IRateLimiter {
+  async allow(userId: string, resource: string): Promise<RateLimitingResult> {
+    return { usedTokens: 0, totalTokens: 0, isAllowed: true }
+  }
+  async undo(userId: string, resource: string): Promise<RateLimitingResult> {
+    return { usedTokens: 0, totalTokens: 0, isAllowed: true }
+  }
+}
+
 /**
  * Rate limiter configuration section type in the configuration file.
  */
@@ -103,21 +112,19 @@ export default (app: ImpressoApplication) => {
   // Rate limiter is enabled when it's explicitly enabled in
   // the configuration and Redis is available.
   const rateLimiterConfiguration = app.get('rateLimiter')
-  if (!rateLimiterConfiguration?.enabled) {
-    logger.info('Rate limiter is disabled.')
-    return
+  let rateLimiter: IRateLimiter = new NullRateLimiter()
+
+  if (rateLimiterConfiguration?.enabled) {
+    const redisClient = app.service('redisClient').client
+
+    if (redisClient == null) {
+      logger.info('Rate limiter is disabled because Redis is disabled.')
+    } else {
+      rateLimiter = new RateLimiter(redisClient, rateLimiterConfiguration)
+    }
   } else {
-    logger.info(`Rate limiter is enabled and configured with: ${JSON.stringify(rateLimiterConfiguration)}`)
+    logger.info('Rate limiter is disabled.')
   }
-
-  const redisClient = app.service('redisClient').client
-  if (redisClient == null) {
-    logger.info('Rate limiter is disabled because Redis is disabled.')
-    return
-  }
-
-  // Create the rate limiter service.
-  const rateLimiter = new RateLimiter(redisClient, rateLimiterConfiguration)
   // Attach it to the app.
   app.use('rateLimiter', ensureServiceIsFeathersCompatible(rateLimiter), { methods: [] })
   // Mark the service as internal - no external use allowed.

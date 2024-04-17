@@ -3,16 +3,7 @@
   "description": "Validate add-ons.",
   "type": "object",
   "properties": {
-    "newspaper": {
-      "type": "object",
-      "description": "Newspaper add-on.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Newspaper identifier."
-        }
-      }
-    }
+    "newspaper": {}
   },
   "required": [],
   "additionalProperties": false

@@ -43,6 +43,7 @@ const findParameters: MethodParameter[] = [
     name: 'addons',
     required: false,
     schema: {
+      // TODO: this can be turned into a basic type parameter
       ...require('./schema/addons.json'),
     },
     description: 'Add-ons to apply',

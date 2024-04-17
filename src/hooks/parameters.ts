@@ -8,7 +8,9 @@ export const decodeJsonQueryParameters = (parametersNames: string[]) => async (c
       if (typeof query[parameterName] === 'string') {
         query[parameterName] = JSON.parse(query[parameterName] as string)
       } else if (Array.isArray(query[parameterName])) {
-        const items = (query[parameterName] as string[]).map(item => JSON.parse(item))
+        const items = (query[parameterName] as string[]).map(item =>
+          typeof item === 'string' ? JSON.parse(item) : item
+        )
         query[parameterName] = items
       }
     }
