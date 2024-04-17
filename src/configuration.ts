@@ -11,6 +11,7 @@ export interface Configuration {
   allowedCorsOrigins?: string[]
   redis?: RedisConfiguration
   rateLimiter?: RateLimiterConfiguration & { enabled?: boolean }
+  publicApiPrefix?: string
 }
 
 const configurationSchema: JSONSchemaDefinition = {

@@ -40,7 +40,10 @@ export default (app: ImpressoApplication) => {
   }
   logger.info('Public API - swagger middleware is enabled')
 
+  const prefix = app.get('publicApiPrefix')
+
   const swaggerItem = swagger({
+    openApiVersion: 3,
     specs: {
       info: {
         title: 'Impresso Public API',
@@ -56,6 +59,15 @@ export default (app: ImpressoApplication) => {
         },
       },
       security: [{ BearerAuth: [] }],
+      servers:
+        prefix != null
+          ? [
+              {
+                url: `${prefix}/`,
+                description: 'Impresso Public API',
+              },
+            ]
+          : undefined,
     },
     ui: swaggerUI({
       getSwaggerInitializerScript: generateSwaggerUIInitializerScript,
