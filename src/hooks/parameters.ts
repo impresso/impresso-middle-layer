@@ -1,5 +1,4 @@
 import type { Application, HookContext } from '@feathersjs/feathers'
-import { BadRequest } from '@feathersjs/errors'
 
 export const decodeJsonQueryParameters = (parametersNames: string[]) => async (context: HookContext<Application>) => {
   const { query } = context.params
@@ -8,7 +7,7 @@ export const decodeJsonQueryParameters = (parametersNames: string[]) => async (c
     if (query[parameterName] != null) {
       if (typeof query[parameterName] === 'string') {
         query[parameterName] = JSON.parse(query[parameterName] as string)
-      } else if (Array.isArray(query[parameterName]) {
+      } else if (Array.isArray(query[parameterName])) {
         const items = (query[parameterName] as string[]).map(item => JSON.parse(item))
         query[parameterName] = items
       }
@@ -19,7 +18,6 @@ export const decodeJsonQueryParameters = (parametersNames: string[]) => async (c
 }
 
 export const decodePathParameters = (parametersNames: string[]) => async (context: HookContext<Application>) => {
-
   for (const parameterName of parametersNames) {
     if (context[parameterName] != null) {
       context[parameterName] = decodeURIComponent(context[parameterName])

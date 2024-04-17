@@ -7,6 +7,8 @@
   "required": ["message"],
   "properties": {
     "message": { "type": "string" },
-    "data": { "type": "array" }
+    "data": {
+      "oneOf": [{ "type": "object" }, { "type": "array" }]
+    }
   }
 }
