@@ -13,7 +13,6 @@ import proxy from './services/proxy'
 
 const path = require('path')
 const compress = require('compression')
-const cors = require('cors')
 const helmet = require('helmet')
 const cookieParser = require('cookie-parser')
 
