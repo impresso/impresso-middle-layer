@@ -23,6 +23,7 @@ export const authenticate =
         // swallow error if it's a non-auth error and we allow unauthenticated
         if (err instanceof NotAuthenticated && allowUnauthenticated) {
           // swallow
+          return
         }
         throw err
       })
