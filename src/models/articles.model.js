@@ -271,7 +271,7 @@ class Article extends BaseArticle {
     // dl = 0,
     issue = null,
     // labels = [],
-
+    dataProvider = null,
     newspaper = null,
 
     pages = [],
@@ -338,6 +338,9 @@ class Article extends BaseArticle {
     } else if (issue) {
       this.issue = new Issue({ uid: issue })
     }
+
+    this.dataProvider = dataProvider
+
     if (newspaper instanceof Newspaper) {
       this.newspaper = newspaper
     } else {
@@ -667,6 +670,8 @@ class Article extends BaseArticle {
         title: Article.getUncertainField(doc, 'title'),
         content: Article.getUncertainField(doc, 'content'),
         size: doc.content_length_i,
+
+        dataProvider: doc.meta_partnerid_s,
 
         newspaper: new Newspaper({
           uid: doc.meta_journal_s,
