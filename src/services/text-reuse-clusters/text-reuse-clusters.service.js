@@ -1,9 +1,14 @@
-const { TextReuseClusters } = require('./text-reuse-clusters.class');
-const hooks = require('./text-reuse-clusters.hooks');
+import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { TextReuseClusters } from './text-reuse-clusters.class'
+import hooks from './text-reuse-clusters.hooks'
+import { docs } from './text-reuse-clusters.schema'
 
 module.exports = function (app) {
-  const options = {};
+  const options = {}
 
-  app.use('/text-reuse-clusters', new TextReuseClusters(options, app));
-  app.service('text-reuse-clusters').hooks(hooks);
-};
+  app.use('/text-reuse-clusters', new TextReuseClusters(options, app), {
+    events: [],
+    docs: createSwaggerServiceOptions({ schemas: {}, docs }),
+  })
+  app.service('text-reuse-clusters').hooks(hooks)
+}
