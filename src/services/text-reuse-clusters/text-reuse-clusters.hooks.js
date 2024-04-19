@@ -1,19 +1,19 @@
-const { authenticate } = require('../../hooks/authenticate');
-const { validateWithSchema } = require('../../hooks/schema');
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { rateLimit } from '../../hooks/rateLimiter'
+import { decodeJsonQueryParameters } from '../../hooks/parameters'
+
+// const { validateWithSchema } = require('../../hooks/schema')
 
 module.exports = {
+  around: {
+    all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
+  },
   before: {
     all: [],
     find: [
-      authenticate('jwt', {
-        allowUnauthenticated: true,
-      }),
+      decodeJsonQueryParameters(['filters']), //
     ],
-    get: [
-      authenticate('jwt', {
-        allowUnauthenticated: true,
-      }),
-    ],
+    get: [],
     create: [],
     update: [],
     patch: [],
@@ -22,12 +22,8 @@ module.exports = {
 
   after: {
     all: [],
-    find: [
-      validateWithSchema('services/text-reuse-clusters/schema/find/response.json', 'result'),
-    ],
-    get: [
-      validateWithSchema('services/text-reuse-clusters/schema/get/response.json', 'result'),
-    ],
+    // find: [validateWithSchema('services/text-reuse-clusters/schema/find/response.json', 'result')],
+    // get: [validateWithSchema('services/text-reuse-clusters/schema/get/response.json', 'result')],
     create: [],
     update: [],
     patch: [],
@@ -43,4 +39,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

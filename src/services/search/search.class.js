@@ -1,17 +1,17 @@
-const debug = require('debug')('impresso/services:search');
-const { protobuf } = require('impresso-jscommons');
-const { NotFound, NotImplemented } = require('@feathersjs/errors');
-const sequelize = require('../../sequelize');
-const { isCacheableQuery } = require('../../util/cache');
-const Article = require('../../models/articles.model');
-const Collection = require('../../models/collections.model');
-const Job = require('../../models/jobs.model');
+const debug = require('debug')('impresso/services:search')
+const { protobuf } = require('impresso-jscommons')
+const { NotFound, NotImplemented } = require('@feathersjs/errors')
+const sequelize = require('../../sequelize')
+const { isCacheableQuery } = require('../../util/cache')
+const Article = require('../../models/articles.model')
+const Collection = require('../../models/collections.model')
+const Job = require('../../models/jobs.model')
 const {
   getItemsFromSolrResponse,
   getFacetsFromSolrResponse,
   getTotalFromSolrResponse,
-} = require('../search/search.extractors');
-const { measureTime } = require('../../util/instruments');
+} = require('../search/search.extractors')
+const { measureTime } = require('../../util/instruments')
 
 class Service {
   /**
@@ -21,11 +21,11 @@ class Service {
    * @param  {object} options pass the current app in app
    */
   constructor({ app, name } = {}) {
-    this.app = app;
+    this.app = app
     /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.get('cachedSolr');
-    this.sequelize = sequelize.client(app.get('sequelize'));
-    this.name = name;
+    this.solr = app.service('cachedSolr')
+    this.sequelize = sequelize.client(app.get('sequelize'))
+    this.name = name
   }
 
   static wrap(data, limit, skip, total, info) {
@@ -35,18 +35,18 @@ class Service {
       skip,
       total,
       info,
-    };
+    }
   }
 
   static asRawResponse(solrResponse, params, total) {
     return Service.wrap(
       solrResponse.response.docs.map(d => {
         // console.log(_solr.fragments[d.id]);
-        const contentField = Object.keys(solrResponse.fragments[d.id])[0];
+        const contentField = Object.keys(solrResponse.fragments[d.id])[0]
         // const contentField = _solr.fragments[d.id][`content_txt_${d.lg_s}`]
         // ? `content_txt_${d.lg_s}` : 'content_txt_fr';
-        const fragments = solrResponse.fragments[d.id][contentField];
-        const highlights = solrResponse.highlighting[d.id][contentField];
+        const fragments = solrResponse.fragments[d.id][contentField]
+        const highlights = solrResponse.highlighting[d.id][contentField]
         return {
           id: d.id,
           matches: Article.getMatches({
@@ -55,12 +55,12 @@ class Service {
             fragments,
           }),
           contentField,
-        };
+        }
       }),
       params.query.limit,
       params.query.skip,
       total
-    );
+    )
   }
 
   /**
@@ -70,45 +70,45 @@ class Service {
    * @return {Promise}        [description]
    */
   async create(data, params) {
-    const client = this.app.get('celeryClient');
+    const client = this.app.get('celeryClient')
     if (!client) {
-      return {};
+      return {}
     }
 
     // quickly save the data!
-    const q = data.sanitized.sq;
-    const taskname = data.sanitized.taskname;
+    const q = data.sanitized.sq
+    const taskname = data.sanitized.taskname
     const sq = protobuf.searchQuery.serialize({
       filters: data.sanitized.filters,
-    });
+    })
     // create new search query :TODO
     debug(
       `[create] taskname ${taskname} from solr query: ${q} from user:${params.user.uid} collection_uid: ${data.sanitized.collection_uid}`
-    );
+    )
     // check if the user has jobs running
-    const jobKlass = Job.sequelize(this.sequelize);
+    const jobKlass = Job.sequelize(this.sequelize)
     const runningJobs = await jobKlass.count({
       where: {
         creatorId: params.user.id,
         status: 'RUN',
       },
-    });
+    })
     if (runningJobs > 0) {
-      throw new NotImplemented(`too many jobs running: ${runningJobs}`);
+      throw new NotImplemented(`too many jobs running: ${runningJobs}`)
     }
-    const collectionKlass = Collection.sequelize(this.sequelize);
+    const collectionKlass = Collection.sequelize(this.sequelize)
     // check if the collection exists
     const collection = await collectionKlass.findOne({
       where: {
         uid: data.sanitized.collection_uid,
         creatorId: params.user.id,
       },
-    });
+    })
     if (!collection) {
-      throw new NotFound();
+      throw new NotFound()
     }
 
-    debug('[create] collection found:', collection.name);
+    debug('[create] collection found:', collection.name)
 
     // Celery task:
     // def add_to_collection_from_query(
@@ -136,20 +136,20 @@ class Service {
       .catch(err => {
         if (err.result.exc_type === 'DoesNotExist') {
           // probably collection does not exist
-          debug('[create] impresso.tasks.add_to_collection_from_query DoesNotExist.', err);
-          throw new NotFound(err.result.exc_message);
+          debug('[create] impresso.tasks.add_to_collection_from_query DoesNotExist.', err)
+          throw new NotFound(err.result.exc_message)
         } else if (err.result.exc_type === 'OperationalError') {
           // probably db is not available
-          debug('[create] impresso.tasks.add_to_collection_from_query OperationalError.', err);
-          throw new NotImplemented();
+          debug('[create] impresso.tasks.add_to_collection_from_query OperationalError.', err)
+          throw new NotImplemented()
         }
-        debug('[create] impresso.tasks.add_to_collection_from_query ERROR.', err);
-        throw new NotImplemented();
+        debug('[create] impresso.tasks.add_to_collection_from_query ERROR.', err)
+        throw new NotImplemented()
       })
       .then(res => {
-        debug('[create] impresso.tasks.add_to_collection_from_query SUCCESS.', res);
-        return {};
-      });
+        debug('[create] impresso.tasks.add_to_collection_from_query SUCCESS.', res)
+        return {}
+      })
   }
 
   /**
@@ -159,11 +159,11 @@ class Service {
    * @param  {object} params query params. Check hhooks
    */
   async find(params) {
-    debug('[find] query:', params.query, params.sanitized.sv);
-    const isRaw = params.originalQuery.group_by === 'raw';
-    let fl = 'id,pp_plain:[json],lg_s';
+    debug('[find] query:', params.query, params.sanitized.sv)
+    const isRaw = params.originalQuery.group_by === 'raw'
+    let fl = 'id,pp_plain:[json],lg_s'
 
-    fl = 'id,rc_plains,lg_s'; // ,pp_plain:[json]';
+    fl = 'id,rc_plains,lg_s' // ,pp_plain:[json]';
 
     const solrQuery = {
       q: params.query.sq,
@@ -179,7 +179,7 @@ class Service {
         'hl.fragsize': 100,
       },
       vars: params.sanitized.sv,
-    };
+    }
 
     const solrResponse = await measureTime(
       () =>
@@ -187,46 +187,46 @@ class Service {
           skipCache: !isCacheableQuery(params.sanitized.filters),
         }),
       'search.find.solr.search'
-    );
+    )
 
-    const total = getTotalFromSolrResponse(solrResponse);
-    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader);
+    const total = getTotalFromSolrResponse(solrResponse)
+    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader)
 
     if (!total) {
-      return Service.wrap([], params.query.limit, params.query.skip, total);
+      return Service.wrap([], params.query.limit, params.query.skip, total)
     }
 
     if (isRaw) {
-      return Service.asRawResponse(solrResponse, params, total);
+      return Service.asRawResponse(solrResponse, params, total)
     }
 
     const userInfo = {
       user: params.user,
       authenticated: params.authenticated,
-    };
+    }
 
     debug(
       `find '${this.name}' (2 / 2): call articles service for ${solrResponse.response.docs.length} uids, user:`,
       params.user ? params.user.uid : 'no auth user found'
-    );
+    )
 
     const resultItems = await measureTime(
       () => getItemsFromSolrResponse(solrResponse, this.app.service('articles'), userInfo),
       'search.find.svc.articles'
-    );
-    const facets = await getFacetsFromSolrResponse(solrResponse);
+    )
+    const facets = await getFacetsFromSolrResponse(solrResponse)
 
     return Service.wrap(resultItems, params.query.limit, params.query.skip, total, {
       responseTime: {
         solr: solrResponse.responseHeader.QTime,
       },
       facets,
-    });
+    })
   }
 }
 
 module.exports = function (options) {
-  return new Service(options);
-};
+  return new Service(options)
+}
 
-module.exports.Service = Service;
+module.exports.Service = Service

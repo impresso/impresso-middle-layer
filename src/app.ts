@@ -10,6 +10,7 @@ import sequelize from './sequelize'
 import solr from './solr'
 import media from './services/media'
 import proxy from './services/proxy'
+import { ensureServiceIsFeathersCompatible } from './util/feathers'
 
 const path = require('path')
 const compress = require('compression')
@@ -52,7 +53,9 @@ app.set(
 // Enable Swagger if needed
 app.configure(swagger)
 
-app.set('cachedSolr', cachedSolr(app))
+app.use('cachedSolr', ensureServiceIsFeathersCompatible(cachedSolr(app)), {
+  methods: [],
+})
 
 // Enable security, compression, favicon and body parsing
 app.use(helmet())

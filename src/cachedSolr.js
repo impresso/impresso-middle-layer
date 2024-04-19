@@ -1,21 +1,15 @@
-const { SolrNamespaces } = require('./solr');
+const { SolrNamespaces } = require('./solr')
 
-function getCacheKeyForSolrRequest (request, namespace, isPost = false) {
-  const requestString = Buffer.from(JSON.stringify(request)).toString('base64');
-  return [
-    'cache',
-    'solr',
-    namespace != null ? namespace : 'default',
-    isPost ? 'post' : 'get',
-    requestString,
-  ].join(':');
+function getCacheKeyForSolrRequest(request, namespace, isPost = false) {
+  const requestString = Buffer.from(JSON.stringify(request)).toString('base64')
+  return ['cache', 'solr', namespace != null ? namespace : 'default', isPost ? 'post' : 'get', requestString].join(':')
 }
 
 const TTL = Object.freeze({
   Short: 60, // 1 minute. Use where content may be changed by the user.
   Long: 60 * 60 * 24 * 30 * 6, // ~6 months. Used by default
   Default: undefined, // set in cache configuration.
-});
+})
 
 /**
  * Standard cache options.
@@ -23,10 +17,10 @@ const TTL = Object.freeze({
  */
 
 class CachedSolrClient {
-  constructor (solrClient, cacheManager) {
-    this.solrClient = solrClient;
+  constructor(solrClient, cacheManager) {
+    this.solrClient = solrClient
     /** @type {import('cache-manager').Cache} */
-    this.cacheManager = cacheManager;
+    this.cacheManager = cacheManager
   }
 
   /**
@@ -37,19 +31,15 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} unmodified Solr response.
    */
-  async get (request, namespace = undefined, options = undefined) {
-    const { ttl = TTL.Long, skipCache = false } = options || {};
+  async get(request, namespace = undefined, options = undefined) {
+    const { ttl = TTL.Long, skipCache = false } = options || {}
 
-    const cacheOptions = { ttl };
-    const fn = async () => this.solrClient.requestGetRaw(request, namespace);
+    const cacheOptions = { ttl }
+    const fn = async () => this.solrClient.requestGetRaw(request, namespace)
 
-    if (skipCache) return fn();
+    if (skipCache) return fn()
 
-    return this.cacheManager.wrap(
-      getCacheKeyForSolrRequest(request, namespace, false),
-      fn,
-      cacheOptions,
-    );
+    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions)
   }
 
   /**
@@ -60,19 +50,15 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} unmodified Solr response.
    */
-  async post (request, namespace = undefined, options = undefined) {
-    const { ttl = TTL.Long, skipCache = false } = options || {};
+  async post(request, namespace = undefined, options = undefined) {
+    const { ttl = TTL.Long, skipCache = false } = options || {}
 
-    const cacheOptions = { ttl };
-    const fn = async () => this.solrClient.requestPostRaw(request, namespace);
+    const cacheOptions = { ttl }
+    const fn = async () => this.solrClient.requestPostRaw(request, namespace)
 
-    if (skipCache) return fn();
+    if (skipCache) return fn()
 
-    return this.cacheManager.wrap(
-      getCacheKeyForSolrRequest(request, namespace, true),
-      fn,
-      cacheOptions,
-    );
+    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, true), fn, cacheOptions)
   }
 
   /**
@@ -83,20 +69,16 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} solr response
    */
-  async findAllPost (request, options = undefined) {
-    const namespace = SolrNamespaces.Search;
-    const { ttl = TTL.Long, skipCache = false } = options || {};
+  async findAllPost(request, options = undefined) {
+    const namespace = SolrNamespaces.Search
+    const { ttl = TTL.Long, skipCache = false } = options || {}
 
-    const cacheOptions = { ttl };
-    const fn = async () => this.solrClient.findAllPost(request);
+    const cacheOptions = { ttl }
+    const fn = async () => this.solrClient.findAllPost(request)
 
-    if (skipCache) return fn();
+    if (skipCache) return fn()
 
-    return this.cacheManager.wrap(
-      getCacheKeyForSolrRequest(request, namespace, true),
-      fn,
-      cacheOptions,
-    );
+    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, true), fn, cacheOptions)
   }
 
   /**
@@ -108,21 +90,17 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} solr response
    */
-  async findAll (request, factory = undefined, options = undefined) {
-    const { namespace } = request;
-    const { ttl = TTL.Long, skipCache = false } = options || {};
+  async findAll(request, factory = undefined, options = undefined) {
+    const { namespace } = request
+    const { ttl = TTL.Long, skipCache = false } = options || {}
 
-    const cacheOptions = { ttl };
-    const fn = async () => this.solrClient.findAll(request);
+    const cacheOptions = { ttl }
+    const fn = async () => this.solrClient.findAll(request)
     const resultPromise = skipCache
       ? fn()
-      : this.cacheManager.wrap(
-        getCacheKeyForSolrRequest(request, namespace, false),
-        fn,
-        cacheOptions,
-      );
+      : this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions)
 
-    return resultPromise.then((result) => {
+    return resultPromise.then(result => {
       // Same as the code used in `solrClient.findAll`.
       // It's here because `cacheManager` works with JSON whereas
       // factory creates a custom JS class instance which cannot be
@@ -134,10 +112,10 @@ class CachedSolrClient {
             ...result.response,
             docs: result.response.docs.map(factory(result)),
           },
-        };
+        }
       }
-      return result;
-    });
+      return result
+    })
   }
 
   /**
@@ -149,41 +127,42 @@ class CachedSolrClient {
    *
    * @returns {Promise<any>} solr response
    */
-  async suggest (request, factory, options = undefined) {
-    const { namespace } = request;
-    const { ttl = TTL.Long, skipCache = false } = options || {};
+  async suggest(request, factory, options = undefined) {
+    const { namespace } = request
+    const { ttl = TTL.Long, skipCache = false } = options || {}
 
-    const cacheOptions = { ttl };
-    const fn = async () => this.solrClient.suggest(request);
+    const cacheOptions = { ttl }
+    const fn = async () => this.solrClient.suggest(request)
 
     const resultPromise = skipCache
       ? fn()
-      : this.cacheManager.wrap(
-        getCacheKeyForSolrRequest(request, namespace, false),
-        fn,
-        cacheOptions,
-      );
+      : this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions)
 
-    return resultPromise.then((resultItems) => {
+    return resultPromise.then(resultItems => {
       // Same as the code used in `solrClient.suggest`.
       // It's here because `cacheManager` works with JSON whereas
       // factory creates a custom JS class instance which cannot be
       // properly serialised.
       if (factory) {
-        return resultItems.map(factory());
+        return resultItems.map(factory())
       }
-      return resultItems;
-    });
+      return resultItems
+    })
   }
 
-  get ttl () { return TTL; }
+  get ttl() {
+    return TTL
+  }
 
-  get namespaces () { return SolrNamespaces; }
+  get namespaces() {
+    return SolrNamespaces
+  }
+
+  get isInternalService() {
+    return true
+  }
 }
 
-module.exports = app => new CachedSolrClient(
-  app.get('solrClient'),
-  app.get('cacheManager'),
-);
+module.exports = app => new CachedSolrClient(app.get('solrClient'), app.get('cacheManager'))
 
-exports.CachedSolrClient = CachedSolrClient;
+exports.CachedSolrClient = CachedSolrClient

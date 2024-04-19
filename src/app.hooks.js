@@ -8,6 +8,9 @@ const { authenticate } = require('@feathersjs/authentication').hooks
 const { InvalidArgumentError } = require('./util/error')
 
 const basicParams = () => context => {
+  // do nothing with internal services
+  if (context.self.isInternalService) return
+
   if (!context.params) {
     context.params = {}
   }

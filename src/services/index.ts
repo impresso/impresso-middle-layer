@@ -13,6 +13,7 @@ const publicApiServices = [
   'collectable-items', // required by 'search'
   'collections', // CRUD collections
   'text-reuse-passages',
+  'text-reuse-clusters',
   'version',
 ]
 
@@ -49,7 +50,6 @@ const internalApiServices = [
   'ngram-trends',
   'topics-graph',
   'articles-text-reuse-passages',
-  'text-reuse-clusters',
   'text-reuse-cluster-passages',
   'filters-items',
   'stats',

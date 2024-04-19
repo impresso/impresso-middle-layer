@@ -11,7 +11,7 @@ module.exports = function (app) {
       async find() {
         const solrConfig = app.get('solr')
         const sequelizeConfig = app.get('sequelize')
-        const solr = app.get('cachedSolr')
+        const solr = app.service('cachedSolr')
         const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr)
 
         return {
