@@ -33,7 +33,7 @@
     "start": "node dist/",
     "dev": "nodemon --enable-source-maps --inspect dist/",
     "cli": "node src/admin/cli.js",
-    "generate-types": "quicktype --src-lang schema --src src/services/text-reuse-clusters/schema/**/*.json --out src/services/text-reuse-clusters/models/generated.ts --lang ts --just-types",
+    "generate-types": "node scripts/generate-types.js",
     "update-newspapers": "node scripts/update-newspapers.js",
     "update-years": "node scripts/update-years.js",
     "update-topics": "node scripts/update-topics.js && node scripts/update-topics-related.js  && node scripts/update-topics-positions.js",
