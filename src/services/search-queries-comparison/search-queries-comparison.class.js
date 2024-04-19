@@ -109,8 +109,9 @@ function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = [])
     const constrainedIndex = parseInt(constrainedIndexString, 10)
 
     const constraintFacet = constraintFacets.find(({ type }) => type === constrainedFacetType)
-    if (constraintFacet == null)
+    if (constraintFacet == null) {
       throw new Error(`Found constrained facet "${constrainedFacetType}" in response but no facet provided for it`)
+    }
 
     const facet = acc[constrainedFacetType] == null ? { numBuckets: 0, buckets: [] } : acc[constrainedFacetType]
 

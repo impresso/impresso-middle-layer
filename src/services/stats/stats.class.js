@@ -97,11 +97,7 @@ function buildSolrRequest(facet, index, domain, stats, filters, sort, groupby) {
 
   const { query } = filtersToQueryAndVariables(filters, index)
   // add
-  const collapse = groupby
-    ? {
-        fq: `{!collapse field=${groupby}}`,
-      }
-    : null
+  const collapse = groupby ? { fq: `{!collapse field=${groupby}}` } : null
 
   return {
     query,

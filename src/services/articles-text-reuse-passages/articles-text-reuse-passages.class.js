@@ -52,11 +52,12 @@ class ArticlesTextReusePassages {
       )
       .then(convertPassagesSolrResponseToPassages)
     const clusterIds = [...new Set(passages.map(({ clusterId }) => clusterId))]
+    // prettier-ignore
     const clusters =
       clusterIds.length > 0
         ? await this.solr
-            .get(getTextReuseClustersRequestForIds(clusterIds), this.solr.namespaces.TextReuseClusters)
-            .then(convertClustersSolrResponseToClusters)
+          .get(getTextReuseClustersRequestForIds(clusterIds), this.solr.namespaces.TextReuseClusters)
+          .then(convertClustersSolrResponseToClusters)
         : []
 
     // 2. Construct response

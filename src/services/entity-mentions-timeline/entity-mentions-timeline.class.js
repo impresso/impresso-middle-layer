@@ -121,12 +121,13 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
 }
 
 function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution) {
+  // prettier-ignore
   const mentionFilter =
     TypeToMentionField[mentionType] == null
       ? [
-          [Fields.PersonMentions, `"${mentionLabel}"`].join(':'),
-          [Fields.LocationMentions, `"${mentionLabel}"`].join(':'),
-        ].join(' OR ')
+        [Fields.PersonMentions, `"${mentionLabel}"`].join(':'),
+        [Fields.LocationMentions, `"${mentionLabel}"`].join(':'),
+      ].join(' OR ')
       : [TypeToMentionField[mentionType], `"${mentionLabel}"`].join(':')
 
   const facet = {
