@@ -7,7 +7,6 @@
   "properties": {
     "passages": {
       "type": "array",
-      "minimum": 0,
       "items": {
         "$ref": "#/definitions/passageItem"
       }
@@ -36,13 +35,8 @@
           "description": "IIIF Urls of article pages mentioned in the passage"
         }
       },
-      "required": [
-        "passage"
-      ]
+      "required": ["passage"]
     }
   },
-  "required": [
-    "passages",
-    "info"
-  ]
+  "required": ["passages", "info"]
 }
