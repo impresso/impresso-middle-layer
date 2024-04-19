@@ -1,6 +1,4 @@
-const {
-  mapValues, groupBy,
-} = require('lodash');
+const { mapValues, groupBy } = require('lodash')
 const {
   buildConnectedClustersRequest,
   parseConnectedClustersResponse,
@@ -8,69 +6,67 @@ const {
   convertClustersSolrResponseToClusters,
   getLatestTextReusePassageForClusterIdRequest,
   getClusterIdsAndTextFromPassagesSolrResponse,
-} = require('../../logic/textReuse/solr');
+} = require('../../logic/textReuse/solr')
 
-function buildResponseClusters (clusters, clusterIdsAndText) {
-  const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0]);
+function buildResponseClusters(clusters, clusterIdsAndText) {
+  const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0])
   return clusterIdsAndText.map(({ id, text: textSample }) => ({
     cluster: clustersById[id],
     textSample,
-  }));
+  }))
 }
 
 /** @returns {{ clusterId: string, skip: number, limit: number }} */
-function getArguments (params) {
-  const { clusterId, skip = 0, limit = 9 } = params.query;
-  return { clusterId, skip: parseInt(skip, 10), limit: parseInt(limit, 10) };
+function getArguments(params) {
+  const { clusterId, skip = 0, limit = 9 } = params.query
+  return { clusterId, skip: parseInt(skip, 10), limit: parseInt(limit, 10) }
 }
 
 class TextReuseConnectedClusters {
-  constructor (app) {
+  constructor(app) {
     /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.get('cachedSolr');
+    this.solr = app.service('cachedSolr')
 
     // NOTE: using service to mock while data is not available.
-    this.textReuseClustersService = app.service('text-reuse-clusters');
+    this.textReuseClustersService = app.service('text-reuse-clusters')
   }
 
-  async find (params) {
-    const { clusterId, skip, limit } = getArguments(params);
-    const request = buildConnectedClustersRequest(clusterId, limit, skip);
+  async find(params) {
+    const { clusterId, skip, limit } = getArguments(params)
+    const request = buildConnectedClustersRequest(clusterId, limit, skip)
     const { clustersIds, total } = await this.solr
       .post(request, this.solr.namespaces.TextReusePassages)
-      .then(parseConnectedClustersResponse);
+      .then(parseConnectedClustersResponse)
 
     if (clustersIds.length === 0) {
       return {
-        skip, limit, total, clusters: [],
-      };
+        skip,
+        limit,
+        total,
+        clusters: [],
+      }
     }
 
     const sampleTextsPromise = this.solr
-      .get(
-        getLatestTextReusePassageForClusterIdRequest(clustersIds),
-        this.solr.namespaces.TextReusePassages,
-      )
-      .then(getClusterIdsAndTextFromPassagesSolrResponse);
+      .get(getLatestTextReusePassageForClusterIdRequest(clustersIds), this.solr.namespaces.TextReusePassages)
+      .then(getClusterIdsAndTextFromPassagesSolrResponse)
 
     const clustersPromise = this.solr
-      .get(
-        getTextReuseClustersRequestForIds(clustersIds),
-        this.solr.namespaces.TextReuseClusters,
-      )
-      .then(convertClustersSolrResponseToClusters);
+      .get(getTextReuseClustersRequestForIds(clustersIds), this.solr.namespaces.TextReuseClusters)
+      .then(convertClustersSolrResponseToClusters)
 
-    const [clusterIdsAndText, clusters] = await Promise.all([
-      sampleTextsPromise, clustersPromise,
-    ]);
+    const [clusterIdsAndText, clusters] = await Promise.all([sampleTextsPromise, clustersPromise])
 
-    const clusterItems = buildResponseClusters(clusters, clusterIdsAndText);
+    const clusterItems = buildResponseClusters(clusters, clusterIdsAndText)
     return {
-      skip, limit, total, clusters: clusterItems,
-    };
+      skip,
+      limit,
+      total,
+      clusters: clusterItems,
+    }
   }
 }
 
 module.exports = {
   TextReuseConnectedClusters,
-};
+}

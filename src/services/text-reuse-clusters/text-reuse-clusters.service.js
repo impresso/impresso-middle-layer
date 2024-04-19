@@ -4,9 +4,7 @@ import hooks from './text-reuse-clusters.hooks'
 import { docs } from './text-reuse-clusters.schema'
 
 module.exports = function (app) {
-  const options = {}
-
-  app.use('/text-reuse-clusters', new TextReuseClusters(options, app), {
+  app.use('/text-reuse-clusters', new TextReuseClusters(app), {
     events: [],
     docs: createSwaggerServiceOptions({ schemas: {}, docs }),
   })

@@ -1,7 +1,15 @@
 /**
+ * Response for GET /text-reuse-clusters
+ */
+export interface FindTextReuseClustersResponse {
+    clusters: ClusterElement[];
+    info:     Info;
+}
+
+/**
  * Response for GET /text-reuse-clusters/:id
  */
-export interface Response {
+export interface ClusterElement {
     cluster:    TextReuseCluster;
     details?:   TextReuseClusterDetails;
     textSample: string;
@@ -71,4 +79,40 @@ export enum Resolution {
     Day = "day",
     Month = "month",
     Year = "year",
+}
+
+/**
+ * Request payload for POST /search-queries-comparison/intersection
+ */
+export interface Info {
+    /**
+     * Limit to this many items
+     */
+    limit?: number;
+    /**
+     * Skip this many items
+     */
+    offset?: number;
+    /**
+     * Display N-th page (using 'limit' as the number of items in the page)
+     */
+    page?: number;
+    /**
+     * Skip this many items
+     */
+    skip?: number;
+    /**
+     * Total items available
+     */
+    total?: number;
+    [property: string]: any;
+}
+
+/**
+ * Response for GET /text-reuse-clusters/:id
+ */
+export interface GetTextReuseClusterResponse {
+    cluster:    TextReuseCluster;
+    details?:   TextReuseClusterDetails;
+    textSample: string;
 }

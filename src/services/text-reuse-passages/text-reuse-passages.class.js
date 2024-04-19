@@ -17,7 +17,7 @@ export const GroupByValues = ['textReuseClusterId']
 
 export class TextReusePassages {
   constructor(app) {
-    this.solr = app.get('cachedSolr')
+    this.solr = app.service('cachedSolr')
   }
 
   async find(params) {

@@ -2,6 +2,7 @@ import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { MethodParameter } from '../../util/openapi'
 import { getFindResponse, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { OrderByKeyToField } from './text-reuse-clusters.class'
+import { Filter } from '../../models'
 
 const cluster = require('../../schema/models/text-reuse/cluster.json')
 cluster.$id = 'cluster'
@@ -18,7 +19,24 @@ clusterFindResponse.$id = 'clusterFindResponse'
 clusterFindResponse.properties.clusters.items.$ref = '#/components/schemas/clusterGetResponse'
 clusterFindResponse.properties.info.$ref = '#/components/schemas/pagination'
 
+export interface FindQueyParameters {
+  text?: string
+  skip?: number
+  limit?: number
+  orderBy?: string
+  filters?: string | Filter[]
+}
+
 const findParameters: MethodParameter[] = [
+  {
+    in: 'query',
+    name: 'text',
+    required: false,
+    schema: {
+      type: 'string',
+    },
+    description: 'Search term',
+  },
   {
     in: 'query',
     name: 'orderBy',

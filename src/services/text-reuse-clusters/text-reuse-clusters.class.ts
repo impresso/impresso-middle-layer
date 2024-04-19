@@ -1,3 +1,14 @@
+import type { Params } from '@feathersjs/feathers'
+import { CachedSolrClient } from '../../cachedSolr'
+import type { ImpressoApplication } from '../../types'
+import type {
+  ClusterElement,
+  Facet,
+  FindTextReuseClustersResponse,
+  GetTextReuseClusterResponse,
+} from './models/generated'
+import { FindQueyParameters } from './text-reuse-clusters.schema'
+
 const { mapValues, groupBy, values, uniq, clone, get } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
 const { protobuf } = require('impresso-jscommons')
@@ -20,42 +31,42 @@ const { sameTypeFiltersToQuery } = require('../../util/solr')
 const { SolrNamespaces } = require('../../solr')
 const Newspaper = require('../../models/newspapers.model')
 
-function buildResponseClusters(clusters, clusterIdsAndText) {
-  const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0])
+function buildResponseClusters(clusters: Promise<any>, clusterIdsAndText: { id: any; text: any }[]): ClusterElement[] {
+  const clustersById = mapValues(groupBy(clusters, 'id'), (v: any[]) => v[0])
   return clusterIdsAndText.map(({ id, text: textSample }) => ({
     cluster: clustersById[id],
     textSample,
   }))
 }
 
-const deserializeFilters = serializedFilters => protobuf.searchQuery.deserialize(serializedFilters).filters
+const deserializeFilters = (serializedFilters: string) => protobuf.searchQuery.deserialize(serializedFilters).filters
 
-function filtersToSolrQueries(filters) {
+function filtersToSolrQueries(filters: any) {
   const filtersGroupsByType = values(groupBy(filters, 'type'))
-  return uniq(filtersGroupsByType.map(f => sameTypeFiltersToQuery(f, SolrNamespaces.TextReusePassages)))
+  return uniq(filtersGroupsByType.map((f: any) => sameTypeFiltersToQuery(f, SolrNamespaces.TextReusePassages)))
 }
 
-const OrderByKeyToField = {
+export const OrderByKeyToField = {
   'passages-count': PassageFields.ClusterSize,
 }
 
-const withExtraQueryParts = (query, parts) => {
+const withExtraQueryParts = (query: { q: any }, parts: any) => {
   const updatedQuery = clone(query)
   updatedQuery.q = [query.q].concat(parts).join(' AND ')
   return updatedQuery
 }
 
-async function facetsWithItems(facets) {
+async function facetsWithItems(facets: Facet[]) {
   return Promise.all(
     facets.map(async facet => {
       if (facet.type === 'newspaper') {
         return {
           ...facet,
           buckets: await Promise.all(
-            facet.buckets.map(async bucket => ({
+            facet.buckets?.map(async bucket => ({
               ...bucket,
               item: await Newspaper.getCached(bucket.val),
-            }))
+            })) ?? []
           ),
         }
       }
@@ -68,20 +79,25 @@ async function facetsWithItems(facets) {
  * Text Reuse Passages index does not have a "country" field. But we can get country
  * from newspaper bucket items and recreate buckets for a virtual "country" facet.
  */
-function facetsWithCountry(facets) {
+function facetsWithCountry(facets: Facet[]) {
   const newspaperFacet = facets.find(({ type }) => type === 'newspaper')
   if (newspaperFacet == null) return facets
 
-  const countsByCountry = newspaperFacet.buckets.reduce((counts, bucket) => {
-    const countryCodeProperty = get(bucket, 'item.properties', []).find(({ name }) => name === 'countryCode')
-    if (countryCodeProperty != null) {
-      const countryCount = get(counts, countryCodeProperty.value, 0)
-      counts[countryCodeProperty.value] = countryCount + bucket.count
-    }
-    return counts
-  }, {})
+  const countsByCountry: Record<string, number> | undefined = newspaperFacet.buckets?.reduce(
+    (counts: Record<string, number>, bucket: any) => {
+      const countryCodeProperty = get(bucket, 'item.properties', []).find(
+        ({ name }: { name: string }) => name === 'countryCode'
+      )
+      if (countryCodeProperty != null) {
+        const countryCount = get(counts, countryCodeProperty.value, 0)
+        counts[countryCodeProperty.value] = countryCount + bucket.count
+      }
+      return counts
+    },
+    {}
+  )
 
-  const countriesBuckets = Object.entries(countsByCountry).map(([countryCode, count]) => ({
+  const countriesBuckets = Object.entries(countsByCountry ?? {}).map(([countryCode, count]) => ({
     val: countryCode,
     count,
   }))
@@ -95,15 +111,15 @@ function facetsWithCountry(facets) {
   ])
 }
 
-class TextReuseClusters {
-  constructor(options, app) {
-    this.options = options || {}
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.get('cachedSolr')
+export class TextReuseClusters {
+  solr: CachedSolrClient
+
+  constructor(app: ImpressoApplication) {
+    this.solr = app.service('cachedSolr')
   }
 
-  async find(params) {
-    const { text, skip = 0, limit = 10, orderBy, filters: serializedFilters } = params.query
+  async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
+    const { text, skip = 0, limit = 10, orderBy, filters: serializedFilters } = params.query ?? {}
 
     let filters = []
     if (typeof serializedFilters === 'string') {
@@ -127,15 +143,7 @@ class TextReuseClusters {
         getPaginationInfoFromPassagesSolrResponse(response),
       ])
 
-    const clusters =
-      clusterIdsAndText.length > 0
-        ? await this.solr
-            .get(
-              getTextReuseClustersRequestForIds(clusterIdsAndText.map(({ id }) => id)),
-              this.solr.namespaces.TextReuseClusters
-            )
-            .then(convertClustersSolrResponseToClusters)
-        : []
+    const clusters = this.getClusters(clusterIdsAndText.map(({ id }: { id: string }) => id))
 
     return {
       clusters: buildResponseClusters(clusters, clusterIdsAndText),
@@ -143,7 +151,14 @@ class TextReuseClusters {
     }
   }
 
-  async get(id, { query = {} }) {
+  async getClusters(ids: string[]) {
+    if (ids.length < 1) return []
+    return await this.solr
+      .get(getTextReuseClustersRequestForIds(ids), this.solr.namespaces.TextReuseClusters)
+      .then(convertClustersSolrResponseToClusters)
+  }
+
+  async get(id: string, { query = {} }): Promise<GetTextReuseClusterResponse> {
     // @ts-ignore
     const includeDetails = query.includeDetails === true || query.includeDetails === 'true'
 
@@ -187,12 +202,10 @@ class TextReuseClusters {
 
     cluster.details.facets = facetsWithCountry(cluster.details.facets)
     cluster.details.resolution = getTimelineResolution(
-      cluster.cluster.timeCoverage.from,
-      cluster.cluster.timeCoverage.to
+      cluster.cluster.timeCoverage?.from,
+      cluster.cluster.timeCoverage?.to
     )
 
     return cluster
   }
 }
-
-module.exports = { TextReuseClusters, OrderByKeyToField }
