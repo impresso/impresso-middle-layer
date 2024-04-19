@@ -20,15 +20,15 @@ class Service {
    * Add solr
    * @param  {object} options pass the current app in app
    */
-  constructor ({ app, name } = {}) {
+  constructor({ app, name } = {}) {
     this.app = app
     /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.get('cachedSolr')
+    this.solr = app.service('cachedSolr')
     this.sequelize = sequelize.client(app.get('sequelize'))
     this.name = name
   }
 
-  static wrap (data, limit, skip, total, info) {
+  static wrap(data, limit, skip, total, info) {
     return {
       data,
       limit,
@@ -38,9 +38,9 @@ class Service {
     }
   }
 
-  static asRawResponse (solrResponse, params, total) {
+  static asRawResponse(solrResponse, params, total) {
     return Service.wrap(
-      solrResponse.response.docs.map((d) => {
+      solrResponse.response.docs.map(d => {
         // console.log(_solr.fragments[d.id]);
         const contentField = Object.keys(solrResponse.fragments[d.id])[0]
         // const contentField = _solr.fragments[d.id][`content_txt_${d.lg_s}`]
@@ -69,7 +69,7 @@ class Service {
    * @param  {[type]}  params [description]
    * @return {Promise}        [description]
    */
-  async create (data, params) {
+  async create(data, params) {
     const client = this.app.get('celeryClient')
     if (!client) {
       return {}
@@ -133,33 +133,21 @@ class Service {
           sq,
         ],
       })
-      .catch((err) => {
+      .catch(err => {
         if (err.result.exc_type === 'DoesNotExist') {
           // probably collection does not exist
-          debug(
-            '[create] impresso.tasks.add_to_collection_from_query DoesNotExist.',
-            err
-          )
+          debug('[create] impresso.tasks.add_to_collection_from_query DoesNotExist.', err)
           throw new NotFound(err.result.exc_message)
         } else if (err.result.exc_type === 'OperationalError') {
           // probably db is not available
-          debug(
-            '[create] impresso.tasks.add_to_collection_from_query OperationalError.',
-            err
-          )
+          debug('[create] impresso.tasks.add_to_collection_from_query OperationalError.', err)
           throw new NotImplemented()
         }
-        debug(
-          '[create] impresso.tasks.add_to_collection_from_query ERROR.',
-          err
-        )
+        debug('[create] impresso.tasks.add_to_collection_from_query ERROR.', err)
         throw new NotImplemented()
       })
-      .then((res) => {
-        debug(
-          '[create] impresso.tasks.add_to_collection_from_query SUCCESS.',
-          res
-        )
+      .then(res => {
+        debug('[create] impresso.tasks.add_to_collection_from_query SUCCESS.', res)
         return {}
       })
   }
@@ -170,7 +158,7 @@ class Service {
    *
    * @param  {object} params query params. Check hhooks
    */
-  async find (params) {
+  async find(params) {
     debug('[find] query:', params.query, params.sanitized.sv)
     const isRaw = params.originalQuery.group_by === 'raw'
     let fl = 'id,pp_plain:[json],lg_s'
@@ -202,10 +190,7 @@ class Service {
     )
 
     const total = getTotalFromSolrResponse(solrResponse)
-    debug(
-      `find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`,
-      solrResponse.responseHeader
-    )
+    debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader)
 
     if (!total) {
       return Service.wrap([], params.query.limit, params.query.skip, total)
@@ -226,28 +211,17 @@ class Service {
     )
 
     const resultItems = await measureTime(
-      () =>
-        getItemsFromSolrResponse(
-          solrResponse,
-          this.app.service('articles'),
-          userInfo
-        ),
+      () => getItemsFromSolrResponse(solrResponse, this.app.service('articles'), userInfo),
       'search.find.svc.articles'
     )
     const facets = await getFacetsFromSolrResponse(solrResponse)
 
-    return Service.wrap(
-      resultItems,
-      params.query.limit,
-      params.query.skip,
-      total,
-      {
-        responseTime: {
-          solr: solrResponse.responseHeader.QTime,
-        },
-        facets,
-      }
-    )
+    return Service.wrap(resultItems, params.query.limit, params.query.skip, total, {
+      responseTime: {
+        solr: solrResponse.responseHeader.QTime,
+      },
+      facets,
+    })
   }
 }
 

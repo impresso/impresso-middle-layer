@@ -1,18 +1,10 @@
-// const { authenticate } = require('@feathersjs/authentication').hooks;
-const { validateWithSchema } = require('../../hooks/schema');
-const {
-  validate, validateEach, queryWithCommonParams, utils,
-} = require('../../hooks/params');
-const {
-  qToSolrFilter,
-  filtersToSolrQuery,
-} = require('../../hooks/search');
+const { validate, validateEach, queryWithCommonParams, utils } = require('../../hooks/params')
+const { qToSolrFilter, filtersToSolrQuery } = require('../../hooks/search')
 
 module.exports = {
   before: {
     all: [],
     find: [
-      validateWithSchema('services/entities/schema/find/query.json', 'params.query'),
       validate({
         q: {
           required: false,
@@ -37,45 +29,43 @@ module.exports = {
           defaultValue: '-count',
         }),
       }),
-      validateEach('filters', {
-        q: {
-          max_length: 50,
+      validateEach(
+        'filters',
+        {
+          q: {
+            max_length: 50,
+            required: false,
+          },
+          context: {
+            choices: ['include', 'exclude'],
+            defaultValue: 'include',
+          },
+          op: {
+            choices: ['AND', 'OR'],
+            defaultValue: 'OR',
+          },
+          type: {
+            choices: ['string', 'type', 'uid'],
+            required: true,
+            // trasform is required because they shoyd be related to entities namespace.
+            // transform: (d) => {
+            //   if (d === 'uid') {
+            //     return d;
+            //   }
+            //   return `entity-${d}`;
+            // },
+          },
+        },
+        {
           required: false,
-        },
-        context: {
-          choices: ['include', 'exclude'],
-          defaultValue: 'include',
-        },
-        op: {
-          choices: ['AND', 'OR'],
-          defaultValue: 'OR',
-        },
-        type: {
-          choices: [
-            'string',
-            'type',
-            'uid',
-          ],
-          required: true,
-          // trasform is required because they shoyd be related to entities namespace.
-          // transform: (d) => {
-          //   if (d === 'uid') {
-          //     return d;
-          //   }
-          //   return `entity-${d}`;
-          // },
-        },
-      }, {
-        required: false,
-      }),
+        }
+      ),
       qToSolrFilter('string'),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [],
-    create: [
-      validateWithSchema('services/entities/schema/find/query.json'),
-    ],
+    create: [],
     update: [],
     patch: [],
     remove: [],
@@ -100,4 +90,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

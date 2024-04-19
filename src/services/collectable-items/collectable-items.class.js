@@ -6,16 +6,11 @@ const { Op } = require('sequelize');
 
 const SequelizeService = require('../sequelize.service');
 const CollectableItemGroup = require('../../models/collectable-items-groups.model');
-const {
-  STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED,
-} = require('../../models/collections.model');
+const { STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED } = require('../../models/collections.model');
 const { measureTime } = require('../../util/instruments');
 
 class Service {
-  constructor ({
-    name = '',
-    app = null,
-  } = {}) {
+  constructor({ name = '', app = null } = {}) {
     this.name = String(name);
     this.app = app;
     this.SequelizeService = SequelizeService({
@@ -24,11 +19,9 @@ class Service {
     });
   }
 
-  async find (params) {
+  async find(params) {
     // simplified where for sequelize raw queries.
-    const where = [
-      { '[Op.not]': [{ 'collection.status': STATUS_DELETED }] },
-    ];
+    const where = [{ '[Op.not]': [{ 'collection.status': STATUS_DELETED }] }];
 
     if (params.sanitized.item_uids) {
       where.push({
@@ -59,13 +52,13 @@ class Service {
       //
       //   if(t === ...)
       // });
-      Object.keys(clause).forEach((k) => {
+      Object.keys(clause).forEach(k => {
         if (k === '[Op.not]') {
           sum.push(`NOT (${clause[k].reduce(whereReducer, []).join(' AND ')})`);
         } else if (k === '[Op.or]') {
           sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
         } else if (Array.isArray(clause[k])) {
-          sum.push(`${k} IN ('${clause[k].join('\',\'')}')`);
+          sum.push(`${k} IN ('${clause[k].join("','")}')`);
         } else {
           sum.push(`${k} = '${clause[k]}'`);
         }
@@ -75,10 +68,12 @@ class Service {
 
     const reducedWhere = where.reduce(whereReducer, []).join(' AND ');
 
-    debug('\'find\' fetch with reduced where clause:', reducedWhere);
+    debug("'find' fetch with reduced where clause:", reducedWhere);
     const results = await Promise.all([
-      measureTime(() => this.SequelizeService.rawSelect({
-        query: `
+      measureTime(
+        () =>
+          this.SequelizeService.rawSelect({
+            query: `
           SELECT
             JSON_ARRAYAGG(collection_id) AS collectionIds,
             MIN(collectableItem.content_type) as contentType,
@@ -93,13 +88,17 @@ class Service {
           GROUP BY item_id
           ORDER BY ${params.sanitized.order_by}
             LIMIT :limit OFFSET :skip`,
-        replacements: {
-          limit: params.query.limit,
-          skip: params.query.skip,
-        },
-      }), 'collectable-items.db.q1'),
-      measureTime(() => this.SequelizeService.rawSelect({
-        query: `
+            replacements: {
+              limit: params.query.limit,
+              skip: params.query.skip,
+            },
+          }),
+        'collectable-items.db.q1'
+      ),
+      measureTime(
+        () =>
+          this.SequelizeService.rawSelect({
+            query: `
           SELECT count(*) as total FROM (
           SELECT
             COUNT(*) as group_count
@@ -109,7 +108,9 @@ class Service {
             ON collectableItem.collection_id = collection.id
           WHERE ${reducedWhere}
           GROUP BY item_id) as gps`,
-      }), 'collectable-items.db.q2'),
+          }),
+        'collectable-items.db.q2'
+      ),
     ]).then(rs => ({
       data: rs[0].map(d => new CollectableItemGroup(d)),
       limit: params.query.limit,
@@ -117,7 +118,7 @@ class Service {
       total: rs[1][0].total,
     }));
 
-    debug('\'find\' success! n. results:', results.total, ' - where clause:', reducedWhere);
+    debug("'find' success! n. results:", results.total, ' - where clause:', reducedWhere);
     if (!results.total) {
       return results;
     }
@@ -125,15 +126,14 @@ class Service {
     const resolvable = {
       collections: {
         service: 'collections',
-        uids: lodash(results.data).map('collectionIds').flatten().uniq()
-          .value(),
+        uids: lodash(results.data).map('collectionIds').flatten().uniq().value(),
       },
     };
 
     // user asked specifically to fill item data.
     if (params.sanitized.resolve === 'item') {
       // collect items uids
-      results.data.forEach((d) => {
+      results.data.forEach(d => {
         // add uid to list of uid per service.
         const service = d.getService();
         if (!resolvable[service]) {
@@ -193,19 +193,11 @@ class Service {
     // });
   }
 
-  async get (id, params) {
-    return {
-      id, text: `A new message with ID: ${id}!`,
-    };
-  }
-
-  async create (data, params) {
+  async create(data, params) {
     // get collection, only if it does belongs to the user
-    const collection = await this.app
-      .service('collections')
-      .get(data.sanitized.collection_uid, {
-        user: params.user,
-      });
+    const collection = await this.app.service('collections').get(data.sanitized.collection_uid, {
+      user: params.user,
+    });
     if (!collection) {
       throw new NotFound();
     }
@@ -236,13 +228,11 @@ class Service {
     };
   }
 
-  async remove (id, params) {
+  async remove(id, params) {
     // get collection, only if it does belongs to the user
-    const collection = await this.app
-      .service('collections')
-      .get(params.sanitized.collection_uid, {
-        user: params.user,
-      });
+    const collection = await this.app.service('collections').get(params.sanitized.collection_uid, {
+      user: params.user,
+    });
     if (!collection) {
       throw new NotFound();
     }

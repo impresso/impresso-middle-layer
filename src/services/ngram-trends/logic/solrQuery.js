@@ -1,4 +1,3 @@
-// @ts-check
 const moment = require('moment');
 const {
   get, mergeWith, toPairs,

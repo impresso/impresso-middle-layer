@@ -12,6 +12,11 @@
   "redis": {
     "enable": false
   },
+  "rateLimiter": {
+    "enabled": false,
+    "capacity": 10,
+    "refillRate": 0.016
+  },
   "appHooks": {
     "alwaysRequired": false
   },

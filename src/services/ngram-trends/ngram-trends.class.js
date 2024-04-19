@@ -4,84 +4,70 @@ const {
   guessTimeIntervalFromFilters,
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
-} = require('./logic/solrQuery');
+} = require('./logic/solrQuery')
 
-function mergeResponses (responses, totalsResponse) {
-  const timeIntervals = [...new Set(responses.map(({ timeInterval }) => timeInterval))];
-  if (timeIntervals.length > 1) throw new Error(`Conflicting time intervals found: ${timeIntervals.join(', ')}`);
-  const timeInterval = timeIntervals[0];
+function mergeResponses(responses, totalsResponse) {
+  const timeIntervals = [...new Set(responses.map(({ timeInterval }) => timeInterval))]
+  if (timeIntervals.length > 1) throw new Error(`Conflicting time intervals found: ${timeIntervals.join(', ')}`)
+  const timeInterval = timeIntervals[0]
 
   // Extract domain values (year, month, date), flaten them, create unique list and sort
-  const commonDomainValues = [...new Set(
-    responses.flatMap(({ domainValues }) => domainValues),
-  )].sort();
+  const commonDomainValues = [...new Set(responses.flatMap(({ domainValues }) => domainValues))].sort()
 
   const mergedTrends = responses.map(({ trends, domainValues }) => {
-    const { ngram, values, total } = trends[0];
-    const newValues = commonDomainValues.map((domainValue) => {
-      const index = domainValues.indexOf(domainValue);
-      if (index < 0) return 0;
-      return values[index];
-    });
+    const { ngram, values, total } = trends[0]
+    const newValues = commonDomainValues.map(domainValue => {
+      const index = domainValues.indexOf(domainValue)
+      if (index < 0) return 0
+      return values[index]
+    })
 
-    return { ngram, values: newValues, total };
-  });
+    return { ngram, values: newValues, total }
+  })
 
   // totals
-  const totalsMap = totalsResponse
-    .reduce((acc, { domain, value }) => ({ ...acc, [domain]: value }), {});
+  const totalsMap = totalsResponse.reduce((acc, { domain, value }) => ({ ...acc, [domain]: value }), {})
 
-  const totals = commonDomainValues.map((domain) => {
-    const value = totalsMap[`${domain}`];
-    return value == null ? 0 : value;
-  });
+  const totals = commonDomainValues.map(domain => {
+    const value = totalsMap[`${domain}`]
+    return value == null ? 0 : value
+  })
 
   return {
     trends: mergedTrends,
     domainValues: commonDomainValues,
     totals,
     timeInterval,
-  };
+  }
 }
 
 class NgramTrends {
-  setup (app) {
-    this.solr = app.get('cachedSolr');
+  setup(app) {
+    this.solr = app.service('cachedSolr')
   }
 
-  async create ({ ngrams, filters, facets = [] }) {
-    const timeInterval = guessTimeIntervalFromFilters(filters);
+  async create({ ngrams, filters, facets = [] }) {
+    const timeInterval = guessTimeIntervalFromFilters(filters)
 
-    const requestPayloads = ngrams.map(ngram => unigramTrendsRequestToSolrQuery(
-      ngram, filters, facets, timeInterval,
-    ));
-    const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval);
+    const requestPayloads = ngrams.map(ngram => unigramTrendsRequestToSolrQuery(ngram, filters, facets, timeInterval))
+    const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval)
 
-    const requests = requestPayloads.map(payload => this.solr.post(
-      payload,
-      this.solr.namespaces.Search,
-    ));
-    const totalsRequest = this.solr.post(
-      totalsRequestPayload, this.solr.namespaces.Search,
-    );
+    const requests = requestPayloads.map(payload => this.solr.post(payload, this.solr.namespaces.Search))
+    const totalsRequest = this.solr.post(totalsRequestPayload, this.solr.namespaces.Search)
 
-    const solrResponses = await Promise.all(requests.concat([totalsRequest]));
+    const solrResponses = await Promise.all(requests.concat([totalsRequest]))
 
-    const responsesPromises = ngrams.map((ngram, index) => parseUnigramTrendsResponse(
-      solrResponses[index],
-      ngram,
-      timeInterval,
-    ));
-    const responses = await Promise.all(responsesPromises);
+    const responsesPromises = ngrams.map((ngram, index) =>
+      parseUnigramTrendsResponse(solrResponses[index], ngram, timeInterval)
+    )
+    const responses = await Promise.all(responsesPromises)
 
-    const totalsResponse = getNumbersFromTotalTokensResponse(
-      solrResponses[solrResponses.length - 1], timeInterval,
-    );
+    const totalsResponse = getNumbersFromTotalTokensResponse(solrResponses[solrResponses.length - 1], timeInterval)
 
-    return mergeResponses(responses, totalsResponse);
+    return mergeResponses(responses, totalsResponse)
   }
 }
 
 module.exports = {
   NgramTrends,
-};
+}
