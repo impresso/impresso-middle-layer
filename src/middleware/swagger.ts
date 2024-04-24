@@ -1,6 +1,31 @@
 import swagger, { swaggerUI } from 'feathers-swagger'
 import { logger } from '../logger'
 import { ImpressoApplication } from '../types'
+import fs from 'fs'
+import path from 'path'
+
+const schemaBaseDir = path.join(__dirname, '../schema')
+
+interface SchemaRef {
+  $ref: string
+}
+
+const getFilesAsSchemaRefs = (dir: string, prefix: string): Record<string, SchemaRef> => {
+  const allFiles = fs.readdirSync(dir)
+
+  return allFiles
+    .filter(f => f.endsWith('.json'))
+    .reduce(
+      (acc, f) => {
+        const key = path.basename(f, '.json')
+        acc[key] = {
+          $ref: path.join(prefix, f),
+        }
+        return acc
+      },
+      {} as Record<string, SchemaRef>
+    )
+}
 
 function getRedirectPrefix({ req, ctx }: any) {
   const headers = (req && req.headers) || (ctx && ctx.headers) || {}
@@ -51,6 +76,9 @@ export default (app: ImpressoApplication) => {
         version: require('../../package.json').version,
       },
       components: {
+        schemas: getFilesAsSchemaRefs(`${schemaBaseDir}/schemas`, 'schema/schemas'),
+        requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/requestBodies`, 'schema/requestBodies'),
+        responses: getFilesAsSchemaRefs(`${schemaBaseDir}/responses`, 'schema/responses'),
         securitySchemes: {
           BearerAuth: {
             type: 'http',

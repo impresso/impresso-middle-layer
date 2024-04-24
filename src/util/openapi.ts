@@ -243,3 +243,23 @@ export const validateParameters = (parameters: MethodParameter[]) => {
     context.params.path = path
   }
 }
+
+export const getRequestBodyContent = (schemaName: string) => {
+  return {
+    'application/json': {
+      schema: {
+        $ref: `#/components/requestBodies/${schemaName}`,
+      },
+    },
+  }
+}
+
+export const getResponseContent = (schemaName: string) => {
+  return {
+    'application/json': {
+      schema: {
+        $ref: `#/components/responses/${schemaName}`,
+      },
+    },
+  }
+}

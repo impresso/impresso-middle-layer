@@ -10,6 +10,7 @@ import sequelize from './sequelize'
 import solr from './solr'
 import media from './services/media'
 import proxy from './services/proxy'
+import schemas from './services/schemas'
 import { ensureServiceIsFeathersCompatible } from './util/feathers'
 
 const path = require('path')
@@ -87,5 +88,6 @@ app.configure(appHooks)
 // configure express services
 app.configure(media)
 app.configure(proxy)
+app.configure(schemas)
 
 module.exports = app
