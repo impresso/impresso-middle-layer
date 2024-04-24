@@ -3,15 +3,15 @@
   "$ref": "baseFind.json",
   "unevaluatedProperties": false,
   "type": "object",
-  "title": "Article Find Response",
-  "description": "Article find response",
+  "title": "Collections find response",
+  "description": "Collections find response",
   "additionalProperties": false,
   "required": ["data"],
   "properties": {
     "data": {
       "type": "array",
       "items": {
-        "$ref": "../schemas/Article.json"
+        "$ref": "../schemas/Collection.json"
       }
     }
   }
