@@ -19,7 +19,7 @@
       }
     },
     "user": {
-      "$ref": "schema/schemas/User.json"
+      "$ref": "../schemas/User.json"
     }
   },
   "required": ["accessToken", "authentication", "payload", "user"]

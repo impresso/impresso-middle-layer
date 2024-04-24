@@ -112,6 +112,7 @@
     "node-fetch": "2.7.0",
     "node-http-proxy-json": "^0.1.6",
     "passport-github": "^1.1.0",
+    "express-openapi-validator": "5.1.6",
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.2",
     "redis": "4.6.13",

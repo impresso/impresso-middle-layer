@@ -1,8 +1,8 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { decodeJsonQueryParameters, decodePathParameters } from '../../hooks/parameters'
 import { rateLimit } from '../../hooks/rateLimiter'
-import { validateParameters } from '../../util/openapi'
-import { docs } from './text-reuse-passages.schema'
+// import { validateParameters } from '../../util/openapi'
+// import { docs } from './text-reuse-passages.schema'
 
 module.exports = {
   around: {
@@ -11,11 +11,11 @@ module.exports = {
   before: {
     get: [
       decodePathParameters(['id']), //
-      validateParameters(docs.operations.get.parameters), //
+      // validateParameters(docs.operations.get.parameters), //
     ],
     find: [
       decodeJsonQueryParameters(['filters', 'addons']), //
-      validateParameters(docs.operations.find.parameters), //
+      // validateParameters(docs.operations.find.parameters), //
     ],
   },
 }

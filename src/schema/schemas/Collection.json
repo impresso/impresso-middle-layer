@@ -40,7 +40,7 @@
       "examples": [3245]
     },
     "creator": {
-      "$ref": "BaseUser.json"
+      "$ref": "./BaseUser.json"
     },
     "labels": {
       "type": "array",

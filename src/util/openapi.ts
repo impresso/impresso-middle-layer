@@ -1,12 +1,3 @@
-import type { Application, HookContext } from '@feathersjs/feathers'
-import {
-  FormatName,
-  JSONSchemaDefinition,
-  addFormats,
-  getValidator,
-  Ajv,
-  hooks as schemaHooks,
-} from '@feathersjs/schema'
 import type { JSONSchema7 as JSONSchema } from 'json-schema'
 
 interface Parameter {
@@ -31,17 +22,6 @@ interface StatusResponse {
   content?: string | object
 }
 
-/** @deprecated */
-export const jsonSchemaRef = (ref: string) => {
-  return {
-    'application/json': {
-      schema: {
-        $ref: `#/components/schemas/${ref}`,
-      },
-    },
-  }
-}
-
 const asApplicationJson = (schema: JSONSchema) => ({
   'application/json': {
     schema,
@@ -54,6 +34,10 @@ export const getSchemaRef = (schemaName: string) => ({
 
 export const getResponseRef = (schemaName: string) => ({
   $ref: `#/components/responses/${schemaName}`,
+})
+
+export const getParameterRef = (schemaName: string) => ({
+  $ref: `#/components/parameters/${schemaName}`,
 })
 
 const defaultErrorSchema = getSchemaRef('Error')
@@ -171,92 +155,6 @@ export const getStandardParameters = ({
   }
 
   return []
-}
-
-const DefaultFindSchema = require('../schema/common/findResponse')
-
-interface GetFindResponseOptions {
-  itemRef: string
-  title?: string
-}
-
-export const getFindResponse = ({ itemRef, title }: GetFindResponseOptions): JSONSchema => {
-  const schema: JSONSchema = JSON.parse(JSON.stringify(DefaultFindSchema))
-  const data: any = schema!.properties!.data
-  data.items.$ref = `#/components/schemas/${itemRef}`
-  schema!.properties!.data = data
-
-  if (title != null) {
-    schema.title = `Find ${title} Response`
-  }
-  return schema
-}
-
-const isQueryParameter = (parameter: MethodParameter): parameter is QueryParameter => {
-  return parameter.in === 'query'
-}
-
-const isPathParameter = (parameter: MethodParameter): parameter is PathParameter => {
-  return parameter.in === 'path'
-}
-
-const formats: FormatName[] = [
-  'date-time',
-  'time',
-  'date',
-  'email',
-  'hostname',
-  'ipv4',
-  'ipv6',
-  'uri',
-  'uri-reference',
-  'uuid',
-  'uri-template',
-  'json-pointer',
-  'relative-json-pointer',
-  'regex',
-]
-
-export const dataValidator = addFormats(new Ajv({}), formats)
-
-export const queryValidator = addFormats(
-  new Ajv({
-    coerceTypes: true,
-  }),
-  formats
-)
-
-export const validateParameters = (parameters: MethodParameter[]) => {
-  const querySchemaProperties = parameters.filter(isQueryParameter).reduce<Record<string, JSONSchema>>(
-    (acc, parameter) => {
-      acc[parameter.name] = parameter.schema
-      return acc
-    },
-    {} as Record<string, JSONSchema>
-  )
-  const querySchema: JSONSchema = {
-    properties: querySchemaProperties,
-  }
-
-  const validateQuery = getValidator(querySchema as JSONSchemaDefinition, queryValidator)
-
-  const pathSchemaProperties = parameters.filter(isPathParameter).reduce<Record<string, JSONSchema>>(
-    (acc, parameter) => {
-      acc[parameter.name] = parameter.schema
-      return acc
-    },
-    {} as Record<string, JSONSchema>
-  )
-  const pathSchema: JSONSchema = {
-    properties: pathSchemaProperties,
-  }
-  const validatePath = getValidator(pathSchema as JSONSchemaDefinition, queryValidator)
-
-  return async (context: HookContext<Application>) => {
-    const [query, path] = await Promise.all([validateQuery(context.params.query), validatePath(context)])
-    context.params.query = query
-    context.params.path = path
-  }
 }
 
 export const getRequestBodyContent = (schemaName: string) => {

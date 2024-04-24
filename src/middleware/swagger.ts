@@ -3,6 +3,7 @@ import { logger } from '../logger'
 import { ImpressoApplication } from '../types'
 import fs from 'fs'
 import path from 'path'
+import { Application } from '@feathersjs/express'
 
 const schemaBaseDir = path.join(__dirname, '../schema')
 
@@ -19,7 +20,7 @@ const getFilesAsSchemaRefs = (dir: string, prefix: string): Record<string, Schem
       (acc, f) => {
         const key = path.basename(f, '.json')
         acc[key] = {
-          $ref: path.join(prefix, f),
+          $ref: `${prefix}/${key}.json`,
         }
         return acc
       },
@@ -58,7 +59,7 @@ function generateSwaggerUIInitializerScript({ docsJsonPath, ctx, req }: any) {
   `
 }
 
-export default (app: ImpressoApplication) => {
+export default (app: ImpressoApplication & Application) => {
   if (!app.get('isPublicApi')) {
     logger.info('Internal API - swagger middleware is disabled')
     return
@@ -76,9 +77,10 @@ export default (app: ImpressoApplication) => {
         version: require('../../package.json').version,
       },
       components: {
-        schemas: getFilesAsSchemaRefs(`${schemaBaseDir}/schemas`, 'schema/schemas'),
-        requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/requestBodies`, 'schema/requestBodies'),
-        responses: getFilesAsSchemaRefs(`${schemaBaseDir}/responses`, 'schema/responses'),
+        schemas: getFilesAsSchemaRefs(`${schemaBaseDir}/schemas`, './schema/schemas'),
+        requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/requestBodies`, './schema/requestBodies'),
+        responses: getFilesAsSchemaRefs(`${schemaBaseDir}/responses`, './schema/responses'),
+        parameters: getFilesAsSchemaRefs(`${schemaBaseDir}/parameters`, './schema/parameters'),
         securitySchemes: {
           BearerAuth: {
             type: 'http',
@@ -101,5 +103,5 @@ export default (app: ImpressoApplication) => {
       getSwaggerInitializerScript: generateSwaggerUIInitializerScript,
     }),
   })
-  return app.configure(swaggerItem)
+  app.configure(swaggerItem)
 }

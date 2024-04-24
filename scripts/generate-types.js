@@ -1,23 +1,22 @@
 const { execSync } = require('node:child_process')
 const fs = require('node:fs')
 
-const basePath = './src/services'
+const basePath = './src/schema'
 
-// for now support only the followin services until we migrate everything:
-const supportedServices = ['text-reuse-clusters']
+const schemaBits = ['schemas']
 
 const directories = fs
-  .readdirSync('./src/services')
+  .readdirSync(basePath)
   .filter(item => {
     return fs.statSync(`${basePath}/${item}`).isDirectory()
   })
-  .filter(item => supportedServices.includes(item))
+  .filter(item => schemaBits.includes(item))
 
-directories.forEach(service => {
+directories.forEach(dir => {
   // eslint-disable-next-line no-console
-  console.log(`Generating types for service ${service}...`)
+  console.log(`Generating types for service ${dir}...`)
   const command =
-    `quicktype --src-lang schema --src ${basePath}/${service}/schema/**/*.json` +
-    ` --out ${basePath}/${service}/models/generated.ts --lang ts --just-types`
+    `quicktype --src-lang schema --src ${basePath}/${dir}/*.json` +
+    ` --out ./src/models/generated/${dir}.ts --lang ts --just-types`
   execSync(command)
 })

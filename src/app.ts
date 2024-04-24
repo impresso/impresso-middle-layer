@@ -12,6 +12,7 @@ import media from './services/media'
 import proxy from './services/proxy'
 import schemas from './services/schemas'
 import { ensureServiceIsFeathersCompatible } from './util/feathers'
+import openApiValidator from './middleware/openApiValidator'
 
 const path = require('path')
 const compress = require('compression')
@@ -89,5 +90,6 @@ app.configure(appHooks)
 app.configure(media)
 app.configure(proxy)
 app.configure(schemas)
+app.configure(openApiValidator)
 
 module.exports = app
