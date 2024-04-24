@@ -31,6 +31,7 @@ interface StatusResponse {
   content?: string | object
 }
 
+/** @deprecated */
 export const jsonSchemaRef = (ref: string) => {
   return {
     'application/json': {
@@ -41,11 +42,25 @@ export const jsonSchemaRef = (ref: string) => {
   }
 }
 
-const defaultErrorSchema = jsonSchemaRef('defaultErrorResponse')
+const asApplicationJson = (schema: JSONSchema) => ({
+  'application/json': {
+    schema,
+  },
+})
+
+export const getSchemaRef = (schemaName: string) => ({
+  $ref: `#/components/schemas/${schemaName}`,
+})
+
+export const getResponseRef = (schemaName: string) => ({
+  $ref: `#/components/responses/${schemaName}`,
+})
+
+const defaultErrorSchema = getSchemaRef('Error')
 
 interface GetStandardResponsesParams {
   method: 'create' | 'update' | 'patch' | 'remove' | 'find' | 'get'
-  schema: string | JSONSchema
+  schema: string
   authEnabled?: boolean
   isRateLimited?: boolean
 }
@@ -59,7 +74,7 @@ export const getStandardResponses = ({
   const defaultResponses: Record<number, StatusResponse> = {
     422: {
       description: 'Unprocessable Entity',
-      content: defaultErrorSchema,
+      content: asApplicationJson(defaultErrorSchema),
     },
     500: {
       description: 'general error',
@@ -68,34 +83,34 @@ export const getStandardResponses = ({
   if (method === 'create') {
     defaultResponses[201] = {
       description: 'Created',
-      content: typeof schema === 'string' ? jsonSchemaRef(schema) : schema,
+      content: asApplicationJson(getResponseRef(schema)),
     }
   } else {
     defaultResponses[200] = {
       description: 'Success',
-      content: typeof schema === 'string' ? jsonSchemaRef(schema) : schema,
+      content: asApplicationJson(getResponseRef(schema)),
     }
     defaultResponses[404] = {
       description: 'Not Found',
-      content: defaultErrorSchema,
+      content: asApplicationJson(defaultErrorSchema),
     }
   }
 
   if (authEnabled) {
     defaultResponses[401] = {
       description: 'Not Authenticated',
-      content: defaultErrorSchema,
+      content: asApplicationJson(defaultErrorSchema),
     }
     defaultResponses[403] = {
       description: 'Unauthorized',
-      content: defaultErrorSchema,
+      content: asApplicationJson(defaultErrorSchema),
     }
   }
 
   if (isRateLimited) {
     defaultResponses[429] = {
       description: 'Rate limit exceeded',
-      content: defaultErrorSchema,
+      content: asApplicationJson(defaultErrorSchema),
     }
   }
 

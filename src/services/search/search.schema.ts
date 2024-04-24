@@ -1,32 +1,8 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
 import { SolrMappings } from '../../data/constants'
 import type { QueryParameter } from '../../util/openapi'
-import { getStandardResponses } from '../../util/openapi'
+import { getSchemaRef, getStandardResponses } from '../../util/openapi'
 import { paramsValidator } from './search.validators'
-
-const filterSchema = require('../../schema/search/filter.json')
-const articleSchema = require('../../schema/search/article.json')
-articleSchema.$id = '#/components/schemas/article'
-articleSchema.properties.pages.items.$ref = '#/components/schemas/page'
-articleSchema.properties.locations.items.$ref = '#/components/schemas/entity'
-articleSchema.properties.persons.items.$ref = '#/components/schemas/entity'
-
-const pageSchema = require('../../schema/search/page.json')
-pageSchema.$id = '#/components/schemas/page'
-
-const entitySchema = require('../../schema/search/entity.json')
-entitySchema.$id = '#/components/schemas/entity'
-
-const searchResponseSchema = require('../../schema/search/response.json')
-searchResponseSchema.properties.data.items.$ref = '#/components/schemas/article'
-
-// const articleListSchema = {
-//   title: 'Article list',
-//   type: 'array',
-//   items: { $ref: '#/components/schemas/article' }
-// };
-
-export { articleSchema, entitySchema, pageSchema }
 
 const findParameters: QueryParameter[] = [
   {
@@ -77,7 +53,7 @@ const findParameters: QueryParameter[] = [
     required: false,
     schema: {
       type: 'array',
-      items: filterSchema,
+      items: getSchemaRef('Filter'),
     },
     description: 'Filters to apply',
   },
@@ -110,15 +86,13 @@ const findParameters: QueryParameter[] = [
 export const docs: ServiceSwaggerOptions = {
   description: 'Search articles',
   securities: ['find'],
-  schemas: { entity: entitySchema, page: pageSchema, article: articleSchema, searchResponseSchema },
-  // refs: { findResponse: 'searchResponseSchema' },
   operations: {
     find: {
       description: 'Find articles that match the given query',
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'searchResponseSchema',
+        schema: 'searchFind',
       }),
     },
   },
