@@ -1,9 +1,7 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { MethodParameter } from '../../util/openapi'
-import { getFindResponse, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { getParameterRef, getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { GroupByValues, OrderByKeyToField } from './text-reuse-passages.class'
-
-const passage = require('./schema/passage.json')
 
 const findParameters: MethodParameter[] = [
   {
@@ -34,7 +32,7 @@ const findParameters: MethodParameter[] = [
     required: false,
     schema: {
       type: 'array',
-      items: require('../../schema/filter.json'),
+      items: getSchemaRef('Filter'),
     },
     description: 'Filters to apply',
   },
@@ -42,10 +40,7 @@ const findParameters: MethodParameter[] = [
     in: 'query',
     name: 'addons',
     required: false,
-    schema: {
-      // TODO: this can be turned into a basic type parameter
-      ...require('./schema/addons.json'),
-    },
+    schema: getParameterRef('textReusePassagesAddOns'),
     description: 'Add-ons to apply',
   },
   ...getStandardParameters({ method: 'find', maxPageSize: 20 }),
@@ -54,14 +49,13 @@ const findParameters: MethodParameter[] = [
 export const docs: ServiceSwaggerOptions = {
   description: 'Text Reuse Passages',
   securities: ['find', 'get'],
-  schemas: { passage, passagesFindResponse: getFindResponse({ itemRef: 'passage', title: passage.title }) },
   operations: {
     find: {
       description: 'Find text reuse passages',
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'passagesFindResponse',
+        schema: 'textReusePassagesFind',
       }),
     },
     get: {
@@ -69,7 +63,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: getStandardParameters({ method: 'get', idPattern: '[A-Za-z0-9-:@]+' }),
       responses: getStandardResponses({
         method: 'get',
-        schema: 'passage',
+        schema: 'textReusePassagesGet',
       }),
     },
   },

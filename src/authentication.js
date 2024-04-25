@@ -46,13 +46,15 @@ class HashedPasswordVerifier extends LocalStrategy {
 }
 
 module.exports = app => {
+  const isPublicApi = app.get('isPublicApi')
   const authentication = new CustomisedAuthenticationService(app)
 
   authentication.register('jwt', new JWTStrategy())
   authentication.register('local', new HashedPasswordVerifier())
 
   app.use('/authentication', authentication, {
-    methods: ['create', 'remove'],
+    methods: isPublicApi ? ['create'] : undefined,
+    events: [],
     docs: createSwaggerServiceOptions({ schemas: {}, docs }),
   })
 }

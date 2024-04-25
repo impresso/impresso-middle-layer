@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Article",
+  "description": "A journal/magazine article",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "The unique identifier of the article"
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of the article. NOTE: may be empty."
+    },
+    "title": {
+      "type": "string",
+      "description": "The title of the article"
+    },
+    "size": {
+      "type": "integer",
+      "description": "The size of the article in characters"
+    },
+    "nbPages": {
+      "type": "integer",
+      "description": "The number of pages in this article"
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "$ref": "Page.json"
+      }
+    },
+    "isCC": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "The excerpt of the article"
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "$ref": "Entity.json"
+      }
+    },
+    "persons": {
+      "type": "array",
+      "items": {
+        "$ref": "Entity.json"
+      }
+    }
+  },
+  "required": ["uid", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt"]
+}

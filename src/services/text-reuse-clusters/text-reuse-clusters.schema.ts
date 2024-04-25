@@ -1,23 +1,8 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { MethodParameter } from '../../util/openapi'
-import { getFindResponse, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { OrderByKeyToField } from './text-reuse-clusters.class'
 import { Filter } from '../../models'
-
-const cluster = require('../../schema/models/text-reuse/cluster.json')
-cluster.$id = 'cluster'
-const clusterDetails = require('../../schema/models/text-reuse/clusterDetails.json')
-cluster.$id = 'clusterDetails'
-
-const clusterGetResponse = require('./schema/get/response.json')
-clusterGetResponse.$id = 'clusterGetResponse'
-clusterGetResponse.properties.cluster.$ref = '#/components/schemas/cluster'
-clusterGetResponse.properties.details.$ref = '#/components/schemas/clusterDetails'
-
-const clusterFindResponse = require('./schema/find/response.json')
-clusterFindResponse.$id = 'clusterFindResponse'
-clusterFindResponse.properties.clusters.items.$ref = '#/components/schemas/clusterGetResponse'
-clusterFindResponse.properties.info.$ref = '#/components/schemas/pagination'
 
 export interface FindQueyParameters {
   text?: string
@@ -78,19 +63,13 @@ const getParameters: MethodParameter[] = [
 export const docs: ServiceSwaggerOptions = {
   description: 'Text Reuse Clusters',
   securities: ['find', 'get'],
-  schemas: {
-    cluster,
-    clusterDetails,
-    clusterGetResponse,
-    clustersFindResponse: getFindResponse({ itemRef: 'cluster', title: cluster.title }),
-  },
   operations: {
     find: {
       description: 'Find text reuse clusters',
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'clustersFindResponse',
+        schema: 'textReuseClustersFind',
       }),
     },
     get: {
@@ -98,7 +77,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: getParameters,
       responses: getStandardResponses({
         method: 'get',
-        schema: 'clusterGetResponse',
+        schema: 'textReuseClustersGet',
       }),
     },
   },
