@@ -1,10 +1,14 @@
-const {
-  queryWithCommonParams, validate, validateEach, utils,
-} = require('../../hooks/params');
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
-const { validateWithSchema } = require('../../hooks/schema');
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { rateLimit } from '../../hooks/rateLimiter'
+import { OrderByChoices } from './newspapers.schema'
+
+const { queryWithCommonParams, validate, validateEach, utils } = require('../../hooks/params')
+const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
 
 module.exports = {
+  around: {
+    all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
+  },
   before: {
     all: [
       checkCachedContents({
@@ -12,16 +16,15 @@ module.exports = {
       }),
     ],
     find: [
-      validateWithSchema('services/newspapers/schema/find/query.json', 'params.query'),
       validate({
         q: {
           required: false,
           max_length: 500,
-          transform: (d) => {
+          transform: d => {
             if (d) {
-              return utils.toSequelizeLike(d);
+              return utils.toSequelizeLike(d)
             }
-            return null;
+            return null
           },
         },
         faster: {
@@ -29,41 +32,37 @@ module.exports = {
           transform: d => !!d,
         },
         order_by: {
-          choices: [
-            '-name',
-            'name',
-            '-startYear',
-            'startYear', '-endYear',
-            'endYear',
-            'firstIssue', '-firstIssue',
-            'lastIssue', '-lastIssue',
-            'countIssues', '-countIssues',
-          ],
+          choices: OrderByChoices,
           defaultValue: 'name',
-          transform: d => utils.translate(d, {
-            name: [['id', 'ASC']],
-            '-name': [['id', 'DESC']],
-            startYear: [['startYear', 'ASC']],
-            '-startYear': [['startYear', 'DESC']],
-            endYear: [['endYear', 'ASC']],
-            '-endYear': [['endYear', 'DESC']],
-            firstIssue: [['stats', 'startYear', 'ASC']],
-            '-firstIssue': [['stats', 'startYear', 'DESC']],
-            lastIssue: [['stats', 'endYear', 'ASC']],
-            '-lastIssue': [['stats', 'endYear', 'DESC']],
-            countIssues: [['stats', 'number_issues', 'ASC']],
-            '-countIssues': [['stats', 'number_issues', 'DESC']],
-          }),
+          transform: d =>
+            utils.translate(d, {
+              name: [['id', 'ASC']],
+              '-name': [['id', 'DESC']],
+              startYear: [['startYear', 'ASC']],
+              '-startYear': [['startYear', 'DESC']],
+              endYear: [['endYear', 'ASC']],
+              '-endYear': [['endYear', 'DESC']],
+              firstIssue: [['stats', 'startYear', 'ASC']],
+              '-firstIssue': [['stats', 'startYear', 'DESC']],
+              lastIssue: [['stats', 'endYear', 'ASC']],
+              '-lastIssue': [['stats', 'endYear', 'DESC']],
+              countIssues: [['stats', 'number_issues', 'ASC']],
+              '-countIssues': [['stats', 'number_issues', 'DESC']],
+            }),
         },
       }),
-      validateEach('filters', {
-        type: {
-          choices: ['included', 'excluded'],
-          required: true,
+      validateEach(
+        'filters',
+        {
+          type: {
+            choices: ['included', 'excluded'],
+            required: true,
+          },
         },
-      }, {
-        required: false,
-      }),
+        {
+          required: false,
+        }
+      ),
       queryWithCommonParams(),
     ],
     get: [],
@@ -74,10 +73,7 @@ module.exports = {
   },
 
   after: {
-    all: [
-      returnCachedContents(),
-      saveResultsInCache(),
-    ],
+    all: [returnCachedContents(), saveResultsInCache()],
     find: [],
     get: [],
     create: [],
@@ -95,4 +91,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

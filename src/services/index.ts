@@ -15,11 +15,11 @@ const publicApiServices = [
   'text-reuse-passages',
   'text-reuse-clusters',
   'version',
+  'newspapers',
 ]
 
 const internalApiServices = [
   'entities',
-  'newspapers',
   'issues',
   'suggestions',
   'projects',
