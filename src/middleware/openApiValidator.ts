@@ -19,7 +19,7 @@ const init = async (app: ImpressoApplication & Application) => {
   if (!('docs' in app)) throw new Error('`docs` property not found in app object. Is swagger initialized?')
 
   const spec = (app as any)['docs'] as unknown as OpenAPIV3.Document
-  const specCopy = spec //JSON.parse(JSON.stringify(spec))
+  const specCopy = JSON.parse(JSON.stringify(spec))
 
   const dereferencedOpenApiSpec = await RefParser.bundle(specCopy, {
     resolve: {
