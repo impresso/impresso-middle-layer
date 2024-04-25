@@ -3,8 +3,8 @@
   "$ref": "baseFind.json",
   "unevaluatedProperties": false,
   "type": "object",
-  "title": "Article Find Response",
-  "description": "Article find response",
+  "title": "Search Find Response",
+  "description": "Search find response (articles)",
   "additionalProperties": false,
   "required": ["data"],
   "properties": {

@@ -22,5 +22,5 @@
       "$ref": "../schemas/User.json"
     }
   },
-  "required": ["accessToken", "authentication", "payload", "user"]
+  "required": ["accessToken", "authentication", "user"]
 }

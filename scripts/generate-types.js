@@ -3,7 +3,7 @@ const fs = require('node:fs')
 
 const basePath = './src/schema'
 
-const schemaBits = ['schemas']
+const schemaBits = ['schemas', 'parameters', 'requestBodies', 'responses']
 
 const directories = fs
   .readdirSync(basePath)

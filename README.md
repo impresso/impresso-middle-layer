@@ -188,6 +188,14 @@ $ feathers generate model                 # Generate a new Model
 $ feathers help                           # Show all commands
 ```
 
+## Generating Typescipt types from JSON schemas
+
+When a schema is updated, the typescript types should be regenerated. This can be done by running the following command:
+
+```
+npm run generate-types
+```
+
 ## Help
 
 For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).

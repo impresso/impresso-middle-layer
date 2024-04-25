@@ -1,7 +1,14 @@
 /**
+ * Search find response (articles)
+ */
+export interface SearchFindResponse {
+    data: any[];
+}
+
+/**
  * A journal/magazine article
  */
-export interface Article {
+export interface ArticlesGet {
     /**
      * The excerpt of the article
      */
@@ -107,41 +114,68 @@ export interface Page {
     uid: string;
 }
 
-/**
- * Collectable item group object
- */
-export interface CollectableItemGroup {
-    /**
-     * Ids of the collections
-     */
-    collectionIds?: string[];
-    /**
-     * Collection objects
-     */
-    collections?: Collection[];
-    /**
-     * Content type of the collectable item group: (A)rticle, (E)ntities, (P)ages, (I)ssues
-     */
-    contentType?: ContentType;
-    /**
-     * The id of the collectable item group
-     */
-    itemId?: string;
-    /**
-     * The latest date added to the collectable item group
-     */
-    latestDateAdded?: Date;
-    /**
-     * Search queries
-     */
-    searchQueries?: string[];
+export interface AuthenticationResponse {
+    accessToken:    string;
+    authentication: Authentication;
+    user:           User;
+}
+
+export interface Authentication {
+    payload?:  { [key: string]: any };
+    strategy?: string;
     [property: string]: any;
+}
+
+/**
+ * User details
+ */
+export interface User {
+    firstname:   string;
+    id:          number;
+    isActive:    boolean;
+    isStaff:     boolean;
+    isSuperuser: boolean;
+    lastname:    string;
+    uid:         string;
+    username:    string;
+}
+
+/**
+ * Search find response (articles)
+ */
+export interface BaseFindResponse {
+    data: any[];
+    /**
+     * Additional information about the response.
+     */
+    info: { [key: string]: any };
+    /**
+     * The number of items returned in this response
+     */
+    limit: number;
+    /**
+     * The number of items skipped in this response
+     */
+    skip: number;
+    /**
+     * The total number of items matching the query
+     */
+    total: number;
+}
+
+/**
+ * Collectable Item find response
+ *
+ * Search find response (articles)
+ */
+export interface CollectableItemFindResponse {
+    data: any[];
 }
 
 /**
  * Description of the collection object (Collection class)
  */
-export interface Collection {
+export interface CollectionsGet {
     countItems:       number | string;
     creationDate:     string;
     creator:          BaseUser;
@@ -160,56 +194,66 @@ export interface BaseUser {
 }
 
 /**
- * Content type of the collectable item group: (A)rticle, (E)ntities, (P)ages, (I)ssues
+ * Collections find response
+ *
+ * Search find response (articles)
  */
-export enum ContentType {
-    A = "A",
-    E = "E",
-    I = "I",
-    P = "P",
+export interface CollectionsFindResponse {
+    data: any[];
 }
 
 /**
- * Default error response. TODO: replace with https://datatracker.ietf.org/doc/html/rfc9457
+ * Remove collection response
  */
-export interface Error {
-    data?:   any[] | { [key: string]: any };
-    message: string;
-    [property: string]: any;
-}
-
-/**
- * A single filter criteria
- */
-export interface Filter {
-    context?:   Context;
-    daterange?: string;
-    op?:        Op;
-    precision?: Precision;
-    q?:         string[] | string;
+export interface RemoveCollectionResponse {
+    params: Params;
     /**
-     * Possible values are in 'search.validators:eachFilterValidator.type.choices'
+     * Deletion task details
      */
-    type:  string;
-    uid?:  string;
-    uids?: string;
+    task: Task;
 }
 
-export enum Context {
-    Exclude = "exclude",
-    Include = "include",
+export interface Params {
+    /**
+     * The collection id
+     */
+    id?: string;
+    /**
+     * The status of the operation
+     */
+    status?: Status;
 }
 
-export enum Op {
-    And = "AND",
-    Or = "OR",
+/**
+ * The status of the operation
+ */
+export enum Status {
+    Del = "DEL",
 }
 
-export enum Precision {
-    Exact = "exact",
-    Fuzzy = "fuzzy",
-    Partial = "partial",
-    Soft = "soft",
+/**
+ * Deletion task details
+ */
+export interface Task {
+    /**
+     * When task was created
+     */
+    creationDate?: string;
+    /**
+     * The ID of the task
+     */
+    task_id?: string;
+}
+
+export interface FindTextReuseClustersResponse {
+    clusters: GetTextReuseClusterResponse[];
+    info:     Pagination;
+}
+
+export interface GetTextReuseClusterResponse {
+    cluster:    TextReuseCluster;
+    details?:   TextReuseClusterDetails;
+    textSample: string;
 }
 
 /**
@@ -279,9 +323,45 @@ export enum Resolution {
 }
 
 /**
+ * TODO: review this schema
+ */
+export interface Pagination {
+    /**
+     * Limit to this many items
+     */
+    limit?: number;
+    /**
+     * Skip this many items
+     */
+    offset?: number;
+    /**
+     * Display N-th page (using 'limit' as the number of items in the page)
+     */
+    page?: number;
+    /**
+     * Skip this many items
+     */
+    skip?: number;
+    /**
+     * Total items available
+     */
+    total?: number;
+    [property: string]: any;
+}
+
+/**
+ * Collections find response
+ *
+ * Search find response (articles)
+ */
+export interface TextReusePassageFindResponse {
+    data: any[];
+}
+
+/**
  * Represents a passage of text that was identified as a part of a text reuse cluster
  */
-export interface TextReusePassage {
+export interface TextReusePassagesGet {
     /**
      * Details of the article the passage belongs to
      */
@@ -405,15 +485,38 @@ export interface ClusterDetails {
 }
 
 /**
- * User details
+ * Version of the API. Contains information about the current version of the API, features,
+ * etc.
  */
-export interface User {
-    firstname:   string;
-    id:          number;
-    isActive:    boolean;
-    isStaff:     boolean;
-    isSuperuser: boolean;
-    lastname:    string;
-    uid:         string;
-    username:    string;
+export interface APIVersion {
+    apiVersion:        APIVersionObject;
+    documentsDateSpan: DocumentsDateSpan;
+    features:          { [key: string]: any };
+    mysql:             Mysql;
+    newspapers:        { [key: string]: any };
+    solr:              Solr;
+    version:           string;
+}
+
+export interface APIVersionObject {
+    branch?:   string;
+    revision?: string;
+    version?:  string;
+    [property: string]: any;
+}
+
+export interface DocumentsDateSpan {
+    end?:   any;
+    start?: any;
+    [property: string]: any;
+}
+
+export interface Mysql {
+    endpoint?: string;
+    [property: string]: any;
+}
+
+export interface Solr {
+    endpoints?: { [key: string]: any };
+    [property: string]: any;
 }
