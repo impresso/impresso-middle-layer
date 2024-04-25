@@ -7,7 +7,7 @@
     "clusters": {
       "type": "array",
       "items": {
-        "$ref": "./textReuseClusterGet.json"
+        "$ref": "./textReuseClustersGet.json"
       }
     },
     "info": {

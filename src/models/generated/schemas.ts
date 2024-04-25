@@ -213,6 +213,132 @@ export enum Precision {
 }
 
 /**
+ * A newspaper
+ */
+export interface Newspaper {
+    /**
+     * The acronym of the newspaper
+     */
+    acronym: string;
+    /**
+     * The number of articles in the newspaper
+     */
+    countArticles: number;
+    /**
+     * The number of issues in the newspaper
+     */
+    countIssues: number;
+    /**
+     * The number of pages in the newspaper
+     */
+    countPages: number;
+    /**
+     * The number of years of the newspaper available
+     */
+    deltaYear: number;
+    /**
+     * Last available year of the newspaper articles
+     */
+    endYear: string;
+    /**
+     * TODO
+     */
+    fetched?: boolean;
+    /**
+     * First available issue of the newspaper
+     */
+    firstIssue: NewspaperIssue;
+    /**
+     * TODO
+     */
+    included: boolean;
+    /**
+     * The labels of the newspaper
+     */
+    labels: string[];
+    /**
+     * Language codes of the languages used in the newspaper
+     */
+    languages: string[];
+    /**
+     * Last available issue of the newspaper
+     */
+    lastIssue: NewspaperIssue;
+    /**
+     * Title of the newspaper
+     */
+    name: string;
+    /**
+     * TODO
+     */
+    properties?: NewspaperProperty[];
+    /**
+     * First available year of the newspaper articles
+     */
+    startYear: string;
+    /**
+     * The unique identifier of the newspaper
+     */
+    uid: string;
+}
+
+/**
+ * First available issue of the newspaper
+ *
+ * Last available issue of the newspaper
+ */
+export interface NewspaperIssue {
+    /**
+     * TODO: list available options
+     */
+    accessRights: string;
+    /**
+     * TODO
+     */
+    cover: string;
+    /**
+     * The date of the issue
+     */
+    date: Date;
+    /**
+     * TODO
+     */
+    fresh: boolean;
+    /**
+     * The labels of the issue
+     */
+    labels: string[];
+    /**
+     * The unique identifier of the issue
+     */
+    uid: string;
+    /**
+     * The year of the issue
+     */
+    year: string;
+}
+
+export interface NewspaperProperty {
+    /**
+     * Whether the value is a URL
+     */
+    isUrl?: boolean;
+    /**
+     * The label of the property
+     */
+    label: string;
+    /**
+     * The name of the property
+     */
+    name: string;
+    /**
+     * The value of the property
+     */
+    value: string;
+    [property: string]: any;
+}
+
+/**
  * Represents a cluster of text reuse passages
  */
 export interface TextReuseCluster {
@@ -317,7 +443,7 @@ export interface TextReusePassage {
     /**
      * Newspaper details
      */
-    newspaper?:  Newspaper;
+    newspaper?:  NewspaperClass;
     offsetEnd:   number;
     offsetStart: number;
     /**
@@ -375,7 +501,7 @@ export interface Issue {
 /**
  * Newspaper details
  */
-export interface Newspaper {
+export interface NewspaperClass {
     /**
      * ID of the newspaper
      */

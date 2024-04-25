@@ -4,15 +4,24 @@ import type { ImpressoApplication } from '../types'
 import type { Application } from '@feathersjs/express'
 import * as OpenApiValidator from 'express-openapi-validator'
 import fs from 'fs'
+import { logger } from '../logger'
 
-export default async (app: ImpressoApplication & Application) => {
+export default (app: ImpressoApplication & Application) => {
+  init(app).catch(e => {
+    logger.error('Important: Failed to initialize OpenAPI validator middleware', e)
+  })
+}
+
+const init = async (app: ImpressoApplication & Application) => {
   const isPublicApi = app.get('isPublicApi')
   if (!isPublicApi) return
 
   if (!('docs' in app)) throw new Error('`docs` property not found in app object. Is swagger initialized?')
-  const spec = (app as any)['docs'] as unknown as OpenAPIV3.Document
 
-  const dereferencedOpenApiSpec = await RefParser.dereference(spec, {
+  const spec = (app as any)['docs'] as unknown as OpenAPIV3.Document
+  const specCopy = spec //JSON.parse(JSON.stringify(spec))
+
+  const dereferencedOpenApiSpec = await RefParser.bundle(specCopy, {
     resolve: {
       file: {
         /**
@@ -27,7 +36,6 @@ export default async (app: ImpressoApplication & Application) => {
       },
     },
   })
-
   const middlewares = OpenApiValidator.middleware({
     apiSpec: dereferencedOpenApiSpec as unknown as OpenAPIV3.Document,
     validateRequests: true, // (default)
@@ -35,4 +43,5 @@ export default async (app: ImpressoApplication & Application) => {
     validateApiSpec: false,
   })
   middlewares.forEach(middleware => app.use(middleware))
+  logger.info('OpenAPI validator middleware loaded')
 }

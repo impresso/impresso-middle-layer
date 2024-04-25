@@ -3,6 +3,22 @@
  */
 export interface SearchFindResponse {
     data: any[];
+    /**
+     * Additional information about the response.
+     */
+    info: { [key: string]: any };
+    /**
+     * The number of items returned in this response
+     */
+    limit: number;
+    /**
+     * The number of items skipped in this response
+     */
+    skip: number;
+    /**
+     * The total number of items matching the query
+     */
+    total: number;
 }
 
 /**
@@ -140,9 +156,6 @@ export interface User {
     username:    string;
 }
 
-/**
- * Search find response (articles)
- */
 export interface BaseFindResponse {
     data: any[];
     /**
@@ -165,8 +178,6 @@ export interface BaseFindResponse {
 
 /**
  * Collectable Item find response
- *
- * Search find response (articles)
  */
 export interface CollectableItemFindResponse {
     data: any[];
@@ -195,8 +206,6 @@ export interface BaseUser {
 
 /**
  * Collections find response
- *
- * Search find response (articles)
  */
 export interface CollectionsFindResponse {
     data: any[];
@@ -243,6 +252,139 @@ export interface Task {
      * The ID of the task
      */
     task_id?: string;
+}
+
+/**
+ * Response for the find newspapers endpoint.
+ */
+export interface FindNewspapersResponse {
+    data: any[];
+}
+
+/**
+ * A newspaper
+ */
+export interface NewspapersGet {
+    /**
+     * The acronym of the newspaper
+     */
+    acronym: string;
+    /**
+     * The number of articles in the newspaper
+     */
+    countArticles: number;
+    /**
+     * The number of issues in the newspaper
+     */
+    countIssues: number;
+    /**
+     * The number of pages in the newspaper
+     */
+    countPages: number;
+    /**
+     * The number of years of the newspaper available
+     */
+    deltaYear: number;
+    /**
+     * Last available year of the newspaper articles
+     */
+    endYear: string;
+    /**
+     * TODO
+     */
+    fetched?: boolean;
+    /**
+     * First available issue of the newspaper
+     */
+    firstIssue: NewspaperIssue;
+    /**
+     * TODO
+     */
+    included: boolean;
+    /**
+     * The labels of the newspaper
+     */
+    labels: string[];
+    /**
+     * Language codes of the languages used in the newspaper
+     */
+    languages: string[];
+    /**
+     * Last available issue of the newspaper
+     */
+    lastIssue: NewspaperIssue;
+    /**
+     * Title of the newspaper
+     */
+    name: string;
+    /**
+     * TODO
+     */
+    properties?: NewspaperProperty[];
+    /**
+     * First available year of the newspaper articles
+     */
+    startYear: string;
+    /**
+     * The unique identifier of the newspaper
+     */
+    uid: string;
+}
+
+/**
+ * First available issue of the newspaper
+ *
+ * Last available issue of the newspaper
+ */
+export interface NewspaperIssue {
+    /**
+     * TODO: list available options
+     */
+    accessRights: string;
+    /**
+     * TODO
+     */
+    cover: string;
+    /**
+     * The date of the issue
+     */
+    date: Date;
+    /**
+     * TODO
+     */
+    fresh: boolean;
+    /**
+     * The labels of the issue
+     */
+    labels: string[];
+    /**
+     * The unique identifier of the issue
+     */
+    uid: string;
+    /**
+     * The year of the issue
+     */
+    year: string;
+}
+
+export interface NewspaperProperty {
+    /**
+     * Whether the value is a URL
+     */
+    isUrl?: boolean;
+    /**
+     * The label of the property
+     */
+    label: string;
+    /**
+     * The name of the property
+     */
+    name: string;
+    /**
+     * The value of the property
+     */
+    value: string;
+    [property: string]: any;
 }
 
 export interface FindTextReuseClustersResponse {
@@ -351,8 +493,6 @@ export interface Pagination {
 
 /**
  * Collections find response
- *
- * Search find response (articles)
  */
 export interface TextReusePassageFindResponse {
     data: any[];
