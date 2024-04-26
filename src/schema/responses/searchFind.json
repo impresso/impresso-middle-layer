@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "allOf": [{ "$ref": "baseFind.json" }],
+  "allOf": [{ "$ref": "./baseFind.json" }],
   "type": "object",
   "title": "Search Find Response",
   "description": "Search find response (articles)",
@@ -11,5 +11,7 @@
         "$ref": "../schemas/Article.json"
       }
     }
-  }
+  },
+  "required": ["data"],
+  "additionalProperties": false
 }

@@ -24,7 +24,7 @@
       "type": "string",
       "minLength": 2,
       "maxLength": 3,
-      "title": "Status of the commection",
+      "title": "Status of the collection",
       "examples": ["PRI", "DEL"]
     },
     "creationDate": {

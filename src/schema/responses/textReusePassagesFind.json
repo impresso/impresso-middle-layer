@@ -1,12 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "baseFind.json",
-  "unevaluatedProperties": false,
+  "allOf": [{ "$ref": "./baseFind.json" }],
   "type": "object",
   "title": "Text Reuse Passage Find Response",
   "description": "Collections find response",
-  "additionalProperties": false,
-  "required": ["data"],
   "properties": {
     "data": {
       "type": "array",
@@ -14,5 +11,7 @@
         "$ref": "../schemas/TextReusePassage.json"
       }
     }
-  }
+  },
+  "required": ["data"],
+  "additionalProperties": false
 }

@@ -3,10 +3,6 @@
   "type": "object",
   "title": "Base find response",
   "properties": {
-    "data": {
-      "type": "array",
-      "items": {}
-    },
     "limit": {
       "type": "integer",
       "description": "The number of items returned in this response"
@@ -25,6 +21,6 @@
       "properties": {}
     }
   },
-  "required": ["data", "limit", "skip", "total", "info"],
+  "required": ["limit", "skip", "total", "info"],
   "additionalProperties": false
 }
