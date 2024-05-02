@@ -1,5 +1,5 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getRequestBodyContent, getResponseContent } from '../../util/openapi'
+import { getRequestBodyContent, getResponseContent, getSchemaRef } from '../../util/openapi'
 
 export const docs: ServiceSwaggerOptions = {
   description: 'Issue a token for the user',
@@ -8,12 +8,12 @@ export const docs: ServiceSwaggerOptions = {
     create: {
       description: 'Authenticate user',
       requestBody: {
-        content: getRequestBodyContent('authenticationCreate'),
+        content: getRequestBodyContent('AuthenticationCreateRequest'),
       },
       responses: {
         201: {
           description: 'Authentication successful',
-          content: getResponseContent('authenticationCreate'),
+          content: getResponseContent('AuthenticationCreateResponse'),
         },
       },
     },

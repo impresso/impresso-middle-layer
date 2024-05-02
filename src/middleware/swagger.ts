@@ -12,6 +12,10 @@ interface SchemaRef {
 }
 
 const getFilesAsSchemaRefs = (dir: string, prefix: string): Record<string, SchemaRef> => {
+  if (!fs.existsSync(dir)) {
+    return {}
+  }
+
   const allFiles = fs.readdirSync(dir)
 
   return allFiles

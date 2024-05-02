@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Newspaper Property",
+  "additionalProperties": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the property"
+    },
+    "value": {
+      "type": "string",
+      "description": "The value of the property"
+    },
+    "label": {
+      "type": "string",
+      "description": "The label of the property"
+    },
+    "isUrl": {
+      "type": "boolean",
+      "description": "Whether the value is a URL"
+    }
+  },
+  "required": ["name", "value", "label"]
+}

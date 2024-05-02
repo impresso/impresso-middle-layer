@@ -80,7 +80,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'articlesFind',
+        schema: 'Article',
       }),
     },
     get: {
@@ -98,7 +98,7 @@ export const docs: ServiceSwaggerOptions = {
       ],
       responses: getStandardResponses({
         method: 'get',
-        schema: 'articlesGet',
+        schema: 'Article',
       }),
     },
   },

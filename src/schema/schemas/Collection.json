@@ -18,14 +18,14 @@
     },
     "description": {
       "type": "string",
-      "maxlength": 500
+      "maxLength": 500
     },
     "status": {
       "type": "string",
       "minLength": 2,
       "maxLength": 3,
       "title": "Status of the collection",
-      "examples": ["PRI", "DEL"]
+      "examples": ["PRI", "PUB"]
     },
     "creationDate": {
       "type": "string"
@@ -34,10 +34,11 @@
       "type": "string"
     },
     "countItems": {
-      "type": ["integer", "string"],
-      "title": "Number of items in the collection",
-      "default": 0,
-      "examples": [3245]
+      "anyOf": [
+        { "type": "integer", "default": 0, "examples": [3245] },
+        { "type": "string", "default": "0" }
+      ],
+      "title": "Number of items in the collection"
     },
     "creator": {
       "$ref": "./BaseUser.json"

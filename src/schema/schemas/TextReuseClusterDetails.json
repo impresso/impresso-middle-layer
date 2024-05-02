@@ -9,36 +9,31 @@
     "facets": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/facet"
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Facet type"
+          },
+          "numBuckets": {
+            "type": "integer",
+            "description": "Number of buckets"
+          },
+          "buckets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "TODO: define bucket fields"
+            }
+          }
+        }
       }
     },
     "resolution": {
       "type": "string",
       "enum": ["year", "month", "day"],
       "description": "Resolution for the 'date' facet"
-    }
-  },
-  "definitions": {
-    "facet": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "type": "string",
-          "description": "Facet type"
-        },
-        "numBuckets": {
-          "type": "integer",
-          "description": "Number of buckets"
-        },
-        "buckets": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "description": "TODO: define bucket fields"
-          }
-        }
-      }
     }
   }
 }

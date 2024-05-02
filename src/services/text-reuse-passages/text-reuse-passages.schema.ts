@@ -40,7 +40,13 @@ const findParameters: MethodParameter[] = [
     in: 'query',
     name: 'addons',
     required: false,
-    schema: getParameterRef('textReusePassagesAddOns'),
+    schema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        newspaper: {},
+      },
+    },
     description: 'Add-ons to apply',
   },
   ...getStandardParameters({ method: 'find', maxPageSize: 20 }),
@@ -55,7 +61,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'textReusePassagesFind',
+        schema: 'TextReusePassage',
       }),
     },
     get: {
@@ -63,7 +69,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: getStandardParameters({ method: 'get', idPattern: '[A-Za-z0-9-:@]+' }),
       responses: getStandardResponses({
         method: 'get',
-        schema: 'textReusePassagesGet',
+        schema: 'TextReusePassage',
       }),
     },
   },

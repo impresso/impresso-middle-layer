@@ -46,7 +46,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'collectionsFind',
+        schema: 'Collection',
       }),
     },
     get: {
@@ -64,17 +64,17 @@ export const docs: ServiceSwaggerOptions = {
       ],
       responses: getStandardResponses({
         method: 'get',
-        schema: 'collectionsGet',
+        schema: 'Collection',
       }),
     },
     create: {
       description: 'Create a new collection',
       requestBody: {
-        content: getRequestBodyContent('collectionsCreate'),
+        content: getRequestBodyContent('NewCollection'),
       },
       responses: getStandardResponses({
         method: 'create',
-        schema: 'collectionsCreate',
+        schema: 'Collection',
       }),
     },
     patch: {
@@ -91,11 +91,11 @@ export const docs: ServiceSwaggerOptions = {
         },
       ],
       requestBody: {
-        content: getRequestBodyContent('collectionsCreate'),
+        content: getRequestBodyContent('NewCollection'),
       },
       responses: getStandardResponses({
         method: 'patch',
-        schema: 'collectionsCreate',
+        schema: 'Collection',
       }),
     },
     remove: {
@@ -113,7 +113,7 @@ export const docs: ServiceSwaggerOptions = {
       ],
       responses: getStandardResponses({
         method: 'remove',
-        schema: 'collectionsRemove',
+        schema: 'CollectionsRemoveResponse',
       }),
     },
   },

@@ -68,10 +68,14 @@
       }
     },
     "offsetStart": {
-      "$ref": "#/definitions/offset"
+      "type": "integer",
+      "description": "Offset of the passage in the article text",
+      "minimum": 0
     },
     "offsetEnd": {
-      "$ref": "#/definitions/offset"
+      "type": "integer",
+      "description": "Offset of the passage in the article text",
+      "minimum": 0
     },
     "content": {
       "type": "string",
@@ -144,13 +148,6 @@
       "type": "array",
       "description": "Collection IDs the passage belongs to",
       "items": { "type": "string" }
-    }
-  },
-  "definitions": {
-    "offset": {
-      "type": "integer",
-      "description": "Offset of the passage in the article text",
-      "minimum": 0
     }
   }
 }

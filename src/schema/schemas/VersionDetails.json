@@ -11,9 +11,7 @@
       "properties": {
         "endpoints": {
           "type": "object",
-          "patternProperties": {
-            "^.*": { "type": "string" }
-          }
+          "additionalProperties": { "type": "string" }
         }
       }
     },
@@ -39,28 +37,23 @@
     "documentsDateSpan": {
       "type": "object",
       "properties": {
-        "start": { "firstDate": "string", "format": "date-time" },
-        "end": { "lastDate": "string", "format": "date-time" }
-      }
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
     },
     "newspapers": {
       "type": "object",
-      "patternProperties": {
-        "^.*": {
-          "type": "object",
-          "properties": {
-            "name": { "type": "string" }
-          }
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" }
         }
       }
     },
     "features": {
       "type": "object",
-      "patternProperties": {
-        "^.*": {
-          "type": "object"
-        }
-      }
+      "additionalProperties": { "type": "object" }
     }
   }
 }

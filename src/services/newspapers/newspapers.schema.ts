@@ -69,7 +69,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: [...findParameters, ...getStandardParameters({ method: 'find' })],
       responses: getStandardResponses({
         method: 'find',
-        schema: 'newspapersFind',
+        schema: 'Newspaper',
       }),
     },
     get: {
@@ -87,7 +87,7 @@ export const docs: ServiceSwaggerOptions = {
       ],
       responses: getStandardResponses({
         method: 'get',
-        schema: 'newspapersGet',
+        schema: 'Newspaper',
       }),
     },
   },

@@ -5,11 +5,3 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run json-schema-to-typescript to regenerate this file.
  */
-
-
-/**
- * Add-ons for text reuse passages find method.
- */
-export interface TextReusePassagesFindAddOns {
-  newspaper?: unknown;
-}

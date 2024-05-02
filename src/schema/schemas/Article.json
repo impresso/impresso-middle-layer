@@ -28,7 +28,7 @@
     "pages": {
       "type": "array",
       "items": {
-        "$ref": "Page.json"
+        "$ref": "./Page.json"
       }
     },
     "isCC": {
@@ -42,13 +42,13 @@
     "locations": {
       "type": "array",
       "items": {
-        "$ref": "Entity.json"
+        "$ref": "./Entity.json"
       }
     },
     "persons": {
       "type": "array",
       "items": {
-        "$ref": "Entity.json"
+        "$ref": "./Entity.json"
       }
     }
   },

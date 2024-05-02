@@ -5,21 +5,3 @@
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run json-schema-to-typescript to regenerate this file.
  */
-
-
-export interface AuthenticationCreateRequest {
-  strategy: "local";
-  email: string;
-  password: string;
-}
-
-
-export type PropertiesName = string;
-export type PropertiesDescription = string;
-export type StatusOfTheCollection = string;
-
-export interface NewCollection {
-  name: PropertiesName;
-  description?: PropertiesDescription;
-  status?: StatusOfTheCollection;
-}

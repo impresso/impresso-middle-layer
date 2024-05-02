@@ -22,7 +22,7 @@
     "description": {
       "$id": "#/properties/description",
       "type": "string",
-      "maxlength": 500
+      "maxLength": 500
     },
     "status": {
       "$id": "#/properties/status",

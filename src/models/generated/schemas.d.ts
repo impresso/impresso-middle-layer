@@ -117,6 +117,68 @@ export interface Entity {
 }
 
 
+/**
+ * Request body for the authentication endpoint
+ */
+export interface AuthenticationCreateRequest {
+  strategy: "local";
+  email: string;
+  password: string;
+}
+
+
+/**
+ * Authentication Response
+ */
+export interface AuthenticationResponse {
+  accessToken: string;
+  authentication: {
+    strategy?: string;
+    payload?: {
+      [k: string]: unknown;
+    };
+    [k: string]: unknown;
+  };
+  user: User;
+}
+/**
+ * User details
+ */
+export interface User {
+  id: number;
+  username: string;
+  firstname: string;
+  lastname: string;
+  isStaff: boolean;
+  isActive: boolean;
+  isSuperuser: boolean;
+  uid: string;
+}
+
+
+export interface BaseFind {
+  /**
+   * The number of items returned in this response
+   */
+  limit: number;
+  /**
+   * The number of items skipped in this response
+   */
+  skip: number;
+  /**
+   * The total number of items matching the query
+   */
+  total: number;
+  /**
+   * Additional information about the response.
+   */
+  info: {
+    [k: string]: unknown;
+  };
+  data: unknown[];
+}
+
+
 export type UniqueIdentifierForTheUser = string;
 export type UniqueUsernameForTheUserForOtherHumans = string;
 
@@ -210,6 +272,36 @@ export interface BaseUser {
 
 
 /**
+ * Remove collection response
+ */
+export interface RemoveCollectionResponse {
+  params: {
+    /**
+     * The collection id
+     */
+    id?: string;
+    /**
+     * The status of the operation
+     */
+    status?: "DEL";
+  };
+  /**
+   * Deletion task details
+   */
+  task: {
+    /**
+     * The ID of the task
+     */
+    task_id?: string;
+    /**
+     * When task was created
+     */
+    creationDate?: string;
+  };
+}
+
+
+/**
  * An entity like location, person, etc
  */
 export interface Entity {
@@ -229,11 +321,9 @@ export interface Entity {
  */
 export interface Error {
   message: string;
-  data?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[];
+  data?: {
+    [k: string]: unknown;
+  };
   [k: string]: unknown;
 }
 
@@ -253,6 +343,18 @@ export interface Filter {
   daterange?: string;
   uids?: string;
   uid?: string;
+}
+
+
+export type StatusOfTheCollection = string;
+
+/**
+ * Create new collection request
+ */
+export interface NewCollection {
+  name: string;
+  description?: string;
+  status?: StatusOfTheCollection;
 }
 
 
@@ -406,6 +508,59 @@ export interface NewspaperIssue1 {
 }
 
 
+export interface NewspaperIssue {
+  /**
+   * The unique identifier of the issue
+   */
+  uid: string;
+  /**
+   * TODO
+   */
+  cover: string;
+  /**
+   * The labels of the issue
+   */
+  labels: string[];
+  /**
+   * TODO
+   */
+  fresh: boolean;
+  /**
+   * TODO: list available options
+   */
+  accessRights: string;
+  /**
+   * The date of the issue
+   */
+  date: string;
+  /**
+   * The year of the issue
+   */
+  year: string;
+}
+
+
+export interface NewspaperProperty {
+  /**
+   * The name of the property
+   */
+  name: string;
+  /**
+   * The value of the property
+   */
+  value: string;
+  /**
+   * The label of the property
+   */
+  label: string;
+  /**
+   * Whether the value is a URL
+   */
+  isUrl?: boolean;
+  [k: string]: unknown;
+}
+
+
 /**
  * A page of an article
  */
@@ -500,27 +655,88 @@ export interface TextReuseCluster {
 
 
 /**
+ * ID of the text reuse passage
+ */
+export type PassageID = string;
+
+/**
+ * Text reuse cluster with details and a sample
+ */
+export interface TextReuseClusterCompound {
+  cluster: TextReuseCluster;
+  textSample: string;
+  details?: TextReuseClusterDetails;
+}
+/**
+ * Represents a cluster of text reuse passages
+ */
+export interface TextReuseCluster {
+  id: PassageID;
+  /**
+   * Percentage of overlap between passages in the cluster
+   */
+  lexicalOverlap?: number;
+  /**
+   * Number of passages in cluster
+   */
+  clusterSize?: number;
+  /**
+   * Number of connected clusters
+   */
+  connectedClustersCount?: number;
+  /**
+   * Time window covered by documents in the cluster
+   */
+  timeCoverage?: {
+    from?: string;
+    to?: string;
+  };
+}
+/**
  * Extra details of the cluster
  */
 export interface TextReuseClusterDetails {
-  facets: Facet[];
+  facets: {
+    /**
+     * Facet type
+     */
+    type?: string;
+    /**
+     * Number of buckets
+     */
+    numBuckets?: number;
+    buckets?: {
+      [k: string]: unknown;
+    }[];
+  }[];
   /**
    * Resolution for the 'date' facet
    */
   resolution?: "year" | "month" | "day";
 }
-export interface Facet {
-  /**
-   * Facet type
-   */
-  type?: string;
-  /**
-   * Number of buckets
-   */
-  numBuckets?: number;
-  buckets?: {
-    [k: string]: unknown;
+
+
+/**
+ * Extra details of the cluster
+ */
+export interface TextReuseClusterDetails {
+  facets: {
+    /**
+     * Facet type
+     */
+    type?: string;
+    /**
+     * Number of buckets
+     */
+    numBuckets?: number;
+    buckets?: {
+      [k: string]: unknown;
+    }[];
   }[];
+  /**
+   * Resolution for the 'date' facet
+   */
+  resolution?: "year" | "month" | "day";
 }
 
 
@@ -548,10 +764,6 @@ export type TimeDifferenceInDays = number;
  * The lexical overlap between the two articles
  */
 export type LexicalOverlap = number;
-/**
- * Offset of the passage in the article text
- */
-export type Offset = number;
 
 /**
  * Represents a passage of text that was identified as a part of a text reuse cluster
@@ -560,8 +772,14 @@ export interface TextReusePassage {
   id: PassageID;
   article: ArticleDetails;
   textReuseCluster: ClusterDetails;
-  offsetStart: Offset;
-  offsetEnd: Offset;
+  /**
+   * Offset of the passage in the article text
+   */
+  offsetStart: number;
+  /**
+   * Offset of the passage in the article text
+   */
+  offsetEnd: number;
   /**
    * Textual content of the passage
    */
@@ -651,4 +869,44 @@ export interface User {
   isActive: boolean;
   isSuperuser: boolean;
   uid: string;
+}
+
+
+/**
+ * Version of the API. Contains information about the current version of the API, features, etc.
+ */
+export interface APIVersion {
+  solr: {
+    endpoints?: {
+      [k: string]: string;
+    };
+    [k: string]: unknown;
+  };
+  mysql: {
+    endpoint?: string;
+    [k: string]: unknown;
+  };
+  version: string;
+  apiVersion: {
+    branch?: string;
+    revision?: string;
+    version?: string;
+    [k: string]: unknown;
+  };
+  documentsDateSpan: {
+    start?: string;
+    end?: string;
+    [k: string]: unknown;
+  };
+  newspapers: {
+    [k: string]: {
+      name?: string;
+      [k: string]: unknown;
+    };
+  };
+  features: {
+    [k: string]: {
+      [k: string]: unknown;
+    };
+  };
 }

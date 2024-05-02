@@ -30,7 +30,7 @@
     "properties": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/NewspaperProperty"
+        "$ref": "./NewspaperProperty.json"
       },
       "description": "TODO"
     },
@@ -52,11 +52,11 @@
     },
     "firstIssue": {
       "description": "First available issue of the newspaper",
-      "$ref": "#/definitions/NewspaperIssue"
+      "$ref": "./NewspaperIssue.json"
     },
     "lastIssue": {
       "description": "Last available issue of the newspaper",
-      "$ref": "#/definitions/NewspaperIssue"
+      "$ref": "./NewspaperIssue.json"
     },
     "countArticles": {
       "type": "integer",
@@ -94,71 +94,5 @@
     "countIssues",
     "countPages",
     "deltaYear"
-  ],
-  "definitions": {
-    "NewspaperIssue": {
-      "type": "object",
-      "title": "Newspaper Issue",
-      "additionalProperties": false,
-      "properties": {
-        "uid": {
-          "type": "string",
-          "description": "The unique identifier of the issue"
-        },
-        "cover": {
-          "type": "string",
-          "description": "TODO"
-        },
-        "labels": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "The labels of the issue"
-        },
-        "fresh": {
-          "type": "boolean",
-          "description": "TODO"
-        },
-        "accessRights": {
-          "type": "string",
-          "description": "TODO: list available options"
-        },
-        "date": {
-          "type": "string",
-          "description": "The date of the issue",
-          "format": "date-time"
-        },
-        "year": {
-          "type": "string",
-          "description": "The year of the issue"
-        }
-      },
-      "required": ["uid", "cover", "labels", "fresh", "accessRights", "date", "year"]
-    },
-    "NewspaperProperty": {
-      "type": "object",
-      "title": "Newspaper Property",
-      "additionalProperties": true,
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The name of the property"
-        },
-        "value": {
-          "type": "string",
-          "description": "The value of the property"
-        },
-        "label": {
-          "type": "string",
-          "description": "The label of the property"
-        },
-        "isUrl": {
-          "type": "boolean",
-          "description": "Whether the value is a URL"
-        }
-      },
-      "required": ["name", "value", "label"]
-    }
-  }
+  ]
 }
