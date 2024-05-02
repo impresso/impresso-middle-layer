@@ -33,7 +33,7 @@ export const getSchemaRef = (schemaName: string) => ({
 })
 
 export const getResponseRef = (schemaName: string) => ({
-  $ref: `#/components/responses/${schemaName}`,
+  $ref: `#/components/schemas/${schemaName}`,
 })
 
 export const getParameterRef = (schemaName: string) => ({
@@ -47,6 +47,18 @@ interface GetStandardResponsesParams {
   schema: string
   authEnabled?: boolean
   isRateLimited?: boolean
+  standardPagination?: boolean
+}
+
+const baseFindResponse = require('../schema/schemas/BaseFind.json')
+delete baseFindResponse['$schema']
+
+const getBaseFindResponse = (itemRef: string): JSONSchema => {
+  const response = JSON.parse(JSON.stringify(baseFindResponse))
+  response['properties']['data']['items'] = {
+    $ref: itemRef,
+  }
+  return response
 }
 
 export const getStandardResponses = ({
@@ -54,6 +66,7 @@ export const getStandardResponses = ({
   schema,
   authEnabled = true,
   isRateLimited = false,
+  standardPagination = true,
 }: GetStandardResponsesParams) => {
   const defaultResponses: Record<number, StatusResponse> = {
     422: {
@@ -70,9 +83,16 @@ export const getStandardResponses = ({
       content: asApplicationJson(getResponseRef(schema)),
     }
   } else {
-    defaultResponses[200] = {
-      description: 'Success',
-      content: asApplicationJson(getResponseRef(schema)),
+    if (method === 'find' && standardPagination) {
+      defaultResponses[200] = {
+        description: 'Success',
+        content: asApplicationJson(getBaseFindResponse(`#/components/schemas/${schema}`)),
+      }
+    } else {
+      defaultResponses[200] = {
+        description: 'Success',
+        content: asApplicationJson(getResponseRef(schema)),
+      }
     }
     defaultResponses[404] = {
       description: 'Not Found',
@@ -161,7 +181,7 @@ export const getRequestBodyContent = (schemaName: string) => {
   return {
     'application/json': {
       schema: {
-        $ref: `#/components/requestBodies/${schemaName}`,
+        $ref: `#/components/schemas/${schemaName}`,
       },
     },
   }
@@ -171,7 +191,7 @@ export const getResponseContent = (schemaName: string) => {
   return {
     'application/json': {
       schema: {
-        $ref: `#/components/responses/${schemaName}`,
+        $ref: `#/components/schemas/${schemaName}`,
       },
     },
   }

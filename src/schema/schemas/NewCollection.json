@@ -1,28 +1,26 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "New Collection",
+  "description": "Create new collection request",
   "type": "object",
   "additionalProperties": false,
-  "required": ["name"],
   "properties": {
     "name": {
-      "$id": "#/properties/name",
       "type": "string",
       "minLength": 2,
       "maxLength": 50
     },
     "description": {
-      "$id": "#/properties/description",
       "type": "string",
-      "maxlength": 500
+      "maxLength": 500
     },
     "status": {
-      "$id": "#/properties/status",
       "type": "string",
       "minLength": 2,
       "maxLength": 3,
-      "title": "Status of the commection",
-      "examples": ["PRI", "DEL"]
+      "title": "Status of the collection",
+      "examples": ["PRI", "PUB"]
     }
-  }
+  },
+  "required": ["name"]
 }

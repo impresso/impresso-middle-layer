@@ -53,10 +53,8 @@
     "@feathersjs/errors": "5.0.24",
     "@feathersjs/express": "5.0.24",
     "@feathersjs/feathers": "5.0.24",
-    "@feathersjs/socketio": "5.0.24",
     "@feathersjs/schema": "5.0.24",
-    "feathers-swagger": "3.0.0",
-    "swagger-ui-dist": "5.12.0",
+    "@feathersjs/socketio": "5.0.24",
     "ajv": "8.12.0",
     "async": "^2.6.1",
     "aws-sdk": "^2.395.0",
@@ -75,6 +73,7 @@
     "debug": "^4.3.4",
     "decypher": "^0.13.0",
     "dotenv": "^16.0.1",
+    "express-openapi-validator": "5.1.6",
     "fast-ratelimit": "^3.0.0",
     "fast-xml-parser": "^4.3.4",
     "feathers-authentication-hooks": "^1.0.2",
@@ -82,6 +81,7 @@
     "feathers-memory": "^2.2.0",
     "feathers-sequelize": "^6.0.1",
     "feathers-solr": "^3.1.0",
+    "feathers-swagger": "3.0.0",
     "form-data": "^3.0.0",
     "generic-pool": "^3.8.2",
     "graphology": "^0.16.1",
@@ -112,7 +112,6 @@
     "node-fetch": "2.7.0",
     "node-http-proxy-json": "^0.1.6",
     "passport-github": "^1.1.0",
-    "express-openapi-validator": "5.1.6",
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.2",
     "redis": "4.6.13",
@@ -122,6 +121,7 @@
     "short-hash": "^1.0.0",
     "slugify": "^1.3.4",
     "supports-color": "^6.1.0",
+    "swagger-ui-dist": "5.12.0",
     "truncatise": "0.0.7",
     "wikidata-sdk": "^5.15.10",
     "winston": "3.13.0",
@@ -129,6 +129,7 @@
     "yaml": "^2.1.1"
   },
   "devDependencies": {
+    "@openapi-contrib/json-schema-to-openapi-schema": "3.0.1",
     "@types/cache-manager": "^2.10.3",
     "@types/generic-pool": "^3.1.9",
     "@types/mocha": "^7.0.2",
@@ -140,9 +141,9 @@
     "eslint-plugin-promise": "^6.0.0",
     "mocha": "^9.1.3",
     "nodemon": "3.1.0",
-    "typescript": "5.4.3",
     "prettier": "3.2.5",
-    "typescript-cp": "0.1.9",
-    "quicktype": "23.0.146"
+    "json-schema-to-typescript": "14.0.0",
+    "typescript": "5.4.3",
+    "typescript-cp": "0.1.9"
   }
 }

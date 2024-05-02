@@ -1,6 +1,6 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { MethodParameter } from '../../util/openapi'
-import { getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { OrderByKeyToField } from './text-reuse-clusters.class'
 import { Filter } from '../../models'
 
@@ -40,7 +40,7 @@ const findParameters: MethodParameter[] = [
     required: false,
     schema: {
       type: 'array',
-      items: require('../../schema/filter.json'),
+      items: getSchemaRef('Filter'),
     },
     description: 'Filters to apply',
   },
@@ -69,7 +69,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'textReuseClustersFind',
+        schema: 'TextReuseClusterCompound',
       }),
     },
     get: {
@@ -77,7 +77,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: getParameters,
       responses: getStandardResponses({
         method: 'get',
-        schema: 'textReuseClustersGet',
+        schema: 'TextReuseClusterCompound',
       }),
     },
   },

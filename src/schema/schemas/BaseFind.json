@@ -1,13 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "title": "Base find response",
-  "additionalProperties": false,
-  "required": ["data", "limit", "skip", "total", "info"],
   "properties": {
-    "data": {
-      "type": "array"
-    },
     "limit": {
       "type": "integer",
       "description": "The number of items returned in this response"
@@ -24,6 +18,12 @@
       "type": "object",
       "description": "Additional information about the response.",
       "properties": {}
+    },
+    "data": {
+      "type": "array",
+      "items": {}
     }
-  }
+  },
+  "required": ["limit", "skip", "total", "info", "data"],
+  "additionalProperties": false
 }

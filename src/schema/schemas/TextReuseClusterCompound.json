@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Get TextReuseCluster Response",
+  "title": "Text Reuse Cluster Compound",
+  "description": "Text reuse cluster with details and a sample",
   "type": "object",
   "additionalProperties": false,
   "properties": {

@@ -80,7 +80,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'collectableItemsFind',
+        schema: 'CollectableItemGroup',
       }),
     },
   },

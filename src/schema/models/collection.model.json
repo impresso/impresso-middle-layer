@@ -22,14 +22,14 @@
     "description": {
       "$id": "#/properties/description",
       "type": "string",
-      "maxlength": 500
+      "maxLength": 500
     },
     "status": {
       "$id": "#/properties/status",
       "type": "string",
       "minLength": 2,
       "maxLength": 3,
-      "title": "Status of the commection",
+      "title": "Status of the collection",
       "examples": ["PRI", "DEL"]
     },
     "creationDate": {
