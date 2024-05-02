@@ -206,7 +206,7 @@ export class Service {
       query.fq = `{!collapse field=${sanitizedParams.groupby}}`
     }
     const result = await measureTime(
-      () => this.solr.get(query, index, { skipCache: true }), //! canBeCached }),
+      () => this.solr.get(query, index.replace('-', '_'), { skipCache: true }), //! canBeCached }),
       'search-facets.get.solr.facets'
     )
     return types.map(t => {
