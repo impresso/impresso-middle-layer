@@ -52,7 +52,7 @@ interface SanitizedGetParams {
   rangeGap?: number
   rangeInclude?: any
   filters?: Filter[]
-  groupby?: string
+  group_by?: string
   sq?: string
   sv?: string[]
   facets?: string[]
@@ -190,8 +190,8 @@ export class Service {
       `index: ${index}`,
       'facets:',
       facets,
-      'groupby',
-      sanitizedParams.groupby || 'none'
+      'group_by',
+      sanitizedParams.group_by || 'none'
     )
     const query: Record<string, any> = {
       q: sanitizedParams.sq,
@@ -202,8 +202,8 @@ export class Service {
       vars: sanitizedParams.sv,
     }
 
-    if (sanitizedParams.groupby) {
-      query.fq = `{!collapse field=${sanitizedParams.groupby}}`
+    if (sanitizedParams.group_by) {
+      query.fq = `{!collapse field=${sanitizedParams.group_by}}`
     }
     const result = await measureTime(
       () => this.solr.get(query, index.replace('-', '_'), { skipCache: true }), //! canBeCached }),

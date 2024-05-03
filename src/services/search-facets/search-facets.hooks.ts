@@ -11,7 +11,6 @@ import { IndexId, OrderByChoices, facetTypes } from './search-facets.schema'
 
 const getAndFindHooks = (index: IndexId) => [
   validate({
-    q: paramsValidator.q,
     order_by: {
       before: (d: any) => (Array.isArray(d) ? d.pop() : d),
       defaultValue: '-count',
@@ -26,7 +25,7 @@ const getAndFindHooks = (index: IndexId) => [
           },
         }),
     },
-    groupby: {
+    group_by: {
       required: false,
       fn: (value?: string) => {
         if (typeof value === 'string' && value.length > 0) {
@@ -36,7 +35,7 @@ const getAndFindHooks = (index: IndexId) => [
         }
         return true
       },
-      message: `Invalid groupby parameter for index ${index}`,
+      message: `Invalid group_by parameter for index ${index}`,
       transform(value: string) {
         const meta = getIndexMeta(index)
         const facets: Record<string, any> = meta.facets
@@ -52,7 +51,12 @@ const getAndFindHooks = (index: IndexId) => [
   } as unknown as any),
 
   (context: HookContext) => {
-    const { rangeStart, rangeEnd, rangeGap, rangeInclude } = context.params.query
+    const {
+      range_start: rangeStart,
+      range_end: rangeEnd,
+      range_gap: rangeGap,
+      range_include: rangeInclude,
+    } = context.params.query
     if (['edge', 'all', 'upper'].includes(rangeInclude)) {
       context.params.sanitized.rangeInclude = rangeInclude
     }

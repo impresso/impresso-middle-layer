@@ -23,15 +23,6 @@ export const OrderByChoices = ['-count', 'count']
 const getGetParameters = (index: IndexId): QueryParameter[] => [
   {
     in: 'query',
-    name: 'q',
-    required: false,
-    schema: {
-      type: 'string',
-    },
-    description: 'Search term',
-  },
-  {
-    in: 'query',
     name: 'order_by',
     required: false,
     schema: {
@@ -42,7 +33,7 @@ const getGetParameters = (index: IndexId): QueryParameter[] => [
   },
   {
     in: 'query',
-    name: 'groupby',
+    name: 'group_by',
     required: false,
     schema: {
       type: 'string',
@@ -62,7 +53,7 @@ const getGetParameters = (index: IndexId): QueryParameter[] => [
   },
   {
     in: 'query',
-    name: 'rangeStart',
+    name: 'range_start',
     required: false,
     schema: {
       type: 'number',
@@ -71,7 +62,7 @@ const getGetParameters = (index: IndexId): QueryParameter[] => [
   },
   {
     in: 'query',
-    name: 'rangeEnd',
+    name: 'range_end',
     required: false,
     schema: {
       type: 'number',
@@ -80,7 +71,7 @@ const getGetParameters = (index: IndexId): QueryParameter[] => [
   },
   {
     in: 'query',
-    name: 'rangeGap',
+    name: 'range_gap',
     required: false,
     schema: {
       type: 'number',
@@ -89,7 +80,7 @@ const getGetParameters = (index: IndexId): QueryParameter[] => [
   },
   {
     in: 'query',
-    name: 'rangeInclude',
+    name: 'range_include',
     required: false,
     schema: {
       type: 'string',
@@ -102,7 +93,7 @@ const getGetParameters = (index: IndexId): QueryParameter[] => [
 const getFindParameters = (index: IndexId): QueryParameter[] => [
   {
     in: 'query',
-    name: 'facets[]',
+    name: 'facets',
     required: true,
     schema: {
       type: 'array',
