@@ -169,14 +169,14 @@ export class Service {
     const indexFacets = getIndexMeta(index).facets as Record<string, any>
 
     const facets = lodash(types)
-      .map((d: string) => {
+      .map((type: string) => {
         const facet = {
-          k: d,
-          ...indexFacets[d],
+          k: type,
+          ...indexFacets[type],
           ...facetsq,
           other: 'all',
         }
-        if (types.includes('collection')) {
+        if (type === 'collection') {
           facet.prefix = isAuthenticated ? userId : '-'
         }
         return facet
