@@ -65,6 +65,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get'],
   operations: {
     find: {
+      operationId: 'findTextReuseClusters',
       description: 'Find text reuse clusters',
       parameters: findParameters,
       responses: getStandardResponses({
@@ -73,6 +74,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     get: {
+      operationId: 'getTextReuseCluster',
       description: 'Get text reuse cluster by ID',
       parameters: getParameters,
       responses: getStandardResponses({

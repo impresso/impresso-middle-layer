@@ -51,11 +51,9 @@
       "description": "First available year of the newspaper articles"
     },
     "firstIssue": {
-      "description": "First available issue of the newspaper",
       "$ref": "./NewspaperIssue.json"
     },
     "lastIssue": {
-      "description": "Last available issue of the newspaper",
       "$ref": "./NewspaperIssue.json"
     },
     "countArticles": {

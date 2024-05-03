@@ -11,11 +11,9 @@
       "description": "Numeric representation of the year"
     },
     "values": {
-      "description": "Weights values (TODO)",
       "$ref": "./YearWeights.json"
     },
     "refs": {
-      "description": "Weights references (TODO)",
       "$ref": "./YearWeights.json"
     }
   }

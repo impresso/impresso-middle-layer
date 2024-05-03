@@ -50,9 +50,12 @@ export const addRateLimitingHeader = async (context: HookContext<ImpressoApplica
 
   if (context.http == null) context.http = {}
 
+  const remaining = rateLimitingResult.totalTokens - rateLimitingResult.usedTokens
+
   context.http.headers = {
     ...(context.http.headers ?? {}),
-    'X-RateLimit': `Used=${rateLimitingResult.usedTokens}; Total=${rateLimitingResult.totalTokens}`,
+    // https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers#section-4
+    RateLimit: `limit=${rateLimitingResult.totalTokens}, remaining=${remaining}`,
   }
 }
 

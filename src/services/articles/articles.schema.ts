@@ -76,6 +76,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get'],
   operations: {
     find: {
+      operationId: 'findArticles',
       description: 'Find articles that match the given query',
       parameters: findParameters,
       responses: getStandardResponses({
@@ -84,6 +85,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     get: {
+      operationId: 'getArticle',
       description: 'Get an article by its UID',
       parameters: [
         {

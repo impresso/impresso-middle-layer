@@ -57,6 +57,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get'],
   operations: {
     find: {
+      operationId: 'findTextReusePassages',
       description: 'Find text reuse passages',
       parameters: findParameters,
       responses: getStandardResponses({
@@ -65,6 +66,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     get: {
+      operationId: 'getTextReusePassage',
       description: 'Get text reuse passage by ID',
       parameters: getStandardParameters({ method: 'get', idPattern: '[A-Za-z0-9-:@]+' }),
       responses: getStandardResponses({

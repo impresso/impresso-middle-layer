@@ -7,14 +7,12 @@
     "uid": {
       "type": "string",
       "title": "unique identifier for the user",
-      "default": "",
       "examples": ["local-dg"],
       "pattern": "^([a-zA-Z-]+)$"
     },
     "username": {
       "type": "string",
       "title": "unique username for the user for other humans",
-      "default": "",
       "examples": ["daniele.guido"],
       "pattern": "^([a-z.]+)$"
     }

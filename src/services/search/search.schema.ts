@@ -1,4 +1,4 @@
-import { ServiceSwaggerOptions } from 'feathers-swagger'
+import { ServiceSwaggerOptions, operation } from 'feathers-swagger'
 import { SolrMappings } from '../../data/constants'
 import type { QueryParameter } from '../../util/openapi'
 import { getSchemaRef, getStandardResponses } from '../../util/openapi'
@@ -88,6 +88,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find'],
   operations: {
     find: {
+      operationId: 'search',
       description: 'Find articles that match the given query',
       parameters: findParameters,
       responses: getStandardResponses({

@@ -115,11 +115,17 @@ const getFindParameters = (index: IndexId): QueryParameter[] => [
   },
 ]
 
+const toPascalCase = (s: string) => {
+  const result = s.replace(/([-_][a-z])/gi, $1 => $1.toUpperCase().replace('-', '').replace('_', ''))
+  return result.charAt(0).toUpperCase() + result.slice(1)
+}
+
 export const getDocs = (index: IndexId): ServiceSwaggerOptions => ({
   description: `${facetNames[index]} facets`,
   securities: ['get', 'find'],
   operations: {
     find: {
+      operationId: `find${toPascalCase(index)}Facets`,
       description: `Get mutliple ${facetNames[index]} facets`,
       parameters: [
         ...getFindParameters(index),
@@ -132,6 +138,7 @@ export const getDocs = (index: IndexId): ServiceSwaggerOptions => ({
       }),
     },
     get: {
+      operationId: `get${toPascalCase(index)}Facet`,
       description: `Get a single ${facetNames[index]} facet`,
       parameters: [
         {

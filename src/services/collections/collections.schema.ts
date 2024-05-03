@@ -42,6 +42,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get', 'create', 'patch', 'remove'],
   operations: {
     find: {
+      operationId: 'findCollections',
       description: 'Find collections',
       parameters: findParameters,
       responses: getStandardResponses({
@@ -50,6 +51,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     get: {
+      operationId: 'getCollection',
       description: 'Get a collection by its UID',
       parameters: [
         {
@@ -68,6 +70,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     create: {
+      operationId: 'createCollection',
       description: 'Create a new collection',
       requestBody: {
         content: getRequestBodyContent('NewCollection'),
@@ -78,6 +81,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     patch: {
+      operationId: 'updateCollection',
       description: 'Update a collection',
       parameters: [
         {
@@ -99,6 +103,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     remove: {
+      operationId: 'removeCollection',
       description: 'Remove a collection',
       parameters: [
         {
