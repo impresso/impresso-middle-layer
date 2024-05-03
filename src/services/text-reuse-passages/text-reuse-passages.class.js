@@ -24,16 +24,16 @@ export class TextReusePassages {
     // retrieve all fields
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query.filters
-    const [orderByField, orderByDescending] = parseOrderBy(params.query.orderBy, OrderByKeyToField)
+    const [orderByField, orderByDescending] = parseOrderBy(params.query.order_by, OrderByKeyToField)
     const { query } = filtersToQueryAndVariables(filters, this.solr.namespaces.TextReusePassages, {
       q: '*:*',
     })
     const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
 
     const fq = `{!collapse field=${
-      TextReusePassage.SolrFields[params.query.groupby]
+      TextReusePassage.SolrFields[params.query.group_by]
     } max=ms(${TextReusePassage.SolrFields.date})}`
-    const groupby = params.query.groupby ? { fq } : null
+    const groupby = params.query.group_by ? { fq } : null
 
     debug(
       'find q:',

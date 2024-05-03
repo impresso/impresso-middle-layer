@@ -6,7 +6,7 @@ import { GroupByValues, OrderByKeyToField } from './text-reuse-passages.class'
 const findParameters: MethodParameter[] = [
   {
     in: 'query',
-    name: 'orderBy',
+    name: 'order_by',
     required: false,
     schema: {
       type: 'string',
@@ -18,7 +18,7 @@ const findParameters: MethodParameter[] = [
   },
   {
     in: 'query',
-    name: 'groupby',
+    name: 'group_by',
     required: false,
     schema: {
       type: 'string',
@@ -28,7 +28,7 @@ const findParameters: MethodParameter[] = [
   },
   {
     in: 'query',
-    name: 'filters[]',
+    name: 'filters',
     required: false,
     schema: {
       type: 'array',
