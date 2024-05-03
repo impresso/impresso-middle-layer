@@ -1,6 +1,6 @@
 import { logger } from '../logger'
 
-async function measureTime(fn, label, doLog = undefined) {
+export async function measureTime<T>(fn: () => Promise<T>, label: string, doLog = undefined) {
   const hrstart = process.hrtime()
   const onEnd = () => {
     const hrend = process.hrtime(hrstart)
@@ -21,5 +21,3 @@ async function measureTime(fn, label, doLog = undefined) {
       throw e
     })
 }
-
-module.exports = { measureTime }
