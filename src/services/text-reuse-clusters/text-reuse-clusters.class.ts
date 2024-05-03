@@ -119,18 +119,7 @@ export class TextReuseClusters {
   }
 
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
-    const { text, skip = 0, limit = 10, orderBy, filters: serializedFilters } = params.query ?? {}
-
-    let filters = []
-    if (typeof serializedFilters === 'string') {
-      try {
-        filters = serializedFilters ? deserializeFilters(serializedFilters) : []
-      } catch (error) {
-        console.warn('Could not deserialize filters', error)
-      }
-    } else {
-      filters = serializedFilters || []
-    }
+    const { text, skip = 0, limit = 10, order_by: orderBy, filters } = params.query ?? {}
 
     const filterQueryParts = filtersToSolrQueries(filters)
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
@@ -160,7 +149,7 @@ export class TextReuseClusters {
 
   async get(id: string, { query = {} }): Promise<GetTextReuseClusterResponse> {
     // @ts-ignore
-    const includeDetails = query.includeDetails === true || query.includeDetails === 'true'
+    const includeDetails = query.include_details === true || query.include_details === 'true'
 
     const sampleTextPromise = this.solr
       .get(getLatestTextReusePassageForClusterIdRequest(id), this.solr.namespaces.TextReusePassages)

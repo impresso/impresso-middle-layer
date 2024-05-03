@@ -1,6 +1,8 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { decodeJsonQueryParameters } from '../../hooks/parameters'
+import { validate } from '../../hooks/params'
+import { parseFilters } from '../../util/queryParameters'
 
 // const { validateWithSchema } = require('../../hooks/schema')
 
@@ -12,6 +14,12 @@ module.exports = {
     all: [],
     find: [
       decodeJsonQueryParameters(['filters']), //
+      validate({
+        filters: {
+          required: false,
+          transform: parseFilters,
+        },
+      }),
     ],
     get: [],
     create: [],

@@ -8,6 +8,7 @@ import { ImpressoApplication } from '../../types'
 import { eachFilterValidator, paramsValidator } from '../search/search.validators'
 import { getIndexMeta } from './search-facets.class'
 import { IndexId, OrderByChoices, facetTypes } from './search-facets.schema'
+import { parseFilters } from '../../util/queryParameters'
 
 const getAndFindHooks = (index: IndexId) => [
   validate({
@@ -41,6 +42,10 @@ const getAndFindHooks = (index: IndexId) => [
         const facets: Record<string, any> = meta.facets
         return facets[value].field
       },
+    },
+    filters: {
+      required: false,
+      transform: parseFilters,
     },
   }),
   validateEach('filters', eachFilterValidator),
@@ -86,17 +91,18 @@ export const getHooks = (index: IndexId) => ({
     get: [...getAndFindHooks(index), queryWithCommonParams()],
     find: [
       ...getAndFindHooks(index),
-      (context: HookContext<ImpressoApplication, { facets?: string[] }>) => {
+      (context: HookContext<ImpressoApplication>) => {
         const value = context.params.query.facets
+        const facets = typeof value === 'string' ? [value] : value
 
-        if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
-          const unknownFacets = value.filter(d => !facetTypes[index].includes(d))
+        if (Array.isArray(facets) && facets.length > 0) {
+          const unknownFacets = facets.filter(d => !facetTypes[index].includes(d))
 
           if (unknownFacets.length > 0) {
             throw new Error(`Invalid facets for index ${index}: ${unknownFacets}`)
           }
         }
-        context.params.sanitized.facets = value
+        context.params.sanitized.facets = facets
       },
       queryWithCommonParams(),
     ],
