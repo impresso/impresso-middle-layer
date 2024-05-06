@@ -25,10 +25,7 @@ const factory = {
   },
 }
 
-function initHttpPool({
-  maxParallelConnections = 17,
-  acquireTimeoutSec = 25,
-} = {}) {
+function initHttpPool({ maxParallelConnections = 17, acquireTimeoutSec = 25 } = {}) {
   const opts = {
     min: maxParallelConnections,
     max: maxParallelConnections,
