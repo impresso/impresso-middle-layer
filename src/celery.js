@@ -57,7 +57,7 @@ module.exports = function (app) {
   } else {
     debug("Celery configuration found, let's see if it works...")
     try {
-      const client = getCeleryClient(config)
+      const client = getCeleryClient(config)()
       console.log('client', client)
       client.run()
       app.set('celeryClient', client)
