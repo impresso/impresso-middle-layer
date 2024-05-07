@@ -3,8 +3,15 @@ import type { FromSchema, JSONSchemaDefinition } from '@feathersjs/schema'
 import { Ajv, getValidator } from '@feathersjs/schema'
 import type { RedisClientOptions } from 'redis'
 import type { RateLimiterConfiguration } from './services/internal/rateLimiter/redis'
+import { CeleryClient } from './celery'
 
 export type RedisConfiguration = RedisClientOptions & { enable?: boolean; host?: string }
+
+export interface CeleryConfiguration {
+  enable?: boolean
+  brokerUrl?: string
+  backendUrl?: string
+}
 
 export interface Configuration {
   isPublicApi?: boolean
@@ -12,6 +19,8 @@ export interface Configuration {
   redis?: RedisConfiguration
   rateLimiter?: RateLimiterConfiguration & { enabled?: boolean }
   publicApiPrefix?: string
+  celery?: CeleryConfiguration
+  celeryClient?: CeleryClient
 }
 
 const configurationSchema: JSONSchemaDefinition = {
