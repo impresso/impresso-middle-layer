@@ -131,6 +131,7 @@
   "devDependencies": {
     "@openapi-contrib/json-schema-to-openapi-schema": "3.0.1",
     "@types/cache-manager": "^2.10.3",
+    "@types/ioredis": "^4.28.5",
     "@types/generic-pool": "^3.1.9",
     "@types/mocha": "^7.0.2",
     "@types/node-fetch": "^2.5.6",
