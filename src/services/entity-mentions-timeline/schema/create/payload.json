@@ -33,13 +33,10 @@
       "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit",
       "description": "Limit of the subitems to return. Default: 4"
     },
-    "skip": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/skip",
+    "offset": {
+      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/offset",
       "description": "Skip this many subitems. Default: 0"
     }
   },
-  "oneOf": [
-    { "required": ["entityId"] },
-    { "required": ["mentionLabel"] }
-  ]
+  "oneOf": [{ "required": ["entityId"] }, { "required": ["mentionLabel"] }]
 }

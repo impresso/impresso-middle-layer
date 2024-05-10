@@ -37,7 +37,7 @@ const getRangeFacetMetadata = (facet: FacetMetadata) => {
 }
 
 interface GetQuery {
-  skip?: number
+  offset?: number
   limit?: number
   order_by?: string
 }
@@ -91,9 +91,9 @@ export class Service {
     // const { index } = params.query
     // const types = getFacetTypes(type, this.index)
 
-    // init with limit and skip
+    // init with limit and offset
     const facetsq: FacetsQueryPart = {
-      offset: params.query?.skip,
+      offset: params.query?.offset,
       limit: params.query?.limit,
       sort: params.query?.order_by,
     }
@@ -114,7 +114,7 @@ export class Service {
 
   async find(params: Params<FindQuery>): Promise<FindResponse<SearchFacet>> {
     const facetsq: FacetsQueryPart = {
-      offset: params.query?.skip,
+      offset: params.query?.offset,
       limit: params.query?.limit,
       sort: params.query?.order_by,
     }
@@ -133,7 +133,7 @@ export class Service {
     return {
       data: result,
       limit: facetsq.limit ?? 0,
-      skip: facetsq.offset ?? 0,
+      offset: facetsq.offset ?? 0,
       total: 0,
       info: {},
     }

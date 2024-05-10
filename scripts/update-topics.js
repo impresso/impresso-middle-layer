@@ -1,41 +1,45 @@
 // import tags from a well defined list of tags
-const fs = require('fs');
-const lodash = require('lodash');
-const debug = require('debug')('impresso/scripts:update-data');
-const config = require('@feathersjs/configuration')()();
-const solrClient = require('../src/solr').client(config.solr, config.solrConnectionPool);
-const Topic = require('../src/models/topics.model');
+const fs = require('fs')
+const lodash = require('lodash')
+const debug = require('debug')('impresso/scripts:update-data')
+const config = require('@feathersjs/configuration')()()
+const solrClient = require('../src/solr').client(config.solr, config.solrConnectionPool)
+const Topic = require('../src/models/topics.model')
 
-debug('start!');
+debug('start!')
 
 async function waterfall() {
-  debug('find topics...');
-  const topics = await solrClient.findAll({
-    q: '*:*',
-    limit: 1000,
-    skip: 0,
-    fl: '*',
-    namespace: 'topics',
-  }, Topic.solrFactory)
-    .then((result) => {
-      debug(`${result.response.numFound} topics found in ${result.responseHeader.QTime} ms`);
+  debug('find topics...')
+  const topics = await solrClient
+    .findAll(
+      {
+        q: '*:*',
+        limit: 1000,
+        offset: 0,
+        fl: '*',
+        namespace: 'topics',
+      },
+      Topic.solrFactory
+    )
+    .then(result => {
+      debug(`${result.response.numFound} topics found in ${result.responseHeader.QTime} ms`)
       return result.response.docs.map(d => ({
         ...d,
         words: lodash.take(d.words, 10),
-      }));
+      }))
     })
-    .then(results => lodash.keyBy(results, 'uid'));
+    .then(results => lodash.keyBy(results, 'uid'))
 
-  debug('get topics links...');
+  debug('get topics links...')
 
   await Object.keys(topics).reduce(async (promise, topicUid) => {
-  // await ['tmrero-fr-alpha_tp47_fr'].reduce(async (promise, topicUid) => {
-    await promise;
-    debug('topic:', topicUid);
+    // await ['tmrero-fr-alpha_tp47_fr'].reduce(async (promise, topicUid) => {
+    await promise
+    debug('topic:', topicUid)
     const result = await solrClient.findAll({
       q: `topics_dpfs:${topicUid}`,
       limit: 0,
-      skip: 0,
+      offset: 0,
       fl: 'id',
       // facets: JSON.stringify({
       //   topic: {
@@ -48,8 +52,8 @@ async function waterfall() {
       //   },
       // }),
       namespace: 'search',
-    });
-    topics[topicUid].countItems = result.response.numFound;
+    })
+    topics[topicUid].countItems = result.response.numFound
     // if (!result.facets.topic) {
     //   console.warn('the topic does not seem to exist...', result.facets, result.response);
     //   topics[topicUid].relatedTopics = [];
@@ -63,19 +67,21 @@ async function waterfall() {
     // }
     // enrich topic
     // console.log(result.facets.topic.buckets);
-  }, Promise.resolve());
+  }, Promise.resolve())
 
-  debug('saving', Object.keys(topics).length, 'topics...');
+  debug('saving', Object.keys(topics).length, 'topics...')
 
-  const fileName = './data/topics.json';
-  fs.writeFileSync(fileName, JSON.stringify(topics));
-  debug(`success, saved ${fileName}`);
+  const fileName = './data/topics.json'
+  fs.writeFileSync(fileName, JSON.stringify(topics))
+  debug(`success, saved ${fileName}`)
 }
 
-waterfall().then(() => {
-  debug('done, exit.'); // prints 60 after 2 seconds.
-  process.exit(0);
-}).catch((err) => {
-  console.log(err);
-  process.exit(1);
-});
+waterfall()
+  .then(() => {
+    debug('done, exit.') // prints 60 after 2 seconds.
+    process.exit(0)
+  })
+  .catch(err => {
+    console.log(err)
+    process.exit(1)
+  })

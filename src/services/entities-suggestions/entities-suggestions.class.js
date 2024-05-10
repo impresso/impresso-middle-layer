@@ -12,7 +12,7 @@ const { measureTime } = require('../../util/instruments')
  *  countItems: number,
  *  countMentions: number,
  * }} Entity
- * @typedef {{ limit: number, skip: number, total: number }} Pagination
+ * @typedef {{ limit: number, offset: number, total: number }} Pagination
  */
 
 const EntitySolrFields = Object.freeze({
@@ -113,7 +113,7 @@ function getPaginationFromSolrResponse(response, limit) {
   return {
     limit,
     total: response.response.numFound,
-    skip: response.response.start,
+    offset: response.response.start,
   }
 }
 
@@ -147,7 +147,7 @@ class EntitiesSuggestions {
           findAllOnly: true,
           query: {
             limit: entities.length,
-            skip: 0,
+            offset: 0,
           },
           where: whereClause,
         }),

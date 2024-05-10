@@ -41,7 +41,7 @@ const { filtersToQueryAndVariables } = require('../../util/solr')
 function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
   const { query } = filtersToQueryAndVariables(filters)
 
-  const facets = facetsRequests.reduce((acc, { type, skip, limit }) => {
+  const facets = facetsRequests.reduce((acc, { type, offset, limit }) => {
     const facet = SolrMappings.search.facets[type]
     if (facet == null) throw new BadRequest(`Unknown facet type: "${type}"`)
 
@@ -70,7 +70,7 @@ function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
       ...acc,
       [type]: {
         ...facet,
-        offset: skip == null ? facet.skip : skip,
+        offset: offset == null ? facet.offset : offset,
         limit: limit == null ? facet.limit : limit,
       },
     }

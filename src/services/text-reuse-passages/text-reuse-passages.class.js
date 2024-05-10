@@ -51,7 +51,7 @@ export class TextReusePassages {
           q: query,
           fl,
           rows: params.query.limit,
-          start: params.query.skip,
+          start: params.query.offset,
           sort,
           ...groupby,
         },
@@ -69,7 +69,7 @@ export class TextReusePassages {
           }),
           total: response.numFound, // "<total number of records>",
           limit: params.query.limit, // "<max number of items per page>",
-          skip: params.query.skip, // "<number of skipped items (offset)>",
+          offset: params.query.offset, // "<number of skipped items (offset)>",
           // org: response.docs,
           info: {
             responseTime: {

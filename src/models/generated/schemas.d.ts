@@ -162,9 +162,9 @@ export interface BaseFind {
    */
   limit: number;
   /**
-   * The number of items skipped in this response
+   * Starting index of the items subset returned in this response
    */
-  skip: number;
+  offset: number;
   /**
    * The total number of items matching the query
    */
@@ -399,7 +399,7 @@ export interface Newspaper {
    */
   startYear: string;
   firstIssue: NewspaperIssue;
-  lastIssue: NewspaperIssue1;
+  lastIssue: NewspaperIssue;
   /**
    * The number of articles in the newspaper
    */
@@ -440,43 +440,7 @@ export interface NewspaperProperty {
   isUrl?: boolean;
   [k: string]: unknown;
 }
-/**
- * First available issue of the newspaper
- */
 export interface NewspaperIssue {
-  /**
-   * The unique identifier of the issue
-   */
-  uid: string;
-  /**
-   * TODO
-   */
-  cover: string;
-  /**
-   * The labels of the issue
-   */
-  labels: string[];
-  /**
-   * TODO
-   */
-  fresh: boolean;
-  /**
-   * TODO: list available options
-   */
-  accessRights: string;
-  /**
-   * The date of the issue
-   */
-  date: string;
-  /**
-   * The year of the issue
-   */
-  year: string;
-}
-/**
- * Last available issue of the newspaper
- */
-export interface NewspaperIssue1 {
   /**
    * The unique identifier of the issue
    */
@@ -721,7 +685,7 @@ export interface Newspaper {
    */
   startYear: string;
   firstIssue: NewspaperIssue;
-  lastIssue: NewspaperIssue1;
+  lastIssue: NewspaperIssue;
   /**
    * The number of articles in the newspaper
    */
@@ -762,43 +726,7 @@ export interface NewspaperProperty {
   isUrl?: boolean;
   [k: string]: unknown;
 }
-/**
- * First available issue of the newspaper
- */
 export interface NewspaperIssue {
-  /**
-   * The unique identifier of the issue
-   */
-  uid: string;
-  /**
-   * TODO
-   */
-  cover: string;
-  /**
-   * The labels of the issue
-   */
-  labels: string[];
-  /**
-   * TODO
-   */
-  fresh: boolean;
-  /**
-   * TODO: list available options
-   */
-  accessRights: string;
-  /**
-   * The date of the issue
-   */
-  date: string;
-  /**
-   * The year of the issue
-   */
-  year: string;
-}
-/**
- * Last available issue of the newspaper
- */
-export interface NewspaperIssue1 {
   /**
    * The unique identifier of the issue
    */
@@ -882,37 +810,12 @@ export interface Year {
    */
   uid?: number;
   values?: YearWeights;
-  refs?: YearWeights1;
+  refs?: YearWeights;
 }
 /**
- * Weights values (TODO)
+ * Total items counts within a year
  */
 export interface YearWeights {
-  /**
-   * Number of content items
-   */
-  c?: number;
-  /**
-   * Number of articles
-   */
-  a?: number;
-  /**
-   * Number of pages
-   */
-  p?: number;
-  /**
-   * Number of issues
-   */
-  i?: number;
-  /**
-   * Number of images (with or without vectors)
-   */
-  m?: number;
-}
-/**
- * Weights references (TODO)
- */
-export interface YearWeights1 {
   /**
    * Number of content items
    */
@@ -1024,7 +927,7 @@ export interface Newspaper {
    */
   startYear: string;
   firstIssue: NewspaperIssue;
-  lastIssue: NewspaperIssue1;
+  lastIssue: NewspaperIssue;
   /**
    * The number of articles in the newspaper
    */
@@ -1065,43 +968,7 @@ export interface NewspaperProperty {
   isUrl?: boolean;
   [k: string]: unknown;
 }
-/**
- * First available issue of the newspaper
- */
 export interface NewspaperIssue {
-  /**
-   * The unique identifier of the issue
-   */
-  uid: string;
-  /**
-   * TODO
-   */
-  cover: string;
-  /**
-   * The labels of the issue
-   */
-  labels: string[];
-  /**
-   * TODO
-   */
-  fresh: boolean;
-  /**
-   * TODO: list available options
-   */
-  accessRights: string;
-  /**
-   * The date of the issue
-   */
-  date: string;
-  /**
-   * The year of the issue
-   */
-  year: string;
-}
-/**
- * Last available issue of the newspaper
- */
-export interface NewspaperIssue1 {
   /**
    * The unique identifier of the issue
    */
@@ -1185,37 +1052,12 @@ export interface Year {
    */
   uid?: number;
   values?: YearWeights;
-  refs?: YearWeights1;
+  refs?: YearWeights;
 }
 /**
- * Weights values (TODO)
+ * Total items counts within a year
  */
 export interface YearWeights {
-  /**
-   * Number of content items
-   */
-  c?: number;
-  /**
-   * Number of articles
-   */
-  a?: number;
-  /**
-   * Number of pages
-   */
-  p?: number;
-  /**
-   * Number of issues
-   */
-  i?: number;
-  /**
-   * Number of images (with or without vectors)
-   */
-  m?: number;
-}
-/**
- * Weights references (TODO)
- */
-export interface YearWeights1 {
   /**
    * Number of content items
    */
@@ -1576,37 +1418,12 @@ export interface Year {
    */
   uid?: number;
   values?: YearWeights;
-  refs?: YearWeights1;
+  refs?: YearWeights;
 }
 /**
- * Weights values (TODO)
+ * Total items counts within a year
  */
 export interface YearWeights {
-  /**
-   * Number of content items
-   */
-  c?: number;
-  /**
-   * Number of articles
-   */
-  a?: number;
-  /**
-   * Number of pages
-   */
-  p?: number;
-  /**
-   * Number of issues
-   */
-  i?: number;
-  /**
-   * Number of images (with or without vectors)
-   */
-  m?: number;
-}
-/**
- * Weights references (TODO)
- */
-export interface YearWeights1 {
   /**
    * Number of content items
    */

@@ -50,14 +50,14 @@ const TypeToMentionField = Object.freeze({
   location: Fields.LocationMentions,
 })
 
-function buildLinkedMentionsSolrQuery(entityId, skip = 0, limit = 4) {
+function buildLinkedMentionsSolrQuery(entityId, offset = 0, limit = 4) {
   const facet = {
     mentionLabel: {
       type: 'terms',
       field: EntityMentionFields.MentionLabel,
       numBuckets: true,
       mincount: 1,
-      offset: skip,
+      offset,
       limit,
     },
   }
@@ -195,11 +195,11 @@ class EntityMentionsTimeline {
   }
 
   async create(body) {
-    const { entityId, mentionLabel, mentionType, timeResolution, filters = [], limit = 4, skip = 0 } = body
+    const { entityId, mentionLabel, mentionType, timeResolution, filters = [], limit = 4, offset = 0 } = body
 
     if (entityId) {
       // Get linked entities
-      const linkedMentionsQuery = buildLinkedMentionsSolrQuery(body.entityId, skip, limit)
+      const linkedMentionsQuery = buildLinkedMentionsSolrQuery(body.entityId, offset, limit)
       const linkedMentionsPromise = this.solr
         .post(linkedMentionsQuery, this.solr.namespaces.EntitiesMentions)
         .then(getMentionLabelsFromSolrResponse)

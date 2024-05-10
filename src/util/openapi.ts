@@ -172,17 +172,17 @@ export const getStandardParameters = ({
           minimum: 1,
           maximum: maxPageSize ?? 1000,
         },
-        description: 'Total items to return',
+        description: 'Total items to return.',
       },
       {
         in: 'query',
-        name: 'skip',
+        name: 'offset',
         required: false,
         schema: {
           type: 'integer',
           minimum: 0,
         },
-        description: 'Items to skip',
+        description: 'Starting index of items set to return',
       },
     ]
   }

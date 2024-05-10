@@ -6,7 +6,7 @@ import { Filter } from '../../models'
 
 export interface FindQueyParameters {
   text?: string
-  skip?: number
+  offset?: number
   limit?: number
   order_by?: string
   filters?: string | Filter[]

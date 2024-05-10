@@ -1,81 +1,75 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
-const debug = require('debug')('impresso/services:SequelizeService');
-const { NotFound } = require('@feathersjs/errors');
-const sequelize = require('../sequelize');
-const { sequelizeErrorHandler } = require('./sequelize.utils');
+const debug = require('debug')('impresso/services:SequelizeService')
+const { NotFound } = require('@feathersjs/errors')
+const sequelize = require('../sequelize')
+const { sequelizeErrorHandler } = require('./sequelize.utils')
 
-function getCacheKeyForReadSqlRequest (request, modelName) {
-  const requestString = Buffer.from(JSON.stringify(request)).toString('base64');
-  return [
-    'cache',
-    'db',
-    modelName != null ? modelName : 'unk',
-    requestString,
-  ].join(':');
+function getCacheKeyForReadSqlRequest(request, modelName) {
+  const requestString = Buffer.from(JSON.stringify(request)).toString('base64')
+  return ['cache', 'db', modelName != null ? modelName : 'unk', requestString].join(':')
 }
 
 class SequelizeService {
-  constructor ({
-    name = '',
-    app = null,
-    modelName = null,
-    cacheReads = false,
-  } = {}) {
-    this.name = String(name);
-    this.modelName = String(modelName || name);
-    this.sequelize = sequelize.client(app.get('sequelize'));
+  constructor({ name = '', app = null, modelName = null, cacheReads = false } = {}) {
+    this.name = String(name)
+    this.modelName = String(modelName || name)
+    this.sequelize = sequelize.client(app.get('sequelize'))
 
-    this.Model = require(`../models/${this.modelName}.model`);
-    this.sequelizeKlass = this.Model.sequelize(this.sequelize);
+    this.Model = require(`../models/${this.modelName}.model`)
+    this.sequelizeKlass = this.Model.sequelize(this.sequelize)
 
-    this.cacheReads = cacheReads;
-    this.cacheManager = app.get('cacheManager');
+    this.cacheReads = cacheReads
+    this.cacheManager = app.get('cacheManager')
 
-    debug(`Configuring service: ${this.name} (model:${this.modelName}) success`);
+    debug(`Configuring service: ${this.name} (model:${this.modelName}) success`)
   }
 
-  async bulkCreate (items) {
-    return this.sequelizeKlass.bulkCreate(items, { ignoreDuplicates: true }).catch(this.onError);
+  async bulkCreate(items) {
+    return this.sequelizeKlass.bulkCreate(items, { ignoreDuplicates: true }).catch(this.onError)
   }
 
-  async create (item) {
-    return this.sequelizeKlass.create(item).catch(this.onError);
+  async create(item) {
+    return this.sequelizeKlass.create(item).catch(this.onError)
   }
 
-  onError (err) {
-    sequelizeErrorHandler(err);
+  onError(err) {
+    sequelizeErrorHandler(err)
   }
 
-  async bulkRemove (where) {
-    return this.sequelizeKlass.destroy({
-      where,
-    }).catch(this.onError);
+  async bulkRemove(where) {
+    return this.sequelizeKlass
+      .destroy({
+        where,
+      })
+      .catch(this.onError)
   }
 
-  async get (id, params) {
-    let fn = this.sequelizeKlass;
+  async get(id, params) {
+    let fn = this.sequelizeKlass
 
     const where = params.where || {
       id,
-    };
+    }
 
     if (params.scope) {
-      fn = this.sequelizeKlass.scope(params.scope);
+      fn = this.sequelizeKlass.scope(params.scope)
     }
-    debug(`'get' ${this.name} with params:`, params);
+    debug(`'get' ${this.name} with params:`, params)
 
-    const result = await fn.findOne({
-      where,
-    }).catch(this.onError);
+    const result = await fn
+      .findOne({
+        where,
+      })
+      .catch(this.onError)
 
     if (!result) {
-      throw new NotFound();
+      throw new NotFound()
     }
 
-    debug(`'get' ${this.name} success!`);
+    debug(`'get' ${this.name} success!`)
 
-    return result;
+    return result
   }
 
   /**
@@ -87,38 +81,42 @@ class SequelizeService {
    * @param  {[type]}  params [description]
    * @return {Promise}        [description]
    */
-  async patch (id, data, params) {
+  async patch(id, data, params) {
     if (id) {
       params.where = {
         ...params.where,
         id,
-      };
+      }
     }
-    debug(`[patch] ${this.name} (model:${this.modelName}) with params:`, params, 'field to update:', Object.keys(data));
-    return this.sequelizeKlass.update({
-      ...data,
-    }, {
-      // criteria
-      where: params.where,
-    }).then(() => ({
-      uid: id,
-      ...data,
-    }));
+    debug(`[patch] ${this.name} (model:${this.modelName}) with params:`, params, 'field to update:', Object.keys(data))
+    return this.sequelizeKlass
+      .update(
+        {
+          ...data,
+        },
+        {
+          // criteria
+          where: params.where,
+        }
+      )
+      .then(() => ({
+        uid: id,
+        ...data,
+      }))
   }
 
-  async rawSelect ({
-    query = '',
-    replacements = {},
-  } = {}) {
-    return this.sequelize.query(query, {
-      replacements,
-      type: this.sequelize.QueryTypes.SELECT,
-    }).catch(sequelizeErrorHandler);
+  async rawSelect({ query = '', replacements = {} } = {}) {
+    return this.sequelize
+      .query(query, {
+        replacements,
+        type: this.sequelize.QueryTypes.SELECT,
+      })
+      .catch(sequelizeErrorHandler)
   }
 
-  async find (params, ttl = undefined) {
-    const cacheKey = getCacheKeyForReadSqlRequest(params, this.modelName);
-    const cacheOptions = ttl != null ? { ttl } : {};
+  async find(params, ttl = undefined) {
+    const cacheKey = getCacheKeyForReadSqlRequest(params, this.modelName)
+    const cacheOptions = ttl != null ? { ttl } : {}
 
     // we should be sure that ONLY those ones are in place.
     // should you need more, you can use this.sequelizeKlass
@@ -126,74 +124,70 @@ class SequelizeService {
     const p = {
       // for paginations.
       limit: params.limit || params.query.limit,
-      offset: params.skip || params.query.skip,
+      offset: params.offset || params.query.offset,
       order: params.order_by || params.query.order_by,
-    };
+    }
 
     if (params.where) {
-      p.where = params.where;
+      p.where = params.where
     }
     if (params.group) {
-      p.group = params.group;
+      p.group = params.group
     }
 
     // force distinct if needed
     if (params.distinct) {
-      p.distinct = true;
-      const pk = this.sequelizeKlass.primaryKeyAttributes[0];
-      p.col = `${this.sequelizeKlass.name}.${this.sequelizeKlass.primaryKeys[pk].field}`;
+      p.distinct = true
+      const pk = this.sequelizeKlass.primaryKeyAttributes[0]
+      p.col = `${this.sequelizeKlass.name}.${this.sequelizeKlass.primaryKeys[pk].field}`
     }
 
-    debug(`'find' ${this.name} with params:`, p, 'where:', p.where);
+    debug(`'find' ${this.name} with params:`, p, 'where:', p.where)
 
-    let fn = this.sequelizeKlass;
+    let fn = this.sequelizeKlass
 
     if (params.scope) {
-      fn = this.sequelizeKlass.scope(params.scope);
+      fn = this.sequelizeKlass.scope(params.scope)
     }
 
-    const promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p);
+    const promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p)
     const dbResultPromise = promise
-      .then((res) => {
+      .then(res => {
         if (params.findAllOnly) {
-          debug(`'find' ${this.name} success, no count has been asked.`);
+          debug(`'find' ${this.name} success, no count has been asked.`)
           return {
             rows: res,
             count: -1,
-          };
+          }
         }
-        debug(`'find' ${this.name} success, n.results:`, res.count);
-        return res;
+        debug(`'find' ${this.name} success, n.results:`, res.count)
+        return res
       })
       .then(res => ({
         data: res.rows.map(d => d.toJSON()),
         total: res.count,
         limit: params.query.limit,
-        skip: params.query.skip,
+        offset: params.query.offset,
         info: {
           query: {
             filters: params.query.filters,
             limit: params.query.limit,
-            skip: params.query.skip,
+            offset: params.query.offset,
           },
         },
-      }));
+      }))
 
     const cachedPromise = this.cacheReads
-      ? this.cacheManager.wrap(
-        cacheKey,
-        () => dbResultPromise,
-        cacheOptions,
-      )
-      : dbResultPromise;
+      ? this.cacheManager.wrap(cacheKey, () => dbResultPromise, cacheOptions)
+      : dbResultPromise
 
-    return cachedPromise.catch(sequelizeErrorHandler);
+    return cachedPromise.catch(sequelizeErrorHandler)
   }
 }
 
 module.exports = function (options) {
-  return new SequelizeService(options);
-};
+  return new SequelizeService(options)
+}
 
-module.exports.Service = SequelizeService;
-module.exports.getCacheKeyForReadSqlRequest = getCacheKeyForReadSqlRequest;
+module.exports.Service = SequelizeService
+module.exports.getCacheKeyForReadSqlRequest = getCacheKeyForReadSqlRequest

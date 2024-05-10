@@ -33,16 +33,13 @@
     "order_by": {
       "type": "string",
       "description": "Order intersection items by this value",
-      "enum": ["relevance", "-relevance", "name", "-name","count","-count", "count-mentions", "-count-mentions"]
+      "enum": ["relevance", "-relevance", "name", "-name", "count", "-count", "count-mentions", "-count-mentions"]
     },
     "limit": {
       "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit"
     },
     "offset": {
       "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/offset"
-    },
-    "skip": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/skip"
     },
     "page": {
       "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/page"

@@ -71,7 +71,7 @@ MATCH (u:user)-[:subscribed_to]->(pro:Project {uid: {Project}})
 {{/uid}}
 WITH u, pro, 1 as _total
 RETURN u, _total
-SKIP {skip}
+SKIP {offset}
 LIMIT {limit}
 
 // name: remove

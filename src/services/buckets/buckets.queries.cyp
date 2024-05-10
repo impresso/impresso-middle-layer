@@ -22,7 +22,7 @@ WITH buc, _total
 {{#order_by}}
 ORDER BY {{order_by}}
 {{/order_by}}
-SKIP {skip}
+SKIP {offset}
 LIMIT {limit}
 RETURN buc, _total
 // WITH buc, _total
