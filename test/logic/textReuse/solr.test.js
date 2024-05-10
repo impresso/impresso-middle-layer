@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('assert')
 const {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
@@ -7,13 +7,13 @@ const {
   convertClustersSolrResponseToClusters,
 
   DefaultClusterFields,
-} = require('../../../src/logic/textReuse/solr');
-const { validated } = require('../../../src/util/json');
+} = require('../../../src/logic/textReuse/solr')
+const { validated } = require('../../../src/util/json')
 
 const PassageSchemaUri =
-  'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json';
+  'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json'
 const ClusterSchemaUri =
-  'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json';
+  'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json'
 
 const passagesSolrResponse = {
   responseHeader: {
@@ -58,7 +58,7 @@ const passagesSolrResponse = {
       },
     ],
   },
-};
+}
 
 const clustersSolrResponse = {
   responseHeader: {
@@ -91,7 +91,7 @@ const clustersSolrResponse = {
       },
     ],
   },
-};
+}
 
 describe('getTextReusePassagesRequestForArticle', () => {
   it('returns expected response', () => {
@@ -99,14 +99,14 @@ describe('getTextReusePassagesRequestForArticle', () => {
       q: 'ci_id_s:abc123',
       hl: false,
       rows: 100,
-    };
-    const queryParameters = getTextReusePassagesRequestForArticle('abc123');
-    assert.deepEqual(queryParameters, expectedQueryParameters);
-  });
+    }
+    const queryParameters = getTextReusePassagesRequestForArticle('abc123')
+    assert.deepEqual(queryParameters, expectedQueryParameters)
+  })
   it('raises an error when no ID is provided', () => {
-    assert.throws(() => getTextReusePassagesRequestForArticle(null));
-  });
-});
+    assert.throws(() => getTextReusePassagesRequestForArticle(null))
+  })
+})
 
 describe('convertPassagesSolrResponseToPassages', () => {
   it('converts real response correctly', () => {
@@ -125,31 +125,31 @@ describe('convertPassagesSolrResponseToPassages', () => {
         pageNumbers: [4],
         pageRegions: [[2600, 1873, 761, 208]],
       },
-    ];
+    ]
 
     const passages = convertPassagesSolrResponseToPassages(passagesSolrResponse).map(p =>
       validated(p, PassageSchemaUri)
-    );
-    assert.deepEqual(passages, expectedPassages);
-  });
-});
+    )
+    assert.deepEqual(passages, expectedPassages)
+  })
+})
 
 describe('getTextReuseClustersRequestForIds', () => {
   it('returns expected response', () => {
-    const queryParameters = getTextReuseClustersRequestForIds(['abc123', 'cde123']);
+    const queryParameters = getTextReuseClustersRequestForIds(['abc123', 'cde123'])
     const expectedQueryParameters = {
       q: 'id:abc123 OR id:cde123',
       rows: 2,
       hl: false,
       fl: DefaultClusterFields.join(','),
-    };
+    }
 
-    assert.deepEqual(queryParameters, expectedQueryParameters);
-  });
-});
+    assert.deepEqual(queryParameters, expectedQueryParameters)
+  })
+})
 
 describe('convertClustersSolrResponseToClusters', () => {
-  const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse).map(c => validated(c, ClusterSchemaUri));
+  const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse).map(c => validated(c, ClusterSchemaUri))
   const expectedClusters = [
     {
       id: '163208759161',
@@ -160,7 +160,7 @@ describe('convertClustersSolrResponseToClusters', () => {
         to: '1972-12-02',
       },
     },
-  ];
+  ]
 
-  assert.deepStrictEqual(clusters, expectedClusters);
-});
+  assert.deepStrictEqual(clusters, expectedClusters)
+})

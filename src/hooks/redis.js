@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
-const debug = require('debug')('impresso/hooks:redis');
-const feathers = require('@feathersjs/feathers');
-const { generateHash } = require('../crypto');
+const debug = require('debug')('impresso/hooks:redis')
+const feathers = require('@feathersjs/feathers')
+const { generateHash } = require('../crypto')
 
 /**
  * Use in Before hooks. Looks for cache content; if the result exists,
@@ -118,34 +118,34 @@ const returnCachedContents =
  */
 const saveResultsInCache = () => async context => {
   if (context.params.isCached) {
-    debug('saveResultsInCache: skipping saving, cached content already served.');
-    return;
+    debug('saveResultsInCache: skipping saving, cached content already served.')
+    return
   }
   if (!context.params.cacheKey) {
-    return;
+    return
   }
-  const client = context.app.service('redisClient').client;
+  const client = context.app.service('redisClient').client
   if (!client) {
-    return;
+    return
   }
   if (!context.result || !Object.keys(context.result).length) {
-    debug('saveResultsInCache: skipping, errors found in result!');
+    debug('saveResultsInCache: skipping, errors found in result!')
     // due to errors
-    return;
+    return
   }
-  debug('saveResultsInCache', context.params.cacheKey);
+  debug('saveResultsInCache', context.params.cacheKey)
   if (!context.app.get('cache').enabled) {
-    debug('checkCachedContents: disabled by config');
-    return;
+    debug('checkCachedContents: disabled by config')
+    return
   }
   if (!context.params.isCached || context.app.get('cache').override) {
     // do not override cached contents. See returnCachedContents
-    await client.set(context.params.cacheKey, JSON.stringify(context.result));
+    await client.set(context.params.cacheKey, JSON.stringify(context.result))
   }
-};
+}
 
 module.exports = {
   checkCachedContents,
   returnCachedContents,
   saveResultsInCache,
-};
+}

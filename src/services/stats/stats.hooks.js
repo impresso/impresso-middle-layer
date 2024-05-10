@@ -18,7 +18,7 @@ const SupportedDomainsByIndex = SupportedIndexes.reduce((acc, index) => {
   return acc
 }, {})
 
-const deserializeFilters = (serializedFilters) => {
+const deserializeFilters = serializedFilters => {
   if (serializedFilters == null) return []
   try {
     return protobuf.searchQuery.deserialize(serializedFilters).filters || []
@@ -27,7 +27,7 @@ const deserializeFilters = (serializedFilters) => {
   }
 }
 
-function parseAndValidateQueryParameters (context) {
+function parseAndValidateQueryParameters(context) {
   const {
     facet = '',
     index = 'search',
@@ -41,31 +41,21 @@ function parseAndValidateQueryParameters (context) {
   const supportedFacets = SupportedFacetsByIndex[index]
   assert.ok(
     supportedFacets.includes(facet),
-    new BadRequest(
-      `Unknown facet "${facet}". Must be one of: ${supportedFacets.join(', ')}`
-    )
+    new BadRequest(`Unknown facet "${facet}". Must be one of: ${supportedFacets.join(', ')}`)
   )
 
   const supportedDomains = SupportedDomainsByIndex[index]
   assert.ok(
     supportedDomains.includes(domain),
-    new BadRequest(
-      `Unknown domain "${facet}". Must be one of: ${supportedDomains.join(
-        ', '
-      )}`
-    )
+    new BadRequest(`Unknown domain "${facet}". Must be one of: ${supportedDomains.join(', ')}`)
   )
 
   const stats = statsString == null ? DefaultStats : statsString.split(',')
-  const unknownStats = stats.filter((stat) => !SupportedStats.includes(stat))
+  const unknownStats = stats.filter(stat => !SupportedStats.includes(stat))
   assert.strictEqual(
     unknownStats.length,
     0,
-    new BadRequest(
-      `Unknown stats: ${unknownStats.join(
-        ', '
-      )}. Supported stats: ${SupportedStats.join(', ')}`
-    )
+    new BadRequest(`Unknown stats: ${unknownStats.join(', ')}. Supported stats: ${SupportedStats.join(', ')}`)
   )
 
   const filters = deserializeFilters(serializedFilters)
@@ -83,13 +73,11 @@ function parseAndValidateQueryParameters (context) {
 }
 
 /** validate index against supportedIndex */
-const validateIndex = (context) => {
+const validateIndex = context => {
   debug('[hooks.before] validateIndex', context.params)
   const { index } = context.params.query
   if (!SupportedIndexes.includes(index)) {
-    throw new BadRequest(
-      `Invalid index: ${index}. Must be one of: ${SupportedIndexes}`
-    )
+    throw new BadRequest(`Invalid index: ${index}. Must be one of: ${SupportedIndexes}`)
   }
   debug('[hooks.before] validateIndex', '- index:', index)
 }
@@ -98,20 +86,14 @@ const validateIndex = (context) => {
  * Validate stats parameter
  * @param {Object} context
  */
-const validateStats = (context) => {
+const validateStats = context => {
   debug('[hooks.before] validateStats')
   const { stats } = context.params.query
 
   if (stats) {
-    const unknownStats = stats
-      .split(',')
-      .filter((stat) => !SupportedStats.includes(stat))
+    const unknownStats = stats.split(',').filter(stat => !SupportedStats.includes(stat))
     if (unknownStats.length > 0) {
-      throw new BadRequest(
-        `Invalid stats: ${unknownStats.join(
-          ', '
-        )}. Must be one of: ${SupportedStats}`
-      )
+      throw new BadRequest(`Invalid stats: ${unknownStats.join(', ')}. Must be one of: ${SupportedStats}`)
     }
   } else {
     context.params.query.stats = DefaultStats
@@ -124,7 +106,7 @@ const validateStats = (context) => {
  * Make sure that index is validated before this hook is called.
  * @param {Object} context
  */
-const validateGroupByAfterIndex = (context) => {
+const validateGroupByAfterIndex = context => {
   debug('[hooks.before] validateIndexAndGroupby', context.params)
   const { index, groupby } = context.params.query
 
@@ -135,16 +117,9 @@ const validateGroupByAfterIndex = (context) => {
       )
     }
     // translate groupby to solr field
-    context.params.query.groupby =
-      statsConfiguration.indexes[index].facets.term[groupby].field
+    context.params.query.groupby = statsConfiguration.indexes[index].facets.term[groupby].field
   }
-  debug(
-    '[hooks.before] validateIndexAndGroupby',
-    '- index:',
-    index,
-    '- groupby:',
-    context.params.query.groupby
-  )
+  debug('[hooks.before] validateIndexAndGroupby', '- index:', index, '- groupby:', context.params.query.groupby)
 }
 
 module.exports = {
@@ -154,25 +129,19 @@ module.exports = {
       validateIndex,
       validateGroupByAfterIndex,
       // validate id (stats field) after we validate the index
-      (context) => {
+      context => {
         const { id } = context
         const { index } = context.params.query
         if (!SupportedFacetsByIndex[index].includes(id)) {
-          throw new BadRequest(
-            `Invalid ID for index ${index}: ${id}. Must be one of: ${SupportedFacetsByIndex[index]}`
-          )
+          throw new BadRequest(`Invalid ID for index ${index}: ${id}. Must be one of: ${SupportedFacetsByIndex[index]}`)
         }
       },
       // parse filters
-      (context) => {
+      context => {
         const { filters } = context.params.query
         context.params.query.filters = deserializeFilters(filters)
       },
     ],
-    find: [
-      validateIndex,
-      validateGroupByAfterIndex,
-      parseAndValidateQueryParameters,
-    ],
+    find: [validateIndex, validateGroupByAfterIndex, parseAndValidateQueryParameters],
   },
 }

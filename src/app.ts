@@ -7,6 +7,7 @@ import rateLimiter from './services/internal/rateLimiter/redis'
 import redis from './redis'
 import { feathers } from '@feathersjs/feathers'
 import sequelize from './sequelize'
+import celery from './celery'
 import solr from './solr'
 import media from './services/media'
 import proxy from './services/proxy'
@@ -27,7 +28,6 @@ const appHooks = require('./app.hooks')
 
 const authentication = require('./authentication')
 
-const celery = require('./celery')
 const channels = require('./channels')
 const multer = require('./multer')
 const cache = require('./cache')

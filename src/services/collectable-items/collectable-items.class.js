@@ -1,37 +1,37 @@
 /* eslint-disable no-unused-vars */
-const lodash = require('lodash');
-const debug = require('debug')('impresso/services/collectable-items');
-const { NotFound } = require('@feathersjs/errors');
-const { Op } = require('sequelize');
+const lodash = require('lodash')
+const debug = require('debug')('impresso/services/collectable-items')
+const { NotFound } = require('@feathersjs/errors')
+const { Op } = require('sequelize')
 
-const SequelizeService = require('../sequelize.service');
-const CollectableItemGroup = require('../../models/collectable-items-groups.model');
-const { STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED } = require('../../models/collections.model');
-const { measureTime } = require('../../util/instruments');
+const SequelizeService = require('../sequelize.service')
+const CollectableItemGroup = require('../../models/collectable-items-groups.model')
+const { STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED } = require('../../models/collections.model')
+const { measureTime } = require('../../util/instruments')
 
 class Service {
   constructor({ name = '', app = null } = {}) {
-    this.name = String(name);
-    this.app = app;
+    this.name = String(name)
+    this.app = app
     this.SequelizeService = SequelizeService({
       app,
       name,
-    });
+    })
   }
 
   async find(params) {
     // simplified where for sequelize raw queries.
-    const where = [{ '[Op.not]': [{ 'collection.status': STATUS_DELETED }] }];
+    const where = [{ '[Op.not]': [{ 'collection.status': STATUS_DELETED }] }]
 
     if (params.sanitized.item_uids) {
       where.push({
         item_id: params.sanitized.item_uids,
-      });
+      })
     }
     if (params.sanitized.collection_uids) {
       where.push({
         collection_id: params.sanitized.collection_uids,
-      });
+      })
     }
     if (params.user.id && params.authenticated) {
       where.push({
@@ -39,9 +39,9 @@ class Service {
           { 'collection.creator_id': params.user.id },
           { 'collection.status': [STATUS_PUBLIC, STATUS_SHARED] },
         ],
-      });
+      })
     } else {
-      where.push({ 'collection.status': [STATUS_PUBLIC, STATUS_SHARED] });
+      where.push({ 'collection.status': [STATUS_PUBLIC, STATUS_SHARED] })
     }
 
     const whereReducer = (sum, clause) => {
@@ -54,21 +54,21 @@ class Service {
       // });
       Object.keys(clause).forEach(k => {
         if (k === '[Op.not]') {
-          sum.push(`NOT (${clause[k].reduce(whereReducer, []).join(' AND ')})`);
+          sum.push(`NOT (${clause[k].reduce(whereReducer, []).join(' AND ')})`)
         } else if (k === '[Op.or]') {
-          sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`);
+          sum.push(`(${clause[k].reduce(whereReducer, []).join(' OR ')})`)
         } else if (Array.isArray(clause[k])) {
-          sum.push(`${k} IN ('${clause[k].join("','")}')`);
+          sum.push(`${k} IN ('${clause[k].join("','")}')`)
         } else {
-          sum.push(`${k} = '${clause[k]}'`);
+          sum.push(`${k} = '${clause[k]}'`)
         }
-      });
-      return sum;
-    };
+      })
+      return sum
+    }
 
-    const reducedWhere = where.reduce(whereReducer, []).join(' AND ');
+    const reducedWhere = where.reduce(whereReducer, []).join(' AND ')
 
-    debug("'find' fetch with reduced where clause:", reducedWhere);
+    debug("'find' fetch with reduced where clause:", reducedWhere)
     const results = await Promise.all([
       measureTime(
         () =>
@@ -116,11 +116,11 @@ class Service {
       limit: params.query.limit,
       skip: params.query.skip,
       total: rs[1][0].total,
-    }));
+    }))
 
-    debug("'find' success! n. results:", results.total, ' - where clause:', reducedWhere);
+    debug("'find' success! n. results:", results.total, ' - where clause:', reducedWhere)
     if (!results.total) {
-      return results;
+      return results
     }
 
     const resolvable = {
@@ -128,28 +128,28 @@ class Service {
         service: 'collections',
         uids: lodash(results.data).map('collectionIds').flatten().uniq().value(),
       },
-    };
+    }
 
     // user asked specifically to fill item data.
     if (params.sanitized.resolve === 'item') {
       // collect items uids
       results.data.forEach(d => {
         // add uid to list of uid per service.
-        const service = d.getService();
+        const service = d.getService()
         if (!resolvable[service]) {
           resolvable[service] = {
             service,
             uids: [d.itemId],
-          };
+          }
         } else {
-          resolvable[service].uids.push(d.itemId);
+          resolvable[service].uids.push(d.itemId)
         }
-      });
+      })
     }
 
-    results.toBeResolved = Object.values(resolvable);
+    results.toBeResolved = Object.values(resolvable)
 
-    return results;
+    return results
     // // console.log(results);
     // const groups = {
     //   article: {
@@ -197,18 +197,18 @@ class Service {
     // get collection, only if it does belongs to the user
     const collection = await this.app.service('collections').get(data.sanitized.collection_uid, {
       user: params.user,
-    });
+    })
     if (!collection) {
-      throw new NotFound();
+      throw new NotFound()
     }
     const items = data.sanitized.items.map(d => ({
       itemId: d.uid,
       contentType: d.content_type,
       collectionId: collection.uid,
-    }));
-    debug('[create] with items:', items);
-    const results = await this.SequelizeService.bulkCreate(items);
-    const client = this.app.get('celeryClient');
+    }))
+    debug('[create] with items:', items)
+    const results = await this.SequelizeService.bulkCreate(items)
+    const client = this.app.get('celeryClient')
     if (client) {
       client.run({
         task: 'impresso.tasks.store_collection',
@@ -217,7 +217,7 @@ class Service {
           collection.uid,
           items.map(d => d.itemId),
         ],
-      });
+      })
     }
 
     return {
@@ -225,16 +225,16 @@ class Service {
       info: {
         created: results.length,
       },
-    };
+    }
   }
 
   async remove(id, params) {
     // get collection, only if it does belongs to the user
     const collection = await this.app.service('collections').get(params.sanitized.collection_uid, {
       user: params.user,
-    });
+    })
     if (!collection) {
-      throw new NotFound();
+      throw new NotFound()
     }
     const results = await this.SequelizeService.sequelizeKlass.destroy({
       where: {
@@ -243,9 +243,9 @@ class Service {
           collectionId: params.sanitized.collection_uid,
         })),
       },
-    });
-    debug('[remove] item:', id, parseInt(results, 10));
-    const client = this.app.get('celeryClient');
+    })
+    debug('[remove] item:', id, parseInt(results, 10))
+    const client = this.app.get('celeryClient')
     if (client) {
       client.run({
         task: 'impresso.tasks.store_collection',
@@ -255,17 +255,17 @@ class Service {
           params.sanitized.items.map(({ uid }) => uid),
           'METHOD_DEL_FROM_INDEX',
         ],
-      });
+      })
     }
     return {
       params: params.sanitized,
       removed: parseInt(results, 10),
-    };
+    }
   }
 }
 
 module.exports = function (options) {
-  return new Service(options);
-};
+  return new Service(options)
+}
 
-module.exports.Service = Service;
+module.exports.Service = Service
