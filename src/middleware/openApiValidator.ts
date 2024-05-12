@@ -41,7 +41,7 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
     },
     validateApiSpec: true,
     useRequestUrl: false,
-    ignoreUndocumented: false,
+    ignoreUndocumented: true,
   }
   const middlewares = OpenApiValidator.middleware({
     ...options,
@@ -72,9 +72,12 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
  * See https://feathersjs.com/api/hooks#setup-and-teardown.
  */
 export const init = async (context: HookContext<ImpressoApplication & Application>, next: NextFunction) => {
-  logger.info('Initialising OpenAPI validator middleware')
-
   const app = context.app
+
+  const isPublicApi = app.get('isPublicApi')
+  if (!isPublicApi) return await next()
+
+  logger.info('Initialising OpenAPI validator middleware')
 
   if (!('docs' in app))
     throw new Error('`docs` property not found in app object. Is swagger initialized? (app.use(swager))')
@@ -93,6 +96,7 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
   app.set('openApiValidatorMiddlewares', middlewares)
 
   logger.info('OpenAPI validator middleware intialised')
+  await next()
 }
 
 const dereferenceSpec = async (spec: OpenAPIV3.Document) => {

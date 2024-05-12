@@ -25,16 +25,17 @@ export default (app: ImpressoApplication & ExpressApplication) => {
   } else {
     logger.info('Internal API - enabling socketio transport')
 
-    void app.configure(
+    app.configure(
       socketio(
         {
           allowEIO3: true,
           cors: {
             credentials: true,
+            origin: app.get('allowedCorsOrigins') ?? [],
           },
         },
         io => {
-          logger.debug('registering socketio handler')
+          logger.info('Internal API - enabled socketio transport')
           io.on('connection', socket => {
             logger.debug('socket connected')
           })

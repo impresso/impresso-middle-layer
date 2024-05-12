@@ -50,6 +50,5 @@ export type ConfigurationType = FromSchema<typeof configurationSchema>
 const configurationValidator = getValidator(configurationSchema, new Ajv())
 
 export default function configuration() {
-  const x = feathersConfiguration(configurationValidator)
-  return x
+  return feathersConfiguration(configurationValidator)
 }

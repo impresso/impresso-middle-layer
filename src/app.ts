@@ -14,6 +14,9 @@ import proxy from './services/proxy'
 import schemas from './services/schemas'
 import solr from './solr'
 import { ensureServiceIsFeathersCompatible } from './util/feathers'
+import channels from './channels'
+import { ImpressoApplication } from './types'
+import { Application } from '@feathersjs/express'
 
 const path = require('path')
 const compress = require('compression')
@@ -28,12 +31,11 @@ const appHooks = require('./app.hooks')
 
 const authentication = require('./authentication')
 
-const channels = require('./channels')
 const multer = require('./multer')
 const cache = require('./cache')
 const cachedSolr = require('./cachedSolr')
 
-const app = express(feathers())
+const app: ImpressoApplication & Application = express(feathers())
 
 // Load app configuration
 app.configure(configuration())
@@ -69,12 +71,9 @@ app.use('/', express.static(path.join(__dirname, app.get('public'))))
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware)
-// configure channels
-app.configure(channels)
+
 // configure celery client task manage if celery config is available
 app.configure(celery)
-
-app.configure(appHooks)
 
 // configure express services
 app.configure(media)
@@ -100,5 +99,10 @@ app.configure(services)
 app.hooks({
   setup: [initOpenApiValidator],
 })
+app.configure(appHooks)
+
+// part of sockets.io (see transport), but must go after services are defined
+// because one of the services is used in the channels.
+app.configure(channels)
 
 module.exports = app
