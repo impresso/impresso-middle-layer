@@ -15,22 +15,13 @@ export default (app: ImpressoApplication & ExpressApplication) => {
     app.use(json())
     // Turn on URL-encoded parser for REST services
     app.use(urlencoded({ extended: true }))
-    app.configure(rest())
-
-    const allowedCorsOrigins = app.get('allowedCorsOrigins')
-
-    const origin = (requestOrigin: string | undefined, callback: (err: Error | null, origin?: string) => void) => {
-      const notAllowed =
-        allowedCorsOrigins === undefined || requestOrigin === undefined || !allowedCorsOrigins.includes(requestOrigin)
-      if (notAllowed) return callback(new Error('Not allowed by CORS'))
-      return callback(null, requestOrigin)
-    }
 
     app.use(
       cors({
-        origin: allowedCorsOrigins ?? [],
+        origin: app.get('allowedCorsOrigins') ?? [],
       })
     )
+    app.configure(rest())
   } else {
     logger.info('Internal API - enabling socketio transport')
 
