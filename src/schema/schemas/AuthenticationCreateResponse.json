@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Authentication Response",
+  "description": "Authentication Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "accessToken": {
+      "type": "string"
+    },
+    "authentication": {
+      "type": "object",
+      "properties": {
+        "strategy": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    },
+    "user": {
+      "$ref": "../schemas/User.json"
+    }
+  },
+  "required": ["accessToken", "authentication", "user"]
+}

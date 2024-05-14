@@ -8,15 +8,16 @@
     "filters": {
       "type": "array",
       "items": {
+        "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["status"],
+            "enum": ["status"]
           },
           "q": {
             "type": "string",
-            "enum": ["DEL", "RIP", "PRI"],
-          },
+            "enum": ["DEL", "RIP", "PRI"]
+          }
         }
       }
     },

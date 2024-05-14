@@ -1,4 +1,3 @@
-// @ts-check
 const { ArticlesSearch } = require('./articles-search.class');
 const hooks = require('./articles-search.hooks');
 

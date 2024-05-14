@@ -1,0 +1,33 @@
+name: Build and publish Docker image for Epic branch
+on:
+  # Trigger the workflow on push or pull request,
+  # for any `epic/<name>` branch
+  push:
+    branches:
+      - epic/*
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Fetch Prune Unshallow Tags
+      run: git fetch --prune --unshallow --tags
+    - name: Extract commit hash
+      shell: bash
+      run: echo "##[set-output name=hash;]$(git rev-parse --short ${GITHUB_SHA})"
+      id: extract_hash
+    - name: Extract branch name
+      shell: bash
+      run: echo "RELEASE_VERSION="$(git branch --show-current | sed "s/epic\///") >> $GITHUB_ENV
+    - name: Publish to Registry
+      uses: elgohr/Publish-Docker-Github-Action@master
+      env:
+        GIT_BRANCH: ${{ steps.extract_branch.outputs.branch }}
+        GIT_REVISION: ${{ steps.extract_hash.outputs.hash }}
+        GIT_TAG: ${{ env.RELEASE_VERSION }}
+      with:
+        name: impresso/impresso-middle-layer
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        buildargs: GIT_BRANCH,GIT_REVISION,GIT_TAG
+        tags: "${{ env.RELEASE_VERSION }}"

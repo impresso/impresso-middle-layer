@@ -1,4 +1,3 @@
-// @ts-check
 const { uniq, values, groupBy } = require('lodash');
 const { SolrNamespaces } = require('../../solr');
 const { sameTypeFiltersToQuery } = require('../../util/solr');

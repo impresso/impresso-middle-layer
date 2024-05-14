@@ -1,5 +1,7 @@
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { rateLimit } from '../../hooks/rateLimiter'
+
 const { protect } = require('@feathersjs/authentication-local').hooks
-const { authenticate } = require('../../hooks/authenticate')
 const {
   validate,
   validateEach,
@@ -9,25 +11,19 @@ const {
   utils,
 } = require('../../hooks/params')
 const { filtersToSolrQuery, qToSolrFilter } = require('../../hooks/search')
-const {
-  resolveQueryComponents,
-  filtersToSolrFacetQuery,
-} = require('../../hooks/search-info')
-const {
-  paramsValidator,
-  eachFilterValidator,
-  eachFacetFilterValidator,
-} = require('./search.validators')
+const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks/search-info')
+const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = require('./search.validators')
 const { SolrMappings } = require('../../data/constants')
 const { SolrNamespaces } = require('../../solr')
 
 module.exports = {
+  around: {
+    find: [authenticate({ allowUnauthenticated: true }), rateLimit()],
+    create: [authenticate()],
+  },
   before: {
     all: [],
     find: [
-      authenticate('jwt', {
-        allowUnauthenticated: true,
-      }),
       validate({
         ...paramsValidator,
         facets: utils.facets({
@@ -56,7 +52,6 @@ module.exports = {
     ],
     get: [],
     create: [
-      authenticate('jwt'),
       validate(
         {
           collection_uid: {
@@ -66,14 +61,11 @@ module.exports = {
           group_by: {
             required: true,
             choices: ['articles'],
-            transform: (d) => utils.translate(d, SolrMappings.search.groupBy),
+            transform: d => utils.translate(d, SolrMappings.search.groupBy),
           },
           taskname: {
             required: false,
-            choices: [
-              'add_to_collection_from_query',
-              'add_to_collection_from_tr_passages_query',
-            ],
+            choices: ['add_to_collection_from_query', 'add_to_collection_from_tr_passages_query'],
             defaultValue: 'add_to_collection_from_query',
           },
           index: {
@@ -91,8 +83,7 @@ module.exports = {
       filtersToSolrQuery({
         prop: 'data',
         overrideOrderBy: false,
-        solrIndexProvider: (context) =>
-          context.data.index || SolrNamespaces.Search,
+        solrIndexProvider: context => context.data.index || SolrNamespaces.Search,
       }),
     ],
     update: [],
@@ -102,11 +93,7 @@ module.exports = {
 
   after: {
     all: [],
-    find: [
-      displayQueryParams(['queryComponents', 'filters']),
-      resolveQueryComponents(),
-      protect('content'),
-    ],
+    find: [displayQueryParams(['queryComponents', 'filters']), resolveQueryComponents(), protect('content')],
     get: [],
     create: [],
     update: [],

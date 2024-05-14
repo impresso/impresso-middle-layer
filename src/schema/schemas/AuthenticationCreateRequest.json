@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Authentication Create Request",
+  "description": "Request body for the authentication endpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "strategy": { "type": "string", "enum": ["local"] },
+    "email": { "type": "string" },
+    "password": { "type": "string" }
+  },
+  "required": ["strategy", "email", "password"]
+}

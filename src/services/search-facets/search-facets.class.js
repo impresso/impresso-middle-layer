@@ -1,4 +1,3 @@
-// @ts-check
 const lodash = require('lodash')
 const { NotFound, NotImplemented, BadRequest } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:search-facets')
@@ -11,7 +10,7 @@ const getFacetTypes = (typeString, index) => {
   const validTypes = Object.keys(SolrMappings[index].facets)
   const types = typeString.split(',')
 
-  types.forEach((type) => {
+  types.forEach(type => {
     if (!validTypes.includes(type)) {
       throw new BadRequest(`Unknown facet type in index ${index}: ${type}`)
     }
@@ -26,7 +25,7 @@ const getFacetTypes = (typeString, index) => {
   return types
 }
 
-const getRangeFacetMetadata = (facet) => {
+const getRangeFacetMetadata = facet => {
   if (facet.type !== 'range') return {}
   return {
     min: facet.start,
@@ -36,15 +35,15 @@ const getRangeFacetMetadata = (facet) => {
 }
 
 class Service {
-  constructor ({ app, name }) {
+  constructor({ app, name }) {
     this.app = app
     this.name = name
 
     /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.get('cachedSolr')
+    this.solr = app.service('cachedSolr')
   }
 
-  async get (type, params) {
+  async get(type, params) {
     const { index } = params.query
     const types = getFacetTypes(type, index)
 
@@ -67,14 +66,13 @@ class Service {
       facetsq.include = params.sanitized.rangeInclude
     }
 
-    const canBeCached =
-      areCacheableFacets(types) && isCacheableQuery(params.sanitized.filters)
+    const canBeCached = areCacheableFacets(types) && isCacheableQuery(params.sanitized.filters)
 
     // facets is an Object, will be stringified for the solr query.
     // eslint-disable-next-line max-len
     // '{"newspaper":{"type":"terms","field":"meta_journal_s","mincount":1,"limit":20,"numBuckets":true}}'
     const facets = lodash(types)
-      .map((d) => {
+      .map(d => {
         const facet = {
           k: d,
           ...SolrMappings[index].facets[d],
@@ -87,7 +85,7 @@ class Service {
         return facet
       })
       .keyBy('k')
-      .mapValues((v) => lodash.omit(v, 'k'))
+      .mapValues(v => lodash.omit(v, 'k'))
       .value()
 
     debug(
@@ -114,10 +112,8 @@ class Service {
       () => this.solr.get(query, index, { skipCache: true }), //! canBeCached }),
       'search-facets.get.solr.facets'
     )
-    return types.map((t) => {
-      const rangeFacetMetadata = getRangeFacetMetadata(
-        SolrMappings[index].facets[t]
-      )
+    return types.map(t => {
+      const rangeFacetMetadata = getRangeFacetMetadata(SolrMappings[index].facets[t])
       // check that facetsq params are all defined
       if (!isNaN(facetsq.start)) {
         rangeFacetMetadata.min = facetsq.start
@@ -133,14 +129,12 @@ class Service {
         // default min max and gap values from default solr config
         ...result.facets[t],
         ...rangeFacetMetadata,
-        numBuckets: result.facets[t]
-          ? result.facets[t].numBuckets || result.facets[t].buckets.length
-          : 0,
+        numBuckets: result.facets[t] ? result.facets[t].numBuckets || result.facets[t].buckets.length : 0,
       })
     })
   }
 
-  async find (params) {
+  async find(params) {
     debug(`find '${this.name}': query:`, params.sanitized, params.sanitized.sv)
 
     // TODO: we may want to skip caching if facets requested contain 'collection'
@@ -167,12 +161,9 @@ class Service {
 
     const total = result.response.numFound
 
-    debug(
-      `find '${this.name}': SOLR found ${total} using SOLR params:`,
-      result.responseHeader.params
-    )
+    debug(`find '${this.name}': SOLR found ${total} using SOLR params:`, result.responseHeader.params)
     return {
-      data: Object.keys(result.facets).map((type) => {
+      data: Object.keys(result.facets).map(type => {
         if (typeof result.facets[type] === 'object') {
           return new SearchFacet({
             type,

@@ -5,37 +5,28 @@
   "title": "Text reuse passage",
   "description": "Represents a passage of text that was identified as a part of a text reuse cluster",
   "additionalProperties": false,
-  "required": [
-    "id",
-    "clusterId"
-  ],
+  "required": ["id", "clusterId"],
   "properties": {
     "id": {
       "type": "string",
       "title": "Passage ID",
       "description": "ID of the text reuse passage",
-      "examples": [
-        "abc123"
-      ],
-      "pattern": "^[\\w\\d-_@:]+$"
+      "examples": ["abc123"],
+      "pattern": "^[a-zA-Z0-9-_@:]+$"
     },
     "clusterId": {
       "type": "string",
       "title": "Cluster ID",
       "description": "ID of the text reuse cluster",
-      "examples": [
-        "abc123"
-      ],
-      "pattern": "^[\\w\\d-_]+$"
+      "examples": ["abc123"],
+      "pattern": "^[a-zA-Z0-9-_]+$"
     },
     "articleId": {
       "type": "string",
       "title": "Article ID",
       "description": "ID of the article where this passage was found",
-      "examples": [
-        "abc123"
-      ],
-      "pattern": "^[\\w\\d-_@]+$"
+      "examples": ["abc123"],
+      "pattern": "^[a-zA-Z0-9-_@]+$"
     },
     "offsetStart": {
       "$ref": "#/definitions/offset"

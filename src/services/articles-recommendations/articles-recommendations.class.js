@@ -1,9 +1,8 @@
-// @ts-check
-const { default: fetch } = require('node-fetch');
+const axios = require('axios')
 
 class ArticlesRecommendations {
-  constructor ({ recommenderServiceUrl }) {
-    this.recommenderServiceUrl = recommenderServiceUrl;
+  constructor({ recommenderServiceUrl }) {
+    this.recommenderServiceUrl = recommenderServiceUrl
   }
 
   /**
@@ -11,13 +10,14 @@ class ArticlesRecommendations {
    * @param {any} data payload
    * @returns {Promise<any>}
    */
-  async create (data) {
-    return fetch(this.recommenderServiceUrl, {
+  async create(data) {
+    return axios({
+      url: this.recommenderServiceUrl,
       method: 'POST',
       body: JSON.stringify(data),
       headers: { 'Content-Type': 'application/json' },
-    }).then(response => response.json());
+    }).then(response => response.json())
   }
 }
 
-module.exports = { ArticlesRecommendations };
+module.exports = { ArticlesRecommendations }

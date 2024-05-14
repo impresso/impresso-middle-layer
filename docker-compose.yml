@@ -16,3 +16,13 @@ services:
     ports:
       - 3306:3306
     command: ssh -N cli-mysql-tunnel
+  # uncomment to run impresso middle layer in docker
+  # iml:
+  #   image: impresso_middle_layer
+  #   restart: always
+  #   ports:
+  #     - 3030:3030
+  #   volumes:
+  #     - ./config:/impresso-middle-layer/config
+  #   environment:
+  #     - NODE_ENV=production

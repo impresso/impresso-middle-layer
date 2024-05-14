@@ -1,15 +1,7 @@
-// @ts-check
-const {
-  relevanceContextItemsToSolrFormula,
-  buildSolrQuery,
-  withScore,
-} = require('./logic');
-const { SolrNamespaces } = require('../../solr');
-const { filtersToQueryAndVariables } = require('../../util/solr');
-const {
-  getItemsFromSolrResponse,
-  getTotalFromSolrResponse,
-} = require('../search/search.extractors');
+const { relevanceContextItemsToSolrFormula, buildSolrQuery, withScore } = require('./logic')
+const { SolrNamespaces } = require('../../solr')
+const { filtersToQueryAndVariables } = require('../../util/solr')
+const { getItemsFromSolrResponse, getTotalFromSolrResponse } = require('../search/search.extractors')
 
 /**
  * @typedef {import('impresso-jscommons').Filter} Filter
@@ -18,11 +10,11 @@ const {
  */
 
 class ArticlesSearch {
-  constructor (options, app) {
-    this.options = options || {};
+  constructor(options, app) {
+    this.options = options || {}
     /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.get('cachedSolr');
-    this.articlesService = app.service('articles');
+    this.solr = app.service('cachedSolr')
+    this.articlesService = app.service('articles')
   }
 
   /**
@@ -34,24 +26,24 @@ class ArticlesSearch {
    *  pagination: Pagination
    * }} payload
    */
-  async create ({ relevanceContext = [], filters = [], pagination = {} }, params) {
-    const items = relevanceContext == null ? [] : relevanceContext;
+  async create({ relevanceContext = [], filters = [], pagination = {} }, params) {
+    const items = relevanceContext == null ? [] : relevanceContext
 
-    const { query } = filtersToQueryAndVariables(filters, SolrNamespaces.Search);
-    const relevanceScoreVariable = relevanceContextItemsToSolrFormula(items);
+    const { query } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+    const relevanceScoreVariable = relevanceContextItemsToSolrFormula(items)
 
-    const solrQuery = buildSolrQuery(query, relevanceScoreVariable, pagination);
+    const solrQuery = buildSolrQuery(query, relevanceScoreVariable, pagination)
 
-    const result = await this.solr.post(solrQuery, SolrNamespaces.Search);
+    const result = await this.solr.post(solrQuery, SolrNamespaces.Search)
 
-    const total = getTotalFromSolrResponse(result);
+    const total = getTotalFromSolrResponse(result)
 
     const userInfo = {
       user: params.user,
       authenticated: params.authenticated,
-    };
+    }
 
-    const resultItems = await getItemsFromSolrResponse(result, this.articlesService, userInfo);
+    const resultItems = await getItemsFromSolrResponse(result, this.articlesService, userInfo)
 
     return {
       data: resultItems.map(withScore(result)),
@@ -63,10 +55,10 @@ class ArticlesSearch {
           solr: result.responseHeader.QTime,
         },
       },
-    };
+    }
   }
 }
 
 module.exports = {
   ArticlesSearch,
-};
+}

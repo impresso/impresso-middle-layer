@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Collection",
+  "description": "Description of the collection object (Collection class)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["uid", "name", "description", "status", "creationDate", "lastModifiedDate", "countItems", "creator"],
+  "properties": {
+    "uid": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50
+    },
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "status": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 3,
+      "title": "Status of the collection",
+      "examples": ["PRI", "PUB"]
+    },
+    "creationDate": {
+      "type": "string"
+    },
+    "lastModifiedDate": {
+      "type": "string"
+    },
+    "countItems": {
+      "anyOf": [
+        { "type": "integer", "default": 0, "examples": [3245] },
+        { "type": "string", "default": "0" }
+      ],
+      "title": "Number of items in the collection"
+    },
+    "creator": {
+      "$ref": "./BaseUser.json"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

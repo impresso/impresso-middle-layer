@@ -1,4 +1,3 @@
-// @ts-check
 import { Filter, Facet } from 'impresso-jscommons'
 
 export interface FacetRequest {

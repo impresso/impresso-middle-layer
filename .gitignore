@@ -27,3 +27,5 @@ protected-media
 data/*.json
 development.json
 docker/*
+
+dist

@@ -1,31 +1,25 @@
-const { DataTypes } = require('sequelize');
-const lodash = require('lodash');
-const config = require('@feathersjs/configuration')()();
+const { DataTypes } = require('sequelize')
+const lodash = require('lodash')
+const config = require('@feathersjs/configuration')()()
 
-const Newspaper = require('./newspapers.model');
-const Collection = require('./collections.model');
-const CollectableItem = require('./collectable-items.model');
-const Issue = require('./issues.model');
-const Page = require('./pages.model');
-const ArticleTopic = require('./articles-topics.model');
+const Newspaper = require('./newspapers.model')
+const Collection = require('./collections.model')
+const CollectableItem = require('./collectable-items.model')
+const Issue = require('./issues.model')
+const Page = require('./pages.model')
+const ArticleTopic = require('./articles-topics.model')
 
-const {
-  toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt,
-} = require('../helpers');
-const { getRegionCoordinatesFromDocument } = require('../util/solr');
+const { toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt } = require('../helpers')
+const { getRegionCoordinatesFromDocument } = require('../util/solr')
 
-const { getExternalFragment } = require('../hooks/iiif');
+const { getExternalFragment } = require('../hooks/iiif')
 
-const ACCESS_RIGHT_NOT_SPECIFIED = 'na';
-const ACCESS_RIGHT_OPEN_PRIVATE = 'OpenPrivate';
-const ACCESS_RIGHT_CLOSED = 'Closed';
-const ACCESS_RIGHT_OPEN_PUBLIC = 'OpenPublic';
+const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
+const ACCESS_RIGHT_OPEN_PRIVATE = 'OpenPrivate'
+const ACCESS_RIGHT_CLOSED = 'Closed'
+const ACCESS_RIGHT_OPEN_PUBLIC = 'OpenPublic'
 
-const ARTICLE_SOLR_FL_MINIMAL = [
-  'id',
-  'item_type_s',
-  'doc_type_s',
-];
+const ARTICLE_SOLR_FL_MINIMAL = ['id', 'item_type_s', 'doc_type_s']
 
 const ARTICLE_SOLR_FL_LIST_ITEM = [
   'id',
@@ -62,7 +56,7 @@ const ARTICLE_SOLR_FL_LIST_ITEM = [
   // access & download
   'access_right_s',
   'exportable_plain',
-];
+]
 
 const ARTICLE_SOLR_FL_LITE = [
   'id',
@@ -95,7 +89,7 @@ const ARTICLE_SOLR_FL_LITE = [
   'topics_dpfs',
   'pers_entities_dpfs',
   'loc_entities_dpfs',
-];
+]
 
 const ARTICLE_SOLR_FL_TO_CSV = [
   'id',
@@ -122,86 +116,73 @@ const ARTICLE_SOLR_FL_TO_CSV = [
   'topics_dpfs',
   'pers_entities_dpfs',
   'loc_entities_dpfs',
-];
+]
 
-const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat([
-  'pp_plain:[json]',
-]);
+const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat(['pp_plain:[json]'])
 
 const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'lb_plain:[json]',
   'rb_plain:[json]',
   'pp_plain:[json]',
   'nem_offset_plain:[json]',
-]);
+])
 
 class ArticleDPF {
-  constructor ({
-    uid = '',
-    relevance = '',
-  } = {}) {
-    this.uid = uid;
-    this.relevance = parseFloat(relevance);
+  constructor({ uid = '', relevance = '' } = {}) {
+    this.uid = uid
+    this.relevance = parseFloat(relevance)
   }
 
-  static solrDPFsFactory (dpfs) {
+  static solrDPFsFactory(dpfs) {
     if (!dpfs || !dpfs.length) {
-      return [];
+      return []
     }
     // console.log('solrDPFsFactory', dpfs);
     // eslint-disable-next-line max-len
     // dpfs = [ 'aida-0001-54-Paris|1 aida-0001-54-Pleven|1 aida-0001-54-Maurice_Bowra|1 aida-0001-54-China|1 aida-0001-54-Moscow|1 ' ]
-    return dpfs[0].trim().split(' ').map((d) => {
-      const parts = d.split('|');
-      return new ArticleDPF({
-        uid: parts[0],
-        relevance: parts[1],
-      });
-    });
+    return dpfs[0]
+      .trim()
+      .split(' ')
+      .map(d => {
+        const parts = d.split('|')
+        return new ArticleDPF({
+          uid: parts[0],
+          relevance: parts[1],
+        })
+      })
   }
 }
 
 class ArticleRegion {
-  constructor ({
-    pageUid = '',
-    g = [],
-    c = [],
-  } = {}) {
-    this.pageUid = String(pageUid);
-    this.coords = c;
+  constructor({ pageUid = '', g = [], c = [] } = {}) {
+    this.pageUid = String(pageUid)
+    this.coords = c
     // TODO: Rendering now happens on the client side,
     // so this field is not used anymore. Consider removing later.
     if (g.length) {
-      this.g = render(g);
+      this.g = render(g)
     }
-    this.isEmpty = g.length === 0;
+    this.isEmpty = g.length === 0
   }
 }
 
 class Fragment {
-  constructor ({
-    fragment = '',
-  } = {}) {
-    this.fragment = String(fragment);
+  constructor({ fragment = '' } = {}) {
+    this.fragment = String(fragment)
   }
 }
 
 class ArticleMatch extends Fragment {
-  constructor ({
-    coords = [],
-    fragment = '',
-    pageUid = '',
-    iiif = '',
-  } = {}) {
-    super({ fragment });
-    this.coords = coords.map(coord => parseInt(coord, 10));
-    this.pageUid = String(pageUid);
-    this.iiif = String(iiif);
+  constructor({ coords = [], fragment = '', pageUid = '', iiif = '' } = {}) {
+    super({ fragment })
+    this.coords = coords.map(coord => parseInt(coord, 10))
+    this.pageUid = String(pageUid)
+    this.iiif = String(iiif)
   }
 }
 
 class BaseArticle {
-  constructor ({
+  constructor({
     uid = '',
     type = '',
     title = '',
@@ -213,40 +194,40 @@ class BaseArticle {
     locations = [],
     collections = [],
   } = {}) {
-    this.uid = String(uid);
-    this.type = String(type);
-    this.title = String(title).trim();
-    this.size = parseInt(size, 10);
-    this.nbPages = pages.length;
-    this.pages = pages;
-    this.isCC = isCC;
+    this.uid = String(uid)
+    this.type = String(type)
+    this.title = String(title).trim()
+    this.size = parseInt(size, 10)
+    this.nbPages = pages.length
+    this.pages = pages
+    this.isCC = isCC
 
-    let prefix;
+    let prefix
     if (!this.title.length && excerpt.length) {
       this.title = toExcerpt(excerpt, {
         TruncateLength: 5,
         Suffix: '',
-      });
-      prefix = '...';
+      })
+      prefix = '...'
     }
 
     this.excerpt = toExcerpt(excerpt, {
       TruncateLength: 50,
       excludeTitle: this.title,
-    });
+    })
 
     if (prefix) {
-      this.excerpt = [prefix, this.excerpt].join('');
+      this.excerpt = [prefix, this.excerpt].join('')
     }
 
     if (collections.length) {
-      this.collections = collections;
+      this.collections = collections
     }
     if (persons.length) {
-      this.persons = persons;
+      this.persons = persons
     }
     if (locations.length) {
-      this.locations = locations;
+      this.locations = locations
     }
   }
 
@@ -256,29 +237,30 @@ class BaseArticle {
    * @param {Object} res Solr response object
    * @return {function} {Article} mapper with a single doc.
    */
-  static solrFactory (res) {
-    const fragments = res.fragments || {};
-    return doc => new BaseArticle({
-      uid: doc.id,
-      type: doc.item_type_s,
-      size: doc.content_length_i,
-      pages: (doc.page_id_ss || []).map(uid => ({
-        uid,
-        num: parseInt(uid.match(/p([0-9]+)$/)[1], 10),
-      })),
-      isCC: !!doc.cc_b,
-      // eslint-disable-next-line no-use-before-define
-      title: Article.getUncertainField(doc, 'title'),
-      persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
-      locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
-      collections: doc.ucoll_ss,
-      excerpt: doc.snippet_plain || lodash.get(fragments[doc.id], 'nd[0]', ''),
-    });
+  static solrFactory(res) {
+    const fragments = res.fragments || {}
+    return doc =>
+      new BaseArticle({
+        uid: doc.id,
+        type: doc.item_type_s,
+        size: doc.content_length_i,
+        pages: (doc.page_id_ss || []).map(uid => ({
+          uid,
+          num: parseInt(uid.match(/p([0-9]+)$/)[1], 10),
+        })),
+        isCC: !!doc.cc_b,
+        // eslint-disable-next-line no-use-before-define
+        title: Article.getUncertainField(doc, 'title'),
+        persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
+        locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
+        collections: doc.ucoll_ss,
+        excerpt: doc.snippet_plain || lodash.get(fragments[doc.id], 'nd[0]', ''),
+      })
   }
 }
 
 class Article extends BaseArticle {
-  constructor ({
+  constructor({
     uid = '',
     type = '',
     language = '',
@@ -289,7 +271,7 @@ class Article extends BaseArticle {
     // dl = 0,
     issue = null,
     // labels = [],
-
+    dataProvider = null,
     newspaper = null,
 
     pages = [],
@@ -335,76 +317,77 @@ class Article extends BaseArticle {
       persons,
       locations,
       collections,
-    });
+    })
 
-    this.language = String(language);
-    this.content = String(content);
+    this.language = String(language)
+    this.content = String(content)
 
     if (excerpt) {
-      this.excerpt = String(excerpt);
+      this.excerpt = String(excerpt)
     } else if (this.content.length) {
       this.excerpt = toExcerpt(this.content, {
         TruncateLength: 20,
         excludeTitle: this.title,
-      });
+      })
     } else {
-      this.excerpt = '';
+      this.excerpt = ''
     }
 
     if (issue instanceof Issue) {
-      this.issue = issue;
+      this.issue = issue
     } else if (issue) {
-      this.issue = new Issue({ uid: issue });
+      this.issue = new Issue({ uid: issue })
     }
+
+    this.dataProvider = dataProvider
+
     if (newspaper instanceof Newspaper) {
-      this.newspaper = newspaper;
+      this.newspaper = newspaper
     } else {
-      this.newspaper = new Newspaper({ uid: newspaper });
+      this.newspaper = new Newspaper({ uid: newspaper })
     }
 
-    this.collections = collections;
-    this.tags = tags;
+    this.collections = collections
+    this.tags = tags
 
-    this.country = String(country);
-    this.year = parseInt(year, 10);
-    this.date = date instanceof Date ? date : new Date(date);
+    this.country = String(country)
+    this.year = parseInt(year, 10)
+    this.date = date instanceof Date ? date : new Date(date)
 
     // stats
-    this.nbPages = parseInt(nbPages, 10);
-    this.isFront = !!isFront;
-    this.isCC = !!isCC;
-    this.accessRight = accessRight;
+    this.nbPages = parseInt(nbPages, 10)
+    this.isFront = !!isFront
+    this.isCC = !!isCC
+    this.accessRight = accessRight
     // TODO: based on type!
-    this.labels = ['article'];
+    this.labels = ['article']
 
     if (mentions.length) {
-      this.mentions = mentions;
+      this.mentions = mentions
     }
 
     if (topics.length) {
-      this.topics = topics;
+      this.topics = topics
     }
 
     if (persons.length) {
-      this.persons = persons;
+      this.persons = persons
     }
 
     if (locations.length) {
-      this.locations = locations;
+      this.locations = locations
     }
 
     if (regionCoords.length) {
-      this.regions = Article.getRegions({
-
-      });
+      this.regions = Article.getRegions({})
     }
-    this.contentLineBreaks = lb;
-    this.regionBreaks = rb;
+    this.contentLineBreaks = lb
+    this.regionBreaks = rb
 
-    this.enrich(rc, lb, rb);
+    this.enrich(rc, lb, rb)
   }
 
-  enrich (rc, lb, rb) {
+  enrich(rc, lb, rb) {
     // get regions from rc field:
     // rc is a list of page objects, containing a r property
     // which contains an array of coordinates [x,y,w,h]
@@ -415,83 +398,86 @@ class Article extends BaseArticle {
     //    { page_uid: 'GDL-1900-08-08-a-p0002',
     //      c: [ 3433, 1481, 783, 571 ] }
     //  ]
-    const rcs = rc.reduce((acc, pag) => acc.concat(pag.r.map(reg => ({
-      pageUid: pag.id,
-      c: reg,
-    }))), []);
+    const rcs = rc.reduce(
+      (acc, pag) =>
+        acc.concat(
+          pag.r.map(reg => ({
+            pageUid: pag.id,
+            c: reg,
+          }))
+        ),
+      []
+    )
 
     // if there are line breaks and region breaks ...
     if (rc.length && this.content.length) {
       // tokenize the content based on line breaks
-      const tokens = sliceAtSplitpoints(this.content, lb);
+      const tokens = sliceAtSplitpoints(this.content, lb)
       // text regions, grouped thanks to region splipoints
-      const trs = toHierarchy(tokens, rb);
+      const trs = toHierarchy(tokens, rb)
 
       // annotated wit mentions...
       if (this.mentions && this.mentions.length) {
-        this.mentions.filter(d => d !== null).forEach((group) => {
-          const category = Object.keys(group)[0];
-          group[category].forEach((token) => {
-            annotate(tokens, category, token[0], token[0] + token[1], 'class');
-          });
-        });
+        this.mentions
+          .filter(d => d !== null)
+          .forEach(group => {
+            const category = Object.keys(group)[0]
+            group[category].forEach(token => {
+              annotate(tokens, category, token[0], token[0] + token[1], 'class')
+            })
+          })
       }
 
       if (rcs.length < trs.length) {
         // it would never happen.... or not?
-        console.log(rcs[0]);
-        console.log(rb, this.content.length);
-        console.log(trs);
-        throw new Error(`article ${this.uid} coordinates corrupted`);
+        throw new Error(`article ${this.uid} coordinates corrupted`)
       }
 
       // then, for each region,
       // we add the corresponding regionCoords, if any
       // this.regions = this.regions.map()
       for (let i = 0, l = trs.length; i < l; i += 1) {
-        Object.assign(trs[i], rcs[i]);
+        Object.assign(trs[i], rcs[i])
       }
-      this.regions = trs.map(d => new ArticleRegion(d));
+      this.regions = trs.map(d => new ArticleRegion(d))
     } else {
-      this.regions = rcs.map(d => new ArticleRegion(d));
+      this.regions = rcs.map(d => new ArticleRegion(d))
     }
     // console.log(this.regions);
     //
   }
 
-  assignIIIF (props = ['regions', 'matches']) {
+  assignIIIF(props = ['regions', 'matches']) {
     // get iiif of pages
-    const pagesIndex = lodash.keyBy(this.pages, 'uid'); // d => d.iiif);
-    props.forEach((prop) => {
+    const pagesIndex = lodash.keyBy(this.pages, 'uid') // d => d.iiif);
+    props.forEach(prop => {
       if (Array.isArray(this[prop])) {
         this[prop].forEach((d, i) => {
           if (pagesIndex[this[prop][i].pageUid]) {
-            this[prop][i].iiifFragment = getExternalFragment(
-              pagesIndex[this[prop][i].pageUid].iiif,
-              { coords: d.coords },
-            );
+            this[prop][i].iiifFragment = getExternalFragment(pagesIndex[this[prop][i].pageUid].iiif, {
+              coords: d.coords,
+            })
           }
-        });
+        })
       }
-    });
+    })
   }
 
-  static assignIIIF (article, props = ['regions', 'matches']) {
+  static assignIIIF(article, props = ['regions', 'matches']) {
     // get iiif of pages
-    const pagesIndex = lodash.keyBy(article.pages, 'uid'); // d => d.iiif);
-    props.forEach((prop) => {
+    const pagesIndex = lodash.keyBy(article.pages, 'uid') // d => d.iiif);
+    props.forEach(prop => {
       if (Array.isArray(article[prop])) {
         article[prop].forEach((d, i) => {
           if (pagesIndex[article[prop][i].pageUid]) {
-            article[prop][i].iiifFragment = getExternalFragment(
-              pagesIndex[article[prop][i].pageUid].iiif,
-              { coords: d.coords },
-            );
+            article[prop][i].iiifFragment = getExternalFragment(pagesIndex[article[prop][i].pageUid].iiif, {
+              coords: d.coords,
+            })
           }
-        });
+        })
       }
-    });
-    return article;
+    })
+    return article
   }
 
   /**
@@ -508,13 +494,20 @@ class Article extends BaseArticle {
    * @param  {Array}  regionCoords=[]
    * @return {Array}  List of ArticleRegion
    */
-  static getRegions ({
-    regionCoords = [],
-  }) {
-    return regionCoords.reduce((acc, pag) => acc.concat(pag.r.map(reg => new ArticleRegion({
-      pageUid: pag.id,
-      c: reg,
-    }))), []);
+  static getRegions({ regionCoords = [] }) {
+    return regionCoords.reduce(
+      (acc, pag) =>
+        acc.concat(
+          pag.r.map(
+            reg =>
+              new ArticleRegion({
+                pageUid: pag.id,
+                c: reg,
+              })
+          )
+        ),
+      []
+    )
   }
 
   /**
@@ -527,91 +520,88 @@ class Article extends BaseArticle {
    * @param  {Object} [highlights={}] [description]
    * @return {Array}                 Array of ArticleMatch matches
    */
-  static getMatches ({
-    solrDocument,
-    fragments = [],
-    highlights = {},
-  } = {}) {
-    if (!solrDocument.pp_plain ||
-      !highlights ||
-      !highlights.offsets ||
-      !highlights.offsets.length
-    ) {
-      return fragments.map(fragment => new Fragment({ fragment }));
+  static getMatches({ solrDocument, fragments = [], highlights = {} } = {}) {
+    if (!solrDocument.pp_plain || !highlights || !highlights.offsets || !highlights.offsets.length) {
+      return fragments.map(fragment => new Fragment({ fragment }))
     }
-    console.log(highlights.offsets, fragments);
-    return highlights.offsets.map((pos, i) => {
-      // for each offset
-      let match = false;
-      // find in page
-      solrDocument.pp_plain.forEach((pag) => {
-        for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
-          // if the token start at position and the token length is
-          // the one described in pos. Really complicated.
-          if (pos[0] === pag.t[ii].s && pag.t[ii].l === pos[1] - pos[0]) {
-            // console.log('FFFFOUND', pag.id, pag.t[ii], pos[0]);
-            match = new ArticleMatch({
-              fragment: fragments[i],
-              coords: pag.t[ii].c,
-              pageUid: pag.id,
-            });
-            break;
+    return highlights.offsets
+      .map((pos, i) => {
+        // for each offset
+        let match = false
+        // find in page
+        solrDocument.pp_plain.forEach(pag => {
+          for (let l = pag.t.length, ii = 0; ii < l; ii += 1) {
+            // if the token start at position and the token length is
+            // the one described in pos. Really complicated.
+            if (pos[0] === pag.t[ii].s && pag.t[ii].l === pos[1] - pos[0]) {
+              // console.log('FFFFOUND', pag.id, pag.t[ii], pos[0]);
+              match = new ArticleMatch({
+                fragment: fragments[i],
+                coords: pag.t[ii].c,
+                pageUid: pag.id,
+              })
+              break
+            }
           }
-        }
-      });
-      return match;
-    }).filter(d => d);
+        })
+        return match
+      })
+      .filter(d => d)
   }
 
-  static sequelize (client) {
-    const page = Page.sequelize(client);
-    const collection = Collection.sequelize(client);
-    const collectableItem = CollectableItem.sequelize(client);
+  static sequelize(client) {
+    const page = Page.sequelize(client)
+    const collection = Collection.sequelize(client)
+    const collectableItem = CollectableItem.sequelize(client)
 
-    const article = client.define('article', {
-      uid: {
-        type: DataTypes.STRING(50),
-        primaryKey: true,
-        field: 'id',
-        unique: true,
-      },
-      v: {
-        type: DataTypes.STRING(50),
-        field: 's3_version',
-      },
-      creationDate: {
-        type: DataTypes.DATE,
-        field: 'created',
-      },
-    }, {
-      tableName: config.sequelize.tables.articles,
-      scopes: {
-        get: {
-          include: [
-            {
-              model: page,
-              as: 'pages',
-            },
-          ],
+    const article = client.define(
+      'article',
+      {
+        uid: {
+          type: DataTypes.STRING(50),
+          primaryKey: true,
+          field: 'id',
+          unique: true,
         },
-        getCollections: {
-          include: [
-            {
-              model: collection,
-              as: 'collections',
-            },
-          ],
+        v: {
+          type: DataTypes.STRING(50),
+          field: 's3_version',
+        },
+        creationDate: {
+          type: DataTypes.DATE,
+          field: 'created',
         },
       },
-    });
+      {
+        tableName: config.sequelize.tables.articles,
+        scopes: {
+          get: {
+            include: [
+              {
+                model: page,
+                as: 'pages',
+              },
+            ],
+          },
+          getCollections: {
+            include: [
+              {
+                model: collection,
+                as: 'collections',
+              },
+            ],
+          },
+        },
+      }
+    )
 
     article.prototype.toJSON = function () {
       return new Article({
         ...this.get(),
         // newspaper: this.newspaper ? this.newspaper.toJSON() : null,
         // pages: this.pages ? this.pages.map(p => p.toJSON()) : [],
-      });
-    };
+      })
+    }
 
     // article.belongsTo(newspaper, {
     //   foreignKey: {
@@ -624,16 +614,16 @@ class Article extends BaseArticle {
       through: collectableItem,
       foreignKey: 'item_id',
       otherKey: 'collection_id',
-    });
+    })
 
     article.belongsToMany(page, {
       as: 'pages',
       through: 'page_contentItem',
       foreignKey: 'content_item_id',
       otherKey: 'page_id',
-    });
+    })
 
-    return article;
+    return article
   }
 
   /**
@@ -646,18 +636,18 @@ class Article extends BaseArticle {
    * @param  {Array}  langs =['fr', 'de', 'en'] Array of language suffixes
    * @return {String}       the field value
    */
-  static getUncertainField (doc, field, langs = ['fr', 'de', 'en']) {
-    let value = doc[`${field}_txt_${doc.lg_s}`];
+  static getUncertainField(doc, field, langs = ['fr', 'de', 'en']) {
+    let value = doc[`${field}_txt_${doc.lg_s}`]
 
     if (!value) {
       for (let i = 0, l = langs.length; i < l; i += 1) {
-        value = doc[`${field}_txt_${langs[i]}`];
+        value = doc[`${field}_txt_${langs[i]}`]
         if (value) {
-          break;
+          break
         }
       }
     }
-    return value;
+    return value
   }
 
   /**
@@ -666,13 +656,12 @@ class Article extends BaseArticle {
    * @param {Object} res Solr response object
    * @return {function} {Article} mapper with a single doc.
    */
-  static solrFactory (res) {
-    return (doc) => {
+  static solrFactory(res) {
+    return doc => {
       // region coordinates may be loaded directly from the new field rc_plains
-      const rc = getRegionCoordinatesFromDocument(doc);
+      const rc = getRegionCoordinatesFromDocument(doc)
 
       const art = new Article({
-
         uid: doc.id,
         type: doc.item_type_s,
         language: doc.lg_s,
@@ -681,6 +670,8 @@ class Article extends BaseArticle {
         title: Article.getUncertainField(doc, 'title'),
         content: Article.getUncertainField(doc, 'content'),
         size: doc.content_length_i,
+
+        dataProvider: doc.meta_partnerid_s,
 
         newspaper: new Newspaper({
           uid: doc.meta_journal_s,
@@ -692,11 +683,14 @@ class Article extends BaseArticle {
         country: doc.meta_country_code_s,
         year: doc.meta_year_i,
         date: new Date(doc.meta_date_dt),
+        // prettier-ignore
         pages: Array.isArray(doc.page_id_ss)
-          ? doc.page_id_ss.map((d, i) => new Page({
-            uid: d,
-            num: doc.page_nb_is[i],
-          }))
+          ? doc.page_id_ss.map((d, i) =>
+            new Page({
+              uid: d,
+              num: doc.page_nb_is[i],
+            })
+          )
           : [],
         nbPages: doc.nb_pages_i,
         // front_b
@@ -715,20 +709,20 @@ class Article extends BaseArticle {
         persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
         locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
         collections: doc.ucoll_ss,
-      });
+      })
 
       if (!doc.pp_plain) {
-        return art;
+        return art
       }
       // get text matches
-      const fragments = res.fragments[art.uid][`content_txt_${art.language}`];
-      const highlights = res.highlighting[art.uid][`content_txt_${art.language}`];
+      const fragments = res.fragments[art.uid][`content_txt_${art.language}`]
+      const highlights = res.highlighting[art.uid][`content_txt_${art.language}`]
       //
       // console.log('fragments!!', res.fragments, '--', fragments);
       // console.log('highlights!!', res.highlighting, '--', highlights);
       // console.log(doc.pp_plain);
       if (!highlights) {
-        return art;
+        return art
       }
 
       art.matches = Article.getMatches({
@@ -736,26 +730,26 @@ class Article extends BaseArticle {
         solrDocument: doc,
         fragments,
         highlights,
-      });
+      })
 
-      return art;
-    };
+      return art
+    }
   }
 }
 
 // module.exports.SequelizeFactory = model;
-module.exports = Article;
-module.exports.solrFactory = Article.solrFactory;
-module.exports.Model = Article;
-module.exports.BaseArticle = BaseArticle;
-module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL;
-module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE;
-module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH;
-module.exports.ARTICLE_SOLR_FL_LIST_ITEM = ARTICLE_SOLR_FL_LIST_ITEM;
-module.exports.ARTICLE_SOLR_FL_TO_CSV = ARTICLE_SOLR_FL_TO_CSV;
-module.exports.ARTICLE_SOLR_FL_MINIMAL = ARTICLE_SOLR_FL_MINIMAL;
+module.exports = Article
+module.exports.solrFactory = Article.solrFactory
+module.exports.Model = Article
+module.exports.BaseArticle = BaseArticle
+module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL
+module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE
+module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH
+module.exports.ARTICLE_SOLR_FL_LIST_ITEM = ARTICLE_SOLR_FL_LIST_ITEM
+module.exports.ARTICLE_SOLR_FL_TO_CSV = ARTICLE_SOLR_FL_TO_CSV
+module.exports.ARTICLE_SOLR_FL_MINIMAL = ARTICLE_SOLR_FL_MINIMAL
 
-module.exports.ACCESS_RIGHT_NOT_SPECIFIED = ACCESS_RIGHT_NOT_SPECIFIED;
-module.exports.ACCESS_RIGHT_OPEN_PRIVATE = ACCESS_RIGHT_OPEN_PRIVATE;
-module.exports.ACCESS_RIGHT_CLOSED = ACCESS_RIGHT_CLOSED;
-module.exports.ACCESS_RIGHT_OPEN_PUBLIC = ACCESS_RIGHT_OPEN_PUBLIC;
+module.exports.ACCESS_RIGHT_NOT_SPECIFIED = ACCESS_RIGHT_NOT_SPECIFIED
+module.exports.ACCESS_RIGHT_OPEN_PRIVATE = ACCESS_RIGHT_OPEN_PRIVATE
+module.exports.ACCESS_RIGHT_CLOSED = ACCESS_RIGHT_CLOSED
+module.exports.ACCESS_RIGHT_OPEN_PUBLIC = ACCESS_RIGHT_OPEN_PUBLIC

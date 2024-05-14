@@ -1,5 +1,8 @@
+import { createSwaggerServiceOptions } from 'feathers-swagger';
+import { docs } from './articles.schema';
+
 // Initializes the `articles` service on path `/articles`
-const createService = require('./articles.class.js');
+const createService = require('./articles.class');
 const hooks = require('./articles.hooks');
 
 module.exports = function (app) {
@@ -14,7 +17,10 @@ module.exports = function (app) {
   };
 
   // Initialize our service with any options it requires
-  app.use('/articles', createService(options));
+  app.use('/articles', createService(options), {
+    events: [],
+    docs: createSwaggerServiceOptions({ schemas: {}, docs }),
+  });
 
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('articles');

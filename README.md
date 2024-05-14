@@ -1,15 +1,28 @@
 # impresso-middle-layer
 
-```
+Internal API for the impresso web application and public API.
+
+```shell
 git clone impresso-middle-layer
 cd path/to/impresso-middle-layer && npm install
+
+# Watch and compile/copy files in one terminal:
+npm run watch
+
+# Run the app in another terminal:
 make run-dev
+# or
+VUE_APP_MIDDLELAYER_API_PATH=/ VUE_APP_MIDDLELAYER_API=http://localhost:3030 VUE_APP_MIDDLELAYER_API_SOCKET_PATH=/socket.io make run-dev 
 ```
 
 ## About
 
 This project uses [Feathers](http://feathersjs.com). An open source web framework for building modern real-time applications.
-We also use: SOlR, mysql, neo4j, redis.
+We also use: SolR, mysql, neo4j, redis.
+
+This project contains code for both the internal API and the public API. The internal API is used by the impresso web application, while the public API is used by third party clients. The internal API is enabled by default. To enable the public API, set the configuration flag in the [config file](config/default.json) `isPublicApi` to `true`.
+
+The Public API exposes a Swagger page at `/docs` URL.
 
 ## Getting started using docker development stack
 
@@ -91,6 +104,24 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
    NODE_ENV=development DEBUG=impresso* npm run dev
    ```
 
+
+## Building and running with Docker
+
+For local testing:
+
+```shell
+docker build \
+  --progress plain \
+  -f Dockerfile \
+  -t impresso_middle_layer .
+```
+
+```shell
+docker run \
+  -p 8080:8080 \
+  --rm -it impresso_middle_layer
+```
+
 ## Deployment with forever
 
 Make sure you have correctly set and tested the file `config/production.json` (is _.gitignored_).
@@ -157,6 +188,14 @@ $ feathers generate service               # Generate a new Service
 $ feathers generate hook                  # Generate a new Hook
 $ feathers generate model                 # Generate a new Model
 $ feathers help                           # Show all commands
+```
+
+## Generating Typescipt types from JSON schemas
+
+When a schema is updated, the typescript types should be regenerated. This can be done by running the following command:
+
+```
+npm run generate-types
 ```
 
 ## Help

@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Newspaper",
+  "description": "A newspaper",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "The unique identifier of the newspaper"
+    },
+    "acronym": {
+      "type": "string",
+      "description": "The acronym of the newspaper"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The labels of the newspaper"
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Language codes of the languages used in the newspaper"
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "$ref": "./NewspaperProperty.json"
+      },
+      "description": "TODO"
+    },
+    "included": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "name": {
+      "type": "string",
+      "description": "Title of the newspaper"
+    },
+    "endYear": {
+      "type": "string",
+      "description": "Last available year of the newspaper articles"
+    },
+    "startYear": {
+      "type": "string",
+      "description": "First available year of the newspaper articles"
+    },
+    "firstIssue": {
+      "description": "First available issue of the newspaper",
+      "$ref": "./NewspaperIssue.json"
+    },
+    "lastIssue": {
+      "description": "Last available issue of the newspaper",
+      "$ref": "./NewspaperIssue.json"
+    },
+    "countArticles": {
+      "type": "integer",
+      "description": "The number of articles in the newspaper"
+    },
+    "countIssues": {
+      "type": "integer",
+      "description": "The number of issues in the newspaper"
+    },
+    "countPages": {
+      "type": "integer",
+      "description": "The number of pages in the newspaper"
+    },
+    "fetched": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "deltaYear": {
+      "type": "integer",
+      "description": "The number of years of the newspaper available"
+    }
+  },
+  "required": [
+    "uid",
+    "acronym",
+    "labels",
+    "languages",
+    "included",
+    "name",
+    "endYear",
+    "startYear",
+    "firstIssue",
+    "lastIssue",
+    "countArticles",
+    "countIssues",
+    "countPages",
+    "deltaYear"
+  ]
+}

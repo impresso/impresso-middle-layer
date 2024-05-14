@@ -1,19 +1,11 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/collection.model.json",
+  "title": "Collection",
   "description": "Description of the collection object (Collection class)",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "uid",
-    "name",
-    "description",
-    "status",
-    "creationDate",
-    "lastModifiedDate",
-    "countItems",
-    "creator"
-  ],
+  "required": ["uid", "name", "description", "status", "creationDate", "lastModifiedDate", "countItems", "creator"],
   "properties": {
     "uid": {
       "$id": "#/properties/uid",
@@ -30,17 +22,15 @@
     "description": {
       "$id": "#/properties/description",
       "type": "string",
-      "maxlength": 500
+      "maxLength": 500
     },
     "status": {
       "$id": "#/properties/status",
       "type": "string",
       "minLength": 2,
       "maxLength": 3,
-      "title": "Status of the commection",
-      "examples": [
-        "PRI", "DEL"
-      ]
+      "title": "Status of the collection",
+      "examples": ["PRI", "DEL"]
     },
     "creationDate": {
       "$id": "#/properties/creationDate",
@@ -55,12 +45,16 @@
       "type": ["integer", "string"],
       "title": "Number of items in the collection",
       "default": 0,
-      "examples": [
-        3245
-      ]
+      "examples": [3245]
     },
     "creator": {
       "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/base-user.model.json#"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }
