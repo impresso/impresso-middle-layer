@@ -24,9 +24,7 @@ module.exports = function (app) {
         throw new BadRequest('Missing or invalid authorization token')
       }
       const authToken = token.split(' ')[1]
-      console.log('authToken', authToken)
       const payload = await app.service('/authentication').create({ strategy: 'jwt', accessToken: authToken })
-      console.log('payload', payload)
       // Authenticate the token here using your authentication logic
       // For example, you can use a JWT library to verify the token
       // and extract the user information from it
