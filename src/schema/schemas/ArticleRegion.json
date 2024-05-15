@@ -19,6 +19,11 @@
     "iiifFragment": {
       "type": "string",
       "description": "IIIF fragment URL"
+    },
+    "g": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "TODO"
     }
   },
   "required": ["pageUid", "coords", "isEmpty"]

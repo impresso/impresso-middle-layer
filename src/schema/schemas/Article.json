@@ -72,11 +72,11 @@
     },
     "regionBreaks": {
       "type": "array",
-      "items": { "type": "object", "description": "TODO" }
+      "items": { "type": "integer", "description": "TODO" }
     },
     "contentLineBreaks": {
       "type": "array",
-      "items": { "type": "object", "description": "TODO" }
+      "items": { "type": "integer", "description": "TODO" }
     },
     "labels": {
       "type": "array",
@@ -110,8 +110,10 @@
       "items": { "type": "string" }
     },
     "collections": {
-      "type": "array",
-      "items": { "type": "string" }
+      "$oneOf": [
+        { "type": "array", "items": { "type": "string" } },
+        { "type": "array", "items": { "$ref": "./Collection.json" } }
+      ]
     },
     "newspaper": {
       "$ref": "./Newspaper.json"
@@ -122,6 +124,41 @@
     "topics": {
       "type": "array",
       "items": { "$ref": "./ArticleTopic.json" }
+    },
+    "content": {
+      "type": "string",
+      "description": "The content of the article"
+    },
+    "mentions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "person": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": { "type": "integer" }
+            }
+          },
+          "location": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "v": {
+      "type": "string",
+      "description": "TODO"
     }
   },
   "required": ["uid", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt", "labels", "accessRight", "year"]
