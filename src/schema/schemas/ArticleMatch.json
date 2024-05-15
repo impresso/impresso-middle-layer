@@ -23,5 +23,5 @@
       "description": "TODO"
     }
   },
-  "required": ["fragment", "coords", "iiif"]
+  "required": ["fragment"]
 }

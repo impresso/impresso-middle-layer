@@ -7,6 +7,7 @@ import type { OpenAPIV3, OpenApiValidatorOpts, ValidationError } from 'express-o
 import fs from 'fs'
 import { logger } from '../logger'
 import type { ImpressoApplication } from '../types'
+import { parseFilters } from '../util/queryParameters'
 
 export default (app: ImpressoApplication & Application) => {
   installMiddleware(app)
@@ -55,6 +56,15 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
 
   app.set('openApiMiddlewareOpts', options)
   app.set('openApiValidatorMiddlewares', middlewares)
+
+  // TODO: an ugly way to handle `filters` query parameter before it reqches validation
+  // Move this somewhere where it's more explicit
+  app.use((req, res, next) => {
+    if (req.query.filters != null) {
+      req.query.filters = parseFilters(req.query.filters)
+    }
+    next()
+  })
 
   // app.use(middlewares as any)
   // app.use(middlewares as any)
