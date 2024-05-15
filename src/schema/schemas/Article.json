@@ -50,7 +50,79 @@
       "items": {
         "$ref": "./Entity.json"
       }
+    },
+    "language": {
+      "type": "string",
+      "description": "The language code of the article"
+    },
+    "issue": {
+      "$ref": "./NewspaperIssue.json"
+    },
+    "matches": {
+      "type": "array",
+      "items": {
+        "$ref": "./ArticleMatch.json"
+      }
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "$ref": "./ArticleRegion.json"
+      }
+    },
+    "regionBreaks": {
+      "type": "array",
+      "items": { "type": "object", "description": "TODO" }
+    },
+    "contentLineBreaks": {
+      "type": "array",
+      "items": { "type": "object", "description": "TODO" }
+    },
+    "labels": {
+      "type": "array",
+      "description": "TODO",
+      "items": { "type": "string", "enum": ["article"] }
+    },
+    "accessRight": {
+      "type": "string",
+      "enum": ["na", "OpenPrivate", "Closed", "OpenPublic"]
+    },
+    "isFront": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "date": {
+      "$oneOf": [
+        { "type": "string", "description": "The date of the article", "format": "date-time" },
+        { "type": "null" }
+      ]
+    },
+    "year": {
+      "type": "integer",
+      "description": "The year of the article"
+    },
+    "country": {
+      "type": "string",
+      "description": "The country code of the article"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "collections": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "newspaper": {
+      "$ref": "./Newspaper.json"
+    },
+    "dataProvider": {
+      "$oneOf": [{ "type": "string", "description": "The provider article" }, { "type": "null" }]
+    },
+    "topics": {
+      "type": "array",
+      "items": { "$ref": "./ArticleTopic.json" }
     }
   },
-  "required": ["uid", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt"]
+  "required": ["uid", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt", "labels", "accessRight", "year"]
 }

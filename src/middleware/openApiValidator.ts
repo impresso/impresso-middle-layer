@@ -3,7 +3,7 @@ import type { Application } from '@feathersjs/express'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 import convertSchema from '@openapi-contrib/json-schema-to-openapi-schema'
 import * as OpenApiValidator from 'express-openapi-validator'
-import type { OpenAPIV3, OpenApiValidatorOpts } from 'express-openapi-validator/dist/framework/types'
+import type { OpenAPIV3, OpenApiValidatorOpts, ValidationError } from 'express-openapi-validator/dist/framework/types'
 import fs from 'fs'
 import { logger } from '../logger'
 import type { ImpressoApplication } from '../types'
@@ -35,8 +35,9 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
     },
     validateResponses: {
       removeAdditional: false,
-      onError: (err: Error, json: any, req: any) => {
-        logger.error('OpenAPI Response validation error: ', err, json)
+      onError: (err: ValidationError, json: any, req: any) => {
+        const errorMessage = JSON.stringify(err.errors, null, 2)
+        logger.error(`OpenAPI Response validation error: ${errorMessage}`)
       },
     },
     validateApiSpec: true,

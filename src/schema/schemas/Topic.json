@@ -13,6 +13,62 @@
     "language": {
       "type": "string",
       "description": "The language code of the topic"
+    },
+    "community": {
+      "type": "string",
+      "description": "TODO"
+    },
+    "pagerank": {
+      "type": "number",
+      "description": "TODO"
+    },
+    "degree": {
+      "type": "number",
+      "description": "TODO"
+    },
+    "x": {
+      "type": "number",
+      "description": "TODO"
+    },
+    "y": {
+      "type": "number",
+      "description": "TODO"
+    },
+    "relatedTopics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "The unique identifier of the related topic"
+          },
+          "w": {
+            "type": "number",
+            "description": "TODO"
+          }
+        },
+        "required": ["uid", "w"]
+      }
+    },
+    "countItems": {
+      "type": "number",
+      "description": "TODO"
+    },
+    "excerpt": {
+      "type": "array",
+      "items": { "$ref": "./TopicWord.json" },
+      "description": "TODO"
+    },
+    "words": {
+      "type": "array",
+      "items": { "$ref": "./TopicWord.json" },
+      "description": "TODO"
+    },
+    "model": {
+      "type": "string",
+      "description": "ID of the model used to generate the topic"
     }
   }
 }

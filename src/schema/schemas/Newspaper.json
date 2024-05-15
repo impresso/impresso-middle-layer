@@ -43,11 +43,11 @@
       "description": "Title of the newspaper"
     },
     "endYear": {
-      "type": "string",
+      "type": "integer",
       "description": "Last available year of the newspaper articles"
     },
     "startYear": {
-      "type": "string",
+      "type": "integer",
       "description": "First available year of the newspaper articles"
     },
     "firstIssue": {
@@ -86,8 +86,6 @@
     "name",
     "endYear",
     "startYear",
-    "firstIssue",
-    "lastIssue",
     "countArticles",
     "countIssues",
     "countPages",
