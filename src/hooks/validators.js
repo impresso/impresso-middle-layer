@@ -100,8 +100,8 @@ const validatePagination =
   }
 
 const validateAgainstOptions =
-  (objectPath = 'params.query.enum', options = [], defaultValue = null) =>
-  async context => {
+  // prettier-ignore
+  (objectPath = 'params.query.enum', options = [], defaultValue = null) => async context => {
     const value = get(context, objectPath)
     debug('validateAgainstOptions received:', objectPath, value, typeof value)
     if (typeof value !== 'string') {
@@ -117,8 +117,8 @@ const validateAgainstOptions =
  * This Hook validate query params agains a custom schema
  */
 const validateQueryUsingJSONSchema =
-  (schema = {}) =>
-  async context => {
+  // prettier-ignore
+  (schema = {}) => async context => {
     debug(context.params)
     const validator = new Validator()
     const result = validator.validate(context.params.query, schema)
@@ -135,8 +135,8 @@ const validateQueryUsingJSONSchema =
  * The `validateId` hook validate ID against a regexp
  */
 const validateId =
-  (regexp = RegExpIntegersOnly) =>
-  async context => {
+  // prettier-ignore
+  (regexp = RegExpIntegersOnly) => async context => {
     if (!regexp.test(context.id)) {
       debug('validateRouteId: context.id not matching REGEX_UIDS')
       throw new BadRequest(`id parameter is not valid, should fit regexp: ${regexp}`)

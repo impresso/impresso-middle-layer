@@ -265,8 +265,8 @@ const _validate = (params, rules) => {
   return _params
 }
 
-// eslint-disable-next-line max-len
 const REGEX_EMAIL =
+  // eslint-disable-next-line max-len
   /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/
 const REGEX_SLUG = /^[a-z0-9-]+$/
@@ -340,8 +340,8 @@ const VALIDATE_OPTIONAL_PASSWORD = {
   Note: it creates context.data.sanitized.
 */
 const validate =
-  (validators, method = 'GET') =>
-  async context => {
+  // prettier-ignore
+  (validators, method = 'GET') => async context => {
     if (!validators) {
       return
     }
@@ -550,8 +550,8 @@ const validateEach = (paramName, validators, options = {}) => {
 }
 
 const displayQueryParams =
-  (paramNames = []) =>
-  async context => {
+  // prettier-ignore
+  (paramNames = []) => async context => {
     if (context.type !== 'after') {
       throw new Error("The 'displayQueryParams' hook should only be used as a 'after' hook.")
     }
@@ -567,8 +567,8 @@ const displayQueryParams =
   }
 
 const protect =
-  (...fields) =>
-  async context => {
+  // prettier-ignore
+  (...fields) => async context => {
     fields.forEach(p => {
       if (Array.isArray(context.result.data)) {
         context.result.data = context.result.data.map(d => {
