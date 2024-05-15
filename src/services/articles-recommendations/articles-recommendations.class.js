@@ -1,8 +1,10 @@
 const axios = require('axios')
+const debug = require('debug')('impresso/services:articles-recommendations')
 
 class ArticlesRecommendations {
   constructor({ recommenderServiceUrl }) {
     this.recommenderServiceUrl = recommenderServiceUrl
+    debug('recommenderServiceUrl', this.recommenderServiceUrl)
   }
 
   /**
@@ -11,12 +13,15 @@ class ArticlesRecommendations {
    * @returns {Promise<any>}
    */
   async create(data) {
-    return axios({
-      url: this.recommenderServiceUrl,
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' },
-    }).then(response => response.json())
+    const res = await axios
+      .post(this.recommenderServiceUrl, data, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+      .catch(error => {
+        debug('error', error)
+        throw error
+      })
+    return res.data
   }
 }
 
