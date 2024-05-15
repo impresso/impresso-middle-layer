@@ -13,6 +13,13 @@ export interface CeleryConfiguration {
   backendUrl?: string
 }
 
+export interface MediaConfiguration {
+  host: string
+  path: string
+  services: string[]
+  protectedPath: string
+}
+
 export interface Configuration {
   isPublicApi?: boolean
   allowedCorsOrigins?: string[]
@@ -21,6 +28,7 @@ export interface Configuration {
   publicApiPrefix?: string
   celery?: CeleryConfiguration
   celeryClient?: CeleryClient
+  media?: MediaConfiguration
 }
 
 const configurationSchema: JSONSchemaDefinition = {
