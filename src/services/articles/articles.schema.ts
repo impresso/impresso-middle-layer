@@ -29,17 +29,20 @@ const findParameters: MethodParameter[] = [
     name: 'filters',
     required: false,
     schema: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['type'],
-      properties: {
-        type: {
-          type: 'string',
-          enum: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
-        },
-        q: {
-          type: 'string',
-          pattern: String(REGEX_UID).slice(1, -1),
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['type'],
+        properties: {
+          type: {
+            type: 'string',
+            enum: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
+          },
+          q: {
+            type: 'string',
+            pattern: String(REGEX_UID).slice(1, -1),
+          },
         },
       },
     },

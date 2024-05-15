@@ -22,7 +22,7 @@ export const parseOrderBy = (orderBy: string, keyFieldMap: Record<string, string
 export const parseFilters = (value?: string | string[] | object | object[]) => {
   if (value == null) return []
   if (Array.isArray(value) && value.every(item => lodash.isObjectLike(item))) return value
-  if (lodash.isObjectLike(value)) return [value]
+  if (lodash.isObjectLike(value) && !Array.isArray(value)) return [value]
 
   if (lodash.isString(value)) {
     try {
