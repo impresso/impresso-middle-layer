@@ -28,10 +28,12 @@
       "examples": ["PRI", "PUB"]
     },
     "creationDate": {
-      "type": "string"
+      "type": "string",
+      "format": "date-time"
     },
     "lastModifiedDate": {
-      "type": "string"
+      "type": "string",
+      "format": "date-time"
     },
     "countItems": {
       "anyOf": [

@@ -1,6 +1,6 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { QueryParameter } from '../../util/openapi'
-import { getRequestBodyContent, getStandardResponses } from '../../util/openapi'
+import { getRequestBodyContent, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { REGEX_UIDS } from '../../hooks/params'
 
 const findParameters: QueryParameter[] = [
@@ -44,7 +44,7 @@ export const docs: ServiceSwaggerOptions = {
     find: {
       operationId: 'findCollections',
       description: 'Find collections',
-      parameters: findParameters,
+      parameters: [...findParameters, ...getStandardParameters({ method: 'find' })],
       responses: getStandardResponses({
         method: 'find',
         schema: 'Collection',
