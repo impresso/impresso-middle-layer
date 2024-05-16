@@ -24,16 +24,16 @@ export class TextReusePassages {
     // retrieve all fields
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query.filters
-    const [orderByField, orderByDescending] = parseOrderBy(params.query.orderBy, OrderByKeyToField)
+    const [orderByField, orderByDescending] = parseOrderBy(params.query.order_by, OrderByKeyToField)
     const { query } = filtersToQueryAndVariables(filters, this.solr.namespaces.TextReusePassages, {
       q: '*:*',
     })
     const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
 
     const fq = `{!collapse field=${
-      TextReusePassage.SolrFields[params.query.groupby]
+      TextReusePassage.SolrFields[params.query.group_by]
     } max=ms(${TextReusePassage.SolrFields.date})}`
-    const groupby = params.query.groupby ? { fq } : null
+    const groupby = params.query.group_by ? { fq } : null
 
     debug(
       'find q:',
@@ -51,7 +51,7 @@ export class TextReusePassages {
           q: query,
           fl,
           rows: params.query.limit,
-          start: params.query.skip,
+          start: params.query.offset,
           sort,
           ...groupby,
         },
@@ -61,7 +61,7 @@ export class TextReusePassages {
         return {
           data: response.docs.map(doc => {
             const result = TextReusePassage.CreateFromSolr()(doc)
-            if (params.query?.addons?.newspaper) {
+            if (params.query?.addons?.newspaper && result.newspaper != null) {
               result.newspaper = Newspaper.getCached(result.newspaper.id)
               result.newspaper.id = result.newspaper.uid
             }
@@ -69,7 +69,7 @@ export class TextReusePassages {
           }),
           total: response.numFound, // "<total number of records>",
           limit: params.query.limit, // "<max number of items per page>",
-          skip: params.query.skip, // "<number of skipped items (offset)>",
+          offset: params.query.offset ?? 0, // "<number of skipped items (offset)>",
           // org: response.docs,
           info: {
             responseTime: {

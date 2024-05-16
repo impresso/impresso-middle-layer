@@ -14,4 +14,4 @@ interface AppServices {
   authentication: AuthenticationService
 }
 
-export type ImpressoApplication = Application<AppServices, Configuration>
+export type ImpressoApplication = Application<AppServices & Record<string, any>, Configuration>

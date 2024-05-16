@@ -6,9 +6,9 @@
       "type": "integer",
       "description": "The number of items returned in this response"
     },
-    "skip": {
+    "offset": {
       "type": "integer",
-      "description": "The number of items skipped in this response"
+      "description": "Starting index of the items subset returned in this response"
     },
     "total": {
       "type": "integer",
@@ -24,6 +24,6 @@
       "items": {}
     }
   },
-  "required": ["limit", "skip", "total", "info", "data"],
+  "required": ["limit", "offset", "total", "info", "data"],
   "additionalProperties": false
 }

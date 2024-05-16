@@ -43,19 +43,31 @@
       "description": "Title of the newspaper"
     },
     "endYear": {
-      "type": "string",
-      "description": "Last available year of the newspaper articles"
+      "$oneOf": [
+        {
+          "type": "integer",
+          "description": "Last available year of the newspaper articles"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "startYear": {
-      "type": "string",
-      "description": "First available year of the newspaper articles"
+      "$oneOf": [
+        {
+          "type": "integer",
+          "description": "First available year of the newspaper articles"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "firstIssue": {
-      "description": "First available issue of the newspaper",
       "$ref": "./NewspaperIssue.json"
     },
     "lastIssue": {
-      "description": "Last available issue of the newspaper",
       "$ref": "./NewspaperIssue.json"
     },
     "countArticles": {
@@ -88,8 +100,6 @@
     "name",
     "endYear",
     "startYear",
-    "firstIssue",
-    "lastIssue",
     "countArticles",
     "countIssues",
     "countPages",

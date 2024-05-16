@@ -1,8 +1,8 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { QueryParameter, getStandardResponses } from '../../util/openapi'
+import { MethodParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { REGEX_UIDS } from '../../hooks/params'
 
-const findParameters: QueryParameter[] = [
+const findParameters: MethodParameter[] = [
   {
     in: 'query',
     name: 'collection_uids',
@@ -45,27 +45,7 @@ const findParameters: QueryParameter[] = [
     },
     description: 'Order by term',
   },
-  {
-    in: 'query',
-    name: 'limit',
-    required: false,
-    schema: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 1000,
-    },
-    description: 'Total items to return',
-  },
-  {
-    in: 'query',
-    name: 'skip',
-    required: false,
-    schema: {
-      type: 'integer',
-      minimum: 0,
-    },
-    description: 'Items to skip',
-  },
+  ...getStandardParameters({ method: 'find' }),
 ]
 
 /**

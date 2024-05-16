@@ -2,8 +2,9 @@ const errors = require('@feathersjs/errors')
 const debug = require('debug')('impresso/hooks:params')
 const { Op } = require('sequelize')
 const { assignIn } = require('lodash')
+const { logger } = require('../logger')
 
-const toSequelizeLike = (query) => {
+const toSequelizeLike = query => {
   // replace all non nice characters.
   // for a two spaces word like "accent octoup", outputs:
   // {
@@ -12,7 +13,7 @@ const toSequelizeLike = (query) => {
   //     {[Op.like]: '%octoup%',}
   //   ],
   // },
-  const escapeds = query.split(/\s+/).map((d) => ({
+  const escapeds = query.split(/\s+/).map(d => ({
     [Op.like]: `%%${d.replace(/[%()]/g, '')}%`,
   }))
 
@@ -47,7 +48,7 @@ const toLucene = (query, forceFuzzy = true) => {
   // avoid lexical error (odd number of quotes for instance)
   const q = query
     .split(/("[^"]*?")/)
-    .map((d) => {
+    .map(d => {
       // trim spaces
       let _d = d.trim()
 
@@ -66,7 +67,7 @@ const toLucene = (query, forceFuzzy = true) => {
       _d = _d.replace(/"/g, '')
 
       // get rid of one letter words, multiple spaces and concatenate with simple space for the moment
-      const _dr = _d.split(/\s+/).filter((k) => k.length > 1)
+      const _dr = _d.split(/\s+/).filter(k => k.length > 1)
 
       // if there is only one word
       if (_dr.length === 1) {
@@ -109,12 +110,8 @@ const translate = (key, dict) => dict[key]
  * @param  {Object} [values={}, defaultValue=null]  [description]
  * @return {Object} complex validate object with before, after.
  */
-const orderBy = ({
-  values = {},
-  defaultValue = undefined,
-  required = false,
-} = {}) => ({
-  before: (d) => {
+const orderBy = ({ values = {}, defaultValue = undefined, required = false } = {}) => ({
+  before: d => {
     if (typeof d === 'string') {
       return d.split(',')
     }
@@ -123,8 +120,8 @@ const orderBy = ({
   choices: Object.keys(values),
   defaultValue,
   required,
-  transform: (d) => translate(d, values),
-  after: (d) => {
+  transform: d => translate(d, values),
+  after: d => {
     if (Array.isArray(d)) {
       return d.join(',')
     }
@@ -138,12 +135,8 @@ const orderBy = ({
  * @param  {String} [defaultValue=null] [optional]
  * @return {Object}                     [description]
  */
-const facets = ({
-  values = {},
-  defaultValue = undefined,
-  required = false,
-} = {}) => ({
-  before: (d) => {
+const facets = ({ values = {}, defaultValue = undefined, required = false } = {}) => ({
+  before: d => {
     if (typeof d === 'string') {
       return d.split(',')
     }
@@ -152,13 +145,13 @@ const facets = ({
   choices: Object.keys(values),
   defaultValue,
   required,
-  transform: (d) => ({
+  transform: d => ({
     ...translate(d, values),
     facet: d,
   }), // translate(d, values),
-  after: (fields) => {
+  after: fields => {
     const _facets = {}
-    fields.forEach((field) => {
+    fields.forEach(field => {
       _facets[field.facet] = values[field.facet]
     })
     return JSON.stringify(_facets)
@@ -237,7 +230,7 @@ const _validate = (params, rules) => {
   const _params = {}
   const _errors = {}
 
-  Object.keys(rules).forEach((key) => {
+  Object.keys(rules).forEach(key => {
     if (typeof params[key] === 'undefined') {
       if (rules[key] && rules[key].required) {
         // required!
@@ -255,7 +248,7 @@ const _validate = (params, rules) => {
       }
       // it is an Array of values
       if (Array.isArray(params[key])) {
-        _params[key] = params[key].map((d) => _validateOne(key, d, rules[key]))
+        _params[key] = params[key].map(d => _validateOne(key, d, rules[key]))
       } else {
         _params[key] = _validateOne(key, params[key], rules[key])
       }
@@ -272,10 +265,10 @@ const _validate = (params, rules) => {
   return _params
 }
 
-// eslint-disable-next-line max-len
-const REGEX_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-const REGEX_PASSWORD =
-  /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/
+const REGEX_EMAIL =
+  // eslint-disable-next-line max-len
+  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S{8,}$/
 const REGEX_SLUG = /^[a-z0-9-]+$/
 const REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()-]+$/
 const EXTENDED_REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()/$-]+$/
@@ -293,7 +286,7 @@ const VALIDATE_UIDS = {
   uids: {
     required: true,
     regex: REGEX_UIDS,
-    transform: (d) => (Array.isArray(d) ? d : d.split(',')),
+    transform: d => (Array.isArray(d) ? d : d.split(',')),
   },
 }
 
@@ -301,7 +294,7 @@ const VALIDATE_OPTIONAL_UIDS = {
   uids: {
     required: false,
     regex: REGEX_UIDS,
-    transform: (d) => (Array.isArray(d) ? d : d.split(',')),
+    transform: d => (Array.isArray(d) ? d : d.split(',')),
   },
 }
 
@@ -347,53 +340,40 @@ const VALIDATE_OPTIONAL_PASSWORD = {
   Note: it creates context.data.sanitized.
 */
 const validate =
-  (validators, method = 'GET') =>
-    async (context) => {
-      if (!validators) {
-        return
-      }
-      debug(
-        'validate: <validators keys>',
-        `${context.path}.${context.method}`,
-        Object.keys(validators)
-      )
-
-      if (method === 'GET') {
-        debug('validate: GET data', context.params.query)
-        const validated = _validate(context.params.query, validators)
-        if (!context.params.sanitized) {
-          context.params.sanitized = validated
-        } else {
-          Object.assign(context.params.sanitized, validated)
-        }
-      } else {
-        debug('validate: POST data')
-        context.data.sanitized = assignIn(
-          {},
-          context.data.sanitized,
-          _validate(context.data, validators)
-        )
-      }
+  // prettier-ignore
+  (validators, method = 'GET') => async context => {
+    if (!validators) {
+      return
     }
+    debug('validate: <validators keys>', `${context.path}.${context.method}`, Object.keys(validators))
 
-const validateRouteId = () => async (context) => {
+    if (method === 'GET') {
+      debug('validate: GET data', context.params.query)
+      const validated = _validate(context.params.query, validators)
+      if (!context.params.sanitized) {
+        context.params.sanitized = validated
+      } else {
+        Object.assign(context.params.sanitized, validated)
+      }
+    } else {
+      debug('validate: POST data')
+      context.data.sanitized = assignIn({}, context.data.sanitized, _validate(context.data, validators))
+    }
+  }
+
+const validateRouteId = () => async context => {
   if (context.path === 'entities' && context.id) {
     if (!EXTENDED_REGEX_UID.test(context.id)) {
       debug('validateRouteId: context.id not matching EXTENDED_REGEX_UID')
-      throw new errors.BadRequest(
-        'route id is not valid (use EXTENDED_REGEX_UID)'
-      )
+      throw new errors.BadRequest('route id is not valid (use EXTENDED_REGEX_UID)')
     }
-  } else if (
-    context.id &&
-    !(REGEX_UID.test(context.id) || REGEX_UIDS.test(context.id))
-  ) {
+  } else if (context.id && !(REGEX_UID.test(context.id) || REGEX_UIDS.test(context.id))) {
     debug('validateRouteId: context.id not matching REGEX_UIDS')
     throw new errors.BadRequest('route id is not valid (use REGEX_UID)')
   }
 }
 
-const queryWithCurrentExecUser = () => async (context) => {
+const queryWithCurrentExecUser = () => async context => {
   if (!context.params) {
     context.params = {}
   }
@@ -403,16 +383,11 @@ const queryWithCurrentExecUser = () => async (context) => {
   }
 
   if (context.params.user) {
-    debug(
-      `queryWithCurrentExecUser: add '_exec_user_uid':'${context.params.user.uid}' to the query `
-    )
+    debug(`queryWithCurrentExecUser: add '_exec_user_uid':'${context.params.user.uid}' to the query `)
     context.params.query._exec_user_uid = context.params.user.uid
-    context.params.query._exec_user_is_staff =
-      context.params.user.is_staff || context.params.user.isStaff
+    context.params.query._exec_user_is_staff = context.params.user.is_staff || context.params.user.isStaff
   } else {
-    debug(
-      'queryWithCurrentExecUser: cannot add \'_exec_user_uid\', no user found in \'context.params\''
-    )
+    debug("queryWithCurrentExecUser: cannot add '_exec_user_uid', no user found in 'context.params'")
   }
 }
 
@@ -434,86 +409,74 @@ const queryWithCurrentExecUser = () => async (context) => {
   ```
 */
 const queryWithCommonParams =
-  (replaceQuery = true, method = 'GET') =>
-    async (context) => {
-      const params = {
-        limit: 10,
-        skip: 0,
-        max_limit: 1000,
-      }
-
-      if (!context.params) {
-        context.params = {}
-      }
-
-      if (!context.params.query) {
-        context.params.query = {}
-      }
-
-      if (context.params.user) {
-        debug(
-          `queryWithCommonParams: adding '_exec_user_uid' to the query ${context.params.user.uid}`
-        )
-        params._exec_user_uid = context.params.user.uid
-        params._exec_user_is_staff = context.params.user.is_staff
-      }
-
-      const originObject = method === 'GET' ? context.params.query : context.data
-      const destinationObject = method === 'GET' ? context.params : context.data
-
-      // num of results expected, 0 to 500
-      if (originObject.limit > -1) {
-        const limit = parseInt(originObject.limit, 10)
-        params.limit = +Math.min(Math.max(0, limit), params.max_limit || 500)
-      }
-      // transform page in corresponding SKIP. Page is 1-n.
-      if (originObject.page) {
-        const page = Math.max(1, parseInt(originObject.page, 10))
-        // transform in skip and offsets. E.G page=4 when limit = 10
-        // results in skip=30 page=2 in skip=10, page=1 in skip=0
-        params.skip = (page - 1) * params.limit
-        params.page = page
-      } else if (originObject.offset) {
-        params.skip = Math.max(0, parseInt(originObject.offset, 10))
-      } else if (originObject.skip) {
-        params.skip = Math.max(0, parseInt(originObject.skip, 10))
-      }
-
-      if (replaceQuery && method === 'GET') {
-        context.params.isSafe = true
-        context.params.originalQuery = {
-          ...context.params.query,
-        }
-        context.params.query = {
-          ...(context.params.sanitized || {}), // add validated params, if any
-          ...params,
-        }
-        debug(
-          `queryWithCommonParams (replaceQuery:${replaceQuery}), <context.params.query>:`,
-          context.params.query
-        )
-      } else {
-        destinationObject.sanitized = assignIn(
-          {},
-          destinationObject.sanitized,
-          params
-        )
-        const field = method === 'GET' ? 'context.params' : 'context.data'
-        debug(
-          `queryWithCommonParams: appends params to '${field}.sanitized': ${JSON.stringify(
-            params
-          )}`
-        )
-      }
+  // prettier-ignore
+  (replaceQuery = true, method = 'GET') => async context => {
+    const params = {
+      limit: 10,
+      offset: 0,
+      max_limit: 1000,
     }
+
+    if (!context.params) {
+      context.params = {}
+    }
+
+    if (!context.params.query) {
+      context.params.query = {}
+    }
+
+    if (context.params.user) {
+      debug(`queryWithCommonParams: adding '_exec_user_uid' to the query ${context.params.user.uid}`)
+      params._exec_user_uid = context.params.user.uid
+      params._exec_user_is_staff = context.params.user.is_staff
+    }
+
+    const originObject = method === 'GET' ? context.params.query : context.data
+    const destinationObject = method === 'GET' ? context.params : context.data
+
+    // num of results expected, 0 to 500
+    if (originObject.limit > -1) {
+      const limit = parseInt(originObject.limit, 10)
+      params.limit = +Math.min(Math.max(0, limit), params.max_limit || 500)
+    }
+    // transform page in corresponding SKIP. Page is 1-n.
+    if (originObject.page) {
+      logger.warn(`DEPRECATED query parameter "page" used in url: ${context.path} `)
+
+      const page = Math.max(1, parseInt(originObject.page, 10))
+      // transform in skip and offsets. E.G page=4 when limit = 10
+      // results in skip=30 page=2 in skip=10, page=1 in skip=0
+      params.offset = (page - 1) * params.limit
+      params.page = page
+    } else if (originObject.offset) {
+      params.offset = Math.max(0, parseInt(originObject.offset, 10))
+    } else if (originObject.skip) {
+      logger.warn(`DEPRECATED auery parameter "skip" used in url: ${context.path} `)
+      params.offset = Math.max(0, parseInt(originObject.skip, 10))
+    }
+
+    if (replaceQuery && method === 'GET') {
+      context.params.isSafe = true
+      context.params.originalQuery = {
+        ...context.params.query,
+      }
+      context.params.query = {
+        ...(context.params.sanitized || {}), // add validated params, if any
+        ...params,
+      }
+      debug(`queryWithCommonParams (replaceQuery:${replaceQuery}), <context.params.query>:`, context.params.query)
+    } else {
+      destinationObject.sanitized = assignIn({}, destinationObject.sanitized, params)
+      const field = method === 'GET' ? 'context.params' : 'context.data'
+      debug(`queryWithCommonParams: appends params to '${field}.sanitized': ${JSON.stringify(params)}`)
+    }
+  }
 
 /*
   Add sanitized parameter to context result.
 */
-const verbose = () => async (context) => {
-  context.result = Array.isArray(context.result)
-    ? { result: context.result }
-    : {}
+const verbose = () => async context => {
+  context.result = Array.isArray(context.result) ? { result: context.result } : {}
   context.result.params = context.params.sanitized
 }
 
@@ -531,11 +494,9 @@ const validateEach = (paramName, validators, options = {}) => {
     ...options,
   }
 
-  return async (context) => {
+  return async context => {
     if (context.type !== 'before') {
-      throw new Error(
-        'The \'validateEach\' hook should only be used as a \'before\' hook.'
-      )
+      throw new Error("The 'validateEach' hook should only be used as a 'before' hook.")
     }
     // console.log(context.params.query.filters)
     let toBeValidated
@@ -557,9 +518,7 @@ const validateEach = (paramName, validators, options = {}) => {
         throw new errors.BadRequest(_error)
       }
       debug(
-        `validateEach: ${
-          opts.required ? 'required' : 'optional'
-        } ${paramName} not found in '${
+        `validateEach: ${opts.required ? 'required' : 'optional'} ${paramName} not found in '${
           opts.method
         }' or is not an Array or it is empty. Received:`,
         toBeValidated
@@ -567,12 +526,9 @@ const validateEach = (paramName, validators, options = {}) => {
       // throw new Error(`The param ${paramName} should exist and be an array.`);
       return
     }
-    debug(
-      `validateEach: '${paramName}' in '${opts.method}'. Received:`,
-      toBeValidated
-    )
+    debug(`validateEach: '${paramName}' in '${opts.method}'. Received:`, toBeValidated)
     // _validate(context.query, validators)
-    const validated = toBeValidated.map((d) => {
+    const validated = toBeValidated.map(d => {
       const _d = _validate(d, validators, opts.method)
       // add mustache friendly conditionals based on type. e.g; isIssue or isNewspaper
       // _d[`_is${d.type}`] = true;
@@ -594,42 +550,36 @@ const validateEach = (paramName, validators, options = {}) => {
 }
 
 const displayQueryParams =
-  (paramNames = []) =>
-    async (context) => {
-      if (context.type !== 'after') {
-        throw new Error(
-          'The \'displayQueryParams\' hook should only be used as a \'after\' hook.'
-        )
-      }
-      debug(`displayQueryParams: ${paramNames}`)
-      if (!context.result.info) {
-        context.result.info = {}
-      }
-      paramNames.forEach((p) => {
-        if (
-          context.params &&
-        context.params.sanitized &&
-        context.params.sanitized[p]
-        ) {
-          context.result.info[p] = context.params.sanitized[p]
-        }
-      })
+  // prettier-ignore
+  (paramNames = []) => async context => {
+    if (context.type !== 'after') {
+      throw new Error("The 'displayQueryParams' hook should only be used as a 'after' hook.")
     }
+    debug(`displayQueryParams: ${paramNames}`)
+    if (!context.result.info) {
+      context.result.info = {}
+    }
+    paramNames.forEach(p => {
+      if (context.params && context.params.sanitized && context.params.sanitized[p]) {
+        context.result.info[p] = context.params.sanitized[p]
+      }
+    })
+  }
 
 const protect =
-  (...fields) =>
-    async (context) => {
-      fields.forEach((p) => {
-        if (Array.isArray(context.result.data)) {
-          context.result.data = context.result.data.map((d) => {
-            delete d[p]
-            return d
-          })
-        } else {
-          delete context.result[p]
-        }
-      })
-    }
+  // prettier-ignore
+  (...fields) => async context => {
+    fields.forEach(p => {
+      if (Array.isArray(context.result.data)) {
+        context.result.data = context.result.data.map(d => {
+          delete d[p]
+          return d
+        })
+      } else {
+        delete context.result[p]
+      }
+    })
+  }
 
 module.exports = {
   displayQueryParams,

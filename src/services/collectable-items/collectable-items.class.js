@@ -87,10 +87,10 @@ class Service {
           WHERE ${reducedWhere}
           GROUP BY item_id
           ORDER BY ${params.sanitized.order_by}
-            LIMIT :limit OFFSET :skip`,
+            LIMIT :limit OFFSET :offset`,
             replacements: {
               limit: params.query.limit,
-              skip: params.query.skip,
+              offset: params.query.offset,
             },
           }),
         'collectable-items.db.q1'
@@ -114,7 +114,7 @@ class Service {
     ]).then(rs => ({
       data: rs[0].map(d => new CollectableItemGroup(d)),
       limit: params.query.limit,
-      skip: params.query.skip,
+      offset: params.query.offset,
       total: rs[1][0].total,
     }))
 

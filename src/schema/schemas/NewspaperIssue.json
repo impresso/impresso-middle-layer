@@ -37,5 +37,5 @@
       "description": "The year of the issue"
     }
   },
-  "required": ["uid", "cover", "labels", "fresh", "accessRights", "date", "year"]
+  "required": ["uid", "cover", "labels", "fresh", "accessRights"]
 }

@@ -28,11 +28,11 @@ class Service {
     this.name = name
   }
 
-  static wrap(data, limit, skip, total, info) {
+  static wrap(data, limit, offset, total, info) {
     return {
       data,
       limit,
-      skip,
+      offset,
       total,
       info,
     }
@@ -58,7 +58,7 @@ class Service {
         }
       }),
       params.query.limit,
-      params.query.skip,
+      params.query.offset,
       total
     )
   }
@@ -171,7 +171,7 @@ class Service {
       order_by: params.query.order_by,
       facets: params.query.facets,
       limit: params.query.limit,
-      skip: params.query.skip,
+      offset: params.query.offset,
       fl, // other fields can be loaded later on
       highlight_by: 'content_txt_de,content_txt_fr,content_txt_en',
       highlightProps: {
@@ -193,7 +193,7 @@ class Service {
     debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader)
 
     if (!total) {
-      return Service.wrap([], params.query.limit, params.query.skip, total)
+      return Service.wrap([], params.query.limit, params.query.offset, total)
     }
 
     if (isRaw) {
@@ -216,7 +216,7 @@ class Service {
     )
     const facets = await getFacetsFromSolrResponse(solrResponse)
 
-    return Service.wrap(resultItems, params.query.limit, params.query.skip, total, {
+    return Service.wrap(resultItems, params.query.limit, params.query.offset, total, {
       responseTime: {
         solr: solrResponse.responseHeader.QTime,
       },

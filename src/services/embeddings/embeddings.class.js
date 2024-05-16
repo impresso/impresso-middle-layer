@@ -44,7 +44,7 @@ class Service {
             },
             fl: '*,score',
             limit: params.query.limit,
-            skip: params.query.skip,
+            offset: params.query.offset,
             namespace,
           })
           .then(res => res.response),
@@ -55,7 +55,7 @@ class Service {
       data: result.docs.map(d => d.word_s),
       total: result.numFound,
       limit: params.query.limit,
-      skip: params.query.skip,
+      offset: params.query.offset,
       info: {
         q: params.query.q,
         language: params.query.language,

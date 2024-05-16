@@ -27,22 +27,17 @@
           "type": {
             "type": "string"
           },
-          "skip": {
+          "offset": {
             "type": "integer"
           },
           "limit": {
             "type": "integer"
           }
         },
-        "required": [
-          "type"
-        ]
+        "required": ["type"]
       },
       "description": "Faceted fields to return"
     }
   },
-  "required": [
-    "filtersSets",
-    "facets"
-  ]
+  "required": ["filtersSets", "facets"]
 }

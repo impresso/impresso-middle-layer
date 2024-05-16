@@ -24,7 +24,7 @@ class SolrService {
       {
         q: `id:${id}`,
         limit: 1,
-        skip: 0,
+        offset: 0,
         fl: params.fl,
         namespace: this.namespace,
         requestOriginalPath: params.requestOriginalPath,
@@ -44,7 +44,7 @@ class SolrService {
       q: params.q || params.query.sq || '*:*',
       fq: params.fq || params.query.sfq || undefined,
       limit: params.query.limit,
-      skip: params.query.skip,
+      offset: params.query.offset,
       fl: params.fl,
       facets: params.query.facets,
       order_by: params.query.order_by, // default ordering TODO
@@ -63,7 +63,7 @@ class SolrService {
       data: results.response.docs,
       total: results.response.numFound,
       limit: p.limit,
-      skip: p.skip,
+      offset: p.offset,
       info: {
         // params,
         responseTime: {

@@ -67,7 +67,7 @@ async function waterfall() {
     const query = {
       q: `topics_dpfs:${uid}`,
       limit: 0,
-      skip: 0,
+      offset: 0,
       fl: '*',
       fq: `{!frange l=${Threshold}}payload(topics_dpfs,${uid})`,
       namespace: 'search',
@@ -120,7 +120,7 @@ async function waterfall() {
           const relatedQuery = {
             q: `{!frange l=${Threshold}}payload(topics_dpfs,${uid})`,
             limit: 0,
-            skip: 0,
+            offset: 0,
             // eslint-disable-next-line no-template-curly-in-string
             fl: '*,${combined_topic_weight}',
             vars: {

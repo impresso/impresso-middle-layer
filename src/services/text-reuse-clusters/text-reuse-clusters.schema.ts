@@ -6,9 +6,9 @@ import { Filter } from '../../models'
 
 export interface FindQueyParameters {
   text?: string
-  skip?: number
+  offset?: number
   limit?: number
-  orderBy?: string
+  order_by?: string
   filters?: string | Filter[]
 }
 
@@ -24,7 +24,7 @@ const findParameters: MethodParameter[] = [
   },
   {
     in: 'query',
-    name: 'orderBy',
+    name: 'order_by',
     required: false,
     schema: {
       type: 'string',
@@ -36,7 +36,7 @@ const findParameters: MethodParameter[] = [
   },
   {
     in: 'query',
-    name: 'filters[]',
+    name: 'filters',
     required: false,
     schema: {
       type: 'array',
@@ -50,7 +50,7 @@ const findParameters: MethodParameter[] = [
 const getParameters: MethodParameter[] = [
   {
     in: 'query',
-    name: 'includeDetails',
+    name: 'include_details',
     required: false,
     schema: {
       type: 'boolean',
@@ -65,14 +65,17 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get'],
   operations: {
     find: {
+      operationId: 'findTextReuseClusters',
       description: 'Find text reuse clusters',
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'TextReuseClusterCompound',
+        schema: 'FindTextReuseClustersResponse',
+        standardPagination: false,
       }),
     },
     get: {
+      operationId: 'getTextReuseCluster',
       description: 'Get text reuse cluster by ID',
       parameters: getParameters,
       responses: getStandardResponses({

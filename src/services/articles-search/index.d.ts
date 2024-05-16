@@ -23,6 +23,6 @@ export interface RelevanceContextItem {
 }
 
 export interface Pagination {
-  skip?: number
+  offset?: number
   limit?: number
 }

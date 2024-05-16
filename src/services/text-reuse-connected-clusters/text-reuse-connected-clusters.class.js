@@ -16,10 +16,10 @@ function buildResponseClusters(clusters, clusterIdsAndText) {
   }))
 }
 
-/** @returns {{ clusterId: string, skip: number, limit: number }} */
+/** @returns {{ clusterId: string, offset: number, limit: number }} */
 function getArguments(params) {
-  const { clusterId, skip = 0, limit = 9 } = params.query
-  return { clusterId, skip: parseInt(skip, 10), limit: parseInt(limit, 10) }
+  const { clusterId, offset = 0, limit = 9 } = params.query
+  return { clusterId, offset: parseInt(offset, 10), limit: parseInt(limit, 10) }
 }
 
 class TextReuseConnectedClusters {
@@ -32,15 +32,15 @@ class TextReuseConnectedClusters {
   }
 
   async find(params) {
-    const { clusterId, skip, limit } = getArguments(params)
-    const request = buildConnectedClustersRequest(clusterId, limit, skip)
+    const { clusterId, offset, limit } = getArguments(params)
+    const request = buildConnectedClustersRequest(clusterId, limit, offset)
     const { clustersIds, total } = await this.solr
       .post(request, this.solr.namespaces.TextReusePassages)
       .then(parseConnectedClustersResponse)
 
     if (clustersIds.length === 0) {
       return {
-        skip,
+        offset,
         limit,
         total,
         clusters: [],
@@ -59,7 +59,7 @@ class TextReuseConnectedClusters {
 
     const clusterItems = buildResponseClusters(clusters, clusterIdsAndText)
     return {
-      skip,
+      offset,
       limit,
       total,
       clusters: clusterItems,

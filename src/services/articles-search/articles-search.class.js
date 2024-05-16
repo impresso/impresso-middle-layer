@@ -48,7 +48,7 @@ class ArticlesSearch {
     return {
       data: resultItems.map(withScore(result)),
       limit: pagination.limit,
-      skip: pagination.skip,
+      offset: pagination.offset,
       total,
       info: {
         responseTime: {

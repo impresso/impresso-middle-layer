@@ -55,7 +55,7 @@ WHERE buc.uid in {bucket_uids}
 WITH u, buc, item
 ORDER BY buc.last_modified_time DESC
 WITH DISTINCT item, COALESCE(u.count_items, 0) as _total
-SKIP {skip}
+SKIP {offset}
 LIMIT {limit}
 RETURN item, _total
 

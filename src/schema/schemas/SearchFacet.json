@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Search Facet",
+  "description": "An object containing search results for a facet",
+  "additionalProperties": false,
+  "required": ["type", "numBuckets", "buckets"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "The type of facet"
+    },
+    "numBuckets": {
+      "type": "integer",
+      "description": "The number of buckets in the facet"
+    },
+    "buckets": {
+      "$oneOf": [
+        {
+          "type": "array",
+          "items": { "$ref": "./SearchFacetBucket.json" }
+        },
+        {
+          "type": "array",
+          "items": { "$ref": "./SearchFacetRangeBucket.json" }
+        }
+      ]
+    },
+    "min": {
+      "description": "TODO"
+    },
+    "max": {
+      "description": "TODO"
+    },
+    "gap": {
+      "description": "TODO"
+    }
+  }
+}

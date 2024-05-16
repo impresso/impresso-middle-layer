@@ -244,7 +244,7 @@ const suggest = async (config, connectionPool, params = {}, factory) => {
     dictionary: 'm_suggester_infix',
     cfq: '', // or 'Person' or 'Location'
     limit: 10,
-    skip: 0,
+    offset: 0,
     excerptLength: 30,
     namespace: 'mentions',
     ...params,
@@ -254,7 +254,7 @@ const suggest = async (config, connectionPool, params = {}, factory) => {
     'suggest.q': _params.q,
     'suggest.cfq': _params.cfq,
     'suggest.dictionary': _params.dictionary,
-    start: _params.skip,
+    start: _params.offset,
     rows: _params.limit,
     wt: 'json',
     // wt: 'xml'
@@ -290,7 +290,7 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
   const qp = {
     q: '*:*',
     limit: 10,
-    skip: 0,
+    offset: 0,
     excerptLength: 30,
     namespace: 'search',
     requestOriginalPath: '...',
@@ -304,7 +304,7 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
 
   const data = {
     q: qp.q,
-    start: qp.skip,
+    start: qp.offset,
     rows: qp.limit,
     wt: 'json',
   }
@@ -396,7 +396,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
   const _params = {
     q: '*:*',
     limit: 10,
-    skip: 0,
+    offset: 0,
     excerptLength: 30,
     namespace: 'search',
     requestOriginalPath: '',
@@ -412,7 +412,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
   let qs = {
     q: _params.q,
 
-    start: _params.skip,
+    start: _params.offset,
     rows: _params.limit,
     wt: 'json',
     // wt: 'xml'
@@ -486,7 +486,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
     opts.form = _params.form
     opts.form.fq = _params.fq
     opts.qs = {
-      start: _params.skip,
+      start: _params.offset,
       rows: _params.limit,
     }
     if (qs['json.facet']) {
@@ -537,12 +537,12 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
  */
 const wrapAll = res => {
   let limit = parseInt(res.responseHeader.params.rows, 10)
-  let skip = parseInt(res.responseHeader.params.start, 10)
+  let offset = parseInt(res.responseHeader.params.start, 10)
   if (typeof res.responseHeader.params.json === 'string') {
     try {
       const { params } = JSON.parse(res.responseHeader.params.json)
       limit = typeof params.rows === 'number' ? params.rows : limit
-      skip = typeof params.start === 'number' ? params.start : skip
+      offset = typeof params.start === 'number' ? params.start : offset
     } catch (e) {
       console.warn(e)
     }
@@ -551,7 +551,7 @@ const wrapAll = res => {
     data: res.response.docs,
     total: res.response.numFound,
     limit,
-    skip,
+    offset,
     info: {
       responseTime: {
         solr: res.responseHeader.QTime,

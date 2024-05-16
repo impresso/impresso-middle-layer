@@ -1,4 +1,7 @@
 {
+  "require": "ts-node/register",
+  "loader": "ts-node/esm",
+  "extensions": ["ts", "tsx"],
   "diff": true,
   "package": "./package.json",
   "reporter": "spec",

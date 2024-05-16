@@ -1,13 +1,5 @@
-const {
-  utils, REGEX_UID, REGEX_UIDS,
-} = require('../../hooks/params');
-const {
-  SolrMappings,
-  FilterTypes,
-  Contexts,
-  Operators,
-  Precision,
-} = require('../../data/constants');
+const { utils, REGEX_UID, REGEX_UIDS } = require('../../hooks/params')
+const { SolrMappings, FilterTypes, Contexts, Operators, Precision } = require('../../data/constants')
 
 const eachFilterValidator = {
   context: {
@@ -63,7 +55,7 @@ const eachFilterValidator = {
     // we cannot transform since Mustache is rendering the filters...
     // transform: d => d.split(',')
   },
-};
+}
 
 const eachFacetFilterValidator = {
   name: {
@@ -79,7 +71,7 @@ const eachFacetFilterValidator = {
     required: false,
     regex: /\d+/,
   },
-};
+}
 
 const paramsValidator = {
   q: {
@@ -93,32 +85,32 @@ const paramsValidator = {
     transform: d => utils.translate(d, SolrMappings.search.groupBy),
   },
   order_by: {
-    before: (d) => {
+    before: d => {
       if (typeof d === 'string') {
-        return d.split(',');
+        return d.split(',')
       }
-      return d;
+      return d
     },
-    choices: ['-date', 'date', '-relevance', 'relevance', '-name', 'name', 'id', '-id'],
+    choices: ['-date', 'date', '-relevance', 'relevance', 'id', '-id'],
     transform: d => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
-    after: (d) => {
+    after: d => {
       if (Array.isArray(d)) {
-        return d.join(',');
+        return d.join(',')
       }
-      return d;
+      return d
     },
   },
-};
+}
 
 const facetsValidator = {
   facets: utils.facets({
     values: SolrMappings.search.facets,
   }),
-};
+}
 
 module.exports = {
   eachFilterValidator,
   eachFacetFilterValidator,
   paramsValidator,
   facetsValidator,
-};
+}

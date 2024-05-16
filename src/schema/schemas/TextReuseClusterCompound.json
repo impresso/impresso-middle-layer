@@ -15,5 +15,5 @@
       "$ref": "../schemas/TextReuseClusterDetails.json"
     }
   },
-  "required": ["cluster", "textSample"]
+  "required": ["textSample"]
 }

@@ -4,7 +4,7 @@ MATCH (pro:Project {uid:{Project}})
 WITH COALESCE(pro.count_newspaper,0) as _total
 MATCH (news:newspaper {Project:{Project}})
 RETURN news, _total
-SKIP {skip}
+SKIP {offset}
 LIMIT {limit}
 
 // name: findAll

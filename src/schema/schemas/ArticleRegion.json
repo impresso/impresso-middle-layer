@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ArticleRegion",
+  "description": "TODO",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "pageUid": {
+      "type": "string"
+    },
+    "coords": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "isEmpty": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "iiifFragment": {
+      "type": "string",
+      "description": "IIIF fragment URL"
+    },
+    "g": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "TODO"
+    }
+  },
+  "required": ["pageUid", "coords", "isEmpty"]
+}

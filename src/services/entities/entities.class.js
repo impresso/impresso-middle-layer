@@ -35,7 +35,7 @@ class Service {
       filters: params.query.filters,
       orderBy: params.query.order_by,
       limit: params.query.limit,
-      skip: params.query.skip,
+      offset: params.query.offset,
     })
     debug('[find] solr query:', query)
 
@@ -53,7 +53,7 @@ class Service {
         total: 0,
         data: [],
         limit: params.query.limit,
-        skip: params.query.skip,
+        offset: params.query.offset,
         info: {
           ...params.originalQuery,
         },
@@ -72,7 +72,7 @@ class Service {
           findAllOnly: true,
           query: {
             limit: entities.length,
-            skip: 0,
+            offset: 0,
           },
           where,
         }),
@@ -84,7 +84,7 @@ class Service {
     const result = {
       total: solrResult.response.numFound,
       limit: params.query.limit,
-      skip: params.query.skip,
+      offset: params.query.offset,
       data: entities.map(d => {
         if (sequelizeEntitiesIndex[d.uid]) {
           // enrich with wikidataID

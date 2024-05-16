@@ -65,6 +65,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get'],
   operations: {
     find: {
+      operationId: 'findNewspapers',
       description: 'Find newspapers that match the given query',
       parameters: [...findParameters, ...getStandardParameters({ method: 'find' })],
       responses: getStandardResponses({
@@ -73,6 +74,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     get: {
+      operationId: 'getNewspaper',
       description: 'Get a newspaper by ID',
       parameters: [
         {

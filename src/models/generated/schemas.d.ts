@@ -162,9 +162,9 @@ export interface BaseFind {
    */
   limit: number;
   /**
-   * The number of items skipped in this response
+   * Starting index of the items subset returned in this response
    */
-  skip: number;
+  offset: number;
   /**
    * The total number of items matching the query
    */
@@ -399,7 +399,7 @@ export interface Newspaper {
    */
   startYear: string;
   firstIssue: NewspaperIssue;
-  lastIssue: NewspaperIssue1;
+  lastIssue: NewspaperIssue;
   /**
    * The number of articles in the newspaper
    */
@@ -440,43 +440,7 @@ export interface NewspaperProperty {
   isUrl?: boolean;
   [k: string]: unknown;
 }
-/**
- * First available issue of the newspaper
- */
 export interface NewspaperIssue {
-  /**
-   * The unique identifier of the issue
-   */
-  uid: string;
-  /**
-   * TODO
-   */
-  cover: string;
-  /**
-   * The labels of the issue
-   */
-  labels: string[];
-  /**
-   * TODO
-   */
-  fresh: boolean;
-  /**
-   * TODO: list available options
-   */
-  accessRights: string;
-  /**
-   * The date of the issue
-   */
-  date: string;
-  /**
-   * The year of the issue
-   */
-  year: string;
-}
-/**
- * Last available issue of the newspaper
- */
-export interface NewspaperIssue1 {
   /**
    * The unique identifier of the issue
    */
@@ -619,6 +583,524 @@ export interface Page {
    * The IIIF fragment of the page, image file name
    */
   iiifFragment?: string;
+}
+
+
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+/**
+ * An object containing search results for a facet
+ */
+export interface SearchFacet {
+  /**
+   * The type of facet
+   */
+  type: string;
+  /**
+   * The number of buckets in the facet
+   */
+  numBuckets: number;
+  buckets: SearchFacetBucket[] | SearchFacetRangeBucket[];
+  /**
+   * TODO
+   */
+  min?: {
+    [k: string]: unknown;
+  };
+  /**
+   * TODO
+   */
+  max?: {
+    [k: string]: unknown;
+  };
+  /**
+   * TODO
+   */
+  gap?: {
+    [k: string]: unknown;
+  };
+}
+/**
+ * Facet bucket
+ */
+export interface SearchFacetBucket {
+  /**
+   * Number of items in the bucket
+   */
+  count: number;
+  /**
+   * Value of the 'type' element
+   */
+  val: string;
+  /**
+   * UID of the 'type' element. Same as 'val'
+   */
+  uid?: string;
+  /**
+   * The item in the bucket. Particular objct schema depends on the facet type
+   */
+  item?: Newspaper | Collection | Entity | Topic | Year;
+}
+/**
+ * A newspaper
+ */
+export interface Newspaper {
+  /**
+   * The unique identifier of the newspaper
+   */
+  uid: string;
+  /**
+   * The acronym of the newspaper
+   */
+  acronym: string;
+  /**
+   * The labels of the newspaper
+   */
+  labels: string[];
+  /**
+   * Language codes of the languages used in the newspaper
+   */
+  languages: string[];
+  /**
+   * TODO
+   */
+  properties?: NewspaperProperty[];
+  /**
+   * TODO
+   */
+  included: boolean;
+  /**
+   * Title of the newspaper
+   */
+  name: string;
+  /**
+   * Last available year of the newspaper articles
+   */
+  endYear: string;
+  /**
+   * First available year of the newspaper articles
+   */
+  startYear: string;
+  firstIssue: NewspaperIssue;
+  lastIssue: NewspaperIssue;
+  /**
+   * The number of articles in the newspaper
+   */
+  countArticles: number;
+  /**
+   * The number of issues in the newspaper
+   */
+  countIssues: number;
+  /**
+   * The number of pages in the newspaper
+   */
+  countPages: number;
+  /**
+   * TODO
+   */
+  fetched?: boolean;
+  /**
+   * The number of years of the newspaper available
+   */
+  deltaYear: number;
+}
+export interface NewspaperProperty {
+  /**
+   * The name of the property
+   */
+  name: string;
+  /**
+   * The value of the property
+   */
+  value: string;
+  /**
+   * The label of the property
+   */
+  label: string;
+  /**
+   * Whether the value is a URL
+   */
+  isUrl?: boolean;
+  [k: string]: unknown;
+}
+export interface NewspaperIssue {
+  /**
+   * The unique identifier of the issue
+   */
+  uid: string;
+  /**
+   * TODO
+   */
+  cover: string;
+  /**
+   * The labels of the issue
+   */
+  labels: string[];
+  /**
+   * TODO
+   */
+  fresh: boolean;
+  /**
+   * TODO: list available options
+   */
+  accessRights: string;
+  /**
+   * The date of the issue
+   */
+  date: string;
+  /**
+   * The year of the issue
+   */
+  year: string;
+}
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+/**
+ * An entity like location, person, etc
+ */
+export interface Entity {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * Relevance of the entity in the document
+   */
+  relevance: number;
+}
+/**
+ * A topic (TODO)
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+}
+/**
+ * A year (TODO)
+ */
+export interface Year {
+  /**
+   * Numeric representation of the year
+   */
+  uid?: number;
+  values?: YearWeights;
+  refs?: YearWeights;
+}
+/**
+ * Total items counts within a year
+ */
+export interface YearWeights {
+  /**
+   * Number of content items
+   */
+  c?: number;
+  /**
+   * Number of articles
+   */
+  a?: number;
+  /**
+   * Number of pages
+   */
+  p?: number;
+  /**
+   * Number of issues
+   */
+  i?: number;
+  /**
+   * Number of images (with or without vectors)
+   */
+  m?: number;
+}
+/**
+ * Facet bucket
+ */
+export interface SearchFacetRangeBucket {
+  /**
+   * Number of items in the bucket
+   */
+  count: number;
+  /**
+   * Value of the 'type' element
+   */
+  val: number;
+  /**
+   * Lower bound of the range
+   */
+  lower?: number;
+  /**
+   * Lower bound of the range
+   */
+  upper?: number;
+}
+
+
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+/**
+ * Facet bucket
+ */
+export interface SearchFacetBucket {
+  /**
+   * Number of items in the bucket
+   */
+  count: number;
+  /**
+   * Value of the 'type' element
+   */
+  val: string;
+  /**
+   * UID of the 'type' element. Same as 'val'
+   */
+  uid?: string;
+  /**
+   * The item in the bucket. Particular objct schema depends on the facet type
+   */
+  item?: Newspaper | Collection | Entity | Topic | Year;
+}
+/**
+ * A newspaper
+ */
+export interface Newspaper {
+  /**
+   * The unique identifier of the newspaper
+   */
+  uid: string;
+  /**
+   * The acronym of the newspaper
+   */
+  acronym: string;
+  /**
+   * The labels of the newspaper
+   */
+  labels: string[];
+  /**
+   * Language codes of the languages used in the newspaper
+   */
+  languages: string[];
+  /**
+   * TODO
+   */
+  properties?: NewspaperProperty[];
+  /**
+   * TODO
+   */
+  included: boolean;
+  /**
+   * Title of the newspaper
+   */
+  name: string;
+  /**
+   * Last available year of the newspaper articles
+   */
+  endYear: string;
+  /**
+   * First available year of the newspaper articles
+   */
+  startYear: string;
+  firstIssue: NewspaperIssue;
+  lastIssue: NewspaperIssue;
+  /**
+   * The number of articles in the newspaper
+   */
+  countArticles: number;
+  /**
+   * The number of issues in the newspaper
+   */
+  countIssues: number;
+  /**
+   * The number of pages in the newspaper
+   */
+  countPages: number;
+  /**
+   * TODO
+   */
+  fetched?: boolean;
+  /**
+   * The number of years of the newspaper available
+   */
+  deltaYear: number;
+}
+export interface NewspaperProperty {
+  /**
+   * The name of the property
+   */
+  name: string;
+  /**
+   * The value of the property
+   */
+  value: string;
+  /**
+   * The label of the property
+   */
+  label: string;
+  /**
+   * Whether the value is a URL
+   */
+  isUrl?: boolean;
+  [k: string]: unknown;
+}
+export interface NewspaperIssue {
+  /**
+   * The unique identifier of the issue
+   */
+  uid: string;
+  /**
+   * TODO
+   */
+  cover: string;
+  /**
+   * The labels of the issue
+   */
+  labels: string[];
+  /**
+   * TODO
+   */
+  fresh: boolean;
+  /**
+   * TODO: list available options
+   */
+  accessRights: string;
+  /**
+   * The date of the issue
+   */
+  date: string;
+  /**
+   * The year of the issue
+   */
+  year: string;
+}
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+/**
+ * An entity like location, person, etc
+ */
+export interface Entity {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * Relevance of the entity in the document
+   */
+  relevance: number;
+}
+/**
+ * A topic (TODO)
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+}
+/**
+ * A year (TODO)
+ */
+export interface Year {
+  /**
+   * Numeric representation of the year
+   */
+  uid?: number;
+  values?: YearWeights;
+  refs?: YearWeights;
+}
+/**
+ * Total items counts within a year
+ */
+export interface YearWeights {
+  /**
+   * Number of content items
+   */
+  c?: number;
+  /**
+   * Number of articles
+   */
+  a?: number;
+  /**
+   * Number of pages
+   */
+  p?: number;
+  /**
+   * Number of issues
+   */
+  i?: number;
+  /**
+   * Number of images (with or without vectors)
+   */
+  m?: number;
+}
+
+
+/**
+ * Facet bucket
+ */
+export interface SearchFacetRangeBucket {
+  /**
+   * Number of items in the bucket
+   */
+  count: number;
+  /**
+   * Value of the 'type' element
+   */
+  val: number;
+  /**
+   * Lower bound of the range
+   */
+  lower?: number;
+  /**
+   * Lower bound of the range
+   */
+  upper?: number;
 }
 
 
@@ -858,6 +1340,21 @@ export interface ClusterDetails {
 
 
 /**
+ * A topic (TODO)
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+}
+
+
+/**
  * User details
  */
 export interface User {
@@ -909,4 +1406,69 @@ export interface APIVersion {
       [k: string]: unknown;
     };
   };
+}
+
+
+/**
+ * A year (TODO)
+ */
+export interface Year {
+  /**
+   * Numeric representation of the year
+   */
+  uid?: number;
+  values?: YearWeights;
+  refs?: YearWeights;
+}
+/**
+ * Total items counts within a year
+ */
+export interface YearWeights {
+  /**
+   * Number of content items
+   */
+  c?: number;
+  /**
+   * Number of articles
+   */
+  a?: number;
+  /**
+   * Number of pages
+   */
+  p?: number;
+  /**
+   * Number of issues
+   */
+  i?: number;
+  /**
+   * Number of images (with or without vectors)
+   */
+  m?: number;
+}
+
+
+/**
+ * Total items counts within a year
+ */
+export interface YearWeights {
+  /**
+   * Number of content items
+   */
+  c?: number;
+  /**
+   * Number of articles
+   */
+  a?: number;
+  /**
+   * Number of pages
+   */
+  p?: number;
+  /**
+   * Number of issues
+   */
+  i?: number;
+  /**
+   * Number of images (with or without vectors)
+   */
+  m?: number;
 }
