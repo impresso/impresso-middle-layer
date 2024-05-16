@@ -84,8 +84,8 @@ export default (app: ImpressoApplication & ExpressApplication) => {
           }
           next()
         })
-        .catch(err => {
-          return res.status(err.code || 500).json({ message: err.message })
+        .catch((err: Error) => {
+          return res.status((err as any).code || 500).json({ message: err.message })
         })
     },
     function (req: Request, res: Response<any, ResponseLocals>) {
