@@ -52,7 +52,7 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
     .find({
       query: {
         filters: [{ type: 'textReuseCluster', q: uids }],
-        groupby: 'textReuseClusterId',
+        group_by: 'textReuseClusterId',
         limit: uids.length,
       },
     })
@@ -68,6 +68,7 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
 
   items.forEach(d => {
     if (d.type !== 'textReuseCluster') return
+
     d.buckets.forEach(b => {
       if (isSearchFacetBucket(b)) {
         b.item = index[b.val]
