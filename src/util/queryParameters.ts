@@ -28,7 +28,8 @@ export const parseFilters = (value?: string | string[] | object | object[]) => {
     try {
       return [JSON.parse(value)]
     } catch (error) {
-      return protobuf.searchQuery.deserialize(value).filters
+      const decoded = protobuf.searchQuery.deserialize(value)
+      return decoded.filters
     }
   }
 

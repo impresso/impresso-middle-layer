@@ -31,12 +31,13 @@ const { sameTypeFiltersToQuery } = require('../../util/solr')
 const { SolrNamespaces } = require('../../solr')
 const Newspaper = require('../../models/newspapers.model')
 
-function buildResponseClusters(clusters: Promise<any>, clusterIdsAndText: { id: any; text: any }[]): ClusterElement[] {
+function buildResponseClusters(clusters: any, clusterIdsAndText: { id: any; text: any }[]): ClusterElement[] {
   const clustersById = mapValues(groupBy(clusters, 'id'), (v: any[]) => v[0])
-  return clusterIdsAndText.map(({ id, text: textSample }) => ({
+  const results = clusterIdsAndText.map(({ id, text: textSample }) => ({
     cluster: clustersById[id],
     textSample,
   }))
+  return results
 }
 
 const deserializeFilters = (serializedFilters: string) => protobuf.searchQuery.deserialize(serializedFilters).filters
@@ -119,8 +120,8 @@ export class TextReuseClusters {
   }
 
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
-    const { text, offset = 0, limit = 10, order_by: orderBy, filters } = params.query ?? {}
-
+    const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
+    const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
     const filterQueryParts = filtersToSolrQueries(filters)
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
@@ -138,7 +139,7 @@ export class TextReuseClusters {
         getPaginationInfoFromPassagesSolrResponse(response),
       ])
 
-    const clusters = this.getClusters(clusterIdsAndText.map(({ id }: { id: string }) => id))
+    const clusters = await this.getClusters(clusterIdsAndText.map(({ id }: { id: string }) => id))
 
     return {
       clusters: buildResponseClusters(clusters, clusterIdsAndText),
