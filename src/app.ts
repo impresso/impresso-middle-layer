@@ -17,6 +17,8 @@ import { ensureServiceIsFeathersCompatible } from './util/feathers'
 import channels from './channels'
 import { ImpressoApplication } from './types'
 import { Application } from '@feathersjs/express'
+import bodyParser from 'body-parser'
+import authentication from './authentication'
 
 const path = require('path')
 const compress = require('compression')
@@ -28,8 +30,6 @@ const express = require('@feathersjs/express')
 const middleware = require('./middleware')
 // const services = require('./services');
 const appHooks = require('./app.hooks')
-
-const authentication = require('./authentication')
 
 const multer = require('./multer')
 const cache = require('./cache')
@@ -62,6 +62,8 @@ app.use('cachedSolr', ensureServiceIsFeathersCompatible(cachedSolr(app)), {
 app.use(helmet())
 app.use(compress())
 app.use(cookieParser())
+// needed to access body in non-feathers middlewares, like openapi validator
+app.use(bodyParser.json({ limit: '50mb' }))
 
 // configure local multer service.
 app.configure(multer)
@@ -79,8 +81,6 @@ app.configure(celery)
 app.configure(media)
 app.configure(proxy)
 app.configure(schemas)
-
-app.configure(errorHandling)
 
 // Enable Swagger and API validator if needed
 app.configure(swagger)
@@ -104,5 +104,7 @@ app.configure(appHooks)
 // part of sockets.io (see transport), but must go after services are defined
 // because one of the services is used in the channels.
 app.configure(channels)
+
+app.configure(errorHandling)
 
 module.exports = app

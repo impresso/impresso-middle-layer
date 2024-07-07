@@ -17,6 +17,7 @@ export const docs: ServiceSwaggerOptions = {
       requestBody: {
         content: getRequestBodyContent('AuthenticationCreateRequest'),
       },
+      security: [],
       responses: {
         201: {
           description: 'Authentication successful',

@@ -198,6 +198,22 @@ When a schema is updated, the typescript types should be regenerated. This can b
 npm run generate-types
 ```
 
+## Configuration
+
+### Public API
+
+There are several configuration options that should be set differently in Public API:
+
+ * `isPublicApi` - set to `true` to enable the public API. This configures openapi schema, validation, REST transport.
+ * `rateLimiter` - `enabled` must be set to `true` to enable rate limiting. 
+   capacity and refill rate should be adjusted too.
+ * `authentication.jwtOptions`:
+   * `audience` - should be set to the public API URL. This must be different
+      from the internal API URL to make sure tokens from one could not be used
+      in another.
+   * `expiresIn` - should be set to a reasonable value for the public API (e.g. `8h` for 8 hours)
+ * `authentication.cookie.enabled` set to `false` - cookies are not used in the public API
+
 ## Help
 
 For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).

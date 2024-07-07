@@ -43,6 +43,8 @@ interface AuthenticateAroundOptions {
 export const authenticateAround =
   ({ strategy = 'jwt', allowUnauthenticated = false }: AuthenticateAroundOptions = {}) =>
   async (context: HookContext<ImpressoApplication>, next: NextFunction) => {
+    if (context.type !== 'around') throw new Error('authenticateAround must be used in "around" hooks')
+
     const isPublicApi = context.app.get('isPublicApi')
     // only allow unauthenticated in non-public API
     const doAllowUnauthenticated = isPublicApi ? false : allowUnauthenticated
