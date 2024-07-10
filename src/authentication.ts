@@ -100,9 +100,12 @@ class NoDBJWTStrategy extends JWTStrategy {
 
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi')
+  const useDbUserInRequestContext = app.get('useDbUserInRequestContext')
   const authentication = new CustomisedAuthenticationService(app)
 
-  authentication.register('jwt', new NoDBJWTStrategy())
+  const jwtStrategy = useDbUserInRequestContext ? new JWTStrategy() : new NoDBJWTStrategy()
+
+  authentication.register('jwt', jwtStrategy)
   authentication.register('local', new HashedPasswordVerifier())
 
   app.use('/authentication', authentication, {
