@@ -25,6 +25,7 @@ class CustomisedAuthenticationService extends AuthenticationService {
       if (user.groups.length) {
         payload.userGroups = user.groups.map(d => d.name)
       }
+      payload.isStaff = user.isStaff
     }
     return payload
   }
@@ -52,9 +53,6 @@ class HashedPasswordVerifier extends LocalStrategy {
     })
   }
 }
-
-// Group assigned to Staff members
-const StaffGroupName = 'staff' // TODO: ask Daniele if this is correct
 
 export interface SlimUser {
   uid: string
@@ -91,7 +89,7 @@ class NoDBJWTStrategy extends JWTStrategy {
     const slimUser: SlimUser = {
       uid: payload.userId,
       id: parseInt(payload.sub),
-      isStaff: payload.userGroups?.includes(StaffGroupName) ?? false,
+      isStaff: payload.isStaff ?? false,
     }
     return {
       ...result,
