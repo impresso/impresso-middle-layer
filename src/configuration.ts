@@ -27,6 +27,7 @@ export interface Configuration {
   redis?: RedisConfiguration
   rateLimiter?: RateLimiterConfiguration & { enabled?: boolean }
   publicApiPrefix?: string
+  useDbUserInRequestContext?: boolean
 
   // TODO: move to services:
   sequelizeClient?: Sequelize
@@ -39,16 +40,38 @@ const configurationSchema: JSONSchemaDefinition = {
   $id: 'configuration',
   type: 'object',
   properties: {
-    isPublicApi: {
-      type: 'boolean',
-      description: 'If `true`, the app serves a public API',
-    },
+    isPublicApi: { type: 'boolean', description: 'If `true`, the app serves a public API' },
     allowedCorsOrigins: {
       type: 'array',
       items: {
         type: 'string',
       },
       description: 'List of allowed origins for CORS',
+    },
+    redis: {
+      type: 'object',
+      properties: {
+        enable: { type: 'boolean', description: 'Enable Redis' },
+        brokerUrl: { type: 'string', description: 'URL of the Redis broker' },
+      },
+      description: 'Redis configuration',
+    },
+    rateLimiter: {
+      type: 'object',
+      properties: {
+        enabled: { type: 'boolean', description: 'Enable rate limiter' },
+        capacity: { type: 'number', description: 'Capacity of the rate limiter' },
+        refillRate: { type: 'number', description: 'Refill rate of the rate limiter' },
+      },
+      description: 'Rate limiter configuration',
+      required: ['capacity', 'refillRate'],
+    },
+    publicApiPrefix: { type: 'string', description: 'Prefix for the public API' },
+    useDbUserInRequestContext: {
+      type: 'boolean',
+      description:
+        'If `true`, the user object is loaded from the db on every request. ' +
+        'If `false` (default), the user object is created from the JWT token',
     },
   },
 } as const

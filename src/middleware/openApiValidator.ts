@@ -3,11 +3,18 @@ import type { Application } from '@feathersjs/express'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 import convertSchema from '@openapi-contrib/json-schema-to-openapi-schema'
 import * as OpenApiValidator from 'express-openapi-validator'
+import { HttpError as OpenApiHttpError } from 'express-openapi-validator/dist/framework/types'
 import type { OpenAPIV3, OpenApiValidatorOpts, ValidationError } from 'express-openapi-validator/dist/framework/types'
 import fs from 'fs'
 import { logger } from '../logger'
 import type { ImpressoApplication } from '../types'
 import { parseFilters } from '../util/queryParameters'
+import type {
+  NextFunction as ExpressNextFunction,
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from 'express'
+import { FeathersError } from '@feathersjs/errors'
 
 export default (app: ImpressoApplication & Application) => {
   installMiddleware(app)
@@ -67,7 +74,6 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
   })
 
   // app.use(middlewares as any)
-  // app.use(middlewares as any)
   middlewares.forEach((middleware, index) => {
     logger.debug('Install', middleware)
     app.use((req, res, next) => {
@@ -75,6 +81,20 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
       handler(req, res, next)
     })
   })
+
+  app.use((error: any, req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {
+    if (error instanceof OpenApiHttpError) {
+      next(convertOpenApiError(error))
+    } else {
+      next(error)
+    }
+  })
+}
+
+const convertOpenApiError = (error: OpenApiHttpError): FeathersError => {
+  const newError = new FeathersError(error, 'OpenApiError', error.status, error.constructor.name, {})
+  newError.stack = error.stack
+  return newError
 }
 
 /**
