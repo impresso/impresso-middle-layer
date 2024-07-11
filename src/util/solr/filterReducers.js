@@ -271,10 +271,15 @@ const reduceOpenEndedStringValue = (filters, field) => {
   const outerStatement = filters
     .map((filter) => {
       const strings = Array.isArray(filter.q) ? filter.q : [filter.q];
-      const statement = strings
-        .map(v => textAsOpenEndedSearchString(v, field))
-        .join(` ${filter.op || 'OR'} `);
-      return strings.length > 1 ? `(${statement})` : statement;
+      const fields = Array.isArray(field) ? field : [field];
+
+      const part = fields.map((f) => {
+        const statement = strings
+          .map(v => textAsOpenEndedSearchString(v, f))
+          .join(` ${filter.op || 'OR'} `);
+        return strings.length > 1 ? `(${statement})` : statement;
+      }).join(' OR ');
+      return fields.length > 1 ? `(${part})` : part;
     })
     .join(' AND ');
   return filters.length > 1 ? `(${outerStatement})` : outerStatement;

@@ -82,6 +82,8 @@ function getMentionLabelsFromSolrResponse(response) {
   }
 }
 
+const escapeId = id => id.replace(/:/g, '\\:')
+
 function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filters, resolution) {
   const facet = {
     entity: {
@@ -91,7 +93,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
       numBuckets: true,
       limit: ResolutionToLimit[resolution || Resolution.Year],
       domain: {
-        filter: [TypeToEntityField[entityType], `"${entityId}"`].join(':'),
+        filter: [TypeToEntityField[entityType.toLowerCase()], `"${escapeId(entityId)}"`].join(':'),
       },
     },
   }
@@ -105,7 +107,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
       limit: ResolutionToLimit[resolution || Resolution.Year],
       domain: {
         // NOTE: we are assuming that all mention labels are of the same type as the entity.
-        filter: [TypeToMentionField[entityType], `"${label}"`].join(':'),
+        filter: [TypeToMentionField[entityType.toLowerCase()], `"${label}"`].join(':'),
       },
     }
   })
@@ -157,9 +159,9 @@ function buildEntityResponse(entity, facetSearchResult) {
   const thumbnailUrl = get(entity, 'wikidata.images.0.value')
   return {
     type: 'entity',
-    id: entity.uid,
-    label: entity.name,
-    entityType: entity.type,
+    id: entity.id,
+    label: entity.label,
+    entityType: entity.entityType.toLowerCase(),
     wikidataId: entity.wikidataId,
     thumbnailUrl,
     mentionFrequencies: facetSearchResult.facets.entity.buckets,
@@ -170,7 +172,7 @@ function buildEntitySubitemsResponse(entity, result, entityMentionLabels) {
   return entityMentionLabels.map((label, index) => ({
     type: 'mention',
     label,
-    entityType: entity.type,
+    entityType: entity.entityType.toLowerCase(),
     mentionFrequencies: result.facets[`mention_${index}`].buckets,
   }))
 }
