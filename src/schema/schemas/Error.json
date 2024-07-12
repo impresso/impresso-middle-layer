@@ -3,7 +3,7 @@
   "description": "Error response that follows https://datatracker.ietf.org/doc/html/rfc7807#section-3.1",
   "title": "Error",
   "type": "object",
-  "required": ["type", "title", "status", "detail"],
+  "required": ["type", "title", "status"],
   "properties": {
     "type": {
       "type": "string",
