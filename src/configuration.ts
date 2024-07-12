@@ -28,6 +28,7 @@ export interface Configuration {
   rateLimiter?: RateLimiterConfiguration & { enabled?: boolean }
   publicApiPrefix?: string
   useDbUserInRequestContext?: boolean
+  problemUriBase?: string
 
   // TODO: move to services:
   sequelizeClient?: Sequelize
@@ -72,6 +73,11 @@ const configurationSchema: JSONSchemaDefinition = {
       description:
         'If `true`, the user object is loaded from the db on every request. ' +
         'If `false` (default), the user object is created from the JWT token',
+    },
+    problemUriBase: {
+      type: 'string',
+      description:
+        'Base URI for problem URIs. Falls back to the default URI (https://impresso-project.ch/probs) if not set',
     },
   },
 } as const
