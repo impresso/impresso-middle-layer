@@ -9,10 +9,17 @@ cd path/to/impresso-middle-layer && npm install
 # Watch and compile/copy files in one terminal:
 npm run watch
 
-# Run the frontend app in another terminal with the following env variables:
+# Run the app in another terminal:
+npm run dev
+```
+
+Install and run the [impresso-frontend](https://github.com/impresso/impresso-frontend) app in another terminal adjusting the env variables to fit the Internal Api config:
+  
+```shell
+VUE_APP_MIDDLELAYER_API_PATH=/ VUE_APP_MIDDLELAYER_API=http://localhost:3030 \ VUE_APP_MIDDLELAYER_API_SOCKET_PATH=/socket.io make run-dev 
+
+# or if you are using a conveniente env file
 make run-dev
-# or
-VUE_APP_MIDDLELAYER_API_PATH=/ VUE_APP_MIDDLELAYER_API=http://localhost:3030 VUE_APP_MIDDLELAYER_API_SOCKET_PATH=/socket.io make run-dev 
 ```
 
 ## About
