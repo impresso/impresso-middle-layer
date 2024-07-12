@@ -30,7 +30,7 @@ const asApplicationJson = (schema: JSONSchema) => ({
 })
 
 const asApplicationProblemJson = (schema: JSONSchema) => ({
-  'application/json': {
+  'application/problem+json': {
     schema,
   },
 })
@@ -47,8 +47,6 @@ export const getParameterRef = (schemaName: string) => ({
   $ref: `#/components/parameters/${schemaName}`,
 })
 
-// TODO: convert schema to
-// https://datatracker.ietf.org/doc/html/rfc7807
 const defaultErrorSchema = getSchemaRef('Error')
 
 interface GetStandardResponsesParams {
