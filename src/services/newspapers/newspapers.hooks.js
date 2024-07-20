@@ -2,7 +2,7 @@ import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { OrderByChoices } from './newspapers.schema'
 
-const { queryWithCommonParams, validate, validateEach, utils } = require('../../hooks/params')
+const { queryWithCommonParams, validate, utils } = require('../../hooks/params')
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
 
 module.exports = {
@@ -17,6 +17,10 @@ module.exports = {
     ],
     find: [
       validate({
+        includedOnly: {
+          required: false,
+          transform: d => !!d,
+        },
         q: {
           required: false,
           max_length: 500,
@@ -51,18 +55,6 @@ module.exports = {
             }),
         },
       }),
-      validateEach(
-        'filters',
-        {
-          type: {
-            choices: ['included', 'excluded'],
-            required: true,
-          },
-        },
-        {
-          required: false,
-        }
-      ),
       queryWithCommonParams(),
     ],
     get: [],

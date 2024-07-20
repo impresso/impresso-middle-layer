@@ -1,6 +1,6 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { MethodParameter } from '../../util/openapi'
-import { getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { OrderByKeyToField } from './text-reuse-clusters.class'
 import { Filter } from '../../models'
 
@@ -34,16 +34,7 @@ const findParameters: MethodParameter[] = [
     },
     description: 'Order by term',
   },
-  {
-    in: 'query',
-    name: 'filters',
-    required: false,
-    schema: {
-      type: 'array',
-      items: getSchemaRef('Filter'),
-    },
-    description: 'Filters to apply',
-  },
+  filtersQueryParameter,
   ...getStandardParameters({ method: 'find', maxPageSize: 20 }),
 ]
 

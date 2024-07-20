@@ -1,6 +1,6 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import { SolrMappings } from '../../data/constants'
-import { QueryParameter, getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { QueryParameter, filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
 
 const SupportedIndexes = Object.keys(SolrMappings)
 
@@ -41,16 +41,7 @@ const getGetParameters = (index: IndexId): QueryParameter[] => [
     },
     description: 'Group by',
   },
-  {
-    in: 'query',
-    name: 'filters',
-    required: false,
-    schema: {
-      type: 'array',
-      items: getSchemaRef('Filter'),
-    },
-    description: 'Filters to apply',
-  },
+  filtersQueryParameter,
   {
     in: 'query',
     name: 'range_start',
