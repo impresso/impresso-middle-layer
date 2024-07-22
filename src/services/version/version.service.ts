@@ -1,9 +1,13 @@
+import debug from 'debug'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { docs } from './version.schema'
+import { ImpressoApplication } from '../../types'
+import { ServiceOptions } from '@feathersjs/feathers'
 
-const { getGitBranch, getGitRevision, getVersion, getFirstAndLastDocumentDates, getNewspaperIndex } = require('./logic')
+const log = debug('impresso/services:version')
+const { getFirstAndLastDocumentDates, getNewspaperIndex } = require('./logic')
 
-module.exports = function (app) {
+module.exports = function (app: ImpressoApplication) {
   // Initialize our service with any options it requires
   app.use(
     '/version',
@@ -13,22 +17,25 @@ module.exports = function (app) {
         const sequelizeConfig = app.get('sequelize')
         const solr = app.service('cachedSolr')
         const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr)
-
+        log('branch:', process.env.GIT_BRANCH, 'revision:', process.env.GIT_REVISION, 'version:', process.env.GIT_TAG)
         return {
           solr: {
-            endpoints: ['search', 'mentions', 'topics', 'images', 'entities'].reduce((acc, d) => {
-              acc[d] = solrConfig[d].alias
-              return acc
-            }, {}),
+            endpoints: {
+              search: solrConfig.search.alias,
+              mentions: solrConfig.mentions.alias,
+              topics: solrConfig.topics.alias,
+              images: solrConfig.images.alias,
+              entities: solrConfig.entities.alias,
+            },
           },
           mysql: {
             endpoint: sequelizeConfig.alias,
           },
           version: app.get('authentication').jwtOptions.issuer,
           apiVersion: {
-            branch: await getGitBranch(),
-            revision: await getGitRevision(),
-            version: await getVersion(),
+            branch: process.env.GIT_BRANCH || 'N/A',
+            revision: process.env.GIT_REVISION || 'N/A',
+            version: process.env.GIT_TAG || 'N/A',
           },
           documentsDateSpan: { firstDate, lastDate },
           newspapers: await getNewspaperIndex(),
@@ -39,6 +46,6 @@ module.exports = function (app) {
     {
       events: [],
       docs: createSwaggerServiceOptions({ schemas: {}, docs }),
-    }
+    } as ServiceOptions
   )
 }
