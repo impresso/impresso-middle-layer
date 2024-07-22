@@ -1,5 +1,4 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { REGEX_UID } from '../../hooks/params'
 import type { MethodParameter } from '../../util/openapi'
 import { getStandardParameters, getStandardResponses } from '../../util/openapi'
 
@@ -23,30 +22,6 @@ const findParameters: MethodParameter[] = [
       enum: ['-date', 'date', '-relevance', 'relevance'],
     },
     description: 'Order by term',
-  },
-  {
-    in: 'query',
-    name: 'filters',
-    required: false,
-    schema: {
-      type: 'array',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['type'],
-        properties: {
-          type: {
-            type: 'string',
-            enum: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
-          },
-          q: {
-            type: 'string',
-            pattern: String(REGEX_UID).slice(1, -1),
-          },
-        },
-      },
-    },
-    description: 'Filters to apply',
   },
   ...getStandardParameters({ method: 'find' }),
 ]

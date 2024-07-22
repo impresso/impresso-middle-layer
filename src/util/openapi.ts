@@ -227,3 +227,11 @@ export const getResponseContent = (schemaName: string) => {
 export const getDefaultErrorResponseContent = () => {
   return asApplicationProblemJson(defaultErrorSchema)
 }
+
+export const filtersQueryParameter: QueryParameter = {
+  in: 'query',
+  name: 'filters',
+  required: false,
+  schema: { oneOf: [{ type: 'string' }, { type: 'array', items: getSchemaRef('Filter') }] },
+  description: 'Create filters using Impresso <a href="https://example.com" target="_blank">filter builder</a>.',
+}

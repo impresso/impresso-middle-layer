@@ -1,7 +1,7 @@
 import { ServiceSwaggerOptions, operation } from 'feathers-swagger'
 import { SolrMappings } from '../../data/constants'
 import type { MethodParameter } from '../../util/openapi'
-import { getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { filtersQueryParameter, getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { paramsValidator } from './search.validators'
 
 const findParameters: MethodParameter[] = [
@@ -47,16 +47,7 @@ const findParameters: MethodParameter[] = [
     },
     description: 'Facet to return',
   },
-  {
-    in: 'query',
-    name: 'filters',
-    required: false,
-    schema: {
-      type: 'array',
-      items: getSchemaRef('Filter'),
-    },
-    description: 'Filters to apply',
-  },
+  filtersQueryParameter,
   ...getStandardParameters({ method: 'find' }),
 ]
 

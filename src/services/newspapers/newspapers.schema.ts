@@ -21,13 +21,12 @@ export const OrderByChoices = [
 const findParameters: QueryParameter[] = [
   {
     in: 'query',
-    name: 'filters',
+    name: 'includedOnly',
     required: false,
     schema: {
-      type: 'array',
-      items: getSchemaRef('Filter'),
+      type: 'boolean',
     },
-    description: 'Filters to apply',
+    description: 'Return included newspapers only (TODO)',
   },
   {
     in: 'query',
