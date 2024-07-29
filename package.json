@@ -77,7 +77,7 @@
     "dotenv": "^16.0.1",
     "express-openapi-validator": "5.1.6",
     "fast-ratelimit": "^3.0.0",
-    "fast-xml-parser": "^4.3.4",
+    "fast-xml-parser": "^4.4.1",
     "feathers-authentication-hooks": "^1.0.2",
     "feathers-hooks-common": "8.1.2",
     "feathers-memory": "^2.2.0",
