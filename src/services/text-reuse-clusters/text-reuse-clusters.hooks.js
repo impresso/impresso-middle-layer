@@ -17,7 +17,7 @@ module.exports = {
       validate({
         filters: {
           required: false,
-          transform: parseFilters,
+          transform: f => parseFilters(f)[0], // parse a single filter
         },
       }),
     ],
