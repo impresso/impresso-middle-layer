@@ -203,10 +203,28 @@ function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
 }
 
 function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
-  return {
-    limit: parseInt(get(solrResponse, 'responseHeader.params.rows', '10'), 10),
-    offset: parseInt(get(solrResponse, 'responseHeader.params.start', '0'), 10),
-    total: get(solrResponse, 'response.numFound'),
+  if (typeof get(solrResponse, 'responseHeader.params.json') === 'string') {
+    try {
+      const { params } = JSON.parse(solrResponse.responseHeader.params.json)
+      return {
+        limit: typeof params.rows === 'number' ? params.rows : 10,
+        offset: typeof params.start === 'number' ? params.start : 0,
+        total: get(solrResponse, 'response.numFound'),
+      }
+    } catch (e) {
+      console.warn(e)
+      return {
+        limit: 10,
+        offset: 0,
+        total: get(solrResponse, 'response.numFound'),
+      }
+    }
+  } else {
+    return {
+      limit: parseInt(get(solrResponse, 'responseHeader.params.rows', '10'), 10),
+      offset: parseInt(get(solrResponse, 'responseHeader.params.start', '0'), 10),
+      total: get(solrResponse, 'response.numFound'),
+    }
   }
 }
 
