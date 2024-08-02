@@ -42,9 +42,9 @@ function buildResponseClusters(clusters: any, clusterIdsAndText: { id: any; text
 
 const deserializeFilters = (serializedFilters: string) => protobuf.searchQuery.deserialize(serializedFilters).filters
 
-function filtersToSolrQueries(filters: any) {
+function filtersToSolrQueries(filters: any, namespace = SolrNamespaces.TextReusePassages) {
   const filtersGroupsByType = values(groupBy(filters, 'type'))
-  return uniq(filtersGroupsByType.map((f: any) => sameTypeFiltersToQuery(f, SolrNamespaces.TextReusePassages)))
+  return uniq(filtersGroupsByType.map((f: any) => sameTypeFiltersToQuery(f, namespace)))
 }
 
 export const OrderByKeyToField = {
@@ -122,7 +122,7 @@ export class TextReuseClusters {
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
     const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
     const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
-    const filterQueryParts = filtersToSolrQueries(filters)
+    const filterQueryParts = filtersToSolrQueries(filters, SolrNamespaces.TextReuseClusters)
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
       text,
