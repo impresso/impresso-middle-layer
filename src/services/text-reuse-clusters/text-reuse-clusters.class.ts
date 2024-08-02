@@ -53,7 +53,7 @@ export const OrderByKeyToField = {
 
 const withExtraQueryParts = (query: { q: any }, parts: any) => {
   const updatedQuery = clone(query)
-  updatedQuery.q = [query.q].concat(parts).join(' AND ')
+  updatedQuery.q = [`(${query.q})`].concat(parts).join(' AND ')
   return updatedQuery
 }
 
@@ -122,7 +122,7 @@ export class TextReuseClusters {
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
     const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
     const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
-    const filterQueryParts = filtersToSolrQueries(filters, SolrNamespaces.TextReuseClusters)
+    const filterQueryParts = filtersToSolrQueries(filters, SolrNamespaces.TextReusePassages)
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
       text,
