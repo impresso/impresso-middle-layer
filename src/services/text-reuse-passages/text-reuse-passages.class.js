@@ -68,7 +68,7 @@ export class TextReusePassages {
             return result
           }),
           total: response.numFound, // "<total number of records>",
-          limit: params.query.limit, // "<max number of items per page>",
+          limit: params.query.limit ?? 10, // "<max number of items per page>",
           offset: params.query.offset ?? 0, // "<number of skipped items (offset)>",
           // org: response.docs,
           info: {
