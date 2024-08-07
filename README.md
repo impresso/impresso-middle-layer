@@ -50,7 +50,7 @@ Create a `./docker/config/ssh/config` file:
 
 Add relevant ssh key relative to the mapped folder `/root/.ssh` in `kroniak/ssh-client` docker image, then:
 
-```
+```bash
 docker-compose up
 ```
 
