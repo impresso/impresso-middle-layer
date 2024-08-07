@@ -56,7 +56,7 @@ docker-compose up
 
 Then:
 
-```
+```bash
 make run-dev
 ```
 
