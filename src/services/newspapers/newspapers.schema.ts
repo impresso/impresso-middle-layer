@@ -1,7 +1,6 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { SolrMappings } from '../../data/constants'
 import type { QueryParameter } from '../../util/openapi'
-import { getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { getStandardParameters, getStandardResponses } from '../../util/openapi'
 
 export const OrderByChoices = [
   '-name',

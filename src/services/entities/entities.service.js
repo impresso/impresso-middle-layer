@@ -1,16 +1,26 @@
+import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { docs } from './entities.schema'
+import hooks from './entities.hooks'
+
 // Initializes the `entities` service on path `/entities`
-const createService = require('./entities.class.js');
-const hooks = require('./entities.hooks');
+const createService = require('./entities.class')
 
 module.exports = function (app) {
-  // Initialize our service with any options it requires
-  app.use('/entities', createService({
+  const options = {
     name: 'entities',
     app,
-  }));
+  }
+  const isPublicApi = app.get('isPublicApi')
+
+  // Initialize our service with any options it requires
+  app.use('/entities', createService(options), {
+    events: [],
+    methods: isPublicApi ? ['find', 'get'] : undefined,
+    docs: createSwaggerServiceOptions({ schemas: {}, docs }),
+  })
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('entities');
+  const service = app.service('entities')
 
-  service.hooks(hooks);
-};
+  service.hooks(hooks)
+}

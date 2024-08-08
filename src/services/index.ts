@@ -17,10 +17,10 @@ const publicApiServices = [
   'version',
   'newspapers',
   'search-facets',
+  'entities',
 ]
 
 const internalApiServices = [
-  'entities',
   'issues',
   'suggestions',
   'projects',
