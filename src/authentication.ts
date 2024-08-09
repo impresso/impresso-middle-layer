@@ -150,7 +150,10 @@ export default (app: ImpressoApplication) => {
 
   authentication.register('jwt', jwtStrategy)
   authentication.register('local', new HashedPasswordVerifier())
-  authentication.register('jwt-app', new ImlAppJWTStrategy())
+
+  if (isPublicApi) {
+    authentication.register('jwt-app', new ImlAppJWTStrategy())
+  }
 
   app.use('/authentication', authentication, {
     methods: isPublicApi ? ['create'] : undefined,
