@@ -3,11 +3,12 @@
   "title": "Authentication Create Request",
   "description": "Request body for the authentication endpoint",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "properties": {
-    "strategy": { "type": "string", "enum": ["local"] },
+    "strategy": { "type": "string", "enum": ["local", "jwt-app"] },
     "email": { "type": "string" },
-    "password": { "type": "string" }
+    "password": { "type": "string" },
+    "accessToken": { "type": "string" }
   },
-  "required": ["strategy", "email", "password"]
+  "required": ["strategy"]
 }

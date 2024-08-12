@@ -79,6 +79,7 @@ export interface FeaturesConfiguration {
 export interface LocalAuthenticationConfiguration extends AuthenticationConfiguration {
   jwtOptions: {
     issuer: string
+    audience: string
   }
 }
 
@@ -91,8 +92,15 @@ export interface Configuration {
   useDbUserInRequestContext?: boolean
   problemUriBase?: string
   features?: FeaturesConfiguration
-  // TODO: move to services:
   authentication: LocalAuthenticationConfiguration
+  /**
+   * Configuration for the auth strategy in Public API
+   * where the API can verify a token from the internal API
+   * (IML) using this configuration and then issue a new token
+   * for the public API.
+   */
+  imlAuthConfiguration?: LocalAuthenticationConfiguration
+  // TODO: move to services:
   sequelize: SequelizeConfiguration
   sequelizeClient?: Sequelize
   celery?: CeleryConfiguration

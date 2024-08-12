@@ -4,15 +4,16 @@ import {
   AuthenticationResult,
   AuthenticationService,
   JWTStrategy,
+  JwtVerifyOptions,
 } from '@feathersjs/authentication'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 import { NotAuthenticated } from '@feathersjs/errors'
+import { ServiceOptions } from '@feathersjs/feathers'
 import initDebug from 'debug'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
 import User from './models/users.model'
 import { docs } from './services/authentication/authentication.schema'
 import { ImpressoApplication } from './types'
-import { ServiceOptions } from '@feathersjs/feathers'
 
 const debug = initDebug('impresso/authentication')
 
@@ -98,6 +99,48 @@ class NoDBJWTStrategy extends JWTStrategy {
   }
 }
 
+/**
+ * A custom JWT strategy that verifies the IML (web app) JWT
+ * token and issues a public API short-lived token.
+ */
+class ImlAppJWTStrategy extends JWTStrategy {
+  async authenticate(authentication: AuthenticationRequest, params: AuthenticationParams) {
+    const { accessToken } = authentication
+    if (!accessToken) {
+      throw new NotAuthenticated('No access token')
+    }
+
+    const authConfig = (this.app as ImpressoApplication)?.get('imlAuthConfiguration')
+
+    const imlOps: JwtVerifyOptions = { ...params.jwt }
+    if (authConfig != null) {
+      imlOps.audience = authConfig.jwtOptions.audience
+    }
+
+    const payload = await this.authentication?.verifyAccessToken(accessToken, imlOps, authConfig?.secret)
+
+    const { entity } = this.configuration
+
+    return {
+      authentication: { strategy: this.name },
+      [entity]: await this.getEntity(payload.sub, params),
+    } as any
+  }
+
+  get configuration() {
+    const authConfig = this.authentication?.configuration
+    const config = super.configuration
+    return {
+      ...config,
+      service: authConfig?.service,
+      entity: authConfig?.entity,
+      entityId: authConfig?.entityId,
+      header: '',
+      schemes: ['JWT-APP'],
+    }
+  }
+}
+
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi')
   const useDbUserInRequestContext = app.get('useDbUserInRequestContext')
@@ -107,6 +150,10 @@ export default (app: ImpressoApplication) => {
 
   authentication.register('jwt', jwtStrategy)
   authentication.register('local', new HashedPasswordVerifier())
+
+  if (isPublicApi) {
+    authentication.register('jwt-app', new ImlAppJWTStrategy())
+  }
 
   app.use('/authentication', authentication, {
     methods: isPublicApi ? ['create'] : undefined,
