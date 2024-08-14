@@ -82,6 +82,11 @@ export interface LocalAuthenticationConfiguration extends AuthenticationConfigur
   }
 }
 
+export interface PaginationConfiguration {
+  default: number
+  max: number
+}
+
 export interface Configuration {
   isPublicApi?: boolean
   allowedCorsOrigins?: string[]
@@ -91,6 +96,8 @@ export interface Configuration {
   useDbUserInRequestContext?: boolean
   problemUriBase?: string
   features?: FeaturesConfiguration
+  paginate?: PaginationConfiguration
+
   // TODO: move to services:
   authentication: LocalAuthenticationConfiguration
   sequelize: SequelizeConfiguration
