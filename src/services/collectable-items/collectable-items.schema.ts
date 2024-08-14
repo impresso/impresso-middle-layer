@@ -23,6 +23,11 @@ export const docs: ServiceSwaggerOptions = {
   multi: ['patch'],
   securities: ['patchMulti'],
   operations: {
+    patch: {
+      // hide this endpoint from the public API - it's not used
+      // but required for feathersjs
+      tags: ['ignored'],
+    },
     patchMulti: {
       description: 'Update items in the collection',
       parameters: patchParameters,

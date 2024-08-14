@@ -98,6 +98,9 @@ export default (app: ImpressoApplication & Application) => {
         },
       },
       security: [{ BearerAuth: [] }],
+      ignore: {
+        tags: ['ignored'],
+      },
       servers:
         prefix != null
           ? [

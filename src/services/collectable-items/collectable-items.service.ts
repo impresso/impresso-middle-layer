@@ -23,10 +23,6 @@ export default (app: ImpressoApplication) => {
       docs: createSwaggerServiceOptions({
         schemas: {},
         docs,
-        // TODO
-        // transformSchema: schema => {
-        //   return schema
-        // },
       }),
     } as ServiceOptions)
     app.service('/collections/:id/items').hooks(hooks)
