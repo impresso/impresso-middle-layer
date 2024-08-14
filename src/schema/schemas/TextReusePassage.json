@@ -67,7 +67,7 @@
       }
     },
     "offsetStart": {
-      "$oneOf": [
+      "oneOf": [
         {
           "type": "integer",
           "description": "Offset of the passage in the article text",
@@ -77,7 +77,7 @@
       ]
     },
     "offsetEnd": {
-      "$oneOf": [
+      "oneOf": [
         {
           "type": "integer",
           "description": "Offset of the passage in the article text",

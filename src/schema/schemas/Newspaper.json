@@ -43,7 +43,7 @@
       "description": "Title of the newspaper"
     },
     "endYear": {
-      "$oneOf": [
+      "oneOf": [
         {
           "type": "integer",
           "description": "Last available year of the newspaper articles"
@@ -54,7 +54,7 @@
       ]
     },
     "startYear": {
-      "$oneOf": [
+      "oneOf": [
         {
           "type": "integer",
           "description": "First available year of the newspaper articles"

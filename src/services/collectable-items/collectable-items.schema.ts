@@ -1,51 +1,18 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { MethodParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
-import { REGEX_UIDS } from '../../hooks/params'
+import { MethodParameter, getRequestBodyContent, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { REGEX_UID } from '../../hooks/params'
 
-const findParameters: MethodParameter[] = [
+const patchParameters: MethodParameter[] = [
   {
-    in: 'query',
-    name: 'collection_uids',
-    required: false,
-    schema: {
-      type: 'string',
-      pattern: String(REGEX_UIDS).slice(1, -1),
-    },
-    description: 'TODO',
-  },
-  {
-    in: 'query',
-    name: 'item_uids',
-    required: false,
-    schema: {
-      type: 'string',
-      pattern: String(REGEX_UIDS).slice(1, -1),
-    },
-    description: 'TODO',
-  },
-  {
-    in: 'query',
-    name: 'resolve',
+    in: 'path',
+    name: 'id',
     required: true,
     schema: {
       type: 'string',
-      enum: ['collection', 'item'],
-      default: 'collection',
+      pattern: String(REGEX_UID).slice(1, -1),
     },
-    description: 'TODO',
+    description: 'Collection ID',
   },
-  {
-    in: 'query',
-    name: 'order_by',
-    required: false,
-    schema: {
-      type: 'string',
-      enum: ['-dateAdded', 'dateAdded', '-itemDate', 'itemDate'],
-      default: '-dateAdded',
-    },
-    description: 'Order by term',
-  },
-  ...getStandardParameters({ method: 'find' }),
 ]
 
 /**
@@ -53,14 +20,18 @@ const findParameters: MethodParameter[] = [
  */
 export const docs: ServiceSwaggerOptions = {
   description: 'Collectable items',
-  securities: ['find', 'create', 'remove'],
+  multi: ['patch'],
+  securities: ['patchMulti'],
   operations: {
-    find: {
-      description: 'Find collectable items that match the given query',
-      parameters: findParameters,
+    patchMulti: {
+      description: 'Update items in the collection',
+      parameters: patchParameters,
+      requestBody: {
+        content: getRequestBodyContent('UpdateCollectableItems'),
+      },
       responses: getStandardResponses({
-        method: 'find',
-        schema: 'CollectableItemGroup',
+        method: 'patchMulti',
+        schema: 'CollectableItemsUpdatedResponse',
       }),
     },
   },
