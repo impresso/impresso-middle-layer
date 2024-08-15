@@ -98,9 +98,10 @@ export default (app: ImpressoApplication & Application) => {
         },
       },
       security: [{ BearerAuth: [] }],
-      ignore: {
-        tags: ['ignored'],
-      },
+      // "ignore" does not pass schema validator
+      // ignore: {
+      //   tags: ['not-used'],
+      // },
       servers:
         prefix != null
           ? [

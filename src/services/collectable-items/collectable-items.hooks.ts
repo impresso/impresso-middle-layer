@@ -118,8 +118,8 @@ export default {
     patch: [
       // in nested endpoint, map collectionId to a query parameter
       (context: HookContext) => {
-        if (context.params.route?.id) {
-          context.params.query.collection_uid = context.params.route.id
+        if (context.params.route?.collection_id) {
+          context.params.query.collection_uid = context.params.route.collection_id
         }
       },
     ],
