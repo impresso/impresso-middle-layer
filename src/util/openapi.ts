@@ -50,7 +50,7 @@ export const getParameterRef = (schemaName: string) => ({
 const defaultErrorSchema = getSchemaRef('Error')
 
 interface GetStandardResponsesParams {
-  method: 'create' | 'update' | 'patch' | 'remove' | 'find' | 'get'
+  method: 'create' | 'update' | 'patch' | 'remove' | 'find' | 'get' | 'patchMulti'
   schema: string
   authEnabled?: boolean
   isRateLimited?: boolean

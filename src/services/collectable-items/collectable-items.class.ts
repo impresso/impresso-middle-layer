@@ -1,27 +1,53 @@
-/* eslint-disable no-unused-vars */
-const lodash = require('lodash')
-const debug = require('debug')('impresso/services/collectable-items')
-const { NotFound } = require('@feathersjs/errors')
-const { Op } = require('sequelize')
+import { NotFound } from '@feathersjs/errors'
+import { NullableId, Params } from '@feathersjs/feathers'
+import Debug from 'debug'
+import lodash from 'lodash'
+import { Op } from 'sequelize'
+import CollectableItemGroup from '../../models/collectable-items-groups.model'
+import { STATUS_DELETED, STATUS_PUBLIC, STATUS_SHARED } from '../../models/collections.model'
+import { CollectableItemsUpdatedResponse, UpdateCollectableItems } from '../../models/generated/schemas'
+import User from '../../models/users.model'
+import { ImpressoApplication } from '../../types'
+import { measureTime } from '../../util/instruments'
+import { Service as SequelizeService } from '../sequelize.service'
 
-const SequelizeService = require('../sequelize.service')
-const CollectableItemGroup = require('../../models/collectable-items-groups.model')
-const { STATUS_PRIVATE, STATUS_PUBLIC, STATUS_SHARED, STATUS_DELETED } = require('../../models/collections.model')
-const { measureTime } = require('../../util/instruments')
+const debug = Debug('impresso/services/collectable-items')
 
-class Service {
-  constructor({ name = '', app = null } = {}) {
-    this.name = String(name)
+interface Sanitized<T> {
+  sanitized: T
+}
+
+interface WithUser {
+  user?: User
+}
+
+interface PatchQuery {
+  collection_uid: string
+}
+
+interface FindQuery {
+  item_uids?: string[]
+  collection_uids?: string[] | string
+  limit?: number
+  offset?: number
+  order_by?: string
+  resolve?: string
+}
+
+export class Service {
+  app: ImpressoApplication
+  sequelizeService: SequelizeService
+  constructor(app: ImpressoApplication) {
     this.app = app
-    this.SequelizeService = SequelizeService({
-      app,
-      name,
+    this.sequelizeService = new SequelizeService({
+      app: app as any as null,
+      name: 'collectable-items',
     })
   }
 
-  async find(params) {
+  async find(params: Params<FindQuery> & Sanitized<FindQuery> & WithUser) {
     // simplified where for sequelize raw queries.
-    const where = [{ '[Op.not]': [{ 'collection.status': STATUS_DELETED }] }]
+    const where: Record<string, any>[] = [{ '[Op.not]': [{ 'collection.status': STATUS_DELETED }] }]
 
     if (params.sanitized.item_uids) {
       where.push({
@@ -33,7 +59,7 @@ class Service {
         collection_id: params.sanitized.collection_uids,
       })
     }
-    if (params.user.id && params.authenticated) {
+    if (params.user?.id && params.authenticated) {
       where.push({
         '[Op.or]': [
           { 'collection.creator_id': params.user.id },
@@ -44,7 +70,7 @@ class Service {
       where.push({ 'collection.status': [STATUS_PUBLIC, STATUS_SHARED] })
     }
 
-    const whereReducer = (sum, clause) => {
+    const whereReducer = (sum: any[], clause: Record<string, any>) => {
       // This should be used for sequelize Symbol operator, e.g Symbol(sequelize.operator.not)
       // Object.getOwnPropertySymbols(clause).forEach((k) => {
       //   console.log('symbol!', k, k.toString());
@@ -69,10 +95,10 @@ class Service {
     const reducedWhere = where.reduce(whereReducer, []).join(' AND ')
 
     debug("'find' fetch with reduced where clause:", reducedWhere)
-    const results = await Promise.all([
+    const results: any = await Promise.all([
       measureTime(
         () =>
-          this.SequelizeService.rawSelect({
+          this.sequelizeService.rawSelect({
             query: `
           SELECT
             JSON_ARRAYAGG(collection_id) AS collectionIds,
@@ -89,15 +115,15 @@ class Service {
           ORDER BY ${params.sanitized.order_by}
             LIMIT :limit OFFSET :offset`,
             replacements: {
-              limit: params.query.limit,
-              offset: params.query.offset,
+              limit: params.query?.limit,
+              offset: params.query?.offset,
             },
           }),
         'collectable-items.db.q1'
       ),
       measureTime(
         () =>
-          this.SequelizeService.rawSelect({
+          this.sequelizeService.rawSelect({
             query: `
           SELECT count(*) as total FROM (
           SELECT
@@ -112,9 +138,9 @@ class Service {
         'collectable-items.db.q2'
       ),
     ]).then(rs => ({
-      data: rs[0].map(d => new CollectableItemGroup(d)),
-      limit: params.query.limit,
-      offset: params.query.offset,
+      data: rs[0].map((d: any) => new CollectableItemGroup(d)),
+      limit: params.query?.limit,
+      offset: params.query?.offset,
       total: rs[1][0].total,
     }))
 
@@ -123,7 +149,7 @@ class Service {
       return results
     }
 
-    const resolvable = {
+    const resolvable: Record<string, any> = {
       collections: {
         service: 'collections',
         uids: lodash(results.data).map('collectionIds').flatten().uniq().value(),
@@ -133,7 +159,7 @@ class Service {
     // user asked specifically to fill item data.
     if (params.sanitized.resolve === 'item') {
       // collect items uids
-      results.data.forEach(d => {
+      results.data.forEach((d: any) => {
         // add uid to list of uid per service.
         const service = d.getService()
         if (!resolvable[service]) {
@@ -193,7 +219,7 @@ class Service {
     // });
   }
 
-  async create(data, params) {
+  async create(data: any, params: Params & WithUser) {
     // get collection, only if it does belongs to the user
     const collection = await this.app.service('collections').get(data.sanitized.collection_uid, {
       user: params.user,
@@ -201,13 +227,13 @@ class Service {
     if (!collection) {
       throw new NotFound()
     }
-    const items = data.sanitized.items.map(d => ({
+    const items = data.sanitized.items.map((d: any) => ({
       itemId: d.uid,
       contentType: d.content_type,
       collectionId: collection.uid,
     }))
     debug('[create] with items:', items)
-    const results = await this.SequelizeService.bulkCreate(items)
+    const results = await this.sequelizeService.bulkCreate(items)
     const client = this.app.get('celeryClient')
     if (client) {
       client.run({
@@ -215,20 +241,20 @@ class Service {
         args: [
           // collection_uid
           collection.uid,
-          items.map(d => d.itemId),
+          items.map((d: any) => d.itemId),
         ],
       })
     }
 
     return {
-      data: results.map(d => d.toJSON()),
+      data: results.map((d: any) => d.toJSON()),
       info: {
         created: results.length,
       },
     }
   }
 
-  async remove(id, params) {
+  async remove(id: string, params: Params & Sanitized<any> & WithUser) {
     // get collection, only if it does belongs to the user
     const collection = await this.app.service('collections').get(params.sanitized.collection_uid, {
       user: params.user,
@@ -236,9 +262,9 @@ class Service {
     if (!collection) {
       throw new NotFound()
     }
-    const results = await this.SequelizeService.sequelizeKlass.destroy({
+    const results = await this.sequelizeService.sequelizeKlass.destroy({
       where: {
-        [Op.or]: params.sanitized.items.map(d => ({
+        [Op.or]: params.sanitized.items.map((d: any) => ({
           itemId: d.uid,
           collectionId: params.sanitized.collection_uid,
         })),
@@ -252,7 +278,7 @@ class Service {
         args: [
           // collection_uid
           collection.uid,
-          params.sanitized.items.map(({ uid }) => uid),
+          params.sanitized.items.map(({ uid }: { uid: string }) => uid),
           'METHOD_DEL_FROM_INDEX',
         ],
       })
@@ -262,10 +288,42 @@ class Service {
       removed: parseInt(results, 10),
     }
   }
-}
 
-module.exports = function (options) {
-  return new Service(options)
-}
+  /**
+   * Add or remove items from a collection
+   * @param id  - not used
+   * @param data - data to add or remove
+   * @param params - params.query.collection_uid - collection UID, params.user - user
+   * @returns
+   */
+  async patch(
+    id: NullableId,
+    data: UpdateCollectableItems,
+    params: Params<PatchQuery> & WithUser
+  ): Promise<CollectableItemsUpdatedResponse> {
+    if (id != null) throw new Error('Patch operation is not supported on a single item')
+    const jobQueue = this.app.get('celeryClient')
+    if (jobQueue == null) {
+      throw new Error('Celery client not available')
+    }
 
-module.exports.Service = Service
+    const collectionId = params.query?.collection_uid
+    if (collectionId == null) {
+      throw new Error('Collection UID not provided')
+    }
+    const userId = params.user?.id
+    if (userId == null) {
+      throw new Error('User not authenticated')
+    }
+
+    jobQueue.run({
+      task: 'impresso.tasks.update_collection',
+      args: [collectionId, userId, data.add, data.remove],
+    })
+
+    return {
+      totalAdded: data.add?.length ?? 0,
+      totalRemoved: data.add?.length ?? 0,
+    }
+  }
+}

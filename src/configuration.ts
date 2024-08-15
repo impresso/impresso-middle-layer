@@ -83,6 +83,11 @@ export interface LocalAuthenticationConfiguration extends AuthenticationConfigur
   }
 }
 
+export interface PaginationConfiguration {
+  default: number
+  max: number
+}
+
 export interface Configuration {
   isPublicApi?: boolean
   allowedCorsOrigins?: string[]
