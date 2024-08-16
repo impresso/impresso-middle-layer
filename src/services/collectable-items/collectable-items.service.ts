@@ -17,18 +17,14 @@ export default (app: ImpressoApplication) => {
 
   // enable the service on the nested endpoint for Public API
   if (app.get('isPublicApi')) {
-    app.use('/collections/:id/items', service, {
+    app.use('/collections/:collection_id/items', service, {
       events: [],
       methods: ['patch'],
       docs: createSwaggerServiceOptions({
         schemas: {},
         docs,
-        // TODO
-        // transformSchema: schema => {
-        //   return schema
-        // },
       }),
     } as ServiceOptions)
-    app.service('/collections/:id/items').hooks(hooks)
+    app.service('/collections/:collection_id/items').hooks(hooks)
   }
 }

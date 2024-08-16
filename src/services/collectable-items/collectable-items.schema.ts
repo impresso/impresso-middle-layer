@@ -5,7 +5,7 @@ import { REGEX_UID } from '../../hooks/params'
 const patchParameters: MethodParameter[] = [
   {
     in: 'path',
-    name: 'id',
+    name: 'collection_id',
     required: true,
     schema: {
       type: 'string',
@@ -23,6 +23,22 @@ export const docs: ServiceSwaggerOptions = {
   multi: ['patch'],
   securities: ['patchMulti'],
   operations: {
+    patch: {
+      // hide this endpoint from the public API - it's not used
+      // but required for feathersjs
+      // NOTE: If requestBody and responses are not provided,
+      // the `RefParser.bundle` will fail with an error
+      // "MissingPointerError: Token ":id" does not exist."
+      requestBody: {
+        content: getRequestBodyContent('UpdateCollectableItems'),
+      },
+      responses: getStandardResponses({
+        method: 'patchMulti',
+        schema: 'CollectableItemsUpdatedResponse',
+      }),
+
+      tags: ['not-used'],
+    },
     patchMulti: {
       description: 'Update items in the collection',
       parameters: patchParameters,

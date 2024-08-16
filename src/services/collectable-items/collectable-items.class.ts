@@ -5,7 +5,7 @@ import lodash from 'lodash'
 import { Op } from 'sequelize'
 import CollectableItemGroup from '../../models/collectable-items-groups.model'
 import { STATUS_DELETED, STATUS_PUBLIC, STATUS_SHARED } from '../../models/collections.model'
-import { UpdateCollectableItems } from '../../models/generated/schemas'
+import { CollectableItemsUpdatedResponse, UpdateCollectableItems } from '../../models/generated/schemas'
 import User from '../../models/users.model'
 import { ImpressoApplication } from '../../types'
 import { measureTime } from '../../util/instruments'
@@ -289,7 +289,18 @@ export class Service {
     }
   }
 
-  async patch(id: NullableId, data: UpdateCollectableItems, params: Params<PatchQuery> & WithUser) {
+  /**
+   * Add or remove items from a collection
+   * @param id  - not used
+   * @param data - data to add or remove
+   * @param params - params.query.collection_uid - collection UID, params.user - user
+   * @returns
+   */
+  async patch(
+    id: NullableId,
+    data: UpdateCollectableItems,
+    params: Params<PatchQuery> & WithUser
+  ): Promise<CollectableItemsUpdatedResponse> {
     if (id != null) throw new Error('Patch operation is not supported on a single item')
     const jobQueue = this.app.get('celeryClient')
     if (jobQueue == null) {
@@ -311,8 +322,8 @@ export class Service {
     })
 
     return {
-      addedTotal: data.add?.length ?? 0,
-      removedTotal: data.add?.length ?? 0,
+      totalAdded: data.add?.length ?? 0,
+      totalRemoved: data.add?.length ?? 0,
     }
   }
 }

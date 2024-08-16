@@ -221,6 +221,27 @@ There are several configuration options that should be set differently in Public
    * `expiresIn` - should be set to a reasonable value for the public API (e.g. `8h` for 8 hours)
  * `authentication.cookie.enabled` set to `false` - cookies are not used in the public API
 
+Additionally, to enable the public API to verify web app IML token, the following configuration block should be added:
+
+```json
+"imlAuthConfiguration": {
+  "secret": "IML jwt secret",
+  "jwtOptions": {
+    "audience": "Web app base URL"
+  }
+}
+```
+
+Where:
+  * `secret` - secret used to sign the IML tokens
+  * `audience` - base URL of the web app issuing the token.
+
+To let the authentication service know that a new auth strategy is installed, add the following to the "authentication" block:
+
+```json
+  "authStrategies": ["local", "jwt-app", "jwt"]
+```
+
 ## Help
 
 For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).
