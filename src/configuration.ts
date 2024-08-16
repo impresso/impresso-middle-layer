@@ -97,6 +97,9 @@ export interface Configuration {
   useDbUserInRequestContext?: boolean
   problemUriBase?: string
   features?: FeaturesConfiguration
+  paginate?: PaginationConfiguration
+
+  // TODO: move to services:
   authentication: LocalAuthenticationConfiguration
   /**
    * Configuration for the auth strategy in Public API
