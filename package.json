@@ -94,7 +94,7 @@
     "graphology-pagerank": "^1.1.0",
     "helmet": "^3.21.1",
     "http-proxy-middleware": "^2.0.1",
-    "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.4.1",
+    "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.4.3",
     "json2csv": "^4.3.3",
     "jsonschema": "^1.4.1",
     "lodash": "^4.17.21",
@@ -131,13 +131,13 @@
   },
   "devDependencies": {
     "@openapi-contrib/json-schema-to-openapi-schema": "3.0.1",
-    "@types/cache-manager": "^2.10.3",
-    "@types/ioredis": "^4.28.5",
-    "@types/generic-pool": "^3.1.9",
-    "@types/mocha": "10.0.6",
-    "@types/node-fetch": "^2.5.6",
     "@stoplight/spectral-cli": "6.11.1",
     "@stoplight/spectral-owasp-ruleset": "2.0.1",
+    "@types/cache-manager": "^2.10.3",
+    "@types/generic-pool": "^3.1.9",
+    "@types/ioredis": "^4.28.5",
+    "@types/mocha": "10.0.6",
+    "@types/node-fetch": "^2.5.6",
     "eslint": "^8.18.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",
@@ -147,8 +147,8 @@
     "mocha": "10.4.0",
     "nodemon": "3.1.0",
     "prettier": "3.2.5",
+    "ts-node": "10.9.2",
     "typescript": "5.4.3",
-    "typescript-cp": "0.1.9",
-    "ts-node": "10.9.2"
+    "typescript-cp": "0.1.9"
   }
 }

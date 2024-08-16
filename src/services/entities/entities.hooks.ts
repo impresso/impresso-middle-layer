@@ -1,3 +1,5 @@
+import { SolrNamespaces } from '../../solr'
+
 const { validate, validateEach, queryWithCommonParams, utils } = require('../../hooks/params')
 const { qToSolrFilter, filtersToSolrQuery } = require('../../hooks/search')
 
@@ -49,7 +51,7 @@ export default {
             defaultValue: 'OR',
           },
           type: {
-            choices: ['string', 'type', 'uid'],
+            choices: ['string', 'type', 'uid', 'wikidataId'],
             required: true,
             // trasform is required because they shoyd be related to entities namespace.
             // transform: (d) => {
@@ -65,7 +67,9 @@ export default {
         }
       ),
       qToSolrFilter('string'),
-      filtersToSolrQuery(),
+      filtersToSolrQuery({
+        solrIndexProvider: () => SolrNamespaces.Entities,
+      }),
       queryWithCommonParams(),
     ],
     get: [],

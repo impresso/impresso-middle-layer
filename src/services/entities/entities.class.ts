@@ -1,3 +1,11 @@
+import { CachedSolrClient } from '../../cachedSolr'
+import { ImpressoApplication } from '../../types'
+import { Service as SequelizeService } from '../sequelize.service'
+import User from '../../models/users.model'
+import { Params } from '@feathersjs/feathers'
+import { Filter } from 'impresso-jscommons'
+import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters } from './util'
+
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:entities')
 const lodash = require('lodash')
@@ -7,35 +15,88 @@ const { NotFound } = require('@feathersjs/errors')
 const wikidata = require('../wikidata')
 
 const Entity = require('../../models/entities.model')
-const SequelizeService = require('../sequelize.service')
 const { measureTime } = require('../../util/instruments')
 const { buildSearchEntitiesSolrQuery } = require('./logic')
 
+interface Sanitized<T> {
+  sanitized: T
+  originalQuery: any
+}
+
+interface WithUser {
+  user?: User
+}
+
+interface FindQuery {
+  filters: Filter[]
+  limit?: number
+  offset?: number
+  order_by?: string
+  resolve?: string
+}
+
 class Service {
-  constructor({ app }) {
+  app: ImpressoApplication
+  name: string
+  sequelizeService: SequelizeService
+  solr: CachedSolrClient
+
+  constructor({ app }: { app: ImpressoApplication }) {
     this.app = app
     this.name = 'entities'
     this.sequelizeService = new SequelizeService({
-      app,
+      app: app as any as null,
       name: this.name,
     })
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.service('cachedSolr')
   }
 
-  async create(data, params) {
+  async create(data: any, params: any) {
     params.query = data
     return this.find(params)
   }
 
-  async find(params) {
-    debug('[find] with params:', params.query)
+  async find(params: Params<FindQuery> & Sanitized<FindQuery> & WithUser) {
+    const qp = params.query!
+    debug('[find] with params:', qp)
+
+    // split filters into solr and sequelize filters
+    const { solrFilters, sequelizeFilters } = sortFindEntitiesFilters(qp.filters)
+    // build sequelize condition for wikidata IDs
+    const sequelizeWikidataFindEntitiesCondition = buildSequelizeWikidataIdFindEntitiesCondition(sequelizeFilters)
+
+    // if condition was built - run the query against the db
+    // and collect matched entity ids
+    let constraintIds: string[] | undefined = undefined
+    if (sequelizeWikidataFindEntitiesCondition != null) {
+      const records = await this.sequelizeService.find({
+        findAllOnly: true,
+        query: {
+          limit: 1000000,
+          offset: 0,
+        },
+        where: sequelizeWikidataFindEntitiesCondition,
+      })
+
+      constraintIds = records.data.map((d: any) => d.uid)
+    }
+
+    debug('[find] constraintIds:', constraintIds)
+
+    // if ids were collected - add them as a filter for solr
+    const uidFilter: Filter | undefined =
+      constraintIds != null
+        ? {
+            type: 'uid',
+            q: constraintIds,
+          }
+        : undefined
 
     const query = buildSearchEntitiesSolrQuery({
-      filters: params.query.filters,
-      orderBy: params.query.order_by,
-      limit: params.query.limit,
-      offset: params.query.offset,
+      filters: uidFilter != null ? [uidFilter, ...solrFilters] : solrFilters,
+      orderBy: qp.order_by,
+      limit: qp.limit,
+      offset: qp.offset,
     })
     debug('[find] solr query:', query)
 
@@ -52,8 +113,8 @@ class Service {
       return {
         total: 0,
         data: [],
-        limit: params.query.limit,
-        offset: params.query.offset,
+        limit: qp.limit,
+        offset: qp.offset,
         info: {
           ...params.originalQuery,
         },
@@ -62,7 +123,7 @@ class Service {
     // generate the sequelize clause.
     const where = {
       id: {
-        [Op.in]: entities.map(d => d.uid),
+        [Op.in]: entities.map((d: any) => d.uid),
       },
     }
     // get sequelize results
@@ -83,9 +144,9 @@ class Service {
     const sequelizeEntitiesIndex = lodash.keyBy(sequelizeResult.data, 'uid')
     const result = {
       total: solrResult.response.numFound,
-      limit: params.query.limit,
-      offset: params.query.offset,
-      data: entities.map(d => {
+      limit: qp.limit,
+      offset: qp.offset,
+      data: entities.map((d: any) => {
         if (sequelizeEntitiesIndex[d.uid]) {
           // enrich with wikidataID
           d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId
@@ -112,10 +173,10 @@ class Service {
     const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value()
 
     debug('[find] wikidata loading:', wkdIds.length)
-    const resolvedEntities = {}
+    const resolvedEntities: Record<string, any> = {}
 
     return Promise.all(
-      wkdIds.map(wkdId =>
+      wkdIds.map((wkdId: string) =>
         measureTime(
           () =>
             wikidata
@@ -123,7 +184,7 @@ class Service {
                 ids: [wkdId],
                 cache: this.app.service('redisClient').client,
               })
-              .then(resolved => {
+              .then((resolved: any) => {
                 resolvedEntities[wkdId] = resolved[wkdId]
               }),
           'entities.find.wikidata.get'
@@ -132,7 +193,7 @@ class Service {
     )
       .then(res => {
         debug('[find] wikidata success!')
-        result.data = result.data.map(d => {
+        result.data = result.data.map((d: any) => {
           if (d.wikidataId) {
             d.wikidata = resolvedEntities[d.wikidataId]
           }
@@ -146,7 +207,7 @@ class Service {
       })
   }
 
-  async get(id, params) {
+  async get(id: string, params: any) {
     return this.find({
       ...params,
       query: {
@@ -168,20 +229,20 @@ class Service {
     })
   }
 
-  async update(id, data, params) {
+  async update(id: string, data: any, params: any) {
     return data
   }
 
-  async patch(id, data, params) {
+  async patch(id: string, data: any, params: any) {
     return data
   }
 
-  async remove(id, params) {
+  async remove(id: string, params: any) {
     return { id }
   }
 }
 
-module.exports = function (options) {
+module.exports = function (options: any) {
   return new Service(options)
 }
 
