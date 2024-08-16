@@ -59,7 +59,7 @@
     "ajv": "8.12.0",
     "async": "^2.6.1",
     "aws-sdk": "^2.395.0",
-    "axios": "^1.6.7",
+    "axios": "^1.7.4",
     "body-parser": "^1.18.3",
     "cache-manager": "^4.1.0",
     "cache-manager-redis-store": "^2.0.0",
