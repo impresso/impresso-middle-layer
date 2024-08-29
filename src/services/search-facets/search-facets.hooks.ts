@@ -24,6 +24,12 @@ const getAndFindHooks = (index: IndexId) => [
           count: {
             count: 'asc',
           },
+          '-value': {
+            index: 'desc',
+          },
+          value: {
+            index: 'asc',
+          },
         }),
     },
     group_by: {
