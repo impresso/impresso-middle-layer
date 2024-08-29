@@ -18,7 +18,7 @@ const facetNames: Record<IndexId, string> = {
   'tr-passages': 'text reuse passages index',
 }
 
-export const OrderByChoices = ['-count', 'count']
+export const OrderByChoices = ['-count', 'count', '-value', 'value']
 
 const getGetParameters = (index: IndexId): QueryParameter[] => [
   {
