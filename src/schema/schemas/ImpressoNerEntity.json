@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Impresso Named Entity Recognition Entity",
+  "description": "Impresso NER entity",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "ID of the entity"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of the entity",
+      "enum": [
+        "pers",
+        "pers.ind",
+        "pers.coll",
+        "pers.ind.articleauthor",
+        "org",
+        "org.adm",
+        "org.ent",
+        "org.ent.pressagency",
+        "prod",
+        "prod.media",
+        "prod.doctr",
+        "time",
+        "time.date.abs",
+        "loc",
+        "loc.adm.town",
+        "loc.adm.reg",
+        "loc.adm.nat",
+        "loc.adm.sup",
+        "loc.phys.geo",
+        "loc.phys.hydro",
+        "loc.phys.astro",
+        "loc.oro",
+        "loc.fac",
+        "loc.add.phys",
+        "loc.add.elec",
+        "loc.unk"
+      ]
+    },
+    "surfaceForm": {
+      "type": "string",
+      "description": "Surface form of the entity"
+    },
+    "offset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "integer",
+          "description": "Start offset of the entity in the text"
+        },
+        "end": {
+          "type": "integer",
+          "description": "End offset of the entity in the text"
+        }
+      },
+      "required": ["start", "end"]
+    },
+    "isTypeNested": {
+      "type": "boolean",
+      "description": "Whether the entity type is nested"
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ner": {
+          "type": "number",
+          "description": "Confidence score for the named entity recognition"
+        },
+        "nel": {
+          "type": "number",
+          "description": "Confidence score for the named entity linking"
+        }
+      },
+      "required": ["ner"]
+    }
+  },
+  "wikidata": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Wikidata ID of the entity"
+      },
+      "wikipediaPageName": {
+        "type": "string",
+        "description": "Wikipedia page name of the entity"
+      }
+    },
+    "required": ["id"]
+  },
+  "function": {
+    "type": "string",
+    "description": "Function of the entity"
+  },
+  "name": {
+    "type": "string",
+    "description": "Name of the entity"
+  },
+  "required": ["id", "type", "surfaceForm", "offset", "isTypeNested", "confidence"]
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Impresso Named Entity Recognition Request",
+  "description": "Request body for the Impresso NER endpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "type": "string",
+      "description": "Text to be processed for named entity recognition"
+    }
+  },
+  "required": ["text"]
+}

@@ -18,6 +18,7 @@ const publicApiServices = [
   'newspapers',
   'search-facets',
   'entities',
+  'impresso-ner',
 ]
 
 const internalApiServices = [
