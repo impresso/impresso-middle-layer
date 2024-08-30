@@ -115,6 +115,8 @@ export interface Configuration {
   celeryClient?: CeleryClient
   media?: MediaConfiguration
   solr: SolrConfiguration
+
+  impressoNerServiceUrl?: string
 }
 
 const configurationSchema: JSONSchemaDefinition = {
