@@ -1,17 +1,13 @@
 const YAML = require('yaml')
 const { readFileSync } = require('fs')
 const { InvalidArgumentError } = require('../error')
+const { default: valueFilterBuilder } = require('./filterBuilders/value')
+const { default: capitalisedValueFilterBuilder } = require('./filterBuilders/capitalisedValue')
 
 const filtersConfig = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
 
 const escapeValue = value => value.replace(/[()\\+&|!{}[\]?:;,]/g, d => `\\${d}`)
 
-const getValueWithFields = (value, fields) => {
-  if (Array.isArray(fields)) {
-    return fields.map(field => getValueWithFields(value, field)).join(' OR ')
-  }
-  return `${fields}:${escapeValue(value)}`
-}
 const RangeValueRegex = /^\s*\d+\s+TO\s+\d+\s*$/
 
 const reduceNumericRangeFilters = (filters, field) => {
@@ -165,32 +161,6 @@ const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
   return items.join(' AND ')
 }
 
-const reduceFiltersToSolr = (filters, field, rule, transformValue = v => v) =>
-  filters
-    .reduce((sq, filter) => {
-      let qq = ''
-      const op = filter.op || 'OR'
-
-      if (Array.isArray(filter.q)) {
-        const values = filter.q.length > 0 ? filter.q : ['*']
-        qq = values
-          .map(transformValue)
-          .map(value => getValueWithFields(value, field))
-          .join(` ${op} `)
-        qq = `(${qq})`
-      } else if (typeof filter.q === 'string' && filter.q != null && filter.q !== '') {
-        qq = getValueWithFields(transformValue(filter.q), field)
-      } else {
-        qq = getValueWithFields('*', field)
-      }
-      if (filter.context === 'exclude') {
-        qq = sq.length > 0 ? `NOT (${qq})` : `*:* AND NOT (${qq})`
-      }
-      sq.push(qq)
-      return sq
-    }, [])
-    .join(' AND ')
-
 const reduceRegexFiltersToSolr = (filters, field) => {
   let fields = []
   if (typeof field === 'string') fields = [field]
@@ -244,9 +214,6 @@ const booleanHandler = (filters, field, filterRule) => {
   return `${field}:1`
 }
 
-const reduceCapitalisedValue = (filters, field, rule) =>
-  reduceFiltersToSolr(filters, field, rule, v => v.charAt(0).toUpperCase() + v.slice(1))
-
 const textAsOpenEndedSearchString = (text, field) => {
   const parts = text.split(' ').filter(v => v !== '')
   const statement = parts
@@ -278,9 +245,9 @@ const FiltersHandlers = Object.freeze({
   boolean: booleanHandler,
   string: reduceStringFiltersToSolr,
   dateRange: reduceDaterangeFiltersToSolr,
-  value: reduceFiltersToSolr,
+  value: valueFilterBuilder,
   regex: reduceRegexFiltersToSolr,
-  capitalisedValue: reduceCapitalisedValue,
+  capitalisedValue: capitalisedValueFilterBuilder,
   openEndedString: reduceOpenEndedStringValue,
   noop: noopHandler,
 })
