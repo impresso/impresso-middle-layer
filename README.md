@@ -242,6 +242,21 @@ To let the authentication service know that a new auth strategy is installed, ad
   "authStrategies": ["local", "jwt-app", "jwt"]
 ```
 
+#### Rate limiter
+
+Rate limiter has two configuration options:
+
+* `capacity` - the maximum number of requests allocated to a resource/user. This indicates how many request can be executed against the resource before limiting kicks in.
+* `refillRate` - how many requests are added to the allocation every second if the allocation is lower than `capacity`.
+
+Sample settings:
+
+* 1 request per second (3600 / hour): `capacity: 3600, refillRate: 1`
+* 10 request per second (36000 / hour): `capacity: 36000, refillRate: 10`
+* 1 request per second (60 / minute): `capacity: 60, refillRate: 1`
+* 1 request per second (600 / 10 minutes): `capacity: 600, refillRate: 1`
+* 3 request per second (600 / 10 minutes): `capacity: 600, refillRate: 3`
+
 ## Help
 
 For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).
