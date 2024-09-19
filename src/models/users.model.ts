@@ -1,22 +1,59 @@
 const config = require('@feathersjs/configuration')()()
-const { DataTypes } = require('sequelize')
-const { encrypt } = require('../crypto')
-
-const Profile = require('./profiles.model')
-const Group = require('./groups.model')
-import { type Sequelize } from 'sequelize'
+import { Sequelize, DataTypes, ModelDefined } from 'sequelize'
+import { encrypt } from '../crypto'
 import UserBitmap from './user-bitmap.model'
+import Group from './groups.model'
+import Profile from './profiles.model'
 
 const CRYPTO_ITERATIONS = 180000
 
 class ObfuscatedUser {
+  uid: string
+  username: string
+
   constructor({ uid = '', username = '' } = {}) {
     this.uid = String(uid)
     this.username = String(username)
   }
 }
 
-class User {
+// Define the attributes for the Group model
+interface UserAttributes {
+  id: number
+  email: string
+  uid: string
+  username: string
+  firstname: string
+  lastname: string
+  password: string
+  isStaff: boolean
+  isActive: boolean
+  isSuperuser: boolean
+  creationDate: Date
+  profile: Profile
+  groups: Group[]
+  userBitmap?: UserBitmap
+}
+
+// Define the creation attributes for the Group model
+interface UserCreationAttributes extends Omit<UserAttributes, 'id'> {}
+
+export default class User {
+  id: number | string
+  email?: string
+  uid: string
+  username: string
+  firstname: string
+  lastname: string
+  password: string
+  isStaff: boolean
+  isActive: boolean
+  isSuperuser: boolean
+  creationDate: Date | string
+  profile: Profile
+  groups: Group[]
+  userBitmap?: UserBitmap
+
   constructor({
     id = 0,
     uid = '',
@@ -29,9 +66,10 @@ class User {
     isActive = false,
     isSuperuser = false,
     profile = new Profile(),
+    creationDate = new Date(),
     groups = [],
   } = {}) {
-    this.id = parseInt(id, 10)
+    this.id = typeof id === 'number' ? id : parseInt(id, 10)
     this.username = String(username)
     this.firstname = String(firstname)
     this.lastname = String(lastname)
@@ -52,10 +90,11 @@ class User {
     } else {
       this.uid = String(uid)
     }
+    this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate)
     this.groups = groups
   }
 
-  static getMe({ user, profile }) {
+  static getMe({ user, profile }: { user: User; profile: Profile }) {
     return {
       firstname: user.firstname,
       lastname: user.lastname,
@@ -134,7 +173,7 @@ class User {
     const group = Group.sequelize(client)
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
-    const user = client.define(
+    const user: ModelDefined<UserAttributes, UserCreationAttributes> = client.define(
       'user',
       {
         id: {
@@ -232,9 +271,10 @@ class User {
 
     user.prototype.toJSON = function ({ obfuscate = false, groups = [] } = {}) {
       if (obfuscate) {
+        const { profile, username } = this as unknown as User
         return new ObfuscatedUser({
-          uid: this.profile.uid,
-          username: this.username,
+          uid: profile.uid,
+          username,
         })
       }
       return new User({
@@ -245,22 +285,25 @@ class User {
 
     user.hasOne(profile, {
       foreignKey: {
-        fieldName: 'user_id',
+        field: 'user_id',
+      },
+    })
+    user.hasOne(userBitmap, {
+      foreignKey: {
+        field: 'user_id',
       },
     })
     user.belongsToMany(group, {
       as: 'groups',
       through: 'auth_user_groups',
       foreignKey: {
-        fieldName: 'user_id',
+        field: 'user_id',
       },
       otherKey: {
-        fieldName: 'group_id',
+        field: 'group_id',
       }, // replaces `categoryId`
     })
 
     return user
   }
 }
-
-module.exports = User
