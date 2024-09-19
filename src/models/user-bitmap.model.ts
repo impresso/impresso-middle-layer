@@ -1,22 +1,50 @@
-import { DataTypes, type Sequelize } from 'sequelize'
+import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
+
+interface UserBitmapAttributes {
+  id: number
+  bitmap: string
+}
+
+// Define the creation attributes for the Group model
+interface UserBitmapCreationAttributes extends Omit<UserBitmapAttributes, 'id'> {}
 
 export default class UserBitmap {
-  constructor({ bitmap }) {
+  id: number
+  bitmap: string
+
+  constructor({ id = 0, bitmap = '' }) {
+    this.id = id
     this.bitmap = bitmap
   }
 
   static sequelize(client: Sequelize) {
-    return client.define('userBitmap', {
-      userId: {
-        field: 'user_id',
-        type: DataTypes.INTEGER,
-        allowNull: false,
+    const userBitmap: ModelDefined<UserBitmapAttributes, UserBitmapCreationAttributes> = client.define(
+      'userBitmap',
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          unique: true,
+        },
+        bitmap: {
+          // models.BinaryField
+          type: DataTypes.BLOB,
+          allowNull: true,
+          get() {
+            const value = this.getDataValue('bitmap')
+            const binaryString = Array.from(value as unknown as Buffer)
+              .map(byte => byte.toString(2).padStart(8, '0'))
+              .join('')
+              .replace(/^0+/, '')
+            return binaryString
+          },
+        },
       },
-      bitmap: {
-        // models.BinaryField
-        type: DataTypes.BLOB,
-        allowNull: true,
-      },
-    })
+      {
+        tableName: 'impresso_userbitmap',
+      }
+    )
+    return userBitmap
   }
 }
