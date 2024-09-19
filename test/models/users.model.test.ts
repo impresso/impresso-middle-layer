@@ -1,0 +1,119 @@
+import assert from 'assert'
+import debug from 'debug'
+
+import { client as getSequelizeClient } from '../../src/sequelize'
+import configuration, { SequelizeConfiguration } from '../../src/configuration'
+
+import User from '../../src/models/users.model'
+import Group from '../../src/models/groups.model'
+
+const logger = debug('impresso/test:models:users.model.test')
+const userId = process.env.USER_ID
+const config: SequelizeConfiguration = configuration()().get('sequelize')
+
+if (!userId) {
+  console.log(
+    'No user id provided in ENV variable, skipping this test. Please make sure you provide the identifier with USER_ID:'
+  )
+  console.log('\n  USER_ID=1 NODE_ENV=development DEBUG=impresso* npm run test-models \n\n')
+  process.exit(0)
+}
+
+logger(`Test started using env variable USER_ID: ${userId} and NODE_ENV=${process.env.NODE_ENV}`)
+logger(`Sequelize configuration: ${config.host}:${config.port} db:${config.database}`)
+
+const sequelizeClient = getSequelizeClient(config)
+
+const establishConnection = async () => {
+  try {
+    await sequelizeClient.authenticate()
+    logger('Connection has been established successfully.')
+  } catch (error) {
+    logger('Unable to connect to the database:', error)
+  }
+}
+
+const closeConnection = async () => {
+  await sequelizeClient.close()
+}
+
+describe('Test the connection with the DB', async () => {
+  before(establishConnection)
+  after(closeConnection)
+
+  it('should return the id if provided', () => {
+    const userModel = User.sequelize(sequelizeClient)
+
+    userModel
+      .findByPk(userId)
+      .then(user => {
+        const usera: any = user
+        assert.notEqual(user, null, 'The user is null')
+        if (!user) {
+          logger(`User not found with id: ${userId}`)
+          return
+        }
+        logger(`User found: ${usera?.username} with id: ${usera.id}`)
+        logger(`User bitmap: ${usera?.userBitmap?.bitmap}`)
+      })
+      .catch(err => {
+        logger(`Error: ${err}`)
+      })
+  })
+
+  it('should return the groups if provided', () => {
+    const userModel = User.sequelize(sequelizeClient)
+    const groupModel = Group.sequelize(sequelizeClient)
+
+    userModel
+      .findOne({
+        where: { id: userId },
+        include: [
+          {
+            as: 'groups',
+            model: groupModel,
+            attributes: ['name'], // Customize attributes as needed
+          },
+        ],
+      })
+      .then(user => {
+        const usera: any = user
+        logger(`User groups:\n - ${usera.groups.map((group: Group) => group.name).join('\n - ')}`)
+      })
+      .catch(err => {
+        logger(`Error: ${err}`)
+      })
+  })
+
+  it('should check its bitmap', async () => {
+    const userModel = User.sequelize(sequelizeClient)
+    // const userModelBitmap = userModel.associations.userBitmap
+
+    const binaryString = await userModel
+      .findByPk(userId)
+      .then(user => {
+        const usera: any = user
+        if (!user) {
+          logger(`User not found with id: ${userId}`)
+          return '0'
+        }
+        // const buffer = usera?.userBitmap.bitmap as Buffer
+        // // console.log(usera?.userBitmap.bitmap.toString('binary'))
+        // // Convert the buffer to a binary string
+        // const binaryString = Array.from(buffer)
+        //   .map(byte => byte.toString(2).padStart(8, '0'))
+        //   .join('')
+        //   .replace(/^0+/, '')
+
+        // console.log(binaryString)
+        return usera?.userBitmap.bitmap
+      })
+      .catch(err => {
+        logger(`Error: ${err}`)
+      })
+    console.log('binary string,', binaryString)
+
+    const expected = '1111010100010000000000000000000000000000001'
+    assert.deepEqual(binaryString, expected, 'The binary string is not the expected one')
+  })
+})
