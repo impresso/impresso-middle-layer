@@ -1,27 +1,29 @@
-const { DataTypes } = require('sequelize');
+import { DataTypes, type Sequelize } from 'sequelize'
 
-class Profile {
-  constructor ({
-    uid = '',
-    provider = 'local',
-    displayname = '',
-    picture = '',
-    pattern = '',
-  } = {}) {
-    this.uid = String(uid);
-    this.provider = String(provider);
-    this.displayname = String(displayname);
-    this.picture = String(picture);
+export default class Profile {
+  uid: string
+  picture: string
+  pattern: string | string[] = ''
+  provider: string
+  displayname: string
+  emailAccepted?: boolean
+  displayName?: string
+
+  constructor({ uid = '', provider = 'local', displayname = '', picture = '', pattern = '' } = {}) {
+    this.uid = String(uid)
+    this.provider = String(provider)
+    this.displayname = String(displayname)
+    this.picture = String(picture)
     if (pattern && pattern.length > 0) {
-      this.pattern = String(pattern).split(',');
+      this.pattern = String(pattern).split(',')
     }
   }
 
-  isValid () {
-    return !!this.uid.length;
+  isValid() {
+    return !!this.uid.length
   }
 
-  static sequelize (client) {
+  static sequelize(client: Sequelize) {
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     return client.define('profile', {
@@ -66,8 +68,6 @@ class Profile {
         defaultValue: 2,
         field: 'max_parallel_jobs',
       },
-    });
+    })
   }
 }
-
-module.exports = Profile;
