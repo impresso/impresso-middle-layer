@@ -52,6 +52,10 @@ export default class SubscriptionDataset {
           tableName: 'impresso_datasetbitmapposition',
         }
       )
+    subscriptionDataset.prototype.toJSON = function () {
+      const { id, name, bitmapPosition, metadata } = this as any as SubscriptionDatasetAttributes
+      return new SubscriptionDataset({ id, name, bitmapPosition, metadata })
+    }
     return subscriptionDataset
   }
 }

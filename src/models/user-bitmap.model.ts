@@ -1,8 +1,11 @@
 import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
+import SubscriptionDataset, { type SubscriptionDatasetAttributes } from './subscription-datasets.model'
 
-interface UserBitmapAttributes {
+export interface UserBitmapAttributes {
   id: number
+  user_id: number
   bitmap: string
+  subscriptionDatasets: SubscriptionDatasetAttributes[]
 }
 
 // Define the creation attributes for the Group model
@@ -10,14 +13,35 @@ interface UserBitmapCreationAttributes extends Omit<UserBitmapAttributes, 'id'> 
 
 export default class UserBitmap {
   id: number
+  user_id: number
   bitmap: string
+  subscriptionDatasets: SubscriptionDatasetAttributes[]
 
-  constructor({ id = 0, bitmap = '' }) {
+  constructor({ id = 0, user_id = 0, bitmap = '', subscriptionDatasets = [] }: UserBitmapAttributes) {
     this.id = id
+    this.user_id = user_id
     this.bitmap = bitmap
+    this.subscriptionDatasets = subscriptionDatasets
   }
 
   static sequelize(client: Sequelize) {
+    const subscriptionDataset = SubscriptionDataset.sequelize(client)
+    const userBitmapSubscriptionDataset = client.define(
+      'userBitmapSubscriptionDataset',
+      {
+        userBitmapId: {
+          type: DataTypes.INTEGER,
+          field: 'userbitmap_id',
+        },
+        subscriptionDatasetId: {
+          type: DataTypes.INTEGER,
+          field: 'datasetbitmapposition_id',
+        },
+      },
+      {
+        tableName: 'impresso_userbitmap_subscriptions',
+      }
+    )
     const userBitmap: ModelDefined<UserBitmapAttributes, UserBitmapCreationAttributes> = client.define(
       'userBitmap',
       {
@@ -26,6 +50,12 @@ export default class UserBitmap {
           primaryKey: true,
           autoIncrement: true,
           unique: true,
+        },
+        user_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          unique: true,
+          field: 'user_id',
         },
         bitmap: {
           // models.BinaryField
@@ -43,8 +73,31 @@ export default class UserBitmap {
       },
       {
         tableName: 'impresso_userbitmap',
+        defaultScope: {
+          include: [
+            {
+              model: subscriptionDataset,
+              as: 'subscriptionDatasets',
+            },
+          ],
+        },
       }
     )
+    userBitmap.belongsToMany(subscriptionDataset, {
+      through: userBitmapSubscriptionDataset,
+      foreignKey: 'userBitmapId',
+      otherKey: 'subscriptionDatasetId',
+      as: 'subscriptionDatasets',
+    })
+
+    userBitmap.prototype.toJSON = function () {
+      const userBitmap = this.get() as UserBitmapAttributes
+      return new UserBitmap({
+        ...userBitmap,
+        subscriptionDatasets: userBitmap.subscriptionDatasets.map((dataset: any) => dataset.toJSON()),
+      })
+    }
+
     return userBitmap
   }
 }

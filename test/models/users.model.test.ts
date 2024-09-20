@@ -5,6 +5,7 @@ import { client as getSequelizeClient } from '../../src/sequelize'
 import configuration, { SequelizeConfiguration } from '../../src/configuration'
 
 import User from '../../src/models/users.model'
+import UserBitmap from '../../src/models/user-bitmap.model'
 import Group from '../../src/models/groups.model'
 
 const logger = debug('impresso/test:models:users.model.test')
@@ -78,7 +79,7 @@ describe('Test the connection with the DB', async () => {
         logger(`User groups:\n - ${usera.groups.map((group: Group) => group.name).join('\n - ')}`)
       })
       .catch(err => {
-        logger(`Error: ${err}`)
+        assert.fail(`Error: ${err}`)
       })
   })
 
@@ -107,10 +108,23 @@ describe('Test the connection with the DB', async () => {
       })
       .catch(err => {
         logger(`Error: ${err}`)
+        assert.fail(`Error: ${err}`)
       })
     console.log('binary string,', binaryString)
 
     const expected = '1111010100010000000000000000000000000000001'
     assert.deepEqual(binaryString, expected, 'The binary string is not the expected one')
+  })
+
+  it('should get user subscription through its bitmap', async () => {
+    const userBitmapModel = UserBitmap.sequelize(sequelizeClient)
+
+    userBitmapModel.findOne({ where: { user_id: userId } }).then(userBitmap => {
+      console.log('User sbscriptions', userBitmap?.toJSON())
+      const userBitmapa = userBitmap as any as UserBitmap
+      userBitmapa.subscriptionDatasets?.map(dataset => {
+        console.log('Datasets:', dataset.name)
+      })
+    })
   })
 })
