@@ -11,14 +11,6 @@ const logger = debug('impresso/test:models:users.model.test')
 const userId = process.env.USER_ID
 const config: SequelizeConfiguration = configuration()().get('sequelize')
 
-if (!userId) {
-  console.log(
-    'No user id provided in ENV variable, skipping this test. Please make sure you provide the identifier with USER_ID:'
-  )
-  console.log('\n  USER_ID=1 NODE_ENV=development DEBUG=impresso* npm run test-models \n\n')
-  process.exit(0)
-}
-
 logger(`Test started using env variable USER_ID: ${userId} and NODE_ENV=${process.env.NODE_ENV}`)
 logger(`Sequelize configuration: ${config.host}:${config.port} db:${config.database}`)
 
@@ -40,7 +32,12 @@ const closeConnection = async () => {
 describe('Test the connection with the DB', async () => {
   before(establishConnection)
   after(closeConnection)
-
+  if (!userId) {
+    console.log(
+      'No user id provided in ENV variable, skipping this test. Please make sure you provide the identifier with USER_ID:'
+    )
+    return
+  }
   it('should return the id if provided', () => {
     const userModel = User.sequelize(sequelizeClient)
 
