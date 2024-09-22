@@ -47,6 +47,7 @@ class Service {
     this.sequelizeService = new SequelizeService({
       app: app as any as null,
       name: this.name,
+      cacheReads: true,
     })
     this.solr = app.service('cachedSolr')
   }

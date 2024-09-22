@@ -1,4 +1,4 @@
-import { request, RequestInfo, RequestInit, Dispatcher } from 'undici'
+import { request, RequestInfo, RequestInit, Dispatcher, Agent, RetryAgent } from 'undici'
 import { createPool, Factory, Pool } from 'generic-pool'
 import { IncomingHttpHeaders } from 'undici/types/header'
 
@@ -75,10 +75,16 @@ class ConnectionWrapper implements IConnectionWrapper {
 
     const theUrl: string = url instanceof Request ? url.url : new String(url).toString()
 
+    const agent = new RetryAgent(new Agent(), {
+      maxRetries: 3,
+      maxTimeout: 10000,
+    })
+
     const result = await request(theUrl, {
       method: init?.method as Dispatcher.HttpMethod,
       headers: init?.headers as IncomingHttpHeaders,
       body: body as any,
+      dispatcher: agent,
     })
 
     return new Response(result)
@@ -95,10 +101,10 @@ class ConnectionFactory implements Factory<IConnectionWrapper> {
   }
 }
 
-export function initHttpPool({ maxParallelConnections = 1000, acquireTimeoutSec = 25 } = {}): Pool<IConnectionWrapper> {
+export function initHttpPool({ maxParallelConnections = 200, acquireTimeoutSec = 25 } = {}): Pool<IConnectionWrapper> {
   const opts = {
-    min: maxParallelConnections,
-    max: maxParallelConnections,
+    min: maxParallelConnections ?? 200,
+    max: maxParallelConnections ?? 200,
     acquireTimeoutMillis: acquireTimeoutSec * 1000,
   }
   return createPool(new ConnectionFactory(), opts)
