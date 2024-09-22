@@ -2,6 +2,7 @@ import type { Application as ExpressApplication } from '@feathersjs/express'
 import { json, rest, urlencoded } from '@feathersjs/express'
 import cors from 'cors'
 import { ImpressoApplication } from '../types'
+// import { Server as EioWsServer } from 'eiows'
 
 import socketio from '@feathersjs/socketio'
 import { logger } from '../logger'
@@ -33,6 +34,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
             credentials: true,
             origin: app.get('allowedCorsOrigins') ?? [],
           },
+          // wsEngine: EioWsServer,
         },
         io => {
           logger.info('Internal API - enabled socketio transport')
