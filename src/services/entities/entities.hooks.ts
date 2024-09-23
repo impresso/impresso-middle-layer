@@ -24,7 +24,7 @@ export default {
         q: {
           required: false,
           min_length: 1,
-          max_length: 100,
+          max_length: 200,
         },
         resolve: {
           required: false,
@@ -39,7 +39,7 @@ export default {
         'filters',
         {
           q: {
-            max_length: 50,
+            max_length: 200,
             required: false,
           },
           context: {

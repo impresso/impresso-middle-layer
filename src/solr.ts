@@ -1,16 +1,12 @@
-const debug = require('debug')('impresso/solr')
-const lodash = require('lodash')
-const { URL, URLSearchParams } = require('url')
-const { preprocessSolrError } = require('./util/solr/errors')
-const { initHttpPool } = require('./httpConnectionPool')
+import Debug from 'debug'
+import lodash from 'lodash'
+import { preprocessSolrError } from './util/solr/errors'
+import { ConnectionPool, initHttpPool, IResponse } from './httpConnectionPool'
 
-/**
- * @typedef {import('node-fetch').Response} Response
- * @typedef {import('./httpConnectionPool').ConnectionWrapper} ConnectionWrapper
- * @typedef {import('generic-pool').Pool<ConnectionWrapper>} ConnectionPool
- */
+const debug = Debug('impresso/solr')
+const debugRequest = Debug('impresso/solr-request')
 
-const SolrNamespaces = Object.freeze({
+export const SolrNamespaces = Object.freeze({
   Search: 'search',
   Mentions: 'mentions',
   Topics: 'topics',
@@ -26,10 +22,8 @@ const SolrNamespaces = Object.freeze({
 
 /**
  * Create headers object out of authentication details.
- * @param {{ user: string, pass: string }} auth authentication details
- * @returns {{ [key: string]: string }}
  */
-const buildAuthHeaders = auth => {
+const buildAuthHeaders = (auth: { user: string; pass: string }): { [key: string]: string } => {
   const authString = `${auth.user}:${auth.pass}`
 
   return {
@@ -42,10 +36,8 @@ const buildAuthHeaders = auth => {
  * Impresso Solr comes with a plug-in that creates duplicate "highlighting" keys
  * in Solr response. To get around this issue we detect duplicate fields and replace
  * one of them with "fragments".
- * @param {string} text
- * @returns {any}
  */
-const transformSolrResponse = text => {
+const transformSolrResponse = (text: string): Record<string, any> => {
   const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/gm)
   const replacedText =
     matches && matches.length > 1 ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{') : text
@@ -57,22 +49,21 @@ const transformSolrResponse = text => {
  * @param {Response} res response
  * @returns {Promise<Response>}
  */
-const checkFetchResponseStatus = async res => {
+const checkResponseStatus = async (res: IResponse): Promise<IResponse> => {
   if (res.ok) return res
-  const error = new Error(res.statusText)
+
+  const error = new Error(new String(res.statusCode).toString())
   // @ts-ignore
   error.response = {
-    statusCode: res.status,
+    statusCode: res.statusCode,
     body: await res.text(),
   }
   throw error
 }
 
 /**
- * @param {{[key: string]: any}} queryParmeters
- * @returns {URLSearchParams}
  */
-function toUrlSearchParameters(queryParmeters = {}) {
+function toUrlSearchParameters(queryParmeters: { [key: string]: any } = {}) {
   const preparedQueryParameters = Object.keys(queryParmeters).reduce((acc, key) => {
     if (queryParmeters[key] == null) return acc
     return {
@@ -86,13 +77,8 @@ function toUrlSearchParameters(queryParmeters = {}) {
 
 /**
  * Build URL.
- *
- * @param {string} baseUrl
- * @param {{[key: string]: any}} queryParams
- *
- * @returns {string}
  */
-function buildUrl(baseUrl, queryParams = {}) {
+function buildUrl(baseUrl: string, queryParams: { [key: string]: any } = {}): string {
   const qp = toUrlSearchParameters(queryParams)
   return `${baseUrl}?${qp.toString()}`
 }
@@ -104,10 +90,11 @@ function buildUrl(baseUrl, queryParams = {}) {
  * This is here to rectify a problem when a GET request is too large for Solr to process which
  * causes it to return a 431 "request header fields too large" error.
  *
- * @param {string} url
- * @param {object} requestParams
  */
-function maybeConvertGetToPostParams(url, requestParams) {
+function maybeConvertGetToPostParams(
+  url: string,
+  requestParams: { [key: string]: any }
+): [string, { [key: string]: any }] {
   if (requestParams.method !== 'GET') return [url, requestParams]
 
   // get rid of possible query string in the URL.
@@ -128,11 +115,8 @@ function maybeConvertGetToPostParams(url, requestParams) {
 }
 
 /**
- * @param {string} url
- * @param {object} params
- * @param {ConnectionPool} connectionPool
  */
-async function executeRequest(url, params, connectionPool) {
+async function executeRequest(url: string, params: object, connectionPool: ConnectionPool) {
   const connection = await connectionPool.acquire()
   if (connectionPool.available === 0) {
     console.warn(`No more available Solr connections out of max ${connectionPool.max}. Next client will be waiting.`)
@@ -140,20 +124,22 @@ async function executeRequest(url, params, connectionPool) {
 
   try {
     const [u, p] = maybeConvertGetToPostParams(url, params)
+    debugRequest(`executeRequest to ${u} with params: ${JSON.stringify(p)} and body: ${p.body}`)
     return await connection
       .fetch(u, p)
-      .then(checkFetchResponseStatus)
-      .then(response => response.text())
+      .then(checkResponseStatus)
+      .then((response: IResponse) => response.text())
       .then(transformSolrResponse)
-      .catch(error => {
+      .catch((error: Error) => {
         throw preprocessSolrError(error)
       })
   } finally {
     try {
       await connectionPool.release(connection)
     } catch (e) {
+      const error = e as Error
       const message = `
-        Could not release Solr connection to the pool: ${e.message}.
+        Could not release Solr connection to the pool: ${error.message}.
         This does not cause an error for the user but should be looked into.
       `
       console.warn(message)
@@ -163,15 +149,14 @@ async function executeRequest(url, params, connectionPool) {
 
 /**
  * Send a raw 'POST' request to Solr.
- *
- * @param {any} config Solr configuration.
- * @param {ConnectionPool} connectionPool
- * @param {any} payload request body
- * @param {string} namespace Solr index to use.
- *
- * @returns {Promise<any>} response
  */
-const postRaw = async (config, connectionPool, payload, queryParams = {}, namespace = SolrNamespaces.Search) => {
+const postRaw = async (
+  config: any,
+  connectionPool: ConnectionPool,
+  payload: any,
+  queryParams = {},
+  namespace: string = SolrNamespaces.Search
+) => {
   const { endpoint } = config[namespace]
   const url = buildUrl(endpoint, queryParams)
   const opts = {
@@ -187,15 +172,14 @@ const postRaw = async (config, connectionPool, payload, queryParams = {}, namesp
 
 /**
  * Send a raw 'POST' request with form payload to Solr.
- *
- * @param {any} config Solr configuration.
- * @param {ConnectionPool} connectionPool
- * @param {any} payload request body
- * @param {string} namespace Solr index to use.
- *
- * @returns {Promise<any>} response
  */
-const postFormRaw = async (config, connectionPool, payload, queryParams = {}, namespace = SolrNamespaces.Search) => {
+const postFormRaw = async (
+  config: any,
+  connectionPool: ConnectionPool,
+  payload: any,
+  queryParams = {},
+  namespace = SolrNamespaces.Search
+) => {
   const { endpoint } = config[namespace]
   const url = buildUrl(endpoint, queryParams)
   const body = toUrlSearchParameters(payload)
@@ -213,16 +197,14 @@ const postFormRaw = async (config, connectionPool, payload, queryParams = {}, na
 
 /**
  * Send a raw 'GET' request to Solr.
- *
- * @param {any} config Solr configuration.
- * @param {ConnectionPool} connectionPool
- * @param {any} params query parameters
- * @param {string} namespace Solr index to use.
- * @param {string} endpointKey name of the endpoint property in the config.
- *
- * @returns {Promise<any>} response
  */
-const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces.Search, endpointKey = 'endpoint') => {
+const getRaw = async (
+  config: any,
+  connectionPool: ConnectionPool,
+  params: any,
+  namespace: string = SolrNamespaces.Search,
+  endpointKey = 'endpoint'
+) => {
   const endpoint = config[namespace][endpointKey]
   const url = buildUrl(endpoint, params)
 
@@ -238,7 +220,7 @@ const getRaw = async (config, connectionPool, params, namespace = SolrNamespaces
   return executeRequest(url, options, connectionPool)
 }
 
-const suggest = async (config, connectionPool, params = {}, factory) => {
+const suggest = async (config: any, connectionPool: ConnectionPool, params = {}, factory: any) => {
   const _params = {
     q: '',
     dictionary: 'm_suggester_infix',
@@ -286,8 +268,8 @@ const suggest = async (config, connectionPool, params = {}, factory) => {
     })
 }
 // TODO: `factory` is not used
-const findAllPost = (config, connectionsPool, params = {}, factory) => {
-  const qp = {
+const findAllPost = (config: any, connectionsPool: ConnectionPool, params = {}, factory: any) => {
+  const qp: Record<string, any> = {
     q: '*:*',
     limit: 10,
     offset: 0,
@@ -302,7 +284,7 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
   // configuration corresponding to  different solr on the same machine.
   const endpoint = `${config[qp.namespace].endpoint}`
 
-  const data = {
+  const data: Record<string, any> = {
     q: qp.q,
     start: qp.offset,
     rows: qp.limit,
@@ -389,11 +371,9 @@ const findAllPost = (config, connectionsPool, params = {}, factory) => {
 /**
  * request wrapper to get results from solr.
  * TODO Check grouping: https://lucene.apache.org/solr/guide/6_6/result-grouping.html
- * @param {object} config - config object for solr
- * @param {object} params - `q` with lucene search query; `limit` and `offset`
  */
-const findAll = (config, connectionPool, params = {}, factory = undefined) => {
-  const _params = {
+const findAll = (config: any, connectionPool: ConnectionPool, params = {}, factory: any = undefined) => {
+  const _params: Record<string, any> = {
     q: '*:*',
     limit: 10,
     offset: 0,
@@ -409,7 +389,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
   // configuration corresponding to  different solr on the same machine.
   const endpoint = `${config[_params.namespace].endpoint}`
 
-  let qs = {
+  let qs: Record<string, any> = {
     q: _params.q,
 
     start: _params.offset,
@@ -470,7 +450,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
     // default values for fields
   }
 
-  const opts = {
+  const opts: Record<string, any> = {
     method: 'GET',
     url: endpoint,
     auth: config.auth,
@@ -535,7 +515,7 @@ const findAll = (config, connectionPool, params = {}, factory = undefined) => {
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
  */
-const wrapAll = res => {
+const wrapAll = (res: Record<string, any>) => {
   let limit = parseInt(res.responseHeader.params.rows, 10)
   let offset = parseInt(res.responseHeader.params.start, 10)
   if (typeof res.responseHeader.params.json === 'string') {
@@ -569,14 +549,14 @@ const wrapAll = res => {
  * @param  {Function} factory Instance generator
  * @return {Promise<any>} {uid: instance}
  */
-const resolveAsync = async (config, connectionsPool, groups, factory) => {
+const resolveAsync = async (config: any, connectionsPool: ConnectionPool, groups: Array<any>, factory: Function) => {
   debug(`resolveAsync':  ${groups.length} groups to resolve`)
   await Promise.all(
     groups
       .filter(group => group.items.length > 0)
       .map((group, k) => {
         debug(`resolveAsync': findAll for namespace "${group.namespace}"`)
-        const ids = group.items.map(d => d[group.idField || 'uid'])
+        const ids = group.items.map((d: any) => d[group.idField || 'uid'])
         return findAll(
           config,
           connectionsPool,
@@ -588,7 +568,7 @@ const resolveAsync = async (config, connectionsPool, groups, factory) => {
           },
           factory || group.factory || group.Klass.solrFactory
         ).then(res => {
-          res.response.docs.forEach(doc => {
+          res.response.docs.forEach((doc: any) => {
             const idx = ids.indexOf(doc.uid)
             groups[k].items[idx][group.itemField || 'item'] = doc
           })
@@ -602,30 +582,28 @@ const resolveAsync = async (config, connectionsPool, groups, factory) => {
  * @param {any} config configuration.
  * @param {ConnectionPool} connectionsPool
  */
-const getSolrClient = (config, connectionsPool) => ({
-  findAll: (params, factory) => findAll(config, connectionsPool, params, factory),
-  findAllPost: (params, factory) => findAllPost(config, connectionsPool, params, factory),
-  suggest: (params, factory) => suggest(config, connectionsPool, params, factory),
-  requestGetRaw: async (params, namespace) => getRaw(config, connectionsPool, params, namespace),
-  requestPostRaw: async (payload, namespace) => postRaw(config, connectionsPool, payload, {}, namespace),
+const getSolrClient = (config: any, connectionsPool: ConnectionPool) => ({
+  findAll: (params: any, factory: Function) => findAll(config, connectionsPool, params, factory),
+  findAllPost: (params: any, factory: Function) => findAllPost(config, connectionsPool, params, factory),
+  suggest: (params: any, factory: Function) => suggest(config, connectionsPool, params, factory),
+  requestGetRaw: async (params: any, namespace: string) => getRaw(config, connectionsPool, params, namespace),
+  requestPostRaw: async (payload: any, namespace: string) => postRaw(config, connectionsPool, payload, {}, namespace),
   utils: {
-    resolveAsync: (items, factory) => resolveAsync(config, connectionsPool, items, factory),
+    resolveAsync: (items: any, factory: Function) => resolveAsync(config, connectionsPool, items, factory),
   },
 })
 
-module.exports = function (app) {
+export default function (app: any) {
   const config = app.get('solr')
   const connectionPool = initHttpPool(app.get('solrConnectionPool'))
   app.set('solrClient', getSolrClient(config, connectionPool))
 }
 
-module.exports.client = (solrConfig, poolConfig) => {
+export const client = (solrConfig: any, poolConfig: any) => {
   const connectionPool = initHttpPool(poolConfig)
   return getSolrClient(solrConfig, connectionPool)
 }
 
-module.exports.SolrNamespaces = SolrNamespaces
-
-module.exports.utils = {
+export const utils = {
   wrapAll,
 }

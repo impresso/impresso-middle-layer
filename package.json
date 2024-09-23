@@ -63,6 +63,7 @@
     "aws-sdk": "^2.395.0",
     "axios": "^1.6.7",
     "body-parser": "^1.18.3",
+    "bufferutil": "4.0.8",
     "cache-manager": "^4.1.0",
     "cache-manager-redis-store": "^2.0.0",
     "celery-node": "^0.5.9",
@@ -129,7 +130,8 @@
     "wikidata-sdk": "^5.15.10",
     "winston": "3.13.0",
     "xml2js": "^0.6.2",
-    "yaml": "^2.1.1"
+    "yaml": "^2.1.1",
+    "undici": "6.19.8"
   },
   "devDependencies": {
     "@openapi-contrib/json-schema-to-openapi-schema": "3.0.1",

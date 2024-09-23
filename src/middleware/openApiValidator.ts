@@ -31,24 +31,32 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
   const isPublicApi = app.get('isPublicApi')
   if (!isPublicApi) return
 
+  const openApiConfig = app.get('openapi') ?? {}
+
   if (!('docs' in app))
     throw new Error('`docs` property not found in app object. Is swagger initialized? (app.use(swager))')
 
   const spec = (app as any)['docs'] as unknown as OpenAPIV3.Document
 
   const options: Omit<OpenApiValidatorOpts, 'apiSpec'> = {
-    validateRequests: {
-      allowUnknownQueryParameters: false,
-      removeAdditional: true,
-    },
-    validateResponses: {
-      removeAdditional: false,
-      onError: (err: ValidationError, json: any, req: any) => {
-        const errorMessage = JSON.stringify(err.errors, null, 2)
-        logger.error(`OpenAPI Response validation error: ${errorMessage}`)
-      },
-    },
-    validateApiSpec: true,
+    validateRequests:
+      openApiConfig?.validateRequests == false
+        ? false
+        : {
+            allowUnknownQueryParameters: false,
+            removeAdditional: true,
+          },
+    validateResponses:
+      openApiConfig?.validateResponses == false
+        ? false
+        : {
+            removeAdditional: false,
+            onError: (err: ValidationError, json: any, req: any) => {
+              const errorMessage = JSON.stringify(err.errors, null, 2)
+              logger.error(`OpenAPI Response validation error: ${errorMessage}`)
+            },
+          },
+    validateApiSpec: openApiConfig.validateSpec == false ? false : true,
     useRequestUrl: false,
     ignoreUndocumented: true,
   }

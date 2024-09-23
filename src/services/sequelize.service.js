@@ -22,7 +22,7 @@ class SequelizeService {
     this.cacheReads = cacheReads
     this.cacheManager = app.get('cacheManager')
 
-    debug(`Configuring service: ${this.name} (model:${this.modelName}) success`)
+    debug(`Configuring service: ${this.name} (model:${this.modelName}) success. Caching reads: ${this.cacheReads}`)
   }
 
   async bulkCreate(items) {
@@ -142,7 +142,7 @@ class SequelizeService {
       p.col = `${this.sequelizeKlass.name}.${this.sequelizeKlass.primaryKeys[pk].field}`
     }
 
-    debug(`'find' ${this.name} with params:`, p, 'where:', p.where)
+    debug(`'find' ${this.name} with params (cached: ${this.cacheReads}):`, p, 'where:', p.where)
 
     let fn = this.sequelizeKlass
 
@@ -150,36 +150,36 @@ class SequelizeService {
       fn = this.sequelizeKlass.scope(params.scope)
     }
 
-    const promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p)
-    const dbResultPromise = promise
-      .then(res => {
-        if (params.findAllOnly) {
-          debug(`'find' ${this.name} success, no count has been asked.`)
-          return {
-            rows: res,
-            count: -1,
+    const getFromDb = async () => {
+      const promise = params.findAllOnly ? fn.findAll(p) : fn.findAndCountAll(p)
+      const dbResultPromise = promise
+        .then(res => {
+          if (params.findAllOnly) {
+            debug(`'find' ${this.name} success, no count has been asked.`)
+            return {
+              rows: res,
+              count: -1,
+            }
           }
-        }
-        debug(`'find' ${this.name} success, n.results:`, res.count)
-        return res
-      })
-      .then(res => ({
-        data: res.rows.map(d => d.toJSON()),
-        total: res.count,
-        limit: params.query.limit,
-        offset: params.query.offset,
-        info: {
-          query: {
-            filters: params.query.filters,
-            limit: params.query.limit,
-            offset: params.query.offset,
+          debug(`'find' ${this.name} success, n.results:`, res.count)
+          return res
+        })
+        .then(res => ({
+          data: res.rows.map(d => d.toJSON()),
+          total: res.count,
+          limit: params.query.limit,
+          offset: params.query.offset,
+          info: {
+            query: {
+              filters: params.query.filters,
+              limit: params.query.limit,
+              offset: params.query.offset,
+            },
           },
-        },
-      }))
-
-    const cachedPromise = this.cacheReads
-      ? this.cacheManager.wrap(cacheKey, () => dbResultPromise, cacheOptions)
-      : dbResultPromise
+        }))
+      return dbResultPromise
+    }
+    const cachedPromise = this.cacheReads ? this.cacheManager.wrap(cacheKey, getFromDb, cacheOptions) : getFromDb()
 
     return cachedPromise.catch(sequelizeErrorHandler)
   }
