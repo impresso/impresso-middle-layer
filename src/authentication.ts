@@ -27,6 +27,7 @@ class CustomisedAuthenticationService extends AuthenticationService {
         payload.userGroups = user.groups.map(d => d.name)
       }
       payload.isStaff = user.isStaff
+      payload.bitmap = user.bitmap ?? '1'
     }
     return payload
   }
