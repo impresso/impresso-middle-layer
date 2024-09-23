@@ -6,19 +6,26 @@ import Group from './groups.model'
 import Profile from './profiles.model'
 
 const CRYPTO_ITERATIONS = 180000
-
-class ObfuscatedUser {
+interface ObfuscatedUserAttributes {
   uid: string
   username: string
+  bitmap?: string
+}
 
-  constructor({ uid = '', username = '' } = {}) {
-    this.uid = String(uid)
-    this.username = String(username)
+export class ObfuscatedUser {
+  uid: string
+  username: string
+  bitmap?: string
+
+  constructor({ uid = '', username = '', bitmap }: Partial<ObfuscatedUserAttributes> = {}) {
+    this.uid = uid
+    this.username = username
+    this.bitmap = bitmap
   }
 }
 
 // Define the attributes for the Group model
-interface UserAttributes {
+export interface UserAttributes {
   id: number
   email: string
   uid: string
@@ -33,10 +40,12 @@ interface UserAttributes {
   profile: Profile
   groups: Group[]
   userBitmap?: UserBitmap
+  bitmap?: string
+  toJSON: (params?: { obfuscate?: boolean; groups?: Group[] }) => UserAttributes
 }
 
 // Define the creation attributes for the Group model
-interface UserCreationAttributes extends Omit<UserAttributes, 'id'> {}
+export interface UserCreationAttributes extends Omit<UserAttributes, 'id'> {}
 
 export default class User {
   id: number | string
@@ -52,7 +61,7 @@ export default class User {
   creationDate: Date | string
   profile: Profile
   groups: Group[]
-  userBitmap?: UserBitmap
+  bitmap?: string
 
   constructor({
     id = 0,
@@ -68,7 +77,8 @@ export default class User {
     profile = new Profile(),
     creationDate = new Date(),
     groups = [],
-  } = {}) {
+    bitmap,
+  }: Partial<UserAttributes> = {}) {
     this.id = typeof id === 'number' ? id : parseInt(id, 10)
     this.username = String(username)
     this.firstname = String(firstname)
@@ -92,6 +102,7 @@ export default class User {
     }
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate)
     this.groups = groups
+    this.bitmap = bitmap
   }
 
   static getMe({ user, profile }: { user: User; profile: Profile }) {
@@ -108,6 +119,8 @@ export default class User {
       creationDate: user.creationDate,
       emailAccepted: profile.emailAccepted,
       displayName: profile.displayName,
+      bitmap: user.bitmap,
+      groups: user.groups,
     }
   }
 
@@ -269,17 +282,20 @@ export default class User {
       }
     )
 
-    user.prototype.toJSON = function ({ obfuscate = false, groups = [] } = {}) {
+    user.prototype.toJSON = function (params: { obfuscate?: boolean; groups?: Group[]; userBitmap?: UserBitmap } = {}) {
+      const { obfuscate = false, groups = [], userBitmap } = params
       if (obfuscate) {
         const { profile, username } = this as unknown as User
         return new ObfuscatedUser({
           uid: profile.uid,
           username,
+          bitmap: params.userBitmap?.bitmap,
         })
       }
       return new User({
         ...this.get(),
         groups,
+        bitmap: params.userBitmap?.bitmap,
       })
     }
 
