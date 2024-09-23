@@ -117,6 +117,15 @@ export interface Configuration {
   solr: SolrConfiguration
 
   impressoNerServiceUrl?: string
+
+  openapi?: {
+    /** true by default */
+    validateRequests?: boolean
+    /** true by default */
+    validateResponses?: boolean
+    /** true by default */
+    validateSpec?: boolean
+  }
 }
 
 const configurationSchema: JSONSchemaDefinition = {
