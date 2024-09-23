@@ -76,7 +76,6 @@
     "debug": "^4.3.4",
     "decypher": "^0.13.0",
     "dotenv": "^16.0.1",
-    "eiows": "7.1.0",
     "express-openapi-validator": "5.1.6",
     "fast-ratelimit": "^3.0.0",
     "fast-xml-parser": "^4.3.4",
