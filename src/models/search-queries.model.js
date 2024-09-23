@@ -1,9 +1,9 @@
-const crypto = require('crypto');
-const { DataTypes } = require('sequelize');
-const User = require('./users.model');
+const crypto = require('crypto')
+const { DataTypes } = require('sequelize')
+const User = require('./users.model').default
 
 class SearchQuery {
-  constructor ({
+  constructor({
     uid = '',
     name = '',
     description = '',
@@ -13,76 +13,80 @@ class SearchQuery {
     creator,
     countItems = -1,
   }) {
-    this.uid = String(uid);
-    this.name = String(name);
-    this.description = String(description);
-    this.data = String(data);
-    this.creationDate = creationDate;
-    this.lastModifiedDate = lastModifiedDate;
-    this.countItems = countItems;
+    this.uid = String(uid)
+    this.name = String(name)
+    this.description = String(description)
+    this.data = String(data)
+    this.creationDate = creationDate
+    this.lastModifiedDate = lastModifiedDate
+    this.countItems = countItems
 
-    this.creator = creator;
+    this.creator = creator
 
     if (!this.uid.length) {
-      const hash = crypto.createHash('md5').update(this.data).digest('hex');
-      this.uid = `${this.creator.uid}-${hash}`; //= > "local-useruid-7hy8hvrX"
+      const hash = crypto.createHash('md5').update(this.data).digest('hex')
+      this.uid = `${this.creator.uid}-${hash}` //= > "local-useruid-7hy8hvrX"
     }
   }
 
-  static sequelize (client) {
-    const creator = User.sequelize(client);
+  static sequelize(client) {
+    const creator = User.sequelize(client)
 
-    const searchQuery = client.define('searchquery', {
-      uid: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-        field: 'id',
+    const searchQuery = client.define(
+      'searchquery',
+      {
+        uid: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+          field: 'id',
+        },
+        name: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        },
+        description: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        data: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        creationDate: {
+          type: DataTypes.DATE,
+          field: 'date_created',
+          defaultValue: DataTypes.NOW,
+        },
+        lastModifiedDate: {
+          type: DataTypes.DATE,
+          field: 'date_last_modified',
+          defaultValue: DataTypes.NOW,
+        },
+        countItems: {
+          type: DataTypes.INTEGER,
+          field: 'count_items',
+          defaultValue: 0,
+        },
+        creatorId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          field: 'creator_id',
+        },
       },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-      },
-      description: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      data: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      creationDate: {
-        type: DataTypes.DATE,
-        field: 'date_created',
-        defaultValue: DataTypes.NOW,
-      },
-      lastModifiedDate: {
-        type: DataTypes.DATE,
-        field: 'date_last_modified',
-        defaultValue: DataTypes.NOW,
-      },
-      countItems: {
-        type: DataTypes.INTEGER,
-        field: 'count_items',
-        defaultValue: 0,
-      },
-      creatorId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        field: 'creator_id',
-      },
-    }, {
-      tableName: 'search_queries',
-      defaultScope: {
-        include: [
-          {
-            model: creator,
-            as: 'creator',
-          },
-        ],
-      },
-    });
+      {
+        tableName: 'search_queries',
+        defaultScope: {
+          include: [
+            {
+              model: creator,
+              as: 'creator',
+            },
+          ],
+        },
+      }
+    )
 
     searchQuery.belongsTo(creator, {
       as: 'creator',
@@ -90,7 +94,7 @@ class SearchQuery {
         fieldName: 'creator_id',
       },
       onDelete: 'CASCADE',
-    });
+    })
 
     searchQuery.prototype.toJSON = function (obfuscate = true) {
       const sq = new SearchQuery({
@@ -101,18 +105,18 @@ class SearchQuery {
         creationDate: this.creationDate,
         lastModifiedDate: this.lastModifiedDate,
         countItems: this.countItems,
-      });
+      })
 
       if (this.creator) {
         sq.creator = this.creator.toJSON({
           obfuscate,
-        });
+        })
       }
-      return sq;
-    };
+      return sq
+    }
 
-    return searchQuery;
+    return searchQuery
   }
 }
 
-module.exports = SearchQuery;
+module.exports = SearchQuery
