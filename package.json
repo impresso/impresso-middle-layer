@@ -27,6 +27,7 @@
     "copy-files": "tscp",
     "test": "mocha 'test/**/*.test.js'",
     "test-models": "mocha 'test/models/**/*.test.ts'",
+    "test-services": "mocha 'test/services/**/*.test.ts'",
     "test-watch": "mocha 'test/**/*.test.js' --watch",
     "integration-test": "NODE_ENV=test mocha --config ./.mocharc-integration.json 'test/integration/**/*.test.js'",
     "lintfix": "eslint src/. --config .eslintrc.js --fix",
