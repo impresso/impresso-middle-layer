@@ -1,6 +1,8 @@
 const assert = require('assert')
 const { SolrNamespaces } = require('../../../src/solr')
 const { filtersToSolr } = require('../../../src/util/solr/filterReducers')
+const { filtersToQueryAndVariables } = require('../../../src/util/solr/index')
+
 const { InvalidArgumentError } = require('../../../src/util/error')
 
 describe('filtersToSolr', () => {
@@ -329,6 +331,17 @@ describe('filtersToSolr', () => {
       assert.equal(query, 'NOT lg_s:en')
     })
 
+    it('negated single OR', () => {
+      const filter = {
+        type: 'topic',
+        q: 'tm-de-all-v2.0_tp23_de',
+        context: 'exclude',
+        op: 'OR',
+      }
+      const query = filtersToSolr([filter], SolrNamespaces.Search)
+      assert.equal(query, 'NOT topics_dpfs:tm-de-all-v2.0_tp23_de')
+    })
+
     it('negated double', () => {
       const filter = {
         type: 'language',
@@ -450,6 +463,24 @@ describe('filtersToSolr', () => {
         query,
         '((entitySuggest:Jacques AND entitySuggest:Chirac*) OR (entitySuggest:Foo AND entitySuggest:Bar*))'
       )
+    })
+  })
+})
+
+describe('filtersToQueryAndVariables', () => {
+  describe('handles compound filters', () => {
+    it('two with one negation', () => {
+      const filters = [
+        { context: 'include', op: 'OR', type: 'newspaper', q: 'SGZ' },
+        {
+          context: 'exclude',
+          op: 'OR',
+          type: 'topic',
+          q: 'tm-de-all-v2.0_tp23_de',
+        },
+      ]
+      const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+      assert.strictEqual(result.query, 'filter(meta_journal_s:SGZ) AND NOT filter(topics_dpfs:tm-de-all-v2.0_tp23_de)')
     })
   })
 })
