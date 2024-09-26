@@ -4,10 +4,11 @@ const debug = require('debug')('impresso/services:SequelizeService')
 const { NotFound } = require('@feathersjs/errors')
 const sequelize = require('../sequelize')
 const { sequelizeErrorHandler } = require('./sequelize.utils')
+const { getCacheKey } = require('../util/serialize')
 
 function getCacheKeyForReadSqlRequest(request, modelName) {
-  const requestString = Buffer.from(JSON.stringify(request)).toString('base64')
-  return ['cache', 'db', modelName != null ? modelName : 'unk', requestString].join(':')
+  const key = getCacheKey(request)
+  return ['cache', 'db', modelName != null ? modelName : 'unk', key].join(':')
 }
 
 class SequelizeService {
