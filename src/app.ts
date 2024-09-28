@@ -1,5 +1,5 @@
 import { feathers } from '@feathersjs/feathers'
-import celery from './celery'
+import celery, { init as initCelery } from './celery'
 import configuration from './configuration'
 import errorHandling from './middleware/errorHandling'
 import openApiValidator, { init as initOpenApiValidator } from './middleware/openApiValidator'
@@ -97,7 +97,7 @@ app.configure(authentication)
 app.configure(services)
 
 app.hooks({
-  setup: [initOpenApiValidator],
+  setup: [initOpenApiValidator, initCelery],
 })
 app.configure(appHooks)
 
