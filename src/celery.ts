@@ -1,9 +1,11 @@
-import debugModule from 'debug'
+import { Application, HookContext, NextFunction } from '@feathersjs/feathers'
 import { createClient } from 'celery-node'
-import Job from './models/jobs.model'
-import { CeleryConfiguration } from './configuration'
-import { ImpressoApplication } from './types'
 import RedisBackend from 'celery-node/dist/backends/redis'
+import debugModule from 'debug'
+import { CeleryConfiguration } from './configuration'
+import { logger } from './logger'
+import Job from './models/jobs.model'
+import { ImpressoApplication } from './types'
 
 const debug = debugModule('impresso/celery')
 
@@ -53,7 +55,7 @@ const getCeleryClient = (config: CeleryConfiguration, app: ImpressoApplication) 
   const run = async ({ task = 'impresso.tasks.echo', args = ['this is a test'] } = {}) => {
     debug(`run celery task ${task}`)
     const celeryTask = client.createTask(task)
-    celeryTask.applyAsync(args)
+    return celeryTask.applyAsync(args)
     // @todo: fix this and add errror mnagement
     // const result = celeryTask.applyAsync(args)
     // return result
@@ -77,18 +79,25 @@ export default (app: ImpressoApplication) => {
   const config = app.get('celery')
   // wait for redis to be ready
   if (!config?.enable) {
-    debug('Celery is not configured. No task management is available.')
+    logger.warning('Celery is not configured. No task management is available.')
     app.set('celeryClient', undefined)
   } else {
-    debug("Celery configuration found, let's see if it works...")
+    logger.info('Enabling Celery...')
     try {
       const client = getCeleryClient(config, app)()
-      // # test the connection with a basic echo task
-      client.run()
       app.set('celeryClient', client)
     } catch (err) {
-      console.error(err)
-      debug(`Error! ${err}`, err)
+      logger.error(err)
     }
   }
+}
+
+export const init = async (context: HookContext<ImpressoApplication & Application>, next: NextFunction) => {
+  const client = context.app.get('celeryClient')
+  if (client) {
+    // # test the connection with a basic echo task
+    const response = await client.run({ task: 'impresso.tasks.echo', args: ['this is a test'] })
+    logger.info(`Celery is active. Test task ID: ${(response as any).taskId}`)
+  }
+  await next()
 }

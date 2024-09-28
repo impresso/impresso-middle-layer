@@ -34,8 +34,8 @@
   },
   "celery": {
     "enable": false,
-    "CELERY_BROKER_URL": "redis://localhost/4",
-    "CELERY_RESULT_BACKEND": "redis://localhost/5"
+    "brokerUrl": "redis://localhost/4",
+    "backendUrl": "redis://localhost/5"
   },
   "appHooks": {
     "alwaysRequired": true,
