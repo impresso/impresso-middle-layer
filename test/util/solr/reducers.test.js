@@ -6,6 +6,17 @@ const { filtersToQueryAndVariables } = require('../../../src/util/solr/index')
 const { InvalidArgumentError } = require('../../../src/util/error')
 
 describe('filtersToSolr', () => {
+  it('escapes parentheses', () => {
+    const filter = {
+      type: 'string',
+      q: 'H. Allen Smith (represen',
+    }
+    const query = filtersToSolr([filter], SolrNamespaces.Entities)
+    const expectedQuery =
+      '(entitySuggest:H. AND entitySuggest:Allen AND entitySuggest:Smith AND entitySuggest:represen*)'
+    assert.strictEqual(query, expectedQuery)
+  })
+
   it('throws an error for an unknown filter type', () => {
     const filter = {
       type: 'booomooo',

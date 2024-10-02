@@ -217,12 +217,13 @@ const booleanHandler = (filters, field, filterRule) => {
 const textAsOpenEndedSearchString = (text, field) => {
   const parts = text.split(' ').filter(v => v !== '')
   const statement = parts
-    .map(part => part.replace(/"/g, '\\"'))
+    .map(part => part.replace(/"/g, '\\"').replace(/\(/g, '').replace(/\)/g, ''))
     .map((part, index, arr) => {
       const suffix = index === arr.length - 1 ? '*' : ''
       return `${field}:${part}${suffix}`
     })
     .join(' AND ')
+  console.log('SSS', statement)
   return parts.length > 1 ? `(${statement})` : statement
 }
 
