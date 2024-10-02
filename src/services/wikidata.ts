@@ -1,7 +1,10 @@
-const axios = require('axios')
-const wdk = require('wikidata-sdk')
-const debug = require('debug')('impresso/services:wikidata')
-const lodash = require('lodash')
+import Debug from 'debug'
+import axios from 'axios'
+import wdk from 'wikidata-sdk'
+import lodash from 'lodash'
+import { RedisClient } from '../redis'
+
+const debug = Debug('impresso/services:wikidata')
 
 const IS_INSTANCE_OF = 'P31'
 const IS_HUMAN = 'Q5'
@@ -10,8 +13,46 @@ const PLACE_COUNTRY = 'P17'
 const PLACE_COORDINATES = 'P625'
 // const PLACE_ADMIN_AREA = 'P131';
 
-class NamedEntity {
-  constructor({ id = '', type = '', labels = [], descriptions = [], claims = {} } = {}) {
+interface INamedEntityImage {
+  value: string
+  rank: string
+  datatype: string
+}
+
+/**
+ * E.g.: {"en": "House", "fr": "Maison", "de": "Haus"}
+ */
+type LangLables = Record<string, string>
+
+interface INamedEntity {
+  id: string
+  type: string
+  labels: LangLables
+  descriptions: LangLables
+  images: INamedEntityImage[]
+}
+
+interface IClaims {
+  P18?: any[]
+}
+
+interface INamedEntityOptions {
+  id: string
+  type: string
+  labels: LangLables
+  descriptions: LangLables
+  claims: IClaims
+}
+
+class NamedEntity implements INamedEntity {
+  id: string
+  type: string
+  labels: LangLables
+  descriptions: LangLables
+  _pendings: Record<string, string[]>
+  images: INamedEntityImage[]
+
+  constructor({ id = '', type = '', labels = {}, descriptions = {}, claims = {} }: Partial<INamedEntityOptions> = {}) {
     this.id = String(id)
     this.type = String(type)
     this.labels = labels
@@ -29,7 +70,7 @@ class NamedEntity {
     }
   }
 
-  addPending(property, id) {
+  addPending(property: any, id: any) {
     if (!this._pendings[id]) {
       this._pendings[id] = []
     }
@@ -40,13 +81,13 @@ class NamedEntity {
     return Object.keys(this._pendings)
   }
 
-  resolvePendings(entities) {
+  resolvePendings(entities: any) {
     // console.log('RESOLVE', entities, this.getPendings());
     debug(`resolvePendings for ${this.id}`)
     this.getPendings().forEach(id => {
       if (entities[id]) {
         this._pendings[id].forEach(property => {
-          this[property] = entities[id]
+          ;(this as unknown as any)[property] = entities[id]
         })
       }
     })
@@ -64,7 +105,10 @@ class NamedEntity {
 }
 
 class Location extends NamedEntity {
-  constructor({ id = '', claims = {}, labels = [], descriptions = [] } = {}) {
+  coordinates: any
+  country: any
+
+  constructor({ id = '', claims = {}, labels = {}, descriptions = {} } = {}) {
     super({
       id,
       claims,
@@ -94,7 +138,7 @@ class Location extends NamedEntity {
       ...super.toJSON(),
       coordinates: this.coordinates,
       country: this.country,
-      adminArea: this.adminArea,
+      adminArea: (this as unknown as any).adminArea,
     }
   }
 }
@@ -106,7 +150,12 @@ class Location extends NamedEntity {
  * @return {[type]}       [description]
  */
 class Human extends NamedEntity {
-  constructor({ id = '', claims = {}, labels = [], descriptions = [] } = {}) {
+  birthDate: any
+  deathDate: any
+  birthPlace: any
+  deathPlace: any
+
+  constructor({ id = '', claims = {}, labels = {}, descriptions = {} } = {}) {
     super({
       id,
       claims,
@@ -144,7 +193,7 @@ class Human extends NamedEntity {
   }
 }
 
-const getNamedEntityClass = entity => {
+const getNamedEntityClass = (entity: { claims: any }) => {
   const iof = lodash.get(entity.claims, `${IS_INSTANCE_OF}[0]mainsnak.datavalue.value.id`)
   debug('getNamedEntityClass: iof', iof)
   if (iof === IS_HUMAN) {
@@ -162,7 +211,7 @@ const getNamedEntityClass = entity => {
  * @param  {NamedEntity} entity [description]
  * @return {any}        [description]
  */
-const createEntity = entity => {
+const createEntity = (entity: any) => {
   // parse with wikidata sdk
   const simplified = wdk.simplify.entity(entity)
   const Klass = getNamedEntityClass(entity)
@@ -173,13 +222,23 @@ const createEntity = entity => {
   })
 }
 
+interface ResolveOptions {
+  ids?: string[]
+  languages?: string[]
+  depth?: number
+  maxDepth?: number
+  cache?: RedisClient | null
+}
+
+// const getCached()
+
 const resolve = async ({
   ids = [],
   languages = ['en', 'fr', 'de', 'it'], // platform languages
   depth = 0,
   maxDepth = 1,
   cache = null,
-} = {}) => {
+}: ResolveOptions = {}) => {
   // check wikidata in redis cache
   let cached
   const cacheKey = `wkd:${ids.join(',')}`
@@ -193,8 +252,8 @@ const resolve = async ({
     debug('no cache found for cacheKey:', cacheKey)
     // check cacheKey
   }
-  // get wikidata api url for the given ids and the given anguage
-  const url = wdk.getEntities(ids, languages)
+  // get wikidata api url for the given ids and the given languages
+  const url = wdk.getEntities(ids, languages as unknown as any)
   debug(`resolve: url '${url}', depth: ${depth}`)
 
   const result = await axios(url)
@@ -203,8 +262,8 @@ const resolve = async ({
       throw new Error(res.statusText)
     })
     .then(res => {
-      const entities = {}
-      let pendings = []
+      const entities: Record<string, NamedEntity> = {}
+      let pendings: any[] = []
 
       Object.keys(res.entities).forEach(id => {
         entities[id] = createEntity(res.entities[id])
