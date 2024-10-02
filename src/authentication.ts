@@ -21,10 +21,11 @@ class CustomisedAuthenticationService extends AuthenticationService {
   async getPayload(authResult: AuthenticationResult, params: AuthenticationParams) {
     const payload = await super.getPayload(authResult, params)
     const { user } = authResult as { user: User }
+
     if (user) {
       payload.userId = user.uid
       if (user.groups.length) {
-        payload.userGroups = user.groups.map(d => d.name)
+        payload.groups = user.groups.map(d => d.name)
       }
       payload.isStaff = user.isStaff
       payload.bitmap = user.bitmap ?? '1'
@@ -60,6 +61,7 @@ export interface SlimUser {
   uid: string
   id: number
   isStaff: boolean
+  bitmap?: string
 }
 
 /**
@@ -87,10 +89,10 @@ class NoDBJWTStrategy extends JWTStrategy {
     if (entity === null) {
       return result
     }
-
     const slimUser: SlimUser = {
       uid: payload.userId,
       id: parseInt(payload.sub),
+      bitmap: payload.bitmap ?? '1',
       isStaff: payload.isStaff ?? false,
     }
     return {
