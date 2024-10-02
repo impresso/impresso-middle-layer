@@ -223,7 +223,6 @@ const textAsOpenEndedSearchString = (text, field) => {
       return `${field}:${part}${suffix}`
     })
     .join(' AND ')
-  console.log('SSS', statement)
   return parts.length > 1 ? `(${statement})` : statement
 }
 
