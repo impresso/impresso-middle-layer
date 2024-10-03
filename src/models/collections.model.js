@@ -1,13 +1,14 @@
+import User from './users.model'
+
 const nanoid = require('nanoid')
 const { DataTypes } = require('sequelize')
-const User = require('./users.model').default
 
-const STATUS_PRIVATE = 'PRI'
-const STATUS_SHARED = 'SHA'
-const STATUS_PUBLIC = 'PUB'
-const STATUS_DELETED = 'DEL'
+export const STATUS_PRIVATE = 'PRI'
+export const STATUS_SHARED = 'SHA'
+export const STATUS_PUBLIC = 'PUB'
+export const STATUS_DELETED = 'DEL'
 
-class Collection {
+export default class Collection {
   constructor(
     {
       uid = '',

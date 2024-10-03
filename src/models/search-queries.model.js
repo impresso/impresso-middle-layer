@@ -1,6 +1,7 @@
+import User from './users.model'
+
 const crypto = require('crypto')
 const { DataTypes } = require('sequelize')
-const User = require('./users.model').default
 
 class SearchQuery {
   constructor({

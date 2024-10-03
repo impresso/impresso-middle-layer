@@ -1,5 +1,5 @@
+import User from './users.model'
 const { DataTypes } = require('sequelize')
-const User = require('./users.model').default
 
 class UploadedImage {
   constructor({ uid = '', name = '', checksum = '', signature = '', thumbnail = '', creationDate = new Date() } = {}) {

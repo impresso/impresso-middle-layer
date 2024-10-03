@@ -1,5 +1,6 @@
+import User from '../../models/users.model'
+
 const jwt = require('jsonwebtoken')
-const User = require('../../models/users.model').default
 const { NotImplemented, BadRequest, NotFound } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:password-reset')
 

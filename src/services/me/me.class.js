@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
+import User from '../../models/users.model'
+
 const debug = require('debug')('impresso/services:me')
 const { BadRequest } = require('@feathersjs/errors')
 const SequelizeService = require('../sequelize.service')
-const User = require('../../models/users.model').default
 const Profile = require('../../models/profiles.model')
 const { measureTime } = require('../../util/instruments')
 

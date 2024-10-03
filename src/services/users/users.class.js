@@ -1,4 +1,6 @@
 /* eslint-disable no-unused-vars */
+import User from '../../models/users.model'
+
 const { BadRequest, NotFound } = require('@feathersjs/errors')
 const shorthash = require('short-hash')
 const nanoid = require('nanoid')
@@ -7,7 +9,6 @@ const debug = require('debug')('impresso/services:users')
 const { encrypt } = require('../../crypto')
 const sequelize = require('../../sequelize')
 const { sequelizeErrorHandler } = require('../../services/sequelize.utils')
-const User = require('../../models/users.model').default
 const Profile = require('../../models/profiles.model')
 
 class Service {

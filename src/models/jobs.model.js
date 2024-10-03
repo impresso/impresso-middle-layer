@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
+import User from './users.model'
+
 const { DataTypes } = require('sequelize')
 const Attachment = require('./attachments.model')
-const User = require('./users.model').default
 
 const TYPE_BULK_COLLECTION_FROM_QUERY = 'BCQ'
 const TYPE_DELETE_COLLECTION = 'DCO'
@@ -15,7 +16,7 @@ const STATUS_ARCHIVED = 'ARC'
 const STATUS_STOPPING = 'STO'
 const STATUS_KILLED = 'RIP'
 
-class Job {
+export default class Job {
   constructor({
     id = -1,
     labels = ['job'],
