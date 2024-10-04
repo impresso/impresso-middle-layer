@@ -5,12 +5,9 @@
 const fs = require('fs')
 const debug = require('debug')('impresso/scripts:update-timelines')
 const config = require('@feathersjs/configuration')()()
-const solrClient = require('../src/solr').client(
-  config.solr,
-  config.solrConnectionPool
-)
+const solrClient = require('../solr').client(config.solr, config.solrConnectionPool)
 
-const Year = require('../src/models/years.model')
+const Year = require('../models/years.model')
 
 debug('start!')
 
@@ -31,7 +28,7 @@ async function waterfall() {
       }),
       namespace: 'search',
     })
-    .then((res) =>
+    .then(res =>
       res.facets.year.buckets.reduce((acc, bucket) => {
         // save a dictionary year:Year instance
         acc[bucket.val] = new Year({
@@ -59,8 +56,8 @@ async function waterfall() {
       }),
       namespace: 'search',
     })
-    .then((res) =>
-      res.facets.year.buckets.forEach((bucket) => {
+    .then(res =>
+      res.facets.year.buckets.forEach(bucket => {
         // save to the dictionary year:Year instance
         years[bucket.val].refs.a = parseFloat(bucket.count)
       }, {})
@@ -81,8 +78,8 @@ async function waterfall() {
       }),
       namespace: 'images',
     })
-    .then((res) =>
-      res.facets.year.buckets.forEach((bucket) => {
+    .then(res =>
+      res.facets.year.buckets.forEach(bucket => {
         // save to the dictionary year:Year instance
         years[bucket.val].refs.m = parseFloat(bucket.count)
       }, {})
@@ -102,7 +99,7 @@ waterfall()
     debug('done, exit.') // prints 60 after 2 seconds.
     process.exit(0)
   })
-  .catch((err) => {
+  .catch(err => {
     console.log(err)
     process.exit(1)
   })
