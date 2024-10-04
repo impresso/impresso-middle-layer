@@ -82,6 +82,6 @@ waterfall()
     process.exit(0)
   })
   .catch(err => {
-    console.log(err)
+    console.log(err) // eslint-disable-line no-console
     process.exit(1)
   })

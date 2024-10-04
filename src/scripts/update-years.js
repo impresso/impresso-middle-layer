@@ -85,7 +85,7 @@ async function waterfall() {
       }, {})
     )
 
-  console.log(years)
+  console.log(years) // eslint-disable-line no-console
 
   debug('saving', Object.keys(years).length, 'years ...')
 
@@ -100,6 +100,6 @@ waterfall()
     process.exit(0)
   })
   .catch(err => {
-    console.log(err)
+    console.log(err) // eslint-disable-line no-console
     process.exit(1)
   })

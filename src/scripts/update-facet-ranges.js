@@ -47,7 +47,7 @@ Promise.all(
     fs.writeFileSync(fileName, JSON.stringify(itemsMap))
   })
   .then(() => {
-    console.info('Done')
+    console.info('Done') // eslint-disable-line no-console
     process.exit(0)
   })
   .catch(error => {

@@ -43,7 +43,7 @@ async function waterfall() {
       })
     })
     .catch(err => {
-      console.log(err)
+      console.log(err) // eslint-disable-line no-console
       throw err
     })
 
@@ -92,7 +92,7 @@ async function waterfall() {
       })
     })
     .catch(err => {
-      console.log(err)
+      console.log(err) // eslint-disable-line no-console
     })
 
   debug('saving', Object.keys(newspapers).length, 'newspapers...')
@@ -109,6 +109,6 @@ waterfall()
     process.exit(0)
   })
   .catch(err => {
-    console.log(err)
+    console.log(err) // eslint-disable-line no-console
     process.exit(1)
   })
