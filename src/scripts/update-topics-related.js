@@ -3,8 +3,8 @@ const path = require('path')
 const { chunk } = require('lodash')
 const debug = require('debug')('impresso/scripts:update-topics-related')
 const Eta = require('node-eta')
-const app = require('../src/app')
-const topics = require('../data/topics.json')
+const app = require('../app')
+const topics = require('../../data/topics.json')
 
 const Threshold = parseFloat(process.env.THRESHOLD || 0.5)
 const RelatedThreshold = parseFloat(process.env.RELATED_THRESHOLD || 0.1)
@@ -14,7 +14,7 @@ const LimitRelatedTopics = 300
 const RelatedTopicsChunkSize = parseInt(process.env.CHUNK_SIZE || 2, 10)
 const initialTopicUids = process.env.TOPICS ? process.env.TOPICS.split(',') : []
 // topics filename, for fs;
-const filename = path.join(__dirname, '../data/topics.json')
+const filename = path.join(__dirname, '../../data/topics.json')
 // get all topics where is greater than threshold
 let topicUids = Object.keys(topics)
 

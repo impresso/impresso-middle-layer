@@ -3,8 +3,8 @@ const fs = require('fs')
 const lodash = require('lodash')
 const debug = require('debug')('impresso/scripts:update-data')
 const config = require('@feathersjs/configuration')()()
-const solrClient = require('../src/solr').client(config.solr, config.solrConnectionPool)
-const Topic = require('../src/models/topics.model')
+const solrClient = require('../solr').client(config.solr, config.solrConnectionPool)
+const Topic = require('../models/topics.model')
 
 debug('start!')
 
@@ -82,6 +82,6 @@ waterfall()
     process.exit(0)
   })
   .catch(err => {
-    console.log(err)
+    console.log(err) // eslint-disable-line no-console
     process.exit(1)
   })
