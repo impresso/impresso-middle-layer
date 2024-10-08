@@ -2,6 +2,7 @@ import type { Application as ExpressApplication } from '@feathersjs/express'
 import { json, rest, urlencoded } from '@feathersjs/express'
 import cors from 'cors'
 import { ImpressoApplication } from '../types'
+// import { Server as EioWsServer } from 'eiows'
 
 import socketio from '@feathersjs/socketio'
 import { logger } from '../logger'
@@ -15,35 +16,28 @@ export default (app: ImpressoApplication & ExpressApplication) => {
     app.use(json())
     // Turn on URL-encoded parser for REST services
     app.use(urlencoded({ extended: true }))
-    app.configure(rest())
-
-    const allowedCorsOrigins = app.get('allowedCorsOrigins')
-
-    const origin = (requestOrigin: string | undefined, callback: (err: Error | null, origin?: string) => void) => {
-      const notAllowed =
-        allowedCorsOrigins === undefined || requestOrigin === undefined || !allowedCorsOrigins.includes(requestOrigin)
-      if (notAllowed) return callback(new Error('Not allowed by CORS'))
-      return callback(null, requestOrigin)
-    }
 
     app.use(
       cors({
-        origin: allowedCorsOrigins ?? [],
+        origin: app.get('allowedCorsOrigins') ?? [],
       })
     )
+    app.configure(rest())
   } else {
     logger.info('Internal API - enabling socketio transport')
 
-    void app.configure(
+    app.configure(
       socketio(
         {
           allowEIO3: true,
           cors: {
             credentials: true,
+            origin: app.get('allowedCorsOrigins') ?? [],
           },
+          // wsEngine: EioWsServer,
         },
         io => {
-          logger.debug('registering socketio handler')
+          logger.info('Internal API - enabled socketio transport')
           io.on('connection', socket => {
             logger.debug('socket connected')
           })

@@ -1,19 +1,24 @@
-import configuration from './configuration'
-import swagger from './middleware/swagger'
-import services from './services'
-import transport from './middleware/transport'
-import errorHandling from './middleware/errorHandling'
-import rateLimiter from './services/internal/rateLimiter/redis'
-import redis from './redis'
 import { feathers } from '@feathersjs/feathers'
+import celery, { init as initCelery } from './celery'
+import configuration from './configuration'
+import errorHandling from './middleware/errorHandling'
+import openApiValidator, { init as initOpenApiValidator } from './middleware/openApiValidator'
+import swagger from './middleware/swagger'
+import transport from './middleware/transport'
+import redis from './redis'
 import sequelize from './sequelize'
-import celery from './celery'
-import solr from './solr'
+import services from './services'
+import rateLimiter from './services/internal/rateLimiter/redis'
 import media from './services/media'
 import proxy from './services/proxy'
 import schemas from './services/schemas'
+import solr from './solr'
 import { ensureServiceIsFeathersCompatible } from './util/feathers'
-import openApiValidator from './middleware/openApiValidator'
+import channels from './channels'
+import { ImpressoApplication } from './types'
+import { Application } from '@feathersjs/express'
+import bodyParser from 'body-parser'
+import authentication from './authentication'
 
 const path = require('path')
 const compress = require('compression')
@@ -26,14 +31,11 @@ const middleware = require('./middleware')
 // const services = require('./services');
 const appHooks = require('./app.hooks')
 
-const authentication = require('./authentication')
-
-const channels = require('./channels')
 const multer = require('./multer')
 const cache = require('./cache')
 const cachedSolr = require('./cachedSolr')
 
-const app = express(feathers())
+const app: ImpressoApplication & Application = express(feathers())
 
 // Load app configuration
 app.configure(configuration())
@@ -52,9 +54,6 @@ app.set(
   })
 )
 
-// Enable Swagger if needed
-app.configure(swagger)
-
 app.use('cachedSolr', ensureServiceIsFeathersCompatible(cachedSolr(app)), {
   methods: [],
 })
@@ -63,6 +62,8 @@ app.use('cachedSolr', ensureServiceIsFeathersCompatible(cachedSolr(app)), {
 app.use(helmet())
 app.use(compress())
 app.use(cookieParser())
+// needed to access body in non-feathers middlewares, like openapi validator
+app.use(bodyParser.json({ limit: '50mb' }))
 
 // configure local multer service.
 app.configure(multer)
@@ -70,26 +71,40 @@ app.configure(multer)
 // Host the public folder
 app.use('/', express.static(path.join(__dirname, app.get('public'))))
 
+// Configure other middleware (see `middleware/index.js`)
+app.configure(middleware)
+
+// configure celery client task manage if celery config is available
+app.configure(celery)
+
+// configure express services
+app.configure(media)
+app.configure(proxy)
+app.configure(schemas)
+
+// Enable Swagger and API validator if needed
+app.configure(swagger)
+app.configure(openApiValidator)
+
+// Configure transport (Rest, socket.io)
+// NOTE: This must be done **before** registering feathers services
+// but **after** all express middleware is configured.
+// Registering an express middleware after this point will have no effect.
 app.configure(transport)
 
 // Set up our services (see `services/index.ts`)
 app.configure(authentication)
 app.configure(services)
 
-// Configure other middleware (see `middleware/index.js`)
-app.configure(middleware)
-// configure channels
-app.configure(channels)
-// configure celery client task manage if celery config is available
-app.configure(celery)
-
-app.configure(errorHandling)
+app.hooks({
+  setup: [initOpenApiValidator, initCelery],
+})
 app.configure(appHooks)
 
-// configure express services
-app.configure(media)
-app.configure(proxy)
-app.configure(schemas)
-app.configure(openApiValidator)
+// part of sockets.io (see transport), but must go after services are defined
+// because one of the services is used in the channels.
+app.configure(channels)
+
+app.configure(errorHandling)
 
 module.exports = app

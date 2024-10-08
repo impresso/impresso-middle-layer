@@ -363,7 +363,7 @@ class Article extends BaseArticle {
     this.labels = ['article']
 
     if (mentions.length) {
-      this.mentions = mentions
+      this.mentions = mentions.filter(mention => mention != null)
     }
 
     if (topics.length) {

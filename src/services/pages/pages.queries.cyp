@@ -19,7 +19,7 @@ WHERE p.Project = {Project}
 WITH p, _total
 {{/issue__uid}}
 
-SKIP {skip}
+SKIP {offset}
 LIMIT {limit}
 RETURN p, _total
 

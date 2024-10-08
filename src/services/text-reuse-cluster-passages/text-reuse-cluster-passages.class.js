@@ -25,13 +25,13 @@ class TextReuseClusterPassages {
   }
 
   async find(params) {
-    const { clusterId, skip = 0, limit = 10, orderBy } = params.query
+    const { clusterId, offset = 0, limit = 10, orderBy } = params.query
 
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
 
     const [passages, info] = await this.solr
       .get(
-        getTextReuseClusterPassagesRequest(clusterId, skip, limit, orderByField, orderByDescending),
+        getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderByField, orderByDescending),
         this.solr.namespaces.TextReusePassages
       )
       .then(response => [

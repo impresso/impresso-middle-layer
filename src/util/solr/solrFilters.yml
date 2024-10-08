@@ -196,3 +196,6 @@ indexes:
       uid:
         field: id
         rule: value
+      wikidataId:
+        field: na
+        rule: noop

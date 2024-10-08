@@ -1,9 +1,6 @@
-const assert = require('assert');
-const {
-  get, omitBy,
-  isUndefined,
-} = require('lodash');
-const { SolrMappings } = require('../../data/constants');
+const assert = require('assert')
+const { get, omitBy, isUndefined } = require('lodash')
+const { SolrMappings } = require('../../data/constants')
 
 const PassageFields = {
   Id: 'id',
@@ -23,7 +20,7 @@ const PassageFields = {
   JournalId: 'meta_journal_s',
   ClusterSize: 'cluster_size_l',
   ConnectedClusters: 'connected_clusters_ss',
-};
+}
 
 const ClusterFields = {
   Id: 'id',
@@ -33,28 +30,28 @@ const ClusterFields = {
   MaxDate: 'max_date_dt',
   ClusterSize: 'cluster_size_l',
   ContentItemsIds: 'passages_ss',
-};
+}
 
 /**
  * We assume there cannot be more than this many passages in an article.
  */
-const DefaultPassagesLimit = 100;
+const DefaultPassagesLimit = 100
 
 /**
  * Get Solr query parameters for requesting text passages for an article.
  * @param {string} articleId article ID
  * @return {object} GET request query parameters
  */
-function getTextReusePassagesRequestForArticle (articleId, fields = undefined) {
-  assert.ok(typeof articleId === 'string' && articleId.length > 0, 'Article ID is required');
+function getTextReusePassagesRequestForArticle(articleId, fields = undefined) {
+  assert.ok(typeof articleId === 'string' && articleId.length > 0, 'Article ID is required')
   const request = {
     q: `${PassageFields.ContentItemId}:${articleId}`,
     hl: false,
     rows: DefaultPassagesLimit,
-  };
-  if (fields) request.fl = fields.join(',');
+  }
+  if (fields) request.fl = fields.join(',')
 
-  return request;
+  return request
 }
 
 const DefaultClusterFields = [
@@ -63,70 +60,71 @@ const DefaultClusterFields = [
   ClusterFields.MinDate,
   ClusterFields.MaxDate,
   ClusterFields.ClusterSize,
-];
+]
 
-const getOneOfFieldsValues = (doc, fields) => fields.reduce((pickedItem, field) => {
-  if (pickedItem != null) return pickedItem;
-  return doc[field];
-}, null);
+const getOneOfFieldsValues = (doc, fields) =>
+  fields.reduce((pickedItem, field) => {
+    if (pickedItem != null) return pickedItem
+    return doc[field]
+  }, null)
 
 /**
  * Get Solr query parameters for requesting clusters by their Ids.
  * @param {string[]} clusterIds Ids of clusters
  * @return {object} GET request query parameters
  */
-function getTextReuseClustersRequestForIds (clusterIds, fields = DefaultClusterFields) {
-  assert.ok(Array.isArray(clusterIds) && clusterIds.length > 0, 'At least one cluster Id is required');
+function getTextReuseClustersRequestForIds(clusterIds, fields = DefaultClusterFields) {
+  assert.ok(Array.isArray(clusterIds) && clusterIds.length > 0, 'At least one cluster Id is required')
   return {
     q: clusterIds.map(clusterId => `${ClusterFields.Id}:${clusterId}`).join(' OR '),
     hl: false,
     rows: clusterIds.length,
     fl: fields.join(','),
-  };
+  }
 }
 
-function parsePageRegions (pageRegionsPlainText) {
-  if (pageRegionsPlainText == null) return undefined;
-  return pageRegionsPlainText.map(region => region.split(',').map(v => parseInt(v, 10)));
+function parsePageRegions(pageRegionsPlainText) {
+  if (pageRegionsPlainText == null) return undefined
+  return pageRegionsPlainText.map(region => region.split(',').map(v => parseInt(v, 10)))
 }
 
-function convertSolrPassageDocToPassage (doc) {
-  const [offsetStart, offsetEnd] = [
-    get(doc, PassageFields.OffsetStart),
-    get(doc, PassageFields.OffsetEnd),
-  ];
+function convertSolrPassageDocToPassage(doc) {
+  const [offsetStart, offsetEnd] = [get(doc, PassageFields.OffsetStart), get(doc, PassageFields.OffsetEnd)]
 
-  return omitBy({
-    id: get(doc, PassageFields.Id),
-    clusterId: get(doc, PassageFields.ClusterId),
-    articleId: get(doc, PassageFields.ContentItemId),
-    offsetStart,
-    offsetEnd,
-    content: getOneOfFieldsValues(doc, [
-      PassageFields.ContentTextFR,
-      PassageFields.ContentTextDE,
-      PassageFields.ContentTextEN,
-    ]),
-    title: getOneOfFieldsValues(doc, [
-      PassageFields.TitleTextFR,
-      PassageFields.TitleTextDE,
-      PassageFields.TitleTextEN,
-    ]),
-    journalId: get(doc, PassageFields.JournalId),
-    language: 'fr',
-    date: get(doc, PassageFields.Date),
-    pageNumbers: get(doc, PassageFields.PageNumbers),
-    pageRegions: parsePageRegions(get(doc, PassageFields.PageRegions)),
-  }, isUndefined);
+  return omitBy(
+    {
+      id: get(doc, PassageFields.Id),
+      clusterId: get(doc, PassageFields.ClusterId),
+      articleId: get(doc, PassageFields.ContentItemId),
+      offsetStart,
+      offsetEnd,
+      content: getOneOfFieldsValues(doc, [
+        PassageFields.ContentTextFR,
+        PassageFields.ContentTextDE,
+        PassageFields.ContentTextEN,
+      ]),
+      title: getOneOfFieldsValues(doc, [
+        PassageFields.TitleTextFR,
+        PassageFields.TitleTextDE,
+        PassageFields.TitleTextEN,
+      ]),
+      journalId: get(doc, PassageFields.JournalId),
+      language: 'fr',
+      date: get(doc, PassageFields.Date),
+      pageNumbers: get(doc, PassageFields.PageNumbers),
+      pageRegions: parsePageRegions(get(doc, PassageFields.PageRegions)),
+    },
+    isUndefined
+  )
 }
 
-function convertPassagesSolrResponseToPassages (solrResponse) {
-  return get(solrResponse, 'response.docs', []).map(convertSolrPassageDocToPassage);
+function convertPassagesSolrResponseToPassages(solrResponse) {
+  return get(solrResponse, 'response.docs', []).map(convertSolrPassageDocToPassage)
 }
 
-const getDateFromISODateString = date => date.split('T')[0];
+const getDateFromISODateString = date => date.split('T')[0]
 
-function convertSolrClusterToCluster (doc) {
+function convertSolrClusterToCluster(doc) {
   return {
     id: get(doc, ClusterFields.Id),
     lexicalOverlap: get(doc, ClusterFields.LexicalOverlap),
@@ -135,26 +133,23 @@ function convertSolrClusterToCluster (doc) {
       from: getDateFromISODateString(get(doc, ClusterFields.MinDate)),
       to: getDateFromISODateString(get(doc, ClusterFields.MaxDate)),
     },
-  };
+  }
 }
 
-function convertClustersSolrResponseToClusters (solrResponse) {
-  return get(solrResponse, 'response.docs', []).map(convertSolrClusterToCluster);
+function convertClustersSolrResponseToClusters(solrResponse) {
+  return get(solrResponse, 'response.docs', []).map(convertSolrClusterToCluster)
 }
 
-const buildContentSearchStatement = text => [
-  PassageFields.ContentTextFR,
-  PassageFields.ContentTextDE,
-  PassageFields.ContentTextEN,
-].map(field => `${field}:"${text}"`).join(' OR ');
+const buildContentSearchStatement = text =>
+  [PassageFields.ContentTextFR, PassageFields.ContentTextDE, PassageFields.ContentTextEN]
+    .map(field => `${field}:"${text}"`)
+    .join(' OR ')
 
 /**
  * Build a GET request to find cluster IDs of passages that contain `text`.
  * @param {string} text a text snippet
  */
-function getTextReusePassagesClusterIdsSearchRequestForText (
-  text, skip, limit, orderBy, orderByDescending,
-) {
+function getTextReusePassagesClusterIdsSearchRequestForText(text, offset, limit, orderBy, orderByDescending) {
   const request = {
     q: text ? buildContentSearchStatement(text) : '*:*',
     hl: false,
@@ -165,20 +160,21 @@ function getTextReusePassagesClusterIdsSearchRequestForText (
       PassageFields.ContentTextEN,
     ].join(','),
     fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
-  };
-  if (skip !== undefined) request.start = skip;
-  if (limit !== undefined) request.rows = limit;
-  if (orderBy != null) request.sort = `${orderBy} ${orderByDescending ? 'desc' : 'asc'}`;
-  return request;
+  }
+  if (offset !== undefined) request.start = offset
+  if (limit !== undefined) request.rows = limit
+  if (orderBy != null) request.sort = `${orderBy} ${orderByDescending ? 'desc' : 'asc'}`
+  return request
 }
 
-function getLatestTextReusePassageForClusterIdRequest (clusterIdOrClusterIds) {
-  const clusterId = Array.isArray(clusterIdOrClusterIds) ? undefined : clusterIdOrClusterIds;
-  const clusterIds = Array.isArray(clusterIdOrClusterIds) ? clusterIdOrClusterIds : undefined;
+function getLatestTextReusePassageForClusterIdRequest(clusterIdOrClusterIds) {
+  const clusterId = Array.isArray(clusterIdOrClusterIds) ? undefined : clusterIdOrClusterIds
+  const clusterIds = Array.isArray(clusterIdOrClusterIds) ? clusterIdOrClusterIds : undefined
 
-  const q = clusterId != null
-    ? `${PassageFields.ClusterId}:"${clusterId}"`
-    : clusterIds.map(id => `${PassageFields.ClusterId}:${id}`).join(' OR ');
+  const q =
+    clusterId != null
+      ? `${PassageFields.ClusterId}:"${clusterId}"`
+      : clusterIds.map(id => `${PassageFields.ClusterId}:${id}`).join(' OR ')
 
   const request = {
     q,
@@ -191,42 +187,56 @@ function getLatestTextReusePassageForClusterIdRequest (clusterIdOrClusterIds) {
       PassageFields.ContentTextEN,
     ].join(','),
     fq: `{!collapse field=${PassageFields.ClusterId} max=ms(${PassageFields.Date})}`,
-  };
-  return request;
+  }
+  return request
 }
 
-function getClusterIdsAndTextFromPassagesSolrResponse (solrResponse) {
-  return get(solrResponse, 'response.docs', [])
-    .map(doc => ({
-      id: doc[PassageFields.ClusterId],
-      text: getOneOfFieldsValues(
-        doc,
-        [
-          PassageFields.ContentTextFR,
-          PassageFields.ContentTextDE,
-          PassageFields.ContentTextEN,
-        ],
-      ),
-    }));
+function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
+  return get(solrResponse, 'response.docs', []).map(doc => ({
+    id: doc[PassageFields.ClusterId],
+    text: getOneOfFieldsValues(doc, [
+      PassageFields.ContentTextFR,
+      PassageFields.ContentTextDE,
+      PassageFields.ContentTextEN,
+    ]),
+  }))
 }
 
-function getPaginationInfoFromPassagesSolrResponse (solrResponse) {
-  return {
-    limit: parseInt(get(solrResponse, 'responseHeader.params.rows', '10'), 10),
-    offset: parseInt(get(solrResponse, 'responseHeader.params.start', '0'), 10),
-    total: get(solrResponse, 'response.numFound'),
-  };
+function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
+  if (typeof get(solrResponse, 'responseHeader.params.json') === 'string') {
+    try {
+      const { params } = JSON.parse(solrResponse.responseHeader.params.json)
+      return {
+        limit: typeof params.rows === 'number' ? params.rows : 10,
+        offset: typeof params.start === 'number' ? params.start : 0,
+        total: get(solrResponse, 'response.numFound'),
+      }
+    } catch (e) {
+      console.warn(e)
+      return {
+        limit: 10,
+        offset: 0,
+        total: get(solrResponse, 'response.numFound'),
+      }
+    }
+  } else {
+    return {
+      limit: parseInt(get(solrResponse, 'responseHeader.params.rows', '10'), 10),
+      offset: parseInt(get(solrResponse, 'responseHeader.params.start', '0'), 10),
+      total: get(solrResponse, 'response.numFound'),
+    }
+  }
 }
 
-function getTextReuseClusterPassagesRequest (clusterId, skip, limit, orderBy, orderByDescending) {
+function getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderBy, orderByDescending) {
   const request = {
     q: `${PassageFields.ClusterId}:"${clusterId}"`,
     hl: false,
-  };
-  if (skip !== undefined) request.start = skip;
-  if (limit !== undefined) request.rows = limit;
-  if (orderBy != null) request.sort = `${orderBy} ${orderByDescending ? 'desc' : 'asc'}`;
-  return request;
+  }
+  if (offset !== undefined) request.start = offset
+  if (limit !== undefined) request.rows = limit
+  if (orderBy != null) request.sort = `${orderBy} ${orderByDescending ? 'desc' : 'asc'}`
+  return request
 }
 
 /**
@@ -235,28 +245,28 @@ function getTextReuseClusterPassagesRequest (clusterId, skip, limit, orderBy, or
  * @param {string} to ISO date
  * @returns {string} either 'year', 'month' or 'day'
  */
-function getTimelineResolution (from, to) {
-  const diffMs = new Date(to).getTime() - new Date(from).getTime();
-  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+function getTimelineResolution(from, to) {
+  const diffMs = new Date(to).getTime() - new Date(from).getTime()
+  const diffDays = diffMs / (1000 * 60 * 60 * 24)
 
-  if (diffDays <= 31) return 'day';
-  if (diffDays <= 365 * 3) return 'month';
-  return 'year';
+  if (diffDays <= 31) return 'day'
+  if (diffDays <= 365 * 3) return 'month'
+  return 'year'
 }
 
 const asISOTime = (date, eod) => {
-  if (eod) return `${date}T23:59:59Z`;
-  return `${date}T00:00:00Z`;
-};
+  if (eod) return `${date}T23:59:59Z`
+  return `${date}T00:00:00Z`
+}
 
 /**
  * @param {string} clusterId
  * @param {{ from: string, to: string }} timeSpan
  */
-function buildSolrRequestForExtraClusterDetails (clusterId, { from, to } = {}) {
-  const timeResolution = getTimelineResolution(from, to);
-  let date = { ...SolrMappings.tr_passages.facets.year };
-  if (timeResolution === 'month') date = { ...SolrMappings.tr_passages.facets.yearmonth };
+function buildSolrRequestForExtraClusterDetails(clusterId, { from, to } = {}) {
+  const timeResolution = getTimelineResolution(from, to)
+  let date = { ...SolrMappings.tr_passages.facets.year }
+  if (timeResolution === 'month') date = { ...SolrMappings.tr_passages.facets.yearmonth }
   if (timeResolution === 'day') {
     // "daterange" is a "range" facet. To speed up the query we constrain it by
     // actual timespan.
@@ -264,7 +274,7 @@ function buildSolrRequestForExtraClusterDetails (clusterId, { from, to } = {}) {
       ...SolrMappings.tr_passages.facets.daterange,
       start: asISOTime(from),
       end: asISOTime(to, true),
-    };
+    }
   }
 
   return {
@@ -275,32 +285,32 @@ function buildSolrRequestForExtraClusterDetails (clusterId, { from, to } = {}) {
       type: { ...SolrMappings.tr_passages.facets.type, limit: undefined },
       date,
     },
-  };
+  }
 }
 
-function getFacetsFromExtraClusterDetailsResponse (solrResponse) {
-  const facetsObject = get(solrResponse, 'facets', {});
-  const facetsIds = Object.keys(facetsObject).filter(key => key !== 'count');
+function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
+  const facetsObject = get(solrResponse, 'facets', {})
+  const facetsIds = Object.keys(facetsObject).filter(key => key !== 'count')
 
-  const facets = facetsIds.map((id) => {
-    const facetObject = facetsObject[id];
+  const facets = facetsIds.map(id => {
+    const facetObject = facetsObject[id]
 
     return {
       type: id,
       numBuckets: facetObject.numBuckets >= 0 ? facetObject.numBuckets : facetObject.buckets.length,
       buckets: facetObject.buckets,
-    };
-  });
-  return facets;
+    }
+  })
+  return facets
 }
 
 /**
  * @param {string} clusterId cluster ID
  * @param {number} limit
- * @param {number} skip
+ * @param {number} offset
  * @returns {Record<string, any>}
  */
-function buildConnectedClustersRequest (clusterId, limit = 10, skip = 0) {
+function buildConnectedClustersRequest(clusterId, limit = 10, offset = 0) {
   const request = {
     query: `${PassageFields.ClusterId}:${clusterId}`,
     limit: 0,
@@ -309,30 +319,30 @@ function buildConnectedClustersRequest (clusterId, limit = 10, skip = 0) {
       connectedClusters: {
         ...SolrMappings.tr_passages.facets.connectedClusters,
         limit,
-        offset: skip,
+        offset,
       },
     },
-  };
-  return request;
+  }
+  return request
 }
 
 /**
  * @param {Record<string, any>} response
  * @returns {{ clustersIds: string[], total: number }}
  */
-function parseConnectedClustersResponse (response) {
-  const buckets = get(response, 'facets.connectedClusters.buckets', []);
-  const clustersIds = buckets.map(bucket => bucket.val);
-  const total = get(response, 'facets.connectedClusters.numBuckets', 0);
+function parseConnectedClustersResponse(response) {
+  const buckets = get(response, 'facets.connectedClusters.buckets', [])
+  const clustersIds = buckets.map(bucket => bucket.val)
+  const total = get(response, 'facets.connectedClusters.numBuckets', 0)
 
-  return { clustersIds, total };
+  return { clustersIds, total }
 }
 
 /**
  * @param {string} clusterId cluster ID
  * @returns {Record<string, any>}
  */
-function buildConnectedClustersCountRequest (clusterId) {
+function buildConnectedClustersCountRequest(clusterId) {
   const request = {
     query: `${PassageFields.ClusterId}:${clusterId}`,
     limit: 0,
@@ -344,16 +354,16 @@ function buildConnectedClustersCountRequest (clusterId) {
         offset: 0,
       },
     },
-  };
-  return request;
+  }
+  return request
 }
 
 /**
  * @param {Record<string, any>} response
  * @returns {number}
  */
-function parseConnectedClustersCountResponse (response) {
-  return get(response, 'facets.connectedClusters.numBuckets', 0);
+function parseConnectedClustersCountResponse(response) {
+  return get(response, 'facets.connectedClusters.numBuckets', 0)
 }
 
 module.exports = {
@@ -385,4 +395,4 @@ module.exports = {
 
   buildConnectedClustersCountRequest,
   parseConnectedClustersCountResponse,
-};
+}

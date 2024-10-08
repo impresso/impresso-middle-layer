@@ -3,16 +3,11 @@ const app = require('./app')
 const port = app.get('port')
 const host = app.get('host')
 
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', reason => {
   // show track
-  debug(
-    'process@unhandledRejection:',
-    reason.message,
-    'err:',
-    reason.stack || reason
-  )
+  debug('process@unhandledRejection:', reason.message, 'err:', reason.stack || reason)
 })
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
   debug('process@uncaughtException:', err)
 })
 
@@ -22,7 +17,7 @@ async function start() {
     debug(`Server @listening application started on http://${host}:${port}`)
   })
 
-  server.on('error', (err) => {
+  server.on('error', err => {
     debug('server@error:', err)
   })
   server.on('close', () => {

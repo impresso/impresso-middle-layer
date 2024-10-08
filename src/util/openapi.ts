@@ -20,10 +20,17 @@ export type MethodParameter = QueryParameter | PathParameter
 interface StatusResponse {
   description: string
   content?: string | object
+  headers?: object
 }
 
 const asApplicationJson = (schema: JSONSchema) => ({
   'application/json': {
+    schema,
+  },
+})
+
+const asApplicationProblemJson = (schema: JSONSchema) => ({
+  'application/problem+json': {
     schema,
   },
 })
@@ -43,7 +50,7 @@ export const getParameterRef = (schemaName: string) => ({
 const defaultErrorSchema = getSchemaRef('Error')
 
 interface GetStandardResponsesParams {
-  method: 'create' | 'update' | 'patch' | 'remove' | 'find' | 'get'
+  method: 'create' | 'update' | 'patch' | 'remove' | 'find' | 'get' | 'patchMulti'
   schema: string
   authEnabled?: boolean
   isRateLimited?: boolean
@@ -61,60 +68,80 @@ const getBaseFindResponse = (itemRef: string): JSONSchema => {
   return response
 }
 
+export const defaultHeaders = {
+  RateLimit: {
+    schema: {
+      type: 'string',
+    },
+  },
+}
+
+export const retryAfterHeaders = { 'Retry-After': { schema: { type: 'string' } } }
+
 export const getStandardResponses = ({
   method,
   schema,
   authEnabled = true,
-  isRateLimited = false,
+  isRateLimited = true,
   standardPagination = true,
 }: GetStandardResponsesParams) => {
   const defaultResponses: Record<number, StatusResponse> = {
     422: {
       description: 'Unprocessable Entity',
-      content: asApplicationJson(defaultErrorSchema),
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders },
     },
     500: {
       description: 'general error',
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders },
     },
   }
   if (method === 'create') {
     defaultResponses[201] = {
       description: 'Created',
       content: asApplicationJson(getResponseRef(schema)),
+      headers: { ...defaultHeaders },
     }
   } else {
     if (method === 'find' && standardPagination) {
       defaultResponses[200] = {
         description: 'Success',
         content: asApplicationJson(getBaseFindResponse(`#/components/schemas/${schema}`)),
+        headers: { ...defaultHeaders },
       }
     } else {
       defaultResponses[200] = {
         description: 'Success',
         content: asApplicationJson(getResponseRef(schema)),
+        headers: { ...defaultHeaders },
       }
     }
     defaultResponses[404] = {
       description: 'Not Found',
-      content: asApplicationJson(defaultErrorSchema),
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders },
     }
   }
 
   if (authEnabled) {
     defaultResponses[401] = {
       description: 'Not Authenticated',
-      content: asApplicationJson(defaultErrorSchema),
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders },
     }
     defaultResponses[403] = {
       description: 'Unauthorized',
-      content: asApplicationJson(defaultErrorSchema),
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders },
     }
   }
 
   if (isRateLimited) {
     defaultResponses[429] = {
       description: 'Rate limit exceeded',
-      content: asApplicationJson(defaultErrorSchema),
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders, ...retryAfterHeaders },
     }
   }
 
@@ -143,17 +170,17 @@ export const getStandardParameters = ({
           minimum: 1,
           maximum: maxPageSize ?? 1000,
         },
-        description: 'Total items to return',
+        description: 'Total items to return.',
       },
       {
         in: 'query',
-        name: 'skip',
+        name: 'offset',
         required: false,
         schema: {
           type: 'integer',
           minimum: 0,
         },
-        description: 'Items to skip',
+        description: 'Starting index of items set to return',
       },
     ]
   }
@@ -195,4 +222,16 @@ export const getResponseContent = (schemaName: string) => {
       },
     },
   }
+}
+
+export const getDefaultErrorResponseContent = () => {
+  return asApplicationProblemJson(defaultErrorSchema)
+}
+
+export const filtersQueryParameter: QueryParameter = {
+  in: 'query',
+  name: 'filters',
+  required: false,
+  schema: { oneOf: [{ type: 'string' }, { type: 'array', items: getSchemaRef('Filter') }] },
+  description: 'Create filters using Impresso <a href="https://example.com" target="_blank">filter builder</a>.',
 }

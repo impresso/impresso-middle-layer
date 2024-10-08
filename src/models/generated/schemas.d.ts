@@ -7,6 +7,11 @@
  */
 
 
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
 /**
  * A journal/magazine article
  */
@@ -42,6 +47,50 @@ export interface Article {
   excerpt: string;
   locations?: Entity[];
   persons?: Entity[];
+  /**
+   * The language code of the article
+   */
+  language?: string;
+  issue?: NewspaperIssue;
+  matches?: ArticleMatch[];
+  regions?: ArticleRegion[];
+  regionBreaks?: number[];
+  contentLineBreaks?: number[];
+  /**
+   * TODO
+   */
+  labels: "article"[];
+  accessRight: "na" | "OpenPrivate" | "Closed" | "OpenPublic";
+  /**
+   * TODO
+   */
+  isFront?: boolean;
+  date?: string | null;
+  /**
+   * The year of the article
+   */
+  year: number;
+  /**
+   * The country code of the article
+   */
+  country?: string;
+  tags?: string[];
+  collections?: string[] | Collection[];
+  newspaper?: Newspaper;
+  dataProvider?: string | null;
+  topics?: ArticleTopic[];
+  /**
+   * The content of the article
+   */
+  content?: string;
+  mentions?: {
+    person?: [number, number][];
+    location?: [number, number][];
+  }[];
+  /**
+   * TODO
+   */
+  v?: string;
 }
 /**
  * A page of an article
@@ -115,15 +164,408 @@ export interface Entity {
    */
   relevance: number;
 }
+export interface NewspaperIssue {
+  /**
+   * The unique identifier of the issue
+   */
+  uid: string;
+  /**
+   * TODO
+   */
+  cover: string;
+  /**
+   * The labels of the issue
+   */
+  labels: string[];
+  /**
+   * TODO
+   */
+  fresh: boolean;
+  /**
+   * TODO: list available options
+   */
+  accessRights: string;
+  /**
+   * The date of the issue
+   */
+  date?: string;
+  /**
+   * The year of the issue
+   */
+  year?: string;
+}
+/**
+ * TODO
+ */
+export interface ArticleMatch {
+  /**
+   * TODO
+   */
+  fragment: string;
+  /**
+   * TODO
+   */
+  coords?: number[];
+  /**
+   * TODO
+   */
+  pageUid?: string;
+  /**
+   * TODO
+   */
+  iiif?: string;
+}
+/**
+ * TODO
+ */
+export interface ArticleRegion {
+  pageUid: string;
+  coords: number[];
+  /**
+   * TODO
+   */
+  isEmpty: boolean;
+  /**
+   * IIIF fragment URL
+   */
+  iiifFragment?: string;
+  /**
+   * TODO
+   */
+  g?: string[];
+}
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+/**
+ * A newspaper
+ */
+export interface Newspaper {
+  /**
+   * The unique identifier of the newspaper
+   */
+  uid: string;
+  /**
+   * The acronym of the newspaper
+   */
+  acronym: string;
+  /**
+   * The labels of the newspaper
+   */
+  labels: string[];
+  /**
+   * Language codes of the languages used in the newspaper
+   */
+  languages: string[];
+  /**
+   * TODO
+   */
+  properties?: NewspaperProperty[];
+  /**
+   * TODO
+   */
+  included: boolean;
+  /**
+   * Title of the newspaper
+   */
+  name: string;
+  endYear: number | null;
+  startYear: number | null;
+  firstIssue?: NewspaperIssue;
+  lastIssue?: NewspaperIssue;
+  /**
+   * The number of articles in the newspaper
+   */
+  countArticles: number;
+  /**
+   * The number of issues in the newspaper
+   */
+  countIssues: number;
+  /**
+   * The number of pages in the newspaper
+   */
+  countPages: number;
+  /**
+   * TODO
+   */
+  fetched?: boolean;
+  /**
+   * The number of years of the newspaper available
+   */
+  deltaYear: number;
+}
+export interface NewspaperProperty {
+  /**
+   * The name of the property
+   */
+  name: string;
+  /**
+   * The value of the property
+   */
+  value: string;
+  /**
+   * The label of the property
+   */
+  label: string;
+  /**
+   * Whether the value is a URL
+   */
+  isUrl?: boolean;
+  [k: string]: unknown;
+}
+/**
+ * TODO
+ */
+export interface ArticleTopic {
+  topic?: Topic;
+  /**
+   * TODO
+   */
+  relevance: number;
+  /**
+   * TODO
+   */
+  topicUid?: string;
+}
+/**
+ * A topic (TODO)
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+  /**
+   * TODO
+   */
+  community?: string;
+  /**
+   * TODO
+   */
+  pagerank?: number;
+  /**
+   * TODO
+   */
+  degree?: number;
+  /**
+   * TODO
+   */
+  x?: number;
+  /**
+   * TODO
+   */
+  y?: number;
+  relatedTopics?: {
+    /**
+     * The unique identifier of the related topic
+     */
+    uid: string;
+    /**
+     * TODO
+     */
+    w: number;
+  }[];
+  /**
+   * TODO
+   */
+  countItems?: number;
+  /**
+   * TODO
+   */
+  excerpt?: TopicWord[];
+  /**
+   * TODO
+   */
+  words?: TopicWord[];
+  /**
+   * ID of the model used to generate the topic
+   */
+  model?: string;
+}
+/**
+ * TODO
+ */
+export interface TopicWord {
+  /**
+   * Word
+   */
+  w: string;
+  /**
+   * TODO
+   */
+  p: number;
+  /**
+   * TODO
+   */
+  h?: string[];
+}
+
+
+/**
+ * TODO
+ */
+export interface ArticleMatch {
+  /**
+   * TODO
+   */
+  fragment: string;
+  /**
+   * TODO
+   */
+  coords?: number[];
+  /**
+   * TODO
+   */
+  pageUid?: string;
+  /**
+   * TODO
+   */
+  iiif?: string;
+}
+
+
+/**
+ * TODO
+ */
+export interface ArticleRegion {
+  pageUid: string;
+  coords: number[];
+  /**
+   * TODO
+   */
+  isEmpty: boolean;
+  /**
+   * IIIF fragment URL
+   */
+  iiifFragment?: string;
+  /**
+   * TODO
+   */
+  g?: string[];
+}
+
+
+/**
+ * TODO
+ */
+export interface ArticleTopic {
+  topic?: Topic;
+  /**
+   * TODO
+   */
+  relevance: number;
+  /**
+   * TODO
+   */
+  topicUid?: string;
+}
+/**
+ * A topic (TODO)
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+  /**
+   * TODO
+   */
+  community?: string;
+  /**
+   * TODO
+   */
+  pagerank?: number;
+  /**
+   * TODO
+   */
+  degree?: number;
+  /**
+   * TODO
+   */
+  x?: number;
+  /**
+   * TODO
+   */
+  y?: number;
+  relatedTopics?: {
+    /**
+     * The unique identifier of the related topic
+     */
+    uid: string;
+    /**
+     * TODO
+     */
+    w: number;
+  }[];
+  /**
+   * TODO
+   */
+  countItems?: number;
+  /**
+   * TODO
+   */
+  excerpt?: TopicWord[];
+  /**
+   * TODO
+   */
+  words?: TopicWord[];
+  /**
+   * ID of the model used to generate the topic
+   */
+  model?: string;
+}
+/**
+ * TODO
+ */
+export interface TopicWord {
+  /**
+   * Word
+   */
+  w: string;
+  /**
+   * TODO
+   */
+  p: number;
+  /**
+   * TODO
+   */
+  h?: string[];
+}
 
 
 /**
  * Request body for the authentication endpoint
  */
 export interface AuthenticationCreateRequest {
-  strategy: "local";
-  email: string;
-  password: string;
+  strategy: "local" | "jwt-app";
+  email?: string;
+  password?: string;
+  accessToken?: string;
+  [k: string]: unknown;
 }
 
 
@@ -162,9 +604,9 @@ export interface BaseFind {
    */
   limit: number;
   /**
-   * The number of items skipped in this response
+   * Starting index of the items subset returned in this response
    */
-  skip: number;
+  offset: number;
   /**
    * The total number of items matching the query
    */
@@ -245,6 +687,22 @@ export interface BaseUser {
 }
 
 
+/**
+ * Request to update collectible items in a collection
+ */
+export interface CollectableItemsUpdatedResponse {
+  /**
+   * Total number of items added to the collection
+   */
+  totalAdded: number;
+  /**
+   * Total number of items removed from the collection
+   */
+  totalRemoved: number;
+  [k: string]: unknown;
+}
+
+
 export type StatusOfTheCollection = string;
 export type NumberOfItemsInTheCollection = number | string;
 export type UniqueIdentifierForTheUser = string;
@@ -317,13 +775,80 @@ export interface Entity {
 
 
 /**
- * Default error response. TODO: replace with https://datatracker.ietf.org/doc/html/rfc9457
+ * An entity like location, person, etc
+ */
+export interface EntityDetails {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * Entity name
+   */
+  name: string;
+  type: "person" | "location";
+  /**
+   * TODO
+   */
+  countItems: number;
+  /**
+   * Number of mentions of this entity in articles
+   */
+  countMentions: number;
+  /**
+   * ID of the entity in wikidata
+   */
+  wikidataId?: string;
+  wikidata?: WikidataEntityDetailsTODOAddPersonLocationSpecificFields;
+}
+/**
+ * Details of a wikidata entity
+ */
+export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
+  id: string;
+  type: string;
+  /**
+   * Labels of the entity. Key is the language code.
+   */
+  labels: {
+    [k: string]: string;
+  };
+  /**
+   * Labels of the entity. Key is the language code.
+   */
+  descriptions: {
+    [k: string]: string;
+  };
+  images: {
+    value: string;
+    rank: string;
+    datatype: string;
+    [k: string]: unknown;
+  }[];
+  [k: string]: unknown;
+}
+
+
+/**
+ * Error response that follows https://datatracker.ietf.org/doc/html/rfc7807#section-3.1
  */
 export interface Error {
-  message: string;
-  data?: {
-    [k: string]: unknown;
-  };
+  /**
+   * A URI reference [RFC3986] that identifies the problem type.
+   */
+  type: string;
+  /**
+   * A short, human-readable summary of the problem type.
+   */
+  title: string;
+  /**
+   * The HTTP status code ([RFC7231], Section 6)
+   */
+  status: number;
+  /**
+   * A human-readable explanation specific to this occurrence of the problem.
+   */
+  detail?: string;
   [k: string]: unknown;
 }
 
@@ -343,6 +868,256 @@ export interface Filter {
   daterange?: string;
   uids?: string;
   uid?: string;
+}
+
+
+/**
+ * ID of the text reuse passage
+ */
+export type PassageID = string;
+
+/**
+ * Response for GET /text-reuse-clusters
+ */
+export interface FindTextReuseClustersResponse {
+  clusters: TextReuseClusterCompound[];
+  info: {
+    [k: string]: unknown;
+  };
+}
+/**
+ * Text reuse cluster with details and a sample
+ */
+export interface TextReuseClusterCompound {
+  cluster?: TextReuseCluster;
+  textSample: string;
+  details?: TextReuseClusterDetails;
+}
+/**
+ * Represents a cluster of text reuse passages
+ */
+export interface TextReuseCluster {
+  id: PassageID;
+  /**
+   * Percentage of overlap between passages in the cluster
+   */
+  lexicalOverlap?: number;
+  /**
+   * Number of passages in cluster
+   */
+  clusterSize?: number;
+  /**
+   * Number of connected clusters
+   */
+  connectedClustersCount?: number;
+  /**
+   * Time window covered by documents in the cluster
+   */
+  timeCoverage?: {
+    from?: string;
+    to?: string;
+  };
+}
+/**
+ * Extra details of the cluster
+ */
+export interface TextReuseClusterDetails {
+  facets: {
+    /**
+     * Facet type
+     */
+    type?: string;
+    /**
+     * Number of buckets
+     */
+    numBuckets?: number;
+    buckets?: {
+      [k: string]: unknown;
+    }[];
+  }[];
+  /**
+   * Resolution for the 'date' facet
+   */
+  resolution?: "year" | "month" | "day";
+}
+
+
+/**
+ * Impresso NER entity
+ */
+export interface ImpressoNamedEntityRecognitionEntity {
+  /**
+   * ID of the entity
+   */
+  id: string;
+  /**
+   * Type of the entity
+   */
+  type:
+    | "comp.demonym"
+    | "comp.function"
+    | "comp.name"
+    | "comp.qualifier"
+    | "comp.title"
+    | "loc"
+    | "loc.add.elec"
+    | "loc.add.phys"
+    | "loc.adm.nat"
+    | "loc.adm.reg"
+    | "loc.adm.sup"
+    | "loc.adm.town"
+    | "loc.fac"
+    | "loc.oro"
+    | "loc.phys.astro"
+    | "loc.phys.geo"
+    | "loc.phys.hydro"
+    | "loc.unk"
+    | "org"
+    | "org.adm"
+    | "org.ent"
+    | "org.ent.pressagency"
+    | "pers"
+    | "pers.coll"
+    | "pers.ind"
+    | "pers.ind.articleauthor"
+    | "prod"
+    | "prod.doctr"
+    | "prod.media"
+    | "time"
+    | "time.date.abs"
+    | "time.hour.abs";
+  /**
+   * Surface form of the entity
+   */
+  surfaceForm: string;
+  offset: {
+    /**
+     * Start offset of the entity in the text
+     */
+    start: number;
+    /**
+     * End offset of the entity in the text
+     */
+    end: number;
+  };
+  /**
+   * Whether the entity type is nested
+   */
+  isTypeNested: boolean;
+  confidence: {
+    /**
+     * Confidence score for the named entity recognition
+     */
+    ner: number;
+    /**
+     * Confidence score for the named entity linking
+     */
+    nel?: number;
+  };
+}
+
+
+/**
+ * Request body for the Impresso NER endpoint
+ */
+export interface ImpressoNamedEntityRecognitionRequest {
+  /**
+   * Text to be processed for named entity recognition
+   */
+  text: string;
+}
+
+
+/**
+ * Response of the Impresso NER endpoint
+ */
+export interface ImpressoNamedEntityRecognitionResponse {
+  /**
+   * ID of the model used for the named entity recognition
+   */
+  modelId: string;
+  /**
+   * Text processed for named entity recognition
+   */
+  text: string;
+  /**
+   * Timestamp of when named entity recognition was performed
+   */
+  timestamp: string;
+  entities: ImpressoNamedEntityRecognitionEntity[];
+}
+/**
+ * Impresso NER entity
+ */
+export interface ImpressoNamedEntityRecognitionEntity {
+  /**
+   * ID of the entity
+   */
+  id: string;
+  /**
+   * Type of the entity
+   */
+  type:
+    | "comp.demonym"
+    | "comp.function"
+    | "comp.name"
+    | "comp.qualifier"
+    | "comp.title"
+    | "loc"
+    | "loc.add.elec"
+    | "loc.add.phys"
+    | "loc.adm.nat"
+    | "loc.adm.reg"
+    | "loc.adm.sup"
+    | "loc.adm.town"
+    | "loc.fac"
+    | "loc.oro"
+    | "loc.phys.astro"
+    | "loc.phys.geo"
+    | "loc.phys.hydro"
+    | "loc.unk"
+    | "org"
+    | "org.adm"
+    | "org.ent"
+    | "org.ent.pressagency"
+    | "pers"
+    | "pers.coll"
+    | "pers.ind"
+    | "pers.ind.articleauthor"
+    | "prod"
+    | "prod.doctr"
+    | "prod.media"
+    | "time"
+    | "time.date.abs"
+    | "time.hour.abs";
+  /**
+   * Surface form of the entity
+   */
+  surfaceForm: string;
+  offset: {
+    /**
+     * Start offset of the entity in the text
+     */
+    start: number;
+    /**
+     * End offset of the entity in the text
+     */
+    end: number;
+  };
+  /**
+   * Whether the entity type is nested
+   */
+  isTypeNested: boolean;
+  confidence: {
+    /**
+     * Confidence score for the named entity recognition
+     */
+    ner: number;
+    /**
+     * Confidence score for the named entity linking
+     */
+    nel?: number;
+  };
 }
 
 
@@ -390,16 +1165,10 @@ export interface Newspaper {
    * Title of the newspaper
    */
   name: string;
-  /**
-   * Last available year of the newspaper articles
-   */
-  endYear: string;
-  /**
-   * First available year of the newspaper articles
-   */
-  startYear: string;
-  firstIssue: NewspaperIssue;
-  lastIssue: NewspaperIssue1;
+  endYear: number | null;
+  startYear: number | null;
+  firstIssue?: NewspaperIssue;
+  lastIssue?: NewspaperIssue;
   /**
    * The number of articles in the newspaper
    */
@@ -440,9 +1209,6 @@ export interface NewspaperProperty {
   isUrl?: boolean;
   [k: string]: unknown;
 }
-/**
- * First available issue of the newspaper
- */
 export interface NewspaperIssue {
   /**
    * The unique identifier of the issue
@@ -467,44 +1233,11 @@ export interface NewspaperIssue {
   /**
    * The date of the issue
    */
-  date: string;
+  date?: string;
   /**
    * The year of the issue
    */
-  year: string;
-}
-/**
- * Last available issue of the newspaper
- */
-export interface NewspaperIssue1 {
-  /**
-   * The unique identifier of the issue
-   */
-  uid: string;
-  /**
-   * TODO
-   */
-  cover: string;
-  /**
-   * The labels of the issue
-   */
-  labels: string[];
-  /**
-   * TODO
-   */
-  fresh: boolean;
-  /**
-   * TODO: list available options
-   */
-  accessRights: string;
-  /**
-   * The date of the issue
-   */
-  date: string;
-  /**
-   * The year of the issue
-   */
-  year: string;
+  year?: string;
 }
 
 
@@ -532,11 +1265,11 @@ export interface NewspaperIssue {
   /**
    * The date of the issue
    */
-  date: string;
+  date?: string;
   /**
    * The year of the issue
    */
-  year: string;
+  year?: string;
 }
 
 
@@ -622,6 +1355,638 @@ export interface Page {
 }
 
 
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+/**
+ * An object containing search results for a facet
+ */
+export interface SearchFacet {
+  /**
+   * The type of facet
+   */
+  type: string;
+  /**
+   * The number of buckets in the facet
+   */
+  numBuckets: number;
+  buckets: SearchFacetBucket[] | SearchFacetRangeBucket[];
+  /**
+   * TODO
+   */
+  min?: {
+    [k: string]: unknown;
+  };
+  /**
+   * TODO
+   */
+  max?: {
+    [k: string]: unknown;
+  };
+  /**
+   * TODO
+   */
+  gap?: {
+    [k: string]: unknown;
+  };
+}
+/**
+ * Facet bucket
+ */
+export interface SearchFacetBucket {
+  /**
+   * Number of items in the bucket
+   */
+  count: number;
+  /**
+   * Value of the 'type' element
+   */
+  val: string;
+  /**
+   * UID of the 'type' element. Same as 'val'
+   */
+  uid?: string;
+  /**
+   * The item in the bucket. Particular objct schema depends on the facet type
+   */
+  item?: Newspaper | Collection | Entity | Topic | Year;
+}
+/**
+ * A newspaper
+ */
+export interface Newspaper {
+  /**
+   * The unique identifier of the newspaper
+   */
+  uid: string;
+  /**
+   * The acronym of the newspaper
+   */
+  acronym: string;
+  /**
+   * The labels of the newspaper
+   */
+  labels: string[];
+  /**
+   * Language codes of the languages used in the newspaper
+   */
+  languages: string[];
+  /**
+   * TODO
+   */
+  properties?: NewspaperProperty[];
+  /**
+   * TODO
+   */
+  included: boolean;
+  /**
+   * Title of the newspaper
+   */
+  name: string;
+  endYear: number | null;
+  startYear: number | null;
+  firstIssue?: NewspaperIssue;
+  lastIssue?: NewspaperIssue;
+  /**
+   * The number of articles in the newspaper
+   */
+  countArticles: number;
+  /**
+   * The number of issues in the newspaper
+   */
+  countIssues: number;
+  /**
+   * The number of pages in the newspaper
+   */
+  countPages: number;
+  /**
+   * TODO
+   */
+  fetched?: boolean;
+  /**
+   * The number of years of the newspaper available
+   */
+  deltaYear: number;
+}
+export interface NewspaperProperty {
+  /**
+   * The name of the property
+   */
+  name: string;
+  /**
+   * The value of the property
+   */
+  value: string;
+  /**
+   * The label of the property
+   */
+  label: string;
+  /**
+   * Whether the value is a URL
+   */
+  isUrl?: boolean;
+  [k: string]: unknown;
+}
+export interface NewspaperIssue {
+  /**
+   * The unique identifier of the issue
+   */
+  uid: string;
+  /**
+   * TODO
+   */
+  cover: string;
+  /**
+   * The labels of the issue
+   */
+  labels: string[];
+  /**
+   * TODO
+   */
+  fresh: boolean;
+  /**
+   * TODO: list available options
+   */
+  accessRights: string;
+  /**
+   * The date of the issue
+   */
+  date?: string;
+  /**
+   * The year of the issue
+   */
+  year?: string;
+}
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+/**
+ * An entity like location, person, etc
+ */
+export interface Entity {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * Relevance of the entity in the document
+   */
+  relevance: number;
+}
+/**
+ * A topic (TODO)
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+  /**
+   * TODO
+   */
+  community?: string;
+  /**
+   * TODO
+   */
+  pagerank?: number;
+  /**
+   * TODO
+   */
+  degree?: number;
+  /**
+   * TODO
+   */
+  x?: number;
+  /**
+   * TODO
+   */
+  y?: number;
+  relatedTopics?: {
+    /**
+     * The unique identifier of the related topic
+     */
+    uid: string;
+    /**
+     * TODO
+     */
+    w: number;
+  }[];
+  /**
+   * TODO
+   */
+  countItems?: number;
+  /**
+   * TODO
+   */
+  excerpt?: TopicWord[];
+  /**
+   * TODO
+   */
+  words?: TopicWord[];
+  /**
+   * ID of the model used to generate the topic
+   */
+  model?: string;
+}
+/**
+ * TODO
+ */
+export interface TopicWord {
+  /**
+   * Word
+   */
+  w: string;
+  /**
+   * TODO
+   */
+  p: number;
+  /**
+   * TODO
+   */
+  h?: string[];
+}
+/**
+ * A year (TODO)
+ */
+export interface Year {
+  /**
+   * Numeric representation of the year
+   */
+  uid?: number;
+  values?: YearWeights;
+  refs?: YearWeights;
+}
+/**
+ * Total items counts within a year
+ */
+export interface YearWeights {
+  /**
+   * Number of content items
+   */
+  c?: number;
+  /**
+   * Number of articles
+   */
+  a?: number;
+  /**
+   * Number of pages
+   */
+  p?: number;
+  /**
+   * Number of issues
+   */
+  i?: number;
+  /**
+   * Number of images (with or without vectors)
+   */
+  m?: number;
+}
+/**
+ * Facet bucket
+ */
+export interface SearchFacetRangeBucket {
+  /**
+   * Number of items in the bucket
+   */
+  count: number;
+  /**
+   * Value of the 'type' element
+   */
+  val: number;
+  /**
+   * Lower bound of the range
+   */
+  lower?: number;
+  /**
+   * Lower bound of the range
+   */
+  upper?: number;
+}
+
+
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+/**
+ * Facet bucket
+ */
+export interface SearchFacetBucket {
+  /**
+   * Number of items in the bucket
+   */
+  count: number;
+  /**
+   * Value of the 'type' element
+   */
+  val: string;
+  /**
+   * UID of the 'type' element. Same as 'val'
+   */
+  uid?: string;
+  /**
+   * The item in the bucket. Particular objct schema depends on the facet type
+   */
+  item?: Newspaper | Collection | Entity | Topic | Year;
+}
+/**
+ * A newspaper
+ */
+export interface Newspaper {
+  /**
+   * The unique identifier of the newspaper
+   */
+  uid: string;
+  /**
+   * The acronym of the newspaper
+   */
+  acronym: string;
+  /**
+   * The labels of the newspaper
+   */
+  labels: string[];
+  /**
+   * Language codes of the languages used in the newspaper
+   */
+  languages: string[];
+  /**
+   * TODO
+   */
+  properties?: NewspaperProperty[];
+  /**
+   * TODO
+   */
+  included: boolean;
+  /**
+   * Title of the newspaper
+   */
+  name: string;
+  endYear: number | null;
+  startYear: number | null;
+  firstIssue?: NewspaperIssue;
+  lastIssue?: NewspaperIssue;
+  /**
+   * The number of articles in the newspaper
+   */
+  countArticles: number;
+  /**
+   * The number of issues in the newspaper
+   */
+  countIssues: number;
+  /**
+   * The number of pages in the newspaper
+   */
+  countPages: number;
+  /**
+   * TODO
+   */
+  fetched?: boolean;
+  /**
+   * The number of years of the newspaper available
+   */
+  deltaYear: number;
+}
+export interface NewspaperProperty {
+  /**
+   * The name of the property
+   */
+  name: string;
+  /**
+   * The value of the property
+   */
+  value: string;
+  /**
+   * The label of the property
+   */
+  label: string;
+  /**
+   * Whether the value is a URL
+   */
+  isUrl?: boolean;
+  [k: string]: unknown;
+}
+export interface NewspaperIssue {
+  /**
+   * The unique identifier of the issue
+   */
+  uid: string;
+  /**
+   * TODO
+   */
+  cover: string;
+  /**
+   * The labels of the issue
+   */
+  labels: string[];
+  /**
+   * TODO
+   */
+  fresh: boolean;
+  /**
+   * TODO: list available options
+   */
+  accessRights: string;
+  /**
+   * The date of the issue
+   */
+  date?: string;
+  /**
+   * The year of the issue
+   */
+  year?: string;
+}
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+/**
+ * An entity like location, person, etc
+ */
+export interface Entity {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * Relevance of the entity in the document
+   */
+  relevance: number;
+}
+/**
+ * A topic (TODO)
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+  /**
+   * TODO
+   */
+  community?: string;
+  /**
+   * TODO
+   */
+  pagerank?: number;
+  /**
+   * TODO
+   */
+  degree?: number;
+  /**
+   * TODO
+   */
+  x?: number;
+  /**
+   * TODO
+   */
+  y?: number;
+  relatedTopics?: {
+    /**
+     * The unique identifier of the related topic
+     */
+    uid: string;
+    /**
+     * TODO
+     */
+    w: number;
+  }[];
+  /**
+   * TODO
+   */
+  countItems?: number;
+  /**
+   * TODO
+   */
+  excerpt?: TopicWord[];
+  /**
+   * TODO
+   */
+  words?: TopicWord[];
+  /**
+   * ID of the model used to generate the topic
+   */
+  model?: string;
+}
+/**
+ * TODO
+ */
+export interface TopicWord {
+  /**
+   * Word
+   */
+  w: string;
+  /**
+   * TODO
+   */
+  p: number;
+  /**
+   * TODO
+   */
+  h?: string[];
+}
+/**
+ * A year (TODO)
+ */
+export interface Year {
+  /**
+   * Numeric representation of the year
+   */
+  uid?: number;
+  values?: YearWeights;
+  refs?: YearWeights;
+}
+/**
+ * Total items counts within a year
+ */
+export interface YearWeights {
+  /**
+   * Number of content items
+   */
+  c?: number;
+  /**
+   * Number of articles
+   */
+  a?: number;
+  /**
+   * Number of pages
+   */
+  p?: number;
+  /**
+   * Number of issues
+   */
+  i?: number;
+  /**
+   * Number of images (with or without vectors)
+   */
+  m?: number;
+}
+
+
+/**
+ * Facet bucket
+ */
+export interface SearchFacetRangeBucket {
+  /**
+   * Number of items in the bucket
+   */
+  count: number;
+  /**
+   * Value of the 'type' element
+   */
+  val: number;
+  /**
+   * Lower bound of the range
+   */
+  lower?: number;
+  /**
+   * Lower bound of the range
+   */
+  upper?: number;
+}
+
+
 /**
  * ID of the text reuse passage
  */
@@ -663,7 +2028,7 @@ export type PassageID = string;
  * Text reuse cluster with details and a sample
  */
 export interface TextReuseClusterCompound {
-  cluster: TextReuseCluster;
+  cluster?: TextReuseCluster;
   textSample: string;
   details?: TextReuseClusterDetails;
 }
@@ -772,14 +2137,8 @@ export interface TextReusePassage {
   id: PassageID;
   article: ArticleDetails;
   textReuseCluster: ClusterDetails;
-  /**
-   * Offset of the passage in the article text
-   */
-  offsetStart: number;
-  /**
-   * Offset of the passage in the article text
-   */
-  offsetEnd: number;
+  offsetStart: number | null;
+  offsetEnd: number | null;
   /**
    * Textual content of the passage
    */
@@ -788,15 +2147,12 @@ export interface TextReusePassage {
    * Title of the content item (article) where this passage was found
    */
   title: string;
-  /**
-   * Details of the connected clusters
-   */
   connectedClusters?: {
     /**
      * ID of the connected cluster
      */
     id: string;
-  };
+  }[];
   /**
    * TBD
    */
@@ -805,14 +2161,8 @@ export interface TextReusePassage {
    * Size of the passage
    */
   size?: number;
-  /**
-   * Newspaper details
-   */
   newspaper?: {
-    /**
-     * ID of the newspaper
-     */
-    id: string;
+    [k: string]: unknown;
   };
   /**
    * Issue details
@@ -830,7 +2180,7 @@ export interface TextReusePassage {
   /**
    * Bounding box of the passage in the page
    */
-  pageRegions: string[];
+  pageRegions?: string[];
   /**
    * Numbers of the pages where the passage was found
    */
@@ -851,9 +2201,122 @@ export interface ArticleDetails {
  */
 export interface ClusterDetails {
   id: ClusterID;
-  clusterSize: ClusterSize;
+  clusterSize?: ClusterSize;
   timeDifferenceDay?: TimeDifferenceInDays;
   lexicalOverlap?: LexicalOverlap;
+}
+
+
+/**
+ * A topic (TODO)
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+  /**
+   * TODO
+   */
+  community?: string;
+  /**
+   * TODO
+   */
+  pagerank?: number;
+  /**
+   * TODO
+   */
+  degree?: number;
+  /**
+   * TODO
+   */
+  x?: number;
+  /**
+   * TODO
+   */
+  y?: number;
+  relatedTopics?: {
+    /**
+     * The unique identifier of the related topic
+     */
+    uid: string;
+    /**
+     * TODO
+     */
+    w: number;
+  }[];
+  /**
+   * TODO
+   */
+  countItems?: number;
+  /**
+   * TODO
+   */
+  excerpt?: TopicWord[];
+  /**
+   * TODO
+   */
+  words?: TopicWord[];
+  /**
+   * ID of the model used to generate the topic
+   */
+  model?: string;
+}
+/**
+ * TODO
+ */
+export interface TopicWord {
+  /**
+   * Word
+   */
+  w: string;
+  /**
+   * TODO
+   */
+  p: number;
+  /**
+   * TODO
+   */
+  h?: string[];
+}
+
+
+/**
+ * TODO
+ */
+export interface TopicWord {
+  /**
+   * Word
+   */
+  w: string;
+  /**
+   * TODO
+   */
+  p: number;
+  /**
+   * TODO
+   */
+  h?: string[];
+}
+
+
+/**
+ * Request to update collectible items in a collection
+ */
+export interface UpdateCollectableItems {
+  /**
+   * IDs of the items to add to the collection
+   */
+  add?: string[];
+  /**
+   * IDs of the items to remove from the collection
+   */
+  remove?: string[];
+  [k: string]: unknown;
 }
 
 
@@ -909,4 +2372,97 @@ export interface APIVersion {
       [k: string]: unknown;
     };
   };
+}
+
+
+/**
+ * Details of a wikidata entity
+ */
+export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
+  id: string;
+  type: string;
+  /**
+   * Labels of the entity. Key is the language code.
+   */
+  labels: {
+    [k: string]: string;
+  };
+  /**
+   * Labels of the entity. Key is the language code.
+   */
+  descriptions: {
+    [k: string]: string;
+  };
+  images: {
+    value: string;
+    rank: string;
+    datatype: string;
+    [k: string]: unknown;
+  }[];
+  [k: string]: unknown;
+}
+
+
+/**
+ * A year (TODO)
+ */
+export interface Year {
+  /**
+   * Numeric representation of the year
+   */
+  uid?: number;
+  values?: YearWeights;
+  refs?: YearWeights;
+}
+/**
+ * Total items counts within a year
+ */
+export interface YearWeights {
+  /**
+   * Number of content items
+   */
+  c?: number;
+  /**
+   * Number of articles
+   */
+  a?: number;
+  /**
+   * Number of pages
+   */
+  p?: number;
+  /**
+   * Number of issues
+   */
+  i?: number;
+  /**
+   * Number of images (with or without vectors)
+   */
+  m?: number;
+}
+
+
+/**
+ * Total items counts within a year
+ */
+export interface YearWeights {
+  /**
+   * Number of content items
+   */
+  c?: number;
+  /**
+   * Number of articles
+   */
+  a?: number;
+  /**
+   * Number of pages
+   */
+  p?: number;
+  /**
+   * Number of issues
+   */
+  i?: number;
+  /**
+   * Number of images (with or without vectors)
+   */
+  m?: number;
 }

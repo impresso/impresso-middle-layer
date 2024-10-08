@@ -16,7 +16,7 @@ LIMIT {limit}
 {{^q}}
 MATCH (t:tag {Project:{Project}})
 RETURN t, _total
-SKIP {skip}
+SKIP {offset}
 LIMIT {limit}
 {{/q}}
 

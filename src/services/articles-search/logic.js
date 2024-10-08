@@ -1,4 +1,3 @@
-
 /**
  * @typedef {import('.').RelevanceContextItem} RelevanceContextItem
  * @typedef {import('.').RelevanceContextItemType} RelevanceContextItemType
@@ -12,7 +11,7 @@ const RelevanceContextItemTypes = Object.freeze({
   Persons: /** @type {RelevanceContextItemType} */ ('persons'),
   Topics: /** @type {RelevanceContextItemType} */ ('topics'),
   TextReuseClusters: /** @type {RelevanceContextItemType} */ ('textReuseClusters'),
-});
+})
 
 /** @type {{ [key: string]: string }} */
 const ContextTypeSolrFields = Object.freeze({
@@ -21,21 +20,21 @@ const ContextTypeSolrFields = Object.freeze({
   persons: 'pers_entities_dpfs',
   topics: 'topics_dpfs',
   textReuseClusters: 'cluster_id_ss',
-});
+})
 
 /**
  *
  * @param {TimeRangeContextParameters} parameters
  * @returns {string}
  */
-function timeRangeFormula ({ startYear, endYear }) {
+function timeRangeFormula({ startYear, endYear }) {
   if (startYear != null && endYear == null) {
     return `
       if(
         gte(meta_year_i,${startYear}),
         1.0,
         0.0
-      )`;
+      )`
   }
   if (startYear == null && endYear != null) {
     return `
@@ -43,7 +42,7 @@ function timeRangeFormula ({ startYear, endYear }) {
         lte(meta_year_i,${endYear}),
         1.0,
         0.0
-      )`;
+      )`
   }
   if (startYear != null && endYear != null) {
     return `
@@ -54,9 +53,9 @@ function timeRangeFormula ({ startYear, endYear }) {
         ),
         1.0,
         0.0
-      )`;
+      )`
   }
-  return '1.0';
+  return '1.0'
 }
 
 /**
@@ -64,21 +63,23 @@ function timeRangeFormula ({ startYear, endYear }) {
  * @param {ItemContextParameters} itemContextParameters
  * @returns {string}
  */
-function itemContextFormula (type, { entities }) {
-  const solrField = ContextTypeSolrFields[type];
-  const items = entities.map(entity => `
+function itemContextFormula(type, { entities }) {
+  const solrField = ContextTypeSolrFields[type]
+  const items = entities.map(
+    entity => `
     mul(
       payload(${solrField},${entity.id}),
       ${entity.weight}
-    )`);
+    )`
+  )
 
   if (items.length > 1) {
-    return `sum(${items.join(',')})`;
+    return `sum(${items.join(',')})`
   }
   if (items.length === 1) {
-    return items[0];
+    return items[0]
   }
-  return '1.0';
+  return '1.0'
 }
 
 /**
@@ -86,76 +87,72 @@ function itemContextFormula (type, { entities }) {
  * @param {ItemContextParameters} itemContextParameters
  * @returns {string}
  */
-function textReuseItemContextFormula (type, { entities }) {
-  const solrField = ContextTypeSolrFields[type];
-  const items = entities.map(entity => `
+function textReuseItemContextFormula(type, { entities }) {
+  const solrField = ContextTypeSolrFields[type]
+  const items = entities.map(
+    entity => `
     mul(
       exists(query({!df=${solrField} v=${entity.id}})),
       ${entity.weight}
-    )`);
+    )`
+  )
 
   if (items.length > 1) {
-    return `sum(${items.join(',')})`;
+    return `sum(${items.join(',')})`
   }
   if (items.length === 1) {
-    return items[0];
+    return items[0]
   }
-  return '1.0';
+  return '1.0'
 }
 
 /**
  * @param {RelevanceContextItem} relevanceContextItem
  * @returns {string}
  */
-function relevanceContextItemToSolrFormula ({ type, parameters, weight }) {
-  let parametersFormula = '1.0';
+function relevanceContextItemToSolrFormula({ type, parameters, weight }) {
+  let parametersFormula = '1.0'
   // eslint-disable-next-line no-restricted-globals
-  const w = isFinite(weight) ? weight : '1.0';
+  const w = isFinite(weight) ? weight : '1.0'
 
   if (type === RelevanceContextItemTypes.TimeRange) {
-    parametersFormula = timeRangeFormula(/** @type {TimeRangeContextParameters} */ (parameters));
+    parametersFormula = timeRangeFormula(/** @type {TimeRangeContextParameters} */ (parameters))
   } else if (type === RelevanceContextItemTypes.TextReuseClusters) {
-    parametersFormula = textReuseItemContextFormula(
-      type, /** @type {ItemContextParameters} */ (parameters),
-    );
+    parametersFormula = textReuseItemContextFormula(type, /** @type {ItemContextParameters} */ (parameters))
   } else {
-    parametersFormula = itemContextFormula(type, /** @type {ItemContextParameters} */ (parameters));
+    parametersFormula = itemContextFormula(type, /** @type {ItemContextParameters} */ (parameters))
   }
-  return `mul(${parametersFormula},${w})`.replace(/(\s+\n)|(\n\s+)|(\n)/g, '');
+  return `mul(${parametersFormula},${w})`.replace(/(\s+\n)|(\n\s+)|(\n)/g, '')
 }
 
 /**
  * @param {RelevanceContextItem[]} relevanceContextItems
  * @returns {string}
  */
-function relevanceContextItemsToSolrFormula (relevanceContextItems) {
-  const items = relevanceContextItems.map(relevanceContextItemToSolrFormula);
-  if (items.length === 0) return '1.0';
-  if (items.length === 1) return items[0];
-  return `sum(${items.join(',')})`;
+function relevanceContextItemsToSolrFormula(relevanceContextItems) {
+  const items = relevanceContextItems.map(relevanceContextItemToSolrFormula)
+  if (items.length === 0) return '1.0'
+  if (items.length === 1) return items[0]
+  return `sum(${items.join(',')})`
 }
 
-const DefaultArticleFields = [
-  'id',
-  'rc_plains',
-  'lg_s',
-];
+const DefaultArticleFields = ['id', 'rc_plains', 'lg_s']
 
-const CustomScoringField = 'customScore';
+const CustomScoringField = 'customScore'
 
 /**
  * Build Solr POST search request payload.
  * @param {string} query
  * @param {string} scroingVariable
- * @param {{ skip?: number, limit?: number }} options
+ * @param {{ offset?: number, limit?: number }} options
  * @returns {any}
  */
-function buildSolrQuery (query, scroingVariable, options = {}) {
+function buildSolrQuery(query, scroingVariable, options = {}) {
   return {
     query,
     fields: DefaultArticleFields.concat([`$${CustomScoringField}`]),
     sort: `$${CustomScoringField} desc`,
-    offset: options.skip,
+    offset: options.offset,
     limit: options.limit,
     params: {
       hl: true,
@@ -164,24 +161,26 @@ function buildSolrQuery (query, scroingVariable, options = {}) {
       'hl.fragsize': 100,
       [CustomScoringField]: scroingVariable,
     },
-  };
+  }
 }
 
 /**
  * Add score to article items
  * @param {any} solrResponse
  */
-function withScore (solrResponse) {
-  const itemIdToScore = solrResponse.response.docs
-    .reduce((acc, doc) => ({ ...acc, [doc.id]: doc[`$${CustomScoringField}`] }), {});
+function withScore(solrResponse) {
+  const itemIdToScore = solrResponse.response.docs.reduce(
+    (acc, doc) => ({ ...acc, [doc.id]: doc[`$${CustomScoringField}`] }),
+    {}
+  )
 
-  return (articleItem) => {
-    const score = itemIdToScore[articleItem.uid];
+  return articleItem => {
+    const score = itemIdToScore[articleItem.uid]
     return {
       ...articleItem,
       score,
-    };
-  };
+    }
+  }
 }
 
 module.exports = {
@@ -190,4 +189,4 @@ module.exports = {
   buildSolrQuery,
   RelevanceContextItemTypes,
   withScore,
-};
+}

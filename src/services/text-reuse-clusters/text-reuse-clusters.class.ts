@@ -31,19 +31,20 @@ const { sameTypeFiltersToQuery } = require('../../util/solr')
 const { SolrNamespaces } = require('../../solr')
 const Newspaper = require('../../models/newspapers.model')
 
-function buildResponseClusters(clusters: Promise<any>, clusterIdsAndText: { id: any; text: any }[]): ClusterElement[] {
+function buildResponseClusters(clusters: any, clusterIdsAndText: { id: any; text: any }[]): ClusterElement[] {
   const clustersById = mapValues(groupBy(clusters, 'id'), (v: any[]) => v[0])
-  return clusterIdsAndText.map(({ id, text: textSample }) => ({
+  const results = clusterIdsAndText.map(({ id, text: textSample }) => ({
     cluster: clustersById[id],
     textSample,
   }))
+  return results
 }
 
 const deserializeFilters = (serializedFilters: string) => protobuf.searchQuery.deserialize(serializedFilters).filters
 
-function filtersToSolrQueries(filters: any) {
+function filtersToSolrQueries(filters: any, namespace = SolrNamespaces.TextReusePassages) {
   const filtersGroupsByType = values(groupBy(filters, 'type'))
-  return uniq(filtersGroupsByType.map((f: any) => sameTypeFiltersToQuery(f, SolrNamespaces.TextReusePassages)))
+  return uniq(filtersGroupsByType.map((f: any) => sameTypeFiltersToQuery(f, namespace)))
 }
 
 export const OrderByKeyToField = {
@@ -52,7 +53,7 @@ export const OrderByKeyToField = {
 
 const withExtraQueryParts = (query: { q: any }, parts: any) => {
   const updatedQuery = clone(query)
-  updatedQuery.q = [query.q].concat(parts).join(' AND ')
+  updatedQuery.q = [`(${query.q})`].concat(parts).join(' AND ')
   return updatedQuery
 }
 
@@ -119,22 +120,17 @@ export class TextReuseClusters {
   }
 
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
-    const { text, skip = 0, limit = 10, orderBy, filters: serializedFilters } = params.query ?? {}
-
-    let filters = []
-    if (typeof serializedFilters === 'string') {
-      try {
-        filters = serializedFilters ? deserializeFilters(serializedFilters) : []
-      } catch (error) {
-        console.warn('Could not deserialize filters', error)
-      }
-    } else {
-      filters = serializedFilters || []
-    }
-
-    const filterQueryParts = filtersToSolrQueries(filters)
+    const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
+    const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
+    const filterQueryParts = filtersToSolrQueries(filters, SolrNamespaces.TextReusePassages)
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
-    const query = getTextReusePassagesClusterIdsSearchRequestForText(text, skip, limit, orderByField, orderByDescending)
+    const query = getTextReusePassagesClusterIdsSearchRequestForText(
+      text,
+      offset,
+      limit,
+      orderByField,
+      orderByDescending
+    )
 
     const [clusterIdsAndText, info] = await this.solr
       .get(withExtraQueryParts(query, filterQueryParts), this.solr.namespaces.TextReusePassages)
@@ -143,7 +139,7 @@ export class TextReuseClusters {
         getPaginationInfoFromPassagesSolrResponse(response),
       ])
 
-    const clusters = this.getClusters(clusterIdsAndText.map(({ id }: { id: string }) => id))
+    const clusters = await this.getClusters(clusterIdsAndText.map(({ id }: { id: string }) => id))
 
     return {
       clusters: buildResponseClusters(clusters, clusterIdsAndText),
@@ -160,7 +156,7 @@ export class TextReuseClusters {
 
   async get(id: string, { query = {} }): Promise<GetTextReuseClusterResponse> {
     // @ts-ignore
-    const includeDetails = query.includeDetails === true || query.includeDetails === 'true'
+    const includeDetails = query.include_details === true || query.include_details === 'true'
 
     const sampleTextPromise = this.solr
       .get(getLatestTextReusePassageForClusterIdRequest(id), this.solr.namespaces.TextReusePassages)

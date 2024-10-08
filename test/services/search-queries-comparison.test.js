@@ -1,8 +1,8 @@
-const assert = require('assert');
+const assert = require('assert')
 const {
   createSolrQuery,
   normaliseFacetsInSolrResponse,
-} = require('../../src/services/search-queries-comparison/search-queries-comparison.class');
+} = require('../../src/services/search-queries-comparison/search-queries-comparison.class')
 
 /**
  * @typedef {import('impresso-jscommons').Filter} Filter
@@ -13,12 +13,8 @@ const {
 
 describe('createSolrQuery', () => {
   it('creates a query without constraints', () => {
-    const filters = /** @type {Filter[]} */ [
-      { type: 'person', q: 'person-a-id' },
-    ];
-    const facetRequests = /** @type {FacetRequest[]} */ [
-      { type: 'person', limit: 3, skip: 5 },
-    ];
+    const filters = /** @type {Filter[]} */ [{ type: 'person', q: 'person-a-id' }]
+    const facetRequests = /** @type {FacetRequest[]} */ [{ type: 'person', limit: 3, offset: 5 }]
     const expectedRequest = {
       limit: 0,
       params: {
@@ -35,19 +31,15 @@ describe('createSolrQuery', () => {
           numBuckets: true,
         },
       },
-    };
+    }
 
-    const request = createSolrQuery(filters, facetRequests);
-    assert.deepEqual(request, expectedRequest);
-  });
+    const request = createSolrQuery(filters, facetRequests)
+    assert.deepEqual(request, expectedRequest)
+  })
 
   it('creates a query with constraints', () => {
-    const filters = /** @type {Filter[]} */ [
-      { type: 'person', q: 'person-a-id' },
-    ];
-    const facetRequests = /** @type {FacetRequest[]} */ [
-      { type: 'person', limit: 3, skip: 5 },
-    ];
+    const filters = /** @type {Filter[]} */ [{ type: 'person', q: 'person-a-id' }]
+    const facetRequests = /** @type {FacetRequest[]} */ [{ type: 'person', limit: 3, offset: 5 }]
     const facetConstraints = /** @type {Facet[]} */ [
       {
         type: 'person',
@@ -60,7 +52,7 @@ describe('createSolrQuery', () => {
           },
         ],
       },
-    ];
+    ]
 
     const expectedRequest = {
       limit: 0,
@@ -78,12 +70,12 @@ describe('createSolrQuery', () => {
           q: 'filter(pers_entities_dpfs:person-c-id)',
         },
       },
-    };
+    }
 
-    const request = createSolrQuery(filters, facetRequests, facetConstraints);
-    assert.deepEqual(request, expectedRequest);
-  });
-});
+    const request = createSolrQuery(filters, facetRequests, facetConstraints)
+    assert.deepEqual(request, expectedRequest)
+  })
+})
 
 describe('normaliseFacetsInSolrResponse', () => {
   const testSolrResponse = {
@@ -114,7 +106,7 @@ describe('normaliseFacetsInSolrResponse', () => {
         ],
       },
     },
-  };
+  }
 
   const testConstraintFacets = /** @type {Facet[]} */ [
     {
@@ -128,7 +120,7 @@ describe('normaliseFacetsInSolrResponse', () => {
         },
       ],
     },
-  ];
+  ]
 
   const expectedNormalisedResponse = {
     response: {
@@ -165,10 +157,10 @@ describe('normaliseFacetsInSolrResponse', () => {
         ],
       },
     },
-  };
+  }
 
   it('normalises facets', () => {
-    const response = normaliseFacetsInSolrResponse(testSolrResponse, testConstraintFacets);
-    assert.deepEqual(response, expectedNormalisedResponse);
-  });
-});
+    const response = normaliseFacetsInSolrResponse(testSolrResponse, testConstraintFacets)
+    assert.deepEqual(response, expectedNormalisedResponse)
+  })
+})

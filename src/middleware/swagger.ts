@@ -79,6 +79,11 @@ export default (app: ImpressoApplication & Application) => {
         title: 'Impresso Public API',
         description: 'Impresso Public API Documentation',
         version: require('../../package.json').version,
+        contact: {
+          name: 'Impresso Project team',
+          url: 'https://impresso-project.ch/',
+          email: 'info@impresso-project.ch',
+        },
       },
       components: {
         schemas: getFilesAsSchemaRefs(`${schemaBaseDir}/schemas`, './schema/schemas'),
@@ -93,12 +98,17 @@ export default (app: ImpressoApplication & Application) => {
         },
       },
       security: [{ BearerAuth: [] }],
+      // "ignore" does not pass schema validator
+      // ignore: {
+      //   tags: ['not-used'],
+      // },
       servers:
         prefix != null
           ? [
               {
                 url: `${prefix}/`,
                 description: 'Impresso Public API',
+                'x-internal': false,
               },
             ]
           : undefined,

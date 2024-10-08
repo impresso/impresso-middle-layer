@@ -1,0 +1,67 @@
+extends: [spectral:oas, "@stoplight/spectral-owasp-ruleset"]
+formats:
+  - oas3
+rules:
+  # handled by reverse proxy
+  owasp:api8:2023-define-cors-origin: off
+  # not needed
+  owasp:api9:2023-inventory-environment: off
+  # Review and enable the following rules:
+  owasp:api4:2023-string-restricted: off
+  owasp:api4:2023-string-limit: off
+  owasp:api4:2023-integer-limit-legacy: off
+  owasp:api4:2023-integer-format: off
+  owasp:api4:2023-array-limit: off
+  owasp:api3:2023-no-additionalProperties: off
+  owasp:api3:2023-constrained-additionalProperties: off
+
+  # end of rules to review
+
+  server-lowercase:
+    given: $.servers[*].url
+    then:
+      function: pattern
+      functionOptions:
+        match: ^[^A-Z]*$
+    message: Server URL must be lowercase
+    formats: 
+      - oas3
+    severity: error
+  path-casing:
+    given: $.paths
+    then:
+      # Targeting the key of paths object i.e. /search-facets/tr-passages/{id}
+      field: "@key"
+      function: pattern
+      functionOptions:
+        match: ^/([a-z0-9]+(-[a-z0-9]+)*)?(/[a-z0-9]+(-[a-z0-9]+)*|/{.+})*$
+    message: Paths must be kebab-case
+    severity: error
+  paths-no-trailing-slash:
+    given: $.paths
+    then:
+    # Targeting the key of paths object i.e. /products/{productId}
+      field: "@key"
+      function: pattern
+      functionOptions:
+        notMatch: /$
+    message: Paths must not end with a trailing slash
+    severity: error
+  path-parameters-camelcase:
+    given: $..parameters[?(@.in == 'path')].name
+    then:
+      function: casing
+      functionOptions:
+        type: camel
+        disallowDigits: true
+    message: Path parameters should be underscore and not contain digits
+    severity: error
+  query-parameters-camelcase:
+    given: $..parameters[?(@.in == 'query')].name
+    then:
+      function: casing
+      functionOptions:
+        type: snake
+        disallowDigits: true
+    message: Query parameters should be snake_case and not contain digits
+    severity: error

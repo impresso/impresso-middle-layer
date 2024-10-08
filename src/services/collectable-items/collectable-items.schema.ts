@@ -1,70 +1,17 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { QueryParameter, getStandardResponses } from '../../util/openapi'
-import { REGEX_UIDS } from '../../hooks/params'
+import { MethodParameter, getRequestBodyContent, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { REGEX_UID } from '../../hooks/params'
 
-const findParameters: QueryParameter[] = [
+const patchParameters: MethodParameter[] = [
   {
-    in: 'query',
-    name: 'collection_uids',
-    required: false,
-    schema: {
-      type: 'string',
-      pattern: String(REGEX_UIDS).slice(1, -1),
-    },
-    description: 'TODO',
-  },
-  {
-    in: 'query',
-    name: 'item_uids',
-    required: false,
-    schema: {
-      type: 'string',
-      pattern: String(REGEX_UIDS).slice(1, -1),
-    },
-    description: 'TODO',
-  },
-  {
-    in: 'query',
-    name: 'resolve',
+    in: 'path',
+    name: 'collection_id',
     required: true,
     schema: {
       type: 'string',
-      enum: ['collection', 'item'],
-      default: 'collection',
+      pattern: String(REGEX_UID).slice(1, -1),
     },
-    description: 'TODO',
-  },
-  {
-    in: 'query',
-    name: 'order_by',
-    required: false,
-    schema: {
-      type: 'string',
-      enum: ['-dateAdded', 'dateAdded', '-itemDate', 'itemDate'],
-      default: '-dateAdded',
-    },
-    description: 'Order by term',
-  },
-  {
-    in: 'query',
-    name: 'limit',
-    required: false,
-    schema: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 1000,
-    },
-    description: 'Total items to return',
-  },
-  {
-    in: 'query',
-    name: 'skip',
-    required: false,
-    schema: {
-      type: 'integer',
-      minimum: 0,
-    },
-    description: 'Items to skip',
+    description: 'Collection ID',
   },
 ]
 
@@ -73,14 +20,34 @@ const findParameters: QueryParameter[] = [
  */
 export const docs: ServiceSwaggerOptions = {
   description: 'Collectable items',
-  securities: ['find', 'create', 'remove'],
+  multi: ['patch'],
+  securities: ['patchMulti'],
   operations: {
-    find: {
-      description: 'Find collectable items that match the given query',
-      parameters: findParameters,
+    patch: {
+      // hide this endpoint from the public API - it's not used
+      // but required for feathersjs
+      // NOTE: If requestBody and responses are not provided,
+      // the `RefParser.bundle` will fail with an error
+      // "MissingPointerError: Token ":id" does not exist."
+      requestBody: {
+        content: getRequestBodyContent('UpdateCollectableItems'),
+      },
       responses: getStandardResponses({
-        method: 'find',
-        schema: 'CollectableItemGroup',
+        method: 'patchMulti',
+        schema: 'CollectableItemsUpdatedResponse',
+      }),
+
+      tags: ['not-used'],
+    },
+    patchMulti: {
+      description: 'Update items in the collection',
+      parameters: patchParameters,
+      requestBody: {
+        content: getRequestBodyContent('UpdateCollectableItems'),
+      },
+      responses: getStandardResponses({
+        method: 'patchMulti',
+        schema: 'CollectableItemsUpdatedResponse',
       }),
     },
   },

@@ -16,10 +16,12 @@ const publicApiServices = [
   'text-reuse-clusters',
   'version',
   'newspapers',
+  'search-facets',
+  'entities',
+  'impresso-ner',
 ]
 
 const internalApiServices = [
-  'entities',
   'issues',
   'suggestions',
   'projects',
@@ -41,7 +43,6 @@ const internalApiServices = [
   'mentions',
   'filepond',
   'embeddings',
-  'search-facets',
   'table-of-contents',
   'search-queries-comparison',
   'me',
@@ -70,6 +71,7 @@ export default (app: ImpressoApplication) => {
   services.forEach((service: string) => {
     const path = `./${service}/${service}.service`
     const module = require(path)
-    app.configure(module)
+    if (typeof module === 'function') app.configure(module)
+    else app.configure(module.default)
   })
 }

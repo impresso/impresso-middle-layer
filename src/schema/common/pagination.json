@@ -16,14 +16,9 @@
       "description": "Skip this many items",
       "minimum": 0
     },
-    "skip": {
-      "type": "integer",
-      "description": "Skip this many items",
-      "minimum": 0
-    },
     "page": {
       "type": "integer",
-      "description": "Display N-th page (using 'limit' as the number of items in the page)",
+      "description": "DEPRECATED. Display N-th page (using 'limit' as the number of items in the page). Only used in the web app.",
       "minimum": 1
     },
     "total": {

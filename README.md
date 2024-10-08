@@ -10,9 +10,16 @@ cd path/to/impresso-middle-layer && npm install
 npm run watch
 
 # Run the app in another terminal:
+npm run dev
+```
+
+Install and run the [impresso-frontend](https://github.com/impresso/impresso-frontend) app in another terminal adjusting the env variables to fit the Internal Api config:
+  
+```shell
+VUE_APP_MIDDLELAYER_API_PATH=/ VUE_APP_MIDDLELAYER_API=http://localhost:3030 \ VUE_APP_MIDDLELAYER_API_SOCKET_PATH=/socket.io make run-dev 
+
+# or if you are using a conveniente env file
 make run-dev
-# or
-VUE_APP_MIDDLELAYER_API_PATH=/ VUE_APP_MIDDLELAYER_API=http://localhost:3030 VUE_APP_MIDDLELAYER_API_SOCKET_PATH=/socket.io make run-dev 
 ```
 
 ## About
@@ -43,13 +50,13 @@ Create a `./docker/config/ssh/config` file:
 
 Add relevant ssh key relative to the mapped folder `/root/.ssh` in `kroniak/ssh-client` docker image, then:
 
-```
+```bash
 docker-compose up
 ```
 
 Then:
 
-```
+```bash
 make run-dev
 ```
 
@@ -181,7 +188,7 @@ Simply run `npm test` and all your tests in the `test/` directory will be run.
 
 Feathers has a powerful command line interface. Here are a few things it can do:
 
-```
+```shell
 $ npm install -g feathers-cli             # Install Feathers CLI
 
 $ feathers generate service               # Generate a new Service
@@ -197,6 +204,58 @@ When a schema is updated, the typescript types should be regenerated. This can b
 ```
 npm run generate-types
 ```
+
+## Configuration
+
+### Public API
+
+There are several configuration options that should be set differently in Public API:
+
+ * `isPublicApi` - set to `true` to enable the public API. This configures openapi schema, validation, REST transport.
+ * `rateLimiter` - `enabled` must be set to `true` to enable rate limiting. 
+   capacity and refill rate should be adjusted too.
+ * `authentication.jwtOptions`:
+   * `audience` - should be set to the public API URL. This must be different
+      from the internal API URL to make sure tokens from one could not be used
+      in another.
+   * `expiresIn` - should be set to a reasonable value for the public API (e.g. `8h` for 8 hours)
+ * `authentication.cookie.enabled` set to `false` - cookies are not used in the public API
+
+Additionally, to enable the public API to verify web app IML token, the following configuration block should be added:
+
+```json
+"imlAuthConfiguration": {
+  "secret": "IML jwt secret",
+  "jwtOptions": {
+    "audience": "Web app base URL"
+  }
+}
+```
+
+Where:
+  * `secret` - secret used to sign the IML tokens
+  * `audience` - base URL of the web app issuing the token.
+
+To let the authentication service know that a new auth strategy is installed, add the following to the "authentication" block:
+
+```json
+  "authStrategies": ["local", "jwt-app", "jwt"]
+```
+
+#### Rate limiter
+
+Rate limiter has two configuration options:
+
+* `capacity` - the maximum number of requests allocated to a resource/user. This indicates how many request can be executed against the resource before limiting kicks in.
+* `refillRate` - how many requests are added to the allocation every second if the allocation is lower than `capacity`.
+
+Sample settings:
+
+* 1 request per second (3600 / hour): `capacity: 3600, refillRate: 1`
+* 10 request per second (36000 / hour): `capacity: 36000, refillRate: 10`
+* 1 request per second (60 / minute): `capacity: 60, refillRate: 1`
+* 1 request per second (600 / 10 minutes): `capacity: 600, refillRate: 1`
+* 3 request per second (600 / 10 minutes): `capacity: 600, refillRate: 3`
 
 ## Help
 
@@ -217,3 +276,5 @@ The 'impresso - Media Monitoring of the Past' project is funded by the Swiss Nat
 Copyright (C) 2020 The _impresso_ team. Contributors to this program include: [Daniele Guido](https://github.com/danieleguido), [Roman Kalyakin](https://github.com/theorm), [Thijs van Beek](https://github.com/tvanbeek).
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose. See the [GNU Affero General Public License](https://github.com/impresso/impresso-middle-layer/blob/master/LICENSE) for more details.
+
+

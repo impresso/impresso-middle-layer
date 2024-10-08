@@ -1,12 +1,12 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { MethodParameter } from '../../util/openapi'
-import { getParameterRef, getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { GroupByValues, OrderByKeyToField } from './text-reuse-passages.class'
 
 const findParameters: MethodParameter[] = [
   {
     in: 'query',
-    name: 'orderBy',
+    name: 'order_by',
     required: false,
     schema: {
       type: 'string',
@@ -18,7 +18,7 @@ const findParameters: MethodParameter[] = [
   },
   {
     in: 'query',
-    name: 'groupby',
+    name: 'group_by',
     required: false,
     schema: {
       type: 'string',
@@ -26,16 +26,7 @@ const findParameters: MethodParameter[] = [
     },
     description: 'Group by term',
   },
-  {
-    in: 'query',
-    name: 'filters[]',
-    required: false,
-    schema: {
-      type: 'array',
-      items: getSchemaRef('Filter'),
-    },
-    description: 'Filters to apply',
-  },
+  filtersQueryParameter,
   {
     in: 'query',
     name: 'addons',
@@ -57,6 +48,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get'],
   operations: {
     find: {
+      operationId: 'findTextReusePassages',
       description: 'Find text reuse passages',
       parameters: findParameters,
       responses: getStandardResponses({
@@ -65,6 +57,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     get: {
+      operationId: 'getTextReusePassage',
       description: 'Get text reuse passage by ID',
       parameters: getStandardParameters({ method: 'get', idPattern: '[A-Za-z0-9-:@]+' }),
       responses: getStandardResponses({

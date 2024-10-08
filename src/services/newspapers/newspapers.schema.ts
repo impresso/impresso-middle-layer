@@ -1,7 +1,6 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { SolrMappings } from '../../data/constants'
 import type { QueryParameter } from '../../util/openapi'
-import { getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { getStandardParameters, getStandardResponses } from '../../util/openapi'
 
 export const OrderByChoices = [
   '-name',
@@ -21,13 +20,12 @@ export const OrderByChoices = [
 const findParameters: QueryParameter[] = [
   {
     in: 'query',
-    name: 'filters',
+    name: 'includedOnly',
     required: false,
     schema: {
-      type: 'array',
-      items: getSchemaRef('Filter'),
+      type: 'boolean',
     },
-    description: 'Filters to apply',
+    description: 'Return included newspapers only (TODO)',
   },
   {
     in: 'query',
@@ -65,6 +63,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get'],
   operations: {
     find: {
+      operationId: 'findNewspapers',
       description: 'Find newspapers that match the given query',
       parameters: [...findParameters, ...getStandardParameters({ method: 'find' })],
       responses: getStandardResponses({
@@ -73,6 +72,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     get: {
+      operationId: 'getNewspaper',
       description: 'Get a newspaper by ID',
       parameters: [
         {

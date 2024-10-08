@@ -12,7 +12,6 @@
     "offsetEnd",
     "content",
     "title",
-    "pageRegions",
     "pageNumbers",
     "collections"
   ],
@@ -43,7 +42,7 @@
       "title": "Cluster details",
       "description": "Details of the cluster the passage belongs to",
       "additionalProperties": false,
-      "required": ["id", "clusterSize"],
+      "required": ["id"],
       "properties": {
         "id": {
           "type": "string",
@@ -68,14 +67,24 @@
       }
     },
     "offsetStart": {
-      "type": "integer",
-      "description": "Offset of the passage in the article text",
-      "minimum": 0
+      "oneOf": [
+        {
+          "type": "integer",
+          "description": "Offset of the passage in the article text",
+          "minimum": 0
+        },
+        { "type": "null" }
+      ]
     },
     "offsetEnd": {
-      "type": "integer",
-      "description": "Offset of the passage in the article text",
-      "minimum": 0
+      "oneOf": [
+        {
+          "type": "integer",
+          "description": "Offset of the passage in the article text",
+          "minimum": 0
+        },
+        { "type": "null" }
+      ]
     },
     "content": {
       "type": "string",
@@ -86,14 +95,17 @@
       "description": "Title of the content item (article) where this passage was found"
     },
     "connectedClusters": {
-      "type": "object",
-      "description": "Details of the connected clusters",
-      "additionalProperties": false,
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "ID of the connected cluster"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "Details of the connected clusters",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID of the connected cluster"
+          }
         }
       }
     },
@@ -106,16 +118,18 @@
       "description": "Size of the passage"
     },
     "newspaper": {
-      "type": "object",
-      "description": "Newspaper details",
-      "additionalProperties": false,
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "ID of the newspaper"
+      "$allOf": [
+        { "$ref": "./Newspaper.json" },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "ID of the newspaper"
+            }
+          }
         }
-      }
+      ]
     },
     "issue": {
       "type": "object",

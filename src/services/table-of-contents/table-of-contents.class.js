@@ -1,81 +1,95 @@
 /* eslint-disable no-unused-vars */
-const Newspaper = require('../../models/newspapers.model');
-const { BaseArticle } = require('../../models/articles.model');
-const SearchFacet = require('../../models/search-facets.model');
-const { measureTime } = require('../../util/instruments');
+const Newspaper = require('../../models/newspapers.model')
+const { BaseArticle } = require('../../models/articles.model')
+const SearchFacet = require('../../models/search-facets.model')
+const { measureTime } = require('../../util/instruments')
 
 const BaseArticleTocFields = [
   'id',
   'content_length_i',
-  'cc_b', 'lg_s', 'page_id_ss', 'item_type_s',
-  'title_txt_fr', 'title_txt_de', 'title_txt_en',
-  'pers_entities_dpfs', 'loc_entities_dpfs', 'ucoll_ss',
+  'cc_b',
+  'lg_s',
+  'page_id_ss',
+  'item_type_s',
+  'title_txt_fr',
+  'title_txt_de',
+  'title_txt_en',
+  'pers_entities_dpfs',
+  'loc_entities_dpfs',
+  'ucoll_ss',
   'snippet_plain',
-];
+]
 
 class Service {
-  constructor ({ app, name }) {
-    this.app = app;
-    this.name = name;
+  constructor({ app, name }) {
+    this.app = app
+    this.name = name
   }
 
-  async get (id, params) {
+  async get(id, params) {
     const newspaper = new Newspaper({
       uid: id.split('-').shift(),
-    });
+    })
     const highlightProps = {
       'hl.snippets': 0,
       'hl.alternateField': 'content_txt_fr',
       'hl.maxAlternateFieldLength': 120,
       'hl.fragsize': 0,
-    };
-    const languages = newspaper.languages;
+    }
+    const languages = newspaper.languages
 
     if (newspaper.uid === 'NZZ') {
-      highlightProps['hl.alternateField'] = 'content_txt_de';
+      highlightProps['hl.alternateField'] = 'content_txt_de'
     } else if (languages.length) {
-      highlightProps['hl.alternateField'] = `content_txt_${languages[0]}`;
+      highlightProps['hl.alternateField'] = `content_txt_${languages[0]}`
     }
 
     // get all articles for the give issue,
     // at least 1 of content length, max 500 articles
-    const result = await measureTime(() => this.app.get('solrClient').findAll({
-      q: `meta_issue_id_s:${id} AND filter(content_length_i:[1 TO *])`,
-      facets: JSON.stringify({
-        person: {
-          type: 'terms',
-          field: 'pers_entities_dpfs',
-          mincount: 1,
-          limit: 5,
-          offset: 0,
-          numBuckets: true,
-        },
-        location: {
-          type: 'terms',
-          field: 'loc_entities_dpfs',
-          mincount: 1,
-          limit: 5,
-          offset: 0,
-          numBuckets: true,
-        },
-      }),
-      limit: 500,
-      skip: 0,
-      order_by: 'id ASC',
-      highlight_by: 'nd',
-      highlightProps,
-      fl: BaseArticleTocFields,
-    }, BaseArticle.solrFactory), 'table-of-contents.get.solr.toc');
+    const result = await measureTime(
+      () =>
+        this.app.get('solrClient').findAll(
+          {
+            q: `meta_issue_id_s:${id} AND filter(content_length_i:[1 TO *])`,
+            facets: JSON.stringify({
+              person: {
+                type: 'terms',
+                field: 'pers_entities_dpfs',
+                mincount: 1,
+                limit: 5,
+                offset: 0,
+                numBuckets: true,
+              },
+              location: {
+                type: 'terms',
+                field: 'loc_entities_dpfs',
+                mincount: 1,
+                limit: 5,
+                offset: 0,
+                numBuckets: true,
+              },
+            }),
+            limit: 500,
+            offset: 0,
+            order_by: 'id ASC',
+            highlight_by: 'nd',
+            highlightProps,
+            fl: BaseArticleTocFields,
+          },
+          BaseArticle.solrFactory
+        ),
+      'table-of-contents.get.solr.toc'
+    )
     // get persons and locations from the facet,
     // using the simplified version of their buckets
-    const [persons, locations] = ['person', 'location'].map((type) => {
+    const [persons, locations] = ['person', 'location'].map(type => {
       const t = new SearchFacet({
         type,
         ...result.facets[type],
         noBuckets: true,
-      });
-      return t.getItems();
-    });
+      })
+      return t.getItems()
+    })
     // return a TOC instance without instantiating a class.
     return {
       newspaper,
@@ -89,12 +103,12 @@ class Service {
           solr: result.responseHeader.QTime,
         },
       },
-    };
+    }
   }
 }
 
 module.exports = function (options) {
-  return new Service(options);
-};
+  return new Service(options)
+}
 
-module.exports.Service = Service;
+module.exports.Service = Service

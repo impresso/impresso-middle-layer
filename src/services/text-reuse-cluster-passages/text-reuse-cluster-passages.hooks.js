@@ -1,5 +1,4 @@
-const { authenticate } = require('../../hooks/authenticate');
-const { validateWithSchema } = require('../../hooks/schema');
+const { authenticate } = require('../../hooks/authenticate')
 
 module.exports = {
   before: {
@@ -19,7 +18,7 @@ module.exports = {
   after: {
     all: [],
     find: [
-      validateWithSchema('services/text-reuse-cluster-passages/schema/find/response.json', 'result'),
+      // validateWithSchema('services/text-reuse-cluster-passages/schema/find/response.json', 'result'),
     ],
     get: [],
     create: [],
@@ -37,4 +36,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

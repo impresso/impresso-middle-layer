@@ -27,7 +27,7 @@ MATCH (iss:issue {Project:{Project}})
 WITH iss, _total
 // collect data
 ORDER BY iss.date DESC
-SKIP {skip}
+SKIP {offset}
 LIMIT {limit}
 OPTIONAL MATCH (iss)<-[:belongs_to]-(pag:page {Project:{Project}, num:1})
 WITH iss, _total, head(collect(pag)) as cover

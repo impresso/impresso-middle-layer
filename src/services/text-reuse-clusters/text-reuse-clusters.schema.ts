@@ -1,14 +1,14 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { MethodParameter } from '../../util/openapi'
-import { getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { OrderByKeyToField } from './text-reuse-clusters.class'
 import { Filter } from '../../models'
 
 export interface FindQueyParameters {
   text?: string
-  skip?: number
+  offset?: number
   limit?: number
-  orderBy?: string
+  order_by?: string
   filters?: string | Filter[]
 }
 
@@ -24,7 +24,7 @@ const findParameters: MethodParameter[] = [
   },
   {
     in: 'query',
-    name: 'orderBy',
+    name: 'order_by',
     required: false,
     schema: {
       type: 'string',
@@ -34,23 +34,14 @@ const findParameters: MethodParameter[] = [
     },
     description: 'Order by term',
   },
-  {
-    in: 'query',
-    name: 'filters[]',
-    required: false,
-    schema: {
-      type: 'array',
-      items: getSchemaRef('Filter'),
-    },
-    description: 'Filters to apply',
-  },
+  filtersQueryParameter,
   ...getStandardParameters({ method: 'find', maxPageSize: 20 }),
 ]
 
 const getParameters: MethodParameter[] = [
   {
     in: 'query',
-    name: 'includeDetails',
+    name: 'include_details',
     required: false,
     schema: {
       type: 'boolean',
@@ -65,14 +56,17 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get'],
   operations: {
     find: {
+      operationId: 'findTextReuseClusters',
       description: 'Find text reuse clusters',
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'TextReuseClusterCompound',
+        schema: 'FindTextReuseClustersResponse',
+        standardPagination: false,
       }),
     },
     get: {
+      operationId: 'getTextReuseCluster',
       description: 'Get text reuse cluster by ID',
       parameters: getParameters,
       responses: getStandardResponses({

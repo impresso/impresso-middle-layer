@@ -21,7 +21,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "skip": {
+        "offset": {
           "type": "integer",
           "description": "Number of articles to skip"
         },

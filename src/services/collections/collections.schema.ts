@@ -1,6 +1,6 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { QueryParameter } from '../../util/openapi'
-import { getRequestBodyContent, getStandardResponses } from '../../util/openapi'
+import { getRequestBodyContent, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { REGEX_UIDS } from '../../hooks/params'
 
 const findParameters: QueryParameter[] = [
@@ -42,14 +42,16 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find', 'get', 'create', 'patch', 'remove'],
   operations: {
     find: {
+      operationId: 'findCollections',
       description: 'Find collections',
-      parameters: findParameters,
+      parameters: [...findParameters, ...getStandardParameters({ method: 'find' })],
       responses: getStandardResponses({
         method: 'find',
         schema: 'Collection',
       }),
     },
     get: {
+      operationId: 'getCollection',
       description: 'Get a collection by its UID',
       parameters: [
         {
@@ -68,6 +70,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     create: {
+      operationId: 'createCollection',
       description: 'Create a new collection',
       requestBody: {
         content: getRequestBodyContent('NewCollection'),
@@ -78,6 +81,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     patch: {
+      operationId: 'updateCollection',
       description: 'Update a collection',
       parameters: [
         {
@@ -99,6 +103,7 @@ export const docs: ServiceSwaggerOptions = {
       }),
     },
     remove: {
+      operationId: 'removeCollection',
       description: 'Remove a collection',
       parameters: [
         {

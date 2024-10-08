@@ -25,7 +25,6 @@ RUN npm run copy-files
 RUN ls -la ./dist
 
 COPY public ./public
-COPY scripts ./scripts
 
 RUN mkdir -p config
 COPY ./config/default.json ./config

@@ -45,7 +45,7 @@ WITH _total
 
 WITH art, _total
 
-SKIP {skip}
+SKIP {offset}
 LIMIT {limit}
 
 WITH art, _total

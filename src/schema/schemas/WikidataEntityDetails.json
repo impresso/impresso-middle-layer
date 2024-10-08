@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Details of a wikidata entity",
+  "type": "object",
+  "title": "WikidataEntityDetails (TODO: add person/location specific fields)",
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "labels": {
+      "type": "object",
+      "description": "Labels of the entity. Key is the language code.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "descriptions": {
+      "type": "object",
+      "description": "Labels of the entity. Key is the language code.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "rank": {
+            "type": "string"
+          },
+          "datatype": {
+            "type": "string"
+          }
+        },
+        "required": ["value", "rank", "datatype"]
+      }
+    }
+  },
+  "required": ["id", "type", "labels", "descriptions", "images"]
+}

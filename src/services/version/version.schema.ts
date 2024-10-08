@@ -6,6 +6,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find'],
   operations: {
     find: {
+      operationId: 'getVersionDetails',
       description: 'Get version object',
       parameters: [],
       security: [],

@@ -1,10 +1,10 @@
-import { ServiceSwaggerOptions } from 'feathers-swagger'
+import { ServiceSwaggerOptions, operation } from 'feathers-swagger'
 import { SolrMappings } from '../../data/constants'
-import type { QueryParameter } from '../../util/openapi'
-import { getSchemaRef, getStandardResponses } from '../../util/openapi'
+import type { MethodParameter } from '../../util/openapi'
+import { filtersQueryParameter, getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { paramsValidator } from './search.validators'
 
-const findParameters: QueryParameter[] = [
+const findParameters: MethodParameter[] = [
   {
     in: 'query',
     name: 'q',
@@ -47,37 +47,8 @@ const findParameters: QueryParameter[] = [
     },
     description: 'Facet to return',
   },
-  {
-    in: 'query',
-    name: 'filters',
-    required: false,
-    schema: {
-      type: 'array',
-      items: getSchemaRef('Filter'),
-    },
-    description: 'Filters to apply',
-  },
-  {
-    in: 'query',
-    name: 'limit',
-    required: false,
-    schema: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 1000,
-    },
-    description: 'Total items to return',
-  },
-  {
-    in: 'query',
-    name: 'skip',
-    required: false,
-    schema: {
-      type: 'integer',
-      minimum: 0,
-    },
-    description: 'Items to skip',
-  },
+  filtersQueryParameter,
+  ...getStandardParameters({ method: 'find' }),
 ]
 
 /**
@@ -88,6 +59,7 @@ export const docs: ServiceSwaggerOptions = {
   securities: ['find'],
   operations: {
     find: {
+      operationId: 'search',
       description: 'Find articles that match the given query',
       parameters: findParameters,
       responses: getStandardResponses({
