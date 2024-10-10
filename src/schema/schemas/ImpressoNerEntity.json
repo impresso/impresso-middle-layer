@@ -84,30 +84,30 @@
         }
       },
       "required": ["ner"]
+    },
+    "wikidata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Wikidata ID of the entity"
+        },
+        "wikipediaPageName": {
+          "type": "string",
+          "description": "Wikipedia page name of the entity"
+        }
+      },
+      "required": ["id"]
+    },
+    "function": {
+      "type": "string",
+      "description": "Function of the entity"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the entity"
     }
   },
-  "wikidata": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "id": {
-        "type": "string",
-        "description": "Wikidata ID of the entity"
-      },
-      "wikipediaPageName": {
-        "type": "string",
-        "description": "Wikipedia page name of the entity"
-      }
-    },
-    "required": ["id"]
-  },
-  "function": {
-    "type": "string",
-    "description": "Function of the entity"
-  },
-  "name": {
-    "type": "string",
-    "description": "Name of the entity"
-  },
-  "required": ["id", "type", "surfaceForm", "offset", "isTypeNested", "confidence"]
+  "required": ["id", "type", "surfaceForm", "offset", "confidence"]
 }
