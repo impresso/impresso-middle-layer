@@ -37,17 +37,12 @@
     "start": "node dist/",
     "dev": "nodemon --enable-source-maps --inspect dist/",
     "cli": "node src/admin/cli.js",
-    "generate-types": "node scripts/generate-types.js",
-    "update-newspapers": "node scripts/update-newspapers.js",
-    "update-years": "node scripts/update-years.js",
-    "update-topics": "node scripts/update-topics.js && node scripts/update-topics-related.js  && node scripts/update-topics-positions.js",
-    "update-topics-related": "node scripts/update-topics-related.js",
-    "update-topics-positions": "node scripts/update-topics-positions.js",
-    "import-articles": "node scripts/import-articles.js",
-    "import-pages": "node scripts/import-pages.js",
-    "import-issues": "node scripts/import-issues.js",
-    "import-tags": "node scripts/import-tags.js",
-    "import-newspapers": "node scripts/import-newspapers.js"
+    "generate-types": "node dist/scripts/generate-types.js",
+    "update-newspapers": "node dist/scripts/update-newspapers.js",
+    "update-years": "node dist/scripts/update-years.js",
+    "update-topics": "node dist/scripts/update-topics.js && node dist/scripts/update-topics-related.js  && node dist/scripts/update-topics-positions.js",
+    "update-topics-related": "node dist/scripts/update-topics-related.js",
+    "update-topics-positions": "node dist/scripts/update-topics-positions.js"
   },
   "dependencies": {
     "@feathersjs/authentication": "5.0.25",

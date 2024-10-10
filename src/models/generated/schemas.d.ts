@@ -561,9 +561,11 @@ export interface TopicWord {
  * Request body for the authentication endpoint
  */
 export interface AuthenticationCreateRequest {
-  strategy: "local";
-  email: string;
-  password: string;
+  strategy: "local" | "jwt-app";
+  email?: string;
+  password?: string;
+  accessToken?: string;
+  [k: string]: unknown;
 }
 
 
@@ -937,6 +939,185 @@ export interface TextReuseClusterDetails {
    * Resolution for the 'date' facet
    */
   resolution?: "year" | "month" | "day";
+}
+
+
+/**
+ * Impresso NER entity
+ */
+export interface ImpressoNamedEntityRecognitionEntity {
+  /**
+   * ID of the entity
+   */
+  id: string;
+  /**
+   * Type of the entity
+   */
+  type:
+    | "comp.demonym"
+    | "comp.function"
+    | "comp.name"
+    | "comp.qualifier"
+    | "comp.title"
+    | "loc"
+    | "loc.add.elec"
+    | "loc.add.phys"
+    | "loc.adm.nat"
+    | "loc.adm.reg"
+    | "loc.adm.sup"
+    | "loc.adm.town"
+    | "loc.fac"
+    | "loc.oro"
+    | "loc.phys.astro"
+    | "loc.phys.geo"
+    | "loc.phys.hydro"
+    | "loc.unk"
+    | "org"
+    | "org.adm"
+    | "org.ent"
+    | "org.ent.pressagency"
+    | "pers"
+    | "pers.coll"
+    | "pers.ind"
+    | "pers.ind.articleauthor"
+    | "prod"
+    | "prod.doctr"
+    | "prod.media"
+    | "time"
+    | "time.date.abs"
+    | "time.hour.abs";
+  /**
+   * Surface form of the entity
+   */
+  surfaceForm: string;
+  offset: {
+    /**
+     * Start offset of the entity in the text
+     */
+    start: number;
+    /**
+     * End offset of the entity in the text
+     */
+    end: number;
+  };
+  /**
+   * Whether the entity type is nested
+   */
+  isTypeNested: boolean;
+  confidence: {
+    /**
+     * Confidence score for the named entity recognition
+     */
+    ner: number;
+    /**
+     * Confidence score for the named entity linking
+     */
+    nel?: number;
+  };
+}
+
+
+/**
+ * Request body for the Impresso NER endpoint
+ */
+export interface ImpressoNamedEntityRecognitionRequest {
+  /**
+   * Text to be processed for named entity recognition
+   */
+  text: string;
+}
+
+
+/**
+ * Response of the Impresso NER endpoint
+ */
+export interface ImpressoNamedEntityRecognitionResponse {
+  /**
+   * ID of the model used for the named entity recognition
+   */
+  modelId: string;
+  /**
+   * Text processed for named entity recognition
+   */
+  text: string;
+  /**
+   * Timestamp of when named entity recognition was performed
+   */
+  timestamp: string;
+  entities: ImpressoNamedEntityRecognitionEntity[];
+}
+/**
+ * Impresso NER entity
+ */
+export interface ImpressoNamedEntityRecognitionEntity {
+  /**
+   * ID of the entity
+   */
+  id: string;
+  /**
+   * Type of the entity
+   */
+  type:
+    | "comp.demonym"
+    | "comp.function"
+    | "comp.name"
+    | "comp.qualifier"
+    | "comp.title"
+    | "loc"
+    | "loc.add.elec"
+    | "loc.add.phys"
+    | "loc.adm.nat"
+    | "loc.adm.reg"
+    | "loc.adm.sup"
+    | "loc.adm.town"
+    | "loc.fac"
+    | "loc.oro"
+    | "loc.phys.astro"
+    | "loc.phys.geo"
+    | "loc.phys.hydro"
+    | "loc.unk"
+    | "org"
+    | "org.adm"
+    | "org.ent"
+    | "org.ent.pressagency"
+    | "pers"
+    | "pers.coll"
+    | "pers.ind"
+    | "pers.ind.articleauthor"
+    | "prod"
+    | "prod.doctr"
+    | "prod.media"
+    | "time"
+    | "time.date.abs"
+    | "time.hour.abs";
+  /**
+   * Surface form of the entity
+   */
+  surfaceForm: string;
+  offset: {
+    /**
+     * Start offset of the entity in the text
+     */
+    start: number;
+    /**
+     * End offset of the entity in the text
+     */
+    end: number;
+  };
+  /**
+   * Whether the entity type is nested
+   */
+  isTypeNested: boolean;
+  confidence: {
+    /**
+     * Confidence score for the named entity recognition
+     */
+    ner: number;
+    /**
+     * Confidence score for the named entity linking
+     */
+    nel?: number;
+  };
 }
 
 

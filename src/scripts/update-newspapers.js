@@ -3,11 +3,11 @@ const fs = require('fs')
 const lodash = require('lodash')
 const debug = require('debug')('impresso/scripts:update-data')
 const config = require('@feathersjs/configuration')()()
-const sequelizeClient = require('../src/sequelize').client(config.sequelize)
-const solrClient = require('../src/solr').client(config.solr, config.solrConnectionPool)
+const sequelizeClient = require('../sequelize').client(config.sequelize)
+const solrClient = require('../solr').client(config.solr, config.solrConnectionPool)
 
-const Newspaper = require('../src/models/newspapers.model')
-const Issue = require('../src/models/issues.model')
+const Newspaper = require('../models/newspapers.model')
+const Issue = require('../models/issues.model')
 
 debug('start!')
 
@@ -43,7 +43,7 @@ async function waterfall() {
       })
     })
     .catch(err => {
-      console.log(err)
+      console.log(err) // eslint-disable-line no-console
       throw err
     })
 
@@ -92,7 +92,7 @@ async function waterfall() {
       })
     })
     .catch(err => {
-      console.log(err)
+      console.log(err) // eslint-disable-line no-console
     })
 
   debug('saving', Object.keys(newspapers).length, 'newspapers...')
@@ -109,6 +109,6 @@ waterfall()
     process.exit(0)
   })
   .catch(err => {
-    console.log(err)
+    console.log(err) // eslint-disable-line no-console
     process.exit(1)
   })
