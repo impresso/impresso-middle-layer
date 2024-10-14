@@ -6,7 +6,7 @@ import { CachedSolrClient } from './cachedSolr'
 import { Service as LogsService } from './services/logs/logs.class'
 import { AuthenticationService } from '@feathersjs/authentication'
 
-interface AppServices {
+export interface AppServices {
   redisClient?: IRedisClientContainer
   rateLimiter?: IRateLimiter
   cachedSolr: CachedSolrClient
