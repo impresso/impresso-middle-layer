@@ -5,6 +5,7 @@ export interface UserBitmapAttributes {
   id: number
   user_id: number
   bitmap: string
+  dateAcceptedTerms: Date | null
   subscriptionDatasets: SubscriptionDatasetAttributes[]
 }
 
@@ -15,12 +16,20 @@ export default class UserBitmap {
   id: number
   user_id: number
   bitmap: string
+  dateAcceptedTerms: Date | null
   subscriptionDatasets: SubscriptionDatasetAttributes[]
 
-  constructor({ id = 0, user_id = 0, bitmap = '', subscriptionDatasets = [] }: UserBitmapAttributes) {
+  constructor({
+    id = 0,
+    user_id = 0,
+    bitmap = '',
+    dateAcceptedTerms = null,
+    subscriptionDatasets = [],
+  }: UserBitmapAttributes) {
     this.id = id
     this.user_id = user_id
     this.bitmap = bitmap
+    this.dateAcceptedTerms = dateAcceptedTerms
     this.subscriptionDatasets = subscriptionDatasets
   }
 
@@ -61,6 +70,7 @@ export default class UserBitmap {
           // models.BinaryField
           type: DataTypes.BLOB,
           allowNull: true,
+          defaultValue: Buffer.from([0b11000]),
           get() {
             const value = this.getDataValue('bitmap')
             const binaryString = Array.from(value as unknown as Buffer)
@@ -69,6 +79,11 @@ export default class UserBitmap {
               .replace(/^0+/, '')
             return binaryString
           },
+        },
+        dateAcceptedTerms: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          field: 'date_accepted_terms',
         },
       },
       {
