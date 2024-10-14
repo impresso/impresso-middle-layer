@@ -61,7 +61,7 @@ const internalApiServices = [
   'entity-mentions-timeline',
   'text-reuse-connected-clusters',
   'password-reset',
-  'terms-of-use',
+  'account-details',
 ]
 
 export default (app: ImpressoApplication) => {

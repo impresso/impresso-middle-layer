@@ -289,13 +289,13 @@ export default class User {
         return new ObfuscatedUser({
           uid: profile.uid,
           username,
-          bitmap: params.userBitmap?.bitmap,
+          bitmap: params.userBitmap?.bitmap as string,
         })
       }
       return new User({
         ...this.get(),
         groups,
-        bitmap: params.userBitmap?.bitmap,
+        bitmap: params.userBitmap?.bitmap as string,
       })
     }
 
