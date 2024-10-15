@@ -2,6 +2,7 @@ import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
 
 export interface SubscriptionDatasetAttributes {
   id: number
+  reviewerId?: number | null
   name: string
   bitmapPosition: number
   metadata?: object
@@ -12,12 +13,14 @@ interface SubscriptionDatasetCreationAttributes extends Omit<SubscriptionDataset
 
 export default class SubscriptionDataset {
   id: number
+  reviewerId?: number | null
   name: string
   bitmapPosition: number
   metadata?: object
 
-  constructor({ id = 0, name = '', bitmapPosition = 0, metadata = {} }) {
+  constructor({ id = 0, reviewerId = 0, name = '', bitmapPosition = 0, metadata = {} }) {
     this.id = id
+    this.reviewerId = reviewerId
     this.name = name
     this.bitmapPosition = bitmapPosition
     this.metadata = metadata
@@ -33,6 +36,11 @@ export default class SubscriptionDataset {
             primaryKey: true,
             autoIncrement: true,
             unique: true,
+          },
+          reviewerId: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            field: 'reviewer_id',
           },
           name: {
             type: DataTypes.STRING,
@@ -52,9 +60,16 @@ export default class SubscriptionDataset {
           tableName: 'impresso_datasetbitmapposition',
         }
       )
+
     subscriptionDataset.prototype.toJSON = function () {
-      const { id, name, bitmapPosition, metadata } = this as any as SubscriptionDatasetAttributes
-      return new SubscriptionDataset({ id, name, bitmapPosition, metadata })
+      const { id, name, reviewerId, bitmapPosition, metadata } = this as any as SubscriptionDatasetAttributes
+      return new SubscriptionDataset({
+        id,
+        name,
+        bitmapPosition,
+        metadata,
+        reviewerId: reviewerId ?? undefined,
+      })
     }
     return subscriptionDataset
   }

@@ -13,6 +13,7 @@ export class Service {
   constructor({ app, name }: ServiceOptions) {
     this.app = app
     this.name = name
+
     this.sequelizeClient = app.get('sequelizeClient')
   }
 

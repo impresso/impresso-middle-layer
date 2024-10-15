@@ -62,6 +62,8 @@ const internalApiServices = [
   'text-reuse-connected-clusters',
   'password-reset',
   'account-details',
+  'user-requests',
+  'user-requests-reviews',
 ]
 
 export default (app: ImpressoApplication) => {
