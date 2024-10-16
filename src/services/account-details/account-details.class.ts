@@ -1,6 +1,6 @@
 import type { Sequelize } from 'sequelize'
 import type { ImpressoApplication } from '../../types'
-import UserBitmap from '../../models/user-bitmap.model'
+import UserBitmap, { BufferUserPlanAuthUser } from '../../models/user-bitmap.model'
 import User from '../../models/users.model'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
@@ -69,40 +69,18 @@ export class Service {
     debug('Updating user bitmap with terms of use acceptance, user uid:', params.user.uid)
     const [result, created] = await model.findOrCreate({
       where: { user_id: params.user.id },
+      defaults: {
+        user_id: parseInt(params.user.id, 10),
+        // set user as authenticated user
+        bitmap: Buffer.from([Number(BufferUserPlanAuthUser)]),
+        subscriptionDatasets: [],
+        dateAcceptedTerms: new Date(),
+      },
     })
-    if (created) {
-      debug('patch() User bitmap found:', result.toJSON(), 'created:', created, 'user pk:', params.user.id, params.user)
+    if (!created) {
+      debug('patch() user bitmap for user pk:', params.user.id, 'already exists, update dateAcceptedTerms.')
       await result.update({
         dateAcceptedTerms: new Date(),
-      })
-    } else {
-      // recalculate user bitmap
-      // bitmap: '1111010100010000000000000000000000000000001',
-      // get the groups of the user
-      const userModel = User.sequelize(this.sequelizeClient as Sequelize)
-      const userGroups = await userModel
-        .findAll({
-          where: {
-            id: parseInt(params.user.id, 10),
-          },
-          include: ['groups'],
-        })
-        .then((results: any[]) => {
-          if (!results || !results.length) {
-            return []
-          }
-          return results[0].groups.map((g: any) => g.name)
-        })
-      const bitmap = UserBitmap.getUpToDateBitmap(
-        {
-          ...result.toJSON(),
-          dateAcceptedTerms: new Date(),
-        },
-        userGroups
-      )
-      await result.update({
-        dateAcceptedTerms: new Date(),
-        bitmap,
       })
     }
     debug('patch() User bitmap updated:', result.toJSON(), params.user)
