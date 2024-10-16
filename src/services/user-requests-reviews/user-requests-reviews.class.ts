@@ -1,6 +1,5 @@
 import type { Sequelize } from 'sequelize'
 import type { ImpressoApplication } from '../../types'
-import User from '../../models/users.model'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
 import UserRequest from '../../models/user-requests.model'
@@ -50,13 +49,20 @@ export class Service {
       throw new Error('Sequelize client not available')
     }
     // return user bitmap
+    // return user bitmap
     const model = UserRequest.sequelize(this.sequelizeClient)
-    const [result, created] = await model.findOrCreate({
-      where: { subscriberId: params.user.id },
+    const { count: total, rows } = await model.findAndCountAll({
+      where: { reviewerId: params.user.id },
+      limit: params.query?.limit,
+      offset: params.query?.offset,
+      include: ['subscription'],
     })
-    if (created) {
-      debug('find() User bitmap found:', result.toJSON(), 'created:', created, 'user pk:', params.user.uid)
+
+    return {
+      total, // "<total number of records>",
+      limit: params.query?.limit ?? 10, // "<max number of items per page>",
+      offset: params.query?.offset ?? 0, // "<number of skipped items (offset)>",
+      data: rows.map(row => row.toJSON()), // "<array of items>"
     }
-    return result.toJSON()
   }
 }

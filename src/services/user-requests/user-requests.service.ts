@@ -32,6 +32,7 @@ export default (app: ImpressoApplication) => {
     before: {
       all: [authenticate('jwt')],
       find: [queryWithCommonParams()],
+      create: [],
     },
     after: {
       find: [],

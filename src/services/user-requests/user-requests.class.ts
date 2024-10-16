@@ -65,4 +65,13 @@ export class Service {
       data: rows.map(row => row.toJSON()), // "<array of items>"
     }
   }
+
+  async create(data: any, params: any) {
+    if (!this.sequelizeClient) {
+      throw new Error('Sequelize client not available')
+    }
+    const model = UserRequest.sequelize(this.sequelizeClient)
+    const result = await model.create(data)
+    return result.toJSON()
+  }
 }
