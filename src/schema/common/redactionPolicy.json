@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RedactionPolicy",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/RedactionPolicyItem"
+      }
+    }
+  },
+  "required": ["name", "items"],
+  "definitions": {
+    "RedactionPolicyItem": {
+      "type": "object",
+      "properties": {
+        "jsonPath": {
+          "type": "string"
+        },
+        "valueConverterName": {
+          "type": "string",
+          "enum": ["redact", "contextNotAllowedImage", "remove", "emptyArray"]
+        }
+      },
+      "required": ["jsonPath", "valueConverterName"]
+    }
+  }
+}

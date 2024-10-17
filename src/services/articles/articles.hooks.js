@@ -1,5 +1,7 @@
 import { rateLimit } from '../../hooks/rateLimiter'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { redactResponse, redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import { loadYamlFile } from '../../util/yaml'
 
 const {
   utils,
@@ -16,6 +18,8 @@ const { checkCachedContents, returnCachedContents, saveResultsInCache } = requir
 const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers')
 const { obfuscate } = require('../../hooks/access-rights')
 const { SolrMappings } = require('../../data/constants')
+
+const articleRedactionPolicy = loadYamlFile(`${__dirname}/resources/articleRedactionPolicy.yml`)
 
 module.exports = {
   around: {
@@ -90,6 +94,7 @@ module.exports = {
       resolveTopics(),
       saveResultsInCache(),
       obfuscate(),
+      redactResponseDataItem(articleRedactionPolicy, defaultCondition),
     ],
     get: [
       // save here cache, flush cache here
@@ -100,6 +105,7 @@ module.exports = {
       saveResultsInCache(),
       resolveUserAddons(),
       obfuscate(),
+      redactResponse(articleRedactionPolicy, defaultCondition),
     ],
     create: [],
     update: [],

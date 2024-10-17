@@ -1,0 +1,5 @@
+# yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
+name: tr-cluster-redaction-policy
+items:
+  - jsonPath: $.textSample
+    valueConverterName: redact

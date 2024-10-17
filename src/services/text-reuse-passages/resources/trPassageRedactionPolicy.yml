@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
+name: tr-passage-redaction-policy
+items:
+  - jsonPath: $.title
+    valueConverterName: redact
+  - jsonPath: $.content
+    valueConverterName: redact
