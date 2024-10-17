@@ -19,6 +19,7 @@ const publicApiServices = [
   'search-facets',
   'entities',
   'impresso-ner',
+  'subscriptions',
 ]
 
 const internalApiServices = [
@@ -60,6 +61,9 @@ const internalApiServices = [
   'entity-mentions-timeline',
   'text-reuse-connected-clusters',
   'password-reset',
+  'account-details',
+  'user-requests',
+  'user-requests-reviews',
 ]
 
 export default (app: ImpressoApplication) => {
