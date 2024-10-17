@@ -4,6 +4,7 @@ import UserBitmap, { BufferUserPlanAuthUser } from '../../models/user-bitmap.mod
 import User from '../../models/users.model'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
+import { time } from 'console'
 
 const debug = Debug('impresso/services:account-details')
 
@@ -73,7 +74,6 @@ export class Service {
         user_id: parseInt(params.user.id, 10),
         // set user as authenticated user
         bitmap: Buffer.from([Number(BufferUserPlanAuthUser)]),
-        subscriptionDatasets: [],
         dateAcceptedTerms: new Date(),
       },
     })
@@ -82,8 +82,19 @@ export class Service {
       await result.update({
         dateAcceptedTerms: new Date(),
       })
+      // get the bitmap from celery
+      const client = this.app.get('celeryClient')
+      if (client) {
+        debug('Updating user bitmap with terms of use acceptance using Celery')
+        await client.run({
+          task: 'impresso.tasks.update_user_bitmap_task',
+          args: [
+            // collection_uid
+            params.user.id,
+          ],
+        })
+      }
     }
-    debug('patch() User bitmap updated:', result.toJSON(), params.user)
     return result.toJSON()
   }
 }

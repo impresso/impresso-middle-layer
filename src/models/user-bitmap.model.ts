@@ -7,7 +7,7 @@ export interface UserBitmapAttributes {
   user_id: number
   bitmap: string | Buffer
   dateAcceptedTerms: Date | null
-  subscriptionDatasets: SubscriptionDatasetAttributes[]
+  subscriptionDatasets?: SubscriptionDatasetAttributes[]
 }
 
 // Define the creation attributes for the Group model
@@ -18,17 +18,12 @@ export const BufferUserPlanAuthUser = BigInt(0b11000)
 export const BufferUserPlanEducational = BigInt(0b11100)
 export const BufferUserPlanResearcher = BigInt(0b11110)
 
-export const PlanResearcher = 'plan-researcher'
-export const PlanEducational = 'plan-educational'
-
-export const MaxBitmapPositionForPlan = 5
-
 export default class UserBitmap {
   id: number
   user_id: number
   bitmap: string | Buffer
   dateAcceptedTerms: Date | null
-  subscriptionDatasets: SubscriptionDatasetAttributes[]
+  subscriptionDatasets?: SubscriptionDatasetAttributes[]
 
   constructor({
     id = 0,
@@ -42,41 +37,6 @@ export default class UserBitmap {
     this.bitmap = bitmap
     this.dateAcceptedTerms = dateAcceptedTerms
     this.subscriptionDatasets = subscriptionDatasets
-  }
-
-  static getUpToDateBitmap(userBitmap: UserBitmap, groups: Group[]): Buffer {
-    const dateAcceptedTerms = userBitmap.dateAcceptedTerms
-    if (!dateAcceptedTerms) {
-      return Buffer.from([Number(BufferUserPlanGuest)])
-    }
-    // if user accepted terms, we can check if he has a more specific plan
-    let bitmap: bigint = BufferUserPlanAuthUser
-    const groupNames: string[] = groups.map(g => g.name)
-    if (groupNames.includes(PlanResearcher)) {
-      bitmap = BufferUserPlanResearcher
-    } else if (groupNames.includes(PlanEducational)) {
-      bitmap = BufferUserPlanEducational
-    }
-    if (!Array.isArray(userBitmap.subscriptionDatasets) || userBitmap.subscriptionDatasets.length === 0) {
-      return Buffer.from([Number(bitmap)])
-    }
-    // Max bitmap position
-    const maxPosition =
-      Math.max(...userBitmap.subscriptionDatasets.map(sub => sub.bitmapPosition)) + MaxBitmapPositionForPlan + 1
-    console.log('userBitmap.subscriptionDatasets maxPosition', maxPosition)
-
-    // Shift the initial bitmap to adjust for the maximum bit position
-    bitmap = bitmap << BigInt(maxPosition - MaxBitmapPositionForPlan)
-
-    // Set bits according to the subscription bitmap positions
-    userBitmap.subscriptionDatasets.forEach(subscription => {
-      const position = subscription.bitmapPosition + MaxBitmapPositionForPlan
-      bitmap |= BigInt(1) << BigInt(maxPosition - position - 1)
-    }) // Convert the updated bitmap to a buffer
-    const buffer = Buffer.alloc(8) // Allocate 8 bytes for the bitmap (64 bits)
-    buffer.writeBigUInt64BE(bitmap) // Write the bitmap as a 64-bit unsigned integer in Big Endian format
-
-    return buffer
   }
 
   static sequelize(client: Sequelize) {
