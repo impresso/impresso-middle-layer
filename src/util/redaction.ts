@@ -3,7 +3,7 @@ import { JSONPath } from 'jsonpath-plus'
 export type Redactable = Record<string, any>
 export type ValueConverter = (value: any) => any
 
-export type DefaultConvertersNames = 'redact' | 'contextNotAllowedImage' | 'remove'
+export type DefaultConvertersNames = 'redact' | 'contextNotAllowedImage' | 'remove' | 'emptyArray'
 
 export interface RedactionPolicyItem {
   jsonPath: string
@@ -19,9 +19,10 @@ const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> = {
   redact: value => '[REDACTED]',
   contextNotAllowedImage: value => 'https://impresso-project.ch/assets/images/not-allowed.png',
   remove: value => undefined,
+  emptyArray: value => [],
 }
 
-export const redactObject = (object: Redactable, policy: RedactionPolicy): Redactable => {
+export const redactObject = <T extends Redactable>(object: T, policy: RedactionPolicy): T => {
   if (typeof object !== 'object' || object === null || Array.isArray(object)) {
     throw new Error('The provided object is not Redactable')
   }
