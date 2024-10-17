@@ -47,6 +47,10 @@
           "w": {
             "type": "number",
             "description": "TODO"
+          },
+          "avg": {
+            "type": "number",
+            "description": "TODO"
           }
         },
         "required": ["uid", "w"]

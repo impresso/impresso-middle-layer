@@ -92,7 +92,7 @@
       "description": "TODO"
     },
     "date": {
-      "oneOf": [
+      "$oneOf": [
         { "type": "string", "description": "The date of the article", "format": "date-time" },
         { "type": "null" }
       ]
@@ -110,7 +110,7 @@
       "items": { "type": "string" }
     },
     "collections": {
-      "oneOf": [
+      "$oneOf": [
         { "type": "array", "items": { "type": "string" } },
         { "type": "array", "items": { "$ref": "./Collection.json" } }
       ]
@@ -119,7 +119,7 @@
       "$ref": "./Newspaper.json"
     },
     "dataProvider": {
-      "oneOf": [{ "type": "string", "description": "The provider article" }, { "type": "null" }]
+      "$oneOf": [{ "type": "string", "description": "The provider article" }, { "type": "null" }]
     },
     "topics": {
       "type": "array",
