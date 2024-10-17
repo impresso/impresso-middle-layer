@@ -59,6 +59,7 @@ export interface SlimUser {
   uid: string
   id: number
   isStaff: boolean
+  groups: string[]
 }
 
 /**
@@ -91,6 +92,7 @@ class NoDBJWTStrategy extends JWTStrategy {
       uid: payload.userId,
       id: parseInt(payload.sub),
       isStaff: payload.isStaff ?? false,
+      groups: payload.userGroups ?? [],
     }
     return {
       ...result,

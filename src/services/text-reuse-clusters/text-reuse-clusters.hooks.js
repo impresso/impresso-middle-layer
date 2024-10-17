@@ -3,8 +3,12 @@ import { rateLimit } from '../../hooks/rateLimiter'
 import { decodeJsonQueryParameters } from '../../hooks/parameters'
 import { validate } from '../../hooks/params'
 import { parseFilters } from '../../util/queryParameters'
+import { redactResponse, redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import { loadYamlFile } from '../../util/yaml'
 
 // const { validateWithSchema } = require('../../hooks/schema')
+
+const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trClusterRedactionPolicy.yml`)
 
 module.exports = {
   around: {
@@ -30,6 +34,8 @@ module.exports = {
 
   after: {
     all: [],
+    get: [redactResponse(trPassageRedactionPolicy, defaultCondition)],
+    find: [redactResponseDataItem(trPassageRedactionPolicy, defaultCondition, 'clusters')],
     // find: [validateWithSchema('services/text-reuse-clusters/schema/find/response.json', 'result')],
     // get: [validateWithSchema('services/text-reuse-clusters/schema/get/response.json', 'result')],
     create: [],

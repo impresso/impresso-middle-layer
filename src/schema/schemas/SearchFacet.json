@@ -15,7 +15,7 @@
       "description": "The number of buckets in the facet"
     },
     "buckets": {
-      "oneOf": [
+      "$oneOf": [
         {
           "type": "array",
           "items": { "$ref": "./SearchFacetBucket.json" }
