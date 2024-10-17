@@ -1,5 +1,7 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
+import { redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import { loadYamlFile } from '../../util/yaml'
 
 const { protect } = require('@feathersjs/authentication-local').hooks
 const {
@@ -15,6 +17,8 @@ const { resolveQueryComponents, filtersToSolrFacetQuery } = require('../../hooks
 const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = require('./search.validators')
 const { SolrMappings } = require('../../data/constants')
 const { SolrNamespaces } = require('../../solr')
+
+const articleRedactionPolicy = loadYamlFile(`${__dirname}/../articles/resources/articleRedactionPolicy.yml`)
 
 module.exports = {
   around: {
@@ -93,7 +97,12 @@ module.exports = {
 
   after: {
     all: [],
-    find: [displayQueryParams(['queryComponents', 'filters']), resolveQueryComponents(), protect('content')],
+    find: [
+      displayQueryParams(['queryComponents', 'filters']),
+      resolveQueryComponents(),
+      protect('content'),
+      redactResponseDataItem(articleRedactionPolicy, defaultCondition),
+    ],
     get: [],
     create: [],
     update: [],

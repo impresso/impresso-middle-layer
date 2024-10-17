@@ -62,6 +62,7 @@ export interface SlimUser {
   id: number
   isStaff: boolean
   bitmap?: string
+  groups: string[]
 }
 
 /**
@@ -94,6 +95,7 @@ class NoDBJWTStrategy extends JWTStrategy {
       id: parseInt(payload.sub),
       bitmap: payload.bitmap ?? '1',
       isStaff: payload.isStaff ?? false,
+      groups: payload.userGroups ?? [],
     }
     return {
       ...result,
