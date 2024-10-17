@@ -44,7 +44,7 @@
           "description": "Type of the context item"
         },
         "parameters": {
-          "$oneOf": [
+          "oneOf": [
             { "$ref": "#/definitions/timeRangeContextParameters" },
             { "$ref": "#/definitions/itemContextParameters" }
           ]
