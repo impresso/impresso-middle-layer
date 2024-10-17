@@ -35,7 +35,7 @@ module.exports = {
   after: {
     all: [],
     get: [redactResponse(trPassageRedactionPolicy, defaultCondition)],
-    find: [redactResponseDataItem(trPassageRedactionPolicy, defaultCondition, "clusters")],
+    find: [redactResponseDataItem(trPassageRedactionPolicy, defaultCondition, 'clusters')],
     // find: [validateWithSchema('services/text-reuse-clusters/schema/find/response.json', 'result')],
     // get: [validateWithSchema('services/text-reuse-clusters/schema/get/response.json', 'result')],
     create: [],
