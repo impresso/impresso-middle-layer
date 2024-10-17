@@ -38,5 +38,5 @@
       "description": "Skip this many subitems. Default: 0"
     }
   },
-  "$oneOf": [{ "required": ["entityId"] }, { "required": ["mentionLabel"] }]
+  "oneOf": [{ "required": ["entityId"] }, { "required": ["mentionLabel"] }]
 }
