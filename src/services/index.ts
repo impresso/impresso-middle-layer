@@ -19,7 +19,6 @@ const publicApiServices = [
   'search-facets',
   'entities',
   'impresso-ner',
-  'subscriptions',
 ]
 
 const internalApiServices = [
@@ -59,6 +58,7 @@ const internalApiServices = [
   'articles-search',
   'entities-suggestions',
   'entity-mentions-timeline',
+  'subscriptions',
   'text-reuse-connected-clusters',
   'password-reset',
   'account-details',
