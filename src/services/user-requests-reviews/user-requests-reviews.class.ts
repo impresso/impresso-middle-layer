@@ -4,7 +4,7 @@ import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
 import UserRequest from '../../models/user-requests.model'
 
-const debug = Debug('impresso/services:user-requests')
+const debug = Debug('impresso/services:user-requests-reviews')
 
 interface Params extends FeathersParams {
   user: {
@@ -42,6 +42,7 @@ export class Service {
     this.app = app
     this.name = name
     this.sequelizeClient = app.get('sequelizeClient')
+    debug('Service initialized')
   }
 
   async find(params: Params) {
