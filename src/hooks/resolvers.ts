@@ -90,8 +90,10 @@ export const resolveCollections = () => async (context: HookContext<ImpressoAppl
 
   // get collections as dictionary
   const client = context.app.get('sequelizeClient')
-
-  const index = await Collection.sequelize(client)
+  if (!client) {
+    throw new Error('Sequelize client not available')
+  }
+  const index = (await Collection.sequelize(client)
     .findAll({
       where: {
         uid: uids,
@@ -106,7 +108,8 @@ export const resolveCollections = () => async (context: HookContext<ImpressoAppl
     .catch((err: Error) => {
       console.error('hook resolveCollections ERROR')
       console.error(err)
-    })
+      return {}
+    })) as lodash.Dictionary<any>
 
   items.forEach(d => {
     if (d.type !== 'collection') return

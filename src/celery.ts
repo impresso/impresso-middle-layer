@@ -6,6 +6,7 @@ import { CeleryConfiguration } from './configuration'
 import { logger } from './logger'
 import Job from './models/jobs.model'
 import { ImpressoApplication } from './types'
+import { AsyncResult } from 'celery-node/dist/app/result'
 
 const debug = debugModule('impresso/celery')
 
@@ -16,7 +17,7 @@ const JOB_STATUS_TRANSLATIONS: Record<string, string> = {
 }
 
 export interface CeleryClient {
-  run: (task: { task: string; args: any[] }) => void
+  run: (task: { task: string; args: any[] }) => Promise<AsyncResult>
 }
 
 const getCeleryClient = (config: CeleryConfiguration, app: ImpressoApplication) => {
@@ -56,6 +57,7 @@ const getCeleryClient = (config: CeleryConfiguration, app: ImpressoApplication) 
     debug(`run celery task ${task}`)
     const celeryTask = client.createTask(task)
     return celeryTask.applyAsync(args)
+
     // @todo: fix this and add errror mnagement
     // const result = celeryTask.applyAsync(args)
     // return result
