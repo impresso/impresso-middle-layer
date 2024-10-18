@@ -3,11 +3,15 @@ import type { ImpressoApplication } from '../../types'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
 import UserRequest from '../../models/user-requests.model'
-import { FindQueryParams } from './user-requests.schema'
 
 const debug = Debug('impresso/services:user-requests')
 
-interface Params<T> extends FeathersParams {
+export interface FindQueryParams extends FeathersParams {
+  query: {
+    offset?: number
+    limit?: number
+    order_by?: string
+  }
   user: {
     id: string
   }
@@ -45,7 +49,7 @@ export class Service {
     debug('Service initialized')
   }
 
-  async find(params: any) {
+  async find(params: FindQueryParams) {
     if (!this.sequelizeClient) {
       throw new Error('Sequelize client not available')
     }
@@ -64,14 +68,5 @@ export class Service {
       offset: params.query.offset ?? 0, // "<number of skipped items (offset)>",
       data: rows.map(row => row.toJSON()), // "<array of items>"
     }
-  }
-
-  async create(data: any, params: any) {
-    if (!this.sequelizeClient) {
-      throw new Error('Sequelize client not available')
-    }
-    const model = UserRequest.sequelize(this.sequelizeClient)
-    const result = await model.create(data)
-    return result.toJSON()
   }
 }
