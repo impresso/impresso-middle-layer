@@ -95,7 +95,7 @@ class NoDBJWTStrategy extends JWTStrategy {
       id: parseInt(payload.sub),
       bitmap: payload.bitmap ?? '1',
       isStaff: payload.isStaff ?? false,
-      groups: payload.userGroups ?? [],
+      groups: payload.groups ?? [],
     }
     return {
       ...result,

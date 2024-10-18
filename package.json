@@ -25,6 +25,7 @@
     "watch": "tsc -p ./tsconfig.json -w & tscp -w",
     "build": "tsc -p ./tsconfig.json",
     "copy-files": "tscp",
+    "mocha": "mocha --require ts-node/register",
     "test": "mocha --require ts-node/register 'test/**/*.test.{js,ts}'",
     "test-watch": "mocha --require ts-node/register --watch 'test/**/*.test.{js,ts}'",
     "integration-test": "NODE_ENV=test mocha --config ./.mocharc-integration.json 'test/integration/**/*.test.js'",

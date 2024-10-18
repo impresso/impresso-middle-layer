@@ -15,7 +15,7 @@ describe('test Service method to get users representations', () => {
     const service = app.service('users')
     const user = await service.get(process.env.USER_ID)
     assert.ok(user, 'User not found')
-    console.log('User found:', user.username)
+    console.log('User found:', user.username, 'with groups:', user.groups)
     // it should have groups
     assert.ok(user.groups, 'User has no groups')
     // it hsould have a bitmap
