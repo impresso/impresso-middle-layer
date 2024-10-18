@@ -4,7 +4,7 @@ import debug from 'debug'
 import { client as getSequelizeClient } from '../../src/sequelize'
 import configuration, { SequelizeConfiguration } from '../../src/configuration'
 
-import User from '../../src/models/users.model'
+import User, { UserAttributes } from '../../src/models/users.model'
 import UserBitmap from '../../src/models/user-bitmap.model'
 import Group from '../../src/models/groups.model'
 
@@ -61,21 +61,15 @@ describe('Test the connection with the DB', async () => {
 
   it('should return the groups if provided', () => {
     const userModel = User.sequelize(sequelizeClient)
-    const groupModel = Group.sequelize(sequelizeClient)
-
+    logger('should return the groups', userId)
     userModel
       .findOne({
         where: { id: userId },
-        include: [
-          {
-            as: 'groups',
-            model: groupModel,
-            attributes: ['name'], // Customize attributes as needed
-          },
-        ],
+        include: ['groups'],
+        logging: console.log,
       })
       .then(user => {
-        const usera: any = user
+        const usera: UserAttributes = user as any as UserAttributes
         logger(`User groups:\n - ${usera.groups.map((group: Group) => group.name).join('\n - ')}`)
       })
       .catch(err => {
