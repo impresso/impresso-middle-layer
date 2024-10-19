@@ -312,12 +312,8 @@ export default class User {
     user.belongsToMany(group, {
       as: 'groups',
       through: 'auth_user_groups',
-      foreignKey: {
-        field: 'user_id',
-      },
-      otherKey: {
-        field: 'group_id',
-      }, // replaces `categoryId`
+      foreignKey: 'user_id',
+      otherKey: 'group_id', // replaces `categoryId`
     })
 
     return user

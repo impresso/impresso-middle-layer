@@ -66,7 +66,7 @@ describe('Test the connection with the DB', async () => {
       .findOne({
         where: { id: userId },
         include: ['groups'],
-        logging: console.log,
+        // logging: console.log,
       })
       .then(user => {
         const usera: UserAttributes = user as any as UserAttributes
@@ -104,7 +104,7 @@ describe('Test the connection with the DB', async () => {
         logger(`Error: ${err}`)
         assert.fail(`Error: ${err}`)
       })
-    console.log('binary string,', binaryString)
+    logger('binary string,', binaryString)
     // test that binarysgtring contains only 0 an 1
     const expected = /^[01]+$/
     assert.ok(expected.test(binaryString), 'The binary string contains invalid characters')
@@ -114,11 +114,8 @@ describe('Test the connection with the DB', async () => {
     const userBitmapModel = UserBitmap.sequelize(sequelizeClient)
 
     userBitmapModel.findOne({ where: { user_id: userId } }).then(userBitmap => {
-      console.log('User sbscriptions', userBitmap?.toJSON())
       const userBitmapa = userBitmap as any as UserBitmap
-      userBitmapa.subscriptionDatasets?.map(dataset => {
-        console.log('Datasets:', dataset.name)
-      })
+      logger(`User subscriptions:\n - ${userBitmapa.subscriptionDatasets?.map(d => d.name).join('\n - ')}`)
     })
   })
 })
