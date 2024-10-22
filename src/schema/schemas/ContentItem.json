@@ -1,29 +1,29 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Article",
-  "description": "A journal/magazine article",
+  "title": "ContentItem",
+  "description": "A journal/magazine content item (article, advertisement, etc.)",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "uid": {
       "type": "string",
-      "description": "The unique identifier of the article"
+      "description": "The unique identifier of the content item"
     },
     "type": {
       "type": "string",
-      "description": "The type of the article. NOTE: may be empty."
+      "description": "The type of the content item. NOTE: may be empty."
     },
     "title": {
       "type": "string",
-      "description": "The title of the article"
+      "description": "The title of the content item"
     },
     "size": {
       "type": "integer",
-      "description": "The size of the article in characters"
+      "description": "The size of the content item in characters"
     },
     "nbPages": {
       "type": "integer",
-      "description": "The number of pages in this article"
+      "description": "The number of pages in this content item"
     },
     "pages": {
       "type": "array",
@@ -37,7 +37,7 @@
     },
     "excerpt": {
       "type": "string",
-      "description": "The excerpt of the article"
+      "description": "The excerpt of the content item"
     },
     "locations": {
       "type": "array",
@@ -53,7 +53,7 @@
     },
     "language": {
       "type": "string",
-      "description": "The language code of the article"
+      "description": "The language code of the content item"
     },
     "issue": {
       "$ref": "./NewspaperIssue.json"
@@ -61,13 +61,13 @@
     "matches": {
       "type": "array",
       "items": {
-        "$ref": "./ArticleMatch.json"
+        "$ref": "./ContentItemMatch.json"
       }
     },
     "regions": {
       "type": "array",
       "items": {
-        "$ref": "./ArticleRegion.json"
+        "$ref": "./ContentItemRegion.json"
       }
     },
     "regionBreaks": {
@@ -93,17 +93,17 @@
     },
     "date": {
       "oneOf": [
-        { "type": "string", "description": "The date of the article", "format": "date-time" },
+        { "type": "string", "description": "The date of the content item", "format": "date-time" },
         { "type": "null" }
       ]
     },
     "year": {
       "type": "integer",
-      "description": "The year of the article"
+      "description": "The year of the content item"
     },
     "country": {
       "type": "string",
-      "description": "The country code of the article"
+      "description": "The country code of the content item"
     },
     "tags": {
       "type": "array",
@@ -119,15 +119,15 @@
       "$ref": "./Newspaper.json"
     },
     "dataProvider": {
-      "oneOf": [{ "type": "string", "description": "The provider article" }, { "type": "null" }]
+      "oneOf": [{ "type": "string", "description": "The provider of the content item" }, { "type": "null" }]
     },
     "topics": {
       "type": "array",
-      "items": { "$ref": "./ArticleTopic.json" }
+      "items": { "$ref": "./ContentItemTopic.json" }
     },
     "content": {
       "type": "string",
-      "description": "The content of the article"
+      "description": "The content of the content item"
     },
     "mentions": {
       "type": "array",
