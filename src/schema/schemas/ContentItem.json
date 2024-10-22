@@ -110,7 +110,7 @@
       "items": { "type": "string" }
     },
     "collections": {
-      "oneOf": [
+      "anyOf": [
         { "type": "array", "items": { "type": "string" } },
         { "type": "array", "items": { "$ref": "./Collection.json" } }
       ]
