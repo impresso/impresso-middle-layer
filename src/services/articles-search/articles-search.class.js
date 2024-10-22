@@ -14,7 +14,7 @@ class ArticlesSearch {
     this.options = options || {}
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.service('cachedSolr')
-    this.articlesService = app.service('articles')
+    this.articlesService = app.service('content-items')
   }
 
   /**

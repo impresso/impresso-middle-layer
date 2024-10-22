@@ -78,6 +78,7 @@ const obfuscate = () => context => {
         }
         break
       case 'articles.get':
+      case 'content-items.get':
         if (shouldBeObfuscated(context.result.issue.accessRights)) {
           debug(
             `${prefix} issue obfuscated due to context.result.issue.accessRights: ${context.result.issue.accessRights}`
@@ -86,6 +87,7 @@ const obfuscate = () => context => {
         }
         break
       case 'articles.find':
+      case 'content-items.find':
       case 'articles-suggestions.get':
         debug(`${prefix} verify accessRights per article issue`)
         for (let i = 0, l = context.result.data.length; i < l; i += 1) {
