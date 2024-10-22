@@ -211,7 +211,7 @@ class Service {
     )
 
     const resultItems = await measureTime(
-      () => getItemsFromSolrResponse(solrResponse, this.app.service('articles'), userInfo),
+      () => getItemsFromSolrResponse(solrResponse, this.app.service('content-items'), userInfo),
       'search.find.svc.articles'
     )
     const facets = await getFacetsFromSolrResponse(solrResponse)
