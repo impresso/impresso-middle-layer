@@ -97,7 +97,7 @@ export interface ImpressoNerServiceOptions {
   impressoNerServiceBaseUrl: string
 }
 
-const MethodToUrl = { ner: 'ner', 'ner-nel': 'ner-nel' }
+const MethodToUrl = { ner: 'ner', 'ner-nel': 'ner-nel', nel: 'nel' }
 
 export class ImpressoNerService {
   baseUrl: string

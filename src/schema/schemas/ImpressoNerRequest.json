@@ -13,9 +13,9 @@
     },
     "method": {
       "type": "string",
-      "enum": ["ner", "ner-nel"],
+      "enum": ["ner", "ner-nel", "nel"],
       "default": "ner",
-      "description": "NER method to be used: `ner` (default) or `ner-nel` (named entity recognition with named entity linking)."
+      "description": "NER method to be used: `ner` (default), `ner-nel` (named entity recognition with named entity linking) and `nel` (linking only - enclose entities in [START] [END] tags)."
     }
   },
   "required": ["text"]
