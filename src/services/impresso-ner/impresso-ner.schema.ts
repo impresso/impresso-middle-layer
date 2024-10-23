@@ -2,12 +2,12 @@ import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import { getRequestBodyContent, getStandardResponses } from '../../util/openapi'
 
 export const docs: ServiceSwaggerOptions = {
-  description: 'Impresso Named Entity Recognition',
+  description: 'Various tools',
   securities: ['create'],
   operations: {
     create: {
       operationId: 'performNer',
-      description: 'Perform Named Entity Recognition of a text',
+      description: 'Perform named entity recognition (and optional named entity linking) of a text',
       requestBody: {
         content: getRequestBodyContent('ImpressoNerRequest'),
       },

@@ -3,6 +3,7 @@ import axios, { AxiosResponse } from 'axios'
 
 export interface RequestPayload {
   text: string
+  method: 'ner' | 'ner-nel'
 }
 
 interface DownstreamRequestBody {
@@ -93,20 +94,25 @@ export interface ImpressoNerResponse {
 }
 
 export interface ImpressoNerServiceOptions {
-  impressoNerServiceUrl: string
+  impressoNerServiceBaseUrl: string
 }
 
+const MethodToUrl = { ner: 'ner', 'ner-nel': 'ner-nel', nel: 'nel' }
+
 export class ImpressoNerService {
-  url: string
+  baseUrl: string
 
   constructor(options: ImpressoNerServiceOptions) {
-    this.url = options.impressoNerServiceUrl
+    this.baseUrl = options.impressoNerServiceBaseUrl
   }
 
   async create(data: RequestPayload, params: Params) {
-    const { text } = data
+    const { text, method } = data
+
+    const url = `${this.baseUrl}/${MethodToUrl[method]}/`
+
     const response = await axios.post<DownstreamResponse, AxiosResponse<DownstreamResponse>, DownstreamRequestBody>(
-      this.url,
+      url,
       { data: text }
     )
     if (response.status !== 200) {
