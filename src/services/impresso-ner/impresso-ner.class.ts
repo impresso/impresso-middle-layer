@@ -109,7 +109,7 @@ export class ImpressoNerService {
   async create(data: RequestPayload, params: Params) {
     const { text, method } = data
 
-    const url = `${this.baseUrl}/${MethodToUrl[data.method]}/`
+    const url = `${this.baseUrl}/${MethodToUrl[method]}/`
 
     const response = await axios.post<DownstreamResponse, AxiosResponse<DownstreamResponse>, DownstreamRequestBody>(
       url,
