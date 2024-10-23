@@ -10,6 +10,12 @@
       "minLength": 1,
       "maxLength": 3999,
       "description": "Text to be processed for named entity recognition"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["ner", "ner-nel"],
+      "default": "ner",
+      "description": "NER method to be used: `ner` (default) or `ner-nel` (named entity recognition with named entity linking)."
     }
   },
   "required": ["text"]
