@@ -35,6 +35,30 @@
         "org.adm",
         "org.ent",
         "org.ent.pressagency",
+        "org.ent.pressagency.AFP",
+        "org.ent.pressagency.ANSA",
+        "org.ent.pressagency.AP",
+        "org.ent.pressagency.APA",
+        "org.ent.pressagency.ATS-SDA",
+        "org.ent.pressagency.Belga",
+        "org.ent.pressagency.CTK",
+        "org.ent.pressagency.DDP-DAPD",
+        "org.ent.pressagency.DNB",
+        "org.ent.pressagency.DPA",
+        "org.ent.pressagency.Domei",
+        "org.ent.pressagency.Europapress",
+        "org.ent.pressagency.Extel",
+        "org.ent.pressagency.Havas",
+        "org.ent.pressagency.Kipa",
+        "org.ent.pressagency.Reuters",
+        "org.ent.pressagency.SPK-SMP",
+        "org.ent.pressagency.Stefani",
+        "org.ent.pressagency.TASS",
+        "org.ent.pressagency.UP-UPI",
+        "org.ent.pressagency.Wolff",
+        "org.ent.pressagency.Xinhua",
+        "org.ent.pressagency.ag",
+        "org.ent.pressagency.unk",
         "pers",
         "pers.coll",
         "pers.ind",
@@ -44,7 +68,8 @@
         "prod.media",
         "time",
         "time.date.abs",
-        "time.hour.abs"
+        "time.hour.abs",
+        "unk"
       ]
     },
     "surfaceForm": {
@@ -82,8 +107,7 @@
           "type": "number",
           "description": "Confidence score for the named entity linking"
         }
-      },
-      "required": ["ner"]
+      }
     },
     "wikidata": {
       "type": "object",
@@ -96,6 +120,10 @@
         "wikipediaPageName": {
           "type": "string",
           "description": "Wikipedia page name of the entity"
+        },
+        "wikipediaPageUrl": {
+          "type": "string",
+          "description": "Wikipedia page URL of the entity"
         }
       },
       "required": ["id"]
@@ -109,5 +137,5 @@
       "description": "Name of the entity"
     }
   },
-  "required": ["id", "type", "surfaceForm", "offset", "confidence"]
+  "required": ["id", "type", "confidence"]
 }
