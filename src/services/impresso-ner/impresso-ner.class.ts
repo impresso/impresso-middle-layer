@@ -1,5 +1,6 @@
 import type { Params } from '@feathersjs/feathers'
-import axios, { AxiosResponse } from 'axios'
+import { Agent, request } from 'undici'
+import { logger } from '../../logger'
 
 export interface RequestPayload {
   text: string
@@ -157,15 +158,36 @@ export class ImpressoNerService {
 
     const url = `${this.baseUrl}/${MethodToUrl[method]}/`
 
-    const response = await axios.post<DownstreamResponse, AxiosResponse<DownstreamResponse>, DownstreamRequestBody>(
-      url,
-      { data: text }
-    )
-    if (response.status !== 200) {
-      console.error(`Failed to fetch downstream data. Error (${response.status}): `, response.data)
+    const response = await request(url, {
+      method: 'POST',
+      body: JSON.stringify({ data: text }),
+      headers: { 'Content-Type': 'application/json' },
+      dispatcher: new Agent({
+        connectTimeout: 1 * 60 * 1000, // 1 minute
+        headersTimeout: 5 * 60 * 1000, // 5 minutes
+        bodyTimeout: 5 * 60 * 1000, // 5 minutes
+      }),
+    })
+
+    if (response.statusCode !== 200) {
+      let bodyText = ''
+      try {
+        bodyText = await response.body.text()
+      } catch {
+        /* ignore */
+      }
+
+      logger.error(`Failed to fetch downstream data. Error (${response.statusCode}): `, bodyText)
       throw new Error('Failed to fetch downstream data')
     }
-    return convertDownstreamResponse(response.data, data)
+
+    try {
+      const responseBody = await response.body.json()
+      return convertDownstreamResponse(responseBody as DownstreamResponse, data)
+    } catch (error) {
+      logger.error('Failed to parse downstream response', error)
+      throw new Error('Failed to parse downstream response')
+    }
   }
 }
 
