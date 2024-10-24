@@ -107,8 +107,7 @@
           "type": "number",
           "description": "Confidence score for the named entity linking"
         }
-      },
-      "required": ["ner"]
+      }
     },
     "wikidata": {
       "type": "object",
@@ -121,6 +120,10 @@
         "wikipediaPageName": {
           "type": "string",
           "description": "Wikipedia page name of the entity"
+        },
+        "wikipediaPageUrl": {
+          "type": "string",
+          "description": "Wikipedia page URL of the entity"
         }
       },
       "required": ["id"]
@@ -134,5 +137,5 @@
       "description": "Name of the entity"
     }
   },
-  "required": ["id", "type", "surfaceForm", "offset", "confidence"]
+  "required": ["id", "type", "confidence"]
 }

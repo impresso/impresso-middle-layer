@@ -72,6 +72,7 @@ type NerType =
   | 'time.date.abs'
   | 'time.hour.abs'
   | 'unk'
+  | 'UNK'
 
 /**
  * See https://github.com/impresso/impresso-schemas/blob/31-revise-entity-json-schema/json/entities/entities.schema.json
@@ -92,7 +93,7 @@ interface DownstreamNes {
 
   // optional:
   confidence_nel?: number // named entity linking confidence score
-  confidence_ner: number // named entity recognition confidence score
+  confidence_ner?: number // named entity recognition confidence score
 
   wkd_id?: string // Wikidata ID
   wkpedia_pagename?: string // Wikipedia page name
@@ -121,7 +122,7 @@ export interface ImpressoNerEntity {
   surfaceForm?: string
   offset?: { start: number; end: number }
   isTypeNested: boolean
-  confidence: { ner: number; nel?: number }
+  confidence: { ner?: number; nel?: number }
   wikidata?: {
     id: string
     wikipediaPageName?: string
@@ -177,7 +178,7 @@ const convertDownstreamResponse = (response: DownstreamResponse, request: Reques
 
 const convertDownstreamEntity = (entity: DownstreamNes): ImpressoNerEntity => ({
   id: typeof entity.id === 'string' ? entity.id : entity.id.join(','),
-  type: entity.type,
+  type: sanitizeType(entity.type),
   ...(entity.surface != null ? { surfaceForm: entity.surface } : {}),
   ...(entity.lOffset != null && entity.rOffset != null
     ? { offset: { start: entity.lOffset, end: entity.rOffset } }
@@ -189,10 +190,15 @@ const convertDownstreamEntity = (entity: DownstreamNes): ImpressoNerEntity => ({
         wikidata: {
           id: entity.wkd_id,
           wikipediaPageName: entity.wkpedia_pagename,
-          wikipediaPageUrl: entity.wkpedia_url,
+          wikipediaPageUrl: [null, undefined, 'N/A'].includes(entity.wkpedia_url) ? undefined : entity.wkpedia_url,
         },
       }
     : {}),
   ...(entity.function != null ? { function: entity.function } : {}),
   ...(entity.name != null ? { name: entity.name } : {}),
 })
+
+const sanitizeType = (type: NerType): NerType => {
+  if (type === 'UNK') return 'unk'
+  return type
+}
