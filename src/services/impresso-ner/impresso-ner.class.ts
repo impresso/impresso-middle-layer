@@ -13,6 +13,7 @@ interface DownstreamRequestBody {
 // See
 // https://github.com/impresso/impresso-annotation/blob/740a31e2c925e4a4d59be97710e390871754674d/frontend/impresso_annotation/templates/landing_page.html#L157
 // https://github.com/impresso/newsagency-classification/blob/7031c3992edf0d4354d9a29dea769fe7320f455f/lib/bert_classification/HIPE-scorer/tagset.txt
+// https://github.com/impresso/impresso-schemas/blob/31-revise-entity-json-schema/json/entities/entities.schema.json
 type NerType =
   | 'comp.demonym'
   | 'comp.function'
@@ -36,6 +37,30 @@ type NerType =
   | 'org.adm'
   | 'org.ent'
   | 'org.ent.pressagency'
+  | 'org.ent.pressagency.AFP'
+  | 'org.ent.pressagency.ANSA'
+  | 'org.ent.pressagency.AP'
+  | 'org.ent.pressagency.APA'
+  | 'org.ent.pressagency.ATS-SDA'
+  | 'org.ent.pressagency.Belga'
+  | 'org.ent.pressagency.CTK'
+  | 'org.ent.pressagency.DDP-DAPD'
+  | 'org.ent.pressagency.DNB'
+  | 'org.ent.pressagency.DPA'
+  | 'org.ent.pressagency.Domei'
+  | 'org.ent.pressagency.Europapress'
+  | 'org.ent.pressagency.Extel'
+  | 'org.ent.pressagency.Havas'
+  | 'org.ent.pressagency.Kipa'
+  | 'org.ent.pressagency.Reuters'
+  | 'org.ent.pressagency.SPK-SMP'
+  | 'org.ent.pressagency.Stefani'
+  | 'org.ent.pressagency.TASS'
+  | 'org.ent.pressagency.UP-UPI'
+  | 'org.ent.pressagency.Wolff'
+  | 'org.ent.pressagency.Xinhua'
+  | 'org.ent.pressagency.ag'
+  | 'org.ent.pressagency.unk'
   | 'pers'
   | 'pers.coll'
   | 'pers.ind'
@@ -46,27 +71,46 @@ type NerType =
   | 'time'
   | 'time.date.abs'
   | 'time.hour.abs'
+  | 'unk'
 
+/**
+ * See https://github.com/impresso/impresso-schemas/blob/31-revise-entity-json-schema/json/entities/entities.schema.json
+ */
 interface DownstreamNes {
+  // fields not in the schema
+  index?: number // index
+  id: string | string[]
+  nested: boolean // is nested
+
+  // fields from the schema
+
+  // required:
+  lOffset: number | null // left offset
+  rOffset: number | null // right offset
+  surface: string | null // surface form (text)
+  type: NerType
+
+  // optional:
   confidence_nel?: number // named entity linking confidence score
   confidence_ner: number // named entity recognition confidence score
-  id: string
-  lOffset: number // left offset
-  nested: boolean // is nested
-  rOffset: number // right offset
-  surface: string // surface form (text)
-  type: NerType
 
   wkd_id?: string // Wikidata ID
   wkpedia_pagename?: string // Wikipedia page name
+  wkpedia_url?: string // Wikipedia URL
 
   function?: string // function
   name?: string // entity name
+
+  title?: string
 }
 
+/**
+ * Loosely based on https://github.com/impresso/impresso-schemas/blob/31-revise-entity-json-schema/json/entities/entities.schema.json
+ * Some extra fields come from https://github.com/impresso/impresso-annotation/blob/main/backend/model_handler.py
+ */
 interface DownstreamResponse {
   sys_id: string // model id
-  text: string // input text
+  text?: string // input text
   ts: string // ISO timestamp
   nes: DownstreamNes[]
 }
@@ -74,13 +118,14 @@ interface DownstreamResponse {
 export interface ImpressoNerEntity {
   id: string
   type: NerType
-  surfaceForm: string
-  offset: { start: number; end: number }
+  surfaceForm?: string
+  offset?: { start: number; end: number }
   isTypeNested: boolean
   confidence: { ner: number; nel?: number }
   wikidata?: {
     id: string
     wikipediaPageName?: string
+    wikipediaPageUrl?: string
   }
   function?: string
   name?: string
@@ -119,27 +164,33 @@ export class ImpressoNerService {
       console.error(`Failed to fetch downstream data. Error (${response.status}): `, response.data)
       throw new Error('Failed to fetch downstream data')
     }
-    return convertDownstreamResponse(response.data)
+    return convertDownstreamResponse(response.data, data)
   }
 }
 
-const convertDownstreamResponse = (response: DownstreamResponse): ImpressoNerResponse => ({
+const convertDownstreamResponse = (response: DownstreamResponse, request: RequestPayload): ImpressoNerResponse => ({
   modelId: response.sys_id,
-  text: response.text,
+  text: response.text != null ? response.text : request.text,
   timestamp: response.ts,
   entities: response.nes.map(convertDownstreamEntity),
 })
 
 const convertDownstreamEntity = (entity: DownstreamNes): ImpressoNerEntity => ({
-  id: entity.id,
+  id: typeof entity.id === 'string' ? entity.id : entity.id.join(','),
   type: entity.type,
-  surfaceForm: entity.surface,
-  offset: { start: entity.lOffset, end: entity.rOffset },
+  ...(entity.surface != null ? { surfaceForm: entity.surface } : {}),
+  ...(entity.lOffset != null && entity.rOffset != null
+    ? { offset: { start: entity.lOffset, end: entity.rOffset } }
+    : {}),
   isTypeNested: entity.nested,
   confidence: { ner: entity.confidence_ner, nel: entity.confidence_nel },
   ...(entity.wkd_id != null && entity.wkd_id != 'NIL'
     ? {
-        wikidata: { id: entity.wkd_id, wikipediaPageName: entity.wkpedia_pagename },
+        wikidata: {
+          id: entity.wkd_id,
+          wikipediaPageName: entity.wkpedia_pagename,
+          wikipediaPageUrl: entity.wkpedia_url,
+        },
       }
     : {}),
   ...(entity.function != null ? { function: entity.function } : {}),
