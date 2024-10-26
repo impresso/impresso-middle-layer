@@ -3,7 +3,7 @@ import { protobuf } from 'impresso-jscommons'
 
 export const parseOrderBy = (orderBy: string, keyFieldMap: Record<string, string> = {}) => {
   if (orderBy == null) return []
-  const isDescending = orderBy.startsWith('-')
+  const isDescending = orderBy?.startsWith('-')
   const orderKey = orderBy.replace(/^-/, '')
   const field = keyFieldMap[orderKey]
   return field != null ? [field, isDescending] : []

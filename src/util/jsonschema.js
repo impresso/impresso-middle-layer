@@ -9,7 +9,7 @@ ajv.addSchema(require('../schema/find.json'))
 ajv.addSchema(require('../schema/addons.json'))
 
 function validated(obj, schemaUri) {
-  const uri = schemaUri.startsWith('http') ? schemaUri : `${BaseSchemaURI}/${schemaUri}`
+  const uri = schemaUri?.startsWith('http') ? schemaUri : `${BaseSchemaURI}/${schemaUri}`
   const validate = ajv.getSchema(uri)
 
   if (validate === undefined) {

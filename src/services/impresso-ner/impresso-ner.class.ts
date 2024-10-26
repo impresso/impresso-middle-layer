@@ -172,12 +172,12 @@ export class ImpressoNerService {
     if (response.statusCode !== 200) {
       let bodyText = ''
       try {
-        bodyText = await response.body.text()
+        bodyText = String(await response.body.text())
       } catch {
         /* ignore */
       }
 
-      logger.error(`Failed to fetch downstream data. Error (${response.statusCode}): `, bodyText)
+      logger.error(`Failed to fetch downstream data. Error (${response.statusCode}): ${bodyText}`)
       throw new Error('Failed to fetch downstream data')
     }
 
