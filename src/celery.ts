@@ -9,7 +9,7 @@ import { ImpressoApplication } from './types'
 
 const debug = debugModule('impresso/celery')
 
-const JOB_STATUS_TRANSLATIONS: Record<string, string> = {
+export const JobStatusTranslations: Record<string, string> = {
   REA: 'A new job has been created',
   RUN: 'Job is doing its job ...',
   DON: 'Job done! Congrats.',
@@ -41,7 +41,7 @@ const getCeleryClient = (config: CeleryConfiguration, app: ImpressoApplication) 
               ...result.job,
               creationDate: result.job.date_created,
             }),
-            msg: JOB_STATUS_TRANSLATIONS[result.job.status],
+            msg: JobStatusTranslations[result.job.status],
             to: result.user_uid,
             from: 'jobs',
           })
