@@ -26,7 +26,7 @@ export interface ContentItem {
   /**
    * The type of the content item.
    */
-  type: "aricle" | "advert" | "obituary";
+  type: "article" | "advert" | "obituary";
   /**
    * The title of the content item
    */

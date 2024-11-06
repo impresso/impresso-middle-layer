@@ -1,6 +1,8 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
-import { redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import { redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
+import { transformResponseDataItem } from '../../hooks/transformation'
+import { transformContentItem } from '../../transformers/contentItem'
 import { loadYamlFile } from '../../util/yaml'
 
 const { protect } = require('@feathersjs/authentication-local').hooks
@@ -101,6 +103,7 @@ module.exports = {
       displayQueryParams(['queryComponents', 'filters']),
       resolveQueryComponents(),
       protect('content'),
+      transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(articleRedactionPolicy, defaultCondition),
     ],
     get: [],

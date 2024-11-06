@@ -13,7 +13,7 @@
     "type": {
       "type": "string",
       "description": "The type of the content item.",
-      "enum": ["aricle", "advert", "obituary"]
+      "enum": ["article", "advert", "obituary"]
     },
     "title": {
       "type": "string",
