@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Collection",
+  "description": "Description of the collection object (Collection class)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["uid"],
+  "properties": {
+    "uid": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50
+    }
+  }
+}

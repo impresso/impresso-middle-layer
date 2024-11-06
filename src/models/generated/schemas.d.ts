@@ -7,33 +7,148 @@
  */
 
 
+export interface BaseFind {
+  /**
+   * The number of items returned in this response
+   */
+  limit: number;
+  /**
+   * Starting index of the items subset returned in this response
+   */
+  offset: number;
+  /**
+   * The total number of items matching the query
+   */
+  total: number;
+  /**
+   * Additional information about the response.
+   */
+  info: {
+    [k: string]: unknown;
+  };
+  data: unknown[];
+}
+
+
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+
+
 export type StatusOfTheCollection = string;
 export type NumberOfItemsInTheCollection = number | string;
 export type UniqueIdentifierForTheUser = string;
 export type UniqueUsernameForTheUserForOtherHumans = string;
 
 /**
- * A journal/magazine article
+ * Collectable item group object
  */
-export interface Article {
+export interface CollectableItemGroup {
   /**
-   * The unique identifier of the article
+   * The id of the collectable item group
+   */
+  itemId?: string;
+  /**
+   * Content type of the collectable item group: (A)rticle, (E)ntities, (P)ages, (I)ssues
+   */
+  contentType?: "A" | "E" | "P" | "I";
+  /**
+   * Ids of the collections
+   */
+  collectionIds?: string[];
+  /**
+   * Search queries
+   */
+  searchQueries?: string[];
+  /**
+   * Collection objects
+   */
+  collections?: Collection[];
+  /**
+   * The latest date added to the collectable item group
+   */
+  latestDateAdded?: string;
+  [k: string]: unknown;
+}
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+
+
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+
+
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+/**
+ * A journal/magazine content item (article, advertisement, etc.)
+ */
+export interface ContentItem {
+  /**
+   * The unique identifier of the content item
    */
   uid: string;
   /**
-   * The type of the article. NOTE: may be empty.
+   * The type of the content item. NOTE: may be empty.
    */
   type: string;
   /**
-   * The title of the article
+   * The title of the content item
    */
   title: string;
   /**
-   * The size of the article in characters
+   * The size of the content item in characters
    */
   size: number;
   /**
-   * The number of pages in this article
+   * The number of pages in this content item
    */
   nbPages: number;
   pages: Page[];
@@ -42,18 +157,18 @@ export interface Article {
    */
   isCC: boolean;
   /**
-   * The excerpt of the article
+   * The excerpt of the content item
    */
   excerpt: string;
   locations?: Entity[];
   persons?: Entity[];
   /**
-   * The language code of the article
+   * The language code of the content item
    */
   language?: string;
   issue?: NewspaperIssue;
-  matches?: ArticleMatch[];
-  regions?: ArticleRegion[];
+  matches?: ContentItemMatch[];
+  regions?: ContentItemRegion[];
   regionBreaks?: number[];
   contentLineBreaks?: number[];
   /**
@@ -67,20 +182,20 @@ export interface Article {
   isFront?: boolean;
   date?: string | null;
   /**
-   * The year of the article
+   * The year of the content item
    */
   year: number;
   /**
-   * The country code of the article
+   * The country code of the content item
    */
   country?: string;
   tags?: string[];
   collections?: string[] | Collection[];
   newspaper?: Newspaper;
   dataProvider?: string | null;
-  topics?: ArticleTopic[];
+  topics?: ContentItemTopic[];
   /**
-   * The content of the article
+   * The content of the content item
    */
   content?: string;
   mentions?: {
@@ -197,7 +312,7 @@ export interface NewspaperIssue {
 /**
  * TODO
  */
-export interface ArticleMatch {
+export interface ContentItemMatch {
   /**
    * TODO
    */
@@ -218,7 +333,7 @@ export interface ArticleMatch {
 /**
  * TODO
  */
-export interface ArticleRegion {
+export interface ContentItemRegion {
   pageUid: string;
   coords: number[];
   /**
@@ -332,7 +447,7 @@ export interface NewspaperProperty {
 /**
  * TODO
  */
-export interface ArticleTopic {
+export interface ContentItemTopic {
   topic?: Topic;
   /**
    * TODO
@@ -384,6 +499,10 @@ export interface Topic {
      * TODO
      */
     w: number;
+    /**
+     * TODO
+     */
+    avg?: number;
   }[];
   /**
    * TODO
@@ -424,7 +543,7 @@ export interface TopicWord {
 /**
  * TODO
  */
-export interface ArticleMatch {
+export interface ContentItemMatch {
   /**
    * TODO
    */
@@ -447,7 +566,7 @@ export interface ArticleMatch {
 /**
  * TODO
  */
-export interface ArticleRegion {
+export interface ContentItemRegion {
   pageUid: string;
   coords: number[];
   /**
@@ -468,7 +587,7 @@ export interface ArticleRegion {
 /**
  * TODO
  */
-export interface ArticleTopic {
+export interface ContentItemTopic {
   topic?: Topic;
   /**
    * TODO
@@ -520,6 +639,10 @@ export interface Topic {
      * TODO
      */
     w: number;
+    /**
+     * TODO
+     */
+    avg?: number;
   }[];
   /**
    * TODO
@@ -554,208 +677,6 @@ export interface TopicWord {
    * TODO
    */
   h?: string[];
-}
-
-
-/**
- * Request body for the authentication endpoint
- */
-export interface AuthenticationCreateRequest {
-  strategy: "local" | "jwt-app";
-  email?: string;
-  password?: string;
-  accessToken?: string;
-  [k: string]: unknown;
-}
-
-
-/**
- * Authentication Response
- */
-export interface AuthenticationResponse {
-  accessToken: string;
-  authentication: {
-    strategy?: string;
-    payload?: {
-      [k: string]: unknown;
-    };
-    [k: string]: unknown;
-  };
-  user: User;
-}
-/**
- * User details
- */
-export interface User {
-  id: number;
-  username: string;
-  firstname: string;
-  lastname: string;
-  isStaff: boolean;
-  isActive: boolean;
-  isSuperuser: boolean;
-  uid: string;
-}
-
-
-export interface BaseFind {
-  /**
-   * The number of items returned in this response
-   */
-  limit: number;
-  /**
-   * Starting index of the items subset returned in this response
-   */
-  offset: number;
-  /**
-   * The total number of items matching the query
-   */
-  total: number;
-  /**
-   * Additional information about the response.
-   */
-  info: {
-    [k: string]: unknown;
-  };
-  data: unknown[];
-}
-
-
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
-}
-
-
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
-/**
- * Collectable item group object
- */
-export interface CollectableItemGroup {
-  /**
-   * The id of the collectable item group
-   */
-  itemId?: string;
-  /**
-   * Content type of the collectable item group: (A)rticle, (E)ntities, (P)ages, (I)ssues
-   */
-  contentType?: "A" | "E" | "P" | "I";
-  /**
-   * Ids of the collections
-   */
-  collectionIds?: string[];
-  /**
-   * Search queries
-   */
-  searchQueries?: string[];
-  /**
-   * Collection objects
-   */
-  collections?: Collection[];
-  /**
-   * The latest date added to the collectable item group
-   */
-  latestDateAdded?: string;
-  [k: string]: unknown;
-}
-/**
- * Description of the collection object (Collection class)
- */
-export interface Collection {
-  uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
-}
-
-
-/**
- * Request to update collectible items in a collection
- */
-export interface CollectableItemsUpdatedResponse {
-  /**
-   * Total number of items added to the collection
-   */
-  totalAdded: number;
-  /**
-   * Total number of items removed from the collection
-   */
-  totalRemoved: number;
-  [k: string]: unknown;
-}
-
-
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
-/**
- * Description of the collection object (Collection class)
- */
-export interface Collection {
-  uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
-}
-
-
-/**
- * Remove collection response
- */
-export interface RemoveCollectionResponse {
-  params: {
-    /**
-     * The collection id
-     */
-    id?: string;
-    /**
-     * The status of the operation
-     */
-    status?: "DEL";
-  };
-  /**
-   * Deletion task details
-   */
-  task: {
-    /**
-     * The ID of the task
-     */
-    task_id?: string;
-    /**
-     * When task was created
-     */
-    creationDate?: string;
-  };
 }
 
 
@@ -830,48 +751,6 @@ export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
 
 
 /**
- * Error response that follows https://datatracker.ietf.org/doc/html/rfc7807#section-3.1
- */
-export interface Error {
-  /**
-   * A URI reference [RFC3986] that identifies the problem type.
-   */
-  type: string;
-  /**
-   * A short, human-readable summary of the problem type.
-   */
-  title: string;
-  /**
-   * The HTTP status code ([RFC7231], Section 6)
-   */
-  status: number;
-  /**
-   * A human-readable explanation specific to this occurrence of the problem.
-   */
-  detail?: string;
-  [k: string]: unknown;
-}
-
-
-/**
- * A single filter criteria
- */
-export interface Filter {
-  context?: "include" | "exclude";
-  op?: "AND" | "OR";
-  /**
-   * Possible values are in 'search.validators:eachFilterValidator.type.choices'
-   */
-  type: string;
-  precision?: "fuzzy" | "soft" | "exact" | "partial";
-  q?: string | string[];
-  daterange?: string;
-  uids?: string;
-  uid?: string;
-}
-
-
-/**
  * ID of the text reuse passage
  */
 export type PassageID = string;
@@ -939,197 +818,6 @@ export interface TextReuseClusterDetails {
    * Resolution for the 'date' facet
    */
   resolution?: "year" | "month" | "day";
-}
-
-
-/**
- * Impresso NER entity
- */
-export interface ImpressoNamedEntityRecognitionEntity {
-  /**
-   * ID of the entity
-   */
-  id: string;
-  /**
-   * Type of the entity
-   */
-  type:
-    | "comp.demonym"
-    | "comp.function"
-    | "comp.name"
-    | "comp.qualifier"
-    | "comp.title"
-    | "loc"
-    | "loc.add.elec"
-    | "loc.add.phys"
-    | "loc.adm.nat"
-    | "loc.adm.reg"
-    | "loc.adm.sup"
-    | "loc.adm.town"
-    | "loc.fac"
-    | "loc.oro"
-    | "loc.phys.astro"
-    | "loc.phys.geo"
-    | "loc.phys.hydro"
-    | "loc.unk"
-    | "org"
-    | "org.adm"
-    | "org.ent"
-    | "org.ent.pressagency"
-    | "pers"
-    | "pers.coll"
-    | "pers.ind"
-    | "pers.ind.articleauthor"
-    | "prod"
-    | "prod.doctr"
-    | "prod.media"
-    | "time"
-    | "time.date.abs"
-    | "time.hour.abs";
-  /**
-   * Surface form of the entity
-   */
-  surfaceForm: string;
-  offset: {
-    /**
-     * Start offset of the entity in the text
-     */
-    start: number;
-    /**
-     * End offset of the entity in the text
-     */
-    end: number;
-  };
-  /**
-   * Whether the entity type is nested
-   */
-  isTypeNested: boolean;
-  confidence: {
-    /**
-     * Confidence score for the named entity recognition
-     */
-    ner: number;
-    /**
-     * Confidence score for the named entity linking
-     */
-    nel?: number;
-  };
-}
-
-
-/**
- * Request body for the Impresso NER endpoint
- */
-export interface ImpressoNamedEntityRecognitionRequest {
-  /**
-   * Text to be processed for named entity recognition
-   */
-  text: string;
-}
-
-
-/**
- * Response of the Impresso NER endpoint
- */
-export interface ImpressoNamedEntityRecognitionResponse {
-  /**
-   * ID of the model used for the named entity recognition
-   */
-  modelId: string;
-  /**
-   * Text processed for named entity recognition
-   */
-  text: string;
-  /**
-   * Timestamp of when named entity recognition was performed
-   */
-  timestamp: string;
-  entities: ImpressoNamedEntityRecognitionEntity[];
-}
-/**
- * Impresso NER entity
- */
-export interface ImpressoNamedEntityRecognitionEntity {
-  /**
-   * ID of the entity
-   */
-  id: string;
-  /**
-   * Type of the entity
-   */
-  type:
-    | "comp.demonym"
-    | "comp.function"
-    | "comp.name"
-    | "comp.qualifier"
-    | "comp.title"
-    | "loc"
-    | "loc.add.elec"
-    | "loc.add.phys"
-    | "loc.adm.nat"
-    | "loc.adm.reg"
-    | "loc.adm.sup"
-    | "loc.adm.town"
-    | "loc.fac"
-    | "loc.oro"
-    | "loc.phys.astro"
-    | "loc.phys.geo"
-    | "loc.phys.hydro"
-    | "loc.unk"
-    | "org"
-    | "org.adm"
-    | "org.ent"
-    | "org.ent.pressagency"
-    | "pers"
-    | "pers.coll"
-    | "pers.ind"
-    | "pers.ind.articleauthor"
-    | "prod"
-    | "prod.doctr"
-    | "prod.media"
-    | "time"
-    | "time.date.abs"
-    | "time.hour.abs";
-  /**
-   * Surface form of the entity
-   */
-  surfaceForm: string;
-  offset: {
-    /**
-     * Start offset of the entity in the text
-     */
-    start: number;
-    /**
-     * End offset of the entity in the text
-     */
-    end: number;
-  };
-  /**
-   * Whether the entity type is nested
-   */
-  isTypeNested: boolean;
-  confidence: {
-    /**
-     * Confidence score for the named entity recognition
-     */
-    ner: number;
-    /**
-     * Confidence score for the named entity linking
-     */
-    nel?: number;
-  };
-}
-
-
-export type StatusOfTheCollection = string;
-
-/**
- * Create new collection request
- */
-export interface NewCollection {
-  name: string;
-  description?: string;
-  status?: StatusOfTheCollection;
 }
 
 
@@ -1592,6 +1280,10 @@ export interface Topic {
      * TODO
      */
     w: number;
+    /**
+     * TODO
+     */
+    avg?: number;
   }[];
   /**
    * TODO
@@ -1891,6 +1583,10 @@ export interface Topic {
      * TODO
      */
     w: number;
+    /**
+     * TODO
+     */
+    avg?: number;
   }[];
   /**
    * TODO
@@ -2248,6 +1944,10 @@ export interface Topic {
      * TODO
      */
     w: number;
+    /**
+     * TODO
+     */
+    avg?: number;
   }[];
   /**
    * TODO
@@ -2305,22 +2005,6 @@ export interface TopicWord {
 
 
 /**
- * Request to update collectible items in a collection
- */
-export interface UpdateCollectableItems {
-  /**
-   * IDs of the items to add to the collection
-   */
-  add?: string[];
-  /**
-   * IDs of the items to remove from the collection
-   */
-  remove?: string[];
-  [k: string]: unknown;
-}
-
-
-/**
  * User details
  */
 export interface User {
@@ -2332,46 +2016,6 @@ export interface User {
   isActive: boolean;
   isSuperuser: boolean;
   uid: string;
-}
-
-
-/**
- * Version of the API. Contains information about the current version of the API, features, etc.
- */
-export interface APIVersion {
-  solr: {
-    endpoints?: {
-      [k: string]: string;
-    };
-    [k: string]: unknown;
-  };
-  mysql: {
-    endpoint?: string;
-    [k: string]: unknown;
-  };
-  version: string;
-  apiVersion: {
-    branch?: string;
-    revision?: string;
-    version?: string;
-    [k: string]: unknown;
-  };
-  documentsDateSpan: {
-    start?: string;
-    end?: string;
-    [k: string]: unknown;
-  };
-  newspapers: {
-    [k: string]: {
-      name?: string;
-      [k: string]: unknown;
-    };
-  };
-  features: {
-    [k: string]: {
-      [k: string]: unknown;
-    };
-  };
 }
 
 

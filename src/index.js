@@ -2,6 +2,7 @@ const debug = require('debug')('impresso/index')
 const app = require('./app')
 const port = app.get('port')
 const host = app.get('host')
+const { logger } = require('./logger')
 
 process.on('unhandledRejection', reason => {
   // show track
@@ -14,7 +15,7 @@ process.on('uncaughtException', err => {
 async function start() {
   debug(`Server: starting on http://${host}:${port}...`)
   const server = await app.listen(port, () => {
-    debug(`Server @listening application started on http://${host}:${port}`)
+    logger.info(`Server listening application started on http://${host}:${port}`)
   })
 
   server.on('error', err => {

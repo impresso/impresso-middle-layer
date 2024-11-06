@@ -83,7 +83,7 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
 
   // app.use(middlewares as any)
   middlewares.forEach((middleware, index) => {
-    logger.debug('Install', middleware)
+    logger.debug(`Install middleware: ${middleware.name}`)
     app.use((req, res, next) => {
       const handler = app.get('openApiValidatorMiddlewares')[index]
       handler(req, res, next)
@@ -129,12 +129,17 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
       'OpenAPI middleware options not found. Have you called the `init` hook before installing the middleware?'
     )
 
-  await dereferenceSpec(spec)
+  try {
+    await dereferenceSpec(spec)
+  } catch (error) {
+    logger.error('Failed to dereference OpenAPI spec', error)
+    throw error
+  }
 
   const middlewares = OpenApiValidator.middleware({ ...options, apiSpec: spec })
   app.set('openApiValidatorMiddlewares', middlewares)
 
-  logger.info('OpenAPI validator middleware intialised')
+  logger.info('OpenAPI validator middleware initialised')
   await next()
 }
 

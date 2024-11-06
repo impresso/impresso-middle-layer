@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Newspaper",
+  "description": "A newspaper",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "The unique identifier of the newspaper"
+    }
+  },
+  "required": ["uid"]
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/text-reuse-clusters/schema/find/response.json",
+  "title": "FindTextReuseClustersResponse",
+  "description": "Response for GET /text-reuse-clusters",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "clusters": {
+      "type": "array",
+      "items": {}
+    },
+    "info": {
+      "limit": {
+        "type": "integer",
+        "description": "The number of items returned in this response"
+      },
+      "offset": {
+        "type": "integer",
+        "description": "Starting index of the items subset returned in this response"
+      },
+      "total": {
+        "type": "integer",
+        "description": "The total number of items matching the query"
+      }
+    }
+  },
+  "required": ["clusters", "info"]
+}
