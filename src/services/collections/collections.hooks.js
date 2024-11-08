@@ -1,5 +1,9 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
+import { transformResponseDataItem, transformResponse } from '../../hooks/transformation'
+import { inPublicApi } from '../../hooks/redaction'
+import { transformCollection } from '../../transformers/collection'
+
 const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params')
 
 const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model')
@@ -85,11 +89,11 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
-    get: [],
-    create: [],
+    find: [transformResponseDataItem(transformCollection, inPublicApi)],
+    get: [transformResponse(transformCollection, inPublicApi)],
+    create: [transformResponse(transformCollection, inPublicApi)],
     update: [],
-    patch: [],
+    patch: [transformResponse(transformCollection, inPublicApi)],
     remove: [],
   },
 

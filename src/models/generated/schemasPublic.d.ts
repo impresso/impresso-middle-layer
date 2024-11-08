@@ -8,10 +8,37 @@
 
 
 /**
- * Description of the collection object (Collection class)
+ * Collection details.
  */
 export interface Collection {
+  /**
+   * Unique identifier of the collection.
+   */
   uid: string;
+  /**
+   * Title of the collection.
+   */
+  title: string;
+  /**
+   * Description of the collection.
+   */
+  description: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel: "public" | "private";
+  /**
+   * Creation date of the collection.
+   */
+  createdAt: string;
+  /**
+   * Last update date of the collection.
+   */
+  updatedAt: string;
+  /**
+   * Total number of items in the collection.
+   */
+  totalItems: number;
 }
 
 
