@@ -144,6 +144,9 @@ export class TextReuseClusters {
     return {
       clusters: buildResponseClusters(clusters, clusterIdsAndText),
       info,
+      total: info.total,
+      limit: info.limit,
+      offset: info.offset,
     }
   }
 

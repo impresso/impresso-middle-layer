@@ -61,8 +61,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'FindTextReuseClustersResponse',
-        standardPagination: false,
+        schema: 'TextReuseCluster',
       }),
     },
     get: {
@@ -71,7 +70,7 @@ export const docs: ServiceSwaggerOptions = {
       parameters: getParameters,
       responses: getStandardResponses({
         method: 'get',
-        schema: 'TextReuseClusterCompound',
+        schema: 'TextReuseCluster',
       }),
     },
   },

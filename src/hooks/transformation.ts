@@ -34,3 +34,22 @@ export const transformResponseDataItem = <S, I, O>(
     return context
   }
 }
+
+export const renameTopLevelField = <S>(
+  policy: [string, string],
+  condition?: (context: HookContext<ImpressoApplication>) => boolean
+): HookFunction<ImpressoApplication, S> => {
+  return context => {
+    if (context.type != 'after') throw new Error('The redactResponseDataItem hook should be used as an after hook only')
+    if (condition != null && !condition(context)) return context
+
+    const [from, to] = policy
+    const ctx = context as any
+
+    if (ctx != null && ctx.result[from] != null) {
+      ctx.result[to] = ctx.result[from]
+      delete ctx.result[from]
+    }
+    return context
+  }
+}

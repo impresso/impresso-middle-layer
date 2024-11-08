@@ -329,77 +329,71 @@ export interface SearchFacetRangeBucket {
 
 
 /**
- * ID of the text reuse passage
- */
-export type PassageID = string;
-
-/**
- * Text reuse cluster with details and a sample
- */
-export interface TextReuseClusterCompound {
-  cluster?: TextReuseCluster;
-  textSample: string;
-  details?: TextReuseClusterDetails;
-}
-/**
- * Represents a cluster of text reuse passages
+ * Text reuse cluster details.
  */
 export interface TextReuseCluster {
-  id: PassageID;
   /**
-   * Percentage of overlap between passages in the cluster
+   * Unique ID of the text reuse cluster.
    */
-  lexicalOverlap?: number;
+  uid: string;
   /**
-   * Number of passages in cluster
+   * Overlap in percents between the passages in the cluster.
    */
-  clusterSize?: number;
+  lexicalOverlap: number;
   /**
-   * Number of connected clusters
+   * Number of passages in the cluster.
    */
-  connectedClustersCount?: number;
+  clusterSize: number;
   /**
-   * Time window covered by documents in the cluster
+   * Sample of a text from one of the passages in the cluster.
    */
-  timeCoverage?: {
-    from?: string;
-    to?: string;
+  textSample: string;
+  /**
+   * Time coverage of the cluster.
+   */
+  timeCoverage: {
+    /**
+     * Publication date of the earliest content item in the cluster.
+     */
+    startDate: string;
+    /**
+     * Publication date of the latest content item in the cluster.
+     */
+    endDate: string;
   };
 }
-/**
- * Extra details of the cluster
- */
-export interface TextReuseClusterDetails {
-  facets: {
-    /**
-     * Facet type
-     */
-    type?: string;
-    /**
-     * Number of buckets
-     */
-    numBuckets?: number;
-    buckets?: {
-      [k: string]: unknown;
-    }[];
-  }[];
-  /**
-   * Resolution for the 'date' facet
-   */
-  resolution?: "year" | "month" | "day";
-}
 
-
-/**
- * ID of the text reuse passage
- */
-export type PassageID = string;
 
 /**
  * Represents a passage of text that was identified as a part of a text reuse cluster
  */
 export interface TextReusePassage {
-  id: PassageID;
+  /**
+   * Unique ID of the text reuse passage.
+   */
+  uid: string;
+  /**
+   * Textual content of the passage.
+   */
+  content: string;
+  /**
+   * ID of the content item that the text reuse passage belongs to.
+   */
+  contentItemId: string;
+  /**
+   * Start and end offsets of the passage in the content item.
+   */
+  offset: {
+    /**
+     * Start offset of the passage in the content item.
+     */
+    start: number;
+    /**
+     * End offset of the passage in the content item.
+     */
+    end: number;
+    [k: string]: unknown;
+  };
 }
 
 

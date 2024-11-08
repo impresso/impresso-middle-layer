@@ -4,6 +4,9 @@
 export interface FindTextReuseClustersResponse {
   clusters: ClusterElement[]
   info: Info
+  limit: number
+  offset: number
+  total: number
 }
 
 /**
