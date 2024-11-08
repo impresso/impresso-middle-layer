@@ -1,6 +1,9 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { OrderByChoices } from './newspapers.schema'
+import { transformResponseDataItem } from '../../hooks/transformation'
+import { inPublicApi } from '../../hooks/redaction'
+import { transformNewspaper } from '../../transformers/newspaper'
 
 const { queryWithCommonParams, validate, utils } = require('../../hooks/params')
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
@@ -66,7 +69,7 @@ module.exports = {
 
   after: {
     all: [returnCachedContents(), saveResultsInCache()],
-    find: [],
+    find: [transformResponseDataItem(transformNewspaper, inPublicApi)],
     get: [],
     create: [],
     update: [],

@@ -159,9 +159,37 @@ export interface FindTextReuseClustersResponse {
  */
 export interface Newspaper {
   /**
-   * The unique identifier of the newspaper
+   * The unique identifier of the newspaper.
    */
   uid: string;
+  /**
+   * The title of the newspaper.
+   */
+  title: string;
+  /**
+   * The year of the first available article in the newspaper.
+   */
+  startYear?: number;
+  /**
+   * The year of the last available article in the newspaper.
+   */
+  endYear?: number;
+  /**
+   * ISO 639-1 codes of languages used in the newspaper.
+   */
+  languageCodes: string[];
+  /**
+   * Total number of articles in the newspaper.
+   */
+  totalArticles: number;
+  /**
+   * Total number of issues in the newspaper.
+   */
+  totalIssues: number;
+  /**
+   * Total number of pages in the newspaper.
+   */
+  totalPages: number;
 }
 
 
