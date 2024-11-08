@@ -20,7 +20,7 @@ const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = requi
 const { SolrMappings } = require('../../data/constants')
 const { SolrNamespaces } = require('../../solr')
 
-const articleRedactionPolicy = loadYamlFile(`${__dirname}/../articles/resources/articleRedactionPolicy.yml`)
+const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/../articles/resources/contentItemRedactionPolicy.yml`)
 
 module.exports = {
   around: {
@@ -104,7 +104,7 @@ module.exports = {
       resolveQueryComponents(),
       protect('content'),
       transformResponseDataItem(transformContentItem, inPublicApi),
-      redactResponseDataItem(articleRedactionPolicy, defaultCondition),
+      redactResponseDataItem(contentItemRedactionPolicy, defaultCondition),
     ],
     get: [],
     create: [],

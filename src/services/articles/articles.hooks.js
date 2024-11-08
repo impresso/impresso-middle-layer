@@ -1,7 +1,9 @@
 import { rateLimit } from '../../hooks/rateLimiter'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { redactResponse, redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import { redactResponse, redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
+import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
+import { transformContentItem } from '../../transformers/contentItem'
 
 const {
   utils,
@@ -19,7 +21,7 @@ const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/arti
 const { obfuscate } = require('../../hooks/access-rights')
 const { SolrMappings } = require('../../data/constants')
 
-const articleRedactionPolicy = loadYamlFile(`${__dirname}/resources/articleRedactionPolicy.yml`)
+const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicy.yml`)
 
 module.exports = {
   around: {
@@ -94,7 +96,8 @@ module.exports = {
       resolveTopics(),
       saveResultsInCache(),
       obfuscate(),
-      redactResponseDataItem(articleRedactionPolicy, defaultCondition),
+      transformResponseDataItem(transformContentItem, inPublicApi),
+      redactResponseDataItem(contentItemRedactionPolicy, defaultCondition),
     ],
     get: [
       // save here cache, flush cache here
@@ -105,7 +108,8 @@ module.exports = {
       saveResultsInCache(),
       resolveUserAddons(),
       obfuscate(),
-      redactResponse(articleRedactionPolicy, defaultCondition),
+      transformResponse(transformContentItem, inPublicApi),
+      redactResponse(contentItemRedactionPolicy, defaultCondition),
     ],
     create: [],
     update: [],

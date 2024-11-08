@@ -20,17 +20,95 @@ export interface Collection {
  */
 export interface ContentItem {
   /**
-   * The unique identifier of the content item
+   * The unique identifier of the content item.
    */
   uid: string;
   /**
-   * The type of the content item.
+   * The type of the content item, as present in the OLR provided by the data provider. All content items are not characterised by the same set of types.
    */
-  type: "article" | "advert" | "obituary";
+  type: string;
   /**
-   * The title of the content item
+   * The title of the content item.
    */
   title: string;
+  /**
+   * Transcript of the content item.
+   */
+  transcript: string;
+  /**
+   * Locations mentioned in the content item.
+   */
+  locations: EntityMention[];
+  /**
+   * Persions mentioned in the content item.
+   */
+  persons: EntityMention[];
+  /**
+   * Topics mentioned in the content item.
+   */
+  topics: TopicMention[];
+  /**
+   * The length of the transcript in characters.
+   */
+  transcriptLength: number;
+  /**
+   * Total number of pages the item covers.
+   */
+  totalPages: number;
+  /**
+   * ISO 639-1 language code of the content item.
+   */
+  languageCode?: string;
+  /**
+   * Whether the content item is on the front page of the publication.
+   */
+  isOnFrontPage: boolean;
+  /**
+   * The publication date of the content item.
+   */
+  publicationDate: string;
+  /**
+   * ISO 3166-1 alpha-2 country code of the content item.
+   */
+  countryCode?: string;
+  /**
+   * The code of the data provider.
+   */
+  dataProviderCode?: string;
+  /**
+   * Code of the newspaper or the other media the content item belongs to.
+   */
+  mediaCode?: string;
+  /**
+   * The type of the media the content item belongs to.
+   */
+  mediaType?: "newspaper";
+}
+/**
+ * An entity (location, persion) mention.
+ */
+export interface EntityMention {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * Relevance of the entity in the document
+   */
+  relevance: number;
+}
+/**
+ * Topic presence in a content item.
+ */
+export interface TopicMention {
+  /**
+   * Unique identifier of the topic.
+   */
+  uid: string;
+  /**
+   * Relevance of the topic in the content item.
+   */
+  relevance: number;
 }
 
 
@@ -47,6 +125,21 @@ export interface EntityDetails {
    */
   name: string;
   type: "person" | "location";
+}
+
+
+/**
+ * An entity (location, persion) mention.
+ */
+export interface EntityMention {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * Relevance of the entity in the document
+   */
+  relevance: number;
 }
 
 
@@ -252,4 +345,19 @@ export type PassageID = string;
  */
 export interface TextReusePassage {
   id: PassageID;
+}
+
+
+/**
+ * Topic presence in a content item.
+ */
+export interface TopicMention {
+  /**
+   * Unique identifier of the topic.
+   */
+  uid: string;
+  /**
+   * Relevance of the topic in the content item.
+   */
+  relevance: number;
 }
