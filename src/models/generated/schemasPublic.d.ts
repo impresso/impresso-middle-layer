@@ -243,19 +243,17 @@ export interface SearchFacetBucket {
    */
   count: number;
   /**
-   * Value of the 'type' element
+   * Value that represents the bucket.
    */
-  val: string;
+  value: string | number;
   /**
-   * UID of the 'type' element. Same as 'val'
+   * Unique ID of the value, if relevant and different from the value itself.
    */
   uid?: string;
   /**
-   * The item in the bucket. Particular objct schema depends on the facet type
+   * Label of the value, if relevant.
    */
-  item?: {
-    [k: string]: unknown;
-  };
+  label?: string;
 }
 /**
  * Facet bucket
@@ -289,19 +287,17 @@ export interface SearchFacetBucket {
    */
   count: number;
   /**
-   * Value of the 'type' element
+   * Value that represents the bucket.
    */
-  val: string;
+  value: string | number;
   /**
-   * UID of the 'type' element. Same as 'val'
+   * Unique ID of the value, if relevant and different from the value itself.
    */
   uid?: string;
   /**
-   * The item in the bucket. Particular objct schema depends on the facet type
+   * Label of the value, if relevant.
    */
-  item?: {
-    [k: string]: unknown;
-  };
+  label?: string;
 }
 
 

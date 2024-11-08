@@ -4,22 +4,20 @@
   "title": "Search Facet Bucket",
   "description": "Facet bucket",
   "additionalProperties": false,
-  "required": ["count", "val"],
   "properties": {
     "count": {
       "type": "integer",
-      "description": "Number of items in the bucket"
+      "description": "Number of items in the bucket",
+      "minimum": 0
     },
-    "val": {
+    "value": {
+      "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "integer" }],
+      "description": "Value that represents the bucket."
+    },
+    "label": {
       "type": "string",
-      "description": "Value of the 'type' element"
-    },
-    "uid": {
-      "type": "string",
-      "description": "UID of the 'type' element. Same as 'val'"
-    },
-    "item": {
-      "description": "The item in the bucket. Particular objct schema depends on the facet type"
+      "description": "Label of the value, if relevant."
     }
-  }
+  },
+  "required": ["count", "value"]
 }

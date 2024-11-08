@@ -104,8 +104,11 @@ const toPascalCase = (s: string) => {
 
 export const getDocs = (index: IndexId): ServiceSwaggerOptions => ({
   description: `${facetNames[index]} facets`,
-  securities: ['get', 'find'],
+  securities: ['get' /*, 'find' */],
   operations: {
+    // RK: I disabled the find operation because it can be entirely replaced by individual get operations,
+    // not used in impresso-py and adds extra maintenance burden.
+    /*
     find: {
       operationId: `find${toPascalCase(index)}Facets`,
       description: `Get mutliple ${facetNames[index]} facets`,
@@ -119,6 +122,7 @@ export const getDocs = (index: IndexId): ServiceSwaggerOptions => ({
         schema: 'SearchFacet',
       }),
     },
+    */
     get: {
       operationId: `get${toPascalCase(index)}Facet`,
       description: `Get a single ${facetNames[index]} facet`,
@@ -137,8 +141,8 @@ export const getDocs = (index: IndexId): ServiceSwaggerOptions => ({
         ...getStandardParameters({ method: 'find' }),
       ],
       responses: getStandardResponses({
-        method: 'get',
-        schema: 'SearchFacet',
+        method: 'find',
+        schema: 'SearchFacetBucket',
       }),
     },
   },

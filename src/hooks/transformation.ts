@@ -2,7 +2,7 @@ import { HookContext, HookFunction } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../types'
 
 export const transformResponse = <S, I, O>(
-  transformer: (item: I) => O,
+  transformer: ((item: I) => O) | ((item: I, context: HookContext<ImpressoApplication>) => O),
   condition?: (context: HookContext<ImpressoApplication>) => boolean
 ): HookFunction<ImpressoApplication, S> => {
   return context => {
@@ -11,7 +11,7 @@ export const transformResponse = <S, I, O>(
 
     if (context.result != null) {
       const ctx = context as any
-      ctx.result = transformer(context.result as I)
+      ctx.result = transformer(context.result as I, context)
     }
     return context
   }

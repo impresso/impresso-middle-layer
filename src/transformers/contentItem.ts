@@ -27,7 +27,11 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
     transcript: input.content ?? '',
     locations: input.locations?.map(toEntityMention) ?? [],
     persons: input.persons?.map(toEntityMention) ?? [],
-    topics: input.topics?.map(toTopicMention)?.filter(v => v != null) ?? [],
+    topics:
+      input.topics
+        ?.map(toTopicMention)
+        ?.filter(v => v != null)
+        .map(v => v as TopicMention) ?? [],
     transcriptLength: input.size ?? 0,
     totalPages: input.nbPages,
     languageCode: input.language?.toLowerCase(),
