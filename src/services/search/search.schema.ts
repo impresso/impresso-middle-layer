@@ -4,6 +4,18 @@ import type { MethodParameter } from '../../util/openapi'
 import { filtersQueryParameter, getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { paramsValidator } from './search.validators'
 
+const parameterQ: MethodParameter = {
+  in: 'query',
+  name: 'q',
+  required: paramsValidator.q.required,
+  schema: {
+    type: 'string',
+    minLength: 2,
+    maxLength: 1000,
+  },
+  description: 'Search query term.',
+}
+
 const parameterTerm: MethodParameter = {
   in: 'query',
   name: 'term',
@@ -48,7 +60,7 @@ const parameterFacets: MethodParameter = {
 }
 
 const findParameters: MethodParameter[] = [
-  parameterTerm,
+  parameterQ,
   parameterGroupBy,
   parameterOrderBy,
   parameterFacets,
