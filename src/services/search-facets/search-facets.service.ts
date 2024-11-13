@@ -10,7 +10,7 @@ const SupportedIndexes: IndexId[] = Object.keys(SolrMappings).map(key => key.rep
 
 export default (app: ImpressoApplication) => {
   // Initialize our service with any options it requires
-  const isPublicApi = app.get('isPublicApi')
+  const isPublicApi = app.get('isPublicApi') ?? false
 
   SupportedIndexes.forEach(index => {
     const svc = new Service({
@@ -25,7 +25,7 @@ export default (app: ImpressoApplication) => {
 
     app.use(`search-facets/${index}`, svc, {
       events: [],
-      docs: createSwaggerServiceOptions({ schemas: {}, docs: getDocs(index) }),
+      docs: createSwaggerServiceOptions({ schemas: {}, docs: getDocs(index, isPublicApi) }),
     } as ServiceOptions)
     // Get our initialized service so that we can register hooks
     const service = app.service(`search-facets/${index}`)
