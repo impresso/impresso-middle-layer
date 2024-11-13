@@ -1,12 +1,16 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { OrderByChoices } from './newspapers.schema'
-import { transformResponseDataItem, transformResponse } from '../../hooks/transformation'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { inPublicApi } from '../../hooks/redaction'
 import { transformNewspaper } from '../../transformers/newspaper'
 
 const { queryWithCommonParams, validate, utils } = require('../../hooks/params')
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
+
+const findQueryParamsRenamePolicy = {
+  term: 'q',
+}
 
 module.exports = {
   around: {
@@ -19,6 +23,7 @@ module.exports = {
       }),
     ],
     find: [
+      renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
       validate({
         includedOnly: {
           required: false,
