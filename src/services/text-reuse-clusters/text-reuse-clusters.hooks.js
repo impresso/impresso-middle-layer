@@ -5,12 +5,21 @@ import { validate } from '../../hooks/params'
 import { parseFilters } from '../../util/queryParameters'
 import { redactResponse, redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
-import { transformResponseDataItem, transformResponse, renameTopLevelField } from '../../hooks/transformation'
+import {
+  transformResponseDataItem,
+  transformResponse,
+  renameTopLevelField,
+  renameQueryParameters,
+} from '../../hooks/transformation'
 import { transformTextReuseCluster } from '../../transformers/textReuse'
 
 // const { validateWithSchema } = require('../../hooks/schema')
 
 const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trClusterRedactionPolicy.yml`)
+
+const findQueryParamsRenamePolicy = {
+  term: 'text',
+}
 
 module.exports = {
   around: {
@@ -19,6 +28,7 @@ module.exports = {
   before: {
     all: [],
     find: [
+      renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
       decodeJsonQueryParameters(['filters']), //
       validate({
         filters: {
