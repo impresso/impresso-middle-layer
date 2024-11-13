@@ -7,6 +7,7 @@ const { qToSolrFilter, filtersToSolrQuery } = require('../../hooks/search')
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { inPublicApi } from '../../hooks/redaction'
 import { transformEntityDetails } from '../../transformers/entity'
+import { transformBaseFind } from '../../transformers/base'
 
 const orderByMap = {
   relevance: 'score ASC',
@@ -96,7 +97,10 @@ export default {
 
   after: {
     all: [],
-    find: [transformResponseDataItem(transformEntityDetails, inPublicApi)],
+    find: [
+      transformResponse(transformBaseFind, inPublicApi),
+      transformResponseDataItem(transformEntityDetails, inPublicApi),
+    ],
     get: [transformResponse(transformEntityDetails, inPublicApi)],
     create: [],
     update: [],

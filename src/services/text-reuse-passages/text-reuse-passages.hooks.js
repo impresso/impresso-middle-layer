@@ -7,6 +7,7 @@ import { redactResponse, redactResponseDataItem, defaultCondition, inPublicApi }
 import { loadYamlFile } from '../../util/yaml'
 import { transformResponseDataItem, transformResponse } from '../../hooks/transformation'
 import { transformTextReusePassage } from '../../transformers/textReuse'
+import { transformBaseFind } from '../../transformers/base'
 
 const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trPassageRedactionPolicy.yml`)
 
@@ -39,6 +40,7 @@ module.exports = {
       redactResponse(trPassageRedactionPolicy, defaultCondition),
     ],
     find: [
+      transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformTextReusePassage, inPublicApi),
       redactResponseDataItem(trPassageRedactionPolicy, defaultCondition),
     ],

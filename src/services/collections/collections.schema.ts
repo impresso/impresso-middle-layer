@@ -72,6 +72,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'find',
         schema: 'Collection',
+        isPublic: isPublicApi,
       }),
     },
     get: {
@@ -91,6 +92,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'get',
         schema: 'Collection',
+        isPublic: isPublicApi,
       }),
     },
     create: {
@@ -102,6 +104,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'create',
         schema: 'Collection',
+        isPublic: isPublicApi,
       }),
     },
     patch: {
@@ -124,6 +127,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'patch',
         schema: 'Collection',
+        isPublic: isPublicApi,
       }),
     },
     remove: {
@@ -143,6 +147,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'remove',
         schema: 'CollectionsRemoveResponse',
+        isPublic: isPublicApi,
       }),
     },
   },

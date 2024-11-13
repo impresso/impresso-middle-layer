@@ -55,13 +55,17 @@ interface GetStandardResponsesParams {
   authEnabled?: boolean
   isRateLimited?: boolean
   standardPagination?: boolean
+  isPublic?: boolean
 }
 
 const baseFindResponse = require('../schema/schemas/BaseFind.json')
 delete baseFindResponse['$schema']
 
-const getBaseFindResponse = (itemRef: string): JSONSchema => {
-  const response = JSON.parse(JSON.stringify(baseFindResponse))
+const baseFindResponsePublic = require('../schema/schemasPublic/BaseFind.json')
+delete baseFindResponsePublic['$schema']
+
+const getBaseFindResponse = (itemRef: string, isPublic: boolean): JSONSchema => {
+  const response = JSON.parse(JSON.stringify(isPublic ? baseFindResponsePublic : baseFindResponse))
   response['properties']['data']['items'] = {
     $ref: itemRef,
   }
@@ -84,6 +88,7 @@ export const getStandardResponses = ({
   authEnabled = true,
   isRateLimited = true,
   standardPagination = true,
+  isPublic = false,
 }: GetStandardResponsesParams) => {
   const defaultResponses: Record<number, StatusResponse> = {
     422: {
@@ -107,7 +112,7 @@ export const getStandardResponses = ({
     if (method === 'find' && standardPagination) {
       defaultResponses[200] = {
         description: 'Success',
-        content: asApplicationJson(getBaseFindResponse(`#/components/schemas/${schema}`)),
+        content: asApplicationJson(getBaseFindResponse(`#/components/schemas/${schema}`, isPublic)),
         headers: { ...defaultHeaders },
       }
     } else {

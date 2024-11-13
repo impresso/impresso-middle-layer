@@ -4,6 +4,7 @@ import { OrderByChoices } from './newspapers.schema'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { inPublicApi } from '../../hooks/redaction'
 import { transformNewspaper } from '../../transformers/newspaper'
+import { transformBaseFind } from '../../transformers/base'
 
 const { queryWithCommonParams, validate, utils } = require('../../hooks/params')
 const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
@@ -74,7 +75,10 @@ module.exports = {
 
   after: {
     all: [returnCachedContents(), saveResultsInCache()],
-    find: [transformResponseDataItem(transformNewspaper, inPublicApi)],
+    find: [
+      transformResponse(transformBaseFind, inPublicApi),
+      transformResponseDataItem(transformNewspaper, inPublicApi),
+    ],
     get: [transformResponse(transformNewspaper, inPublicApi)],
     create: [],
     update: [],

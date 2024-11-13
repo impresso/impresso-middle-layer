@@ -167,6 +167,7 @@ export const getDocs = (index: IndexId, isPublicApi: boolean): ServiceSwaggerOpt
       responses: getStandardResponses({
         method: 'find',
         schema: 'SearchFacetBucket',
+        isPublic: isPublicApi,
       }),
     },
   },

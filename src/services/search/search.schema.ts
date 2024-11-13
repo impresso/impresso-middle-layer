@@ -89,6 +89,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'find',
         schema: 'ContentItem',
+        isPublic: isPublicApi,
       }),
     },
   },

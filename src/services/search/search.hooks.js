@@ -1,7 +1,8 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
-import { transformResponseDataItem, renameQueryParameters } from '../../hooks/transformation'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
+import { transformBaseFind } from '../../transformers/base'
 import { transformContentItem } from '../../transformers/contentItem'
 import { loadYamlFile } from '../../util/yaml'
 
@@ -106,6 +107,7 @@ module.exports = {
     all: [],
     find: [
       displayQueryParams(['queryComponents', 'filters']),
+      transformResponse(transformBaseFind, inPublicApi),
       resolveQueryComponents(),
       protect('content'),
       transformResponseDataItem(transformContentItem, inPublicApi),

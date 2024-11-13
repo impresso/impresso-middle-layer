@@ -12,6 +12,7 @@ import {
   renameQueryParameters,
 } from '../../hooks/transformation'
 import { transformTextReuseCluster } from '../../transformers/textReuse'
+import { transformBaseFind } from '../../transformers/base'
 
 // const { validateWithSchema } = require('../../hooks/schema')
 
@@ -52,6 +53,7 @@ module.exports = {
     ],
     find: [
       renameTopLevelField(['clusters', 'data'], inPublicApi),
+      transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformTextReuseCluster, inPublicApi),
       redactResponseDataItem(trPassageRedactionPolicy, defaultCondition),
     ],

@@ -74,6 +74,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'find',
         schema: 'EntityDetails',
+        isPublic: isPublicApi,
       }),
     },
     get: {
@@ -93,6 +94,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'get',
         schema: 'EntityDetails',
+        isPublic: isPublicApi,
       }),
     },
   },

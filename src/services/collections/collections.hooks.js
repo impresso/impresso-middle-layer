@@ -3,6 +3,7 @@ import { rateLimit } from '../../hooks/rateLimiter'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { inPublicApi } from '../../hooks/redaction'
 import { transformCollection } from '../../transformers/collection'
+import { transformBaseFind } from '../../transformers/base'
 
 const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params')
 
@@ -94,7 +95,10 @@ module.exports = {
 
   after: {
     all: [],
-    find: [transformResponseDataItem(transformCollection, inPublicApi)],
+    find: [
+      transformResponse(transformBaseFind, inPublicApi),
+      transformResponseDataItem(transformCollection, inPublicApi),
+    ],
     get: [transformResponse(transformCollection, inPublicApi)],
     create: [transformResponse(transformCollection, inPublicApi)],
     update: [],

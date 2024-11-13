@@ -66,6 +66,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'find',
         schema: 'TextReusePassage',
+        isPublic: isPublicApi,
       }),
     },
     get: {
@@ -75,6 +76,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       responses: getStandardResponses({
         method: 'get',
         schema: 'TextReusePassage',
+        isPublic: isPublicApi,
       }),
     },
   },
