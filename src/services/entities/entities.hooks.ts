@@ -4,7 +4,7 @@ import { rateLimit } from '../../hooks/rateLimiter'
 
 const { validate, validateEach, queryWithCommonParams, utils } = require('../../hooks/params')
 const { qToSolrFilter, filtersToSolrQuery } = require('../../hooks/search')
-import { transformResponseDataItem, transformResponse } from '../../hooks/transformation'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { inPublicApi } from '../../hooks/redaction'
 import { transformEntityDetails } from '../../transformers/entity'
 
@@ -21,7 +21,12 @@ const orderByMap = {
 
 export const orderByValues = Object.keys(orderByMap)
 
+const findQueryParamsRenamePolicy = {
+  term: 'q',
+}
+
 const findAndGetParamsHooks = [
+  renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
   validate({
     q: {
       required: false,
