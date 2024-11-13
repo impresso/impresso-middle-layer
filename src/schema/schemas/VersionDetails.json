@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "title": "API Version",
+  "title": "Version Details",
   "description": "Version of the API. Contains information about the current version of the API, features, etc.",
   "additionalProperties": false,
   "required": ["solr", "mysql", "version", "apiVersion", "documentsDateSpan", "newspapers", "features"],

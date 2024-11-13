@@ -410,3 +410,14 @@ export interface TopicMention {
    */
   relevance: number;
 }
+
+
+/**
+ * Details of the current version of the API and details of its aspects.
+ */
+export interface VersionDetails {
+  /**
+   * Version of the API.
+   */
+  version?: string;
+}

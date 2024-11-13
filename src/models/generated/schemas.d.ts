@@ -2020,6 +2020,46 @@ export interface User {
 
 
 /**
+ * Version of the API. Contains information about the current version of the API, features, etc.
+ */
+export interface VersionDetails {
+  solr: {
+    endpoints?: {
+      [k: string]: string;
+    };
+    [k: string]: unknown;
+  };
+  mysql: {
+    endpoint?: string;
+    [k: string]: unknown;
+  };
+  version: string;
+  apiVersion: {
+    branch?: string;
+    revision?: string;
+    version?: string;
+    [k: string]: unknown;
+  };
+  documentsDateSpan: {
+    start?: string;
+    end?: string;
+    [k: string]: unknown;
+  };
+  newspapers: {
+    [k: string]: {
+      name?: string;
+      [k: string]: unknown;
+    };
+  };
+  features: {
+    [k: string]: {
+      [k: string]: unknown;
+    };
+  };
+}
+
+
+/**
  * Details of a wikidata entity
  */
 export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
