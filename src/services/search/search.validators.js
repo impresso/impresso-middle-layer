@@ -82,6 +82,7 @@ const paramsValidator = {
   group_by: {
     required: true,
     choices: ['articles', 'raw'],
+    defaultValue: 'articles',
     transform: d => utils.translate(d, SolrMappings.search.groupBy),
   },
   order_by: {

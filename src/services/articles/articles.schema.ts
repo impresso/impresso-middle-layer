@@ -31,17 +31,18 @@ const findParameters: MethodParameter[] = [
  */
 export const docs: ServiceSwaggerOptions = {
   description: 'Content items',
-  securities: ['find', 'get'],
+  securities: ['get'],
   operations: {
-    find: {
-      operationId: 'findContentItem',
-      description: 'Find content items that match the given query',
-      parameters: findParameters,
-      responses: getStandardResponses({
-        method: 'find',
-        schema: 'ContentItem',
-      }),
-    },
+    // Duplicate of /search
+    // find: {
+    //   operationId: 'findContentItem',
+    //   description: 'Find content items that match the given query',
+    //   parameters: findParameters,
+    //   responses: getStandardResponses({
+    //     method: 'find',
+    //     schema: 'ContentItem',
+    //   }),
+    // },
     get: {
       operationId: 'getContentItem',
       description: 'Get a content item by its UID',

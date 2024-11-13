@@ -232,7 +232,7 @@ const _validate = (params, rules) => {
 
   Object.keys(rules).forEach(key => {
     if (typeof params[key] === 'undefined') {
-      if (rules[key] && rules[key].required) {
+      if (rules[key] && rules[key].required && rules[key].defaultValue == null) {
         // required!
         _errors[key] = {
           code: 'NotFound',

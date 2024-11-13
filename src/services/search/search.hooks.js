@@ -1,7 +1,7 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
-import { transformResponseDataItem } from '../../hooks/transformation'
+import { transformResponseDataItem, renameQueryParameters } from '../../hooks/transformation'
 import { transformContentItem } from '../../transformers/contentItem'
 import { loadYamlFile } from '../../util/yaml'
 
@@ -22,6 +22,10 @@ const { SolrNamespaces } = require('../../solr')
 
 const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/../articles/resources/contentItemRedactionPolicy.yml`)
 
+const findQueryParamsRenamePolicy = {
+  term: 'q',
+}
+
 module.exports = {
   around: {
     find: [authenticate({ allowUnauthenticated: true }), rateLimit()],
@@ -30,6 +34,7 @@ module.exports = {
   before: {
     all: [],
     find: [
+      renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
       validate({
         ...paramsValidator,
         facets: utils.facets({

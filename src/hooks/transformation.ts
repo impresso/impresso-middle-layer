@@ -6,7 +6,7 @@ export const transformResponse = <S, I, O>(
   condition?: (context: HookContext<ImpressoApplication>) => boolean
 ): HookFunction<ImpressoApplication, S> => {
   return context => {
-    if (context.type != 'after') throw new Error('The redactResponseDataItem hook should be used as an after hook only')
+    if (context.type != 'after') throw new Error('The transformResponse hook should be used as an after hook only')
     if (condition != null && !condition(context)) return context
 
     if (context.result != null) {
@@ -40,7 +40,7 @@ export const renameTopLevelField = <S>(
   condition?: (context: HookContext<ImpressoApplication>) => boolean
 ): HookFunction<ImpressoApplication, S> => {
   return context => {
-    if (context.type != 'after') throw new Error('The redactResponseDataItem hook should be used as an after hook only')
+    if (context.type != 'after') throw new Error('The renameTopLevelField hook should be used as an after hook only')
     if (condition != null && !condition(context)) return context
 
     const [from, to] = policy
@@ -50,6 +50,30 @@ export const renameTopLevelField = <S>(
       ctx.result[to] = ctx.result[from]
       delete ctx.result[from]
     }
+    return context
+  }
+}
+
+export const renameQueryParameters = <S>(
+  policy: Record<string, string>,
+  condition?: (context: HookContext<ImpressoApplication>) => boolean
+): HookFunction<ImpressoApplication, S> => {
+  return context => {
+    if (context.type != 'before') throw new Error('The renameQueryParameters hook should be used as an after hook only')
+    if (condition != null && !condition(context)) return context
+
+    const params = context.params as any
+
+    const query: Record<string, any> = params?.query ?? {}
+
+    for (const [from, to] of Object.entries(policy)) {
+      if (query[from] != null) {
+        query[to] = query[from]
+        delete query[from]
+      }
+    }
+    params.query = query
+
     return context
   }
 }
