@@ -140,18 +140,30 @@ export interface TopicMention {
 
 
 /**
- * An entity like location, person, etc
+ * An entity: location or person.
  */
 export interface EntityDetails {
   /**
    * Unique identifier of the entity
    */
-  uid: string;
+  uid?: string;
   /**
-   * Entity name
+   * Entity label
    */
-  name: string;
-  type: "person" | "location";
+  label?: string;
+  type?: "person" | "location";
+  /**
+   * Wikidata identifier of the entity.
+   */
+  wikidataId?: string;
+  /**
+   * Total number of mentions of the entity.
+   */
+  totalMentions?: number;
+  /**
+   * Total number of content items the entity is mentioned in.
+   */
+  totalContentItems?: number;
 }
 
 
@@ -247,10 +259,6 @@ export interface SearchFacetBucket {
    */
   value: string | number;
   /**
-   * Unique ID of the value, if relevant and different from the value itself.
-   */
-  uid?: string;
-  /**
    * Label of the value, if relevant.
    */
   label?: string;
@@ -290,10 +298,6 @@ export interface SearchFacetBucket {
    * Value that represents the bucket.
    */
   value: string | number;
-  /**
-   * Unique ID of the value, if relevant and different from the value itself.
-   */
-  uid?: string;
   /**
    * Label of the value, if relevant.
    */
