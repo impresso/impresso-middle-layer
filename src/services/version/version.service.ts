@@ -3,6 +3,7 @@ import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { docs } from './version.schema'
 import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
+import { transformVersionDetails } from '../../transformers/version'
 
 const log = debug('impresso/services:version')
 const { getFirstAndLastDocumentDates, getNewspaperIndex } = require('./logic')
@@ -16,9 +17,11 @@ module.exports = function (app: ImpressoApplication) {
         const solrConfig = app.get('solr')
         const sequelizeConfig = app.get('sequelize')
         const solr = app.service('cachedSolr')
+        const isPublicApi = app.get('isPublicApi')
+
         const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr)
         log('branch:', process.env.GIT_BRANCH, 'revision:', process.env.GIT_REVISION, 'version:', process.env.GIT_TAG)
-        return {
+        const response = {
           solr: {
             endpoints: {
               search: solrConfig.search.alias,
@@ -41,6 +44,11 @@ module.exports = function (app: ImpressoApplication) {
           newspapers: await getNewspaperIndex(),
           features: app.get('features') || {},
         }
+
+        if (isPublicApi) {
+          return transformVersionDetails(response)
+        }
+        return response
       },
     },
     {

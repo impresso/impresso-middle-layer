@@ -1,53 +1,78 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { QueryParameter } from '../../util/openapi'
+import type { MethodParameter, QueryParameter } from '../../util/openapi'
 import { getRequestBodyContent, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { REGEX_UIDS } from '../../hooks/params'
 
-const findParameters: QueryParameter[] = [
-  {
-    in: 'query',
-    name: 'uids',
-    required: false,
-    schema: {
-      type: 'string',
-      pattern: String(REGEX_UIDS).slice(1, -1),
-    },
-    description: 'UIDs of collections (comma separated)',
+const parameterUids: QueryParameter = {
+  in: 'query',
+  name: 'uids',
+  required: false,
+  schema: {
+    type: 'string',
+    pattern: String(REGEX_UIDS).slice(1, -1),
   },
-  {
-    in: 'query',
-    name: 'q',
-    required: false,
-    schema: {
-      type: 'string',
-      maxLength: 500,
-    },
-    description: 'Search term',
+  description: 'UIDs of collections (comma separated)',
+}
+
+const parameterTerm: QueryParameter = {
+  in: 'query',
+  name: 'term',
+  required: false,
+  schema: {
+    type: 'string',
+    maxLength: 500,
   },
-  {
-    in: 'query',
-    name: 'order_by',
-    required: true,
-    schema: {
-      type: 'string',
-      default: '-date',
-      enum: ['-date', 'date', '-size', 'size'],
-    },
-    description: 'Sort order',
+  description: 'Search term',
+}
+
+const parameterQ: QueryParameter = {
+  in: 'query',
+  name: 'q',
+  required: false,
+  schema: {
+    type: 'string',
+    maxLength: 500,
   },
+  description: 'Search term',
+}
+
+const parameterOrderBy: QueryParameter = {
+  in: 'query',
+  name: 'order_by',
+  required: true,
+  schema: {
+    type: 'string',
+    default: '-date',
+    enum: ['-date', 'date', '-size', 'size'],
+  },
+  description: 'Sort order',
+}
+
+const findParameters: MethodParameter[] = [
+  parameterUids,
+  parameterQ,
+  parameterOrderBy,
+  ...getStandardParameters({ method: 'find' }),
 ]
 
-export const docs: ServiceSwaggerOptions = {
+const findParametersPublicApi: MethodParameter[] = [
+  parameterTerm,
+  parameterOrderBy,
+  ...getStandardParameters({ method: 'find' }),
+]
+
+export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
   description: 'Collections',
   securities: ['find', 'get', 'create', 'patch', 'remove'],
   operations: {
     find: {
       operationId: 'findCollections',
       description: 'Find collections',
-      parameters: [...findParameters, ...getStandardParameters({ method: 'find' })],
+      parameters: isPublicApi ? findParametersPublicApi : findParameters,
       responses: getStandardResponses({
         method: 'find',
         schema: 'Collection',
+        isPublic: isPublicApi,
       }),
     },
     get: {
@@ -67,17 +92,19 @@ export const docs: ServiceSwaggerOptions = {
       responses: getStandardResponses({
         method: 'get',
         schema: 'Collection',
+        isPublic: isPublicApi,
       }),
     },
     create: {
       operationId: 'createCollection',
       description: 'Create a new collection',
       requestBody: {
-        content: getRequestBodyContent('NewCollection'),
+        content: getRequestBodyContent('NewCollectionRequest'),
       },
       responses: getStandardResponses({
         method: 'create',
         schema: 'Collection',
+        isPublic: isPublicApi,
       }),
     },
     patch: {
@@ -95,11 +122,12 @@ export const docs: ServiceSwaggerOptions = {
         },
       ],
       requestBody: {
-        content: getRequestBodyContent('NewCollection'),
+        content: getRequestBodyContent('NewCollectionRequest'),
       },
       responses: getStandardResponses({
         method: 'patch',
         schema: 'Collection',
+        isPublic: isPublicApi,
       }),
     },
     remove: {
@@ -119,7 +147,8 @@ export const docs: ServiceSwaggerOptions = {
       responses: getStandardResponses({
         method: 'remove',
         schema: 'CollectionsRemoveResponse',
+        isPublic: isPublicApi,
       }),
     },
   },
-}
+})

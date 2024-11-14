@@ -12,67 +12,95 @@ export interface FindQueyParameters {
   filters?: string | Filter[]
 }
 
+const parameterText: MethodParameter = {
+  in: 'query',
+  name: 'text',
+  required: false,
+  schema: {
+    type: 'string',
+  },
+  description: 'Search term',
+}
+
+const parameterTerm: MethodParameter = {
+  in: 'query',
+  name: 'term',
+  required: false,
+  schema: {
+    type: 'string',
+  },
+  description: 'Search term',
+}
+
+const parameterOrderBy: MethodParameter = {
+  in: 'query',
+  name: 'order_by',
+  required: false,
+  schema: {
+    type: 'string',
+    enum: Object.keys(OrderByKeyToField)
+      .map(key => [key, `-${key}`])
+      .flat(),
+  },
+  description: 'Order by term',
+}
+
 const findParameters: MethodParameter[] = [
-  {
-    in: 'query',
-    name: 'text',
-    required: false,
-    schema: {
-      type: 'string',
-    },
-    description: 'Search term',
-  },
-  {
-    in: 'query',
-    name: 'order_by',
-    required: false,
-    schema: {
-      type: 'string',
-      enum: Object.keys(OrderByKeyToField)
-        .map(key => [key, `-${key}`])
-        .flat(),
-    },
-    description: 'Order by term',
-  },
+  parameterText,
+  parameterOrderBy,
   filtersQueryParameter,
   ...getStandardParameters({ method: 'find', maxPageSize: 20 }),
 ]
 
-const getParameters: MethodParameter[] = [
-  {
-    in: 'query',
-    name: 'include_details',
-    required: false,
-    schema: {
-      type: 'boolean',
-    },
-    description: 'Whether to include cluster details',
+const findParametersPublicApi: MethodParameter[] = [
+  parameterTerm,
+  parameterOrderBy,
+  filtersQueryParameter,
+  ...getStandardParameters({ method: 'find', maxPageSize: 20 }),
+]
+
+const parameterIncludeDetails: MethodParameter = {
+  in: 'query',
+  name: 'include_details',
+  required: false,
+  schema: {
+    type: 'boolean',
   },
+  description: 'Whether to include cluster details',
+}
+
+const getParameters: MethodParameter[] = [
+  parameterIncludeDetails,
   ...getStandardParameters({ method: 'get', idPattern: '[A-Za-z0-9-:@]+' }),
 ]
 
-export const docs: ServiceSwaggerOptions = {
+const getParametersPublicApi: MethodParameter[] = [
+  ...getStandardParameters({ method: 'get', idPattern: '[A-Za-z0-9-:@]+' }),
+]
+
+export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
   description: 'Text Reuse Clusters',
   securities: ['find', 'get'],
   operations: {
     find: {
       operationId: 'findTextReuseClusters',
       description: 'Find text reuse clusters',
-      parameters: findParameters,
+      parameters: isPublicApi ? findParametersPublicApi : findParameters,
       responses: getStandardResponses({
         method: 'find',
-        schema: 'FindTextReuseClustersResponse',
-        standardPagination: false,
+        schema: 'TextReuseCluster',
+        isPublic: isPublicApi,
       }),
     },
     get: {
       operationId: 'getTextReuseCluster',
       description: 'Get text reuse cluster by ID',
-      parameters: getParameters,
+      parameters: isPublicApi ? getParametersPublicApi : getParameters,
       responses: getStandardResponses({
         method: 'get',
-        schema: 'TextReuseClusterCompound',
+        schema: 'TextReuseCluster',
+        isPublic: isPublicApi,
       }),
     },
   },
-}
+})

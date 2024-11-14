@@ -9,6 +9,9 @@ import { eachFilterValidator, paramsValidator } from '../search/search.validator
 import { getIndexMeta } from './search-facets.class'
 import { IndexId, OrderByChoices, facetTypes } from './search-facets.schema'
 import { parseFilters } from '../../util/queryParameters'
+import { transformResponse } from '../../hooks/transformation'
+import { inPublicApi } from '../../hooks/redaction'
+import { transformSearchFacet } from '../../transformers/searchFacet'
 
 const getAndFindHooks = (index: IndexId) => [
   validate({
@@ -116,6 +119,6 @@ export const getHooks = (index: IndexId) => ({
 
   after: {
     find: [resolveCollections(), resolveTextReuseClusters()],
-    get: [resolveCollections(), resolveTextReuseClusters()],
+    get: [resolveCollections(), resolveTextReuseClusters(), transformResponse(transformSearchFacet, inPublicApi)],
   },
 })

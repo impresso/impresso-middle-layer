@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "Request to update collectible items in a collection",
-  "title": "UpdateCollectableItems",
+  "title": "Update Collectable Items Request",
   "type": "object",
   "properties": {
     "add": {

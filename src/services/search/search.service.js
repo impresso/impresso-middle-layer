@@ -1,5 +1,5 @@
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { docs } from './search.schema'
+import { getDocs } from './search.schema'
 
 // Initializes the `search` service on path `/search`
 const createService = require('./search.class.js')
@@ -18,7 +18,7 @@ module.exports = function (app) {
   app.use('/search', createService(options), {
     methods: isPublicApi ? ['find'] : undefined,
     events: [],
-    docs: createSwaggerServiceOptions({ schemas: {}, docs }),
+    docs: createSwaggerServiceOptions({ schemas: {}, docs: getDocs(isPublicApi) }),
   })
 
   app.service('search').hooks(hooks)
