@@ -43,5 +43,5 @@
       "required": ["startDate", "endDate"]
     }
   },
-  "required": ["uid", "lexicalOverlap", "clusterSize", "textSample", "timeCoverage"]
+  "required": ["uid"]
 }

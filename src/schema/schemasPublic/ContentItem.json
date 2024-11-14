@@ -84,17 +84,5 @@
       "enum": ["newspaper"]
     }
   },
-  "required": [
-    "uid",
-    "type",
-    "title",
-    "transcript",
-    "locations",
-    "persons",
-    "topics",
-    "transcriptLength",
-    "totalPages",
-    "isOnFrontPage",
-    "publicationDate"
-  ]
+  "required": ["uid"]
 }

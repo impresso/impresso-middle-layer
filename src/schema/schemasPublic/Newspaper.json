@@ -46,5 +46,5 @@
       "minimum": 0
     }
   },
-  "required": ["uid", "title", "languageCodes", "totalArticles", "totalIssues", "totalPages"]
+  "required": ["uid"]
 }

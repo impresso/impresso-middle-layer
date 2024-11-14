@@ -33,5 +33,5 @@
       "required": ["start", "end"]
     }
   },
-  "required": ["uid", "content", "contentItemId", "offset"]
+  "required": ["uid"]
 }

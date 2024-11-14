@@ -9,5 +9,6 @@
       "type": "string",
       "description": "Version of the API."
     }
-  }
+  },
+  "required": ["version"]
 }

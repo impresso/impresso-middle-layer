@@ -11,10 +11,8 @@
     },
     "relevance": {
       "type": "number",
-      "description": "Relevance of the entity in the document",
-      "minimum": 0,
-      "maximum": 1
+      "description": "Relevance of the entity in the document"
     }
   },
-  "required": ["uid", "relevance"]
+  "required": ["uid"]
 }

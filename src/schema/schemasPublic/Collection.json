@@ -37,5 +37,5 @@
       "description": "Total number of items in the collection."
     }
   },
-  "required": ["uid", "title", "description", "accessLevel", "createdAt", "updatedAt", "totalItems"]
+  "required": ["uid"]
 }

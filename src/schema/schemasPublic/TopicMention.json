@@ -16,5 +16,5 @@
       "maximum": 1
     }
   },
-  "required": ["uid", "relevance"]
+  "required": ["uid"]
 }
