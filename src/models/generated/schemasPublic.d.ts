@@ -37,27 +37,27 @@ export interface Collection {
   /**
    * Title of the collection.
    */
-  title: string;
+  title?: string;
   /**
    * Description of the collection.
    */
-  description: string;
+  description?: string;
   /**
    * Access level of the collection.
    */
-  accessLevel: "public" | "private";
+  accessLevel?: "public" | "private";
   /**
    * Creation date of the collection.
    */
-  createdAt: string;
+  createdAt?: string;
   /**
    * Last update date of the collection.
    */
-  updatedAt: string;
+  updatedAt?: string;
   /**
    * Total number of items in the collection.
    */
-  totalItems: number;
+  totalItems?: number;
 }
 
 
@@ -72,35 +72,35 @@ export interface ContentItem {
   /**
    * The type of the content item, as present in the OLR provided by the data provider. All content items are not characterised by the same set of types.
    */
-  type: string;
+  type?: string;
   /**
    * The title of the content item.
    */
-  title: string;
+  title?: string;
   /**
    * Transcript of the content item.
    */
-  transcript: string;
+  transcript?: string;
   /**
    * Locations mentioned in the content item.
    */
-  locations: EntityMention[];
+  locations?: EntityMention[];
   /**
    * Persions mentioned in the content item.
    */
-  persons: EntityMention[];
+  persons?: EntityMention[];
   /**
    * Topics mentioned in the content item.
    */
-  topics: TopicMention[];
+  topics?: TopicMention[];
   /**
    * The length of the transcript in characters.
    */
-  transcriptLength: number;
+  transcriptLength?: number;
   /**
    * Total number of pages the item covers.
    */
-  totalPages: number;
+  totalPages?: number;
   /**
    * ISO 639-1 language code of the content item.
    */
@@ -108,11 +108,11 @@ export interface ContentItem {
   /**
    * Whether the content item is on the front page of the publication.
    */
-  isOnFrontPage: boolean;
+  isOnFrontPage?: boolean;
   /**
    * The publication date of the content item.
    */
-  publicationDate: string;
+  publicationDate?: string;
   /**
    * ISO 3166-1 alpha-2 country code of the content item.
    */
@@ -141,7 +141,7 @@ export interface EntityMention {
   /**
    * Relevance of the entity in the document
    */
-  relevance: number;
+  relevance?: number;
 }
 /**
  * Topic presence in a content item.
@@ -154,7 +154,7 @@ export interface TopicMention {
   /**
    * Relevance of the topic in the content item.
    */
-  relevance: number;
+  relevance?: number;
 }
 
 
@@ -165,7 +165,7 @@ export interface EntityDetails {
   /**
    * Unique identifier of the entity
    */
-  uid?: string;
+  uid: string;
   /**
    * Entity label
    */
@@ -197,7 +197,7 @@ export interface EntityMention {
   /**
    * Relevance of the entity in the document
    */
-  relevance: number;
+  relevance?: number;
 }
 
 
@@ -212,7 +212,7 @@ export interface Newspaper {
   /**
    * The title of the newspaper.
    */
-  title: string;
+  title?: string;
   /**
    * The year of the first available article in the newspaper.
    */
@@ -224,19 +224,19 @@ export interface Newspaper {
   /**
    * ISO 639-1 codes of languages used in the newspaper.
    */
-  languageCodes: string[];
+  languageCodes?: string[];
   /**
    * Total number of articles in the newspaper.
    */
-  totalArticles: number;
+  totalArticles?: number;
   /**
    * Total number of issues in the newspaper.
    */
-  totalIssues: number;
+  totalIssues?: number;
   /**
    * Total number of pages in the newspaper.
    */
-  totalPages: number;
+  totalPages?: number;
 }
 
 
@@ -270,19 +270,19 @@ export interface TextReuseCluster {
   /**
    * Overlap in percents between the passages in the cluster.
    */
-  lexicalOverlap: number;
+  lexicalOverlap?: number;
   /**
    * Number of passages in the cluster.
    */
-  clusterSize: number;
+  clusterSize?: number;
   /**
    * Sample of a text from one of the passages in the cluster.
    */
-  textSample: string;
+  textSample?: string;
   /**
    * Time coverage of the cluster.
    */
-  timeCoverage: {
+  timeCoverage?: {
     /**
      * Publication date of the earliest content item in the cluster.
      */
@@ -306,15 +306,15 @@ export interface TextReusePassage {
   /**
    * Textual content of the passage.
    */
-  content: string;
+  content?: string;
   /**
    * ID of the content item that the text reuse passage belongs to.
    */
-  contentItemId: string;
+  contentItemId?: string;
   /**
    * Start and end offsets of the passage in the content item.
    */
-  offset: {
+  offset?: {
     /**
      * Start offset of the passage in the content item.
      */
@@ -339,7 +339,7 @@ export interface TopicMention {
   /**
    * Relevance of the topic in the content item.
    */
-  relevance: number;
+  relevance?: number;
 }
 
 
@@ -350,5 +350,5 @@ export interface VersionDetails {
   /**
    * Version of the API.
    */
-  version?: string;
+  version: string;
 }
