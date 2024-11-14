@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "An entity (location, persion) mention.",
   "type": "object",
-  "title": "EntityMention",
+  "title": "Entity Mention",
   "additionalProperties": false,
   "properties": {
     "uid": {

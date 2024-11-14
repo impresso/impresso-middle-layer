@@ -70,6 +70,17 @@ module.exports = {
         },
         'POST'
       ),
+      // rename accessLevel (public schema) to status (private schema)
+      // TODO: make this nicer
+      context => {
+        if (context.data.accessLevel != null) {
+          if (context.data.accessLevel === 'public') {
+            context.data.status = 'PUB'
+          } else if (context.data.accessLevel === 'private') {
+            context.data.status = 'PRI'
+          }
+        }
+      },
     ],
     update: [],
     patch: [

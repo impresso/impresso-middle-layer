@@ -413,22 +413,23 @@ export interface ImpressoNamedEntityRecognitionEntity {
 }
 
 
-export type StatusOfTheCollection = string;
-
 /**
  * Create new collection request
  */
-export interface NewCollection {
+export interface NewCollectionRequest {
   name: string;
   description?: string;
-  status?: StatusOfTheCollection;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
 }
 
 
 /**
  * Request to update collectible items in a collection
  */
-export interface UpdateCollectableItems {
+export interface UpdateCollectableItemsRequest {
   /**
    * IDs of the items to add to the collection
    */

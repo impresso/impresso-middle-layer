@@ -5,7 +5,7 @@ import lodash from 'lodash'
 import { Op } from 'sequelize'
 import CollectableItemGroup from '../../models/collectable-items-groups.model'
 import { STATUS_DELETED, STATUS_PUBLIC, STATUS_SHARED } from '../../models/collections.model'
-import { CollectableItemsUpdatedResponse, UpdateCollectableItems } from '../../models/generated/shared'
+import { CollectableItemsUpdatedResponse, UpdateCollectableItemsRequest } from '../../models/generated/shared'
 import User from '../../models/users.model'
 import { ImpressoApplication } from '../../types'
 import { measureTime } from '../../util/instruments'
@@ -298,7 +298,7 @@ export class Service {
    */
   async patch(
     id: NullableId,
-    data: UpdateCollectableItems,
+    data: UpdateCollectableItemsRequest,
     params: Params<PatchQuery> & WithUser
   ): Promise<CollectableItemsUpdatedResponse> {
     if (id != null) throw new Error('Patch operation is not supported on a single item')

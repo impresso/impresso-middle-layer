@@ -99,7 +99,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
       operationId: 'createCollection',
       description: 'Create a new collection',
       requestBody: {
-        content: getRequestBodyContent('NewCollection'),
+        content: getRequestBodyContent('NewCollectionRequest'),
       },
       responses: getStandardResponses({
         method: 'create',
@@ -122,7 +122,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
         },
       ],
       requestBody: {
-        content: getRequestBodyContent('NewCollection'),
+        content: getRequestBodyContent('NewCollectionRequest'),
       },
       responses: getStandardResponses({
         method: 'patch',

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "TopicMention",
+  "title": "Topic Mention",
   "description": "Topic presence in a content item.",
   "type": "object",
   "additionalProperties": false,

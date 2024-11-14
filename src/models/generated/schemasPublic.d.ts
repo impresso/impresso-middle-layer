@@ -202,17 +202,6 @@ export interface EntityMention {
 
 
 /**
- * Response for GET /text-reuse-clusters
- */
-export interface FindTextReuseClustersResponse {
-  clusters: unknown[];
-  info: {
-    [k: string]: unknown;
-  };
-}
-
-
-/**
  * A newspaper
  */
 export interface Newspaper {
@@ -252,20 +241,6 @@ export interface Newspaper {
 
 
 /**
- * An object containing search results for a facet
- */
-export interface SearchFacet {
-  /**
-   * The type of facet
-   */
-  type: string;
-  /**
-   * The number of buckets in the facet
-   */
-  numBuckets: number;
-  buckets: SearchFacetBucket[] | SearchFacetRangeBucket[];
-}
-/**
  * Facet bucket
  */
 export interface SearchFacetBucket {
@@ -281,69 +256,6 @@ export interface SearchFacetBucket {
    * Label of the value, if relevant.
    */
   label?: string;
-}
-/**
- * Facet bucket
- */
-export interface SearchFacetRangeBucket {
-  /**
-   * Number of items in the bucket
-   */
-  count: number;
-  /**
-   * Value of the 'type' element
-   */
-  val: number;
-  /**
-   * Lower bound of the range
-   */
-  lower?: number;
-  /**
-   * Lower bound of the range
-   */
-  upper?: number;
-}
-
-
-/**
- * Facet bucket
- */
-export interface SearchFacetBucket {
-  /**
-   * Number of items in the bucket
-   */
-  count: number;
-  /**
-   * Value that represents the bucket.
-   */
-  value: string | number;
-  /**
-   * Label of the value, if relevant.
-   */
-  label?: string;
-}
-
-
-/**
- * Facet bucket
- */
-export interface SearchFacetRangeBucket {
-  /**
-   * Number of items in the bucket
-   */
-  count: number;
-  /**
-   * Value of the 'type' element
-   */
-  val: number;
-  /**
-   * Lower bound of the range
-   */
-  lower?: number;
-  /**
-   * Lower bound of the range
-   */
-  upper?: number;
 }
 
 
