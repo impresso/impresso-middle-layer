@@ -2,13 +2,17 @@ import Debug from 'debug'
 const debug = Debug('impresso/services:logs')
 
 export type LogData = {
-  task?: string //  'TES',
-  taskname?: string // 'impresso.tasks.test_progress',
-
+  tasktype: string //  'TES',
+  taskname: string // 'impresso.tasks.test_progress',
+  taskstate: string // 'RUN',
+  progress: number // 0,
   from: string
   to: string
   msg: string
   job?: any
+  collection?: any
+  query?: string
+  sq?: string
 }
 
 /**
