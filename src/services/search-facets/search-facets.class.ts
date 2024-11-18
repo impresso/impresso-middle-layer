@@ -254,15 +254,15 @@ export class Service {
       const facetParams = indexFacets[facetType]
 
       if (isSolrTermsFacetQuerParams(facetParams)) {
-        const facetDetails: ISolrResponseTermsFacetDetails = result.facets[facetType]
+        const facetDetails: ISolrResponseTermsFacetDetails | undefined = result.facets[facetType]
 
         return new SearchFacetModel({
           type: facetType,
-          buckets: facetDetails.buckets as any,
-          numBuckets: facetDetails.numBuckets ?? 0,
+          buckets: (facetDetails?.buckets ?? []) as any,
+          numBuckets: facetDetails?.numBuckets ?? 0,
         })
       } else if (isSolrRangeFacetQuerParams(facetParams)) {
-        const facetDetails: ISolrResponseRangeFacetDetails = result.facets[facetType]
+        const facetDetails: ISolrResponseRangeFacetDetails | undefined = result.facets[facetType]
 
         const rangeFacetMetadata = getRangeFacetMetadata(facetParams)
         // check that facetsq params are all defined
@@ -279,16 +279,16 @@ export class Service {
         // range facets are not paginated and not sorted in Solr,
         // we have to do it here
 
-        const limit = facetsq.limit ?? facetDetails.buckets.length
+        const limit = facetsq.limit ?? facetDetails?.buckets?.length ?? 0
         const offset = facetsq.offset ?? 0
-        const sortedBuckets = getSortedBuckets(facetDetails.buckets, facetsq.sort)
+        const sortedBuckets = getSortedBuckets(facetDetails?.buckets ?? [], facetsq.sort)
         const limitedBuckets = sortedBuckets.slice(offset, offset + limit)
 
         if (facetsq.limit != null || facetsq.limit != null)
           return new SearchFacetModel({
             type: facetType,
             buckets: limitedBuckets as any,
-            numBuckets: facetDetails.buckets.length,
+            numBuckets: facetDetails?.buckets?.length ?? 0,
             min: rangeFacetMetadata.min as any,
             max: rangeFacetMetadata.max as any,
             gap: rangeFacetMetadata.gap as any,
