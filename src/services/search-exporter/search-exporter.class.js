@@ -26,11 +26,12 @@ class Service {
     const pq = protobuf.searchQuery.serialize({
       filters: params.sanitized.filters,
     })
-    debug('[create] protobuffered:', pq)
+    const task = `impresso.tasks.${data.sanitized.taskname}`
+    debug('[create] - task:', task, '- protobuffered:', pq)
 
     return client
       .run({
-        task: 'impresso.tasks.export_query_as_csv',
+        task: task,
         args: [
           // user id
           params.user.id,
