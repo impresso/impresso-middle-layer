@@ -35,12 +35,12 @@ const getCeleryClient = (config: CeleryConfiguration, app: ImpressoApplication) 
 
       if (result && typeof result === 'object') {
         if (result.job) {
-          debug(`@message related to job: ${result.job.id}, send to: ${result.channel}`, result)
+          debug(`@message related to job: ${result.job.id}, send to: ${result.channel}`, result, result.progress)
           app.service('logs').create({
             tasktype: result.job.type,
             taskname: result.taskname,
             taskstate: result.taskstate,
-            progress: result.job.progress,
+            progress: result.progress,
             collection: result.collection,
             query: result.query,
             sq: result.query_hash,
