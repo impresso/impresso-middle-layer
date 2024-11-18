@@ -1,34 +1,54 @@
+import { SolrFacetQueryParams } from './types'
+
 const assert = require('assert')
 const { constants } = require('impresso-jscommons')
 const { DataIndex } = require('./index')
 
 const facetRanges = new DataIndex({ name: 'facetRanges' })
 
-function getRangeFacetValue (index, facet, key, defaultValue) {
+function getRangeFacetValue(
+  index: string,
+  facet: string,
+  key: 'min' | 'max',
+  defaultValue: string | number
+): string | number {
   const indexData = facetRanges.getValue(index) || {}
   const { [facet]: descriptor = {} } = indexData
   return descriptor[key] == null ? defaultValue : descriptor[key]
 }
 
-function getRangeFacetParametersWithDefault (
-  index,
-  facet,
-  numBuckets,
-  defaultParameters
-) {
+interface IStartEndGap {
+  start: string | number
+  end: string | number
+  gap: string | number
+}
+
+export const isNumber = (value: any): value is number => typeof value === 'number' && Number.isFinite(value)
+
+function getRangeFacetParametersWithDefault(
+  index: string,
+  facet: string,
+  numBuckets: number,
+  defaultParameters: IStartEndGap
+): IStartEndGap {
   const start = getRangeFacetValue(index, facet, 'min', defaultParameters.start)
   const end = getRangeFacetValue(index, facet, 'max', defaultParameters.end)
-  const gap =
-    Number.isFinite(start) && Number.isFinite(end)
-      ? Math.round((end - start) / numBuckets)
-      : defaultParameters.gap
+  const gap = isNumber(start) && isNumber(end) ? Math.round((end - start) / numBuckets) : defaultParameters.gap
   return { start, end, gap }
+}
+
+interface ISolrMappings {
+  facets: {
+    [key: string]: SolrFacetQueryParams
+  }
+  orderBy?: Record<string, string>
+  groupBy?: Record<string, string>
 }
 
 /**
  * Various SOLR mappings per index.
  */
-const SolrMappings = Object.freeze({
+export const SolrMappings: Record<string, ISolrMappings> = Object.freeze({
   search: {
     facets: {
       daterange: {
@@ -40,7 +60,8 @@ const SolrMappings = Object.freeze({
           gap: '+1YEAR',
         }),
         mincount: 1,
-        numBuckets: true,
+        // not supported for 'range' type
+        // numBuckets: true,
       },
       year: {
         type: 'terms',
@@ -62,6 +83,7 @@ const SolrMappings = Object.freeze({
         field: 'meta_month_i',
         mincount: 1,
         limit: 120, // ten years granularity
+        numBuckets: true,
       },
       country: {
         type: 'terms',
@@ -176,44 +198,29 @@ const SolrMappings = Object.freeze({
       textReuseClusterSize: {
         type: 'range',
         field: 'cluster_size_l',
-        ...getRangeFacetParametersWithDefault(
-          'tr_clusters',
-          'textReuseClusterSize',
-          10,
-          {
-            end: 100000,
-            start: 0,
-            gap: 10000,
-          }
-        ),
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterSize', 10, {
+          end: 100000,
+          start: 0,
+          gap: 10000,
+        }),
       },
       textReuseClusterLexicalOverlap: {
         type: 'range',
         field: 'lex_overlap_d',
-        ...getRangeFacetParametersWithDefault(
-          'tr_clusters',
-          'textReuseClusterLexicalOverlap',
-          10,
-          {
-            end: 100,
-            start: 0,
-            gap: 10,
-          }
-        ),
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterLexicalOverlap', 10, {
+          end: 100,
+          start: 0,
+          gap: 10,
+        }),
       },
       textReuseClusterDayDelta: {
         type: 'range',
         field: 'day_delta_i',
-        ...getRangeFacetParametersWithDefault(
-          'tr_clusters',
-          'textReuseClusterDayDelta',
-          10,
-          {
-            end: 100,
-            start: 0,
-            gap: 10,
-          }
-        ),
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterDayDelta', 10, {
+          end: 100,
+          start: 0,
+          gap: 10,
+        }),
       },
       daterange: {
         type: 'range',
@@ -251,7 +258,8 @@ const SolrMappings = Object.freeze({
           gap: '+1YEAR',
         }),
         mincount: 1,
-        numBuckets: true,
+        // not supported for 'range' type
+        // numBuckets: true,
       },
       yearmonth: {
         type: 'terms',
@@ -284,30 +292,20 @@ const SolrMappings = Object.freeze({
       textReuseClusterLexicalOverlap: {
         type: 'range',
         field: 'cluster_lex_overlap_d',
-        ...getRangeFacetParametersWithDefault(
-          'tr_clusters',
-          'textReuseClusterLexicalOverlap',
-          200,
-          {
-            end: 100,
-            start: 0,
-            gap: 0.5,
-          }
-        ),
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterLexicalOverlap', 200, {
+          end: 100,
+          start: 0,
+          gap: 0.5,
+        }),
       },
       textReuseClusterDayDelta: {
         type: 'range',
         field: 'cluster_day_delta_i',
-        ...getRangeFacetParametersWithDefault(
-          'tr_clusters',
-          'textReuseClusterDayDelta',
-          800,
-          {
-            end: 80000,
-            start: 0,
-            gap: 100,
-          }
-        ),
+        ...getRangeFacetParametersWithDefault('tr_clusters', 'textReuseClusterDayDelta', 800, {
+          end: 80000,
+          start: 0,
+          gap: 100,
+        }),
       },
       textReuseCluster: {
         type: 'terms',
@@ -373,17 +371,11 @@ const SolrMappings = Object.freeze({
 })
 
 /* Check that facets are a subset of filter types */
-Object.keys(SolrMappings.search.facets).forEach((type) =>
-  assert(
-    constants.filter.Types.includes(type),
-    `Unknown filter type found in facets: ${type}`
-  )
+Object.keys(SolrMappings.search.facets).forEach(type =>
+  assert(constants.filter.Types.includes(type), `Unknown filter type found in facets: ${type}`)
 )
 
-module.exports = {
-  SolrMappings,
-  FilterTypes: constants.filter.Types,
-  Contexts: constants.filter.Contexts,
-  Operators: constants.filter.Operators,
-  Precision: constants.filter.Precision,
-}
+export const FilterTypes = constants.filter.Types
+export const Contexts = constants.filter.Contexts
+export const Operators = constants.filter.Operators
+export const Precision = constants.filter.Precision
