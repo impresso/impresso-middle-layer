@@ -30,7 +30,7 @@ export const docs: ServiceSwaggerOptions = {
       // the `RefParser.bundle` will fail with an error
       // "MissingPointerError: Token ":id" does not exist."
       requestBody: {
-        content: getRequestBodyContent('UpdateCollectableItems'),
+        content: getRequestBodyContent('UpdateCollectableItemsRequest'),
       },
       responses: getStandardResponses({
         method: 'patchMulti',
@@ -43,7 +43,7 @@ export const docs: ServiceSwaggerOptions = {
       description: 'Update items in the collection',
       parameters: patchParameters,
       requestBody: {
-        content: getRequestBodyContent('UpdateCollectableItems'),
+        content: getRequestBodyContent('UpdateCollectableItemsRequest'),
       },
       responses: getStandardResponses({
         method: 'patchMulti',

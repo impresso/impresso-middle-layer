@@ -28,6 +28,7 @@ export default function (app: ImpressoApplication) {
   // Initialize our service with any options it requires
   app.use('/content-items', svc, {
     events: [],
+    methods: ['get'],
     docs: createSwaggerServiceOptions({ schemas: {}, docs }),
   } as ServiceOptions)
 

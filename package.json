@@ -71,7 +71,7 @@
     "debug": "^4.3.4",
     "decypher": "^0.13.0",
     "dotenv": "^16.0.1",
-    "express-openapi-validator": "5.1.6",
+    "express-openapi-validator": "5.3.9",
     "fast-ratelimit": "^3.0.0",
     "fast-xml-parser": "^4.3.4",
     "feathers-authentication-hooks": "^1.0.2",

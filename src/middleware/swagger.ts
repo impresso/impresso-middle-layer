@@ -86,7 +86,12 @@ export default (app: ImpressoApplication & Application) => {
         },
       },
       components: {
-        schemas: getFilesAsSchemaRefs(`${schemaBaseDir}/schemas`, './schema/schemas'),
+        schemas: {
+          // shared schemas (shared by both internal and external schemas)
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/shared`, './schema/shared'),
+          // public schemas
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/schemasPublic`, './schema/schemasPublic'),
+        },
         requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/requestBodies`, './schema/requestBodies'),
         responses: getFilesAsSchemaRefs(`${schemaBaseDir}/responses`, './schema/responses'),
         parameters: getFilesAsSchemaRefs(`${schemaBaseDir}/parameters`, './schema/parameters'),

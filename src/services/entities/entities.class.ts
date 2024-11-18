@@ -58,6 +58,10 @@ class Service {
   }
 
   async find(params: Params<FindQuery> & Sanitized<FindQuery> & WithUser) {
+    return await this._find(params)
+  }
+
+  async _find(params: Params<FindQuery> & Sanitized<FindQuery> & WithUser) {
     const qp = params.query!
     debug('[find] with params:', qp)
 
@@ -209,7 +213,7 @@ class Service {
   }
 
   async get(id: string, params: any) {
-    return this.find({
+    return await this._find({
       ...params,
       query: {
         resolve: true,
