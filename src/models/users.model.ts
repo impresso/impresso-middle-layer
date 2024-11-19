@@ -183,7 +183,7 @@ export default class User {
   static sequelize(client: Sequelize) {
     const profile = Profile.sequelize(client)
     const userBitmap = UserBitmap.sequelize(client)
-    const group = Group.sequelize(client)
+    const group = Group.initModel(client)
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
     const user: ModelDefined<UserAttributes, UserCreationAttributes> = client.define(

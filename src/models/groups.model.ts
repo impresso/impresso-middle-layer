@@ -1,27 +1,12 @@
-import { DataTypes, type Sequelize } from 'sequelize'
-import { Model, Optional, ModelDefined } from 'sequelize'
+import type { Sequelize } from 'sequelize'
+import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize'
 
-interface GroupAttributes {
-  id: number
-  name: string
-}
-// You can also set multiple attributes optional at once
-interface GroupCreationAttributes extends Omit<GroupAttributes, 'id'> {}
+export default class Group extends Model<InferAttributes<Group>, InferCreationAttributes<Group>> {
+  declare id: CreationOptional<string>
+  declare name: string
 
-export default class Group {
-  id: string
-  name: string
-
-  constructor({ id = '', name = '' } = {}) {
-    this.id = String(id)
-    this.name = String(name)
-  }
-
-  static sequelize(client: Sequelize) {
-    // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
-    // for more of what you can do here.
-    const group: ModelDefined<GroupAttributes, GroupCreationAttributes> = client.define(
-      'group',
+  static initModel(client: Sequelize) {
+    return Group.init(
       {
         id: {
           type: DataTypes.INTEGER,
@@ -36,14 +21,9 @@ export default class Group {
         },
       },
       {
+        sequelize: client,
         tableName: 'auth_group',
       }
     )
-
-    group.prototype.toJSON = function () {
-      const { id, name } = this as unknown as Group
-      return new Group({ id, name })
-    }
-    return group
   }
 }
