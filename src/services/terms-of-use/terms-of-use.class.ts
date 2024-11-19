@@ -4,9 +4,7 @@ import UserBitmap, { BufferUserPlanAuthUser } from '../../models/user-bitmap.mod
 import User from '../../models/users.model'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
-import { time } from 'console'
-
-const debug = Debug('impresso/services:account-details')
+const debug = Debug('impresso/services:terms-of-use')
 
 interface Params extends FeathersParams {
   user: {
@@ -23,11 +21,11 @@ export interface ServiceOptions {
  * Service to retrieve account details,
  * e.g. latest terms of use acceptance date, list of subscription, user bitmap.
  *
- *    DEBUG=impresso/services:account-details npm run dev
+ *    DEBUG=impresso/services:terms-of-use npm run dev
  *
  * This service return a userBitmap object with the date the user accepted the terms of use.
- * /account-details find() method, it uses the authenticated user id from hook to find the user bitmap record.
- * /account-details patch() method, for the moment being, this just updates the dateAcceptedTerms field in the user bitmap record.
+ * /terms-of-use find() method, it uses the authenticated user id from hook to find the user bitmap record.
+ * /terms-of-use patch() method, for the moment being, this just updates the dateAcceptedTerms field in the user bitmap record.
  * Subscription need to be validated by admin users, so they arent part of this service.
  *
  * @param {ImpressoApplication} app
