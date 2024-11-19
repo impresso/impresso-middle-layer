@@ -39,7 +39,7 @@ const findAndGetParamsHooks = [
       transform: (val: boolean) => {
         return val
       },
-      defaultValue: false,
+      defaultValue: true, // front end needs this to be true
     },
     order_by: utils.orderBy({
       values: orderByMap,
