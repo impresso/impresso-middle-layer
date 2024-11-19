@@ -3,12 +3,24 @@ import { rateLimit } from '../../hooks/rateLimiter'
 import { decodeJsonQueryParameters } from '../../hooks/parameters'
 import { validate } from '../../hooks/params'
 import { parseFilters } from '../../util/queryParameters'
-import { redactResponse, redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import { redactResponse, redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
+import {
+  transformResponseDataItem,
+  transformResponse,
+  renameTopLevelField,
+  renameQueryParameters,
+} from '../../hooks/transformation'
+import { transformTextReuseCluster } from '../../transformers/textReuse'
+import { transformBaseFind } from '../../transformers/base'
 
 // const { validateWithSchema } = require('../../hooks/schema')
 
 const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trClusterRedactionPolicy.yml`)
+
+const findQueryParamsRenamePolicy = {
+  term: 'text',
+}
 
 module.exports = {
   around: {
@@ -17,6 +29,7 @@ module.exports = {
   before: {
     all: [],
     find: [
+      renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
       decodeJsonQueryParameters(['filters']), //
       validate({
         filters: {
@@ -34,8 +47,16 @@ module.exports = {
 
   after: {
     all: [],
-    get: [redactResponse(trPassageRedactionPolicy, defaultCondition)],
-    find: [redactResponseDataItem(trPassageRedactionPolicy, defaultCondition, 'clusters')],
+    get: [
+      transformResponse(transformTextReuseCluster, inPublicApi),
+      redactResponse(trPassageRedactionPolicy, defaultCondition),
+    ],
+    find: [
+      renameTopLevelField(['clusters', 'data'], inPublicApi),
+      transformResponse(transformBaseFind, inPublicApi),
+      transformResponseDataItem(transformTextReuseCluster, inPublicApi),
+      redactResponseDataItem(trPassageRedactionPolicy, defaultCondition),
+    ],
     // find: [validateWithSchema('services/text-reuse-clusters/schema/find/response.json', 'result')],
     // get: [validateWithSchema('services/text-reuse-clusters/schema/get/response.json', 'result')],
     create: [],

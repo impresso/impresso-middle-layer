@@ -151,7 +151,6 @@ async function getResponseFacetsFromSolrResponse(solrResponse) {
 class SearchQueriesComparison {
   setup(app) {
     // this.solrClient = app.get('solrClient');
-    // this.articlesService = app.service('articles');
 
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.service('cachedSolr')

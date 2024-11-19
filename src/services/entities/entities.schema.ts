@@ -1,53 +1,80 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { QueryParameter } from '../../util/openapi'
+import type { MethodParameter, QueryParameter } from '../../util/openapi'
 import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { orderByValues } from './entities.hooks'
 
-const findParameters: QueryParameter[] = [
-  {
-    in: 'query',
-    name: 'q',
-    required: false,
-    schema: {
-      type: 'string',
-      minLength: 2,
-      maxLength: 1000,
-    },
-    description: 'Search query term',
+const parameterQ: QueryParameter = {
+  in: 'query',
+  name: 'q',
+  required: false,
+  schema: {
+    type: 'string',
+    minLength: 2,
+    maxLength: 1000,
   },
-  {
-    in: 'query',
-    name: 'resolve',
-    required: false,
-    schema: {
-      type: 'boolean',
-    },
-    description: 'Resolve wikidata entity details (slow). Default `false`.',
+  description: 'Search query term',
+}
+
+const parameterTerm: QueryParameter = {
+  in: 'query',
+  name: 'term',
+  required: false,
+  schema: {
+    type: 'string',
+    minLength: 2,
+    maxLength: 1000,
   },
-  {
-    in: 'query',
-    name: 'order_by',
-    required: false,
-    schema: {
-      type: 'string',
-      enum: orderByValues,
-    },
-    description: 'Order by term',
+  description: 'Search query term',
+}
+
+const parameterResolve: QueryParameter = {
+  in: 'query',
+  name: 'resolve',
+  required: false,
+  schema: {
+    type: 'boolean',
   },
+  description: 'Resolve wikidata entity details (slow). Default `false`.',
+}
+
+const parameterOrderBy: QueryParameter = {
+  in: 'query',
+  name: 'order_by',
+  required: false,
+  schema: {
+    type: 'string',
+    enum: orderByValues,
+  },
+  description: 'Order by term',
+}
+
+const findParameters: MethodParameter[] = [
+  parameterQ,
+  parameterResolve,
+  parameterOrderBy,
   filtersQueryParameter,
+  ...getStandardParameters({ method: 'find' }),
 ]
 
-export const docs: ServiceSwaggerOptions = {
+const findParametersPublic: MethodParameter[] = [
+  parameterTerm,
+  parameterOrderBy,
+  filtersQueryParameter,
+  ...getStandardParameters({ method: 'find' }),
+]
+
+export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
   description: 'Entities',
   securities: ['find', 'get'],
   operations: {
     find: {
       operationId: 'findEntities',
       description: 'Find entities that match the given query',
-      parameters: [...findParameters, ...getStandardParameters({ method: 'find' })],
+      parameters: isPublicApi ? findParametersPublic : findParameters,
       responses: getStandardResponses({
         method: 'find',
         schema: 'EntityDetails',
+        isPublic: isPublicApi,
       }),
     },
     get: {
@@ -67,7 +94,8 @@ export const docs: ServiceSwaggerOptions = {
       responses: getStandardResponses({
         method: 'get',
         schema: 'EntityDetails',
+        isPublic: isPublicApi,
       }),
     },
   },
-}
+})

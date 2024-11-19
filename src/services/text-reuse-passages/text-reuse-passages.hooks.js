@@ -3,8 +3,11 @@ import { decodeJsonQueryParameters, decodePathParameters } from '../../hooks/par
 import { validate } from '../../hooks/params'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { parseFilters } from '../../util/queryParameters'
-import { redactResponse, redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import { redactResponse, redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
+import { transformResponseDataItem, transformResponse } from '../../hooks/transformation'
+import { transformTextReusePassage } from '../../transformers/textReuse'
+import { transformBaseFind } from '../../transformers/base'
 
 const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trPassageRedactionPolicy.yml`)
 
@@ -32,7 +35,14 @@ module.exports = {
     ],
   },
   after: {
-    get: [redactResponse(trPassageRedactionPolicy, defaultCondition)],
-    find: [redactResponseDataItem(trPassageRedactionPolicy, defaultCondition)],
+    get: [
+      transformResponse(transformTextReusePassage, inPublicApi),
+      redactResponse(trPassageRedactionPolicy, defaultCondition),
+    ],
+    find: [
+      transformResponse(transformBaseFind, inPublicApi),
+      transformResponseDataItem(transformTextReusePassage, inPublicApi),
+      redactResponseDataItem(trPassageRedactionPolicy, defaultCondition),
+    ],
   },
 }

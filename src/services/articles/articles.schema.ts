@@ -30,21 +30,22 @@ const findParameters: MethodParameter[] = [
  * NOTE: Keep this in sync with validators in search.hooks.ts
  */
 export const docs: ServiceSwaggerOptions = {
-  description: 'Articles',
-  securities: ['find', 'get'],
+  description: 'Content items',
+  securities: ['get'],
   operations: {
-    find: {
-      operationId: 'findArticles',
-      description: 'Find articles that match the given query',
-      parameters: findParameters,
-      responses: getStandardResponses({
-        method: 'find',
-        schema: 'Article',
-      }),
-    },
+    // Duplicate of /search
+    // find: {
+    //   operationId: 'findContentItem',
+    //   description: 'Find content items that match the given query',
+    //   parameters: findParameters,
+    //   responses: getStandardResponses({
+    //     method: 'find',
+    //     schema: 'ContentItem',
+    //   }),
+    // },
     get: {
-      operationId: 'getArticle',
-      description: 'Get an article by its UID',
+      operationId: 'getContentItem',
+      description: 'Get a content item by its UID',
       parameters: [
         {
           in: 'path',
@@ -53,12 +54,12 @@ export const docs: ServiceSwaggerOptions = {
           schema: {
             type: 'string',
           },
-          description: 'UID of the article',
+          description: 'UID of the content item',
         },
       ],
       responses: getStandardResponses({
         method: 'get',
-        schema: 'Article',
+        schema: 'ContentItem',
       }),
     },
   },

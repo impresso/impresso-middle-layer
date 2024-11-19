@@ -6,8 +6,8 @@ import hooks from './impresso-ner.hooks'
 import { docs } from './impresso-ner.schema'
 
 export default (app: ImpressoApplication) => {
-  const url = app.get('impressoNerServiceUrl') ?? 'https://impresso-annotation.epfl.ch/api/ner/'
-  const service = new ImpressoNerService({ impressoNerServiceUrl: url })
+  const url = app.get('impressoNerServiceUrl') ?? 'https://impresso-annotation.epfl.ch/api'
+  const service = new ImpressoNerService({ impressoNerServiceBaseUrl: url })
 
   app.use('/tools/ner', service, {
     events: [],

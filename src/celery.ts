@@ -5,12 +5,13 @@ import debugModule from 'debug'
 import { CeleryConfiguration } from './configuration'
 import { logger } from './logger'
 import Job from './models/jobs.model'
+import type { LogData } from './services/logs/logs.class'
 import { ImpressoApplication } from './types'
 import { AsyncResult } from 'celery-node/dist/app/result'
 
 const debug = debugModule('impresso/celery')
 
-const JOB_STATUS_TRANSLATIONS: Record<string, string> = {
+export const JobStatusTranslations: Record<string, string> = {
   REA: 'A new job has been created',
   RUN: 'Job is doing its job ...',
   DON: 'Job done! Congrats.',
@@ -29,23 +30,32 @@ const getCeleryClient = (config: CeleryConfiguration, app: ImpressoApplication) 
       debug('Subscribed to celery tasks')
     })
 
-    backend.redis.on('pmessage', (pattern, channel, data) => {
+    backend.redis.on('pmessage', (_pattern, _channel, data) => {
       const message = JSON.parse(data)
       const result = message.result
 
       if (result && typeof result === 'object') {
         if (result.job) {
-          debug(`@message related to job: ${result.job_id}, send to: ${result.user_uid}`, result)
+          debug(`@message related to job: ${result.job.id}, send to: ${result.channel}`, result, result.progress)
           app.service('logs').create({
-            ...result,
-            job: new Job({
-              ...result.job,
-              creationDate: result.job.date_created,
-            }),
-            msg: JOB_STATUS_TRANSLATIONS[result.job.status],
-            to: result.user_uid,
+            tasktype: result.job.type,
+            taskname: result.taskname,
+            taskstate: result.taskstate,
+            progress: result.progress,
+            collection: result.collection,
+            query: result.query,
+            sq: result.query_hash,
             from: 'jobs',
-          })
+            to: result.channel,
+            msg: JobStatusTranslations[result.job.status],
+            job: new Job({
+              id: result.job.id,
+              type: result.job.type,
+              status: result.job.status,
+              creationDate: result.job.date_created,
+              lastModifiedDate: result.job.date_last_modified,
+            }),
+          } as LogData)
         } else {
           debug('@message from unknown origin, cannot propagate:', result)
         }

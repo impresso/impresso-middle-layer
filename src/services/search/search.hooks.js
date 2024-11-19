@@ -1,6 +1,9 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
-import { redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import { redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
+import { transformBaseFind } from '../../transformers/base'
+import { transformContentItem } from '../../transformers/contentItem'
 import { loadYamlFile } from '../../util/yaml'
 
 const { protect } = require('@feathersjs/authentication-local').hooks
@@ -18,7 +21,11 @@ const { paramsValidator, eachFilterValidator, eachFacetFilterValidator } = requi
 const { SolrMappings } = require('../../data/constants')
 const { SolrNamespaces } = require('../../solr')
 
-const articleRedactionPolicy = loadYamlFile(`${__dirname}/../articles/resources/articleRedactionPolicy.yml`)
+const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/../articles/resources/contentItemRedactionPolicy.yml`)
+
+const findQueryParamsRenamePolicy = {
+  term: 'q',
+}
 
 module.exports = {
   around: {
@@ -28,6 +35,7 @@ module.exports = {
   before: {
     all: [],
     find: [
+      renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
       validate({
         ...paramsValidator,
         facets: utils.facets({
@@ -99,9 +107,11 @@ module.exports = {
     all: [],
     find: [
       displayQueryParams(['queryComponents', 'filters']),
+      transformResponse(transformBaseFind, inPublicApi),
       resolveQueryComponents(),
       protect('content'),
-      redactResponseDataItem(articleRedactionPolicy, defaultCondition),
+      transformResponseDataItem(transformContentItem, inPublicApi),
+      redactResponseDataItem(contentItemRedactionPolicy, defaultCondition),
     ],
     get: [],
     create: [],

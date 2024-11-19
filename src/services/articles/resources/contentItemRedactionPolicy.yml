@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
+name: artice-redaction-policy
+items:
+  - jsonPath: $.title
+    valueConverterName: redact
+  - jsonPath: $.transcript
+    valueConverterName: redact
+  # - jsonPath: $.regions
+  #   valueConverterName: emptyArray
+  # - jsonPath: $.matches
+  #   valueConverterName: emptyArray
+  # - jsonPath: $.pages[*].iiif
+  #   valueConverterName: contextNotAllowedImage
+  # - jsonPath: $.pages[*].iiifThumbnail
+  #   valueConverterName: contextNotAllowedImage

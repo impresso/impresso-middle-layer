@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Search Facet Bucket",
+  "description": "Facet bucket",
+  "additionalProperties": false,
+  "properties": {
+    "count": {
+      "type": "integer",
+      "description": "Number of items in the bucket",
+      "minimum": 0
+    },
+    "value": {
+      "anyOf": [{ "type": "string" }, { "type": "number" }, { "type": "integer" }],
+      "description": "Value that represents the bucket."
+    },
+    "label": {
+      "type": "string",
+      "description": "Label of the value, if relevant."
+    }
+  },
+  "required": ["count", "value"]
+}

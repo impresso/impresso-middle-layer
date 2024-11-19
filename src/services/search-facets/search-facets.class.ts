@@ -1,14 +1,22 @@
 import { Params } from '@feathersjs/feathers'
 import lodash from 'lodash'
 import { CachedSolrClient } from '../../cachedSolr'
-import { SolrMappings } from '../../data/constants'
+import { isNumber, SolrMappings } from '../../data/constants'
 import { FindResponse } from '../../models/common'
-import type { Filter, SearchFacet } from '../../models/generated/schemas'
+import type { SearchFacet } from '../../models/generated/schemas'
+import type { Filter } from '../../models/generated/shared'
 import SearchFacetModel from '../../models/search-facets.model'
 import { ImpressoApplication } from '../../types'
 import { areCacheableFacets, isCacheableQuery } from '../../util/cache'
 import { measureTime } from '../../util/instruments'
 import { IndexId } from './search-facets.schema'
+import {
+  isSolrRangeFacetQuerParams,
+  isSolrTermsFacetQuerParams,
+  SolrFacetQueryParams,
+  SolrRangeFacetQueryParams,
+  SolrTermsFacetQueryParams,
+} from '../../data/types'
 
 const debug = require('debug')('impresso/services:search-facets')
 
@@ -27,7 +35,13 @@ export const getIndexMeta = (indexId: IndexId) => {
   }
 }
 
-const getRangeFacetMetadata = (facet: FacetMetadata) => {
+interface IRangeFacetMetadata {
+  min?: number
+  max?: number
+  gap?: number
+}
+
+const getRangeFacetMetadata = (facet: FacetMetadata): IRangeFacetMetadata => {
   if (facet.type !== 'range') return {}
   return {
     min: facet.start,
@@ -39,7 +53,7 @@ const getRangeFacetMetadata = (facet: FacetMetadata) => {
 interface GetQuery {
   offset?: number
   limit?: number
-  order_by?: string
+  order_by: SolrTermsFacetQueryParams['sort']
 }
 
 interface FindQuery extends GetQuery {
@@ -58,15 +72,33 @@ interface SanitizedGetParams {
   facets?: string[]
 }
 
-interface FacetsQueryPart {
-  offset?: number
-  limit?: number
-  sort?: string
-  start?: number
-  end?: number
-  gap?: number
-  include?: any
+type FacetsQueryPart = Partial<
+  Pick<SolrTermsFacetQueryParams, 'offset' | 'limit' | 'sort'> &
+    Pick<SolrRangeFacetQueryParams, 'start' | 'end' | 'gap' | 'include'>
+>
+
+interface ISolrBucket {
+  val?: string | number
+  count?: number
 }
+
+interface ISolrCount {
+  count: number
+}
+
+interface ISolrResponseTermsFacetDetails {
+  numBuckets?: number
+  buckets: ISolrBucket[]
+}
+
+interface ISolrResponseRangeFacetDetails {
+  buckets: ISolrBucket[]
+  before?: ISolrCount
+  after?: ISolrCount
+  between?: ISolrCount
+}
+
+type ISolrResponseFacetDetails = ISolrResponseTermsFacetDetails | ISolrResponseRangeFacetDetails
 
 interface ServiceOptions {
   app: ImpressoApplication
@@ -166,24 +198,33 @@ export class Service {
 
     const canBeCached = areCacheableFacets(types) && isCacheableQuery(sanitizedParams.filters ?? [])
 
-    const indexFacets = getIndexMeta(index).facets as Record<string, any>
+    const indexFacets = getIndexMeta(index).facets
 
-    const facets = lodash(types)
-      .map((type: string) => {
-        const facet = {
-          k: type,
-          ...indexFacets[type],
-          ...facetsq,
-          other: 'all',
+    const facets = types.reduce(
+      (acc, facetType) => {
+        const facetParams = indexFacets[facetType]
+        if (isSolrTermsFacetQuerParams(facetParams)) {
+          const combinedParams: SolrTermsFacetQueryParams = {
+            ...facetParams,
+            ...lodash.pick(facetsq, 'limit', 'offset', 'sort'),
+          }
+          if (facetType === 'collection') {
+            combinedParams.prefix = isAuthenticated ? userId : '-'
+          }
+          return { ...acc, [facetType]: combinedParams }
+        } else if (isSolrRangeFacetQuerParams(facetParams)) {
+          const combinedParams: SolrRangeFacetQueryParams = {
+            ...facetParams,
+            ...facetsq,
+            ...lodash.pick(facetsq, 'start', 'end', 'gap', 'include'),
+            other: 'all',
+          }
+          return { ...acc, [facetType]: combinedParams }
         }
-        if (type === 'collection') {
-          facet.prefix = isAuthenticated ? userId : '-'
-        }
-        return facet
-      })
-      .keyBy('k')
-      .mapValues((v: Record<string, any>) => lodash.omit(v, 'k'))
-      .value()
+        return acc
+      },
+      {} satisfies Record<string, SolrFacetQueryParams>
+    )
 
     debug(
       `[get] "${types.join(', ')}" (${canBeCached ? 'cached' : 'not cached'}):`,
@@ -205,29 +246,76 @@ export class Service {
     if (sanitizedParams.group_by) {
       query.fq = `{!collapse field=${sanitizedParams.group_by}}`
     }
-    const result = await measureTime(
+    const result: { facets: Record<string, ISolrResponseFacetDetails> } = await measureTime(
       () => this.solr.get(query, index.replace('-', '_'), { skipCache: true }), //! canBeCached }),
       'search-facets.get.solr.facets'
     )
-    return types.map(t => {
-      const rangeFacetMetadata = getRangeFacetMetadata(indexFacets[t])
-      // check that facetsq params are all defined
-      if (facetsQueryPart.start == null || !isNaN(facetsQueryPart.start)) {
-        rangeFacetMetadata.min = facetsQueryPart.start
-      }
-      if (facetsQueryPart.end == null || !isNaN(facetsQueryPart.end)) {
-        rangeFacetMetadata.max = facetsQueryPart.end
-      }
-      if (facetsQueryPart.gap == null || !isNaN(facetsQueryPart.gap)) {
-        rangeFacetMetadata.gap = facetsQueryPart.gap
+    return types.map(facetType => {
+      const facetParams = indexFacets[facetType]
+
+      if (isSolrTermsFacetQuerParams(facetParams)) {
+        const facetDetails: ISolrResponseTermsFacetDetails | undefined = result.facets[facetType]
+
+        return new SearchFacetModel({
+          type: facetType,
+          buckets: (facetDetails?.buckets ?? []) as any,
+          numBuckets: facetDetails?.numBuckets ?? 0,
+        })
+      } else if (isSolrRangeFacetQuerParams(facetParams)) {
+        const facetDetails: ISolrResponseRangeFacetDetails | undefined = result.facets[facetType]
+
+        const rangeFacetMetadata = getRangeFacetMetadata(facetParams)
+        // check that facetsq params are all defined
+        if (facetsQueryPart.start == null || isNumber(facetsQueryPart.start)) {
+          rangeFacetMetadata.min = facetsQueryPart.start
+        }
+        if (facetsQueryPart.end == null || isNumber(facetsQueryPart.end)) {
+          rangeFacetMetadata.max = facetsQueryPart.end
+        }
+        if (facetsQueryPart.gap == null || isNumber(facetsQueryPart.gap)) {
+          rangeFacetMetadata.gap = facetsQueryPart.gap
+        }
+
+        // range facets are not paginated and not sorted in Solr,
+        // we have to do it here
+
+        const limit = facetsq.limit ?? facetDetails?.buckets?.length ?? 0
+        const offset = facetsq.offset ?? 0
+        const sortedBuckets = getSortedBuckets(facetDetails?.buckets ?? [], facetsq.sort)
+        const limitedBuckets = sortedBuckets.slice(offset, offset + limit)
+
+        if (facetsq.limit != null || facetsq.limit != null)
+          return new SearchFacetModel({
+            type: facetType,
+            buckets: limitedBuckets as any,
+            numBuckets: facetDetails?.buckets?.length ?? 0,
+            min: rangeFacetMetadata.min as any,
+            max: rangeFacetMetadata.max as any,
+            gap: rangeFacetMetadata.gap as any,
+          })
       }
       return new SearchFacetModel({
-        type: t,
-        // default min max and gap values from default solr config
-        ...result.facets[t],
-        ...rangeFacetMetadata,
-        numBuckets: result.facets[t] ? result.facets[t].numBuckets || result.facets[t].buckets.length : 0,
+        type: facetType,
       })
     })
   }
+}
+
+const getSortedBuckets = (buckets: ISolrBucket[], sort?: SolrTermsFacetQueryParams['sort']): ISolrBucket[] => {
+  const sorter = (compareKey: keyof ISolrBucket, order: 'asc' | 'desc') => (a: ISolrBucket, b: ISolrBucket) => {
+    const aVal = a[compareKey] ?? 0
+    const bVal = b[compareKey] ?? 0
+
+    if (aVal > bVal) return order == 'asc' ? 1 : -1
+    else if (aVal < bVal) return order == 'asc' ? -1 : 1
+    return 0
+  }
+
+  if (sort?.count != null) {
+    return buckets.sort(sorter('count', sort.count))
+  } else if (sort?.index != null) {
+    return buckets.sort(sorter('val', sort.index))
+  }
+
+  return buckets
 }

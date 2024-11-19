@@ -1,8 +1,17 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
+import { inPublicApi } from '../../hooks/redaction'
+import { transformCollection } from '../../transformers/collection'
+import { transformBaseFind } from '../../transformers/base'
+
 const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params')
 
 const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model')
+
+const findQueryParamsRenamePolicy = {
+  term: 'q',
+}
 
 module.exports = {
   around: {
@@ -11,6 +20,7 @@ module.exports = {
   before: {
     all: [],
     find: [
+      renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
       validate({
         uids: {
           required: false,
@@ -60,6 +70,17 @@ module.exports = {
         },
         'POST'
       ),
+      // rename accessLevel (public schema) to status (private schema)
+      // TODO: make this nicer
+      context => {
+        if (context.data.accessLevel != null) {
+          if (context.data.accessLevel === 'public') {
+            context.data.status = 'PUB'
+          } else if (context.data.accessLevel === 'private') {
+            context.data.status = 'PRI'
+          }
+        }
+      },
     ],
     update: [],
     patch: [
@@ -85,11 +106,14 @@ module.exports = {
 
   after: {
     all: [],
-    find: [],
-    get: [],
-    create: [],
+    find: [
+      transformResponse(transformBaseFind, inPublicApi),
+      transformResponseDataItem(transformCollection, inPublicApi),
+    ],
+    get: [transformResponse(transformCollection, inPublicApi)],
+    create: [transformResponse(transformCollection, inPublicApi)],
     update: [],
-    patch: [],
+    patch: [transformResponse(transformCollection, inPublicApi)],
     remove: [],
   },
 
