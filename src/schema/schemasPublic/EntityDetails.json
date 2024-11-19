@@ -28,6 +28,16 @@
     "totalContentItems": {
       "type": "integer",
       "description": "Total number of content items the entity is mentioned in."
+    },
+    "wikidataDetails": {
+      "anyOf": [
+        {
+          "$ref": "./WikidataHuman.json"
+        },
+        {
+          "$ref": "./WikidataLocation.json"
+        }
+      ]
     }
   },
   "required": ["uid"]

@@ -33,6 +33,7 @@ const parameterResolve: QueryParameter = {
   required: false,
   schema: {
     type: 'boolean',
+    default: false,
   },
   description: 'Resolve wikidata entity details (slow). Default `false`.',
 }
@@ -58,6 +59,7 @@ const findParameters: MethodParameter[] = [
 
 const findParametersPublic: MethodParameter[] = [
   parameterTerm,
+  parameterResolve,
   parameterOrderBy,
   filtersQueryParameter,
   ...getStandardParameters({ method: 'find' }),

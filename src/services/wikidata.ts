@@ -1,3 +1,8 @@
+/**
+ * Wikibase REST API Swagger and OpenAPI 3.0 definitions:
+ * https://doc.wikimedia.org/Wikibase/master/js/rest-api/
+ */
+
 import Debug from 'debug'
 import axios from 'axios'
 import wdk from 'wikidata-sdk'
@@ -93,7 +98,7 @@ class NamedEntity implements INamedEntity {
     })
   }
 
-  toJSON() {
+  toJSON(): INamedEntity {
     return {
       id: this.id,
       type: this.type,
@@ -102,6 +107,12 @@ class NamedEntity implements INamedEntity {
       images: this.images,
     }
   }
+}
+
+export interface ILocation extends INamedEntity {
+  coordinates: any
+  country: any
+  adminArea: any
 }
 
 class Location extends NamedEntity {
@@ -133,7 +144,7 @@ class Location extends NamedEntity {
     }
   }
 
-  toJSON() {
+  toJSON(): ILocation {
     return {
       ...super.toJSON(),
       coordinates: this.coordinates,
@@ -141,6 +152,13 @@ class Location extends NamedEntity {
       adminArea: (this as unknown as any).adminArea,
     }
   }
+}
+
+export interface IHuman extends INamedEntity {
+  birthDate: any
+  deathDate: any
+  birthPlace: any
+  deathPlace: any
 }
 
 /**
@@ -182,7 +200,7 @@ class Human extends NamedEntity {
     }
   }
 
-  toJSON() {
+  toJSON(): IHuman {
     return {
       ...super.toJSON(),
       birthDate: this.birthDate,
@@ -232,13 +250,13 @@ interface ResolveOptions {
 
 // const getCached()
 
-const resolve = async ({
+export const resolve = async ({
   ids = [],
   languages = ['en', 'fr', 'de', 'it'], // platform languages
   depth = 0,
   maxDepth = 1,
   cache = null,
-}: ResolveOptions = {}) => {
+}: ResolveOptions = {}): Promise<Record<string, IHuman | ILocation>> => {
   // check wikidata in redis cache
   let cached
   const cacheKey = `wkd:${ids.join(',')}`
@@ -276,7 +294,7 @@ const resolve = async ({
       }
     })
 
-  let index
+  let index: Record<string, IHuman | ILocation> = {}
 
   if (result.pendings.length && depth < maxDepth) {
     // enrich current entities with resolved pendings
@@ -293,9 +311,9 @@ const resolve = async ({
     index = lodash.mapValues(result.entities, d => {
       d.resolvePendings(resolvedPendings)
       return d.toJSON()
-    })
+    }) as any as Record<string, IHuman | ILocation>
   } else {
-    index = lodash.mapValues(result.entities, d => d.toJSON())
+    index = lodash.mapValues(result.entities, d => d.toJSON()) as any as Record<string, IHuman | ILocation>
   }
 
   if (cache) {
@@ -305,8 +323,4 @@ const resolve = async ({
   }
 
   return index
-}
-
-module.exports = {
-  resolve,
 }
