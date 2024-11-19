@@ -17,9 +17,11 @@ import { ImpressoApplication } from './types'
 
 const debug = initDebug('impresso/authentication')
 
+type AuthPayload = Omit<SlimUser, 'uid' | 'id'> & { userId: string }
+
 class CustomisedAuthenticationService extends AuthenticationService {
   async getPayload(authResult: AuthenticationResult, params: AuthenticationParams) {
-    const payload = await super.getPayload(authResult, params)
+    const payload = (await super.getPayload(authResult, params)) as AuthPayload
     const { user } = authResult as { user: User }
 
     if (user) {
@@ -61,6 +63,9 @@ export interface SlimUser {
   uid: string
   id: number
   isStaff: boolean
+  /**
+   * Bitmap format: XXXXXXXXX (8 places) where X is either 0 or 1
+   */
   bitmap?: string
   groups: string[]
 }
