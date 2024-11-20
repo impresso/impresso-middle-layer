@@ -36,6 +36,7 @@ const findAndGetParamsHooks = [
     },
     resolve: {
       required: false,
+      transform: (v: any) => v === 'true' || v === true,
     },
     order_by: utils.orderBy({
       values: orderByMap,
