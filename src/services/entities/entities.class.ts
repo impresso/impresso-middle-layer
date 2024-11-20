@@ -210,8 +210,9 @@ class Service {
   }
 
   async get(id: string, params: any) {
-    return await this._find({
+    const findParams = {
       ...params,
+      sanitized: { ...params.sanitized, resolve: true },
       query: {
         resolve: true,
         limit: 1,
@@ -223,7 +224,8 @@ class Service {
           },
         ],
       },
-    }).then(res => {
+    }
+    return await this._find(findParams).then(res => {
       if (!res.data.length) {
         throw new NotFound()
       }
