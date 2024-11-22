@@ -13,10 +13,10 @@ export interface UserBitmapAttributes {
 // Define the creation attributes for the Group model
 interface UserBitmapCreationAttributes extends Omit<UserBitmapAttributes, 'id'> {}
 
-export const BufferUserPlanGuest = BigInt(0b10000)
-export const BufferUserPlanAuthUser = BigInt(0b11000)
-export const BufferUserPlanEducational = BigInt(0b11100)
-export const BufferUserPlanResearcher = BigInt(0b11110)
+export const BufferUserPlanGuest = BigInt(0b1)
+export const BufferUserPlanAuthUser = BigInt(0b11)
+export const BufferUserPlanEducational = BigInt(0b111)
+export const BufferUserPlanResearcher = BigInt(0b1011)
 
 export default class UserBitmap {
   id: number
@@ -79,11 +79,8 @@ export default class UserBitmap {
           defaultValue: Buffer.from([Number(BufferUserPlanGuest)]),
           get() {
             const value = this.getDataValue('bitmap')
-            const binaryString = Array.from(value as unknown as Buffer)
-              .map(byte => byte.toString(2).padStart(8, '0'))
-              .join('')
-              .replace(/^0+/, '')
-            return binaryString
+            const bigIntFromBuffer = BigInt(`0b${value.toString('hex')}`)
+            return bigIntFromBuffer
           },
         },
         dateAcceptedTerms: {

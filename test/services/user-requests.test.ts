@@ -1,5 +1,13 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/service.test.html
 import assert from 'assert'
+if (!process.env.USER_ID) {
+  console.log(
+    __filename,
+    'requires a USER_ID to be set in the environment variables. Please provide the identifier with USER_ID:',
+    '\n  USER_ID=1 npm run mocha test/services/user-requests.test.ts'
+  )
+  process.exit(0)
+}
 const app = require('../../src/app')
 
 describe('test Service method to list all my requests', () => {
@@ -7,24 +15,11 @@ describe('test Service method to list all my requests', () => {
     const service = app.service('user-requests')
     assert.ok(service, 'Registered the service')
   })
-  before(() => {
-    console.log('\n\n  Starting test')
-    if (!process.env.USER_ID) {
-      console.log(
-        'No user id provided in ENV variable, skipping this test. Please make sure you provide the identifier with USER_ID:',
-        '\n  USER_ID=1 npm run mocha test/services/user-requests.test.ts'
-      )
-    }
-  })
   after(() => {
     console.log('\n\n  Test finished.\n')
     process.exit(0)
   })
 
-  if (!process.env.USER_ID) {
-    assert.ok(true)
-    return
-  }
   it('get the requests from a specific user, correctly', async () => {
     const service = app.service('user-requests')
     const userRequests = await service.find({
