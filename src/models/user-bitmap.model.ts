@@ -78,9 +78,8 @@ export default class UserBitmap {
           allowNull: true,
           defaultValue: Buffer.from([Number(BufferUserPlanGuest)]),
           get() {
-            const value = this.getDataValue('bitmap')
-            const bigIntFromBuffer = BigInt(`0b${value.toString('hex')}`)
-            return bigIntFromBuffer
+            const value = this.getDataValue('bitmap') as Buffer
+            return value.readUInt8(0)
           },
         },
         dateAcceptedTerms: {
