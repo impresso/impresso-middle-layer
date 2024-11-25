@@ -14,6 +14,7 @@ import { createSwaggerServiceOptions } from 'feathers-swagger'
 import User from './models/users.model'
 import { docs } from './services/authentication/authentication.schema'
 import { ImpressoApplication } from './types'
+import { BufferUserPlanGuest } from './models/user-bitmap.model'
 
 const debug = initDebug('impresso/authentication')
 
@@ -30,7 +31,7 @@ class CustomisedAuthenticationService extends AuthenticationService {
         payload.groups = user.groups.map(d => d.name)
       }
       payload.isStaff = user.isStaff
-      payload.bitmap = user.bitmap ?? '1'
+      payload.bitmap = user.bitmap ?? Number(BufferUserPlanGuest)
     }
     return payload
   }
@@ -64,9 +65,9 @@ export interface SlimUser {
   id: number
   isStaff: boolean
   /**
-   * Bitmap format: XXXXXXXXX (8 places) where X is either 0 or 1
+   * Bitmap as number Number(BigInt)
    */
-  bitmap?: string
+  bitmap?: number
   groups: string[]
 }
 
@@ -98,7 +99,7 @@ class NoDBJWTStrategy extends JWTStrategy {
     const slimUser: SlimUser = {
       uid: payload.userId,
       id: parseInt(payload.sub),
-      bitmap: payload.bitmap ?? '1',
+      bitmap: payload.bitmap ?? Number(BufferUserPlanGuest),
       isStaff: payload.isStaff ?? false,
       groups: payload.groups ?? [],
     }
