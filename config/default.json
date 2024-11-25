@@ -1,5 +1,6 @@
 {
   "isPublicApi": true,
+  "availablePlans": ["plan-basic", "plan-educational", "plan-researcher"],
   "allowedCorsOrigins": [
     "http://localhost:8080",
     "https://impresso-project.ch/app",
