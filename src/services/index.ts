@@ -58,8 +58,12 @@ const internalApiServices = [
   'articles-search',
   'entities-suggestions',
   'entity-mentions-timeline',
+  'subscriptions',
   'text-reuse-connected-clusters',
   'password-reset',
+  'terms-of-use',
+  'user-requests',
+  'user-requests-reviews',
 ]
 
 export default (app: ImpressoApplication) => {

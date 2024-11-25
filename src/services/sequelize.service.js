@@ -16,9 +16,22 @@ class SequelizeService {
     this.name = String(name)
     this.modelName = String(modelName || name)
     this.sequelize = sequelize.client(app.get('sequelize'))
+    import(`../models/${this.modelName}.model`)
+      .then(m => {
+        debug('MODEL', m)
+        if (m.Model) {
+          this.Model = m.Model
+          this.sequelizeKlass = this.Model.sequelize(this.sequelize)
+        } else {
+          this.Model = m.default
+          this.sequelizeKlass = this.Model.sequelize(this.sequelize)
+        }
 
-    this.Model = require(`../models/${this.modelName}.model`)
-    this.sequelizeKlass = this.Model.sequelize(this.sequelize)
+        debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
+      })
+      .catch(err => {
+        throw new Error(`Sequelize Model not found in import: ${this.modelName}`, err)
+      })
 
     this.cacheReads = cacheReads
     this.cacheManager = app.get('cacheManager')
