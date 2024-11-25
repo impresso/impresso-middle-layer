@@ -1,28 +1,11 @@
 const config = require('@feathersjs/configuration')()()
 import { Sequelize, DataTypes, ModelDefined } from 'sequelize'
 import { encrypt } from '../crypto'
-import UserBitmap from './user-bitmap.model'
+import UserBitmap, { BufferUserPlanGuest } from './user-bitmap.model'
 import Group from './groups.model'
 import Profile from './profiles.model'
 
 const CRYPTO_ITERATIONS = 180000
-interface ObfuscatedUserAttributes {
-  uid: string
-  username: string
-  bitmap?: string
-}
-
-export class ObfuscatedUser {
-  uid: string
-  username: string
-  bitmap?: string
-
-  constructor({ uid = '', username = '', bitmap }: Partial<ObfuscatedUserAttributes> = {}) {
-    this.uid = uid
-    this.username = username
-    this.bitmap = bitmap
-  }
-}
 
 // Define the attributes for the Group model
 export interface UserAttributes {
@@ -40,7 +23,7 @@ export interface UserAttributes {
   profile: Profile
   groups: Group[]
   userBitmap?: UserBitmap
-  bitmap?: string
+  bitmap?: number
   toJSON: (params?: { obfuscate?: boolean; groups?: Group[] }) => UserAttributes
 }
 
@@ -61,7 +44,7 @@ export default class User {
   creationDate: Date | string
   profile: Profile
   groups: Group[]
-  bitmap?: string
+  bitmap?: number
 
   constructor({
     id = 0,
@@ -102,7 +85,7 @@ export default class User {
     }
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate)
     this.groups = groups
-    this.bitmap = bitmap
+    this.bitmap = bitmap ?? 1
   }
 
   static getMe({ user, profile }: { user: User; profile: Profile }) {
@@ -283,19 +266,11 @@ export default class User {
     )
 
     user.prototype.toJSON = function (params: { obfuscate?: boolean; groups?: Group[]; userBitmap?: UserBitmap } = {}) {
-      const { obfuscate = false, groups = [], userBitmap } = params
-      if (obfuscate) {
-        const { profile, username } = this as unknown as User
-        return new ObfuscatedUser({
-          uid: profile.uid,
-          username,
-          bitmap: params.userBitmap?.bitmap as string,
-        })
-      }
+      const { groups = [], userBitmap } = params
       return new User({
         ...this.get(),
         groups,
-        bitmap: params.userBitmap?.bitmap as string,
+        bitmap: userBitmap?.bitmap ?? Number(BufferUserPlanGuest),
       })
     }
 
