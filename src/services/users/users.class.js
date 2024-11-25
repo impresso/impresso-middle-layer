@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import User from '../../models/users.model'
-
+import Group from '../../models/groups.model'
+import Profile from '../../models/profiles.model'
 const { BadRequest, NotFound } = require('@feathersjs/errors')
 const shorthash = require('short-hash')
 const nanoid = require('nanoid')
@@ -9,7 +10,6 @@ const debug = require('debug')('impresso/services:users')
 const { encrypt } = require('../../crypto')
 const sequelize = require('../../sequelize')
 const { sequelizeErrorHandler } = require('../../services/sequelize.utils')
-const Profile = require('../../models/profiles.model')
 
 class Service {
   constructor({ app }) {
@@ -66,6 +66,17 @@ class Service {
     user.lastname = data.sanitized.lastname
     // if the request comes from a staff user
     user.isActive = params.user && params.user.is_staff
+
+    // check if user already exists
+    const existingUser = await this.sequelizeKlass.findOne({
+      where: {
+        [Op.or]: [{ email: user.email }, { username: user.username }],
+      },
+    })
+    if (existingUser) {
+      debug('[create] user already exists:', existingUser.id)
+      throw new BadRequest('User with this email address or username already exists')
+    }
     // create user
     const createdUser = await this.sequelizeKlass.create(user).catch(sequelizeErrorHandler)
 
@@ -83,6 +94,16 @@ class Service {
         user_id: createdUser.id,
       })
       .catch(sequelizeErrorHandler)
+
+    // add user to desired groups (they are still not active anyway, ad we cna change them later)
+    if (data.sanitized.plan !== 'plan-basic') {
+      const [group, created] = await Group.findOrCreate({
+        where: { name: data.sanitized.plan },
+      })
+      debug(`[create] group ${group.name} created: ${created}`)
+      createdUser.addGroup(group)
+    }
+
     debug(`[create] user with profile: ${user.uid} success`)
     const client = this.app.get('celeryClient')
     if (client) {
