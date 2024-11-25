@@ -5,7 +5,7 @@ import Group from './groups.model'
 export interface UserBitmapAttributes {
   id: number
   user_id: number
-  bitmap: string | Buffer
+  bitmap: number | Buffer
   dateAcceptedTerms: Date | null
   subscriptionDatasets?: SubscriptionDatasetAttributes[]
 }
@@ -21,14 +21,14 @@ export const BufferUserPlanResearcher = BigInt(0b1011)
 export default class UserBitmap {
   id: number
   user_id: number
-  bitmap: string | Buffer
+  bitmap: number | Buffer
   dateAcceptedTerms: Date | null
   subscriptionDatasets?: SubscriptionDatasetAttributes[]
 
   constructor({
     id = 0,
     user_id = 0,
-    bitmap = '',
+    bitmap = Number(BufferUserPlanGuest),
     dateAcceptedTerms = null,
     subscriptionDatasets = [],
   }: UserBitmapAttributes) {
