@@ -14,19 +14,24 @@ import { createSwaggerServiceOptions } from 'feathers-swagger'
 import User from './models/users.model'
 import { docs } from './services/authentication/authentication.schema'
 import { ImpressoApplication } from './types'
+import { BufferUserPlanGuest } from './models/user-bitmap.model'
 
 const debug = initDebug('impresso/authentication')
 
+type AuthPayload = Omit<SlimUser, 'uid' | 'id'> & { userId: string }
+
 class CustomisedAuthenticationService extends AuthenticationService {
   async getPayload(authResult: AuthenticationResult, params: AuthenticationParams) {
-    const payload = await super.getPayload(authResult, params)
+    const payload = (await super.getPayload(authResult, params)) as AuthPayload
     const { user } = authResult as { user: User }
+
     if (user) {
       payload.userId = user.uid
       if (user.groups.length) {
-        payload.userGroups = user.groups.map(d => d.name)
+        payload.groups = user.groups.map(d => d.name)
       }
       payload.isStaff = user.isStaff
+      payload.bitmap = user.bitmap ?? Number(BufferUserPlanGuest)
     }
     return payload
   }
@@ -59,6 +64,10 @@ export interface SlimUser {
   uid: string
   id: number
   isStaff: boolean
+  /**
+   * Bitmap as number Number(BigInt)
+   */
+  bitmap?: number
   groups: string[]
 }
 
@@ -87,12 +96,12 @@ class NoDBJWTStrategy extends JWTStrategy {
     if (entity === null) {
       return result
     }
-
     const slimUser: SlimUser = {
       uid: payload.userId,
       id: parseInt(payload.sub),
+      bitmap: payload.bitmap ?? Number(BufferUserPlanGuest),
       isStaff: payload.isStaff ?? false,
-      groups: payload.userGroups ?? [],
+      groups: payload.groups ?? [],
     }
     return {
       ...result,

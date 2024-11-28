@@ -88,8 +88,13 @@ export interface PaginationConfiguration {
   max: number
 }
 
+export interface AvailablePlansConfiguration {
+  availablePlans: ('plan-basic' | 'plan-educational' | 'plan-researcher')[]
+}
+
 export interface Configuration {
   isPublicApi?: boolean
+  availablePlans: AvailablePlansConfiguration
   allowedCorsOrigins?: string[]
   redis?: RedisConfiguration
   rateLimiter?: RateLimiterConfiguration & { enabled?: boolean }
@@ -133,6 +138,16 @@ const configurationSchema: JSONSchemaDefinition = {
   type: 'object',
   properties: {
     isPublicApi: { type: 'boolean', description: 'If `true`, the app serves a public API' },
+    plans: {
+      type: 'array',
+      items: {
+        type: 'array',
+        items: { type: 'string' },
+        minItems: 3,
+        maxItems: 5,
+      },
+      description: 'List of plans for users',
+    },
     allowedCorsOrigins: {
       type: 'array',
       items: {
