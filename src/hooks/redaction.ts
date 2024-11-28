@@ -4,7 +4,7 @@ import { ImpressoApplication } from '../types'
 import { Redactable, RedactionPolicy, redactObject } from '../util/redaction'
 import { SlimUser } from '../authentication'
 
-export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable: Redactable) => boolean
+export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 
 /**
  * Redact the response object using the provided redaction policy.
@@ -93,7 +93,7 @@ export const bitmapsAlign: RedactCondition = (context, redactable) => {
   const userBitmap: BigUint64Array | undefined = (user as any)?.bitmap
 
   // TODO: extract content bitmap from redactable
-  const contentBitmap: BigUint64Array | undefined = redactable['contentBitmap']
+  const contentBitmap: BigUint64Array | undefined = redactable?.['contentBitmap']
 
   if (
     userBitmap == null ||
