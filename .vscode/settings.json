@@ -22,5 +22,6 @@
   "[json]": {
     "editor.formatOnSave": true
   },
-  "mochaExplorer.files": "test/**/*.test.{ts,js}"
+  "mochaExplorer.require": "tsx",
+  "mochaExplorer.files": "test/**/*.{ts,js}"
 }

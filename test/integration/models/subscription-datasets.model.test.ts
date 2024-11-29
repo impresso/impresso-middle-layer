@@ -1,10 +1,10 @@
 import assert from 'assert'
 import debug from 'debug'
 
-import { client as getSequelizeClient } from '../../src/sequelize'
-import configuration, { SequelizeConfiguration } from '../../src/configuration'
+import { client as getSequelizeClient } from '../../../src/sequelize'
+import configuration, { SequelizeConfiguration } from '../../../src/configuration'
 
-import SubscriptionDataset, { SubscriptionDatasetAttributes } from '../../src/models/subscription-datasets.model'
+import SubscriptionDataset, { SubscriptionDatasetAttributes } from '../../../src/models/subscription-datasets.model'
 
 const logger = debug('impresso/test:models:subscription-datasets.model.test')
 const userId = process.env.USER_ID
@@ -32,7 +32,7 @@ const closeConnection = async () => {
  * NODE_ENV=test DEBUG=impresso* npm run test-models
  * ```
  */
-describe('Available Datasets for Subscription along with their bitmap positions', async () => {
+describe('Available Datasets for Subscription along with their bitmap positions', () => {
   before(establishConnection)
   after(closeConnection)
 

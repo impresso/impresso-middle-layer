@@ -80,32 +80,32 @@ export const notInGroup =
 
 const NoRedactionGroup = 'NoRedaction'
 
+export type BitMapsAlignContext = Pick<HookContext<ImpressoApplication>, 'params'>
+
 /**
  * Condition for redacting fields when the access bitmap of the resource
  * does not align with the access bitmap of the user.
  *
  * If either user of the resource does not have the bitmap, access is not granted.
  */
-export const bitmapsAlign: RedactCondition = (context, redactable) => {
+export const bitmapsAlign = (context: BitMapsAlignContext, redactable?: Redactable): boolean => {
   const user = context.params?.user as any as SlimUser
 
   // TODO: replace with the right property when the bitmap PR is merged.
-  const userBitmap: BigUint64Array | undefined = (user as any)?.bitmap
+  const userBitmap: bigint | undefined = (user as any)?.bitmap
 
   // TODO: extract content bitmap from redactable
-  const contentBitmap: BigUint64Array | undefined = redactable?.['contentBitmap']
+  const contentBitmap: bigint | undefined = redactable?.['contentBitmap']
 
   if (
     userBitmap == null ||
     contentBitmap == null ||
-    !(userBitmap instanceof BigUint64Array) ||
-    !(contentBitmap instanceof BigUint64Array)
+    !(typeof userBitmap == 'bigint') ||
+    !(typeof contentBitmap == 'bigint')
   )
     return false
 
-  // TODO:
-  return true
-  // return userBitmap & contentBitmap
+  return (contentBitmap & userBitmap) != BigInt(0)
 }
 
 /**
