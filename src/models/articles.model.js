@@ -56,6 +56,11 @@ const ARTICLE_SOLR_FL_LIST_ITEM = [
   // access & download
   'access_right_s',
   'exportable_plain',
+  // permissions bitmaps
+  // see https://github.com/search?q=org%3Aimpresso%20rights_bm_explore_l&type=code
+  'rights_bm_explore_l',
+  'rights_bm_get_tr_l',
+  'rights_bm_get_img_l',
 ]
 
 const ARTICLE_SOLR_FL_LITE = [
@@ -305,6 +310,10 @@ class Article extends BaseArticle {
     persons = [],
     locations = [],
     regionCoords = [],
+    // permissions bitmaps
+    bitmapExplore = undefined,
+    bitmapGetTranscript = undefined,
+    bitmapGetImages = undefined,
   } = {}) {
     super({
       uid,
@@ -385,6 +394,10 @@ class Article extends BaseArticle {
     this.regionBreaks = rb
 
     this.enrich(rc, lb, rb)
+
+    this.bitmapExplore = bitmapExplore
+    this.bitmapGetTranscript = bitmapGetTranscript
+    this.bitmapGetImages = bitmapGetImages
   }
 
   enrich(rc, lb, rb) {
@@ -709,6 +722,10 @@ class Article extends BaseArticle {
         persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
         locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
         collections: doc.ucoll_ss,
+        // permissions bitmaps
+        bitmapExplore: BigInt(doc.rights_bm_explore_l),
+        bitmapGetTranscript: BigInt(doc.rights_bm_get_tr_l),
+        bitmapGetImages: BigInt(doc.rights_bm_get_img_l),
       })
 
       if (!doc.pp_plain) {

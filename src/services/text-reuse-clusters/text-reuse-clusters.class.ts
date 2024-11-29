@@ -14,7 +14,7 @@ const { NotFound } = require('@feathersjs/errors')
 const { protobuf } = require('impresso-jscommons')
 const {
   getTextReusePassagesClusterIdsSearchRequestForText,
-  getClusterIdsAndTextFromPassagesSolrResponse,
+  getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
   getPaginationInfoFromPassagesSolrResponse,
@@ -31,12 +31,24 @@ const { sameTypeFiltersToQuery } = require('../../util/solr')
 const { SolrNamespaces } = require('../../solr')
 const Newspaper = require('../../models/newspapers.model')
 
-function buildResponseClusters(clusters: any, clusterIdsAndText: { id: any; text: any }[]): ClusterElement[] {
+function buildResponseClusters(
+  clusters: any,
+  clusterIdsAndTextAndPermissions: {
+    id: any
+    text: any
+    permissionBitmapExplore?: number
+    permissionsBitmapGetTranscript?: number
+  }[]
+): ClusterElement[] {
   const clustersById = mapValues(groupBy(clusters, 'id'), (v: any[]) => v[0])
-  const results = clusterIdsAndText.map(({ id, text: textSample }) => ({
-    cluster: clustersById[id],
-    textSample,
-  }))
+  const results = clusterIdsAndTextAndPermissions.map(
+    ({ id, text: textSample, permissionBitmapExplore, permissionsBitmapGetTranscript }) => ({
+      cluster: clustersById[id],
+      textSample,
+      bitmapExplore: BigInt(permissionBitmapExplore ?? 0),
+      bitmapGetTranscript: BigInt(permissionsBitmapGetTranscript ?? 0),
+    })
+  )
   return results
 }
 
@@ -132,17 +144,17 @@ export class TextReuseClusters {
       orderByDescending
     )
 
-    const [clusterIdsAndText, info] = await this.solr
+    const [clusterIdsAndTextAndPermissions, info] = await this.solr
       .get(withExtraQueryParts(query, filterQueryParts), this.solr.namespaces.TextReusePassages)
       .then(response => [
-        getClusterIdsAndTextFromPassagesSolrResponse(response),
+        getClusterIdsTextAndPermissionsFromPassagesSolrResponse(response),
         getPaginationInfoFromPassagesSolrResponse(response),
       ])
 
-    const clusters = await this.getClusters(clusterIdsAndText.map(({ id }: { id: string }) => id))
+    const clusters = await this.getClusters(clusterIdsAndTextAndPermissions.map(({ id }: { id: string }) => id))
 
     return {
-      clusters: buildResponseClusters(clusters, clusterIdsAndText),
+      clusters: buildResponseClusters(clusters, clusterIdsAndTextAndPermissions),
       info,
       total: info.total,
       limit: info.limit,
@@ -163,7 +175,7 @@ export class TextReuseClusters {
 
     const sampleTextPromise = this.solr
       .get(getLatestTextReusePassageForClusterIdRequest(id), this.solr.namespaces.TextReusePassages)
-      .then(getClusterIdsAndTextFromPassagesSolrResponse)
+      .then(getClusterIdsTextAndPermissionsFromPassagesSolrResponse)
 
     const clusterPromise = this.solr
       .get(getTextReuseClustersRequestForIds([id]), this.solr.namespaces.TextReuseClusters)
@@ -173,13 +185,13 @@ export class TextReuseClusters {
       .post(buildConnectedClustersCountRequest(id), this.solr.namespaces.TextReusePassages)
       .then(parseConnectedClustersCountResponse)
 
-    const [clusterIdsAndText, clusters, connectedClustersCount] = await Promise.all([
+    const [clusterIdsAndTextAndPermissions, clusters, connectedClustersCount] = await Promise.all([
       sampleTextPromise,
       clusterPromise,
       connectedClustersCountPromise,
     ])
 
-    const clusterItems = buildResponseClusters(clusters, clusterIdsAndText)
+    const clusterItems = buildResponseClusters(clusters, clusterIdsAndTextAndPermissions)
 
     if (clusterItems.length < 1) throw new NotFound()
     const cluster = clusterItems[0]

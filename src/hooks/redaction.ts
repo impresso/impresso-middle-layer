@@ -3,6 +3,7 @@ import { FindResponse } from '../models/common'
 import { ImpressoApplication } from '../types'
 import { Redactable, RedactionPolicy, redactObject } from '../util/redaction'
 import { SlimUser } from '../authentication'
+import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '../models/authorization'
 
 export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 
@@ -78,8 +79,6 @@ export const notInGroup =
     return user == null || !user.groups.includes(groupName)
   }
 
-const NoRedactionGroup = 'NoRedaction'
-
 export type BitMapsAlignContext = Pick<HookContext<ImpressoApplication>, 'params'>
 
 /**
@@ -88,14 +87,17 @@ export type BitMapsAlignContext = Pick<HookContext<ImpressoApplication>, 'params
  *
  * If either user of the resource does not have the bitmap, access is not granted.
  */
-export const bitmapsAlign = (context: BitMapsAlignContext, redactable?: Redactable): boolean => {
+export const bitmapsAlign = (
+  context: BitMapsAlignContext,
+  redactable?: Redactable,
+  contentBitmapExtractor?: (redactable: Redactable) => bigint
+): boolean => {
   const user = context.params?.user as any as SlimUser
 
-  // TODO: replace with the right property when the bitmap PR is merged.
-  const userBitmap: bigint | undefined = (user as any)?.bitmap
+  const userBitmap: bigint | undefined = BigInt(user.bitmap ?? 0)
 
-  // TODO: extract content bitmap from redactable
-  const contentBitmap: bigint | undefined = redactable?.['contentBitmap']
+  const contentBitmap: bigint | undefined =
+    contentBitmapExtractor != null && redactable != null ? contentBitmapExtractor(redactable) : undefined
 
   if (
     userBitmap == null ||
@@ -114,7 +116,24 @@ export const bitmapsAlign = (context: BitMapsAlignContext, redactable?: Redactab
  * - AND user is not in the NoRedaction group
  */
 export const defaultCondition: RedactCondition = (context, redactable) => {
-  return inPublicApi(context, redactable) && bitmapsAlign(context, redactable)
+  return inPublicApi(context, redactable) && !bitmapsAlign(context, redactable)
 }
 
 export type { RedactionPolicy }
+
+const authBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
+  const authorizationBitmapDto = redactable[AuthorizationBitmapsKey]
+  if (isAuthorizationBitmapsDTO(authorizationBitmapDto)) {
+    return authorizationBitmapDto[kind] ?? BigInt(0)
+  }
+  return BigInt(0)
+}
+
+/**
+ * condition that grants user access to content (transcript, title).
+ */
+export const publicApiTranscriptRedactionCondition: RedactCondition = (context, redactable) => {
+  return (
+    inPublicApi(context, redactable) && !bitmapsAlign(context, redactable, x => authBitmapExtractor(x, 'getTranscript'))
+  )
+}

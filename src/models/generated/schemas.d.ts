@@ -206,6 +206,18 @@ export interface ContentItem {
    * TODO
    */
   v?: string;
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
+  /**
+   * Access rights bitmap for getting images
+   */
+  bitmapGetImages?: number;
 }
 /**
  * A page of an article
@@ -771,6 +783,14 @@ export interface TextReuseClusterCompound {
   cluster?: TextReuseCluster;
   textSample: string;
   details?: TextReuseClusterDetails;
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
 }
 /**
  * Represents a cluster of text reuse passages
@@ -1727,6 +1747,14 @@ export interface TextReuseClusterCompound {
   cluster?: TextReuseCluster;
   textSample: string;
   details?: TextReuseClusterDetails;
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
 }
 /**
  * Represents a cluster of text reuse passages
@@ -1885,6 +1913,14 @@ export interface TextReusePassage {
    * Collection IDs the passage belongs to
    */
   collections: string[];
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
 }
 /**
  * Details of the article the passage belongs to

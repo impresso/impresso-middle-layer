@@ -39,7 +39,10 @@ describe('redaction', () => {
       const redactable = { contentBitmap }
 
       it(`${planLabel} (${planBitmap.toString(2)}) ${accessAllowed ? 'can' : 'can NOT'} access ${contentLabel} (${contentBitmap.toString(2)})`, () => {
-        assert.strictEqual(bitmapsAlign(context, redactable), accessAllowed)
+        assert.strictEqual(
+          bitmapsAlign(context, redactable, x => x.contentBitmap),
+          accessAllowed
+        )
       })
     })
   })

@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
-name: artice-redaction-policy
+name: content-item-redaction-policy
 items:
   - jsonPath: $.title
     valueConverterName: redact

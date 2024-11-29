@@ -162,6 +162,14 @@
       "type": "array",
       "description": "Collection IDs the passage belongs to",
       "items": { "type": "string" }
+    },
+    "bitmapExplore": {
+      "type": "integer",
+      "description": "Access rights bitmap for the UI"
+    },
+    "bitmapGetTranscript": {
+      "type": "integer",
+      "description": "Access rights bitmap for downloading the transcript"
     }
   }
 }

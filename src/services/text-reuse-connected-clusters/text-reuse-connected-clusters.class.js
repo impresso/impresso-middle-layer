@@ -5,7 +5,7 @@ const {
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
   getLatestTextReusePassageForClusterIdRequest,
-  getClusterIdsAndTextFromPassagesSolrResponse,
+  getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
 } = require('../../logic/textReuse/solr')
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
@@ -49,15 +49,15 @@ class TextReuseConnectedClusters {
 
     const sampleTextsPromise = this.solr
       .get(getLatestTextReusePassageForClusterIdRequest(clustersIds), this.solr.namespaces.TextReusePassages)
-      .then(getClusterIdsAndTextFromPassagesSolrResponse)
+      .then(getClusterIdsTextAndPermissionsFromPassagesSolrResponse)
 
     const clustersPromise = this.solr
       .get(getTextReuseClustersRequestForIds(clustersIds), this.solr.namespaces.TextReuseClusters)
       .then(convertClustersSolrResponseToClusters)
 
-    const [clusterIdsAndText, clusters] = await Promise.all([sampleTextsPromise, clustersPromise])
+    const [clusterIdsAndTextAndPermissions, clusters] = await Promise.all([sampleTextsPromise, clustersPromise])
 
-    const clusterItems = buildResponseClusters(clusters, clusterIdsAndText)
+    const clusterItems = buildResponseClusters(clusters, clusterIdsAndTextAndPermissions)
     return {
       offset,
       limit,
