@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import User from '../../models/users.model'
+import Profile from '../../models/profiles.model'
 
 const debug = require('debug')('impresso/services:me')
 const { BadRequest } = require('@feathersjs/errors')
 const SequelizeService = require('../sequelize.service')
-const Profile = require('../../models/profiles.model')
 const { measureTime } = require('../../util/instruments')
 
 class Service {
@@ -22,7 +22,7 @@ class Service {
   }
 
   async find(params) {
-    debug('[find] retrieve user from params:', params)
+    debug('[find] retrieve user from params query:', params.query)
     const user = await measureTime(() => this.sequelizeService.get(params.user.id, {}), 'me.find.db.user')
     debug('[find] retrieve current user:', user.profile.uid)
 
