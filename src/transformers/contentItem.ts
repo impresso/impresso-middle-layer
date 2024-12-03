@@ -1,3 +1,4 @@
+import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../models/authorization'
 import { ContentItem as ContentItemPrivate, Entity, ContentItemTopic } from '../models/generated/schemas'
 import { ContentItem as ContentItemPublic, EntityMention, TopicMention } from '../models/generated/schemasPublic'
 
@@ -41,5 +42,12 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
     dataProviderCode: input.dataProvider != null ? input.dataProvider : undefined,
     mediaCode: input.newspaper?.uid,
     mediaType: 'newspaper',
+
+    // Authorization information
+    [AuthorizationBitmapsKey]: {
+      explore: BigInt(input.bitmapExplore ?? 0),
+      getTranscript: BigInt(input.bitmapGetTranscript ?? 0),
+      getImages: BigInt(input.bitmapGetImages ?? 0),
+    } satisfies AuthorizationBitmapsDTO,
   }
 }

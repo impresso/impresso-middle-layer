@@ -1,6 +1,11 @@
 import { rateLimit } from '../../hooks/rateLimiter'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { redactResponse, redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
+import {
+  redactResponse,
+  redactResponseDataItem,
+  publicApiTranscriptRedactionCondition,
+  inPublicApi,
+} from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
 import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
 import { transformContentItem } from '../../transformers/contentItem'
@@ -97,7 +102,7 @@ module.exports = {
       saveResultsInCache(),
       obfuscate(),
       transformResponseDataItem(transformContentItem, inPublicApi),
-      redactResponseDataItem(contentItemRedactionPolicy, defaultCondition),
+      redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     get: [
       // save here cache, flush cache here
@@ -109,7 +114,7 @@ module.exports = {
       resolveUserAddons(),
       obfuscate(),
       transformResponse(transformContentItem, inPublicApi),
-      redactResponse(contentItemRedactionPolicy, defaultCondition),
+      redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     create: [],
     update: [],

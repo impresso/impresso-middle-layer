@@ -1,6 +1,6 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
-import { redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
+import { redactResponseDataItem, inPublicApi, publicApiTranscriptRedactionCondition } from '../../hooks/redaction'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { transformBaseFind } from '../../transformers/base'
 import { transformContentItem } from '../../transformers/contentItem'
@@ -111,7 +111,7 @@ module.exports = {
       resolveQueryComponents(),
       protect('content'),
       transformResponseDataItem(transformContentItem, inPublicApi),
-      redactResponseDataItem(contentItemRedactionPolicy, defaultCondition),
+      redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     get: [],
     create: [],

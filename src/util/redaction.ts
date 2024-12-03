@@ -1,6 +1,10 @@
 import { JSONPath } from 'jsonpath-plus'
 
-export type Redactable = Record<string, any>
+/**
+ * Represents a redactable object with arbitrary string keys and values.
+ * The `symbol` keys are for internal use (like the `AuthorizationBitmapsKey`).
+ */
+export type Redactable = Record<string | symbol, any>
 export type ValueConverter = (value: any) => any
 
 export type DefaultConvertersNames = 'redact' | 'contextNotAllowedImage' | 'remove' | 'emptyArray'
@@ -22,6 +26,9 @@ const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> = {
   emptyArray: value => [],
 }
 
+/**
+ * Redacts sensitive information from the provided object based on the specified redaction policy.
+ */
 export const redactObject = <T extends Redactable>(object: T, policy: RedactionPolicy): T => {
   if (typeof object !== 'object' || object === null || Array.isArray(object)) {
     throw new Error('The provided object is not Redactable')

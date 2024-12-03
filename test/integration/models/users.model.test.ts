@@ -1,12 +1,12 @@
 import assert from 'assert'
 import debug from 'debug'
 
-import { client as getSequelizeClient } from '../../src/sequelize'
-import configuration, { SequelizeConfiguration } from '../../src/configuration'
+import { client as getSequelizeClient } from '../../../src/sequelize'
+import configuration, { SequelizeConfiguration } from '../../../src/configuration'
 
-import User, { UserAttributes } from '../../src/models/users.model'
-import UserBitmap from '../../src/models/user-bitmap.model'
-import Group from '../../src/models/groups.model'
+import User, { UserAttributes } from '../../../src/models/users.model'
+import UserBitmap from '../../../src/models/user-bitmap.model'
+import Group from '../../../src/models/groups.model'
 
 const logger = debug('impresso/test:models:users.model.test')
 const userId = process.env.USER_ID
