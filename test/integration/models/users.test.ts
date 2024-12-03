@@ -29,6 +29,5 @@ describe('test Service method to get users representations', () => {
   })
   after(() => {
     console.log('Test finished')
-    process.exit(0)
   })
 })

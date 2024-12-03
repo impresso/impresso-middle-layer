@@ -159,6 +159,18 @@
     "v": {
       "type": "string",
       "description": "TODO"
+    },
+    "bitmapExplore": {
+      "type": "integer",
+      "description": "Access rights bitmap for the UI"
+    },
+    "bitmapGetTranscript": {
+      "type": "integer",
+      "description": "Access rights bitmap for downloading the transcript"
+    },
+    "bitmapGetImages": {
+      "type": "integer",
+      "description": "Access rights bitmap for getting images"
     }
   },
   "required": ["uid", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt", "labels", "accessRight", "year"]

@@ -3,8 +3,9 @@ import { FindResponse } from '../models/common'
 import { ImpressoApplication } from '../types'
 import { Redactable, RedactionPolicy, redactObject } from '../util/redaction'
 import { SlimUser } from '../authentication'
+import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '../models/authorization'
 
-export type RedactCondition = (context: HookContext<ImpressoApplication>) => boolean
+export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 
 /**
  * Redact the response object using the provided redaction policy.
@@ -12,14 +13,14 @@ export type RedactCondition = (context: HookContext<ImpressoApplication>) => boo
  */
 export const redactResponse = <S>(
   policy: RedactionPolicy,
-  condition?: (context: HookContext<ImpressoApplication>) => boolean
+  condition?: (context: HookContext<ImpressoApplication>, redactable: Redactable) => boolean
 ): HookFunction<ImpressoApplication, S> => {
   return context => {
     if (context.type != 'after') throw new Error('The redactResponse hook should be used as an after hook only')
 
-    if (condition != null && !condition(context)) return context
-
     if (context.result != null) {
+      if (condition != null && !condition(context, context.result)) return context
+
       context.result = redactObject(context.result, policy)
     }
     return context
@@ -34,21 +35,25 @@ export const redactResponse = <S>(
  */
 export const redactResponseDataItem = <S>(
   policy: RedactionPolicy,
-  condition?: (context: HookContext<ImpressoApplication>) => boolean,
+  condition?: (context: HookContext<ImpressoApplication>, redactable: Redactable) => boolean,
   dataItemsField?: string
 ): HookFunction<ImpressoApplication, S> => {
   return context => {
     if (context.type != 'after') throw new Error('The redactResponseDataItem hook should be used as an after hook only')
 
-    if (condition != null && !condition(context)) return context
-
     if (context.result != null) {
       if (dataItemsField != null) {
         const result = context.result as Record<string, any>
-        result[dataItemsField] = result[dataItemsField].map((item: Redactable) => redactObject(item, policy))
+        result[dataItemsField] = result[dataItemsField].map((item: Redactable) => {
+          if (condition != null && !condition(context, item)) return item
+          else return redactObject(item, policy)
+        })
       } else {
         const result = context.result as any as FindResponse<Redactable>
-        result.data = result.data.map(item => redactObject(item, policy))
+        result.data = result.data.map(item => {
+          if (condition != null && !condition(context, item)) return item
+          else return redactObject(item, policy)
+        })
       }
     }
     return context
@@ -58,7 +63,7 @@ export const redactResponseDataItem = <S>(
 /**
  * Below are conditions that can be used in the redactResponse hook.
  */
-export const inPublicApi: RedactCondition = context => {
+export const inPublicApi: RedactCondition = (context, _) => {
   return context.app.get('isPublicApi') == true
 }
 
@@ -69,20 +74,66 @@ export const inPublicApi: RedactCondition = context => {
  */
 export const notInGroup =
   (groupName: string): RedactCondition =>
-  context => {
+  (context, _) => {
     const user = context.params?.user as any as SlimUser
     return user == null || !user.groups.includes(groupName)
   }
 
-const NoRedactionGroup = 'NoRedaction'
+export type BitMapsAlignContext = Pick<HookContext<ImpressoApplication>, 'params'>
+
+/**
+ * Condition for redacting fields when the access bitmap of the resource
+ * does not align with the access bitmap of the user.
+ *
+ * If either user of the resource does not have the bitmap, access is not granted.
+ */
+export const bitmapsAlign = (
+  context: BitMapsAlignContext,
+  redactable?: Redactable,
+  contentBitmapExtractor?: (redactable: Redactable) => bigint
+): boolean => {
+  const user = context.params?.user as any as SlimUser
+
+  const userBitmap: bigint | undefined = BigInt(user.bitmap ?? 0)
+
+  const contentBitmap: bigint | undefined =
+    contentBitmapExtractor != null && redactable != null ? contentBitmapExtractor(redactable) : undefined
+
+  if (
+    userBitmap == null ||
+    contentBitmap == null ||
+    !(typeof userBitmap == 'bigint') ||
+    !(typeof contentBitmap == 'bigint')
+  )
+    return false
+
+  return (contentBitmap & userBitmap) != BigInt(0)
+}
 
 /**
  * Default condition we should currently use:
  * - running as Public API
  * - AND user is not in the NoRedaction group
  */
-export const defaultCondition: RedactCondition = context => {
-  return inPublicApi(context) && notInGroup(NoRedactionGroup)(context)
+export const defaultCondition: RedactCondition = (context, redactable) => {
+  return inPublicApi(context, redactable) && !bitmapsAlign(context, redactable)
 }
 
 export type { RedactionPolicy }
+
+const authBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
+  const authorizationBitmapDto = redactable[AuthorizationBitmapsKey]
+  if (isAuthorizationBitmapsDTO(authorizationBitmapDto)) {
+    return authorizationBitmapDto[kind] ?? BigInt(0)
+  }
+  return BigInt(0)
+}
+
+/**
+ * condition that grants user access to content (transcript, title).
+ */
+export const publicApiTranscriptRedactionCondition: RedactCondition = (context, redactable) => {
+  return (
+    inPublicApi(context, redactable) && !bitmapsAlign(context, redactable, x => authBitmapExtractor(x, 'getTranscript'))
+  )
+}

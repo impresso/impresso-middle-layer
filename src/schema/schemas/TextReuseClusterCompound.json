@@ -13,6 +13,14 @@
     },
     "details": {
       "$ref": "../schemas/TextReuseClusterDetails.json"
+    },
+    "bitmapExplore": {
+      "type": "integer",
+      "description": "Access rights bitmap for the UI"
+    },
+    "bitmapGetTranscript": {
+      "type": "integer",
+      "description": "Access rights bitmap for downloading the transcript"
     }
   },
   "required": ["textSample"]

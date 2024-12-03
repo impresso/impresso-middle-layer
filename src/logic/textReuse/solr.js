@@ -20,6 +20,10 @@ const PassageFields = {
   JournalId: 'meta_journal_s',
   ClusterSize: 'cluster_size_l',
   ConnectedClusters: 'connected_clusters_ss',
+
+  // Bitmap permissions fields in passage documents.
+  PermissionsBitmapExplore: 'rights_bm_explore_l',
+  PermissionsBitmapGetTranscript: 'rights_bm_get_tr_l',
 }
 
 const ClusterFields = {
@@ -191,7 +195,7 @@ function getLatestTextReusePassageForClusterIdRequest(clusterIdOrClusterIds) {
   return request
 }
 
-function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
+function getClusterIdsTextAndPermissionsFromPassagesSolrResponse(solrResponse) {
   return get(solrResponse, 'response.docs', []).map(doc => ({
     id: doc[PassageFields.ClusterId],
     text: getOneOfFieldsValues(doc, [
@@ -199,6 +203,8 @@ function getClusterIdsAndTextFromPassagesSolrResponse(solrResponse) {
       PassageFields.ContentTextDE,
       PassageFields.ContentTextEN,
     ]),
+    permissionBitmapExplore: doc[PassageFields.PermissionsBitmapExplore],
+    permissionBitmapGetTranscript: doc[PassageFields.PermissionsBitmapGetTranscript],
   }))
 }
 
@@ -374,7 +380,7 @@ module.exports = {
   convertClustersSolrResponseToClusters,
 
   getTextReusePassagesClusterIdsSearchRequestForText,
-  getClusterIdsAndTextFromPassagesSolrResponse,
+  getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
 
   DefaultClusterFields,
 

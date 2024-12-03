@@ -27,12 +27,15 @@ const SolrFields = {
   lexicalOverlap: 'cluster_lex_overlap_d',
   timeDifferenceDay: 'cluster_day_delta_i',
   collections: 'ucoll_ss',
+  // bitmap permissions
+  bitmapExplore: 'rights_bm_explore_l',
+  bitmapGetTranscript: 'rights_bm_get_tr_l',
 }
 
 const SolrFieldsToPropsMapper = invert(SolrFields)
 
 class TextReusePassage {
-  constructor ({
+  constructor({
     id = 'id',
     contentItemId = 'ci_id_s',
     textReuseClusterId = 'cluster_id_s',
@@ -56,6 +59,8 @@ class TextReusePassage {
     timeDifferenceDay,
     size,
     collections = [],
+    bitmapExplore = undefined,
+    bitmapGetTranscript = undefined,
   }) {
     this.id = id
     this.article = { id: contentItemId }
@@ -66,7 +71,7 @@ class TextReusePassage {
     this.title = titleTextEn || titleTextDe || titleTextFr || ''
 
     if (Array.isArray(connectedClusters) && connectedClusters.length) {
-      this.connectedClusters = connectedClusters.map((id) => ({
+      this.connectedClusters = connectedClusters.map(id => ({
         id,
       }))
     }
@@ -97,11 +102,14 @@ class TextReusePassage {
     }
     this.pageNumbers = pageNumbers
     this.collections = collections
+
+    this.bitmapExplore = bitmapExplore
+    this.bitmapGetTranscript = bitmapGetTranscript
   }
 
-  static CreateFromSolr (fieldsToPropsMapper = SolrFieldsToPropsMapper) {
+  static CreateFromSolr(fieldsToPropsMapper = SolrFieldsToPropsMapper) {
     const mapFn = solrDocsMapCallbackFn(fieldsToPropsMapper, TextReusePassage)
-    return (doc) => mapFn(doc)
+    return doc => mapFn(doc)
   }
 }
 
