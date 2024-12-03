@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import User from '../../models/users.model'
+import Profile from '../../models/profiles.model'
 
 const debug = require('debug')('impresso/services:me')
 const { BadRequest } = require('@feathersjs/errors')
 const SequelizeService = require('../sequelize.service')
-const Profile = require('../../models/profiles.model')
 const { measureTime } = require('../../util/instruments')
 
 class Service {
@@ -22,14 +22,23 @@ class Service {
   }
 
   async find(params) {
-    debug('[find] retrieve user from params:', params)
-    const user = await measureTime(() => this.sequelizeService.get(params.user.id, {}), 'me.find.db.user')
-    debug('[find] retrieve current user:', user.profile.uid)
+    debug('[find] retrieve user from params query:', params.query)
+    const client = this.app.get('sequelizeClient')
+    const user = await User.sequelize(client).findByPk(params.user.id, {
+      include: ['groups', 'profile', 'userBitmap'],
+    })
+    debug('[find] retrieve current user:', user.profile.uid, user.userBitmap?.bitmap, user.toJSON())
 
-    return User.getMe({
-      user,
+    const response = User.getMe({
+      user: {
+        ...user.get(),
+        bitmap: user.userBitmap?.bitmap,
+        groups: user.groups?.map(d => d.toJSON()),
+      },
       profile: user.profile,
     })
+    debug('[find] response:', response)
+    return response
   }
 
   async update(id, data, params) {

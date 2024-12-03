@@ -2,7 +2,7 @@
 import User from '../../models/users.model'
 import Group from '../../models/groups.model'
 import Profile from '../../models/profiles.model'
-const { BadRequest, NotFound } = require('@feathersjs/errors')
+const { BadRequest, NotFound, MethodNotAllowed } = require('@feathersjs/errors')
 const shorthash = require('short-hash')
 const nanoid = require('nanoid')
 const { Op } = require('sequelize')
@@ -24,7 +24,11 @@ class Service {
   }
 
   async get(id, params) {
-    debug('[get] id:', id)
+    debug('[get] id:', id, 'provider:', params.provider, 'authenticated:', params.authenticated)
+    // if it is internal
+    if (!params.authenticated && params.provider) {
+      throw new MethodNotAllowed('Not allowed')
+    }
     // if you're staff; otherwise get your own.
     const userModel = await this.sequelizeKlass
       .scope('isActive')
@@ -187,9 +191,12 @@ class Service {
   }
 
   async find(params) {
-    debug('find: ', params)
+    debug('[find] query:', params.query, 'provider:', params.provider)
     let uid
-
+    // if it is internal
+    if (params.provider) {
+      throw new MethodNotAllowed('Not allowed')
+    }
     if (params.sanitized.githubId) {
       uid = `github-${params.sanitized.githubId}`
     } else if (params.sanitized.email) {
