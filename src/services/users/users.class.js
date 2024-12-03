@@ -24,7 +24,11 @@ class Service {
   }
 
   async get(id, params) {
-    debug('[get] id:', id)
+    debug('[get] id:', id, 'provider:', params.provider, 'authenticated:', params.authenticated)
+    // if it is internal
+    if (!params.authenticated && params.provider) {
+      throw new MethodNotAllowed('Not allowed')
+    }
     // if you're staff; otherwise get your own.
     const userModel = await this.sequelizeKlass
       .scope('isActive')
