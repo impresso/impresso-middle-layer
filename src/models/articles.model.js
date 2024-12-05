@@ -723,9 +723,9 @@ class Article extends BaseArticle {
         locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
         collections: doc.ucoll_ss,
         // permissions bitmaps
-        bitmapExplore: BigInt(doc.rights_bm_explore_l),
-        bitmapGetTranscript: BigInt(doc.rights_bm_get_tr_l),
-        bitmapGetImages: BigInt(doc.rights_bm_get_img_l),
+        bitmapExplore: BigInt(doc.rights_bm_explore_l ?? 0),
+        bitmapGetTranscript: BigInt(doc.rights_bm_get_tr_l ?? 0),
+        bitmapGetImages: BigInt(doc.rights_bm_get_img_l ?? 0),
       })
 
       if (!doc.pp_plain) {
