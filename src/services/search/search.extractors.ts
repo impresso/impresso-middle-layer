@@ -1,12 +1,20 @@
-const { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } = require('lodash')
-const Article = require('../../models/articles.model')
-const Newspaper = require('../../models/newspapers.model')
-const Topic = require('../../models/topics.model')
-const Entity = require('../../models/entities.model')
-const Year = require('../../models/years.model')
-const { getRegionCoordinatesFromDocument } = require('../../util/solr')
+import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
+import Article from '../../models/articles.model'
+import Newspaper from '../../models/newspapers.model'
+import Topic from '../../models/topics.model'
+import Entity from '../../models/entities.model'
+import Year from '../../models/years.model'
+import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'
+import { Service } from '../articles/articles.class'
 
-function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex) {
+function getAricleMatchesAndRegions(
+  article: Article | undefined,
+  documentsIndex: Record<string, any>,
+  fragmentsIndex: Record<string, any>,
+  highlightingIndex: Record<string, any>
+) {
+  if (article == null) return [[], []]
+
   const { uid: id, language } = article
 
   const fragments = fragmentsIndex[id][`content_txt_${language}`]
@@ -18,10 +26,10 @@ function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, hig
     fragments,
   })
 
-  const regionCoords = getRegionCoordinatesFromDocument(documentsIndex[id])
+  const regionCoords: any[] = getRegionCoordinatesFromDocument(documentsIndex[id])
   const regions = Article.getRegions({
     regionCoords,
-  })
+  } as any)
 
   return [matches, regions]
 }
@@ -35,35 +43,46 @@ function getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, hig
  *
  * @return {array} a list of `Article` items.
  */
-async function getItemsFromSolrResponse(response, articlesService, userInfo = {}) {
+export async function getItemsFromSolrResponse(
+  response: any,
+  articlesService: Service,
+  userInfo: { user?: any; authenticated?: boolean } = {}
+) {
   const { user, authenticated } = userInfo
 
   const documentsIndex = keyBy(response.response.docs, 'id')
-  const uids = response.response.docs.map(d => d.id)
+  const uids = response.response.docs.map((d: { id: string }) => d.id)
 
   if (isEmpty(uids)) return []
 
   const { fragments: fragmentsIndex, highlighting: highlightingIndex } = response
+
+  const filters = [{ type: 'uid', q: uids }]
+  const { query } = filtersToQueryAndVariables(filters)
 
   const articlesRequest = {
     user,
     authenticated,
     query: {
       limit: uids.length,
-      filters: [{ type: 'uid', q: uids }],
+      filters,
+      sq: query,
     },
   }
 
-  const articlesIndex = keyBy((await articlesService._find(articlesRequest)).data, 'uid')
+  const articlesIndex = keyBy((await articlesService.findInternal(articlesRequest)).data, 'uid')
 
-  return uids.map(uid => {
+  return uids.map((uid: string) => {
     const article = articlesIndex[uid]
     const [matches, regions] = getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex)
     return Article.assignIIIF(assignIn(clone(article), { matches, regions }))
   })
 }
 
-async function addCachedItems(bucket, provider) {
+async function addCachedItems(
+  bucket: { val: any },
+  provider: typeof Newspaper | typeof Topic | typeof Entity | typeof Year
+) {
   if (isUndefined(provider)) return bucket
   return {
     ...bucket,
@@ -85,14 +104,16 @@ const CacheProvider = {
  * @param {object} response Solr response
  * @return {object} facets object.
  */
-async function getFacetsFromSolrResponse(response) {
+export async function getFacetsFromSolrResponse(response: { facets?: Record<string, { buckets?: object[] }> }) {
   const { facets = {} } = response
 
   const facetPairs = await Promise.all(
     Object.keys(facets).map(async facetLabel => {
       if (!facets[facetLabel].buckets) return [facetLabel, facets[facetLabel]]
-      const cacheProvider = CacheProvider[facetLabel]
-      const buckets = await Promise.all(facets[facetLabel].buckets.map(async b => addCachedItems(b, cacheProvider)))
+      const cacheProvider = CacheProvider[facetLabel as keyof typeof CacheProvider]
+      const buckets = await Promise.all(
+        facets[facetLabel].buckets.map(async (b: any) => addCachedItems(b, cacheProvider))
+      )
 
       return [facetLabel, assignIn(clone(facets[facetLabel]), { buckets })]
     })
@@ -106,12 +127,6 @@ async function getFacetsFromSolrResponse(response) {
  * @param {object} response Solr response.
  * @return {number}
  */
-function getTotalFromSolrResponse(response) {
-  return response.response.numFound
-}
-
-module.exports = {
-  getItemsFromSolrResponse,
-  getFacetsFromSolrResponse,
-  getTotalFromSolrResponse,
+export function getTotalFromSolrResponse(response?: { response?: { numFound?: number } }) {
+  return response?.response?.numFound ?? 0
 }
