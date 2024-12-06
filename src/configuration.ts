@@ -2,6 +2,8 @@ import { default as feathersConfiguration } from '@feathersjs/configuration'
 import type { FromSchema, JSONSchemaDefinition } from '@feathersjs/schema'
 import { Ajv, getValidator } from '@feathersjs/schema'
 import type { RedisClientOptions } from 'redis'
+import { Cache } from 'cache-manager'
+
 import type { RateLimiterConfiguration } from './services/internal/rateLimiter/redis'
 import { Sequelize } from 'sequelize'
 import { CeleryClient } from './celery'
@@ -120,6 +122,7 @@ export interface Configuration {
   celeryClient?: CeleryClient
   media?: MediaConfiguration
   solr: SolrConfiguration
+  cacheManager: Cache
 
   impressoNerServiceUrl?: string
 

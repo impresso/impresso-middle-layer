@@ -1,49 +1,89 @@
-const { keyBy } = require('lodash')
-const debug = require('debug')('impresso/services:articles')
-const { Op } = require('sequelize')
-const { NotFound } = require('@feathersjs/errors')
+import { keyBy } from 'lodash'
+import Debug from 'debug'
+import { Op } from 'sequelize'
+import { NotFound } from '@feathersjs/errors'
 
-const SequelizeService = require('../sequelize.service')
-const SolrService = require('../solr.service')
-const Article = require('../../models/articles.model')
-const Issue = require('../../models/issues.model')
-const { measureTime } = require('../../util/instruments')
+import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
+import initSolrService, { Service as SolrService } from '../solr.service'
+import Article from '../../models/articles.model'
+import Issue from '../../models/issues.model'
+import { measureTime } from '../../util/instruments'
+import { ImpressoApplication } from '../../types'
+import { SlimUser } from '../../authentication'
 
-async function getIssues(request, app) {
+const debug = Debug('impresso/services:articles')
+
+async function getIssues(request: Record<string, any>, app: ImpressoApplication) {
   const sequelize = app.get('sequelizeClient')
   const cacheManager = app.get('cacheManager')
-  const cacheKey = SequelizeService.getCacheKeyForReadSqlRequest(request, 'issues')
+  const cacheKey = initSequelizeService.getCacheKeyForReadSqlRequest(request, 'issues')
 
   return cacheManager
     .wrap(cacheKey, async () =>
       Issue.sequelize(sequelize)
         .findAll(request)
-        .then(rows => rows.map(d => d.get()))
+        .then((rows: any[]) => rows.map(d => d.get()))
     )
     .then(rows => keyBy(rows, 'uid'))
 }
 
-class Service {
-  constructor({ name = '', app = undefined } = {}) {
+interface ServiceOptions {
+  name?: string
+  app?: ImpressoApplication
+}
+
+interface FindOptions {
+  query: {
+    filters?: any[]
+
+    // things needed by SolService.find
+    sq?: string
+    sfq?: string
+    limit?: number
+    offset?: number
+    facets?: string[]
+    order_by?: string
+    highlight_by?: boolean
+    collapse_by?: string
+    collapse_fn?: string
+    requestOriginalPath?: boolean
+  }
+  user: SlimUser
+
+  // things needed by SolService.find
+  fl?: string[]
+}
+
+export class Service {
+  name: string
+  app?: ImpressoApplication
+  SequelizeService: SequelizeService
+  SolrService: SolrService
+
+  constructor({ name = '', app = undefined }: ServiceOptions = {}) {
     this.name = String(name)
     this.app = app
-    this.SequelizeService = SequelizeService({
+    this.SequelizeService = initSequelizeService({
       app,
       name,
       cacheReads: true,
     })
-    this.SolrService = SolrService({
+    this.SolrService = initSolrService({
       app,
       name,
       namespace: 'search',
     })
   }
 
-  async find(params) {
+  async find(params: any) {
     return await this._find(params)
   }
 
-  async _find(params) {
+  async findInternal(params: any) {
+    return await this._find(params)
+  }
+
+  async _find(params: FindOptions) {
     const fl = Article.ARTICLE_SOLR_FL_LIST_ITEM
     const pageUids = (params.query.filters || []).filter(d => d.type === 'page').map(d => d.q)
 
@@ -70,7 +110,7 @@ class Service {
           ...params,
           scope: 'get',
           where: {
-            uid: { [Op.in]: results.data.map(d => d.uid) },
+            uid: { [Op.in]: results.data.map((d: { uid: string }) => d.uid) },
           },
           limit: results.data.length,
           order_by: [['uid', 'DESC']],
@@ -87,16 +127,16 @@ class Service {
     const issuesRequest = {
       attributes: ['accessRights', 'uid'],
       where: {
-        uid: { [Op.in]: results.data.map(d => d.issue.uid) },
+        uid: { [Op.in]: results.data.map((d: any) => d.issue.uid) },
       },
     }
-    const getRelatedIssuesPromise = measureTime(() => getIssues(issuesRequest, this.app), 'articles.find.db.issues')
+    const getRelatedIssuesPromise = measureTime(() => getIssues(issuesRequest, this.app!), 'articles.find.db.issues')
 
     // do the loop
     return Promise.all([getAddonsPromise, getRelatedIssuesPromise]).then(([addonsIndex, issuesIndex]) => ({
       ...results,
-      data: results.data.map(article => {
-        if (issuesIndex[article.issue.uid]) {
+      data: results.data.map((article: Article) => {
+        if (article?.issue?.uid != null && issuesIndex[article?.issue?.uid]) {
           article.issue.accessRights = issuesIndex[article.issue.uid].accessRights
         }
         if (!addonsIndex[article.uid]) {
@@ -110,10 +150,10 @@ class Service {
           // it came from cache. Otherwise it is a model instance and it was
           // loaded from the database.
           // This should be moved to the SequelizeService layer.
-          article.pages = addonsIndex[article.uid].pages.map(d => (d.constructor === Object ? d : d.toJSON()))
+          article.pages = addonsIndex[article.uid].pages.map((d: any) => (d.constructor === Object ? d : d.toJSON()))
         }
         if (pageUids.length === 1) {
-          article.regions = article.regions.filter(r => pageUids.indexOf(r.pageUid) !== -1)
+          article.regions = article?.regions?.filter(r => pageUids.indexOf(r.pageUid) !== -1)
         }
         article.assignIIIF()
         return article
@@ -121,7 +161,7 @@ class Service {
     }))
   }
 
-  async get(id, params) {
+  async get(id: string, params: any) {
     const uids = id.split(',')
     if (uids.length > 1 || params.findAll) {
       debug(
@@ -187,7 +227,7 @@ class Service {
       ),
       measureTime(
         () =>
-          Issue.sequelize(this.app.get('sequelizeClient')).findOne({
+          Issue.sequelize(this.app!.get('sequelizeClient')).findOne({
             attributes: ['accessRights'],
             where: {
               uid: id.split(/-i\d{4}/).shift(),
@@ -199,9 +239,9 @@ class Service {
       .then(([article, addons, issue]) => {
         if (addons) {
           if (issue) {
-            article.issue.accessRights = issue.accessRights
+            article.issue.accessRights = (issue as any).accessRights
           }
-          article.pages = addons.pages.map(d => d.toJSON())
+          article.pages = addons.pages.map((d: any) => d.toJSON())
           article.v = addons.v
         }
         article.assignIIIF()
@@ -214,8 +254,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options: ServiceOptions) {
   return new Service(options)
 }
-
-module.exports.Service = Service

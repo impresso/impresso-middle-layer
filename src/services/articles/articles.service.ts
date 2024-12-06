@@ -2,9 +2,9 @@ import { ServiceOptions } from '@feathersjs/feathers'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { ImpressoApplication } from '../../types'
 import { docs } from './articles.schema'
+import createService from './articles.class'
 
 // Initializes the `articles` service on path `/articles`
-const createService = require('./articles.class')
 const hooks = require('./articles.hooks')
 
 export default function (app: ImpressoApplication) {
