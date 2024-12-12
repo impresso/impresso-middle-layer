@@ -4,6 +4,7 @@ import { docs } from './version.schema'
 import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { transformVersionDetails } from '../../transformers/version'
+import { VersionDetails } from '../../models/generated/schemas'
 
 const log = debug('impresso/services:version')
 const { getFirstAndLastDocumentDates, getNewspaperIndex } = require('./logic')
@@ -21,20 +22,14 @@ module.exports = function (app: ImpressoApplication) {
 
         const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr)
         log('branch:', process.env.GIT_BRANCH, 'revision:', process.env.GIT_REVISION, 'version:', process.env.GIT_TAG)
-        const response = {
+        const response: VersionDetails = {
           solr: {
-            endpoints: {
-              search: solrConfig.search.alias,
-              mentions: solrConfig.mentions.alias,
-              topics: solrConfig.topics.alias,
-              images: solrConfig.images.alias,
-              entities: solrConfig.entities.alias,
-            },
+            endpoints: {},
           },
           mysql: {
             endpoint: sequelizeConfig.alias,
           },
-          version: app.get('authentication').jwtOptions.issuer,
+          version: app.get('authentication')?.jwtOptions?.issuer ?? '',
           apiVersion: {
             branch: process.env.GIT_BRANCH || 'N/A',
             revision: process.env.GIT_REVISION || 'N/A',
@@ -42,7 +37,7 @@ module.exports = function (app: ImpressoApplication) {
           },
           documentsDateSpan: { firstDate, lastDate },
           newspapers: await getNewspaperIndex(),
-          features: app.get('features') || {},
+          features: (app.get('features') ?? {}) as Record<string, Record<string, any>>,
         }
 
         if (isPublicApi) {

@@ -2,7 +2,7 @@ import { Application, HookContext, NextFunction } from '@feathersjs/feathers'
 import { createClient } from 'celery-node'
 import RedisBackend from 'celery-node/dist/backends/redis'
 import debugModule from 'debug'
-import { CeleryConfiguration } from './configuration'
+import { CeleryConfig } from './configuration'
 import { logger } from './logger'
 import Job from './models/jobs.model'
 import type { LogData } from './services/logs/logs.class'
@@ -21,7 +21,7 @@ export interface CeleryClient {
   run: (task: { task: string; args: any[] }) => Promise<AsyncResult>
 }
 
-const getCeleryClient = (config: CeleryConfiguration, app: ImpressoApplication) => {
+const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
   const client = createClient(config.brokerUrl, config.backendUrl)
   const backend: RedisBackend = client.backend as RedisBackend
 

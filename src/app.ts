@@ -48,7 +48,7 @@ app.configure(rateLimiter)
 
 app.set(
   'cacheManager',
-  cache(app.get('redis'), app.get('cache').enabled, (error: Error) => {
+  cache(app.get('redis'), app.get('cache')?.enabled, (error: Error) => {
     console.error('Cache error. Restarting', error.stack)
     process.exit(1)
   })

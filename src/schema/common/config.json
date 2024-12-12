@@ -1,0 +1,243 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Impresso config file.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "isPublicApi": {
+      "type": "boolean",
+      "description": "If `true`, the app serves a public API"
+    },
+    "allowedCorsOrigins": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of allowed origins for CORS"
+    },
+    "redis": { "$ref": "#/definitions/RedisConfig" },
+    "rateLimiter": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "description": "Enable rate limiter" },
+        "capacity": { "type": "number", "description": "Capacity of the rate limiter" },
+        "refillRate": { "type": "number", "description": "Refill rate of the rate limiter" }
+      },
+      "description": "Rate limiter configuration",
+      "required": ["capacity", "refillRate"]
+    },
+    "publicApiPrefix": { "type": "string", "description": "Prefix for the public API" },
+    "useDbUserInRequestContext": {
+      "type": "boolean",
+      "description": "If `true`, the user object is loaded from the db on every request. If `false` (default), the user object is created from the JWT token"
+    },
+    "problemUriBase": {
+      "type": "string",
+      "description": "Base URI for problem URIs. Falls back to the default URI (https://impresso-project.ch/probs) if not set"
+    },
+    "solr": {
+      "$ref": "#/definitions/SolrConfig"
+    },
+    "sequelize": {
+      "$ref": "#/definitions/SequelizeConfig"
+    },
+    "openapi": {
+      "$ref": "#/definitions/OpenApiConfig"
+    },
+    "impressoNerServiceUrl": {
+      "type": "string",
+      "description": "URL of the Impresso NER service"
+    },
+    "features": { "$ref": "#/definitions/FeaturesConfig" },
+    "paginate": { "$ref": "#/definitions/PaginateConfig" },
+    "celery": { "$ref": "#/definitions/CeleryConfig" },
+    "authentication": { "$ref": "#/definitions/AuthConfig" },
+    "imlAuthConfiguration": {
+      "$ref": "#/definitions/AuthConfig",
+      "description": "Configuration for the auth strategy in Public API where the API can verify a token from the internal API (IML) using this configuration and then issue a new token for the public API."
+    },
+    "cache": { "$ref": "#/definitions/CacheConfig" }
+  },
+  "required": ["solr", "sequelize", "authentication"],
+  "definitions": {
+    "SolrConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auth": {
+          "type": "object",
+          "properties": {
+            "user": { "type": "string", "description": "Solr user" },
+            "pass": { "type": "string", "description": "Solr password" }
+          },
+          "required": ["user", "pass"]
+        },
+        "socksProxy": {
+          "$ref": "#/definitions/SocksProxyConfig"
+        },
+        "search": { "$ref": "#/definitions/SolrIndexConfig" },
+        "mentions": { "$ref": "#/definitions/SolrIndexConfig" },
+        "topics": { "$ref": "#/definitions/SolrIndexConfig" },
+        "entities": { "$ref": "#/definitions/SolrIndexConfig" },
+        "images": { "$ref": "#/definitions/SolrIndexConfig" },
+        "tr_passages": { "$ref": "#/definitions/SolrIndexConfig" },
+        "tr_clusters": { "$ref": "#/definitions/SolrIndexConfig" },
+        "embeddings_de": { "$ref": "#/definitions/SolrIndexConfig" },
+        "embeddings_fr": { "$ref": "#/definitions/SolrIndexConfig" },
+        "embeddings_lb": { "$ref": "#/definitions/SolrIndexConfig" },
+        "entities_mentions": { "$ref": "#/definitions/SolrIndexConfig" }
+      },
+      "required": ["auth"]
+    },
+    "SolrIndexConfig": {
+      "type": "object",
+      "properties": {
+        "endpoint": { "type": "string", "description": "Solr endpoint" },
+        "update": { "type": "string", "description": "Solr update endpoint" },
+        "suggest": { "type": "string", "description": "Solr suggest endpoint" }
+      },
+      "additionalProperties": false,
+      "required": ["endpoint"]
+    },
+    "SocksProxyConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "integer",
+          "enum": [4, 5]
+        }
+      },
+      "required": ["host", "port"]
+    },
+    "SequelizeConfig": {
+      "type": "object",
+      "properties": {
+        "alias": { "type": "string", "description": "Alias for the Sequelize instance" },
+        "dialect": { "type": "string", "description": "Dialect of the database" },
+        "host": { "type": "string", "description": "Host of the database" },
+        "port": { "type": "number", "description": "Port of the database" },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "user": { "type": "string", "description": "Database user" },
+            "pass": { "type": "string", "description": "Database password" }
+          },
+          "required": ["user", "pass"]
+        },
+        "database": { "type": "string", "description": "Database name" },
+        "logging": { "type": "boolean", "description": "Enable logging" },
+        "tables": {
+          "type": "object",
+          "properties": {
+            "articles": { "type": "string", "description": "Name of the articles table" },
+            "pages": { "type": "string", "description": "Name of the pages table" },
+            "newspapers": { "type": "string", "description": "Name of the newspapers table" },
+            "users": { "type": "string", "description": "Name of the users table" }
+          },
+          "required": ["articles", "pages", "newspapers", "users"]
+        }
+      },
+      "description": "Sequelize configuration",
+      "required": ["dialect", "host", "port", "auth", "database"]
+    },
+    "OpenApiConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "validateRequests": {
+          "type": "boolean",
+          "description": "If `true`, validate requests against the OpenAPI schema"
+        },
+        "validateResponses": {
+          "type": "boolean",
+          "description": "If `true`, validate responses against the OpenAPI schema"
+        },
+        "validateSpec": { "type": "boolean", "description": "If `true`, validate the OpenAPI spec" }
+      }
+    },
+    "FeaturesConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "textReuse": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean", "description": "Enable text reuse features" }
+          },
+          "required": ["enabled"]
+        }
+      }
+    },
+    "PaginateConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default": { "type": "number", "description": "Default limit for pagination" },
+        "max": { "type": "number", "description": "Maximum limit for pagination" }
+      },
+      "required": ["default", "max"]
+    },
+    "RedisConfig": {
+      "type": "object",
+      "properties": {
+        "enable": { "type": "boolean", "description": "Enable Redis" },
+        "host": { "type": "string", "description": "Redis host" }
+      },
+      "description": "Redis configuration",
+      "required": ["host"],
+      "additionalProperties": false
+    },
+    "CeleryConfig": {
+      "type": "object",
+      "properties": {
+        "enable": { "type": "boolean", "description": "Enable Celery" },
+        "brokerUrl": { "type": "string", "description": "URL of the Redis broker" },
+        "backendUrl": { "type": "string", "description": "URL of the Redis backend" }
+      },
+      "description": "Celery configuration",
+      "required": ["brokerUrl", "backendUrl"],
+      "additionalProperties": false
+    },
+    "AuthConfig": {
+      "type": "object",
+      "properties": {
+        "secret": { "type": "string", "description": "Secret for JWT" },
+        "jwtOptions": {
+          "type": "object",
+          "properties": {
+            "audience": { "type": "string", "description": "Audience for JWT" },
+            "issuer": { "type": "string", "description": "Issuer of JWT" },
+            "expiresIn": { "type": "string", "description": "Expiration time for JWT" }
+          },
+          "required": ["audience"]
+        },
+        "authStrategies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of authentication strategies"
+        }
+      },
+      "required": ["secret"]
+    },
+    "CacheConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "description": "Enable cache" }
+      },
+      "required": ["enabled"]
+    }
+  }
+}
