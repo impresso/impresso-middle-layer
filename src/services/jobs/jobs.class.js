@@ -10,7 +10,7 @@ class Service {
     this.options = options
   }
 
-  setup(app) {
+  setup(app, path) {
     this.app = app
     this.name = 'jobs'
     this.sequelizeService = new SequelizeService({

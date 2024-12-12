@@ -1,4 +1,5 @@
 import { JSONPath } from 'jsonpath-plus'
+import { customJSONReplacer } from './jsonEncoder'
 
 /**
  * Represents a redactable object with arbitrary string keys and values.
@@ -34,7 +35,7 @@ export const redactObject = <T extends Redactable>(object: T, policy: RedactionP
     throw new Error('The provided object is not Redactable')
   }
 
-  const objectCopy = JSON.parse(JSON.stringify(object))
+  const objectCopy = JSON.parse(JSON.stringify(object, customJSONReplacer))
 
   policy.items.forEach(item => {
     JSONPath({

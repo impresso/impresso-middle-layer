@@ -45,8 +45,8 @@ function buildResponseClusters(
     ({ id, text: textSample, permissionBitmapExplore, permissionsBitmapGetTranscript }) => ({
       cluster: clustersById[id],
       textSample,
-      bitmapExplore: BigInt(permissionBitmapExplore ?? 0),
-      bitmapGetTranscript: BigInt(permissionsBitmapGetTranscript ?? 0),
+      bitmapExplore: BigInt(permissionBitmapExplore ?? Number.MAX_SAFE_INTEGER),
+      bitmapGetTranscript: BigInt(permissionsBitmapGetTranscript ?? Number.MAX_SAFE_INTEGER),
     })
   )
   return results
