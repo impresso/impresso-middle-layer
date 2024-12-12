@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
+import { nanoid } from 'nanoid'
 import User from '../../models/users.model'
 import Group from '../../models/groups.model'
 import Profile from '../../models/profiles.model'
 const { BadRequest, NotFound, MethodNotAllowed } = require('@feathersjs/errors')
 const shorthash = require('short-hash')
-const nanoid = require('nanoid')
 const { Op } = require('sequelize')
 const debug = require('debug')('impresso/services:users')
 const { encrypt } = require('../../crypto')

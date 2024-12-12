@@ -124,7 +124,7 @@ class ImlAppJWTStrategy extends JWTStrategy {
     const authConfig = (this.app as ImpressoApplication)?.get('imlAuthConfiguration')
 
     const imlOps: JwtVerifyOptions = { ...params.jwt }
-    if (authConfig != null) {
+    if (authConfig?.jwtOptions?.audience != null) {
       imlOps.audience = authConfig.jwtOptions.audience
     }
 

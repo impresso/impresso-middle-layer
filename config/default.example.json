@@ -1,4 +1,5 @@
 {
+  "$schema": "../src/schema/common/config.json",
   "callbackUrls": {
     "passwordReset": "http://localhost:8080/password-reset"
   },

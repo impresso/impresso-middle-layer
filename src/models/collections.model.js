@@ -1,6 +1,6 @@
 import User from './users.model'
+import { nanoid } from 'nanoid'
 
-const nanoid = require('nanoid')
 const { DataTypes } = require('sequelize')
 
 export const STATUS_PRIVATE = 'PRI'

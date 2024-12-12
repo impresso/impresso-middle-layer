@@ -2,6 +2,7 @@ import Debug from 'debug'
 import lodash from 'lodash'
 import { preprocessSolrError } from './util/solr/errors'
 import { ConnectionPool, initHttpPool, IResponse } from './httpConnectionPool'
+import { ImpressoApplication } from './types'
 
 const debug = Debug('impresso/solr')
 const debugRequest = Debug('impresso/solr-request')
@@ -593,10 +594,16 @@ const getSolrClient = (config: any, connectionsPool: ConnectionPool) => ({
   },
 })
 
-export default function (app: any) {
+export default function (app: ImpressoApplication) {
+  const untypedApp = app as any
   const config = app.get('solr')
-  const connectionPool = initHttpPool(app.get('solrConnectionPool'))
-  app.set('solrClient', getSolrClient(config, connectionPool))
+
+  const poolConfig = {
+    ...untypedApp.get('solrConnectionPool'),
+    socksProxy: config.socksProxy,
+  }
+  const connectionPool = initHttpPool(poolConfig)
+  untypedApp.set('solrClient', getSolrClient(config, connectionPool))
 }
 
 export const client = (solrConfig: any, poolConfig: any) => {

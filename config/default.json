@@ -1,4 +1,5 @@
 {
+  "$schema": "../src/schema/common/config.json",
   "isPublicApi": true,
   "availablePlans": ["plan-basic", "plan-educational", "plan-researcher"],
   "allowedCorsOrigins": [
