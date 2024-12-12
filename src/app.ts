@@ -5,7 +5,7 @@ import errorHandling from './middleware/errorHandling'
 import openApiValidator, { init as initOpenApiValidator } from './middleware/openApiValidator'
 import swagger from './middleware/swagger'
 import transport from './middleware/transport'
-import redis from './redis'
+import redis, { init as initRedis } from './redis'
 import sequelize from './sequelize'
 import services from './services'
 import rateLimiter from './services/internal/rateLimiter/redis'
@@ -97,7 +97,7 @@ app.configure(authentication)
 app.configure(services)
 
 app.hooks({
-  setup: [initOpenApiValidator, initCelery],
+  setup: [initOpenApiValidator, initCelery, initRedis],
 })
 app.configure(appHooks)
 
