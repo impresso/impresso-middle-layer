@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
+name: content-item-redaction-policy
+items:
+  - jsonPath: $.title
+    valueConverterName: redact
+  - jsonPath: $.excerpt
+    valueConverterName: redact

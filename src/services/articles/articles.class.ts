@@ -162,31 +162,6 @@ export class Service {
   }
 
   async get(id: string, params: any) {
-    const uids = id.split(',')
-    if (uids.length > 1 || params.findAll) {
-      debug(
-        `[get] with ${uids.length} ids -> redirect to 'find', user:`,
-        params.user ? params.user.uid : 'no user found'
-      )
-
-      return this._find({
-        ...params,
-        findAll: true,
-        query: {
-          limit: 20,
-          filters: [
-            {
-              type: 'uid',
-              q: uids,
-            },
-          ],
-        },
-      }).then(res => res.data)
-    }
-    if (uids.length > 20) {
-      return []
-    }
-
     debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found')
     const fl = Article.ARTICLE_SOLR_FL_LIST_ITEM.concat([
       'lb_plain:[json]',

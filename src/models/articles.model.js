@@ -723,9 +723,11 @@ class Article extends BaseArticle {
         locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),
         collections: doc.ucoll_ss,
         // permissions bitmaps
-        bitmapExplore: BigInt(doc.rights_bm_explore_l ?? 0),
-        bitmapGetTranscript: BigInt(doc.rights_bm_get_tr_l ?? 0),
-        bitmapGetImages: BigInt(doc.rights_bm_get_img_l ?? 0),
+        // if it's not defined, set max permissions for compatibility
+        // with old Solr version
+        bitmapExplore: BigInt(doc.rights_bm_explore_l ?? Number.MAX_SAFE_INTEGER),
+        bitmapGetTranscript: BigInt(doc.rights_bm_get_tr_l ?? Number.MAX_SAFE_INTEGER),
+        bitmapGetImages: BigInt(doc.rights_bm_get_img_l ?? Number.MAX_SAFE_INTEGER),
       })
 
       if (!doc.pp_plain) {

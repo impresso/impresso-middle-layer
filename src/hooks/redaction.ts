@@ -137,3 +137,15 @@ export const publicApiTranscriptRedactionCondition: RedactCondition = (context, 
     inPublicApi(context, redactable) && !bitmapsAlign(context, redactable, x => authBitmapExtractor(x, 'getTranscript'))
   )
 }
+
+const webappAuthBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
+  const actualKey = `bitmap${kind.charAt(0).toUpperCase() + kind.slice(1)}`
+  return redactable[actualKey] ?? BigInt(0)
+}
+
+export const webAppTranscriptRedactionCondition: RedactCondition = (context, redactable) => {
+  return (
+    !inPublicApi(context, redactable) &&
+    !bitmapsAlign(context, redactable, x => webappAuthBitmapExtractor(x, 'getTranscript'))
+  )
+}

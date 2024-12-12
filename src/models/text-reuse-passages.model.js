@@ -103,8 +103,8 @@ class TextReusePassage {
     this.pageNumbers = pageNumbers
     this.collections = collections
 
-    this.bitmapExplore = bitmapExplore
-    this.bitmapGetTranscript = bitmapGetTranscript
+    this.bitmapExplore = BigInt(bitmapExplore ?? Number.MAX_SAFE_INTEGER)
+    this.bitmapGetTranscript = BigInt(bitmapGetTranscript ?? Number.MAX_SAFE_INTEGER)
   }
 
   static CreateFromSolr(fieldsToPropsMapper = SolrFieldsToPropsMapper) {

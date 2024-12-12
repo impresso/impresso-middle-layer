@@ -4,6 +4,7 @@ import {
   redactResponse,
   redactResponseDataItem,
   publicApiTranscriptRedactionCondition,
+  webAppTranscriptRedactionCondition,
   inPublicApi,
 } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
@@ -27,6 +28,7 @@ const { obfuscate } = require('../../hooks/access-rights')
 const { SolrMappings } = require('../../data/constants')
 
 const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicy.yml`)
+const contentItemRedactionPolicyWebApp = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`)
 
 module.exports = {
   around: {
@@ -103,6 +105,7 @@ module.exports = {
       obfuscate(),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
+      redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppTranscriptRedactionCondition),
     ],
     get: [
       // save here cache, flush cache here
@@ -115,6 +118,7 @@ module.exports = {
       obfuscate(),
       transformResponse(transformContentItem, inPublicApi),
       redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
+      redactResponse(contentItemRedactionPolicyWebApp, webAppTranscriptRedactionCondition),
     ],
     create: [],
     update: [],

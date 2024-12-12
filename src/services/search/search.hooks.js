@@ -1,6 +1,11 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
-import { redactResponseDataItem, inPublicApi, publicApiTranscriptRedactionCondition } from '../../hooks/redaction'
+import {
+  redactResponseDataItem,
+  inPublicApi,
+  publicApiTranscriptRedactionCondition,
+  webAppTranscriptRedactionCondition,
+} from '../../hooks/redaction'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { transformBaseFind } from '../../transformers/base'
 import { transformContentItem } from '../../transformers/contentItem'
@@ -22,6 +27,9 @@ const { SolrMappings } = require('../../data/constants')
 const { SolrNamespaces } = require('../../solr')
 
 const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/../articles/resources/contentItemRedactionPolicy.yml`)
+const contentItemRedactionPolicyWebApp = loadYamlFile(
+  `${__dirname}/../articles/resources/contentItemRedactionPolicyWebApp.yml`
+)
 
 const findQueryParamsRenamePolicy = {
   term: 'q',
@@ -112,6 +120,7 @@ module.exports = {
       protect('content'),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
+      redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppTranscriptRedactionCondition),
     ],
     get: [],
     create: [],
