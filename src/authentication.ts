@@ -18,7 +18,7 @@ import { BufferUserPlanGuest } from './models/user-bitmap.model'
 
 const debug = initDebug('impresso/authentication')
 
-type AuthPayload = Omit<SlimUser, 'uid' | 'id'> & { userId: string }
+type AuthPayload = Omit<SlimUser, 'uid' | 'id' | 'bitmap'> & { userId: string; bitmap: number }
 
 class CustomisedAuthenticationService extends AuthenticationService {
   async getPayload(authResult: AuthenticationResult, params: AuthenticationParams) {
@@ -31,7 +31,7 @@ class CustomisedAuthenticationService extends AuthenticationService {
         payload.groups = user.groups.map(d => d.name)
       }
       payload.isStaff = user.isStaff
-      payload.bitmap = user.bitmap ?? Number(BufferUserPlanGuest)
+      payload.bitmap = Number(user.bitmap != null ? BigInt(user.bitmap) : BufferUserPlanGuest)
     }
     return payload
   }
@@ -67,7 +67,7 @@ export interface SlimUser {
   /**
    * Bitmap as number Number(BigInt)
    */
-  bitmap?: number
+  bitmap: bigint
   groups: string[]
 }
 
@@ -99,7 +99,7 @@ class NoDBJWTStrategy extends JWTStrategy {
     const slimUser: SlimUser = {
       uid: payload.userId,
       id: parseInt(payload.sub),
-      bitmap: payload.bitmap ?? Number(BufferUserPlanGuest),
+      bitmap: payload.bitmap != null ? BigInt(payload.bitmap) : BufferUserPlanGuest,
       isStaff: payload.isStaff ?? false,
       groups: payload.groups ?? [],
     }
