@@ -1,4 +1,8 @@
 const stringifyReplacer = (key: any, value: any) => {
+  if (typeof value === 'bigint') {
+    return value.toString(10)
+  }
+
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     const keys = Object.getOwnPropertyNames(value)
     const symbols = Object.getOwnPropertySymbols(value)

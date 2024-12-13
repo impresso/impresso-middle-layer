@@ -4,6 +4,7 @@ import { ImpressoApplication } from '../types'
 import { Redactable, RedactionPolicy, redactObject } from '../util/redaction'
 import { SlimUser } from '../authentication'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '../models/authorization'
+import { BufferUserPlanGuest } from '../models/user-bitmap.model'
 
 export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 
@@ -94,7 +95,12 @@ export const bitmapsAlign = (
 ): boolean => {
   const user = context.params?.user as any as SlimUser
 
-  const userBitmap: bigint | undefined = BigInt(user.bitmap ?? 0)
+  /**
+   * If redaction is done in an authenticated context, the user should be present
+   * and we use the user's bitmap.
+   * If the context is not authenticated, we use the bitmap of a guest user.
+   */
+  const userBitmap: bigint | undefined = user?.bitmap ?? BufferUserPlanGuest
 
   const contentBitmap: bigint | undefined =
     contentBitmapExtractor != null && redactable != null ? contentBitmapExtractor(redactable) : undefined
