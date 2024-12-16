@@ -27,18 +27,28 @@ export class Service {
     if (!this.sequelizeClient) {
       throw new Error('Sequelize client not available')
     }
-    debug('change-password.create', data, params.user.id)
-    const user = await User.sequelize(this.sequelizeClient).findOne({
+    debug('change-password.create', params.user.id)
+    const userSequelize = User.sequelize(this.sequelizeClient)
+    const user = await userSequelize.findOne({
       where: {
         id: params.user.id,
       },
     })
-    if (!user) {
+    if (!user || user.get('id') !== params.user.id) {
       throw new NotAuthenticated('User not found')
     }
-    debug('change-password.create', user.get('password'))
+    const updated = await userSequelize.update(
+      {
+        password: User.buildPassword({ password: data.sanitized.password }),
+      },
+      {
+        // criteria
+        where: { id: params.user.id },
+      }
+    )
+    debug('change-password.create', updated)
     return {
-      id: user.get('id'),
+      response: 'ok',
     }
   }
 }
