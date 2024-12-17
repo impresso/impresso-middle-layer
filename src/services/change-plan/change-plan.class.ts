@@ -20,14 +20,14 @@ export class Service {
     this.name = name
 
     this.sequelizeClient = app.get('sequelizeClient')
-    debug('change-plan initialized.')
+    debug('Service initialized.')
   }
 
   async create(data: any, params: { user: { id: number } }) {
     if (!this.sequelizeClient) {
       throw new Error('Sequelize client not available')
     }
-    debug('change-plan.create for user.pk', params.user.id, 'plan:', data.plan, params.user)
+    debug('[create] for user.pk', params.user.id, 'plan:', data.plan, params.user)
     const userSequelize = User.sequelize(this.sequelizeClient)
     const user = await userSequelize.findOne({
       where: {
@@ -38,7 +38,7 @@ export class Service {
     if (!user) {
       throw new NotAuthenticated('User not found')
     }
-    debug('change-plan.create user is in groups:', user.get('groups'))
+    debug('[create] user is in groups:', user.get('groups'))
 
     return {
       response: 'ok',
