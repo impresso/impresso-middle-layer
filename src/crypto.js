@@ -1,4 +1,4 @@
-const crypto = require('node:crypto')
+import crypto from 'crypto'
 
 const encrypt = (password, options) => {
   const configs = {
@@ -8,7 +8,7 @@ const encrypt = (password, options) => {
     encoding: 'hex',
     ...options,
   }
-  if (typeof configs.salt !== 'string') {
+  if (typeof configs.salt !== 'string' || configs.salt.length === 0) {
     configs.salt = crypto.randomBytes(16).toString(configs.encoding)
   }
 
