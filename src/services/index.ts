@@ -62,6 +62,7 @@ const internalApiServices = [
   'text-reuse-connected-clusters',
   'password-reset',
   'change-password',
+  'change-plan',
   'terms-of-use',
   'user-requests',
   'user-requests-reviews',
