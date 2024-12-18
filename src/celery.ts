@@ -1,4 +1,5 @@
-import { Application, HookContext, NextFunction } from '@feathersjs/feathers'
+import { Application } from '@feathersjs/feathers'
+import { HookContext, NextFunction } from '@feathersjs/hooks'
 import { createClient } from 'celery-node'
 import RedisBackend from 'celery-node/dist/backends/redis'
 import debugModule from 'debug'

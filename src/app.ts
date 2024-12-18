@@ -19,6 +19,7 @@ import { ImpressoApplication } from './types'
 import { Application } from '@feathersjs/express'
 import bodyParser from 'body-parser'
 import authentication from './authentication'
+import appHooksFactory from './app.hooks'
 
 const path = require('path')
 const compress = require('compression')
@@ -29,7 +30,6 @@ const express = require('@feathersjs/express')
 
 const middleware = require('./middleware')
 // const services = require('./services');
-const appHooks = require('./app.hooks')
 
 const multer = require('./multer')
 const cache = require('./cache')
@@ -38,7 +38,7 @@ const cachedSolr = require('./cachedSolr')
 const app: ImpressoApplication & Application = express(feathers())
 
 // Load app configuration
-app.configure(configuration())
+app.configure(configuration)
 
 // configure internal services
 app.configure(sequelize)
@@ -96,10 +96,7 @@ app.configure(transport)
 app.configure(authentication)
 app.configure(services)
 
-app.hooks({
-  setup: [initOpenApiValidator, initCelery, initRedis],
-})
-app.configure(appHooks)
+app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator], []))
 
 // part of sockets.io (see transport), but must go after services are defined
 // because one of the services is used in the channels.
@@ -107,4 +104,4 @@ app.configure(channels)
 
 app.configure(errorHandling)
 
-module.exports = app
+export default app

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "Impresso config file.",
   "type": "object",
-  "additionalProperties": false,
+  "additionalProperties": true,
   "properties": {
     "$schema": {
       "type": "string"
@@ -59,13 +59,15 @@
       "$ref": "#/definitions/AuthConfig",
       "description": "Configuration for the auth strategy in Public API where the API can verify a token from the internal API (IML) using this configuration and then issue a new token for the public API."
     },
-    "cache": { "$ref": "#/definitions/CacheConfig" }
+    "cache": { "$ref": "#/definitions/CacheConfig" },
+    "appHooks": { "$ref": "#/definitions/AppHooksConfig" },
+    "media": { "$ref": "#/definitions/MediaConfig" }
   },
   "required": ["solr", "sequelize", "authentication"],
   "definitions": {
     "SolrConfig": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "auth": {
           "type": "object",
@@ -99,12 +101,12 @@
         "update": { "type": "string", "description": "Solr update endpoint" },
         "suggest": { "type": "string", "description": "Solr suggest endpoint" }
       },
-      "additionalProperties": false,
+      "additionalProperties": true,
       "required": ["endpoint"]
     },
     "SocksProxyConfig": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "enabled": {
           "type": "boolean"
@@ -155,7 +157,7 @@
     },
     "OpenApiConfig": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "validateRequests": {
           "type": "boolean",
@@ -170,7 +172,7 @@
     },
     "FeaturesConfig": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "textReuse": {
           "type": "object",
@@ -183,7 +185,7 @@
     },
     "PaginateConfig": {
       "type": "object",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "default": { "type": "number", "description": "Default limit for pagination" },
         "max": { "type": "number", "description": "Maximum limit for pagination" }
@@ -198,7 +200,7 @@
       },
       "description": "Redis configuration",
       "required": ["host"],
-      "additionalProperties": false
+      "additionalProperties": true
     },
     "CeleryConfig": {
       "type": "object",
@@ -209,7 +211,7 @@
       },
       "description": "Celery configuration",
       "required": ["brokerUrl", "backendUrl"],
-      "additionalProperties": false
+      "additionalProperties": true
     },
     "AuthConfig": {
       "type": "object",
@@ -238,6 +240,25 @@
         "enabled": { "type": "boolean", "description": "Enable cache" }
       },
       "required": ["enabled"]
+    },
+    "AppHooksConfig": {
+      "type": "object",
+      "properties": {
+        "alwaysRequired": { "type": "boolean", "description": "If `true`, hooks are always required" },
+        "excludePaths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of paths to exclude from hooks"
+        }
+      }
+    },
+    "MediaConfig": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string", "description": "Host of the media server" },
+        "path": { "type": "string", "description": "Path to the media server" },
+        "services": { "type": "array", "items": { "type": "string" }, "description": "List of media services" }
+      }
     }
   }
 }

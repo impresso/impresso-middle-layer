@@ -1,13 +1,16 @@
 // Application hooks that run for every service
+import Debug from 'debug'
+import { ApplicationHookFunction, ApplicationHookOptions, HookContext } from '@feathersjs/feathers'
 import { ValidationError } from 'ajv'
-
-const debug = require('debug')('impresso/app.hooks')
-const { GeneralError, BadGateway, BadRequest, Unprocessable } = require('@feathersjs/errors')
+import { GeneralError, BadGateway, BadRequest, Unprocessable } from '@feathersjs/errors'
+import { ImpressoApplication } from './types'
 const { authenticate } = require('@feathersjs/authentication').hooks
+
+const debug = Debug('impresso/app.hooks')
 // const { validateRouteId } = require('./hooks/params')
 const { InvalidArgumentError } = require('./util/error')
 
-const basicParams = () => context => {
+const basicParams = () => (context: HookContext) => {
   // do nothing with internal services
   if (context.self.isInternalService) return
 
@@ -32,7 +35,7 @@ const basicParams = () => context => {
 const requireAuthentication =
   ({
     excludePaths = ['authentication', 'users', 'newspapers'], //
-  } = {}) => context => {
+  } = {}) => (context: HookContext) => {
     const allowUnauthenticated = excludePaths.indexOf(context.path) !== -1
     debug('hook:requireAuthentication', context.path, !allowUnauthenticated)
     if (!allowUnauthenticated) {
@@ -43,7 +46,7 @@ const requireAuthentication =
 
 const LoggingExcludedStatusCodes = [400, 401, 403, 404, 422]
 
-const errorHandler = ctx => {
+const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
   if (ctx.error) {
     const error = ctx.error
 
@@ -70,54 +73,42 @@ const errorHandler = ctx => {
     }
     return ctx
   }
-  return null
+  return ctx
 }
 
-const hooks = {
-  before: {
-    all: [
-      // validateRouteId(),
-    ],
-    find: [basicParams()],
-    get: [basicParams()],
-    create: [basicParams()],
-    update: [],
-    patch: [],
-    remove: [],
-  },
+export default (
+  setupFunctions: ApplicationHookFunction<ImpressoApplication>[],
+  teardownFunctions: ApplicationHookFunction<ImpressoApplication>[]
+) => {
+  return (app: ImpressoApplication) => {
+    const config = app.get('appHooks')
+    debug('global hooks configuration', config)
 
-  after: {
-    all: [],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
-  },
+    const beforeAll = config?.alwaysRequired
+      ? [
+          requireAuthentication({
+            excludePaths: ['authentication', 'users'].concat(config.excludePaths ?? []),
+          }),
+        ]
+      : []
 
-  error: {
-    all: [errorHandler],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
-  },
-}
-
-module.exports = function (app) {
-  const config = app.get('appHooks')
-  debug('global hooks configuration', config)
-  // based on config
-  if (config.alwaysRequired) {
-    hooks.before.all.push(
-      requireAuthentication({
-        excludePaths: ['authentication', 'users'].concat(config.excludePaths),
-      })
-    )
+    app.hooks({
+      before: {
+        all: beforeAll,
+        find: [basicParams()],
+        get: [basicParams()],
+        create: [basicParams()],
+      },
+      error: {
+        all: [errorHandler],
+      },
+    })
+    // this is counterintuitive, but the hooks above and the setup/teardown
+    // hooks have to be added in two separate calls, otherwise feathers
+    // will report an error.
+    app.hooks({
+      setup: setupFunctions,
+      teardown: teardownFunctions,
+    })
   }
-  // set hooks
-  app.hooks(hooks)
 }
