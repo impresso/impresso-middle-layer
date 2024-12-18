@@ -4,7 +4,8 @@ import type { RedisConfiguration } from './configuration'
 import { logger } from './logger'
 import { ImpressoApplication } from './types'
 import { ensureServiceIsFeathersCompatible } from './util/feathers'
-import { Application, HookContext, NextFunction } from '@feathersjs/feathers'
+import { Application } from '@feathersjs/feathers'
+import { HookContext, NextFunction } from '@feathersjs/hooks'
 
 type RedisClient = ReturnType<typeof createClient>
 
@@ -44,10 +45,10 @@ class RedisClientContainer implements IRedisClientContainer {
 
   async setup(app: ImpressoApplication, path: string) {
     if (this._client == null || this._client.isReady) {
-      logger.error('Redis client is not ready. Cannot connect.')
       return
     }
     await this._client.connect()
+    logger.info('Redis client connected.')
   }
 }
 
@@ -61,6 +62,7 @@ export default (app: ImpressoApplication) => {
   } else {
     logger.info("Redis configuration found, let's see if it works...")
     client = getRedisClient(config)
+    logger.info('Redis client created.')
   }
 
   // Create the redis client container.
@@ -81,6 +83,7 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
   if (client) {
     try {
       await client.setup(context.app, 'redisClient')
+      logger.info('Redis is active.')
     } catch (err) {
       logger.error('Error setting up redis:', err)
     }
