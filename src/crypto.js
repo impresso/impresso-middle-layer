@@ -1,6 +1,6 @@
-const crypto = require('node:crypto')
+import crypto from 'crypto'
 
-const encrypt = (password, options) => {
+export const encrypt = (password, options) => {
   const configs = {
     iterations: 4096,
     length: 256,
@@ -8,7 +8,7 @@ const encrypt = (password, options) => {
     encoding: 'hex',
     ...options,
   }
-  if (typeof configs.salt !== 'string') {
+  if (typeof configs.salt !== 'string' || configs.salt.length === 0) {
     configs.salt = crypto.randomBytes(16).toString(configs.encoding)
   }
 
@@ -31,19 +31,13 @@ const encrypt = (password, options) => {
   }
 }
 
-const comparePassword = (password, encrypted, options) => {
+export const comparePassword = (password, encrypted, options) => {
   const enc = encrypt(password, options)
   return enc.password === encrypted
 }
 
-const generateHash = obj => {
+export const generateHash = obj => {
   const hash = JSON.stringify(obj).split('').sort().join('')
 
   return crypto.createHmac('sha256', '').update(hash).digest('hex')
-}
-
-module.exports = {
-  encrypt,
-  comparePassword,
-  generateHash,
 }
