@@ -1,0 +1,108 @@
+import assert from 'assert'
+import { Sequelize } from 'sequelize'
+import sinon from 'sinon'
+import { MediaSource } from '../../src/models/generated/schemas'
+import { SelectResponse, SimpleSolrClient } from '../../src/schema/simpleSolr'
+import { consolidateMediaSources, DBNewspaperDetails } from '../../src/useCases/consolidateMediaSources'
+
+type DBResponse = DBNewspaperDetails[]
+type SolrResponse = SelectResponse<unknown, 'sources'>
+
+describe('consolidateMediaSources', () => {
+  const dbClient: Sequelize = { query: () => null } as unknown as Sequelize
+  const solrClient: SimpleSolrClient = { select: () => null } as unknown as SimpleSolrClient
+
+  afterEach(() => {
+    sinon.restore()
+  })
+
+  it('should consolidate media sources correctly', async () => {
+    const dbResponse = [
+      {
+        uid: 'ZBT',
+        name: 'Test Newspaper',
+        startYear: 1900,
+        endYear: 2000,
+        issueCount: 100,
+        pageCount: 1000,
+        languageCodes: ['en', 'fr'],
+      },
+    ] satisfies DBResponse
+
+    const solrResponse = {
+      facets: {
+        sources: {
+          buckets: [{ val: 'ZBT', count: 500 }],
+        },
+      },
+    } satisfies SolrResponse
+
+    sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
+    sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
+
+    const result = await consolidateMediaSources(dbClient, solrClient)
+    const expected = [
+      {
+        uid: 'ZBT',
+        type: 'newspaper',
+        name: 'Test Newspaper',
+        languageCodes: ['en', 'fr'],
+        yearsRange: [1900, 2000],
+        totals: {
+          articles: 500,
+          issues: 100,
+          pages: 1000,
+        },
+      },
+    ] satisfies MediaSource[]
+
+    assert.deepEqual(result, expected)
+  })
+
+  it('should handle empty database response', async () => {
+    const dbResponse = [] satisfies DBResponse
+    const solrResponse = { facets: { sources: { buckets: [] } } } satisfies SolrResponse
+    sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
+    sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
+
+    const result = await consolidateMediaSources(dbClient, solrClient)
+
+    assert.deepEqual(result, [])
+  })
+
+  it('should handle missing articles count in Solr response', async () => {
+    const dbResponse = [
+      {
+        uid: 'ZBT',
+        name: 'Test Newspaper',
+        startYear: 1900,
+        endYear: 2000,
+        issueCount: 100,
+        pageCount: 1000,
+        languageCodes: ['en', 'fr'],
+      },
+    ] satisfies DBResponse
+    const solrResponse = { facets: { sources: { buckets: [] } } } satisfies SolrResponse
+
+    sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
+    sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
+
+    const result = await consolidateMediaSources(dbClient, solrClient)
+    const expected = [
+      {
+        uid: 'ZBT',
+        type: 'newspaper',
+        name: 'Test Newspaper',
+        languageCodes: ['en', 'fr'],
+        yearsRange: [1900, 2000],
+        totals: {
+          articles: 0,
+          issues: 100,
+          pages: 1000,
+        },
+      },
+    ] satisfies MediaSource[]
+
+    assert.deepEqual(result, expected)
+  })
+})
