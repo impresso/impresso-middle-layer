@@ -26,7 +26,7 @@ SELECT
     )
     FROM newspapers_metadata nm
     JOIN meta_properties mp ON nm.property_id = mp.id
-    WHERE nm.newspaper_id=n.id
+    WHERE nm.newspaper_id=n.id AND nm.value IS NOT NULL
   ) AS properties
 FROM
     newspapers n
