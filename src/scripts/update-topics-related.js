@@ -33,9 +33,7 @@ const CachePrefix = 'cache:script:update-topics-related:solr'
  * @param {*} request
  */
 async function getDataFromSolr(cacheKey, request) {
-  return cacheManager.wrap(cacheKey, () => solrClient.findAll(request, undefined, { skipCache: true }), {
-    ttl: TtlFiveYears,
-  })
+  return cacheManager.wrap(cacheKey, () => solrClient.findAll(request, undefined, { skipCache: true }), TtlFiveYears)
 }
 
 if (initialTopicUids.length) {

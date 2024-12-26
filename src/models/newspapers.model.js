@@ -5,8 +5,10 @@
 const Sequelize = require('sequelize')
 const Language = require('./languages.model')
 const Property = require('./properties.model')
-const newspapersIndex = require('../data')('newspapers')
 
+/**
+ * @deprecated use `MediaSource` interface instead.
+ */
 class Newspaper {
   constructor({
     acronym = '',
@@ -29,38 +31,18 @@ class Newspaper {
     this.properties = properties
     this.included = stats.startYear !== null
 
-    const indexed = newspapersIndex.getValue(this.uid)
-
-    if (indexed) {
-      this.name = indexed.name
-      this.endYear = indexed.endYear != null ? parseInt(indexed.endYear, 10) : null
-      this.startYear = indexed.startYear != null ? parseInt(indexed.startYear, 10) : null
-      this.firstIssue = indexed.firstIssue
-      this.lastIssue = indexed.lastIssue
-      this.languages = indexed.languages
-      this.countArticles = parseInt(indexed.countArticles, 10)
-      this.countIssues = parseInt(indexed.countIssues, 10)
-      this.countPages = parseInt(indexed.countPages, 10)
-      this.fetched = true
-    } else {
-      this.name = String(name)
-      this.endYear = endYear != null ? parseInt(endYear, 10) : null
-      this.startYear = startYear != null ? parseInt(startYear, 10) : null
-      this.countArticles = parseInt(countArticles, 10)
-      this.countIssues = parseInt(countIssues, 10)
-      this.countPages = parseInt(countPages, 10)
-    }
+    this.name = String(name)
+    this.endYear = endYear != null ? parseInt(endYear, 10) : null
+    this.startYear = startYear != null ? parseInt(startYear, 10) : null
+    this.countArticles = parseInt(countArticles, 10)
+    this.countIssues = parseInt(countIssues, 10)
+    this.countPages = parseInt(countPages, 10)
 
     if (this.endYear != null && this.startYear != null) {
       this.deltaYear = this.endYear - this.startYear
     } else {
       this.deltaYear = 0
     }
-  }
-
-  // TODO: when cache is moved to Redis this will become an async function
-  static getCached(uid) {
-    return new Newspaper(newspapersIndex.getValue(uid))
   }
 
   static sequelize(client) {
@@ -199,19 +181,3 @@ class Newspaper {
 }
 
 module.exports = Newspaper
-
-// module.exports = function (app) {
-//   const config = app.get('sequelize');
-//   const newspaper = model(app.get('sequelizeClient'), {
-//     tableName: config.tables.newspapers,
-//     hooks: {
-//       beforeCount(options) {
-//         options.raw = true;
-//       },
-//     },
-//   });
-//
-//   return {
-//     sequelize: newspaper,
-//   };
-// };

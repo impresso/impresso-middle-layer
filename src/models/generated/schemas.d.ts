@@ -23,7 +23,7 @@ export interface BaseFind {
   /**
    * Additional information about the response.
    */
-  info: {
+  info?: {
     [k: string]: unknown;
   };
   data: unknown[];
@@ -838,6 +838,71 @@ export interface TextReuseClusterDetails {
    * Resolution for the 'date' facet
    */
   resolution?: "year" | "month" | "day";
+}
+
+
+/**
+ * A media source is what a content item belongs to. This can be a newspaper, a TV or a radio station, etc.
+ */
+export interface MediaSource {
+  /**
+   * The unique identifier of the media source.
+   */
+  uid: string;
+  /**
+   * The type of the media source.
+   */
+  type: "newspaper";
+  /**
+   * A display name of the media source.
+   */
+  name: string;
+  /**
+   * ISO 639-2 language codes this media source has content in.
+   */
+  languageCodes: string[];
+  /**
+   * The range of years this media source has been published for. Impresso may not have data for all this period. Is not defined if there is no information.
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  publishedPeriodYears?: [number, number];
+  /**
+   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.  Is not defined if there are no content items for this source.
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  availableDatesRange?: [string, string];
+  totals: {
+    /**
+     * The number of articles in the media source.
+     */
+    articles?: number;
+    /**
+     * The number of issues in the media source.
+     */
+    issues?: number;
+    /**
+     * The number of pages in the media source.
+     */
+    pages?: number;
+  };
+  properties: {
+    /**
+     * The unique identifier of the property.
+     */
+    id: string;
+    /**
+     * The name of the property.
+     */
+    label: string;
+    /**
+     * The value of the property.
+     */
+    value: string;
+  }[];
 }
 
 

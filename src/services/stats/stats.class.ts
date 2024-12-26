@@ -1,12 +1,16 @@
-const debug = require('debug')('impresso/services:stats')
+import Debug from 'debug'
+import { ImpressoApplication } from '../../types'
+import { CachedSolrClient } from '../../cachedSolr'
+import { Id, Params } from '@feathersjs/feathers'
 const { statsConfiguration } = require('../../data')
 const { filtersToQueryAndVariables } = require('../../util/solr')
 const { getWidestInclusiveTimeInterval } = require('../../logic/filters')
 const Topic = require('../../models/topics.model')
 const Entity = require('../../models/entities.model')
-const Newspaper = require('../../models/newspapers.model')
 
 const { TimeDomain, StatsToSolrFunction, StatsToSolrStatistics } = require('./common')
+
+const debug = Debug('impresso/services:stats')
 
 const FacetTypes = Object.freeze({
   Term: 'term',
@@ -19,38 +23,39 @@ const TemporalResolution = Object.freeze({
   Day: 'day',
 })
 
-const entityCacheExtractor = key => {
+const entityCacheExtractor = (key: string) => {
   const entity = Entity.getCached(key)
   return entity == null ? key : entity.name
 }
 
 const FacetLabelCache = Object.freeze({
-  topic: async key => {
+  topic: async (key: string) => {
     const topic = await Topic.getCached(key)
     if (topic == null) return key
-    return topic.words.map(({ w }) => w).join(', ')
+    return topic.words.map(({ w }: any) => w).join(', ')
   },
-  newspaper: async key => {
-    const newspaper = await Newspaper.getCached(key)
+  newspaper: async (key: string, app: ImpressoApplication) => {
+    const newspapersLookup = await app.service('newspapers').getLookup()
+    const newspaper = newspapersLookup[key]
     return newspaper == null ? key : newspaper.name
   },
   person: entityCacheExtractor,
   location: entityCacheExtractor,
-  language: key => key,
-  country: key => key,
-  type: key => key,
+  language: (key: string) => key,
+  country: (key: string) => key,
+  type: (key: string) => key,
 })
 
-const getFacetType = (index, facet) => {
+const getFacetType = (index: string, facet: any) => {
   const indexFacets = statsConfiguration.indexes[index].facets
   return Object.keys(indexFacets).find(type => Object.keys(indexFacets[type]).includes(facet))
 }
 
-const getFacetQueryPart = (facet, index, type, stats) => {
+const getFacetQueryPart = (facet: any, index: string, type: any, stats: any) => {
   const facetDetails = statsConfiguration.indexes[index].facets[type][facet]
   switch (type) {
     case FacetTypes.Numeric:
-      return stats.reduce((acc, stat) => {
+      return stats.reduce((acc: any, stat: any) => {
         acc[stat] = StatsToSolrFunction[stat](facetDetails.field)
         return acc
       }, {})
@@ -67,7 +72,7 @@ const getFacetQueryPart = (facet, index, type, stats) => {
   }
 }
 
-const getTemporalResolution = (domain, filters) => {
+const getTemporalResolution = (domain: any, filters: any) => {
   if (domain !== TimeDomain) return undefined
   const days = getWidestInclusiveTimeInterval(filters)
   if (!Number.isFinite(days)) return TemporalResolution.Year
@@ -76,7 +81,7 @@ const getTemporalResolution = (domain, filters) => {
   return TemporalResolution.Year
 }
 
-const getDomainDetails = (index, domain, filters) => {
+const getDomainDetails = (index: any, domain: any, filters: any) => {
   if (domain === TimeDomain) {
     const { date, yearAndMonth, year } = statsConfiguration.indexes[index].facets.temporal
     switch (getTemporalResolution(domain, filters)) {
@@ -91,7 +96,7 @@ const getDomainDetails = (index, domain, filters) => {
   return statsConfiguration.indexes[index].facets.term[domain]
 }
 
-function buildSolrRequest(facet, index, domain, stats, filters, sort, groupby) {
+function buildSolrRequest(facet: any, index: any, domain: any, stats: any, filters: any, sort: any, groupby: any) {
   const facetType = getFacetType(index, facet)
   const domainDetails = getDomainDetails(index, domain, filters)
 
@@ -115,7 +120,7 @@ function buildSolrRequest(facet, index, domain, stats, filters, sort, groupby) {
   }
 }
 
-const parseDate = (val, resolution) => {
+const parseDate = (val: any, resolution: any) => {
   switch (resolution) {
     case TemporalResolution.Day:
       return val.split('T')[0]
@@ -126,22 +131,22 @@ const parseDate = (val, resolution) => {
   }
 }
 
-const withLabel = async (val, facet) => {
+const withLabel = async (val: any, facet: keyof typeof FacetLabelCache, app: ImpressoApplication) => {
   const extractor = FacetLabelCache[facet]
   return {
-    label: extractor ? await extractor(val) : val,
+    label: extractor ? await extractor(val, app) : val,
     value: val,
   }
 }
 
-const parseValue = (object, facetType) => {
+const parseValue = (object: any, facetType: any) => {
   switch (facetType) {
     case FacetTypes.Numeric:
       return object
     case FacetTypes.Term:
       return {
         count: object.count,
-        items: object.items.buckets.map(({ val: term, count }) => ({
+        items: object.items.buckets.map(({ val: term, count }: any) => ({
           term,
           count,
         })),
@@ -151,34 +156,39 @@ const parseValue = (object, facetType) => {
   }
 }
 
-async function buildItemsDictionary(items, facet) {
-  const terms = new Set(items.flatMap(({ value: { items: subitems = [] } }) => subitems).map(({ term }) => term))
+async function buildItemsDictionary(items: any, facet: keyof typeof FacetLabelCache, app: ImpressoApplication) {
+  const terms = new Set<string>(
+    items.flatMap(({ value: { items: subitems = [] } }) => subitems).map(({ term }: any) => term)
+  )
 
   const extractor = FacetLabelCache[facet]
   if (extractor == null) return {}
 
-  return [...terms].reduce(async (accPromise, term) => {
-    const acc = await accPromise
-    acc[term] = await extractor(term)
-    return acc
-  }, {})
+  return [...terms].reduce(
+    async (accPromise, term: string) => {
+      const acc = await accPromise
+      acc[term] = await extractor(term as string, app)
+      return acc
+    },
+    {} as Promise<Record<string, any>>
+  )
 }
 
-const itemsSortFn = (a, b) => {
+const itemsSortFn = (a: any, b: any) => {
   if (a.domain < b.domain) return -1
   if (a.domain > b.domain) return 1
   return 0
 }
 
-async function buildResponse(result, facet, index, domain, filters) {
+async function buildResponse(result: any, facet: any, index: any, domain: any, filters: any, app: ImpressoApplication) {
   const { domain: { buckets = [] } = {} } = result.facets
   const facetType = getFacetType(index, facet)
   const resolution = getTemporalResolution(domain, filters)
 
   const items = (
     await Promise.all(
-      buckets.map(async ({ val, ...rest }) => ({
-        domain: domain === TimeDomain ? parseDate(val, resolution) : await withLabel(val, domain),
+      buckets.map(async ({ val, ...rest }: any) => ({
+        domain: domain === TimeDomain ? parseDate(val, resolution) : await withLabel(val, domain, app),
         value: parseValue(rest, facetType),
       }))
     )
@@ -186,7 +196,7 @@ async function buildResponse(result, facet, index, domain, filters) {
 
   return {
     items,
-    itemsDictionary: await buildItemsDictionary(items, facet),
+    itemsDictionary: await buildItemsDictionary(items, facet, app),
     meta: {
       facetType,
       domain,
@@ -197,13 +207,16 @@ async function buildResponse(result, facet, index, domain, filters) {
 }
 
 class Stats {
-  constructor(app) {
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
+  solr: CachedSolrClient
+  app: ImpressoApplication
+
+  constructor(app: ImpressoApplication) {
     this.solr = app.service('cachedSolr')
+    this.app = app
   }
 
   /** Get simple stats for a single dimension, always numeric stats */
-  async get(id, params) {
+  async get(id: Id, params: Params<any>) {
     const { index, stats, filters } = params.query
     // get field name from config stats.yml (numeric only)
     const field = statsConfiguration.indexes[index].facets.numeric[id].field
@@ -211,7 +224,7 @@ class Stats {
     // {!min=true+max=true}field
     const statsField = `{!key=statistics ${stats
       .split(',')
-      .map(s => StatsToSolrStatistics[s])
+      .map((s: string) => StatsToSolrStatistics[s])
       .join(' ')}}${field}`
 
     debug(
@@ -242,7 +255,7 @@ class Stats {
     }
   }
 
-  async find({ request: { facet, index, domain, stats, filters, sort, groupby } }) {
+  async find({ request: { facet, index, domain, stats, filters, sort, groupby } }: Params<any> & { request: any }) {
     const request = buildSolrRequest(facet, index, domain, stats, filters, sort, groupby)
     debug(
       '[find] index:',
@@ -262,7 +275,7 @@ class Stats {
     )
     const result = await this.solr.post(request, index)
     debug('stats result', result.facets)
-    const response = await buildResponse(result, facet, index, domain, filters)
+    const response: any = await buildResponse(result, facet, index, domain, filters, this.app)
     debug('stats response', response.query)
     return response
     // return buildResponse(result, facet, index, domain, filters)

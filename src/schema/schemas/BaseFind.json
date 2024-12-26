@@ -24,6 +24,6 @@
       "items": {}
     }
   },
-  "required": ["limit", "offset", "total", "info", "data"],
+  "required": ["limit", "offset", "total", "data"],
   "additionalProperties": false
 }

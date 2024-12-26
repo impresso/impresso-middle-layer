@@ -214,7 +214,7 @@ class Service {
       () => getItemsFromSolrResponse(solrResponse, this.app.service('content-items'), userInfo),
       'search.find.svc.articles'
     )
-    const facets = await getFacetsFromSolrResponse(solrResponse)
+    const facets = await getFacetsFromSolrResponse(solrResponse, this.app)
 
     return Service.wrap(resultItems, params.query.limit, params.query.offset, total, {
       responseTime: {
