@@ -38,10 +38,22 @@ const parameterOrderBy: QueryParameter = {
   description: 'Order sources by a specific field',
 }
 
+const parameterIncludeProperties: QueryParameter = {
+  in: 'query',
+  name: 'include_properties',
+  required: false,
+  schema: {
+    type: 'boolean',
+    default: false,
+  },
+  description: 'Include properties in the response',
+}
+
 const findParameters: MethodParameter[] = [
   parameterTerm,
   parameterType,
   parameterOrderBy,
+  parameterIncludeProperties,
   ...getStandardParameters({ method: 'find', maxPageSize: 100 }),
 ]
 const getParameters: MethodParameter[] = [...getStandardParameters({ method: 'get' })]

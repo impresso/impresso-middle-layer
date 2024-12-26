@@ -4,6 +4,8 @@ import type { MediaSource } from '../../models/generated/schemas'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '../../models/common'
 
+type PartialMediaSource = Omit<MediaSource, 'properties'> & { properties?: MediaSource['properties'] }
+
 export type OrderBy =
   | 'name'
   | '-name'
@@ -18,6 +20,7 @@ type FindQuery = Pick<FindResponse<unknown>['pagination'], 'limit' | 'offset'> &
   term?: string
   type?: MediaSource['type']
   order_by?: OrderBy
+  include_properties?: boolean
 }
 
 export const DefaultPageSize = 20
@@ -40,6 +43,14 @@ const newTypeFilter = (type?: MediaSource['type']) => (mediaSource: MediaSource)
   return mediaSource.type === type
 }
 
+const propsMapper =
+  (includeProperties: boolean) =>
+  (mediaSource: MediaSource): PartialMediaSource => {
+    if (includeProperties) return mediaSource
+    const { properties, ...rest } = mediaSource
+    return rest
+  }
+
 const sorters: Record<OrderBy, (a: MediaSource, b: MediaSource) => number> = {
   name: (a, b) => a.name.localeCompare(b.name),
   '-name': (a, b) => b.name.localeCompare(a.name),
@@ -58,12 +69,16 @@ const sorters: Record<OrderBy, (a: MediaSource, b: MediaSource) => number> = {
 export const OrderByValues = Object.freeze(Object.keys(sorters))
 
 export class MediaSources
-  implements Pick<ClientService<MediaSource, unknown, unknown, FindResponse<MediaSource>>, 'find' | 'get'>
+  implements Pick<ClientService<MediaSource, unknown, unknown, FindResponse<PartialMediaSource>>, 'find' | 'get'>
 {
   constructor(private readonly cache: Cache) {}
 
-  async find(params?: Params<FindQuery>): Promise<FindResponse<MediaSource>> {
-    return await this.findMediaSources(params?.query)
+  async find(params?: Params<FindQuery>): Promise<FindResponse<PartialMediaSource>> {
+    const result = await this.findMediaSources(params?.query)
+    return {
+      ...result,
+      data: result.data.map(propsMapper(params?.query?.include_properties ?? false)),
+    }
   }
   async get(id: Id, params?: Params): Promise<MediaSource> {
     const source = await this.getMediaSource(id)
