@@ -6,7 +6,7 @@ import { inPublicApi } from '../../hooks/redaction'
 import { transformNewspaper } from '../../transformers/newspaper'
 import { transformBaseFind } from '../../transformers/base'
 
-const { queryWithCommonParams, validate, utils } = require('../../hooks/params')
+const { queryWithCommonParams, validate } = require('../../hooks/params')
 
 const findQueryParamsRenamePolicy = {
   term: 'q',
@@ -28,12 +28,6 @@ module.exports = {
         q: {
           required: false,
           max_length: 500,
-          transform: d => {
-            if (d) {
-              return utils.toSequelizeLike(d)
-            }
-            return null
-          },
         },
         faster: {
           required: false,
@@ -42,21 +36,6 @@ module.exports = {
         order_by: {
           choices: OrderByChoices,
           defaultValue: 'name',
-          transform: d =>
-            utils.translate(d, {
-              name: [['id', 'ASC']],
-              '-name': [['id', 'DESC']],
-              startYear: [['startYear', 'ASC']],
-              '-startYear': [['startYear', 'DESC']],
-              endYear: [['endYear', 'ASC']],
-              '-endYear': [['endYear', 'DESC']],
-              firstIssue: [['stats', 'startYear', 'ASC']],
-              '-firstIssue': [['stats', 'startYear', 'DESC']],
-              lastIssue: [['stats', 'endYear', 'ASC']],
-              '-lastIssue': [['stats', 'endYear', 'DESC']],
-              countIssues: [['stats', 'number_issues', 'ASC']],
-              '-countIssues': [['stats', 'number_issues', 'DESC']],
-            }),
         },
       }),
       queryWithCommonParams(),

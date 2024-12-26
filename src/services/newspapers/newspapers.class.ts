@@ -54,12 +54,14 @@ export class NewspapersService
   }
 
   async find(params?: Params<FindQuery>): Promise<FindResponse<NewspaperInternal>> {
+    const { limit, offset, q, order_by } = params?.query ?? {}
+
     const results = await this.mediaSources.findMediaSources({
       type: 'newspaper',
-      limit: params?.query?.limit ?? DefaultPageSize,
-      offset: params?.query?.offset ?? 0,
-      term: params?.query?.q,
-      order_by: params?.query?.order_by,
+      limit: limit ?? DefaultPageSize,
+      offset: offset ?? 0,
+      term: q,
+      order_by: order_by,
     })
 
     return {
