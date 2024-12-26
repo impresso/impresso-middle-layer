@@ -19,6 +19,7 @@ const publicApiServices = [
   'search-facets',
   'entities',
   'impresso-ner',
+  'media-sources',
 ]
 
 const internalApiServices = [

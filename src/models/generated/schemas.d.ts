@@ -23,7 +23,7 @@ export interface BaseFind {
   /**
    * Additional information about the response.
    */
-  info: {
+  info?: {
     [k: string]: unknown;
   };
   data: unknown[];
