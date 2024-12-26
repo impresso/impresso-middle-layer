@@ -21,8 +21,8 @@ describe('consolidateMediaSources', () => {
       {
         uid: 'ZBT',
         name: 'Test Newspaper',
-        startYear: 1900,
-        endYear: 2000,
+        publishedFromYear: 1900,
+        publishedToYear: 2000,
         issueCount: 100,
         pageCount: 1000,
         languageCodes: ['en', 'fr'],
@@ -48,7 +48,8 @@ describe('consolidateMediaSources', () => {
         type: 'newspaper',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],
-        datesRange: ['1900-01-01T00:00:00.000Z', '2000-12-31T00:00:00.000Z'],
+        publishedPeriodYears: [1900, 2000],
+        availableDatesRange: ['1900-01-01T00:00:00.000Z', '2000-12-31T00:00:00.000Z'],
         totals: {
           articles: 500,
           issues: 100,
@@ -77,8 +78,8 @@ describe('consolidateMediaSources', () => {
       {
         uid: 'ZBT',
         name: 'Test Newspaper',
-        startYear: 1900,
-        endYear: 2000,
+        publishedFromYear: 1900,
+        publishedToYear: 2000,
         issueCount: 100,
         pageCount: 1000,
         languageCodes: ['en', 'fr'],
@@ -97,7 +98,7 @@ describe('consolidateMediaSources', () => {
         type: 'newspaper',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],
-        datesRange: ['1970-01-01T00:00:00.000Z', '1970-01-01T00:00:00.000Z'],
+        publishedPeriodYears: [1900, 2000],
         totals: {
           articles: 0,
           issues: 100,

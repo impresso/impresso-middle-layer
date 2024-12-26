@@ -6,8 +6,8 @@ const sqlGetNewsappersDetails = `
 SELECT
   n.id as uid,
   n.title as name,
-  n.start_year as startYear,
-  n.end_year as endYear,
+  n.start_year as publishedFromYear,
+  n.end_year as publishedToYear,
   COUNT(DISTINCT i.id) AS issueCount,
   COUNT(p.id) AS pageCount,
   (
@@ -44,8 +44,8 @@ interface NewspaperProperty {
 export interface DBNewspaperDetails {
   uid: string
   name: string
-  startYear: number
-  endYear: number
+  publishedFromYear?: number
+  publishedToYear?: number
   issueCount: number
   pageCount: number
   languageCodes: string[]
@@ -111,13 +111,26 @@ export const consolidateMediaSources = async (
 
   const mediaSources = dbNewspapersDetails.map(dbNewspaper => {
     const articlesCount = articlesCounts[dbNewspaper.uid] ?? 0
-    const datesRange = datesRanges[dbNewspaper.uid] ?? [new Date(0), new Date(0)]
+    const datesRange = datesRanges[dbNewspaper.uid] ?? undefined
+
+    const datesRangePart: Pick<MediaSource, 'availableDatesRange'> =
+      datesRange != null
+        ? {
+            availableDatesRange: [datesRange[0].toISOString(), datesRange[1].toISOString()],
+          }
+        : {}
+    const publishedPeriodYearsPart: Pick<MediaSource, 'publishedPeriodYears'> =
+      dbNewspaper.publishedFromYear != null && dbNewspaper.publishedToYear
+        ? { publishedPeriodYears: [dbNewspaper.publishedFromYear ?? 1970, dbNewspaper.publishedToYear ?? 1970] }
+        : {}
+
     return {
       uid: dbNewspaper.uid,
       type: 'newspaper',
       name: dbNewspaper.name,
       languageCodes: dbNewspaper.languageCodes,
-      datesRange: [datesRange[0].toISOString(), datesRange[1].toISOString()],
+      ...datesRangePart,
+      ...publishedPeriodYearsPart,
       totals: {
         articles: articlesCount,
         issues: dbNewspaper.issueCount,

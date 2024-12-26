@@ -1,5 +1,5 @@
 import { ClientService, Id, Params } from '@feathersjs/feathers'
-import { Newspaper as NewspaperInternal, MediaSource } from '../../models/generated/schemas'
+import { Newspaper as NewspaperInternal, MediaSource, NewspaperIssue } from '../../models/generated/schemas'
 import { FindResponse } from '../../models/common'
 import { DefaultPageSize, MediaSources, OrderBy } from '../media-sources/media-sources.class'
 import { NotFound } from '@feathersjs/errors'
@@ -8,9 +8,9 @@ import { ImpressoApplication } from '../../types'
 const getYear = (isoDateString: string) => new Date(isoDateString).getFullYear()
 
 const mediaSourceToNewspaper = (mediaSource: MediaSource): NewspaperInternal => {
-  const startYear = getYear(mediaSource.datesRange[0])
-  const endYear = getYear(mediaSource.datesRange[1])
-  const deltaYear = endYear - startYear
+  const startYear = mediaSource.publishedPeriodYears?.[0]
+  const endYear = mediaSource.publishedPeriodYears?.[1]
+  const deltaYear = (endYear ?? 0) - (startYear ?? 0)
 
   return {
     uid: mediaSource.uid,
@@ -20,9 +20,25 @@ const mediaSourceToNewspaper = (mediaSource: MediaSource): NewspaperInternal => 
     countIssues: mediaSource.totals.issues ?? 0,
     countPages: mediaSource.totals.pages ?? 0,
     deltaYear,
-    endYear,
-    startYear,
-    included: false,
+    startYear: startYear ?? null,
+    endYear: endYear ?? null,
+    firstIssue:
+      mediaSource.availableDatesRange?.[0] != null
+        ? ({
+            uid: '',
+            date: mediaSource.availableDatesRange[0],
+            year: getYear(mediaSource.availableDatesRange[0]),
+          } as any as NewspaperIssue)
+        : undefined,
+    lastIssue:
+      mediaSource.availableDatesRange?.[1] != null
+        ? ({
+            uid: '',
+            date: mediaSource.availableDatesRange[1],
+            year: getYear(mediaSource.availableDatesRange[1]),
+          } as any as NewspaperIssue)
+        : undefined,
+    included: true,
     labels: [],
     languages: mediaSource.languageCodes,
     properties: mediaSource.properties.map(p => ({ label: p.label ?? '', value: p.value, name: p.id })),
@@ -34,6 +50,13 @@ interface FindQuery {
   order_by?: OrderBy
   limit?: number
   offset?: number
+}
+
+const orderByTranslations: Record<string, OrderBy> = {
+  startYear: 'firstIssue',
+  endYear: 'lastIssue',
+  '-startYear': '-firstIssue',
+  '-endYear': '-lastIssue',
 }
 
 export class NewspapersService
@@ -61,7 +84,7 @@ export class NewspapersService
       limit: limit ?? DefaultPageSize,
       offset: offset ?? 0,
       term: q,
-      order_by: order_by,
+      order_by: order_by != null ? orderByTranslations[order_by] ?? order_by : undefined,
     })
 
     return {

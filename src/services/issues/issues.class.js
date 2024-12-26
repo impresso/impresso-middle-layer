@@ -7,6 +7,15 @@ const Issue = require('../../models/issues.model')
 const Page = require('../../models/pages.model')
 const { measureTime } = require('../../util/instruments')
 
+const CoversQuery = `
+SELECT id as uid,
+  issue_id as issue_uid,
+  iiif_manifest as iiif,
+  page_number as num,
+  has_converted_coordinates as hasCoords,
+  has_corrupted_json as hasErrors
+FROM pages WHERE id IN (:pageUids)`
+
 class Service {
   constructor({ app, name = '' } = {}) {
     this.name = String(name)
@@ -36,28 +45,26 @@ class Service {
       'issues.find.solr.find_issues'
     )
     // add Sequelize Rawquery to get proper frontPage
-    const coversIndex = await measureTime(
-      () =>
-        this.SequelizeService.rawSelect({
-          query: `
-        SELECT id as uid,
-          issue_id as issue_uid,
-          iiif_manifest as iiif,
-          page_number as num,
-          has_converted_coordinates as hasCoords,
-          has_corrupted_json as hasErrors
-        FROM pages WHERE id IN (:pageUids)`,
-          replacements: {
-            pageUids: results.data.map(d => d.cover),
-          },
-        }).then(covers =>
-          covers.reduce((index, cover) => {
-            index[cover.uid] = new Page(cover)
-            return index
-          }, {})
-        ),
-      'issues.find.db.get_pages'
-    )
+
+    const getCoverIndex = async () => {
+      return await measureTime(
+        () =>
+          this.SequelizeService.rawSelect({
+            query: CoversQuery,
+            replacements: {
+              pageUids: results.data.map(d => d.cover),
+            },
+          }).then(covers =>
+            covers.reduce((index, cover) => {
+              index[cover.uid] = new Page(cover)
+              return index
+            }, {})
+          ),
+        'issues.find.db.get_pages'
+      )
+    }
+
+    const coversIndex = (results.data?.length ?? 0) > 0 ? await getCoverIndex() : {}
 
     results.data = results.data.map(d => {
       if (coversIndex[d.cover]) {

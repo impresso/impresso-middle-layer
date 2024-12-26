@@ -43,10 +43,14 @@ const newTypeFilter = (type?: MediaSource['type']) => (mediaSource: MediaSource)
 const sorters: Record<OrderBy, (a: MediaSource, b: MediaSource) => number> = {
   name: (a, b) => a.name.localeCompare(b.name),
   '-name': (a, b) => b.name.localeCompare(a.name),
-  firstIssue: (a, b) => new Date(a.datesRange[0]).getTime() - new Date(b.datesRange[0]).getTime(),
-  '-firstIssue': (a, b) => new Date(b.datesRange[0]).getTime() - new Date(a.datesRange[0]).getTime(),
-  lastIssue: (a, b) => new Date(a.datesRange[1]).getTime() - new Date(b.datesRange[1]).getTime(),
-  '-lastIssue': (a, b) => new Date(b.datesRange[1]).getTime() - new Date(a.datesRange[1]).getTime(),
+  firstIssue: (a, b) =>
+    new Date(a.availableDatesRange?.[0] ?? 0).getTime() - new Date(b.availableDatesRange?.[0] ?? 0).getTime(),
+  '-firstIssue': (a, b) =>
+    new Date(b.availableDatesRange?.[0] ?? 0).getTime() - new Date(a.availableDatesRange?.[0] ?? 0).getTime(),
+  lastIssue: (a, b) =>
+    new Date(a.availableDatesRange?.[1] ?? 0).getTime() - new Date(b.availableDatesRange?.[1] ?? 0).getTime(),
+  '-lastIssue': (a, b) =>
+    new Date(b.availableDatesRange?.[1] ?? 0).getTime() - new Date(a.availableDatesRange?.[1] ?? 0).getTime(),
   countIssues: (a, b) => (a.totals.issues ?? 0) - (b.totals.issues ?? 0),
   '-countIssues': (a, b) => (b.totals.issues ?? 0) - (a.totals.issues ?? 0),
 }
@@ -92,8 +96,10 @@ export class MediaSources
   }
 
   async getMediaSource(id: Id): Promise<MediaSource | undefined> {
-    const result = await this.cache.get<MediaSource[]>(WellKnownKeys.MediaSources)
-    const item = result?.find(mediaSource => mediaSource.uid === id)
+    const result = await this.cache.get<string>(WellKnownKeys.MediaSources)
+    const deserialisedResult: MediaSource[] = JSON.parse(result ?? '[]')
+
+    const item = deserialisedResult?.find(mediaSource => mediaSource.uid === id)
     return item
   }
 }

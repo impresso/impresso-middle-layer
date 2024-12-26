@@ -25,7 +25,16 @@
       },
       "description": "ISO 639-2 language codes this media source has content in."
     },
-    "datesRange": {
+    "publishedPeriodYears": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer"
+      },
+      "description": "The range of years this media source has been published for. Impresso may not have data for all this period. Is not defined if there is no information."
+    },
+    "availableDatesRange": {
       "type": "array",
       "minItems": 2,
       "maxItems": 2,
@@ -33,7 +42,7 @@
         "type": "string",
         "format": "date-time"
       },
-      "description": "The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items."
+      "description": "The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.  Is not defined if there are no content items for this source."
     },
     "totals": {
       "type": "object",
@@ -77,5 +86,5 @@
       }
     }
   },
-  "required": ["uid", "type", "name", "languageCodes", "datesRange", "totals", "properties"]
+  "required": ["uid", "type", "name", "languageCodes", "totals", "properties"]
 }
