@@ -392,7 +392,7 @@ export interface MediaSource {
    * @minItems 2
    * @maxItems 2
    */
-  datesRange?: [string, string];
+  datesRange: [string, string];
   totals: {
     /**
      * The number of articles in the media source.

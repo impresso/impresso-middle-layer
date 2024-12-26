@@ -73,9 +73,9 @@
             "description": "The value of the property."
           }
         },
-        "required": ["uid", "name", "value"]
+        "required": ["id", "name", "value"]
       }
     }
   },
-  "required": ["uid", "type", "name", "languageCodes", "yearsRange", "totals", "properties"]
+  "required": ["uid", "type", "name", "languageCodes", "datesRange", "totals", "properties"]
 }

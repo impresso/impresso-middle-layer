@@ -77,5 +77,5 @@
       }
     }
   },
-  "required": ["uid", "type", "name", "languageCodes", "yearsRange", "totals", "properties"]
+  "required": ["uid", "type", "name", "languageCodes", "datesRange", "totals", "properties"]
 }

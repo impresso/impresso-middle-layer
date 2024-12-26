@@ -1,6 +1,7 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
 import { getStandardParameters, getStandardResponses, MethodParameter, QueryParameter } from '../../util/openapi'
 import { MediaSource } from '../../models/generated/schemas'
+import { OrderByValues } from './media-sources.class'
 
 const parameterTerm: QueryParameter = {
   in: 'query',
@@ -13,7 +14,7 @@ const parameterTerm: QueryParameter = {
   description: 'Search sources with a specific term in their name',
 }
 
-const typeTerm: QueryParameter = {
+const parameterType: QueryParameter = {
   in: 'query',
   name: 'type',
   required: false,
@@ -25,9 +26,22 @@ const typeTerm: QueryParameter = {
   description: 'Filter sources by type',
 }
 
+const parameterOrderBy: QueryParameter = {
+  in: 'query',
+  name: 'order_by',
+  required: false,
+  schema: {
+    type: 'string',
+    enum: [...OrderByValues],
+    maxLength: 100,
+  },
+  description: 'Order sources by a specific field',
+}
+
 const findParameters: MethodParameter[] = [
   parameterTerm,
-  typeTerm,
+  parameterType,
+  parameterOrderBy,
   ...getStandardParameters({ method: 'find', maxPageSize: 100 }),
 ]
 const getParameters: MethodParameter[] = [...getStandardParameters({ method: 'get' })]
