@@ -1,6 +1,6 @@
 import { QueryTypes, type Sequelize } from 'sequelize'
 import { MediaSource } from '../models/generated/schemas'
-import { SelectRequestBody, SimpleSolrClient } from '../internalServices/simpleSolr'
+import { Bucket, SelectRequestBody, SimpleSolrClient } from '../internalServices/simpleSolr'
 
 const sqlGetNewsappersDetails = `
 SELECT
@@ -41,10 +41,21 @@ const articlesCountSolrQuery: SelectRequestBody = {
       field: 'meta_journal_s',
       mincount: 1,
       limit: Number.MAX_SAFE_INTEGER, // A magic number. We expect it to never have more than this many sources.
+      facet: {
+        minDate: 'min(meta_date_dt)',
+        maxDate: 'max(meta_date_dt)',
+      },
     },
   },
   limit: 0,
   offset: 0,
+}
+
+export interface FacetBucket extends Bucket {
+  val: string
+  count: number
+  minDate: string
+  maxDate: string
 }
 
 /**
@@ -59,7 +70,7 @@ export const consolidateMediaSources = async (
   solrIndex: string
 ): Promise<MediaSource[]> => {
   const [solrResponse, dbNewspapersDetails] = await Promise.all([
-    solrClient.select<unknown, 'sources'>(solrIndex, { body: articlesCountSolrQuery }),
+    solrClient.select<unknown, 'sources', FacetBucket>(solrIndex, { body: articlesCountSolrQuery }),
     dbClient.query<DBNewspaperDetails>(sqlGetNewsappersDetails, {
       type: QueryTypes.SELECT,
     }),
@@ -71,15 +82,23 @@ export const consolidateMediaSources = async (
     const v = bucket.count ?? 0
     return { ...counts, [k]: v }
   }, {})
+  const datesRanges = articlesCountsBuckets.reduce<Record<string, [Date, Date]>>((ranges, bucket) => {
+    const k = String(bucket.val!)
+    const minDate = new Date(bucket['minDate'] ?? 0)
+    const maxDate = new Date(bucket['maxDate'] ?? 0)
+
+    return { ...ranges, [k]: [minDate, maxDate] }
+  }, {})
 
   const mediaSources = dbNewspapersDetails.map(dbNewspaper => {
     const articlesCount = articlesCounts[dbNewspaper.uid] ?? 0
+    const datesRange = datesRanges[dbNewspaper.uid] ?? [new Date(0), new Date(0)]
     return {
       uid: dbNewspaper.uid,
       type: 'newspaper',
       name: dbNewspaper.name,
       languageCodes: dbNewspaper.languageCodes,
-      yearsRange: [dbNewspaper.startYear, dbNewspaper.endYear],
+      datesRange: [datesRange[0].toISOString(), datesRange[1].toISOString()],
       totals: {
         articles: articlesCount,
         issues: dbNewspaper.issueCount,

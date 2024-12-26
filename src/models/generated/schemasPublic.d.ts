@@ -367,6 +367,50 @@ export interface EntityMention {
 
 
 /**
+ * A media source is what a content item belongs to. This can be a newspaper, a TV or a radio station, etc.
+ */
+export interface MediaSource {
+  /**
+   * The unique identifier of the media source.
+   */
+  uid: string;
+  /**
+   * The type of the media source.
+   */
+  type: "newspaper";
+  /**
+   * A display name of the media source.
+   */
+  name: string;
+  /**
+   * ISO 639-2 language codes this media source has content in.
+   */
+  languageCodes: string[];
+  /**
+   * The range of dates this media source has content for.
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  datesRange?: [string, string];
+  totals: {
+    /**
+     * The number of articles in the media source.
+     */
+    articles?: number;
+    /**
+     * The number of issues in the media source.
+     */
+    issues?: number;
+    /**
+     * The number of pages in the media source.
+     */
+    pages?: number;
+  };
+}
+
+
+/**
  * A newspaper
  */
 export interface Newspaper {

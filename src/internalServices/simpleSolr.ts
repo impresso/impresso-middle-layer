@@ -36,38 +36,43 @@ export interface ErrorContainer {
   code: 400
 }
 
-interface Bucket {
+export type Bucket = {
   val?: string | number
   count?: number
+} & {
+  // subfacets
+  [key: string]: BucketValue
 }
+
+type BucketValue = string | number | Bucket
 
 interface Count {
   count: number
 }
 
-interface TermsFacetDetails {
+interface TermsFacetDetails<B extends BucketValue> {
   numBuckets?: number
-  buckets: Bucket[]
+  buckets: B[]
 }
 
-interface RangeFacetDetails {
-  buckets: Bucket[]
+interface RangeFacetDetails<B extends BucketValue> {
+  buckets: B[]
   before?: Count
   after?: Count
   between?: Count
 }
 
-type FacetDetails = TermsFacetDetails | RangeFacetDetails
+type FacetDetails<B extends BucketValue> = TermsFacetDetails<B> | RangeFacetDetails<B>
 
-export type FacetsContainer<K extends string> = {
-  [key in K]: FacetDetails
+export type FacetsContainer<K extends string, B extends BucketValue> = {
+  [key in K]: FacetDetails<B>
 }
 
-export interface SelectResponse<T, K extends string> {
+export interface SelectResponse<T, K extends string, B extends BucketValue> {
   responseHeaders?: ResponseHeaders
   response?: ResponseContainer<T>
   error?: ErrorContainer
-  facets?: FacetsContainer<K>
+  facets?: FacetsContainer<K, B>
 }
 
 /**
@@ -75,19 +80,19 @@ export interface SelectResponse<T, K extends string> {
  * Aims to replace all the other varied Solr client interfaces in the codebase.
  */
 export interface SimpleSolrClient {
-  select<T = Record<string, unknown>, K extends string = string>(
+  select<T = Record<string, unknown>, K extends string = string, B extends BucketValue = Bucket>(
     namespace: string,
     request: SelectRequest
-  ): Promise<SelectResponse<T, K>>
+  ): Promise<SelectResponse<T, K, B>>
 }
 
 class CachedSolrSimpleSolrClient implements SimpleSolrClient {
   constructor(private readonly client: CachedSolrClient) {}
 
-  async select<T = Record<string, unknown>, K extends string = string>(
+  async select<T = Record<string, unknown>, K extends string = string, B extends BucketValue = Bucket>(
     namespace: string,
     request: SelectRequest
-  ): Promise<SelectResponse<T, K>> {
+  ): Promise<SelectResponse<T, K, B>> {
     return await this.client.post(request.body, namespace)
   }
 }

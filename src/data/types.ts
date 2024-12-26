@@ -29,14 +29,17 @@ export interface SolrTermsFacetQueryParams {
   numBuckets?: boolean
 
   prefix?: string
+
+  // subfacets
+  facet?: Record<string, SolrFacetQueryParams>
 }
 
-export type SolrFacetQueryParams = SolrRangeFacetQueryParams | SolrTermsFacetQueryParams
+export type SolrFacetQueryParams = SolrRangeFacetQueryParams | SolrTermsFacetQueryParams | string
 
 export const isSolrRangeFacetQuerParams = (params: SolrFacetQueryParams): params is SolrRangeFacetQueryParams => {
-  return params.type === 'range'
+  return (params as SolrRangeFacetQueryParams).type === 'range'
 }
 
 export const isSolrTermsFacetQuerParams = (params: SolrFacetQueryParams): params is SolrTermsFacetQueryParams => {
-  return params.type === 'terms'
+  return (params as SolrTermsFacetQueryParams).type === 'terms'
 }

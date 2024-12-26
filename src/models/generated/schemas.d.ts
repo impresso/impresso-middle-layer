@@ -862,12 +862,12 @@ export interface MediaSource {
    */
   languageCodes: string[];
   /**
-   * The range of years this media source has content for.
+   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.
    *
    * @minItems 2
    * @maxItems 2
    */
-  yearsRange: [number, number];
+  datesRange?: [string, string];
   totals: {
     /**
      * The number of articles in the media source.

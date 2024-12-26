@@ -3,10 +3,10 @@ import { Sequelize } from 'sequelize'
 import sinon from 'sinon'
 import { MediaSource } from '../../src/models/generated/schemas'
 import { SelectResponse, SimpleSolrClient } from '../../src/internalServices/simpleSolr'
-import { consolidateMediaSources, DBNewspaperDetails } from '../../src/useCases/consolidateMediaSources'
+import { consolidateMediaSources, DBNewspaperDetails, FacetBucket } from '../../src/useCases/consolidateMediaSources'
 
 type DBResponse = DBNewspaperDetails[]
-type SolrResponse = SelectResponse<unknown, 'sources'>
+type SolrResponse = SelectResponse<unknown, 'sources', FacetBucket>
 
 describe('consolidateMediaSources', () => {
   const dbClient: Sequelize = { query: () => null } as unknown as Sequelize
@@ -32,7 +32,7 @@ describe('consolidateMediaSources', () => {
     const solrResponse = {
       facets: {
         sources: {
-          buckets: [{ val: 'ZBT', count: 500 }],
+          buckets: [{ val: 'ZBT', count: 500, minDate: '1900-01-01T00:00:00Z', maxDate: '2000-12-31T00:00:00Z' }],
         },
       },
     } satisfies SolrResponse
@@ -40,14 +40,14 @@ describe('consolidateMediaSources', () => {
     sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
     sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
 
-    const result = await consolidateMediaSources(dbClient, solrClient)
+    const result = await consolidateMediaSources(dbClient, solrClient, 'test')
     const expected = [
       {
         uid: 'ZBT',
         type: 'newspaper',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],
-        yearsRange: [1900, 2000],
+        datesRange: ['1900-01-01T00:00:00.000Z', '2000-12-31T00:00:00.000Z'],
         totals: {
           articles: 500,
           issues: 100,
@@ -65,7 +65,7 @@ describe('consolidateMediaSources', () => {
     sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
     sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
 
-    const result = await consolidateMediaSources(dbClient, solrClient)
+    const result = await consolidateMediaSources(dbClient, solrClient, 'test')
 
     assert.deepEqual(result, [])
   })
@@ -87,14 +87,14 @@ describe('consolidateMediaSources', () => {
     sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
     sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
 
-    const result = await consolidateMediaSources(dbClient, solrClient)
+    const result = await consolidateMediaSources(dbClient, solrClient, 'test')
     const expected = [
       {
         uid: 'ZBT',
         type: 'newspaper',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],
-        yearsRange: [1900, 2000],
+        datesRange: ['1970-01-01T00:00:00.000Z', '1970-01-01T00:00:00.000Z'],
         totals: {
           articles: 0,
           issues: 100,

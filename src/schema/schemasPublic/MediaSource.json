@@ -25,14 +25,15 @@
       },
       "description": "ISO 639-2 language codes this media source has content in."
     },
-    "yearsRange": {
+    "datesRange": {
       "type": "array",
       "minItems": 2,
       "maxItems": 2,
       "items": {
-        "type": "integer"
+        "type": "string",
+        "format": "date-time"
       },
-      "description": "The range of years this media source has content for."
+      "description": "The range of dates this media source has content for."
     },
     "totals": {
       "type": "object",
