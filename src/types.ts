@@ -5,6 +5,7 @@ import type { IRedisClientContainer } from './redis'
 import { CachedSolrClient } from './cachedSolr'
 import { Service as LogsService } from './services/logs/logs.class'
 import { AuthenticationService } from '@feathersjs/authentication'
+import { SimpleSolrClient } from './internalServices/simpleSolr'
 
 export interface AppServices {
   redisClient?: IRedisClientContainer

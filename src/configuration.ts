@@ -1,6 +1,6 @@
 import { default as feathersConfiguration } from '@feathersjs/configuration'
 import { Ajv, getValidator } from '@feathersjs/schema'
-import { Cache } from 'cache-manager'
+import { Cache } from './cache'
 import type { RedisClientOptions } from 'redis'
 
 import { AuthenticationConfiguration } from '@feathersjs/authentication'

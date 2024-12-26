@@ -1,4 +1,7 @@
+import { CachedSolrClient } from '../cachedSolr'
 import { SolrFacetQueryParams } from '../data/types'
+import { ImpressoApplication } from '../types'
+import { ensureServiceIsFeathersCompatible } from '../util/feathers'
 
 export interface SelectRequestBody {
   query: string | Record<string, unknown>
@@ -72,5 +75,28 @@ export interface SelectResponse<T, K extends string> {
  * Aims to replace all the other varied Solr client interfaces in the codebase.
  */
 export interface SimpleSolrClient {
-  select<T = Record<string, unknown>, K extends string = string>(request: SelectRequest): Promise<SelectResponse<T, K>>
+  select<T = Record<string, unknown>, K extends string = string>(
+    namespace: string,
+    request: SelectRequest
+  ): Promise<SelectResponse<T, K>>
+}
+
+class CachedSolrSimpleSolrClient implements SimpleSolrClient {
+  constructor(private readonly client: CachedSolrClient) {}
+
+  async select<T = Record<string, unknown>, K extends string = string>(
+    namespace: string,
+    request: SelectRequest
+  ): Promise<SelectResponse<T, K>> {
+    return await this.client.post(request.body, namespace)
+  }
+}
+
+export const init = (app: ImpressoApplication) => {
+  const originalCachedClient = app.service('cachedSolr')
+  const client = new CachedSolrSimpleSolrClient(originalCachedClient)
+
+  app.use('simpleSolrClient', ensureServiceIsFeathersCompatible(client), {
+    methods: [],
+  })
 }

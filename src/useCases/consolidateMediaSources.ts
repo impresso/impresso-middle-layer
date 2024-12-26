@@ -1,6 +1,6 @@
 import { QueryTypes, type Sequelize } from 'sequelize'
 import { MediaSource } from '../models/generated/schemas'
-import { SelectRequestBody, SimpleSolrClient } from '../schema/simpleSolr'
+import { SelectRequestBody, SimpleSolrClient } from '../internalServices/simpleSolr'
 
 const sqlGetNewsappersDetails = `
 SELECT
@@ -20,7 +20,6 @@ FROM
     newspapers n
     LEFT JOIN issues i ON n.id = i.newspaper_id
     LEFT JOIN pages p ON i.id = p.issue_id
-WHERE n.id = 'ZBT'
 GROUP BY n.id;
 `
 
@@ -56,10 +55,11 @@ const articlesCountSolrQuery: SelectRequestBody = {
  */
 export const consolidateMediaSources = async (
   dbClient: Sequelize,
-  solrClient: SimpleSolrClient
+  solrClient: SimpleSolrClient,
+  solrIndex: string
 ): Promise<MediaSource[]> => {
   const [solrResponse, dbNewspapersDetails] = await Promise.all([
-    solrClient.select<unknown, 'sources'>({ body: articlesCountSolrQuery }),
+    solrClient.select<unknown, 'sources'>(solrIndex, { body: articlesCountSolrQuery }),
     dbClient.query<DBNewspaperDetails>(sqlGetNewsappersDetails, {
       type: QueryTypes.SELECT,
     }),

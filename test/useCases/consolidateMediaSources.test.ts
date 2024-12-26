@@ -2,7 +2,7 @@ import assert from 'assert'
 import { Sequelize } from 'sequelize'
 import sinon from 'sinon'
 import { MediaSource } from '../../src/models/generated/schemas'
-import { SelectResponse, SimpleSolrClient } from '../../src/schema/simpleSolr'
+import { SelectResponse, SimpleSolrClient } from '../../src/internalServices/simpleSolr'
 import { consolidateMediaSources, DBNewspaperDetails } from '../../src/useCases/consolidateMediaSources'
 
 type DBResponse = DBNewspaperDetails[]
