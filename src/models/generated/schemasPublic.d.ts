@@ -387,7 +387,7 @@ export interface MediaSource {
    */
   languageCodes: string[];
   /**
-   * The range of dates this media source has content for.
+   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.
    *
    * @minItems 2
    * @maxItems 2
@@ -407,6 +407,20 @@ export interface MediaSource {
      */
     pages?: number;
   };
+  properties: {
+    /**
+     * The unique identifier of the property.
+     */
+    id?: string;
+    /**
+     * The name of the property.
+     */
+    label?: string;
+    /**
+     * The value of the property.
+     */
+    value: string;
+  }[];
 }
 
 

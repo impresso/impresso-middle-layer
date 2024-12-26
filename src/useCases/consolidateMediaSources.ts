@@ -4,24 +4,42 @@ import { Bucket, SelectRequestBody, SimpleSolrClient } from '../internalServices
 
 const sqlGetNewsappersDetails = `
 SELECT
-    n.id as uid,
-    n.title as name,
-    n.start_year as startYear,
-    n.end_year as endYear,
-    COUNT(DISTINCT i.id) AS issueCount,
-    COUNT(p.id) AS pageCount,
-    (
-		  SELECT JSON_ARRAYAGG(l.code)
-      FROM newspapers_languages AS nl
-      LEFT JOIN languages AS l ON l.id=nl.language_id
-      WHERE nl.newspaper_id=n.id
-	  ) AS languageCodes
+  n.id as uid,
+  n.title as name,
+  n.start_year as startYear,
+  n.end_year as endYear,
+  COUNT(DISTINCT i.id) AS issueCount,
+  COUNT(p.id) AS pageCount,
+  (
+    SELECT JSON_ARRAYAGG(l.code)
+    FROM newspapers_languages AS nl
+    LEFT JOIN languages AS l ON l.id=nl.language_id
+    WHERE nl.newspaper_id=n.id
+  ) AS languageCodes,
+  (
+    SELECT JSON_ARRAYAGG(
+      JSON_OBJECT(
+        'id', mp.name,
+        'label', mp.label,
+        'value', nm.value
+      )
+    )
+    FROM newspapers_metadata nm
+    JOIN meta_properties mp ON nm.property_id = mp.id
+    WHERE nm.newspaper_id=n.id
+  ) AS properties
 FROM
     newspapers n
     LEFT JOIN issues i ON n.id = i.newspaper_id
     LEFT JOIN pages p ON i.id = p.issue_id
 GROUP BY n.id;
 `
+
+interface NewspaperProperty {
+  id: string
+  label: string
+  value: string
+}
 
 export interface DBNewspaperDetails {
   uid: string
@@ -31,6 +49,7 @@ export interface DBNewspaperDetails {
   issueCount: number
   pageCount: number
   languageCodes: string[]
+  properties: NewspaperProperty[]
 }
 
 const articlesCountSolrQuery: SelectRequestBody = {
@@ -104,6 +123,7 @@ export const consolidateMediaSources = async (
         issues: dbNewspaper.issueCount,
         pages: dbNewspaper.pageCount,
       },
+      properties: dbNewspaper.properties,
     } satisfies MediaSource
   })
 

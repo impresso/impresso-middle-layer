@@ -882,6 +882,20 @@ export interface MediaSource {
      */
     pages?: number;
   };
+  properties: {
+    /**
+     * The unique identifier of the property.
+     */
+    id?: string;
+    /**
+     * The name of the property.
+     */
+    label?: string;
+    /**
+     * The value of the property.
+     */
+    value: string;
+  }[];
 }
 
 

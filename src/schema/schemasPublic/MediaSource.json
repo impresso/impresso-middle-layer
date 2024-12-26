@@ -33,7 +33,7 @@
         "type": "string",
         "format": "date-time"
       },
-      "description": "The range of dates this media source has content for."
+      "description": "The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items."
     },
     "totals": {
       "type": "object",
@@ -52,7 +52,30 @@
           "description": "The number of pages in the media source."
         }
       }
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "name": "MediaSourceProperty",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique identifier of the property."
+          },
+          "label": {
+            "type": "string",
+            "description": "The name of the property."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the property."
+          }
+        },
+        "required": ["uid", "name", "value"]
+      }
     }
   },
-  "required": ["uid", "type", "name", "languageCodes", "yearsRange", "totals"]
+  "required": ["uid", "type", "name", "languageCodes", "yearsRange", "totals", "properties"]
 }

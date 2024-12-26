@@ -26,6 +26,7 @@ describe('consolidateMediaSources', () => {
         issueCount: 100,
         pageCount: 1000,
         languageCodes: ['en', 'fr'],
+        properties: [{ id: 'test', label: 'test', value: 'test' }],
       },
     ] satisfies DBResponse
 
@@ -53,6 +54,7 @@ describe('consolidateMediaSources', () => {
           issues: 100,
           pages: 1000,
         },
+        properties: [{ id: 'test', label: 'test', value: 'test' }],
       },
     ] satisfies MediaSource[]
 
@@ -80,6 +82,7 @@ describe('consolidateMediaSources', () => {
         issueCount: 100,
         pageCount: 1000,
         languageCodes: ['en', 'fr'],
+        properties: [{ id: 'test', label: 'test', value: 'test' }],
       },
     ] satisfies DBResponse
     const solrResponse = { facets: { sources: { buckets: [] } } } satisfies SolrResponse
@@ -100,6 +103,7 @@ describe('consolidateMediaSources', () => {
           issues: 100,
           pages: 1000,
         },
+        properties: [{ id: 'test', label: 'test', value: 'test' }],
       },
     ] satisfies MediaSource[]
 
