@@ -73,7 +73,7 @@
             "description": "The value of the property."
           }
         },
-        "required": ["uid", "name", "value"]
+        "required": ["id", "label", "value"]
       }
     }
   },

@@ -35,7 +35,6 @@
     "dev": "nodemon --enable-source-maps --inspect dist/",
     "cli": "node src/admin/cli.js",
     "generate-types": "node dist/scripts/generate-types.js",
-    "update-newspapers": "node dist/scripts/update-newspapers.js",
     "update-years": "node dist/scripts/update-years.js",
     "update-topics": "node dist/scripts/update-topics.js && node dist/scripts/update-topics-related.js  && node dist/scripts/update-topics-positions.js",
     "update-topics-related": "node dist/scripts/update-topics-related.js",

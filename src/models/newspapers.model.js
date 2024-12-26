@@ -5,7 +5,6 @@
 const Sequelize = require('sequelize')
 const Language = require('./languages.model')
 const Property = require('./properties.model')
-const newspapersIndex = require('../data')('newspapers')
 
 class Newspaper {
   constructor({
@@ -56,11 +55,6 @@ class Newspaper {
     } else {
       this.deltaYear = 0
     }
-  }
-
-  // TODO: when cache is moved to Redis this will become an async function
-  static getCached(uid) {
-    return new Newspaper(newspapersIndex.getValue(uid))
   }
 
   static sequelize(client) {
@@ -199,19 +193,3 @@ class Newspaper {
 }
 
 module.exports = Newspaper
-
-// module.exports = function (app) {
-//   const config = app.get('sequelize');
-//   const newspaper = model(app.get('sequelizeClient'), {
-//     tableName: config.tables.newspapers,
-//     hooks: {
-//       beforeCount(options) {
-//         options.raw = true;
-//       },
-//     },
-//   });
-//
-//   return {
-//     sequelize: newspaper,
-//   };
-// };

@@ -7,7 +7,6 @@ import { transformNewspaper } from '../../transformers/newspaper'
 import { transformBaseFind } from '../../transformers/base'
 
 const { queryWithCommonParams, validate, utils } = require('../../hooks/params')
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
 
 const findQueryParamsRenamePolicy = {
   term: 'q',
@@ -18,11 +17,7 @@ module.exports = {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
-    all: [
-      checkCachedContents({
-        useAuthenticatedUser: false,
-      }),
-    ],
+    all: [],
     find: [
       renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
       validate({
@@ -74,7 +69,6 @@ module.exports = {
   },
 
   after: {
-    all: [returnCachedContents(), saveResultsInCache()],
     find: [
       transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformNewspaper, inPublicApi),

@@ -101,12 +101,11 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
    You can also create a **service** using system d.
 
 1. Configure the `config/development.json` and `config/production.json` according to your system settings
-1. Preload the list of Newspaper and of the Topics.
+2. Preload the list of the Topics.
    ```
-   NODE_ENV=development DEBUG=impresso* npm run update-newspapers
    NODE_ENV=development DEBUG=impresso* npm run update-topics
    ```
-1. Start the app! Use the env variable `NODE_ENV` to switch between your development or production configuration file.
+3. Start the app! Use the env variable `NODE_ENV` to switch between your development or production configuration file.
    ```
    NODE_ENV=development DEBUG=impresso* npm run dev
    ```

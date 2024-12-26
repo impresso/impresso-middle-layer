@@ -4,7 +4,6 @@ const {
   convertPassagesSolrResponseToPassages,
   PassageFields,
 } = require('../../logic/textReuse/solr')
-const Newspaper = require('../../models/newspapers.model')
 const sequelize = require('../../sequelize')
 const { QueryGetIIIFManifests } = require('../../logic/iiif')
 const { toArticlePageDetails } = require('../../logic/ids')
@@ -22,6 +21,7 @@ class TextReuseClusterPassages {
     this.solr = app.service('cachedSolr')
     /** @type {import('sequelize') & import('sequelize').Sequelize} */
     this.sequelize = sequelize.client(app.get('sequelize'))
+    this.app = app
   }
 
   async find(params) {
@@ -39,10 +39,10 @@ class TextReuseClusterPassages {
         getPaginationInfoFromPassagesSolrResponse(response),
       ])
 
-    return { passages: await this.asPassageItems(passages), info }
+    return { passages: await this.asPassageItems(passages, this.app), info }
   }
 
-  async asPassageItems(passages) {
+  async asPassageItems(passages, app) {
     const articleIdToPageId = passages
       .map(({ articleId, pageNumbers }) => toArticlePageDetails(articleId, pageNumbers[0]))
       .reduce((acc, { pageId, articleId }) => {
@@ -56,12 +56,14 @@ class TextReuseClusterPassages {
       return acc
     }, {})
 
+    const newspapersLookup = await app.service('newspapers').getLookup()
+
     return Promise.all(
       passages.map(async passage => {
         const iifUrl = pageIdToIIIFUrl[articleIdToPageId[passage.articleId]]
         return {
           passage,
-          newspaper: Newspaper.getCached(passage.journalId),
+          newspaper: newspapersLookup[passage.journalId],
           iiifUrls: iifUrl != null ? [iifUrl] : [],
         }
       })

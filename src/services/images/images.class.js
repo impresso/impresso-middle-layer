@@ -229,7 +229,7 @@ class Service {
       `[find] success, ${solrResponse.response.numFound} results all with the current signature, in QTime:${solrResponse.responseHeader.QTime}ms`
     )
 
-    const facets = await getFacetsFromSolrResponse(solrResponse)
+    const facets = await getFacetsFromSolrResponse(solrResponse, this.app)
 
     return this.assignIIIF({
       method: 'find',

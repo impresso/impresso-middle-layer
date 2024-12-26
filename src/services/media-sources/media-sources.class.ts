@@ -59,7 +59,7 @@ export class MediaSources
   constructor(private readonly cache: Cache) {}
 
   async find(params?: Params<FindQuery>): Promise<FindResponse<MediaSource>> {
-    return await this.findMediaSources(params)
+    return await this.findMediaSources(params?.query)
   }
   async get(id: Id, params?: Params): Promise<MediaSource> {
     const source = await this.getMediaSource(id)
@@ -67,16 +67,16 @@ export class MediaSources
     return source
   }
 
-  async findMediaSources(params?: Params<FindQuery>): Promise<FindResponse<MediaSource>> {
-    const { limit = DefaultPageSize, offset = 0 } = params?.query ?? {}
+  async findMediaSources(query?: FindQuery): Promise<FindResponse<MediaSource>> {
+    const { limit = DefaultPageSize, offset = 0, term, type, order_by } = query ?? {}
 
     const result = await this.cache.get<string>(WellKnownKeys.MediaSources)
     const deserialisedResult: MediaSource[] = JSON.parse(result ?? '[]')
 
-    const termFilter = newTermFilter(params?.query?.term)
-    const typeFilter = newTypeFilter(params?.query?.type)
+    const termFilter = newTermFilter(term)
+    const typeFilter = newTypeFilter(type)
     const combinedFilter = (source: MediaSource) => termFilter(source) && typeFilter(source)
-    const sorter = sorters[params?.query?.order_by ?? 'name']
+    const sorter = sorters[order_by ?? 'name']
 
     const filteredResult = deserialisedResult.filter(combinedFilter).sort(sorter)
     const page = filteredResult?.slice(offset, offset + limit) ?? []
@@ -91,7 +91,7 @@ export class MediaSources
     }
   }
 
-  async getMediaSource(id: Id, params?: Params): Promise<MediaSource | undefined> {
+  async getMediaSource(id: Id): Promise<MediaSource | undefined> {
     const result = await this.cache.get<MediaSource[]>(WellKnownKeys.MediaSources)
     const item = result?.find(mediaSource => mediaSource.uid === id)
     return item

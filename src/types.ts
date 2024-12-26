@@ -5,7 +5,8 @@ import type { IRedisClientContainer } from './redis'
 import { CachedSolrClient } from './cachedSolr'
 import { Service as LogsService } from './services/logs/logs.class'
 import { AuthenticationService } from '@feathersjs/authentication'
-import { SimpleSolrClient } from './internalServices/simpleSolr'
+import { MediaSources } from './services/media-sources/media-sources.class'
+import { NewspapersService } from './services/newspapers/newspapers.class'
 
 export interface AppServices {
   redisClient?: IRedisClientContainer
@@ -13,6 +14,10 @@ export interface AppServices {
   cachedSolr: CachedSolrClient
   logs: LogsService
   authentication: AuthenticationService
+
+  // Services
+  ['media-sources']: MediaSources
+  newspapers: NewspapersService
 }
 
 export type ImpressoApplication = Application<AppServices & Record<string, any>, Configuration>

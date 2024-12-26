@@ -411,11 +411,11 @@ export interface MediaSource {
     /**
      * The unique identifier of the property.
      */
-    id?: string;
+    id: string;
     /**
      * The name of the property.
      */
-    label?: string;
+    label: string;
     /**
      * The value of the property.
      */
