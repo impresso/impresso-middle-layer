@@ -41,7 +41,7 @@ const mediaSourceToNewspaper = (mediaSource: MediaSource): NewspaperInternal => 
     included: true,
     labels: [],
     languages: mediaSource.languageCodes,
-    properties: mediaSource.properties.map(p => ({ label: p.label ?? '', value: p.value, name: p.id })),
+    properties: mediaSource.properties?.map(p => ({ label: p.label ?? '', value: p.value, name: p.id })),
   } satisfies NewspaperInternal
 }
 

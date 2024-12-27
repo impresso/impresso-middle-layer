@@ -414,7 +414,7 @@ export interface MediaSource {
      */
     pages?: number;
   };
-  properties: {
+  properties?: {
     /**
      * The unique identifier of the property.
      */
