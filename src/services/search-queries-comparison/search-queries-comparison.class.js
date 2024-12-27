@@ -138,8 +138,8 @@ function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = [])
  * @param {any} solrResponse
  * @returns {Promise<Facet[]>}
  */
-async function getResponseFacetsFromSolrResponse(solrResponse) {
-  const facets = await getFacetsFromSolrResponse(solrResponse)
+async function getResponseFacetsFromSolrResponse(solrResponse, app) {
+  const facets = await getFacetsFromSolrResponse(solrResponse, app)
   return Object.keys(facets)
     .filter(type => typeof facets[type] === 'object')
     .map(type => ({
@@ -154,6 +154,8 @@ class SearchQueriesComparison {
 
     /** @type {import('../../cachedSolr').CachedSolrClient} */
     this.solr = app.service('cachedSolr')
+
+    this.app = app
 
     // this.handlers = {
     //   intersection: this.findIntersectingItemsBetweenQueries.bind(this),
@@ -173,7 +175,7 @@ class SearchQueriesComparison {
     const intersectionSolrQuery = createSolrQuery(intersectionFilters, request.facets)
     const intersectionFacets = await this.solr
       .post(intersectionSolrQuery, this.solr.namespaces.Search)
-      .then(getResponseFacetsFromSolrResponse)
+      .then(r => getResponseFacetsFromSolrResponse(r, this.app))
 
     const otherQueries = request.filtersSets.map(filtersSet =>
       createSolrQuery(filtersSet, request.facets, intersectionFacets)
@@ -184,7 +186,7 @@ class SearchQueriesComparison {
         this.solr
           .post(query, this.solr.namespaces.Search)
           .then(response => normaliseFacetsInSolrResponse(response, intersectionFacets))
-          .then(getResponseFacetsFromSolrResponse)
+          .then(r => getResponseFacetsFromSolrResponse(r, this.app))
       )
     )
 

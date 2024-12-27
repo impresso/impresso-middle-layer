@@ -64,6 +64,9 @@ export interface Config {
   authentication: AuthConfig;
   imlAuthConfiguration?: AuthConfig1;
   cache?: CacheConfig;
+  appHooks?: AppHooksConfig;
+  media?: MediaConfig;
+  [k: string]: unknown;
 }
 /**
  * Redis configuration
@@ -77,6 +80,7 @@ export interface RedisConfig {
    * Redis host
    */
   host: string;
+  [k: string]: unknown;
 }
 export interface SolrConfig {
   auth: {
@@ -102,12 +106,14 @@ export interface SolrConfig {
   embeddings_fr?: SolrIndexConfig;
   embeddings_lb?: SolrIndexConfig;
   entities_mentions?: SolrIndexConfig;
+  [k: string]: unknown;
 }
 export interface SocksProxyConfig {
   enabled?: boolean;
   host: string;
   port: number;
   type?: 4 | 5;
+  [k: string]: unknown;
 }
 export interface SolrIndexConfig {
   /**
@@ -122,6 +128,7 @@ export interface SolrIndexConfig {
    * Solr suggest endpoint
    */
   suggest?: string;
+  [k: string]: unknown;
 }
 /**
  * Sequelize configuration
@@ -196,6 +203,7 @@ export interface OpenApiConfig {
    * If `true`, validate the OpenAPI spec
    */
   validateSpec?: boolean;
+  [k: string]: unknown;
 }
 export interface FeaturesConfig {
   textReuse?: {
@@ -205,6 +213,7 @@ export interface FeaturesConfig {
     enabled: boolean;
     [k: string]: unknown;
   };
+  [k: string]: unknown;
 }
 export interface PaginateConfig {
   /**
@@ -215,6 +224,7 @@ export interface PaginateConfig {
    * Maximum limit for pagination
    */
   max: number;
+  [k: string]: unknown;
 }
 /**
  * Celery configuration
@@ -232,6 +242,7 @@ export interface CeleryConfig {
    * URL of the Redis backend
    */
   backendUrl: string;
+  [k: string]: unknown;
 }
 export interface AuthConfig {
   /**
@@ -293,6 +304,32 @@ export interface CacheConfig {
    * Enable cache
    */
   enabled: boolean;
+  [k: string]: unknown;
+}
+export interface AppHooksConfig {
+  /**
+   * If `true`, hooks are always required
+   */
+  alwaysRequired?: boolean;
+  /**
+   * List of paths to exclude from hooks
+   */
+  excludePaths?: string[];
+  [k: string]: unknown;
+}
+export interface MediaConfig {
+  /**
+   * Host of the media server
+   */
+  host?: string;
+  /**
+   * Path to the media server
+   */
+  path?: string;
+  /**
+   * List of media services
+   */
+  services?: string[];
   [k: string]: unknown;
 }
 

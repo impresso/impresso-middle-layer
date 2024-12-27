@@ -1,6 +1,13 @@
+import { Application } from '@feathersjs/express'
 import { feathers } from '@feathersjs/feathers'
+import bodyParser from 'body-parser'
+import appHooksFactory from './app.hooks'
+import authentication from './authentication'
+import cache from './cache'
 import celery, { init as initCelery } from './celery'
+import channels from './channels'
 import configuration from './configuration'
+import { startupJobs } from './jobs'
 import errorHandling from './middleware/errorHandling'
 import openApiValidator, { init as initOpenApiValidator } from './middleware/openApiValidator'
 import swagger from './middleware/swagger'
@@ -13,12 +20,9 @@ import media from './services/media'
 import proxy from './services/proxy'
 import schemas from './services/schemas'
 import solr from './solr'
-import { ensureServiceIsFeathersCompatible } from './util/feathers'
-import channels from './channels'
 import { ImpressoApplication } from './types'
-import { Application } from '@feathersjs/express'
-import bodyParser from 'body-parser'
-import authentication from './authentication'
+import { ensureServiceIsFeathersCompatible } from './util/feathers'
+import { init as simpleSolrClient } from './internalServices/simpleSolr'
 
 const path = require('path')
 const compress = require('compression')
@@ -28,35 +32,27 @@ const cookieParser = require('cookie-parser')
 const express = require('@feathersjs/express')
 
 const middleware = require('./middleware')
-// const services = require('./services');
-const appHooks = require('./app.hooks')
 
 const multer = require('./multer')
-const cache = require('./cache')
 const cachedSolr = require('./cachedSolr')
 
 const app: ImpressoApplication & Application = express(feathers())
 
 // Load app configuration
-app.configure(configuration())
+app.configure(configuration)
 
 // configure internal services
 app.configure(sequelize)
 app.configure(solr)
 app.configure(redis)
 app.configure(rateLimiter)
-
-app.set(
-  'cacheManager',
-  cache(app.get('redis'), app.get('cache')?.enabled, (error: Error) => {
-    console.error('Cache error. Restarting', error.stack)
-    process.exit(1)
-  })
-)
+app.configure(cache)
 
 app.use('cachedSolr', ensureServiceIsFeathersCompatible(cachedSolr(app)), {
   methods: [],
 })
+
+app.configure(simpleSolrClient)
 
 // Enable security, compression, favicon and body parsing
 app.use(helmet())
@@ -96,10 +92,7 @@ app.configure(transport)
 app.configure(authentication)
 app.configure(services)
 
-app.hooks({
-  setup: [initOpenApiValidator, initCelery, initRedis],
-})
-app.configure(appHooks)
+app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startupJobs], []))
 
 // part of sockets.io (see transport), but must go after services are defined
 // because one of the services is used in the channels.
@@ -107,4 +100,4 @@ app.configure(channels)
 
 app.configure(errorHandling)
 
-module.exports = app
+export default app

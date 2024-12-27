@@ -21,6 +21,20 @@ export const SolrNamespaces = Object.freeze({
   EntitiesMentions: 'entities_mentions',
 })
 
+export const getSolrIndex = (
+  namespace: (typeof SolrNamespaces)[keyof typeof SolrNamespaces],
+  app: ImpressoApplication
+): string | undefined => {
+  const solrConfig = app.get('solr')
+  const namespaceConfig = solrConfig[namespace] as any
+  const namespaceEndpoint: string | undefined = namespaceConfig['endpoint']
+
+  if (namespaceEndpoint == null) return
+
+  const parts = namespaceEndpoint.split('/')
+  return parts[parts.length - 2]
+}
+
 /**
  * Create headers object out of authentication details.
  */

@@ -2,7 +2,6 @@ const debug = require('debug')('impresso/services/text-reuse-passages')
 const { filtersToQueryAndVariables } = require('../../util/solr')
 const TextReusePassage = require('../../models/text-reuse-passages.model')
 const { NotFound } = require('@feathersjs/errors')
-const Newspaper = require('../../models/newspapers.model')
 const { parseOrderBy } = require('../../util/queryParameters')
 
 export const OrderByKeyToField = {
@@ -18,6 +17,7 @@ export const GroupByValues = ['textReuseClusterId']
 export class TextReusePassages {
   constructor(app) {
     this.solr = app.service('cachedSolr')
+    this.app = app
   }
 
   async find(params) {
@@ -45,6 +45,8 @@ export class TextReusePassages {
       // params.query
     )
 
+    const newspapersLookup = await this.app.service('newspapers').getLookup()
+
     return this.solr
       .get(
         {
@@ -62,7 +64,7 @@ export class TextReusePassages {
           data: response.docs.map(doc => {
             const result = TextReusePassage.CreateFromSolr()(doc)
             if (params.query?.addons?.newspaper && result.newspaper != null) {
-              result.newspaper = Newspaper.getCached(result.newspaper.id)
+              result.newspaper = newspapersLookup[result.newspaper.id]
               result.newspaper.id = result.newspaper.uid
             }
             return result

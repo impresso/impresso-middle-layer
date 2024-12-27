@@ -39,7 +39,7 @@ class CachedSolrClient {
 
     if (skipCache) return fn()
 
-    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions)
+    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions.ttl)
   }
 
   /**
@@ -58,7 +58,7 @@ class CachedSolrClient {
 
     if (skipCache) return fn()
 
-    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, true), fn, cacheOptions)
+    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, true), fn, cacheOptions.ttl)
   }
 
   /**
@@ -78,7 +78,7 @@ class CachedSolrClient {
 
     if (skipCache) return fn()
 
-    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, true), fn, cacheOptions)
+    return this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, true), fn, cacheOptions.ttl)
   }
 
   /**
@@ -98,7 +98,7 @@ class CachedSolrClient {
     const fn = async () => this.solrClient.findAll(request)
     const resultPromise = skipCache
       ? fn()
-      : this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions)
+      : this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions.ttl)
 
     return resultPromise.then(result => {
       // Same as the code used in `solrClient.findAll`.
@@ -136,7 +136,7 @@ class CachedSolrClient {
 
     const resultPromise = skipCache
       ? fn()
-      : this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions)
+      : this.cacheManager.wrap(getCacheKeyForSolrRequest(request, namespace, false), fn, cacheOptions.ttl)
 
     return resultPromise.then(resultItems => {
       // Same as the code used in `solrClient.suggest`.

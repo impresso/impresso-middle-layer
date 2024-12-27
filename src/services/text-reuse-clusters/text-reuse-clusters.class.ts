@@ -8,6 +8,7 @@ import type {
   GetTextReuseClusterResponse,
 } from './models/generated'
 import { FindQueyParameters } from './text-reuse-clusters.schema'
+import { NewspapersService } from '../newspapers/newspapers.class'
 
 const { mapValues, groupBy, values, uniq, clone, get } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
@@ -69,7 +70,9 @@ const withExtraQueryParts = (query: { q: any }, parts: any) => {
   return updatedQuery
 }
 
-async function facetsWithItems(facets: Facet[]) {
+async function facetsWithItems(facets: Facet[], newspapersService: NewspapersService) {
+  const newspapersLookup = await newspapersService.getLookup()
+
   return Promise.all(
     facets.map(async facet => {
       if (facet.type === 'newspaper') {
@@ -78,7 +81,7 @@ async function facetsWithItems(facets: Facet[]) {
           buckets: await Promise.all(
             facet.buckets?.map(async bucket => ({
               ...bucket,
-              item: await Newspaper.getCached(bucket.val),
+              item: newspapersLookup[bucket.val],
             })) ?? []
           ),
         }
@@ -126,9 +129,15 @@ function facetsWithCountry(facets: Facet[]) {
 
 export class TextReuseClusters {
   solr: CachedSolrClient
+  app: ImpressoApplication
 
   constructor(app: ImpressoApplication) {
     this.solr = app.service('cachedSolr')
+    this.app = app
+  }
+
+  private get newspapersService() {
+    return this.app.service('newspapers')
   }
 
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
@@ -209,7 +218,7 @@ export class TextReuseClusters {
     )
     const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse)
 
-    cluster.details = { facets: await facetsWithItems(facets) }
+    cluster.details = { facets: await facetsWithItems(facets, this.newspapersService) }
 
     cluster.details.facets = facetsWithCountry(cluster.details.facets)
     cluster.details.resolution = getTimelineResolution(

@@ -1,4 +1,5 @@
 /* eslint-disable consistent-return */
+import { customJSONReplacer } from '../util/jsonEncoder'
 const debug = require('debug')('impresso/hooks:redis')
 const feathers = require('@feathersjs/feathers')
 const { generateHash } = require('../crypto')
@@ -140,7 +141,7 @@ const saveResultsInCache = () => async context => {
   }
   if (!context.params.isCached || context.app.get('cache').override) {
     // do not override cached contents. See returnCachedContents
-    await client.set(context.params.cacheKey, JSON.stringify(context.result))
+    await client.set(context.params.cacheKey, JSON.stringify(context.result, customJSONReplacer))
   }
 }
 

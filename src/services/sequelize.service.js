@@ -193,7 +193,7 @@ class SequelizeService {
         }))
       return dbResultPromise
     }
-    const cachedPromise = this.cacheReads ? this.cacheManager.wrap(cacheKey, getFromDb, cacheOptions) : getFromDb()
+    const cachedPromise = this.cacheReads ? this.cacheManager.wrap(cacheKey, getFromDb, cacheOptions.ttl) : getFromDb()
 
     return cachedPromise.catch(sequelizeErrorHandler)
   }

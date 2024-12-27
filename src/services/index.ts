@@ -15,10 +15,10 @@ const publicApiServices = [
   'text-reuse-passages',
   'text-reuse-clusters',
   'version',
-  'newspapers',
   'search-facets',
   'entities',
   'impresso-ner',
+  'media-sources',
 ]
 
 const internalApiServices = [
@@ -66,6 +66,7 @@ const internalApiServices = [
   'terms-of-use',
   'user-requests',
   'user-requests-reviews',
+  'newspapers',
 ]
 
 export default (app: ImpressoApplication) => {
