@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Solr configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "servers": {
+      "type": "array",
+      "description": "List of Solr servers available",
+      "items": { "$ref": "#/definitions/SolrServerConfiguration" }
+    },
+    "namespaces": {
+      "type": "array",
+      "description": "List of namespaces (mapped to Solr indices)",
+      "items": { "$ref": "#/definitions/SolrServerNamespaceConfiguration" }
+    }
+  },
+  "required": [],
+  "definitions": {
+    "SolrServerConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the server, referenced in namespace configuration."
+        },
+        "baseUrl": {
+          "type": "string",
+          "description": "Base URL of the Solr server"
+        },
+        "auth": {
+          "type": "object",
+          "description": "Authentication configuration for reading and writing (Base)",
+          "additionalProperties": false,
+          "properties": {
+            "read": { "$ref": "#/definitions/SolrServerAuth" },
+            "write": { "$ref": "#/definitions/SolrServerAuth" }
+          }
+        },
+        "proxy": { "$ref": "#/definitions/SolrServerProxy" }
+      },
+      "required": ["id", "baseUrl"]
+    },
+    "SolrServerAuth": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Authentication configuration for Solr server. Base auth.",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": ["username", "password"]
+    },
+    "SolrServerProxy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Proxy configuration for Solr server",
+      "properties": {
+        "host": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["socks"]
+        }
+      },
+      "required": ["host", "port"]
+    },
+    "SolrServerNamespaceConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Namespace configuration. Each namespace is mapped 1:1 to an index in one of the Solr servers.",
+      "properties": {
+        "namespaceId": {
+          "type": "string",
+          "description": "Unique namespace identifier"
+        },
+        "serverId": {
+          "type": "string",
+          "description": "Reference to the Solr server"
+        },
+        "index": {
+          "type": "string",
+          "description": "Solr index name"
+        }
+      },
+      "required": ["namespaceId", "serverId", "index"]
+    }
+  }
+}

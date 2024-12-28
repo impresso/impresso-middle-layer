@@ -1,7 +1,20 @@
 import { CachedSolrClient } from '../cachedSolr'
 import { SolrFacetQueryParams } from '../data/types'
+import { ConnectionPool, initHttpPool, RequestInfo, RequestInit, Headers } from '../httpConnectionPool'
+import { logger } from '../logger'
+import {
+  SolrConfiguration,
+  SolrServerAuth,
+  SolrServerConfiguration,
+  SolrServerNamespaceConfiguration,
+} from '../models/generated/common'
+import { checkResponseStatus, defaultFetchOptions, sanitizeSolrResponse, transformSolrResponse } from '../solr'
 import { ImpressoApplication } from '../types'
 import { ensureServiceIsFeathersCompatible } from '../util/feathers'
+import { Cache } from '../cache'
+import { serialize } from '../util/serialize'
+import { createSha256Hash } from '../util/crypto'
+import { defaultCachingStrategy } from '../util/solr/cacheControl'
 
 export interface SelectRequestBody {
   query: string | Record<string, unknown>
@@ -9,6 +22,9 @@ export interface SelectRequestBody {
   limit?: number
   offset?: number
   facet?: Record<string, SolrFacetQueryParams>
+  fields?: string
+  sort?: string
+  params?: Record<string, string | number | boolean>
 }
 
 export interface SelectQueryParameters {
@@ -44,7 +60,7 @@ export type Bucket = {
   [key: string]: BucketValue
 }
 
-type BucketValue = string | number | Bucket
+export type BucketValue = string | number | Bucket
 
 interface Count {
   count: number
@@ -73,6 +89,10 @@ export interface SelectResponse<T, K extends string, B extends BucketValue> {
   response?: ResponseContainer<T>
   error?: ErrorContainer
   facets?: FacetsContainer<K, B>
+
+  grouped?: Record<string, any>
+  highlighting?: Record<string, any>
+  fragments?: Record<string, any>
 }
 
 /**
@@ -86,20 +106,138 @@ export interface SimpleSolrClient {
   ): Promise<SelectResponse<T, K, B>>
 }
 
-class CachedSolrSimpleSolrClient implements SimpleSolrClient {
-  constructor(private readonly client: CachedSolrClient) {}
+interface PoolWrapper {
+  pool: ConnectionPool
+  baseUrl: string
+  auth?: SolrServerConfiguration['auth']
+}
+
+const buildAuthHeader = (auth?: SolrServerAuth): Record<string, string> => {
+  if (auth == null) {
+    return {}
+  }
+
+  const { username, password } = auth
+  const encoded = Buffer.from(`${username}:${password}`).toString('base64')
+  return {
+    Authorization: `Basic ${encoded}`,
+  }
+}
+
+class DefaultSimpleSolrClient implements SimpleSolrClient {
+  private pools: Record<string, PoolWrapper> = {}
+  private namespaces: Record<string, SolrServerNamespaceConfiguration> = {}
+
+  constructor(configuration: SolrConfiguration) {
+    this.pools =
+      configuration?.servers?.reduce(
+        (acc, server) => {
+          const socksProxy = server.proxy != null ? { host: server.proxy.host, port: server.proxy.port } : undefined
+          acc[server.id] = {
+            pool: initHttpPool({ socksProxy }),
+            auth: server.auth,
+            baseUrl: server.baseUrl,
+          }
+          return acc
+        },
+        {} as Record<string, PoolWrapper>
+      ) ?? {}
+    this.namespaces =
+      configuration?.namespaces?.reduce(
+        (acc, namespace) => {
+          acc[namespace.namespaceId] = namespace
+          return acc
+        },
+        {} as Record<string, SolrServerNamespaceConfiguration>
+      ) ?? {}
+  }
+
+  private getPool(namespace: string): [PoolWrapper, SolrServerNamespaceConfiguration] {
+    const namespaceObj = this.namespaces[namespace]
+    const serverId = namespaceObj?.serverId
+    if (serverId == null) {
+      throw new Error(`Namespace ${namespace} not found in configuration`)
+    }
+    return [this.pools[serverId], namespaceObj]
+  }
+
+  protected async fetch(pool: ConnectionPool, url: string, init: RequestInit): Promise<string> {
+    const client = await pool.acquire()
+
+    try {
+      const response = await client.fetch(url, init, defaultFetchOptions)
+      const successfulResponse = await checkResponseStatus(response)
+      const responseBodyText = await successfulResponse.text()
+      return sanitizeSolrResponse(responseBodyText)
+    } finally {
+      await pool.release(client).catch(e => logger.error(`Failed to release connection: ${e}`))
+    }
+  }
 
   async select<T = Record<string, unknown>, K extends string = string, B extends BucketValue = Bucket>(
-    namespace: string,
+    namespaceId: string,
     request: SelectRequest
   ): Promise<SelectResponse<T, K, B>> {
-    return await this.client.post(request.body, namespace)
+    const [{ pool, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
+
+    const url = `${baseUrl}/${namespace.index}/select`
+    const init: RequestInit = {
+      method: 'POST',
+      headers: new Headers({
+        ...buildAuthHeader(auth),
+        'Content-Type': 'application/json',
+      }),
+      body: JSON.stringify(request.body),
+    }
+
+    const responseBody = await this.fetch(pool, url, init)
+    return JSON.parse(responseBody)
+  }
+}
+
+const buildCacheKey = (url: string, body: Record<string, unknown>) => {
+  const bodyString = serialize(body)
+  const urlHash = createSha256Hash(url)
+  const bodyHash = createSha256Hash(bodyString)
+  return ['cache', 'solr', urlHash, bodyHash].join(':')
+}
+
+export type CachingStrategy = (url: string, requestBody: string, responseBody: string) => 'cache' | 'bypass'
+
+class CachedDefaultSimpleSolrClient extends DefaultSimpleSolrClient {
+  constructor(
+    configuration: SolrConfiguration,
+    private cache: Cache,
+    private cachingStrategy?: CachingStrategy
+  ) {
+    super(configuration)
+  }
+
+  protected async fetch(pool: ConnectionPool, url: string, init: RequestInit): Promise<string> {
+    const cacheKey = buildCacheKey(url, { method: init.method, body: init.body })
+    const cachedResponse = await this.cache.get<string>(cacheKey)
+    if (cachedResponse != null) {
+      return cachedResponse
+    }
+
+    const response = await super.fetch(pool, url, init)
+
+    const action = this.cachingStrategy?.(url, init.body as string, JSON.stringify(response)) ?? 'cache'
+
+    if (action === 'cache') {
+      await this.cache.set(cacheKey, response)
+    }
+    return response
   }
 }
 
 export const init = (app: ImpressoApplication) => {
-  const originalCachedClient = app.service('cachedSolr')
-  const client = new CachedSolrSimpleSolrClient(originalCachedClient)
+  const cache = app.get('cacheManager')
+  const solrConfiguration = app.get('solrConfiguration')
+  if (solrConfiguration == null) {
+    throw new Error('Solr configuration not found')
+  }
+  const client = new CachedDefaultSimpleSolrClient(solrConfiguration, cache, defaultCachingStrategy)
 
   app.use('simpleSolrClient', ensureServiceIsFeathersCompatible(client), {
     methods: [],

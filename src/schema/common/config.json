@@ -61,12 +61,14 @@
     },
     "cache": { "$ref": "#/definitions/CacheConfig" },
     "appHooks": { "$ref": "#/definitions/AppHooksConfig" },
-    "media": { "$ref": "#/definitions/MediaConfig" }
+    "media": { "$ref": "#/definitions/MediaConfig" },
+    "solrConfiguration": { "$ref": "./solrConfiguration.json" }
   },
   "required": ["solr", "sequelize", "authentication"],
   "definitions": {
     "SolrConfig": {
       "type": "object",
+      "description": "Deprecated solr configuration",
       "additionalProperties": true,
       "properties": {
         "auth": {

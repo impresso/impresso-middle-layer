@@ -66,6 +66,7 @@ export interface Config {
   cache?: CacheConfig;
   appHooks?: AppHooksConfig;
   media?: MediaConfig;
+  solrConfiguration?: SolrConfiguration;
   [k: string]: unknown;
 }
 /**
@@ -82,6 +83,9 @@ export interface RedisConfig {
   host: string;
   [k: string]: unknown;
 }
+/**
+ * Deprecated solr configuration
+ */
 export interface SolrConfig {
   auth: {
     /**
@@ -332,6 +336,69 @@ export interface MediaConfig {
   services?: string[];
   [k: string]: unknown;
 }
+/**
+ * Solr configuration
+ */
+export interface SolrConfiguration {
+  /**
+   * List of Solr servers available
+   */
+  servers?: SolrServerConfiguration[];
+  /**
+   * List of namespaces (mapped to Solr indices)
+   */
+  namespaces?: SolrServerNamespaceConfiguration[];
+}
+export interface SolrServerConfiguration {
+  /**
+   * Unique identifier for the server, referenced in namespace configuration.
+   */
+  id: string;
+  /**
+   * Base URL of the Solr server
+   */
+  baseUrl: string;
+  /**
+   * Authentication configuration for reading and writing (Base)
+   */
+  auth?: {
+    read?: SolrServerAuth;
+    write?: SolrServerAuth;
+  };
+  proxy?: SolrServerProxy;
+}
+/**
+ * Authentication configuration for Solr server. Base auth.
+ */
+export interface SolrServerAuth {
+  username: string;
+  password: string;
+}
+/**
+ * Proxy configuration for Solr server
+ */
+export interface SolrServerProxy {
+  host: string;
+  port: number;
+  type?: "socks";
+}
+/**
+ * Namespace configuration. Each namespace is mapped 1:1 to an index in one of the Solr servers.
+ */
+export interface SolrServerNamespaceConfiguration {
+  /**
+   * Unique namespace identifier
+   */
+  namespaceId: string;
+  /**
+   * Reference to the Solr server
+   */
+  serverId: string;
+  /**
+   * Solr index name
+   */
+  index: string;
+}
 
 
 /**
@@ -367,4 +434,69 @@ export interface RedactionPolicyItem {
   jsonPath: string;
   valueConverterName: "redact" | "contextNotAllowedImage" | "remove" | "emptyArray";
   [k: string]: unknown;
+}
+
+
+/**
+ * Solr configuration
+ */
+export interface SolrConfiguration {
+  /**
+   * List of Solr servers available
+   */
+  servers?: SolrServerConfiguration[];
+  /**
+   * List of namespaces (mapped to Solr indices)
+   */
+  namespaces?: SolrServerNamespaceConfiguration[];
+}
+export interface SolrServerConfiguration {
+  /**
+   * Unique identifier for the server, referenced in namespace configuration.
+   */
+  id: string;
+  /**
+   * Base URL of the Solr server
+   */
+  baseUrl: string;
+  /**
+   * Authentication configuration for reading and writing (Base)
+   */
+  auth?: {
+    read?: SolrServerAuth;
+    write?: SolrServerAuth;
+  };
+  proxy?: SolrServerProxy;
+}
+/**
+ * Authentication configuration for Solr server. Base auth.
+ */
+export interface SolrServerAuth {
+  username: string;
+  password: string;
+}
+/**
+ * Proxy configuration for Solr server
+ */
+export interface SolrServerProxy {
+  host: string;
+  port: number;
+  type?: "socks";
+}
+/**
+ * Namespace configuration. Each namespace is mapped 1:1 to an index in one of the Solr servers.
+ */
+export interface SolrServerNamespaceConfiguration {
+  /**
+   * Unique namespace identifier
+   */
+  namespaceId: string;
+  /**
+   * Reference to the Solr server
+   */
+  serverId: string;
+  /**
+   * Solr index name
+   */
+  index: string;
 }
