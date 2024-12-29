@@ -28,6 +28,7 @@ export interface Configuration extends Config {
   celeryClient?: CeleryClient
   cacheManager: Cache
   openApiValidatorMiddlewares: any[]
+  availablePlans: string[]
 }
 
 const configurationValidator = getValidator(configurationSchema, new Ajv())
