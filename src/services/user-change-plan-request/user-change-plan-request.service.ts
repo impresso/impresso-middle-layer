@@ -1,22 +1,21 @@
-import { Service } from './change-plan.class'
+import { Service } from './user-change-plan-request.class'
 import { ImpressoApplication } from '../../types'
 import { HookContext, ServiceOptions } from '@feathersjs/feathers'
 import { authenticateAround } from '../../hooks/authenticate'
-import { REGEX_PASSWORD, validate } from '../../hooks/params'
 import { BadRequest } from '@feathersjs/errors'
 
 export default (app: ImpressoApplication) => {
   app.use(
-    '/change-plan',
+    '/user-change-plan-request',
     new Service({
       app,
-      name: 'change-plan',
+      name: 'user-change-plan-request',
     }),
     {
       events: [],
     } as ServiceOptions
   )
-  const service = app.service('change-plan')
+  const service = app.service('user-change-plan-request')
   service.hooks({
     around: {
       all: [authenticateAround()],
@@ -26,7 +25,7 @@ export default (app: ImpressoApplication) => {
         (context: HookContext) => {
           const { plan } = context.data
           if (!plan || typeof plan !== 'string') {
-            throw new BadRequest('Plan is required')
+            throw new BadRequest('`plan` param is required')
           }
           const availablePlans = context.app.get('availablePlans')
 
