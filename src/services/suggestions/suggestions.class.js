@@ -15,11 +15,60 @@ const { measureTime } = require('../../util/instruments')
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 
+const asEntitySuggestion = doc => {
+  // payload shoyld be a string formatted as 'id|type',
+  // like 'aida-0001-Testament_(comics)|Person'
+  const [uid, type] = doc.payload.split('|')
+  const item = new Entity({
+    uid,
+    name: Entity.getNameFromUid(uid),
+    type,
+  })
+  return new Suggestion({
+    q: item.uid,
+    h: Entity.getNameFromUid(doc.term),
+    type: item.type,
+    item,
+    weight: doc.weight,
+  })
+}
+
+const asMentionSuggestion = doc => {
+  // payload form ention contain type only
+  const item = new Mention({
+    name: doc.term.replace(/<[^>]*>/g, ''),
+    frequence: doc.weight,
+    type: doc.payload,
+  })
+  return new Suggestion({
+    q: item.name,
+    h: doc.term,
+    type: 'mention',
+    item,
+    weight: item.frequence,
+  })
+}
+
+const asTopicSuggestion = doc => {
+  const topic = Topic.solrSuggestFactory()(doc)
+  // console.log(topic);
+  return new Suggestion({
+    q: topic.uid,
+    h: topic.getExcerpt().join(' '),
+    type: 'topic',
+    item: topic,
+  })
+}
+
 class Service {
   constructor({ app, name }) {
     this.app = app
     this.name = name
-    this.solrClient = this.app.service('cachedSolr')
+  }
+
+  /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+  get solr() {
+    return this.app.service('simpleSolrClient')
   }
 
   suggestNewspapers({ q }) {
@@ -82,88 +131,19 @@ class Service {
       )
   }
 
-  suggestEntities({ q }) {
-    return measureTime(
-      () =>
-        this.solrClient.suggest(
-          {
-            namespace: 'entities',
-            q,
-            limit: 3,
-          },
-          () => doc => {
-            // payload shoyld be a string formatted as 'id|type',
-            // like 'aida-0001-Testament_(comics)|Person'
-            const [uid, type] = doc.payload.split('|')
-            const item = new Entity({
-              uid,
-              name: Entity.getNameFromUid(uid),
-              type,
-            })
-            return new Suggestion({
-              q: item.uid,
-              h: Entity.getNameFromUid(doc.term),
-              type: item.type,
-              item,
-              weight: doc.weight,
-            })
-          }
-        ),
-      'suggestions.solr.entities'
-    )
+  async suggestEntities({ q }) {
+    const request = { body: { query: q, limit: 3 } }
+    return await this.solr.select('entities', request, () => asEntitySuggestion)
   }
 
-  suggestMentions({ q }) {
-    return measureTime(
-      () =>
-        this.solrClient.suggest(
-          {
-            namespace: 'mentions',
-            q,
-            limit: 3,
-          },
-          () => doc => {
-            // payload form ention contain type only
-            const item = new Mention({
-              name: doc.term.replace(/<[^>]*>/g, ''),
-              frequence: doc.weight,
-              type: doc.payload,
-            })
-            return new Suggestion({
-              q: item.name,
-              h: doc.term,
-              type: 'mention',
-              item,
-              weight: item.frequence,
-            })
-          }
-        ),
-      'suggestions.solr.mentions'
-    )
+  async suggestMentions({ q }) {
+    const request = { body: { query: q, limit: 3 } }
+    return await this.solr.select('mentions', request, () => asMentionSuggestion)
   }
 
-  suggestTopics({ q }) {
-    return measureTime(
-      () =>
-        this.solrClient.suggest(
-          {
-            namespace: 'topics',
-            q,
-            limit: 3,
-          },
-          () => doc => {
-            const topic = Topic.solrSuggestFactory()(doc)
-            // console.log(topic);
-            return new Suggestion({
-              q: topic.uid,
-              h: topic.getExcerpt().join(' '),
-              type: 'topic',
-              item: topic,
-            })
-          }
-        ),
-      'suggestions.solr.topics'
-    )
+  async suggestTopics({ q }) {
+    const request = { body: { query: q, limit: 3 } }
+    return await this.solr.select('topics', request, () => asTopicSuggestion)
   }
 
   async get(type, params) {

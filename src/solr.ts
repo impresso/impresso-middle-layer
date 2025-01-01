@@ -8,6 +8,19 @@ import { logger } from './logger'
 const debug = Debug('impresso/solr')
 const debugRequest = Debug('impresso/solr-request')
 
+export type SolrNamespace =
+  | 'search'
+  | 'mentions'
+  | 'topics'
+  | 'entities'
+  | 'images'
+  | 'tr_passages'
+  | 'tr_clusters'
+  | 'embeddings_de'
+  | 'embeddings_fr'
+  | 'embeddings_lb'
+  | 'entities_mentions'
+
 export const SolrNamespaces = Object.freeze({
   Search: 'search',
   Mentions: 'mentions',
@@ -20,7 +33,7 @@ export const SolrNamespaces = Object.freeze({
   EmbeddingsFR: 'embeddings_fr',
   EmbeddingsLB: 'embeddings_lb',
   EntitiesMentions: 'entities_mentions',
-})
+}) satisfies Record<string, SolrNamespace>
 
 export const getSolrIndex = (
   namespace: (typeof SolrNamespaces)[keyof typeof SolrNamespaces],
@@ -70,9 +83,26 @@ export const transformSolrResponse = (text: string): Record<string, any> => {
   return JSON.parse(sanitizeSolrResponse(text))
 }
 
+export interface SolrError extends Error {
+  response: {
+    statusCode: number
+    body: string | Record<string, any>
+  }
+}
+
+export const isSolrError = (error: Error): error is SolrError => {
+  const maybeSolrError = error as SolrError
+  return (
+    maybeSolrError?.response != null &&
+    typeof maybeSolrError?.response?.statusCode == 'number' &&
+    typeof maybeSolrError?.response?.statusCode == 'string'
+  )
+}
+
 /**
  * @param {Response} res response
  * @returns {Promise<Response>}
+ * @throws {SolrError}
  */
 export const checkResponseStatus = async (res: IResponse): Promise<IResponse> => {
   if (res.ok) return res
@@ -166,6 +196,7 @@ export const defaultFetchOptions: FetchOptions = {
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  */
 async function executeRequest(url: string, params: object, connectionPool: ConnectionPool) {
   const connection = await connectionPool.acquire()
@@ -199,6 +230,7 @@ async function executeRequest(url: string, params: object, connectionPool: Conne
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * Send a raw 'POST' request to Solr.
  */
 const postRaw = async (
@@ -222,6 +254,7 @@ const postRaw = async (
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * Send a raw 'POST' request with form payload to Solr.
  */
 const postFormRaw = async (
@@ -247,6 +280,7 @@ const postFormRaw = async (
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * Send a raw 'GET' request to Solr.
  */
 const getRaw = async (
@@ -271,6 +305,9 @@ const getRaw = async (
   return executeRequest(url, options, connectionPool)
 }
 
+/**
+ * @deprecated use `SimpleSolrClient`
+ */
 const suggest = async (config: any, connectionPool: ConnectionPool, params = {}, factory: any) => {
   const _params = {
     q: '',
@@ -319,6 +356,9 @@ const suggest = async (config: any, connectionPool: ConnectionPool, params = {},
     })
 }
 // TODO: `factory` is not used
+/**
+ * @deprecated use `SimpleSolrClient`
+ */
 const findAllPost = (config: any, connectionsPool: ConnectionPool, params = {}, factory: any) => {
   const qp: Record<string, any> = {
     q: '*:*',
@@ -420,7 +460,7 @@ const findAllPost = (config: any, connectionsPool: ConnectionPool, params = {}, 
 }
 
 /**
- * @deprecated
+ * @deprecated use `SimpleSolrClient`
  * request wrapper to get results from solr.
  * TODO Check grouping: https://lucene.apache.org/solr/guide/6_6/result-grouping.html
  */
@@ -563,6 +603,7 @@ const findAll = (config: any, connectionPool: ConnectionPool, params = {}, facto
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * Return a classic data response for lazy people
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
@@ -594,7 +635,7 @@ const wrapAll = (res: Record<string, any>) => {
 }
 
 /**
- * [resolveAsync description]
+ * @deprecated use `SimpleSolrClient`
  *
  * @param  {Object} config configuration item
  * @param  {Array} groups groups of services, each containing a list of items
@@ -631,6 +672,7 @@ const resolveAsync = async (config: any, connectionsPool: ConnectionPool, groups
 }
 
 /**
+ * @deprecated use `simpleSolrClient`
  * @param {any} config configuration.
  * @param {ConnectionPool} connectionsPool
  */

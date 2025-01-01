@@ -5,6 +5,8 @@ const debug = require('debug')('impresso/scripts:update-topics-related')
 const Eta = require('node-eta')
 const app = require('../app')
 const topics = require('../../data/topics.json')
+const { SolrNamespaces } = require('../solr')
+const { asFindAll } = require('../util/solr/adapters')
 
 const Threshold = parseFloat(process.env.THRESHOLD || 0.5)
 const RelatedThreshold = parseFloat(process.env.RELATED_THRESHOLD || 0.1)
@@ -18,10 +20,7 @@ const filename = path.join(__dirname, '../../data/topics.json')
 // get all topics where is greater than threshold
 let topicUids = Object.keys(topics)
 
-const solrClient = app.service('cachedSolr')
-const cacheManager = app.get('cacheManager')
-
-const TtlFiveYears = 60 * 60 * 24 * 365 * 5
+const solrClient = app.service('simpleSolrClient')
 const CachePrefix = 'cache:script:update-topics-related:solr'
 
 /**
@@ -33,7 +32,7 @@ const CachePrefix = 'cache:script:update-topics-related:solr'
  * @param {*} request
  */
 async function getDataFromSolr(cacheKey, request) {
-  return cacheManager.wrap(cacheKey, () => solrClient.findAll(request, undefined, { skipCache: true }), TtlFiveYears)
+  return await asFindAll(solrClient, SolrNamespaces.Search, request)
 }
 
 if (initialTopicUids.length) {

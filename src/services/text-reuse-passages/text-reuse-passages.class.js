@@ -16,7 +16,7 @@ export const GroupByValues = ['textReuseClusterId']
 
 export class TextReusePassages {
   constructor(app) {
-    this.solr = app.service('cachedSolr')
+    this.solr = app.service('simpleSolrClient')
     this.app = app
   }
 
@@ -48,17 +48,16 @@ export class TextReusePassages {
     const newspapersLookup = await this.app.service('newspapers').getLookup()
 
     return this.solr
-      .get(
-        {
-          q: query,
-          fl,
-          rows: params.query.limit,
-          start: params.query.offset,
+      .selectOne(this.solr.namespaces.TextReusePassages, {
+        body: {
+          query,
+          fields: fl,
+          limit: params.query.limit,
+          offset: params.query.offset,
           sort,
           ...groupby,
         },
-        this.solr.namespaces.TextReusePassages
-      )
+      })
       .then(({ responseHeader, response }) => {
         return {
           data: response.docs.map(doc => {
@@ -86,16 +85,17 @@ export class TextReusePassages {
   async get(id, { query = {} }) {
     // return the corresponding textReusePassages instance.
     const textReusePassages = await this.solr
-      .get(
-        {
-          q: [id].map(d => `${TextReusePassage.SolrFields.id}:${d.split(':').join('\\:')}`).join(' OR '),
-          hl: false,
-          rows: 1,
+      .selectOne(this.solr.namespaces.TextReusePassages, {
+        body: {
+          query: [id].map(d => `${TextReusePassage.SolrFields.id}:${d.split(':').join('\\:')}`).join(' OR '),
+          params: {
+            hl: false,
+          },
+          limit: 1,
           // all of them
-          fl: Object.values(TextReusePassage.SolrFields).join(','),
+          fields: Object.values(TextReusePassage.SolrFields).join(','),
         },
-        this.solr.namespaces.TextReusePassages
-      )
+      })
       .then(({ response }) =>
         response.numFound ? response.docs.map(doc => TextReusePassage.CreateFromSolr()(doc)) : []
       )

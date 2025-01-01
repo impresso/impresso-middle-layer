@@ -1,3 +1,4 @@
+import { getToSelect } from '@/util/solr/adapters'
 const { mapValues, groupBy } = require('lodash')
 const {
   buildConnectedClustersRequest,
@@ -24,8 +25,8 @@ function getArguments(params) {
 
 class TextReuseConnectedClusters {
   constructor(app) {
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
 
     // NOTE: using service to mock while data is not available.
     this.textReuseClustersService = app.service('text-reuse-clusters')
@@ -35,7 +36,7 @@ class TextReuseConnectedClusters {
     const { clusterId, offset, limit } = getArguments(params)
     const request = buildConnectedClustersRequest(clusterId, limit, offset)
     const { clustersIds, total } = await this.solr
-      .post(request, this.solr.namespaces.TextReusePassages)
+      .select(this.solr.namespaces.TextReusePassages, { body: request })
       .then(parseConnectedClustersResponse)
 
     if (clustersIds.length === 0) {
@@ -48,11 +49,14 @@ class TextReuseConnectedClusters {
     }
 
     const sampleTextsPromise = this.solr
-      .get(getLatestTextReusePassageForClusterIdRequest(clustersIds), this.solr.namespaces.TextReusePassages)
+      .get(
+        this.solr.namespaces.TextReusePassages,
+        getToSelect(getLatestTextReusePassageForClusterIdRequest(clustersIds))
+      )
       .then(getClusterIdsTextAndPermissionsFromPassagesSolrResponse)
 
     const clustersPromise = this.solr
-      .get(getTextReuseClustersRequestForIds(clustersIds), this.solr.namespaces.TextReuseClusters)
+      .selectOne(this.solr.namespaces.TextReuseClusters, getToSelect(getTextReuseClustersRequestForIds(clustersIds)))
       .then(convertClustersSolrResponseToClusters)
 
     const [clusterIdsAndTextAndPermissions, clusters] = await Promise.all([sampleTextsPromise, clustersPromise])

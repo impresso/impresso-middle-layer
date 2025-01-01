@@ -187,8 +187,8 @@ function buildMentionResponse(mentionLabel, mentionType, facetSearchResult) {
 class EntityMentionsTimeline {
   constructor(app) {
     this.app = app
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
     /** @type {import('../entities/entities.class').Service} */
     this.entitiesService = app.service('entities')
     this.app = app
@@ -201,7 +201,7 @@ class EntityMentionsTimeline {
       // Get linked entities
       const linkedMentionsQuery = buildLinkedMentionsSolrQuery(body.entityId, offset, limit)
       const linkedMentionsPromise = this.solr
-        .post(linkedMentionsQuery, this.solr.namespaces.EntitiesMentions)
+        .select(SolrNamespaces.EntitiesMentions, { body: linkedMentionsQuery })
         .then(getMentionLabelsFromSolrResponse)
       const entityPromise = this.entitiesService.get(entityId, {})
 
@@ -212,7 +212,7 @@ class EntityMentionsTimeline {
 
       const query = buildSolrQueryForEntity(body.entityId, entity.type, entityMentionLabels, filters, timeResolution)
 
-      const result = await this.solr.post(query, this.solr.namespaces.Search)
+      const result = await this.solr.select(SolrNamespaces.Search, { body: query })
       return {
         item: buildEntityResponse(entity, result),
         subitems: buildEntitySubitemsResponse(entity, result, entityMentionLabels),
@@ -221,7 +221,7 @@ class EntityMentionsTimeline {
     }
 
     const query = buildSolrQueryForMention(mentionLabel, mentionType, filters, timeResolution)
-    const result = await this.solr.post(query, this.solr.namespaces.Search)
+    const result = await this.solr.select(SolrNamespaces.Search, { body: query })
     return {
       item: buildMentionResponse(mentionLabel, mentionType, result),
     }

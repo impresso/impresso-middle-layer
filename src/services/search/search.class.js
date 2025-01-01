@@ -2,7 +2,6 @@ const debug = require('debug')('impresso/services:search')
 const { protobuf } = require('impresso-jscommons')
 const { NotFound, NotImplemented } = require('@feathersjs/errors')
 const sequelize = require('../../sequelize')
-const { isCacheableQuery } = require('../../util/cache')
 const Article = require('../../models/articles.model')
 const Collection = require('../../models/collections.model')
 const Job = require('../../models/jobs.model')
@@ -12,6 +11,7 @@ const {
   getTotalFromSolrResponse,
 } = require('../search/search.extractors')
 const { measureTime } = require('../../util/instruments')
+const { asFindAll } = require('../../util/solr/adapters')
 
 class Service {
   /**
@@ -22,8 +22,7 @@ class Service {
    */
   constructor({ app, name } = {}) {
     this.app = app
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    this.solr = app.service('simpleSolrClient')
     this.sequelize = sequelize.client(app.get('sequelize'))
     this.name = name
   }
@@ -181,13 +180,14 @@ class Service {
       vars: params.sanitized.sv,
     }
 
-    const solrResponse = await measureTime(
-      () =>
-        this.solr.findAllPost(solrQuery, {
-          skipCache: !isCacheableQuery(params.sanitized.filters),
-        }),
-      'search.find.solr.search'
-    )
+    // const solrResponse = await measureTime(
+    //   () =>
+    //     this.solr.findAllPost(solrQuery, {
+    //       skipCache: !isCacheableQuery(params.sanitized.filters),
+    //     }),
+    //   'search.find.solr.search'
+    // )
+    const solrResponse = await asFindAll(this.solr, 'search', solrQuery)
 
     const total = getTotalFromSolrResponse(solrResponse)
     debug(`find '${this.name}' (1 / 2): SOLR found ${total} using SOLR params:`, solrResponse.responseHeader)

@@ -1,6 +1,5 @@
 import { HookContext } from '@feathersjs/feathers'
 import { AppServices, ImpressoApplication } from '../types'
-import { groupBy } from '../util/fn'
 
 const debug = require('debug')('impresso/hooks:search-info')
 

@@ -149,18 +149,22 @@ describe('getTextReuseClustersRequestForIds', () => {
 })
 
 describe('convertClustersSolrResponseToClusters', () => {
-  const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse).map(c => validated(c, ClusterSchemaUri))
-  const expectedClusters = [
-    {
-      id: '163208759161',
-      lexicalOverlap: 22.8571428571,
-      clusterSize: 3,
-      timeCoverage: {
-        from: '1971-12-11',
-        to: '1972-12-02',
+  it('works', () => {
+    const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse).map(c =>
+      validated(c, ClusterSchemaUri)
+    )
+    const expectedClusters = [
+      {
+        id: '163208759161',
+        lexicalOverlap: 22.8571428571,
+        clusterSize: 3,
+        timeCoverage: {
+          from: '1971-12-11',
+          to: '1972-12-02',
+        },
       },
-    },
-  ]
+    ]
 
-  assert.deepStrictEqual(clusters, expectedClusters)
+    assert.deepStrictEqual(clusters, expectedClusters)
+  })
 })

@@ -44,7 +44,7 @@ const DefaultPassagesLimit = 100
 /**
  * Get Solr query parameters for requesting text passages for an article.
  * @param {string} articleId article ID
- * @return {object} GET request query parameters
+ * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
  */
 function getTextReusePassagesRequestForArticle(articleId, fields = undefined) {
   assert.ok(typeof articleId === 'string' && articleId.length > 0, 'Article ID is required')
@@ -75,7 +75,7 @@ const getOneOfFieldsValues = (doc, fields) =>
 /**
  * Get Solr query parameters for requesting clusters by their Ids.
  * @param {string[]} clusterIds Ids of clusters
- * @return {object} GET request query parameters
+ * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
  */
 function getTextReuseClustersRequestForIds(clusterIds, fields = DefaultClusterFields) {
   assert.ok(Array.isArray(clusterIds) && clusterIds.length > 0, 'At least one cluster Id is required')
@@ -152,6 +152,7 @@ const buildContentSearchStatement = text =>
 /**
  * Build a GET request to find cluster IDs of passages that contain `text`.
  * @param {string} text a text snippet
+ * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
  */
 function getTextReusePassagesClusterIdsSearchRequestForText(text, offset, limit, orderBy, orderByDescending) {
   const request = {
@@ -171,6 +172,9 @@ function getTextReusePassagesClusterIdsSearchRequestForText(text, offset, limit,
   return request
 }
 
+/**
+ * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
+ */
 function getLatestTextReusePassageForClusterIdRequest(clusterIdOrClusterIds) {
   const clusterId = Array.isArray(clusterIdOrClusterIds) ? undefined : clusterIdOrClusterIds
   const clusterIds = Array.isArray(clusterIdOrClusterIds) ? clusterIdOrClusterIds : undefined
@@ -234,6 +238,9 @@ function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
   }
 }
 
+/**
+ * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
+ */
 function getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderBy, orderByDescending) {
   const request = {
     q: `${PassageFields.ClusterId}:"${clusterId}"`,
@@ -314,7 +321,7 @@ function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
  * @param {string} clusterId cluster ID
  * @param {number} limit
  * @param {number} offset
- * @returns {Record<string, any>}
+ * @return {import('../../internalServices/simpleSolr').SelectRequestBody}
  */
 function buildConnectedClustersRequest(clusterId, limit = 10, offset = 0) {
   const request = {
@@ -346,7 +353,7 @@ function parseConnectedClustersResponse(response) {
 
 /**
  * @param {string} clusterId cluster ID
- * @returns {Record<string, any>}
+ * @return {import('../../internalServices/simpleSolr').SelectRequestBody}
  */
 function buildConnectedClustersCountRequest(clusterId) {
   const request = {

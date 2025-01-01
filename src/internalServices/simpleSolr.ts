@@ -1,6 +1,7 @@
-import { CachedSolrClient } from '../cachedSolr'
+import { preprocessSolrError } from '@/util/solr/errors'
+import { Cache } from '../cache'
 import { SolrFacetQueryParams } from '../data/types'
-import { ConnectionPool, initHttpPool, RequestInfo, RequestInit, Headers } from '../httpConnectionPool'
+import { ConnectionPool, Headers, initHttpPool, RequestInit } from '../httpConnectionPool'
 import { logger } from '../logger'
 import {
   SolrConfiguration,
@@ -8,12 +9,11 @@ import {
   SolrServerConfiguration,
   SolrServerNamespaceConfiguration,
 } from '../models/generated/common'
-import { checkResponseStatus, defaultFetchOptions, sanitizeSolrResponse, transformSolrResponse } from '../solr'
+import { checkResponseStatus, defaultFetchOptions, sanitizeSolrResponse, SolrNamespace, SolrNamespaces } from '../solr'
 import { ImpressoApplication } from '../types'
-import { ensureServiceIsFeathersCompatible } from '../util/feathers'
-import { Cache } from '../cache'
-import { serialize } from '../util/serialize'
 import { createSha256Hash } from '../util/crypto'
+import { ensureServiceIsFeathersCompatible } from '../util/feathers'
+import { serialize } from '../util/serialize'
 import { defaultCachingStrategy } from '../util/solr/cacheControl'
 
 export interface SelectRequestBody {
@@ -38,6 +38,7 @@ export interface SelectRequest {
 
 interface ResponseHeaders {
   status?: number
+  QTime?: number
 }
 
 export interface ResponseContainer<T> {
@@ -93,6 +94,11 @@ export interface SelectResponse<T, K extends string, B extends BucketValue> {
   grouped?: Record<string, any>
   highlighting?: Record<string, any>
   fragments?: Record<string, any>
+  stats?: {
+    stats_fields?: {
+      statistics?: any
+    }
+  }
 }
 
 /**
@@ -100,10 +106,13 @@ export interface SelectResponse<T, K extends string, B extends BucketValue> {
  * Aims to replace all the other varied Solr client interfaces in the codebase.
  */
 export interface SimpleSolrClient {
+  namespaces: typeof SolrNamespaces
+
   select<T = Record<string, unknown>, K extends string = string, B extends BucketValue = Bucket>(
-    namespace: string,
+    namespace: SolrNamespace,
     request: SelectRequest
   ): Promise<SelectResponse<T, K, B>>
+  selectOne<T = Record<string, unknown>>(namespace: SolrNamespace, request: SelectRequest): Promise<T | undefined>
 }
 
 interface PoolWrapper {
@@ -125,11 +134,13 @@ const buildAuthHeader = (auth?: SolrServerAuth): Record<string, string> => {
 }
 
 class DefaultSimpleSolrClient implements SimpleSolrClient {
-  private pools: Record<string, PoolWrapper> = {}
-  private namespaces: Record<string, SolrServerNamespaceConfiguration> = {}
+  namespaces = SolrNamespaces
+
+  private _pools: Record<string, PoolWrapper> = {}
+  private _namespaces: Record<string, SolrServerNamespaceConfiguration> = {}
 
   constructor(configuration: SolrConfiguration) {
-    this.pools =
+    this._pools =
       configuration?.servers?.reduce(
         (acc, server) => {
           const socksProxy = server.proxy != null ? { host: server.proxy.host, port: server.proxy.port } : undefined
@@ -142,7 +153,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
         },
         {} as Record<string, PoolWrapper>
       ) ?? {}
-    this.namespaces =
+    this._namespaces =
       configuration?.namespaces?.reduce(
         (acc, namespace) => {
           acc[namespace.namespaceId] = namespace
@@ -153,12 +164,12 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
   }
 
   private getPool(namespace: string): [PoolWrapper, SolrServerNamespaceConfiguration] {
-    const namespaceObj = this.namespaces[namespace]
+    const namespaceObj = this._namespaces[namespace]
     const serverId = namespaceObj?.serverId
     if (serverId == null) {
       throw new Error(`Namespace ${namespace} not found in configuration`)
     }
-    return [this.pools[serverId], namespaceObj]
+    return [this._pools[serverId], namespaceObj]
   }
 
   protected async fetch(pool: ConnectionPool, url: string, init: RequestInit): Promise<string> {
@@ -169,13 +180,15 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
       const successfulResponse = await checkResponseStatus(response)
       const responseBodyText = await successfulResponse.text()
       return sanitizeSolrResponse(responseBodyText)
+    } catch (e) {
+      throw preprocessSolrError(e as Error)
     } finally {
       await pool.release(client).catch(e => logger.error(`Failed to release connection: ${e}`))
     }
   }
 
   async select<T = Record<string, unknown>, K extends string = string, B extends BucketValue = Bucket>(
-    namespaceId: string,
+    namespaceId: SolrNamespace,
     request: SelectRequest
   ): Promise<SelectResponse<T, K, B>> {
     const [{ pool, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
@@ -192,6 +205,14 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
 
     const responseBody = await this.fetch(pool, url, init)
     return JSON.parse(responseBody)
+  }
+
+  async selectOne<T = Record<string, unknown>>(
+    namespace: SolrNamespace,
+    request: SelectRequest
+  ): Promise<T | undefined> {
+    const result = await this.select<T>(namespace, request)
+    return result.response?.docs?.[0]
   }
 }
 

@@ -1,6 +1,5 @@
 import { Params } from '@feathersjs/feathers'
 import lodash from 'lodash'
-import { CachedSolrClient } from '../../cachedSolr'
 import { isNumber, SolrMappings } from '../../data/constants'
 import { FindResponse } from '../../models/common'
 import type { SearchFacet } from '../../models/generated/schemas'
@@ -17,6 +16,8 @@ import {
   SolrRangeFacetQueryParams,
   SolrTermsFacetQueryParams,
 } from '../../data/types'
+import { SelectQueryParameters, SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { SolrNamespace } from '@/solr'
 
 const debug = require('debug')('impresso/services:search-facets')
 
@@ -110,13 +111,13 @@ export class Service {
   app: ImpressoApplication
   name: string
   index: IndexId
-  solr: CachedSolrClient
+  solr: SimpleSolrClient
 
   constructor({ app, name, index }: ServiceOptions) {
     this.app = app
     this.name = name
     this.index = index
-    this.solr = app.service('cachedSolr')
+    this.solr = app.service('simpleSolrClient')
   }
 
   async get(type: string, params: Params<GetQuery>): Promise<SearchFacet> {
@@ -234,27 +235,31 @@ export class Service {
       'group_by',
       sanitizedParams.group_by || 'none'
     )
-    const query: Record<string, any> = {
-      q: sanitizedParams.sq,
-      'json.facet': JSON.stringify(facets),
-      start: 0,
-      rows: 0,
-      hl: false,
-      vars: sanitizedParams.sv,
+    const query: SelectRequestBody = {
+      query: sanitizedParams.sq ?? '*:*',
+      facet: facets,
+      offset: 0,
+      limit: 0,
+      params: {
+        hl: false,
+      },
     }
+    const vars = sanitizedParams.sv as SelectQueryParameters
 
     if (sanitizedParams.group_by) {
-      query.fq = `{!collapse field=${sanitizedParams.group_by}}`
+      query.filter = `{!collapse field=${sanitizedParams.group_by}}`
     }
-    const result: { facets: Record<string, ISolrResponseFacetDetails> } = await measureTime(
-      () => this.solr.get(query, index.replace('-', '_'), { skipCache: true }), //! canBeCached }),
+    const result = await measureTime(
+      () => this.solr.select(index.replace('-', '_') as SolrNamespace, { body: query, params: vars }), //! canBeCached }),
       'search-facets.get.solr.facets'
     )
+    const resultFacets = result.facets as Record<string, ISolrResponseFacetDetails>
+
     return types.map(facetType => {
       const facetParams = indexFacets[facetType]
 
       if (isSolrTermsFacetQuerParams(facetParams)) {
-        const facetDetails: ISolrResponseTermsFacetDetails | undefined = result.facets[facetType]
+        const facetDetails: ISolrResponseTermsFacetDetails | undefined = resultFacets[facetType]
 
         return new SearchFacetModel({
           type: facetType,
@@ -262,7 +267,7 @@ export class Service {
           numBuckets: facetDetails?.numBuckets ?? 0,
         })
       } else if (isSolrRangeFacetQuerParams(facetParams)) {
-        const facetDetails: ISolrResponseRangeFacetDetails | undefined = result.facets[facetType]
+        const facetDetails: ISolrResponseRangeFacetDetails | undefined = resultFacets[facetType]
 
         const rangeFacetMetadata = getRangeFacetMetadata(facetParams)
         // check that facetsq params are all defined

@@ -17,6 +17,7 @@ const { SolrMappings } = require('../../data/constants')
 
 const { getFacetsFromSolrResponse } = require('../search/search.extractors')
 const { filtersToQueryAndVariables } = require('../../util/solr')
+const { SolrNamespaces } = require('../../solr')
 
 /**
  * Create SOLR query for getting facets.
@@ -150,10 +151,8 @@ async function getResponseFacetsFromSolrResponse(solrResponse, app) {
 
 class SearchQueriesComparison {
   setup(app) {
-    // this.solrClient = app.get('solrClient');
-
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
 
     this.app = app
 
@@ -174,7 +173,7 @@ class SearchQueriesComparison {
 
     const intersectionSolrQuery = createSolrQuery(intersectionFilters, request.facets)
     const intersectionFacets = await this.solr
-      .post(intersectionSolrQuery, this.solr.namespaces.Search)
+      .select(SolrNamespaces.Search, { body: intersectionSolrQuery })
       .then(r => getResponseFacetsFromSolrResponse(r, this.app))
 
     const otherQueries = request.filtersSets.map(filtersSet =>
@@ -184,7 +183,7 @@ class SearchQueriesComparison {
     const otherQueriesFacets = await Promise.all(
       otherQueries.map(query =>
         this.solr
-          .post(query, this.solr.namespaces.Search)
+          .select(SolrNamespaces.Search, { body: query })
           .then(response => normaliseFacetsInSolrResponse(response, intersectionFacets))
           .then(r => getResponseFacetsFromSolrResponse(r, this.app))
       )

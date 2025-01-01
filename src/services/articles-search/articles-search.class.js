@@ -12,8 +12,8 @@ const { getItemsFromSolrResponse, getTotalFromSolrResponse } = require('../searc
 class ArticlesSearch {
   constructor(options, app) {
     this.options = options || {}
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
     this.articlesService = app.service('content-items')
   }
 
@@ -34,7 +34,7 @@ class ArticlesSearch {
 
     const solrQuery = buildSolrQuery(query, relevanceScoreVariable, pagination)
 
-    const result = await this.solr.post(solrQuery, SolrNamespaces.Search)
+    const result = await this.solr.select(SolrNamespaces.Search, { body: solrQuery })
 
     const total = getTotalFromSolrResponse(result)
 

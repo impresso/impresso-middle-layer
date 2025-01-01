@@ -1,3 +1,4 @@
+const { SolrNamespaces } = require('../../solr')
 const {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
@@ -43,7 +44,8 @@ function mergeResponses(responses, totalsResponse) {
 
 class NgramTrends {
   setup(app) {
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
   }
 
   async create({ ngrams, filters, facets = [] }) {
@@ -52,8 +54,8 @@ class NgramTrends {
     const requestPayloads = ngrams.map(ngram => unigramTrendsRequestToSolrQuery(ngram, filters, facets, timeInterval))
     const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval)
 
-    const requests = requestPayloads.map(payload => this.solr.post(payload, this.solr.namespaces.Search))
-    const totalsRequest = this.solr.post(totalsRequestPayload, this.solr.namespaces.Search)
+    const requests = requestPayloads.map(payload => this.solr.select(SolrNamespaces.Search, { body: payload }))
+    const totalsRequest = this.solr.select(SolrNamespaces.Search, { body: totalsRequestPayload })
 
     const solrResponses = await Promise.all(requests.concat([totalsRequest]))
 
