@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
+import { SearchFacet } from '../../models/search-facets.model'
 const Newspaper = require('../../models/newspapers.model')
 const { BaseArticle } = require('../../models/articles.model')
-const SearchFacet = require('../../models/search-facets.model')
 const { measureTime } = require('../../util/instruments')
 const { asFindAll } = require('../../util/solr/adapters')
 
@@ -87,14 +87,19 @@ class Service {
 
     // get persons and locations from the facet,
     // using the simplified version of their buckets
-    const [persons, locations] = ['person', 'location'].map(type => {
-      const t = new SearchFacet({
-        type,
-        ...result.facets[type],
-        noBuckets: true,
+    const [persons, locations] = await Promise.all(
+      ['person', 'location'].map(async type => {
+        const t = await SearchFacet.build(
+          {
+            type,
+            ...result.facets[type],
+            noBuckets: true,
+          },
+          this.app
+        )
+        return t.getItems()
       })
-      return t.getItems()
-    })
+    )
     // return a TOC instance without instantiating a class.
     return {
       newspaper,
