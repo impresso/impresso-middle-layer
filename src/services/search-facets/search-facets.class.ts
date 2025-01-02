@@ -4,14 +4,14 @@ import { isNumber, SolrMappings } from '../../data/constants'
 import { FindResponse } from '../../models/common'
 import type { SearchFacet } from '../../models/generated/schemas'
 import type { Filter } from '../../models/generated/shared'
-import SearchFacetModel from '../../models/search-facets.model'
+import { SearchFacet as SearchFacetModel } from '../../models/search-facets.model'
 import { ImpressoApplication } from '../../types'
 import { areCacheableFacets, isCacheableQuery } from '../../util/cache'
 import { measureTime } from '../../util/instruments'
 import { IndexId } from './search-facets.schema'
 import {
-  isSolrRangeFacetQuerParams,
-  isSolrTermsFacetQuerParams,
+  isSolrRangeFacetQueryParams,
+  isSolrTermsFacetQueryParams,
   SolrFacetQueryParams,
   SolrRangeFacetQueryParams,
   SolrTermsFacetQueryParams,
@@ -204,7 +204,7 @@ export class Service {
     const facets = types.reduce(
       (acc, facetType) => {
         const facetParams = indexFacets[facetType]
-        if (isSolrTermsFacetQuerParams(facetParams)) {
+        if (isSolrTermsFacetQueryParams(facetParams)) {
           const combinedParams: SolrTermsFacetQueryParams = {
             ...facetParams,
             ...lodash.pick(facetsq, 'limit', 'offset', 'sort'),
@@ -213,7 +213,7 @@ export class Service {
             combinedParams.prefix = isAuthenticated ? userId : '-'
           }
           return { ...acc, [facetType]: combinedParams }
-        } else if (isSolrRangeFacetQuerParams(facetParams)) {
+        } else if (isSolrRangeFacetQueryParams(facetParams)) {
           const combinedParams: SolrRangeFacetQueryParams = {
             ...facetParams,
             ...facetsq,
@@ -255,54 +255,67 @@ export class Service {
     )
     const resultFacets = result.facets as Record<string, ISolrResponseFacetDetails>
 
-    return types.map(facetType => {
-      const facetParams = indexFacets[facetType]
+    return Promise.all(
+      types.map(async facetType => {
+        const facetParams = indexFacets[facetType]
 
-      if (isSolrTermsFacetQuerParams(facetParams)) {
-        const facetDetails: ISolrResponseTermsFacetDetails | undefined = resultFacets[facetType]
+        if (isSolrTermsFacetQueryParams(facetParams)) {
+          const facetDetails: ISolrResponseTermsFacetDetails | undefined = resultFacets[facetType]
 
-        return new SearchFacetModel({
-          type: facetType,
-          buckets: (facetDetails?.buckets ?? []) as any,
-          numBuckets: facetDetails?.numBuckets ?? 0,
-        })
-      } else if (isSolrRangeFacetQuerParams(facetParams)) {
-        const facetDetails: ISolrResponseRangeFacetDetails | undefined = resultFacets[facetType]
+          return await SearchFacetModel.build(
+            {
+              type: facetType,
+              buckets: (facetDetails?.buckets ?? []) as any,
+              numBuckets: facetDetails?.numBuckets ?? 0,
+            },
+            this.app
+          )
+        } else if (isSolrRangeFacetQueryParams(facetParams)) {
+          const facetDetails: ISolrResponseRangeFacetDetails | undefined = resultFacets[facetType]
 
-        const rangeFacetMetadata = getRangeFacetMetadata(facetParams)
-        // check that facetsq params are all defined
-        if (facetsQueryPart.start == null || isNumber(facetsQueryPart.start)) {
-          rangeFacetMetadata.min = facetsQueryPart.start
+          const rangeFacetMetadata = getRangeFacetMetadata(facetParams)
+          // check that facetsq params are all defined
+          if (facetsQueryPart.start == null || isNumber(facetsQueryPart.start)) {
+            rangeFacetMetadata.min = facetsQueryPart.start
+          }
+          if (facetsQueryPart.end == null || isNumber(facetsQueryPart.end)) {
+            rangeFacetMetadata.max = facetsQueryPart.end
+          }
+          if (facetsQueryPart.gap == null || isNumber(facetsQueryPart.gap)) {
+            rangeFacetMetadata.gap = facetsQueryPart.gap
+          }
+
+          // range facets are not paginated and not sorted in Solr,
+          // we have to do it here
+
+          const limit = facetsq.limit ?? facetDetails?.buckets?.length ?? 0
+          const offset = facetsq.offset ?? 0
+          const sortedBuckets = getSortedBuckets(facetDetails?.buckets ?? [], facetsq.sort)
+          const limitedBuckets = sortedBuckets.slice(offset, offset + limit)
+
+          if (facetsq.limit != null || facetsq.limit != null)
+            return await SearchFacetModel.build(
+              {
+                type: facetType,
+                buckets: limitedBuckets as any,
+                numBuckets: facetDetails?.buckets?.length ?? 0,
+                min: rangeFacetMetadata.min as any,
+                max: rangeFacetMetadata.max as any,
+                gap: rangeFacetMetadata.gap as any,
+              },
+              this.app
+            )
         }
-        if (facetsQueryPart.end == null || isNumber(facetsQueryPart.end)) {
-          rangeFacetMetadata.max = facetsQueryPart.end
-        }
-        if (facetsQueryPart.gap == null || isNumber(facetsQueryPart.gap)) {
-          rangeFacetMetadata.gap = facetsQueryPart.gap
-        }
-
-        // range facets are not paginated and not sorted in Solr,
-        // we have to do it here
-
-        const limit = facetsq.limit ?? facetDetails?.buckets?.length ?? 0
-        const offset = facetsq.offset ?? 0
-        const sortedBuckets = getSortedBuckets(facetDetails?.buckets ?? [], facetsq.sort)
-        const limitedBuckets = sortedBuckets.slice(offset, offset + limit)
-
-        if (facetsq.limit != null || facetsq.limit != null)
-          return new SearchFacetModel({
+        return SearchFacetModel.build(
+          {
             type: facetType,
-            buckets: limitedBuckets as any,
-            numBuckets: facetDetails?.buckets?.length ?? 0,
-            min: rangeFacetMetadata.min as any,
-            max: rangeFacetMetadata.max as any,
-            gap: rangeFacetMetadata.gap as any,
-          })
-      }
-      return new SearchFacetModel({
-        type: facetType,
+            buckets: [],
+            numBuckets: 0,
+          },
+          this.app
+        )
       })
-    })
+    )
   }
 }
 

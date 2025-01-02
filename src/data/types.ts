@@ -36,10 +36,10 @@ export interface SolrTermsFacetQueryParams {
 
 export type SolrFacetQueryParams = SolrRangeFacetQueryParams | SolrTermsFacetQueryParams | string
 
-export const isSolrRangeFacetQuerParams = (params: SolrFacetQueryParams): params is SolrRangeFacetQueryParams => {
+export const isSolrRangeFacetQueryParams = (params: SolrFacetQueryParams): params is SolrRangeFacetQueryParams => {
   return (params as SolrRangeFacetQueryParams).type === 'range'
 }
 
-export const isSolrTermsFacetQuerParams = (params: SolrFacetQueryParams): params is SolrTermsFacetQueryParams => {
+export const isSolrTermsFacetQueryParams = (params: SolrFacetQueryParams): params is SolrTermsFacetQueryParams => {
   return (params as SolrTermsFacetQueryParams).type === 'terms'
 }
