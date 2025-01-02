@@ -147,7 +147,7 @@ const filtersToSolrFacetQuery = () => async context => {
 }
 
 module.exports = {
-  queries: config.solr.queries,
+  queries: { hasTextContents: 'content_length_i:[1 TO *]' },
   filtersToSolrQuery,
   qToSolrFilter,
   filtersToSolrFacetQuery,
