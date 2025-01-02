@@ -1,3 +1,4 @@
+import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
 const debug = require('debug')('impresso/services/text-reuse-passages')
 const { filtersToQueryAndVariables } = require('../../util/solr')
 const TextReusePassage = require('../../models/text-reuse-passages.model')
@@ -33,7 +34,7 @@ export class TextReusePassages {
     const fq = `{!collapse field=${
       TextReusePassage.SolrFields[params.query.group_by]
     } max=ms(${TextReusePassage.SolrFields.date})}`
-    const groupby = params.query.group_by ? { fq } : null
+    const groupby = params.query.group_by ? { filter: fq } : null
 
     debug(
       'find q:',
@@ -45,10 +46,10 @@ export class TextReusePassages {
       // params.query
     )
 
-    const newspapersLookup = await this.app.service('newspapers').getLookup()
+    const mediaSourcesLookup = await this.app.service('media-sources').getLookup()
 
     return this.solr
-      .selectOne(this.solr.namespaces.TextReusePassages, {
+      .select(this.solr.namespaces.TextReusePassages, {
         body: {
           query,
           fields: fl,
@@ -63,8 +64,10 @@ export class TextReusePassages {
           data: response.docs.map(doc => {
             const result = TextReusePassage.CreateFromSolr()(doc)
             if (params.query?.addons?.newspaper && result.newspaper != null) {
-              result.newspaper = newspapersLookup[result.newspaper.id]
-              result.newspaper.id = result.newspaper.uid
+              result.newspaper = optionalMediaSourceToNewspaper(mediaSourcesLookup[result.newspaper.id])
+              if (result.newspaper != null) {
+                result.newspaper.id = result.newspaper.uid
+              }
             }
             return result
           }),
@@ -84,7 +87,7 @@ export class TextReusePassages {
 
   async get(id, { query = {} }) {
     // return the corresponding textReusePassages instance.
-    const textReusePassages = await this.solr
+    const textReusePassage = await this.solr
       .selectOne(this.solr.namespaces.TextReusePassages, {
         body: {
           query: [id].map(d => `${TextReusePassage.SolrFields.id}:${d.split(':').join('\\:')}`).join(' OR '),
@@ -96,13 +99,9 @@ export class TextReusePassages {
           fields: Object.values(TextReusePassage.SolrFields).join(','),
         },
       })
-      .then(({ response }) =>
-        response.numFound ? response.docs.map(doc => TextReusePassage.CreateFromSolr()(doc)) : []
-      )
-    debug('textReusePassages:', textReusePassages)
-    if (!textReusePassages.length) {
-      return new NotFound(id)
-    }
-    return textReusePassages[0]
+      .then(doc => (doc != null ? TextReusePassage.CreateFromSolr()(doc) : undefined))
+    debug('textReusePassages:', textReusePassage)
+    if (textReusePassage == null) return new NotFound(id)
+    return textReusePassage
   }
 }

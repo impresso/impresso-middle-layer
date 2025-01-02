@@ -24,7 +24,7 @@ const resolveTopics = () => async context => {
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     const solr = context.app.service('simpleSolrClient')
 
-    const group = resolveAsync(solr, {
+    const group = await resolveAsync(solr, {
       Klass: Topic,
       namespace: 'topics',
       items: context.result.topics,

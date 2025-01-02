@@ -1,3 +1,4 @@
+import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
 const {
   getTextReuseClusterPassagesRequest,
   getPaginationInfoFromPassagesSolrResponse,
@@ -10,7 +11,7 @@ const { toArticlePageDetails } = require('../../logic/ids')
 const { parseOrderBy } = require('../../util/queryParameters')
 const { measureTime } = require('../../util/instruments')
 const { SolrNamespaces } = require('../../solr')
-const { getToSelect } = require('@/util/solr/adapters')
+const { getToSelect } = require('../../util/solr/adapters')
 
 const OrderByKeyToField = {
   date: PassageFields.Date,
@@ -58,14 +59,14 @@ class TextReuseClusterPassages {
       return acc
     }, {})
 
-    const newspapersLookup = await app.service('newspapers').getLookup()
+    const mediaSourcesLookup = await app.service('media-sources').getLookup()
 
     return Promise.all(
       passages.map(async passage => {
         const iifUrl = pageIdToIIIFUrl[articleIdToPageId[passage.articleId]]
         return {
           passage,
-          newspaper: newspapersLookup[passage.journalId],
+          newspaper: optionalMediaSourceToNewspaper(mediaSourcesLookup[passage.journalId]),
           iiifUrls: iifUrl != null ? [iifUrl] : [],
         }
       })

@@ -7,7 +7,11 @@ import { ImpressoApplication } from '../../types'
 
 const getYear = (isoDateString: string) => new Date(isoDateString).getFullYear()
 
-const mediaSourceToNewspaper = (mediaSource: MediaSource): NewspaperInternal => {
+export const optionalMediaSourceToNewspaper = (mediaSource: MediaSource | undefined): NewspaperInternal | undefined => {
+  if (mediaSource != null) return mediaSourceToNewspaper(mediaSource)
+}
+
+export const mediaSourceToNewspaper = (mediaSource: MediaSource): NewspaperInternal => {
   const startYear = mediaSource.publishedPeriodYears?.[0]
   const endYear = mediaSource.publishedPeriodYears?.[1]
   const deltaYear = (endYear ?? 0) - (startYear ?? 0)

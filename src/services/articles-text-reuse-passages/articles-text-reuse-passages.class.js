@@ -1,4 +1,4 @@
-import { getToSelect } from '@/util/solr/adapters'
+import { getToSelect } from '../../util/solr/adapters'
 const { groupBy, mapValues, first } = require('lodash')
 const {
   getTextReusePassagesRequestForArticle,

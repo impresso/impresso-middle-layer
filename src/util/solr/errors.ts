@@ -1,4 +1,4 @@
-import { isSolrError, SolrError } from '@/solr'
+import { isSolrError, SolrError } from '../../solr'
 import { BadRequest, GeneralError } from '@feathersjs/errors'
 
 /**

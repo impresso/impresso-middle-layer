@@ -717,7 +717,7 @@ class Article extends BaseArticle {
         rc,
         // accessRight
         accessRight: doc.access_right_s || ACCESS_RIGHT_NOT_SPECIFIED,
-        mentions: doc.nem_offset_plain,
+        mentions: typeof doc.nem_offset_plain === 'string' ? JSON.parse(doc.nem_offset_plain) : doc.nem_offset_plain,
         topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs),
         persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs),
         locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs),

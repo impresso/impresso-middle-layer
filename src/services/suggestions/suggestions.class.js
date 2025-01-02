@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { mediaSourceToNewspaper } from '../newspapers/newspapers.class'
 const debug = require('debug')('impresso/services:suggestions')
 const chrono = require('chrono-node')
 const moment = require('moment')
@@ -74,19 +75,17 @@ class Service {
   suggestNewspapers({ q }) {
     debug('suggestNewspapers for q:', q)
     return this.app
-      .service('newspapers')
-      .find({
-        query: {
-          q,
-          limit: 3,
-          faster: true,
-        },
+      .service('media-sources')
+      .findMediaSources({
+        term: q,
+        limit: 3,
+        type: 'newspaper',
       })
       .then(res => {
         debug('suggestNewspapers SUCCESS q:', q)
-        return res
+        return res.data.map(mediaSourceToNewspaper)
       })
-      .then(({ data }) =>
+      .then(data =>
         data.map(
           d =>
             new Suggestion({
@@ -131,19 +130,22 @@ class Service {
       )
   }
 
+  async suggestItem(q, type, builder) {
+    const request = { q, count: 3 }
+    const result = await this.solr.suggest('entities', request)
+    return (result.suggestions ?? []).map(builder)
+  }
+
   async suggestEntities({ q }) {
-    const request = { body: { query: q, limit: 3 } }
-    return await this.solr.select('entities', request, () => asEntitySuggestion)
+    return await this.suggestItem(q, 'entities', asEntitySuggestion)
   }
 
   async suggestMentions({ q }) {
-    const request = { body: { query: q, limit: 3 } }
-    return await this.solr.select('mentions', request, () => asMentionSuggestion)
+    return await this.suggestItem(q, 'mentions', asMentionSuggestion)
   }
 
   async suggestTopics({ q }) {
-    const request = { body: { query: q, limit: 3 } }
-    return await this.solr.select('topics', request, () => asTopicSuggestion)
+    return await this.suggestItem(q, 'topics', asTopicSuggestion)
   }
 
   async get(type, params) {
@@ -292,11 +294,13 @@ class Service {
       }),
     ]).then(values => {
       debug('[find] SUCCESS for params.query.q:', params.query.q)
+      // Use Array.prototype.flat() to flatten the array of suggestions
+      const suggestions = values.flat().filter(item => item != null)
+      // .flatten(values)
+      // .filter(d => !lodash.isEmpty(d))
+      // .value()
       return {
-        data: lodash(values)
-          .filter(d => !lodash.isEmpty(d))
-          .flatten()
-          .value(),
+        data: suggestions,
       }
     })
   }

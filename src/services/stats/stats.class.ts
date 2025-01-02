@@ -2,6 +2,7 @@ import Debug from 'debug'
 import { ImpressoApplication } from '../../types'
 import { Id, Params } from '@feathersjs/feathers'
 import { SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
 const { statsConfiguration } = require('../../data')
 const { filtersToQueryAndVariables } = require('../../util/solr')
 const { getWidestInclusiveTimeInterval } = require('../../logic/filters')
@@ -35,8 +36,8 @@ const FacetLabelCache = Object.freeze({
     return topic.words.map(({ w }: any) => w).join(', ')
   },
   newspaper: async (key: string, app: ImpressoApplication) => {
-    const newspapersLookup = await app.service('newspapers').getLookup()
-    const newspaper = newspapersLookup[key]
+    const mediaSourcesLookup = await app.service('media-sources').getLookup()
+    const newspaper = optionalMediaSourceToNewspaper(mediaSourcesLookup[key])
     return newspaper == null ? key : newspaper.name
   },
   person: entityCacheExtractor,

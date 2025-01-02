@@ -1,4 +1,4 @@
-import { preprocessSolrError } from '@/util/solr/errors'
+import { preprocessSolrError } from '../util/solr/errors'
 import { Cache } from '../cache'
 import { SolrFacetQueryParams } from '../data/types'
 import { ConnectionPool, Headers, initHttpPool, RequestInit } from '../httpConnectionPool'
@@ -15,6 +15,9 @@ import { createSha256Hash } from '../util/crypto'
 import { ensureServiceIsFeathersCompatible } from '../util/feathers'
 import { serialize } from '../util/serialize'
 import { defaultCachingStrategy } from '../util/solr/cacheControl'
+import { removeNullAndUndefined } from '../util/fn'
+
+const DefaultSuggesterDictonary = 'm_suggester_infix'
 
 export interface SelectRequestBody {
   query: string | Record<string, unknown>
@@ -29,6 +32,30 @@ export interface SelectRequestBody {
 
 export interface SelectQueryParameters {
   fl?: string
+}
+
+/**
+ * See https://solr.apache.org/guide/6_6/suggester.html#Suggester-SuggestRequestHandlerParameters
+ */
+export interface SuggestRequest {
+  q: string
+  dictionary?: string
+  cfq?: string
+  count?: number
+}
+
+/**
+ * Suggest Request as Solr sees it.
+ */
+interface SolrSuggestRequest {
+  body: {
+    params: {
+      'suggest.q': string
+      'suggest.dictionary'?: string
+      'suggest.cfq'?: string
+      'suggest.count'?: number
+    }
+  }
 }
 
 export interface SelectRequest {
@@ -101,6 +128,23 @@ export interface SelectResponse<T, K extends string, B extends BucketValue> {
   }
 }
 
+export interface SuggestEntry {
+  term: string
+  weight: number
+  payload: string
+}
+
+export interface TermSuggestResponse {
+  numFound: number
+  suggestions: SuggestEntry[]
+}
+
+export interface SuggestResponse {
+  responseHeaders?: ResponseHeaders
+  error?: ErrorContainer
+  suggest?: Record<string, Record<string, TermSuggestResponse>>
+}
+
 /**
  * Simplified Solr client interface with strict types that follow Solr request/response schemas.
  * Aims to replace all the other varied Solr client interfaces in the codebase.
@@ -113,6 +157,7 @@ export interface SimpleSolrClient {
     request: SelectRequest
   ): Promise<SelectResponse<T, K, B>>
   selectOne<T = Record<string, unknown>>(namespace: SolrNamespace, request: SelectRequest): Promise<T | undefined>
+  suggest(namespace: SolrNamespace, request: SuggestRequest): Promise<TermSuggestResponse>
 }
 
 interface PoolWrapper {
@@ -191,20 +236,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
     namespaceId: SolrNamespace,
     request: SelectRequest
   ): Promise<SelectResponse<T, K, B>> {
-    const [{ pool, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
-
-    const url = `${baseUrl}/${namespace.index}/select`
-    const init: RequestInit = {
-      method: 'POST',
-      headers: new Headers({
-        ...buildAuthHeader(auth),
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify(request.body),
-    }
-
-    const responseBody = await this.fetch(pool, url, init)
-    return JSON.parse(responseBody)
+    return await this.sendPostRequest(namespaceId, request, 'select')
   }
 
   async selectOne<T = Record<string, unknown>>(
@@ -213,6 +245,44 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
   ): Promise<T | undefined> {
     const result = await this.select<T>(namespace, request)
     return result.response?.docs?.[0]
+  }
+
+  async suggest(namespace: SolrNamespace, request: SuggestRequest): Promise<TermSuggestResponse> {
+    const term = request.q
+    const dictionary = request.dictionary ?? DefaultSuggesterDictonary
+    const solrRequest: SolrSuggestRequest = {
+      body: {
+        params: {
+          'suggest.q': term,
+          'suggest.cfq': request.cfq,
+          'suggest.dictionary': dictionary,
+          'suggest.count': request.count,
+        },
+      },
+    }
+    const response: SuggestResponse = await this.sendPostRequest(namespace, solrRequest, 'suggest')
+    return response.suggest?.[dictionary]?.[term] ?? { numFound: 0, suggestions: [] }
+  }
+
+  private async sendPostRequest<R>(
+    namespaceId: SolrNamespace,
+    request: SelectRequest | SolrSuggestRequest,
+    urlSuffix: 'select' | 'suggest'
+  ): Promise<R> {
+    const [{ pool, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
+
+    const url = `${baseUrl}/${namespace.index}/${urlSuffix}`
+    const init: RequestInit = {
+      method: 'POST',
+      headers: new Headers({
+        ...buildAuthHeader(auth),
+        'Content-Type': 'application/json',
+      }),
+      body: JSON.stringify(removeNullAndUndefined(request.body)),
+    }
+
+    const responseBody = await this.fetch(pool, url, init)
+    return JSON.parse(responseBody)
   }
 }
 
@@ -254,12 +324,17 @@ class CachedDefaultSimpleSolrClient extends DefaultSimpleSolrClient {
 
 export const init = (app: ImpressoApplication) => {
   const cache = app.get('cacheManager')
+  const isCacheEnabled = app.get('cache')?.enabled
+
   const solrConfiguration = app.get('solrConfiguration')
   if (solrConfiguration == null) {
     throw new Error('Solr configuration not found')
   }
-  const client = new CachedDefaultSimpleSolrClient(solrConfiguration, cache, defaultCachingStrategy)
+  const client = isCacheEnabled
+    ? new CachedDefaultSimpleSolrClient(solrConfiguration, cache, defaultCachingStrategy)
+    : new DefaultSimpleSolrClient(solrConfiguration)
 
+  console.log('is cache enabled', isCacheEnabled)
   app.use('simpleSolrClient', ensureServiceIsFeathersCompatible(client), {
     methods: [],
   })

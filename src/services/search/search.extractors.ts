@@ -7,6 +7,7 @@ import Year from '../../models/years.model'
 import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'
 import { Service } from '../articles/articles.class'
 import { ImpressoApplication } from '../../types'
+import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
 
 function getAricleMatchesAndRegions(
   article: Article | undefined,
@@ -94,7 +95,8 @@ type CacheProviderType = 'newspaper' | 'topic' | 'person' | 'location' | 'year'
 const getCacheProviders = (
   app: ImpressoApplication
 ): Record<CacheProviderType, (id: string) => Promise<any> | any> => ({
-  newspaper: (id: string) => app.service('newspapers').get(id),
+  newspaper: async (id: string) =>
+    optionalMediaSourceToNewspaper(await app.service('media-sources').getMediaSource(id)),
   topic: Topic.getCached,
   person: Entity.getCached,
   location: Entity.getCached,

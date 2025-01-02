@@ -17,7 +17,7 @@ import {
   SolrTermsFacetQueryParams,
 } from '../../data/types'
 import { SelectQueryParameters, SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { SolrNamespace } from '@/solr'
+import { SolrNamespace } from '../../solr'
 
 const debug = require('debug')('impresso/services:search-facets')
 

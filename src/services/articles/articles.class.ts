@@ -69,7 +69,7 @@ export class Service {
       name,
       cacheReads: true,
     })
-    this.solrFactory = require(`../models/${this.name}.model`).solrFactory
+    this.solrFactory = require(`../../models/${this.name}.model`).solrFactory
   }
 
   get solr(): SimpleSolrClient {
@@ -91,7 +91,7 @@ export class Service {
     debug('[find] use auth user:', params.user ? params.user.uid : 'no user')
     // if(params.isSafe query.filters)
 
-    const results = await asFind<any, any, any, Article>(this.solr, 'search', { ...params, fl })
+    const results = await asFind<any, any, any, Article>(this.solr, 'search', { ...params, fl }, this.solrFactory)
 
     // go out if there's nothing to do.
     if (results.total === 0) {
@@ -212,7 +212,7 @@ export class Service {
       })
       .catch(err => {
         console.error(err)
-        throw new NotFound()
+        throw err
       })
   }
 }

@@ -1,5 +1,5 @@
-import { SolrNamespaces } from '@/solr'
-import { findByIds } from '@/solr/queryBuilders'
+import { SolrNamespaces } from '../../solr'
+import { findByIds } from '../../solr/queryBuilders'
 import { findAllResponseAdapter } from '../../util/solr/adapters'
 const lodash = require('lodash')
 const debug = require('debug')('impresso/hooks/resolvers:mentions')

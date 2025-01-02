@@ -1,5 +1,6 @@
 import { HookContext } from '@feathersjs/feathers'
 import { AppServices, ImpressoApplication } from '../types'
+import { mediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
 
 const debug = require('debug')('impresso/hooks:search-info')
 
@@ -51,11 +52,11 @@ const resolveFacets = () => async (context: HookContext<ImpressoApplication, App
     // enrich facets
     if (context.result.info.facets.newspaper) {
       debug('resolveFacets for newspaper')
-      const newspapersLookup = await context.app.service('newspapers').getLookup()
+      const mediaSourcesLookup = await context.app.service('media-sources').getLookup()
 
       context.result.info.facets.newspaper.buckets = context.result.info.facets.newspaper.buckets.map((d: any) => ({
         ...d,
-        item: newspapersLookup[d.val],
+        item: mediaSourcesLookup[d.val] != null ? mediaSourceToNewspaper(mediaSourcesLookup[d.val]) : undefined,
         uid: d.val,
       }))
     }
@@ -74,7 +75,7 @@ const resolveFacets = () => async (context: HookContext<ImpressoApplication, App
 const resolveQueryComponents = () => async (context: HookContext<ImpressoApplication, AppServices>) => {
   debug('resolveQueryComponents', context.params.sanitized.queryComponents)
 
-  const newspapersLookup = await context.app.service('newspapers').getLookup()
+  const mediaSourcesLookup = await context.app.service('media-sources').getLookup()
 
   for (let i = 0, l = context.params.sanitized.queryComponents.length; i < l; i += 1) {
     const d = {
@@ -82,9 +83,9 @@ const resolveQueryComponents = () => async (context: HookContext<ImpressoApplica
     }
     if (d.type === 'newspaper') {
       if (!Array.isArray(d.q)) {
-        d.items = [newspapersLookup[d.q]]
+        d.items = [mediaSourceToNewspaper(mediaSourcesLookup[d.q])]
       } else {
-        d.items = d.q.map((uid: string) => newspapersLookup[uid])
+        d.items = d.q.map((uid: string) => mediaSourceToNewspaper(mediaSourcesLookup[uid]))
       }
     } else if (d.type === 'topic') {
       if (!Array.isArray(d.q)) {

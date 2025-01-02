@@ -8,6 +8,7 @@ const { getFacetsFromSolrResponse } = require('../search/search.extractors')
 const { measureTime } = require('../../util/instruments')
 const {
   utils: { wrapAll },
+  SolrNamespaces,
 } = require('../../solr')
 
 class Service {
@@ -173,13 +174,12 @@ class Service {
           q: params.query.sq,
           limit: 0,
           offset: 0,
-          namespace: 'images',
           requestOriginalPath: 'images/find',
         }
 
         offset = await measureTime(
           () =>
-            asFindAll(self.solr, request)
+            asFindAll(this.solr, SolrNamespaces.Images, request)
               .then(res => res.response.numFound)
               .then(total => {
                 const pages = Math.ceil(total / params.query.limit)

@@ -1,4 +1,4 @@
-import { SolrNamespace } from '@/solr'
+import { SolrNamespace } from '../../solr'
 import { SolrFacetQueryParams } from '../../data/types'
 import {
   BucketValue,
@@ -9,7 +9,7 @@ import {
   SelectResponse,
   SimpleSolrClient,
 } from '../../internalServices/simpleSolr'
-import { findByIds } from '@/solr/queryBuilders'
+import { findByIds } from '../../solr/queryBuilders'
 
 export type SolrFactory<T, K extends string, B extends BucketValue, O> = (
   response: SelectResponse<T, K, B>
@@ -272,7 +272,7 @@ interface ResolveAsyncGroup<T, K extends string, B extends BucketValue, O> {
   factory?: SolrFactory<T, K, B, O>
 }
 
-export const resolveAsync = async <T extends { uid: string }, K extends string, B extends BucketValue, O>(
+export const resolveAsync = async <T extends { id: string }, K extends string, B extends BucketValue, O>(
   solr: SimpleSolrClient,
   group: ResolveAsyncGroup<T, K, B, O>,
   factory?: SolrFactory<T, K, B, O>
@@ -284,7 +284,7 @@ export const resolveAsync = async <T extends { uid: string }, K extends string, 
   const actualFactory = factory ?? group.factory ?? group.Klass?.solrFactory
 
   const resolvedItems = result.response?.docs?.map(doc => {
-    const idx = ids.indexOf(doc.uid)
+    const idx = ids.indexOf(doc.id)
     const item = group.items[idx]
     const itemKey = group.itemField ?? 'item'
     const itemFieldValue = actualFactory(result)(doc)

@@ -38,7 +38,7 @@ const getSingleDocumentQuery = isFirstDocument => ({
   sort: `meta_date_dt ${isFirstDocument ? 'asc' : 'desc'}`,
 })
 
-const searchResponseToDate = response => response.response.docs[0].meta_date_dt
+const searchResponseToDate = doc => doc.meta_date_dt
 
 /**
  * @param {import('../../internalServices/simpleSolr').SimpleSolrClient} solr

@@ -117,4 +117,20 @@ export class MediaSources
     const item = deserialisedResult?.find(mediaSource => mediaSource.uid === id)
     return item
   }
+
+  async getLookup(): Promise<Record<string, MediaSource>> {
+    const results = await this.findMediaSources({
+      type: 'newspaper',
+      limit: Number.MAX_SAFE_INTEGER,
+      offset: 0,
+    })
+
+    return results.data.reduce(
+      (acc, mediaSource) => {
+        acc[mediaSource.uid] = mediaSource
+        return acc
+      },
+      {} as Record<string, MediaSource>
+    )
+  }
 }

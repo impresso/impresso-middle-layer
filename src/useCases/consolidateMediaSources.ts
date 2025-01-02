@@ -1,4 +1,4 @@
-import { SolrNamespace } from '@/solr'
+import { SolrNamespace } from '../solr'
 import { QueryTypes, type Sequelize } from 'sequelize'
 import { Bucket, SelectRequestBody, SimpleSolrClient } from '../internalServices/simpleSolr'
 import { MediaSource } from '../models/generated/schemas'

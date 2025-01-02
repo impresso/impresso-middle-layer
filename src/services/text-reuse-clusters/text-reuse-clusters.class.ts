@@ -9,7 +9,8 @@ import type {
 import { FindQueyParameters } from './text-reuse-clusters.schema'
 import { NewspapersService } from '../newspapers/newspapers.class'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { getToSelect } from '@/util/solr/adapters'
+import { getToSelect } from '../../util/solr/adapters'
+import { MediaSources } from '../media-sources/media-sources.class'
 
 const { mapValues, groupBy, values, uniq, clone, get } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
@@ -73,8 +74,8 @@ const withExtraQueryParts = (query: { q: any }, parts: any) => {
   return updatedQuery
 }
 
-async function facetsWithItems(facets: Facet[], newspapersService: NewspapersService) {
-  const newspapersLookup = await newspapersService.getLookup()
+async function facetsWithItems(facets: Facet[], mediaSourcesService: MediaSources) {
+  const newspapersLookup = await mediaSourcesService.getLookup()
 
   return Promise.all(
     facets.map(async facet => {
@@ -139,8 +140,8 @@ export class TextReuseClusters {
     this.app = app
   }
 
-  private get newspapersService() {
-    return this.app.service('newspapers')
+  private get mediaSourcesService() {
+    return this.app.service('media-sources')
   }
 
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
@@ -157,7 +158,7 @@ export class TextReuseClusters {
     )
 
     const [clusterIdsAndTextAndPermissions, info] = await this.solr
-      .selectOne(SolrNamespaces.TextReusePassages, { body: withExtraQueryParts(query, filterQueryParts) })
+      .select(SolrNamespaces.TextReusePassages, getToSelect(withExtraQueryParts(query, filterQueryParts)))
       .then(response => [
         getClusterIdsTextAndPermissionsFromPassagesSolrResponse(response),
         getPaginationInfoFromPassagesSolrResponse(response),
@@ -177,7 +178,7 @@ export class TextReuseClusters {
   async getClusters(ids: string[]) {
     if (ids.length < 1) return []
     return await this.solr
-      .selectOne(this.solr.namespaces.TextReuseClusters, getToSelect(getTextReuseClustersRequestForIds(ids)))
+      .select(this.solr.namespaces.TextReuseClusters, getToSelect(getTextReuseClustersRequestForIds(ids)))
       .then(convertClustersSolrResponseToClusters)
   }
 
@@ -186,11 +187,11 @@ export class TextReuseClusters {
     const includeDetails = query.include_details === true || query.include_details === 'true'
 
     const sampleTextPromise = this.solr
-      .selectOne(this.solr.namespaces.TextReusePassages, getToSelect(getLatestTextReusePassageForClusterIdRequest(id)))
+      .select(this.solr.namespaces.TextReusePassages, getToSelect(getLatestTextReusePassageForClusterIdRequest(id)))
       .then(getClusterIdsTextAndPermissionsFromPassagesSolrResponse)
 
     const clusterPromise = this.solr
-      .selectOne(this.solr.namespaces.TextReuseClusters, getToSelect(getTextReuseClustersRequestForIds([id])))
+      .select(this.solr.namespaces.TextReuseClusters, getToSelect(getTextReuseClustersRequestForIds([id])))
       .then(convertClustersSolrResponseToClusters)
 
     const connectedClustersCountPromise = this.solr
@@ -223,7 +224,7 @@ export class TextReuseClusters {
     })
     const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse)
 
-    cluster.details = { facets: await facetsWithItems(facets, this.newspapersService) }
+    cluster.details = { facets: await facetsWithItems(facets, this.mediaSourcesService) }
 
     cluster.details.facets = facetsWithCountry(cluster.details.facets)
     cluster.details.resolution = getTimelineResolution(

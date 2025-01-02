@@ -168,7 +168,7 @@ class Service {
       q: params.query.sq,
       // fq: params.sanitized.sfq,
       order_by: params.query.order_by,
-      facets: params.query.facets,
+      facets: params.query.facets != null ? JSON.parse(params.query.facets) : params.query.facets,
       limit: params.query.limit,
       offset: params.query.offset,
       fl, // other fields can be loaded later on
