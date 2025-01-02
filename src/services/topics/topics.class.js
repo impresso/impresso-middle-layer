@@ -6,6 +6,7 @@ const SequelizeService = require('../sequelize.service')
 const Topic = require('../../models/topics.model')
 const { measureTime } = require('../../util/instruments')
 const { asFindAll, asGet } = require('../../util/solr/adapters')
+const { buildResolvers } = require('../../internalServices/cachedResolvers')
 
 class Service {
   constructor({ app = null, name = '' }) {
@@ -14,7 +15,7 @@ class Service {
   }
 
   get solr() {
-    return this.app.service('simpleSolrService')
+    return this.app.service('simpleSolrClient')
   }
 
   async find(params) {
@@ -58,17 +59,21 @@ class Service {
       }
 
       if (!params.sanitized.filters.length) {
+        const resolvers = buildResolvers(this.app)
+
         return {
           total: solrSuggestResponse.response.numFound,
-          data: solrSuggestResponse.response.docs
-            .slice(params.query.offset, params.query.offset + params.query.limit)
-            .map(d => {
-              const t = Topic.getCached(d.id)
-              if (solrSuggestResponse.highlighting[t.uid].topic_suggest) {
-                t.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
-              }
-              return t
-            }),
+          data: Promise.all(
+            solrSuggestResponse.response.docs
+              .slice(params.query.offset, params.query.offset + params.query.limit)
+              .map(async d => {
+                const t = await resolvers.topic(d.id)
+                if (solrSuggestResponse.highlighting[t.uid].topic_suggest) {
+                  t.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
+                }
+                return t
+              })
+          ),
           limit: params.query.limit,
           offset: params.query.offset,
           info: {
@@ -153,15 +158,19 @@ class Service {
       // get only the portion we need.
       data = data.slice(params.query.offset, params.query.offset + params.query.limit)
     }
+
+    const resolvers = buildResolvers(this.app)
     // remap data
-    data = data.map(d => {
-      const topic = Topic.getCached(d.val)
-      if (uids.length && topics[d.val]) {
-        topic.matches = topics[d.val].matches
-      }
-      topic.countItems = d.count
-      return topic
-    })
+    data = Promise.all(
+      data.map(async d => {
+        const topic = await resolvers.topic(d.val)
+        if (uids.length && topics[d.val]) {
+          topic.matches = topics[d.val].matches
+        }
+        topic.countItems = d.count
+        return topic
+      })
+    )
 
     return {
       total,
@@ -176,10 +185,12 @@ class Service {
   }
 
   async get(id, params) {
+    const resolvers = buildResolvers(this.app)
+
     return measureTime(
       () =>
-        asGet(this.solr, id, params, Topic.solrFactory).then(topic => {
-          const cached = Topic.getCached(id)
+        asGet(this.solr, id, params, Topic.solrFactory).then(async topic => {
+          const cached = await resolvers.topic(id)
           topic.countItems = cached.countItems
           topic.relatedTopics = cached.relatedTopics
           return topic

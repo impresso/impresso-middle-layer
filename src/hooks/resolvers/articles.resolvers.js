@@ -1,3 +1,4 @@
+import { buildResolvers } from '../../internalServices/cachedResolvers'
 import { resolveAsync } from '../../util/solr/adapters'
 const lodash = require('lodash')
 const debug = require('debug')('impresso/hooks/resolvers:articles')
@@ -8,16 +9,22 @@ const resolveTopics = () => async context => {
   if (!context.result) {
     debug('resolveTopics: no "context.result" found')
   } else if (context.result.data && context.result.data.length) {
-    context.result.data = context.result.data.map(d => {
-      if (!d.topics) {
+    const resolvers = buildResolvers(context.app)
+
+    context.result.data = await Promise.all(
+      context.result.data.map(async d => {
+        if (!d.topics) {
+          return d
+        }
+        d.topics = await Promise.all(
+          d.topics.map(async at => {
+            at.topic = await resolvers.topic(at.topicUid, 'topic')
+            return at
+          })
+        )
         return d
-      }
-      d.topics = d.topics.map(at => {
-        at.topic = Topic.getCached(at.topicUid)
-        return at
       })
-      return d
-    })
+    )
   } else if (context.result.topics && context.result.topics.length) {
     debug(`resolveTopics: "context.result.topics" found with ${context.result.topics.length} topics`)
 
