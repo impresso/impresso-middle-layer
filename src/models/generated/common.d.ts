@@ -74,13 +74,9 @@ export interface Config {
  */
 export interface RedisConfig {
   /**
-   * Enable Redis
-   */
-  enable?: boolean;
-  /**
    * Redis host
    */
-  host: string;
+  host?: string;
   [k: string]: unknown;
 }
 /**

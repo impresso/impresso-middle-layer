@@ -28,7 +28,7 @@
     "textReuse": { "enabled": true }
   },
   "redis": {
-    "enable": true
+    "host": "localhost"
   },
   "cache": {
     "enabled": true,
@@ -134,63 +134,30 @@
       "users": "auth_user"
     }
   },
-  "solr": {
-    "host": "localhost",
-    "port": 8984,
-    "auth": {
-      "user": "",
-      "pass": "*****"
-    },
-    "queries": {
-      "hasTextContents": "content_length_i:[1 TO *]"
-    },
-    "search": {
-      "alias": "",
-      "endpoint": "https://.../select"
-    },
-    "mentions": {
-      "alias": "",
-      "endpoint": "https://.../select",
-      "suggest": "https://.../suggest"
-    },
-    "topics": {
-      "alias": "",
-      "endpoint": "https://.../select",
-      "suggest": "https://.../suggest"
-    },
-    "images": {
-      "alias": "",
-      "endpoint": "https://.../select"
-    },
-    "entities": {
-      "alias": "",
-      "endpoint": "https://.../select"
-    },
-    "embeddings_de": {
-      "alias": "",
-      "endpoint": "https://.../select"
-    },
-    "embeddings_fr": {
-      "alias": "",
-      "endpoint": "https://.../select"
-    },
-    "embeddings_en": {
-      "alias": "",
-      "endpoint": "https://.../select"
-    },
-    "embeddings_lb": {
-      "alias": "",
-      "endpoint": "https://.../select"
-    },
-    "tr_passages": {
-      "endpoint": "https://.../select"
-    },
-    "tr_clusters": {
-      "endpoint": "https://.../select"
-    },
-    "entities_mentions": {
-      "endpoint": "https://.../select"
-    }
+  "solrConfiguration": {
+    "servers": [
+      {
+        "id": "default",
+        "baseUrl": "https://localhost:8983/solr",
+        "auth": {
+          "read": { "username": "reader", "password": "..." },
+          "write": { "username": "writer", "password": "..." }
+        }
+      }
+    ],
+    "namespaces": [
+      { "namespaceId": "search", "serverId": "default", "index": "search_index" },
+      { "namespaceId": "mentions", "serverId": "default", "index": "mentions_index" },
+      { "namespaceId": "topics", "serverId": "default", "index": "topics_index" },
+      { "namespaceId": "entities", "serverId": "default", "index": "entities_index" },
+      { "namespaceId": "images", "serverId": "default", "index": "images_index" },
+      { "namespaceId": "tr_passages", "serverId": "default", "index": "tr_passages_index" },
+      { "namespaceId": "tr_clusters", "serverId": "default", "index": "tr_clusters_index" },
+      { "namespaceId": "embeddings_de", "serverId": "default", "index": "index_embeddings_de" },
+      { "namespaceId": "embeddings_fr", "serverId": "default", "index": "index_embeddings_fr" },
+      { "namespaceId": "embeddings_lb", "serverId": "default", "index": "index_embeddings_lb" },
+      { "namespaceId": "entities_mentions", "serverId": "default", "index": "mentions_entities_index" }
+    ]
   },
   "recommender": {
     "byTopics": {

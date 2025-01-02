@@ -12,7 +12,7 @@ type RedisClient = ReturnType<typeof createClient>
 export type { RedisClient }
 
 const getRedisClient = (config: RedisConfiguration): RedisClient => {
-  const { host, enable, ...redisConfig } = config
+  const { host, ...redisConfig } = config
   if (host != null) {
     redisConfig.url = `redis://${host}`
   }
@@ -57,13 +57,11 @@ export default (app: ImpressoApplication) => {
   const config = app.get('redis')
   let client: RedisClient | undefined = undefined
 
-  if (!config?.enable) {
-    logger.info('Redis is not configured. No cache is available.')
-  } else {
-    logger.info("Redis configuration found, let's see if it works...")
-    client = getRedisClient(config)
-    logger.info('Redis client created.')
-  }
+  if (config == null) throw new Error('Redis config is missing')
+
+  logger.info("Redis configuration found, let's see if it works...")
+  client = getRedisClient(config)
+  logger.info('Redis client created.')
 
   // Create the redis client container.
   const container = new RedisClientContainer(client)

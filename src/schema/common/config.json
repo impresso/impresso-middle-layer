@@ -197,11 +197,9 @@
     "RedisConfig": {
       "type": "object",
       "properties": {
-        "enable": { "type": "boolean", "description": "Enable Redis" },
         "host": { "type": "string", "description": "Redis host" }
       },
       "description": "Redis configuration",
-      "required": ["host"],
       "additionalProperties": true
     },
     "CeleryConfig": {
