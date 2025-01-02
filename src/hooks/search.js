@@ -1,6 +1,5 @@
 const debug = require('debug')('impresso/hooks:search')
 const lodash = require('lodash')
-const config = require('@feathersjs/configuration')()()
 
 const { filtersToQueryAndVariables } = require('../util/solr')
 const { SolrNamespaces } = require('../solr')
