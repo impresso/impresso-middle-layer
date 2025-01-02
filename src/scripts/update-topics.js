@@ -10,6 +10,7 @@ debug('start!')
 
 async function waterfall() {
   debug('find topics...')
+
   const topics = await solrClient
     .findAll(
       {

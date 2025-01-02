@@ -1,11 +1,25 @@
 import Debug from 'debug'
 import lodash from 'lodash'
 import { preprocessSolrError } from './util/solr/errors'
-import { ConnectionPool, initHttpPool, IResponse } from './httpConnectionPool'
+import { ConnectionPool, FetchOptions, initHttpPool, IResponse } from './httpConnectionPool'
 import { ImpressoApplication } from './types'
+import { logger } from './logger'
 
 const debug = Debug('impresso/solr')
 const debugRequest = Debug('impresso/solr-request')
+
+export type SolrNamespace =
+  | 'search'
+  | 'mentions'
+  | 'topics'
+  | 'entities'
+  | 'images'
+  | 'tr_passages'
+  | 'tr_clusters'
+  | 'embeddings_de'
+  | 'embeddings_fr'
+  | 'embeddings_lb'
+  | 'entities_mentions'
 
 export const SolrNamespaces = Object.freeze({
   Search: 'search',
@@ -19,7 +33,7 @@ export const SolrNamespaces = Object.freeze({
   EmbeddingsFR: 'embeddings_fr',
   EmbeddingsLB: 'embeddings_lb',
   EntitiesMentions: 'entities_mentions',
-})
+}) satisfies Record<string, SolrNamespace>
 
 export const getSolrIndex = (
   namespace: (typeof SolrNamespaces)[keyof typeof SolrNamespaces],
@@ -38,7 +52,7 @@ export const getSolrIndex = (
 /**
  * Create headers object out of authentication details.
  */
-const buildAuthHeaders = (auth: { user: string; pass: string }): { [key: string]: string } => {
+export const buildAuthHeaders = (auth: { user: string; pass: string }): { [key: string]: string } => {
   const authString = `${auth.user}:${auth.pass}`
 
   return {
@@ -47,24 +61,50 @@ const buildAuthHeaders = (auth: { user: string; pass: string }): { [key: string]
 }
 
 /**
+ * Impresso Solr comes with a plug-in that creates duplicate "highlighting" keys
+ * in Solr response. To get around this issue we detect duplicate fields and replace
+ * one of them with "fragments".
+ */
+export const sanitizeSolrResponse = (text: string): string => {
+  const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/gm)
+  const replacedText =
+    matches && matches.length > 1 ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{') : text
+
+  return replacedText
+}
+
+/**
  * Transform Solr response to a JavaScript object.
  * Impresso Solr comes with a plug-in that creates duplicate "highlighting" keys
  * in Solr response. To get around this issue we detect duplicate fields and replace
  * one of them with "fragments".
  */
-const transformSolrResponse = (text: string): Record<string, any> => {
-  const matches = text.match(/^\s*"highlighting"\s*:\s*\{\s*$/gm)
-  const replacedText =
-    matches && matches.length > 1 ? text.replace(/^\s*"highlighting"\s*:\s*\{\s*$/m, '"fragments":{') : text
+export const transformSolrResponse = (text: string): Record<string, any> => {
+  return JSON.parse(sanitizeSolrResponse(text))
+}
 
-  return JSON.parse(replacedText)
+export interface SolrError extends Error {
+  response: {
+    statusCode: number
+    body: string | Record<string, any>
+  }
+}
+
+export const isSolrError = (error: Error): error is SolrError => {
+  const maybeSolrError = error as SolrError
+  return (
+    maybeSolrError?.response != null &&
+    typeof maybeSolrError?.response?.statusCode == 'number' &&
+    typeof maybeSolrError?.response?.statusCode == 'string'
+  )
 }
 
 /**
  * @param {Response} res response
  * @returns {Promise<Response>}
+ * @throws {SolrError}
  */
-const checkResponseStatus = async (res: IResponse): Promise<IResponse> => {
+export const checkResponseStatus = async (res: IResponse): Promise<IResponse> => {
   if (res.ok) return res
 
   const error = new Error(new String(res.statusCode).toString())
@@ -129,7 +169,34 @@ function maybeConvertGetToPostParams(
   ]
 }
 
+const logUnsuccessfulResponses = async (url: string, method: string, body: any, response: IResponse) => {
+  if (!response.ok) {
+    const errorDetails = {
+      method,
+      url,
+      status: response.statusCode,
+      body,
+      response: await response.text(),
+    }
+    const message = `Solr returned an error: ${JSON.stringify(errorDetails, null, 2)}`
+    logger.error(message)
+  }
+}
+
+const defaultRetryOptions: FetchOptions['retryOptions'] = {
+  maxRetries: 3,
+  maxTimeout: 10000,
+  // excluding 500 - it often means the query is not correct
+  statusCodes: [502, 503, 504, 429],
+}
+
+export const defaultFetchOptions: FetchOptions = {
+  onUnsuccessfulResponse: logUnsuccessfulResponses,
+  retryOptions: defaultRetryOptions,
+}
+
 /**
+ * @deprecated use `SimpleSolrClient`
  */
 async function executeRequest(url: string, params: object, connectionPool: ConnectionPool) {
   const connection = await connectionPool.acquire()
@@ -141,7 +208,7 @@ async function executeRequest(url: string, params: object, connectionPool: Conne
     const [u, p] = maybeConvertGetToPostParams(url, params)
     debugRequest(`executeRequest to ${u} with params: ${JSON.stringify(p)} and body: ${p.body}`)
     return await connection
-      .fetch(u, p)
+      .fetch(u, p, defaultFetchOptions)
       .then(checkResponseStatus)
       .then((response: IResponse) => response.text())
       .then(transformSolrResponse)
@@ -163,6 +230,7 @@ async function executeRequest(url: string, params: object, connectionPool: Conne
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * Send a raw 'POST' request to Solr.
  */
 const postRaw = async (
@@ -186,6 +254,7 @@ const postRaw = async (
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * Send a raw 'POST' request with form payload to Solr.
  */
 const postFormRaw = async (
@@ -211,6 +280,7 @@ const postFormRaw = async (
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * Send a raw 'GET' request to Solr.
  */
 const getRaw = async (
@@ -235,6 +305,9 @@ const getRaw = async (
   return executeRequest(url, options, connectionPool)
 }
 
+/**
+ * @deprecated use `SimpleSolrClient`
+ */
 const suggest = async (config: any, connectionPool: ConnectionPool, params = {}, factory: any) => {
   const _params = {
     q: '',
@@ -283,6 +356,9 @@ const suggest = async (config: any, connectionPool: ConnectionPool, params = {},
     })
 }
 // TODO: `factory` is not used
+/**
+ * @deprecated use `SimpleSolrClient`
+ */
 const findAllPost = (config: any, connectionsPool: ConnectionPool, params = {}, factory: any) => {
   const qp: Record<string, any> = {
     q: '*:*',
@@ -384,6 +460,7 @@ const findAllPost = (config: any, connectionsPool: ConnectionPool, params = {}, 
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * request wrapper to get results from solr.
  * TODO Check grouping: https://lucene.apache.org/solr/guide/6_6/result-grouping.html
  */
@@ -526,6 +603,7 @@ const findAll = (config: any, connectionPool: ConnectionPool, params = {}, facto
 }
 
 /**
+ * @deprecated use `SimpleSolrClient`
  * Return a classic data response for lazy people
  * @param  {[type]} res [description]
  * @return {[type]}     [description]
@@ -557,7 +635,7 @@ const wrapAll = (res: Record<string, any>) => {
 }
 
 /**
- * [resolveAsync description]
+ * @deprecated use `SimpleSolrClient`
  *
  * @param  {Object} config configuration item
  * @param  {Array} groups groups of services, each containing a list of items
@@ -594,6 +672,7 @@ const resolveAsync = async (config: any, connectionsPool: ConnectionPool, groups
 }
 
 /**
+ * @deprecated use `simpleSolrClient`
  * @param {any} config configuration.
  * @param {ConnectionPool} connectionsPool
  */

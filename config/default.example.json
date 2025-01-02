@@ -11,7 +11,7 @@
     "max": 50
   },
   "redis": {
-    "enable": false
+    "host": "localhost"
   },
   "rateLimiter": {
     "enabled": false,
@@ -91,23 +91,29 @@
       "users": "auth_user"
     }
   },
-  "solr": {
-    "host": "localhost",
-    "port": 8984,
-    "auth": {
-      "user": "",
-      "pass": "*****"
-    },
-    "search": {
-      "endpoint": "https://.../select"
-    },
-    "mentions": {
-      "endpoint": "https://.../select",
-      "suggest": "https://.../suggest"
-    },
-    "topics": {
-      "endpoint": "https://.../select",
-      "suggest": "https://.../suggest"
-    }
+  "solrConfiguration": {
+    "servers": [
+      {
+        "id": "default",
+        "baseUrl": "https://localhost:8983/solr",
+        "auth": {
+          "read": { "username": "reader", "password": "..." },
+          "write": { "username": "writer", "password": "..." }
+        }
+      }
+    ],
+    "namespaces": [
+      { "namespaceId": "search", "serverId": "default", "index": "search_index" },
+      { "namespaceId": "mentions", "serverId": "default", "index": "mentions_index" },
+      { "namespaceId": "topics", "serverId": "default", "index": "topics_index" },
+      { "namespaceId": "entities", "serverId": "default", "index": "entities_index" },
+      { "namespaceId": "images", "serverId": "default", "index": "images_index" },
+      { "namespaceId": "tr_passages", "serverId": "default", "index": "tr_passages_index" },
+      { "namespaceId": "tr_clusters", "serverId": "default", "index": "tr_clusters_index" },
+      { "namespaceId": "embeddings_de", "serverId": "default", "index": "index_embeddings_de" },
+      { "namespaceId": "embeddings_fr", "serverId": "default", "index": "index_embeddings_fr" },
+      { "namespaceId": "embeddings_lb", "serverId": "default", "index": "index_embeddings_lb" },
+      { "namespaceId": "entities_mentions", "serverId": "default", "index": "mentions_entities_index" }
+    ]
   }
 }

@@ -7,7 +7,6 @@ const article = require('../../models/articles.model')
 
 class Service {
   constructor(options) {
-    this.solr = solr.client(options.app.get('solr'), options.app.get('solrConnectionPool'))
     this.name = options.name
     this.options = options || {}
     this.app = options.app

@@ -4,12 +4,13 @@ import { Op } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
 
 import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
-import initSolrService, { Service as SolrService } from '../solr.service'
 import Article from '../../models/articles.model'
 import Issue from '../../models/issues.model'
 import { measureTime } from '../../util/instruments'
 import { ImpressoApplication } from '../../types'
 import { SlimUser } from '../../authentication'
+import { asFind, asGet, SolrFactory } from '../../util/solr/adapters'
+import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 
 const debug = Debug('impresso/services:articles')
 
@@ -41,9 +42,9 @@ interface FindOptions {
     sfq?: string
     limit?: number
     offset?: number
-    facets?: string[]
+    facets?: Record<string, any>
     order_by?: string
-    highlight_by?: boolean
+    highlight_by?: string
     collapse_by?: string
     collapse_fn?: string
     requestOriginalPath?: boolean
@@ -58,7 +59,7 @@ export class Service {
   name: string
   app?: ImpressoApplication
   SequelizeService: SequelizeService
-  SolrService: SolrService
+  solrFactory: SolrFactory<any, any, any, Article>
 
   constructor({ name = '', app = undefined }: ServiceOptions = {}) {
     this.name = String(name)
@@ -68,11 +69,11 @@ export class Service {
       name,
       cacheReads: true,
     })
-    this.SolrService = initSolrService({
-      app,
-      name,
-      namespace: 'search',
-    })
+    this.solrFactory = require(`../../models/${this.name}.model`).solrFactory
+  }
+
+  get solr(): SimpleSolrClient {
+    return this.app?.service('simpleSolrClient')!
   }
 
   async find(params: any) {
@@ -89,14 +90,8 @@ export class Service {
 
     debug('[find] use auth user:', params.user ? params.user.uid : 'no user')
     // if(params.isSafe query.filters)
-    const results = await measureTime(
-      () =>
-        this.SolrService.find({
-          ...params,
-          fl,
-        }),
-      'articles.find.solr'
-    )
+
+    const results = await asFind<any, any, any, Article>(this.solr, 'search', { ...params, fl }, this.solrFactory)
 
     // go out if there's nothing to do.
     if (results.total === 0) {
@@ -110,7 +105,7 @@ export class Service {
           ...params,
           scope: 'get',
           where: {
-            uid: { [Op.in]: results.data.map((d: { uid: string }) => d.uid) },
+            uid: { [Op.in]: results.data.map(d => d.uid) },
           },
           limit: results.data.length,
           order_by: [['uid', 'DESC']],
@@ -127,7 +122,7 @@ export class Service {
     const issuesRequest = {
       attributes: ['accessRights', 'uid'],
       where: {
-        uid: { [Op.in]: results.data.map((d: any) => d.issue.uid) },
+        uid: { [Op.in]: results.data.map(d => d?.issue?.uid) },
       },
     }
     const getRelatedIssuesPromise = measureTime(() => getIssues(issuesRequest, this.app!), 'articles.find.db.issues')
@@ -179,13 +174,7 @@ export class Service {
     return Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
-      measureTime(
-        () =>
-          this.SolrService.get(id, {
-            fl,
-          }),
-        'articles.get.solr.articles'
-      ),
+      asGet(this.solr, 'search', id, { fl }, this.solrFactory),
 
       // get the newspaper and the version,
       measureTime(
@@ -212,19 +201,18 @@ export class Service {
       ),
     ])
       .then(([article, addons, issue]) => {
-        if (addons) {
-          if (issue) {
+        if (addons && article) {
+          if (issue && article.issue) {
             article.issue.accessRights = (issue as any).accessRights
           }
           article.pages = addons.pages.map((d: any) => d.toJSON())
-          article.v = addons.v
         }
-        article.assignIIIF()
+        article?.assignIIIF?.()
         return article
       })
       .catch(err => {
         console.error(err)
-        throw new NotFound()
+        throw err
       })
   }
 }

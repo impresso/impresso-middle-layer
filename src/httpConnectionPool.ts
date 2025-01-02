@@ -1,9 +1,10 @@
-import { request, RequestInfo, RequestInit, Dispatcher, Agent, RetryAgent } from 'undici'
+import { request, RequestInfo, RequestInit, Dispatcher, Agent, RetryAgent, RetryHandler, Headers } from 'undici'
 import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
 import { IncomingHttpHeaders } from 'undici/types/header'
 import { SocksProxyConfig } from './configuration'
-import { logger } from './logger'
+
+export { RequestInfo, RequestInit, Headers }
 
 export interface IResponse {
   get ok(): boolean
@@ -12,8 +13,13 @@ export interface IResponse {
   json(): Promise<any>
 }
 
+export interface FetchOptions {
+  retryOptions?: RetryHandler.RetryOptions
+  onUnsuccessfulResponse?: (url: string, method: string, body: Record<string, any>, response: IResponse) => void
+}
+
 interface IConnectionWrapper {
-  fetch(url: RequestInfo, init?: RequestInit): Promise<IResponse>
+  fetch(url: RequestInfo, init?: RequestInit, options?: FetchOptions): Promise<IResponse>
 }
 
 function urlSearchParamsToFormData(urlSearchParams: URLSearchParams): FormData {
@@ -50,7 +56,7 @@ export class Response implements IResponse {
   }
 
   async text() {
-    if (this._text) return this._text
+    if (this._text != null) return this._text
 
     const chunks = []
     for await (const chunk of this.data.body) {
@@ -78,7 +84,7 @@ class ConnectionWrapper implements IConnectionWrapper {
   }
 
   _createBaseAgent(): Agent {
-    if (this.socksProxyOptions?.enabled) {
+    if (this.socksProxyOptions != null) {
       const proxyConfig: SocksProxies = [
         {
           type: this.socksProxyOptions.type ?? 5,
@@ -99,17 +105,17 @@ class ConnectionWrapper implements IConnectionWrapper {
     }
   }
 
-  async fetch(url: RequestInfo, init?: RequestInit): Promise<IResponse> {
+  async fetch(url: RequestInfo, init?: RequestInit, options?: FetchOptions): Promise<IResponse> {
     const body = init?.body instanceof URLSearchParams ? urlSearchParamsToFormData(init.body) : init?.body
 
     if (url instanceof Request) throw new Error('Request object not supported by undici')
 
     const theUrl: string = url instanceof Request ? url.url : new String(url).toString()
 
-    const agent = new RetryAgent(this._createBaseAgent(), {
-      maxRetries: 3,
-      maxTimeout: 10000,
-    })
+    const agent =
+      options?.retryOptions != null
+        ? new RetryAgent(this._createBaseAgent(), options?.retryOptions)
+        : this._createBaseAgent()
 
     const result = await request(theUrl, {
       method: init?.method as Dispatcher.HttpMethod,
@@ -117,7 +123,17 @@ class ConnectionWrapper implements IConnectionWrapper {
       body: body as any,
       dispatcher: agent,
     })
-    return new Response(result)
+    const response = new Response(result)
+    await response.text()
+    if (!response.ok) {
+      try {
+        options?.onUnsuccessfulResponse?.(theUrl, init?.method as string, body as Record<string, any>, response)
+      } catch (error) {
+        // do nothing
+      }
+    }
+
+    return response
   }
 }
 
@@ -152,10 +168,6 @@ export function initHttpPool({
     min: maxParallelConnections ?? 200,
     max: maxParallelConnections ?? 200,
     acquireTimeoutMillis: acquireTimeoutSec * 1000,
-  }
-
-  if (socksProxy?.enabled) {
-    logger.info(`Using SOCKS proxy for Solr: ${socksProxy.host}:${socksProxy.port}`)
   }
 
   return createPool(new ConnectionFactory(socksProxy), poolOptions)

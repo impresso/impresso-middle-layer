@@ -1,6 +1,7 @@
 const { Op } = require('sequelize')
 const SequelizeService = require('../sequelize.service')
 const { measureTime } = require('../../util/instruments')
+const { SolrNamespaces } = require('../../solr')
 
 /**
  * @typedef {{
@@ -119,8 +120,8 @@ function getPaginationFromSolrResponse(response, limit) {
 
 class EntitiesSuggestions {
   constructor(app) {
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
     this.sequelizeService = SequelizeService({
       app,
       name: 'entities',
@@ -176,7 +177,7 @@ class EntitiesSuggestions {
   async create({ names, offset = 0, limit = DefaultLimit }) {
     const solrQuery = buildSolrQuery(names, offset, limit)
     const solrResponse = await measureTime(
-      () => this.solr.post(solrQuery, this.solr.namespaces.Entities),
+      () => this.solr.select(SolrNamespaces.Entities, { body: solrQuery }),
       'entities-suggestions.solr.find'
     )
     const solrResults = getResultsFromSolrResponse(solrResponse)

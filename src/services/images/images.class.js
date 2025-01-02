@@ -1,13 +1,14 @@
 /* eslint-disable no-unused-vars */
+import { asFindAll, asGet } from '../../util/solr/adapters'
 const { NotFound, BadGateway } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:images')
-const SolrService = require('../solr.service')
 const Image = require('../../models/images.model')
 const Page = require('../../models/pages.model')
 const { getFacetsFromSolrResponse } = require('../search/search.extractors')
 const { measureTime } = require('../../util/instruments')
 const {
   utils: { wrapAll },
+  SolrNamespaces,
 } = require('../../solr')
 
 class Service {
@@ -15,11 +16,10 @@ class Service {
     this.app = app
     this.name = name
     this.sequelizeClient = this.app.get('sequelizeClient')
-    this.SolrService = SolrService({
-      app,
-      name,
-      namespace: 'images',
-    })
+  }
+
+  get solr() {
+    return this.app.service('simpleSolrClient')
   }
 
   async assignIIIF({ method, result }) {
@@ -88,16 +88,16 @@ class Service {
         '- vector:',
         `_vector_${params.query.vectorType}_bv`
       )
+      const request = {
+        q: `id:${params.query.similarTo}`,
+        fl: ['id', `signature:_vector_${params.query.vectorType}_bv`],
+        namespace: 'images',
+        limit: 1,
+        requestOriginalPath: 'images/find',
+      }
       signature = await measureTime(
         () =>
-          this.SolrService.solr
-            .findAll({
-              q: `id:${params.query.similarTo}`,
-              fl: ['id', `signature:_vector_${params.query.vectorType}_bv`],
-              namespace: 'images',
-              limit: 1,
-              requestOriginalPath: 'images/find',
-            })
+          asFindAll(this.solr, 'images', request)
             .then(res => res.response.docs[0].signature)
             .catch(err => {
               console.error(err)
@@ -138,29 +138,25 @@ class Service {
       }
       debug('[find] find all with the current signature, solr query', fq)
 
+      const request = {
+        fq,
+        form: {
+          q: `{!vectorscoring f="_vector_${params.query.vectorType}_bv" vector_b64="${signature}"}`,
+        },
+        fl: '*,score',
+        namespace: 'images',
+        limit: params.query.limit,
+        offset,
+        facets: params.query.facets,
+        order_by: 'score DESC',
+        requestOriginalPath: 'images/find',
+      }
       solrResponse = await measureTime(
         () =>
-          this.SolrService.solr
-            .findAll(
-              {
-                fq,
-                form: {
-                  q: `{!vectorscoring f="_vector_${params.query.vectorType}_bv" vector_b64="${signature}"}`,
-                },
-                fl: '*,score',
-                namespace: 'images',
-                limit: params.query.limit,
-                offset,
-                facets: params.query.facets,
-                order_by: 'score DESC',
-                requestOriginalPath: 'images/find',
-              },
-              Image.solrFactory
-            )
-            .catch(err => {
-              console.error(err)
-              throw new BadGateway('unable to load similar images')
-            }),
+          asFindAll(this.solr, 'images', request, Image.solrFactory).catch(err => {
+            console.error(err)
+            throw new BadGateway('unable to load similar images')
+          }),
         'images.find.solr.signature_similar_images'
       )
     } else {
@@ -174,16 +170,16 @@ class Service {
 
       if (params.query.randomPage) {
         // calculate a possible random offset value
+        const request = {
+          q: params.query.sq,
+          limit: 0,
+          offset: 0,
+          requestOriginalPath: 'images/find',
+        }
+
         offset = await measureTime(
           () =>
-            this.SolrService.solr
-              .findAll({
-                q: params.query.sq,
-                limit: 0,
-                offset: 0,
-                namespace: 'images',
-                requestOriginalPath: 'images/find',
-              })
+            asFindAll(this.solr, SolrNamespaces.Images, request)
               .then(res => res.response.numFound)
               .then(total => {
                 const pages = Math.ceil(total / params.query.limit)
@@ -201,28 +197,46 @@ class Service {
       }
 
       // get all pages, then get IIIF manifest
-      solrResponse = await measureTime(
-        () =>
-          this.SolrService.solr
-            .findAll(
-              {
-                q: params.query.sq,
-                fl: Image.SOLR_FL,
-                namespace: 'images',
-                limit: params.query.limit,
-                offset,
-                facets: params.query.facets,
-                order_by: params.query.order_by,
-                requestOriginalPath: 'images/find',
-              },
-              Image.solrFactory
-            )
-            .catch(err => {
-              console.error(err)
-              throw new BadGateway('unable to load similar images')
-            }),
-        'images.find.solr.images'
-      )
+      // solrResponse = await measureTime(
+      //   () =>
+      //     this.SolrService.solr
+      //       .findAll(
+      //         {
+      //           q: params.query.sq,
+      //           fl: Image.SOLR_FL,
+      //           namespace: 'images',
+      //           limit: params.query.limit,
+      //           offset,
+      //           facets: params.query.facets,
+      //           order_by: params.query.order_by,
+      //           requestOriginalPath: 'images/find',
+      //         },
+      //         Image.solrFactory
+      //       )
+      //       .catch(err => {
+      //         console.error(err)
+      //         throw new BadGateway('unable to load similar images')
+      //       }),
+      //   'images.find.solr.images'
+      // )
+      solrResponse = await asFindAll(
+        this.solr,
+        'images',
+        {
+          q: params.query.sq,
+          fl: Image.SOLR_FL,
+          namespace: 'images',
+          limit: params.query.limit,
+          offset,
+          facets: params.query.facets,
+          order_by: params.query.order_by,
+          requestOriginalPath: 'images/find',
+        },
+        Image.solrFactory
+      ).catch(err => {
+        console.error(err)
+        throw new BadGateway('unable to load similar images')
+      })
     }
 
     debug(
@@ -241,10 +255,7 @@ class Service {
     debug(`get '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query)
     return measureTime(
       () =>
-        this.SolrService.get(id, {
-          fl: Image.SOLR_FL,
-          requestOriginalPath: 'images/get',
-        }).then(result =>
+        asGet(this.solr, 'images', id, { fl: Image.SOLR_FL }, Image.solrFactory).then(result =>
           this.assignIIIF({
             method: 'get',
             result,

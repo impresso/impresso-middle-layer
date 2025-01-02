@@ -9,7 +9,9 @@ import { CeleryClient } from './celery'
 import type { CeleryConfig, Config, RedisConfig, SocksProxyConfig } from './models/generated/common'
 import { ImpressoApplication } from './types'
 
+const ajv = new Ajv()
 const configurationSchema = require('./schema/common/config.json')
+ajv.addSchema(require('./schema/common/solrConfiguration.json'), 'solrConfiguration.json')
 
 type RedisConfiguration = RedisConfig & RedisClientOptions
 
@@ -30,7 +32,7 @@ export interface Configuration extends Config {
   openApiValidatorMiddlewares: any[]
 }
 
-const configurationValidator = getValidator(configurationSchema, new Ajv())
+const configurationValidator = getValidator(configurationSchema, ajv)
 
 export default function configuration(app: ImpressoApplication) {
   return app.configure(feathersConfiguration(configurationValidator))

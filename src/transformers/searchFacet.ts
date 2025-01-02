@@ -57,7 +57,7 @@ const transformBucket = (
       return {
         count: input.count,
         value: String(input.val),
-        label: newspaperItem.name,
+        label: newspaperItem?.name,
       }
     case 'person':
     case 'location':

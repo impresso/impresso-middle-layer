@@ -1,4 +1,3 @@
-import { CachedSolrClient } from '../../cachedSolr'
 import { ImpressoApplication } from '../../types'
 import { Service as SequelizeService } from '../sequelize.service'
 import User from '../../models/users.model'
@@ -6,6 +5,8 @@ import { Params } from '@feathersjs/feathers'
 import { Filter } from 'impresso-jscommons'
 import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters } from './util'
 import { IHuman, ILocation, resolve as resolveWikidata } from '../wikidata'
+import { SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { SolrNamespaces } from '../../solr'
 
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:entities')
@@ -38,7 +39,7 @@ class Service {
   app: ImpressoApplication
   name: string
   sequelizeService: SequelizeService
-  solr: CachedSolrClient
+  solr: SimpleSolrClient
 
   constructor({ app }: { app: ImpressoApplication }) {
     this.app = app
@@ -48,7 +49,7 @@ class Service {
       name: this.name,
       cacheReads: true,
     })
-    this.solr = app.service('cachedSolr')
+    this.solr = app.service('simpleSolrClient')
   }
 
   async create(data: any, params: any) {
@@ -105,7 +106,7 @@ class Service {
     debug('[find] solr query:', query)
 
     const solrResult = await measureTime(
-      () => this.solr.post(query, this.solr.namespaces.Entities),
+      () => this.solr.select(SolrNamespaces.Entities, { body: query }),
       'entities.find.solr.mentions'
     )
 

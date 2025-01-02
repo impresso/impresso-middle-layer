@@ -1,3 +1,4 @@
+import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
 const {
   getTextReuseClusterPassagesRequest,
   getPaginationInfoFromPassagesSolrResponse,
@@ -9,6 +10,8 @@ const { QueryGetIIIFManifests } = require('../../logic/iiif')
 const { toArticlePageDetails } = require('../../logic/ids')
 const { parseOrderBy } = require('../../util/queryParameters')
 const { measureTime } = require('../../util/instruments')
+const { SolrNamespaces } = require('../../solr')
+const { getToSelect } = require('../../util/solr/adapters')
 
 const OrderByKeyToField = {
   date: PassageFields.Date,
@@ -17,8 +20,8 @@ const OrderByKeyToField = {
 class TextReuseClusterPassages {
   constructor(options = {}, app) {
     this.options = options
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
     /** @type {import('sequelize') & import('sequelize').Sequelize} */
     this.sequelize = sequelize.client(app.get('sequelize'))
     this.app = app
@@ -31,8 +34,8 @@ class TextReuseClusterPassages {
 
     const [passages, info] = await this.solr
       .get(
-        getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderByField, orderByDescending),
-        this.solr.namespaces.TextReusePassages
+        SolrNamespaces.TextReusePassages,
+        getToSelect(getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderByField, orderByDescending))
       )
       .then(response => [
         convertPassagesSolrResponseToPassages(response),
@@ -56,14 +59,14 @@ class TextReuseClusterPassages {
       return acc
     }, {})
 
-    const newspapersLookup = await app.service('newspapers').getLookup()
+    const mediaSourcesLookup = await app.service('media-sources').getLookup()
 
     return Promise.all(
       passages.map(async passage => {
         const iifUrl = pageIdToIIIFUrl[articleIdToPageId[passage.articleId]]
         return {
           passage,
-          newspaper: newspapersLookup[passage.journalId],
+          newspaper: optionalMediaSourceToNewspaper(mediaSourcesLookup[passage.journalId]),
           iiifUrls: iifUrl != null ? [iifUrl] : [],
         }
       })

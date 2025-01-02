@@ -145,7 +145,7 @@ const CustomScoringField = 'customScore'
  * @param {string} query
  * @param {string} scroingVariable
  * @param {{ offset?: number, limit?: number }} options
- * @returns {any}
+ * @returns {import('../../internalServices/simpleSolr').SelectRequestBody}
  */
 function buildSolrQuery(query, scroingVariable, options = {}) {
   return {

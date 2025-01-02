@@ -1,6 +1,5 @@
 const debug = require('debug')('impresso/hooks:search')
 const lodash = require('lodash')
-const config = require('@feathersjs/configuration')()()
 
 const { filtersToQueryAndVariables } = require('../util/solr')
 const { SolrNamespaces } = require('../solr')
@@ -147,7 +146,7 @@ const filtersToSolrFacetQuery = () => async context => {
 }
 
 module.exports = {
-  queries: config.solr.queries,
+  queries: { hasTextContents: 'content_length_i:[1 TO *]' },
   filtersToSolrQuery,
   qToSolrFilter,
   filtersToSolrFacetQuery,

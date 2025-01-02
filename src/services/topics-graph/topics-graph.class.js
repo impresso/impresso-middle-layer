@@ -1,4 +1,6 @@
 /* eslint-disable no-unused-vars */
+import { asFindAll } from '../../util/solr/adapters'
+
 const debug = require('debug')('impresso/services:topics-graph')
 const { min, max } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
@@ -28,10 +30,15 @@ const toNode = topic => ({
 class TopicsGraph {
   constructor({ name }, app) {
     this.name = name
+    this.app = app
   }
 
   setup(app) {
     this.app = app
+  }
+
+  get solr() {
+    return this.app.service('simpleSolrClient')
   }
 
   async get(id, params) {
@@ -40,27 +47,31 @@ class TopicsGraph {
     if (!topic.uid.length) {
       throw new NotFound()
     }
-    const solrResponse = await measureTime(
-      () =>
-        this.app.get('solrClient').findAll({
-          q: `topics_dpfs:${id} AND (${params.sanitized.sq})`,
-          facets: JSON.stringify({
-            topic: {
-              type: 'terms',
-              field: 'topics_dpfs',
-              mincount: 1,
-              limit: params.query.limit,
-              offset: params.query.offset,
-              numBuckets: true,
-            },
-          }),
-          limit: 0,
-          offset: 0,
-          fl: 'id',
-          vars: params.sanitized.sv,
-        }),
-      'topics-graph.get.solr.topics'
-    )
+    const request = {
+      q: `topics_dpfs:${id} AND (${params.sanitized.sq})`,
+      facets: JSON.stringify({
+        topic: {
+          type: 'terms',
+          field: 'topics_dpfs',
+          mincount: 1,
+          limit: params.query.limit,
+          offset: params.query.offset,
+          numBuckets: true,
+        },
+      }),
+      limit: 0,
+      offset: 0,
+      fl: 'id',
+      vars: params.sanitized.sv,
+    }
+
+    // const solrResponse = await measureTime(
+    //   () =>
+    //     this.app.get('solrClient').findAll(request),
+    //   'topics-graph.get.solr.topics'
+    // )
+
+    const solrResponse = await asFindAll(this.solr, 'search', request)
 
     const countItems = solrResponse.response.numFound
     const relatedTopicsParams = {
@@ -162,35 +173,37 @@ class TopicsGraph {
       })
     }
 
-    const solrResponse = await measureTime(
-      () =>
-        this.app.get('solrClient').findAllPost({
-          q: params.sanitized.sq,
-          facets: JSON.stringify({
-            topic: {
+    const request = {
+      q: params.sanitized.sq,
+      facets: JSON.stringify({
+        topic: {
+          type: 'terms',
+          field: 'topics_dpfs',
+          mincount: 1,
+          limit: restrictToUids.length ? restrictToUids.length : 20,
+          offset: params.query.offset,
+          numBuckets: true,
+          facet: {
+            topNodes: {
               type: 'terms',
               field: 'topics_dpfs',
-              mincount: 1,
-              limit: restrictToUids.length ? restrictToUids.length : 20,
-              offset: params.query.offset,
+              limit: restrictToUids.length ? 30 : 20,
               numBuckets: true,
-              facet: {
-                topNodes: {
-                  type: 'terms',
-                  field: 'topics_dpfs',
-                  limit: restrictToUids.length ? 30 : 20,
-                  numBuckets: true,
-                },
-              },
             },
-          }),
-          limit: 0,
-          offset: 0,
-          fl: 'id',
-          vars: params.sanitized.sv,
-        }),
-      'topics.find.solr.topics'
-    )
+          },
+        },
+      }),
+      limit: 0,
+      offset: 0,
+      fl: 'id',
+      vars: params.sanitized.sv,
+    }
+
+    // const solrResponse = await measureTime(
+    //   () => this.app.get('solrClient').findAllPost(request),
+    //   'topics.find.solr.topics'
+    // )
+    const solrResponse = await asFindAll(this.solr, 'search', request)
 
     info = {
       filters: params.sanitized.filters,

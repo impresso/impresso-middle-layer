@@ -1,3 +1,6 @@
+import { SolrNamespaces } from '../../solr'
+import { findByIds } from '../../solr/queryBuilders'
+import { findAllResponseAdapter } from '../../util/solr/adapters'
 const lodash = require('lodash')
 const debug = require('debug')('impresso/hooks/resolvers:mentions')
 const Article = require('../../models/articles.model')
@@ -12,24 +15,16 @@ const resolveArticles =
   (key = 'articleUid') => async context => {
     // get article uids from entityMentions
     const uids = context.result.data.map(d => d[key])
-    const solrClient = context.app.get('solrClient')
+
+    const solr = context.app.service('simpleSolrClient')
 
     debug('[resolveArticles]: load solr contents uids', uids)
 
-    const results = await solrClient.findAll(
-      {
-        q: `id:(${uids.join(' OR ')})`,
-        limit: uids.length,
-        offset: 0,
-        fl: Article.ARTICLE_SOLR_FL_LITE,
-        namespace: 'search',
-      },
-      Article.solrFactory
-    )
+    const response = await solr.select(SolrNamespaces.Search, findByIds(uids, Article.ARTICLE_SOLR_FL_LITE))
+    const results = findAllResponseAdapter(response, Article.solrFactory)
 
     debug('[resolveArticles]: uids', uids)
     const articles = lodash.keyBy(results.response.docs, 'uid')
-    // console.log(articles);
     // enrich thanks to uid ordering, then get
     uids.forEach((uid, i) => {
       if (articles[uid]) {

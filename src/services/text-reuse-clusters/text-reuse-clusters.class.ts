@@ -1,5 +1,4 @@
 import type { Params } from '@feathersjs/feathers'
-import { CachedSolrClient } from '../../cachedSolr'
 import type { ImpressoApplication } from '../../types'
 import type {
   ClusterElement,
@@ -9,6 +8,9 @@ import type {
 } from './models/generated'
 import { FindQueyParameters } from './text-reuse-clusters.schema'
 import { NewspapersService } from '../newspapers/newspapers.class'
+import { SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { getToSelect } from '../../util/solr/adapters'
+import { MediaSources } from '../media-sources/media-sources.class'
 
 const { mapValues, groupBy, values, uniq, clone, get } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
@@ -32,14 +34,16 @@ const { sameTypeFiltersToQuery } = require('../../util/solr')
 const { SolrNamespaces } = require('../../solr')
 const Newspaper = require('../../models/newspapers.model')
 
+interface ClusterIdAndTextAndPermission {
+  id: any
+  text: any
+  permissionBitmapExplore?: number
+  permissionsBitmapGetTranscript?: number
+}
+
 function buildResponseClusters(
   clusters: any,
-  clusterIdsAndTextAndPermissions: {
-    id: any
-    text: any
-    permissionBitmapExplore?: number
-    permissionsBitmapGetTranscript?: number
-  }[]
+  clusterIdsAndTextAndPermissions: ClusterIdAndTextAndPermission[]
 ): ClusterElement[] {
   const clustersById = mapValues(groupBy(clusters, 'id'), (v: any[]) => v[0])
   const results = clusterIdsAndTextAndPermissions.map(
@@ -70,8 +74,8 @@ const withExtraQueryParts = (query: { q: any }, parts: any) => {
   return updatedQuery
 }
 
-async function facetsWithItems(facets: Facet[], newspapersService: NewspapersService) {
-  const newspapersLookup = await newspapersService.getLookup()
+async function facetsWithItems(facets: Facet[], mediaSourcesService: MediaSources) {
+  const newspapersLookup = await mediaSourcesService.getLookup()
 
   return Promise.all(
     facets.map(async facet => {
@@ -128,16 +132,16 @@ function facetsWithCountry(facets: Facet[]) {
 }
 
 export class TextReuseClusters {
-  solr: CachedSolrClient
+  solr: SimpleSolrClient
   app: ImpressoApplication
 
   constructor(app: ImpressoApplication) {
-    this.solr = app.service('cachedSolr')
+    this.solr = app.service('simpleSolrClient')
     this.app = app
   }
 
-  private get newspapersService() {
-    return this.app.service('newspapers')
+  private get mediaSourcesService() {
+    return this.app.service('media-sources')
   }
 
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
@@ -154,7 +158,7 @@ export class TextReuseClusters {
     )
 
     const [clusterIdsAndTextAndPermissions, info] = await this.solr
-      .get(withExtraQueryParts(query, filterQueryParts), this.solr.namespaces.TextReusePassages)
+      .select(SolrNamespaces.TextReusePassages, getToSelect(withExtraQueryParts(query, filterQueryParts)))
       .then(response => [
         getClusterIdsTextAndPermissionsFromPassagesSolrResponse(response),
         getPaginationInfoFromPassagesSolrResponse(response),
@@ -174,7 +178,7 @@ export class TextReuseClusters {
   async getClusters(ids: string[]) {
     if (ids.length < 1) return []
     return await this.solr
-      .get(getTextReuseClustersRequestForIds(ids), this.solr.namespaces.TextReuseClusters)
+      .select(this.solr.namespaces.TextReuseClusters, getToSelect(getTextReuseClustersRequestForIds(ids)))
       .then(convertClustersSolrResponseToClusters)
   }
 
@@ -183,15 +187,15 @@ export class TextReuseClusters {
     const includeDetails = query.include_details === true || query.include_details === 'true'
 
     const sampleTextPromise = this.solr
-      .get(getLatestTextReusePassageForClusterIdRequest(id), this.solr.namespaces.TextReusePassages)
+      .select(this.solr.namespaces.TextReusePassages, getToSelect(getLatestTextReusePassageForClusterIdRequest(id)))
       .then(getClusterIdsTextAndPermissionsFromPassagesSolrResponse)
 
     const clusterPromise = this.solr
-      .get(getTextReuseClustersRequestForIds([id]), this.solr.namespaces.TextReuseClusters)
+      .select(this.solr.namespaces.TextReuseClusters, getToSelect(getTextReuseClustersRequestForIds([id])))
       .then(convertClustersSolrResponseToClusters)
 
     const connectedClustersCountPromise = this.solr
-      .post(buildConnectedClustersCountRequest(id), this.solr.namespaces.TextReusePassages)
+      .select(this.solr.namespaces.TextReusePassages, getToSelect(buildConnectedClustersCountRequest(id)))
       .then(parseConnectedClustersCountResponse)
 
     const [clusterIdsAndTextAndPermissions, clusters, connectedClustersCount] = await Promise.all([
@@ -200,11 +204,14 @@ export class TextReuseClusters {
       connectedClustersCountPromise,
     ])
 
-    const clusterItems = buildResponseClusters(clusters, clusterIdsAndTextAndPermissions)
+    const clusterItems = buildResponseClusters(
+      clusters,
+      clusterIdsAndTextAndPermissions as any as ClusterIdAndTextAndPermission[]
+    )
 
     if (clusterItems.length < 1) throw new NotFound()
     const cluster = clusterItems[0]
-    cluster.cluster.connectedClustersCount = connectedClustersCount
+    if (cluster?.cluster != null) cluster.cluster.connectedClustersCount = connectedClustersCount as any as number
 
     if (!includeDetails) return cluster
 
@@ -212,13 +219,12 @@ export class TextReuseClusters {
 
     const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(id, cluster.cluster.timeCoverage)
 
-    const extraClusterDetailsResponse = await this.solr.post(
-      extraClusterDetailsRequest,
-      this.solr.namespaces.TextReusePassages
-    )
+    const extraClusterDetailsResponse = await this.solr.select(this.solr.namespaces.TextReusePassages, {
+      body: extraClusterDetailsRequest,
+    })
     const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse)
 
-    cluster.details = { facets: await facetsWithItems(facets, this.newspapersService) }
+    cluster.details = { facets: await facetsWithItems(facets, this.mediaSourcesService) }
 
     cluster.details.facets = facetsWithCountry(cluster.details.facets)
     cluster.details.resolution = getTimelineResolution(

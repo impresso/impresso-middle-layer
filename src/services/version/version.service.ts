@@ -15,9 +15,8 @@ module.exports = function (app: ImpressoApplication) {
     '/version',
     {
       async find() {
-        const solrConfig = app.get('solr')
         const sequelizeConfig = app.get('sequelize')
-        const solr = app.service('cachedSolr')
+        const solr = app.service('simpleSolrClient')
         const isPublicApi = app.get('isPublicApi')
 
         const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr)

@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { mediaSourceToNewspaper } from '../newspapers/newspapers.class'
 const debug = require('debug')('impresso/services:suggestions')
 const chrono = require('chrono-node')
 const moment = require('moment')
@@ -15,29 +16,76 @@ const { measureTime } = require('../../util/instruments')
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 
+const asEntitySuggestion = doc => {
+  // payload shoyld be a string formatted as 'id|type',
+  // like 'aida-0001-Testament_(comics)|Person'
+  const [uid, type] = doc.payload.split('|')
+  const item = new Entity({
+    uid,
+    name: Entity.getNameFromUid(uid),
+    type,
+  })
+  return new Suggestion({
+    q: item.uid,
+    h: Entity.getNameFromUid(doc.term),
+    type: item.type,
+    item,
+    weight: doc.weight,
+  })
+}
+
+const asMentionSuggestion = doc => {
+  // payload form ention contain type only
+  const item = new Mention({
+    name: doc.term.replace(/<[^>]*>/g, ''),
+    frequence: doc.weight,
+    type: doc.payload,
+  })
+  return new Suggestion({
+    q: item.name,
+    h: doc.term,
+    type: 'mention',
+    item,
+    weight: item.frequence,
+  })
+}
+
+const asTopicSuggestion = doc => {
+  const topic = Topic.solrSuggestFactory()(doc)
+  // console.log(topic);
+  return new Suggestion({
+    q: topic.uid,
+    h: topic.getExcerpt().join(' '),
+    type: 'topic',
+    item: topic,
+  })
+}
+
 class Service {
   constructor({ app, name }) {
     this.app = app
     this.name = name
-    this.solrClient = this.app.service('cachedSolr')
+  }
+
+  /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+  get solr() {
+    return this.app.service('simpleSolrClient')
   }
 
   suggestNewspapers({ q }) {
     debug('suggestNewspapers for q:', q)
     return this.app
-      .service('newspapers')
-      .find({
-        query: {
-          q,
-          limit: 3,
-          faster: true,
-        },
+      .service('media-sources')
+      .findMediaSources({
+        term: q,
+        limit: 3,
+        type: 'newspaper',
       })
       .then(res => {
         debug('suggestNewspapers SUCCESS q:', q)
-        return res
+        return res.data.map(mediaSourceToNewspaper)
       })
-      .then(({ data }) =>
+      .then(data =>
         data.map(
           d =>
             new Suggestion({
@@ -82,88 +130,22 @@ class Service {
       )
   }
 
-  suggestEntities({ q }) {
-    return measureTime(
-      () =>
-        this.solrClient.suggest(
-          {
-            namespace: 'entities',
-            q,
-            limit: 3,
-          },
-          () => doc => {
-            // payload shoyld be a string formatted as 'id|type',
-            // like 'aida-0001-Testament_(comics)|Person'
-            const [uid, type] = doc.payload.split('|')
-            const item = new Entity({
-              uid,
-              name: Entity.getNameFromUid(uid),
-              type,
-            })
-            return new Suggestion({
-              q: item.uid,
-              h: Entity.getNameFromUid(doc.term),
-              type: item.type,
-              item,
-              weight: doc.weight,
-            })
-          }
-        ),
-      'suggestions.solr.entities'
-    )
+  async suggestItem(q, type, builder) {
+    const request = { q, count: 3 }
+    const result = await this.solr.suggest('entities', request)
+    return (result.suggestions ?? []).map(builder)
   }
 
-  suggestMentions({ q }) {
-    return measureTime(
-      () =>
-        this.solrClient.suggest(
-          {
-            namespace: 'mentions',
-            q,
-            limit: 3,
-          },
-          () => doc => {
-            // payload form ention contain type only
-            const item = new Mention({
-              name: doc.term.replace(/<[^>]*>/g, ''),
-              frequence: doc.weight,
-              type: doc.payload,
-            })
-            return new Suggestion({
-              q: item.name,
-              h: doc.term,
-              type: 'mention',
-              item,
-              weight: item.frequence,
-            })
-          }
-        ),
-      'suggestions.solr.mentions'
-    )
+  async suggestEntities({ q }) {
+    return await this.suggestItem(q, 'entities', asEntitySuggestion)
   }
 
-  suggestTopics({ q }) {
-    return measureTime(
-      () =>
-        this.solrClient.suggest(
-          {
-            namespace: 'topics',
-            q,
-            limit: 3,
-          },
-          () => doc => {
-            const topic = Topic.solrSuggestFactory()(doc)
-            // console.log(topic);
-            return new Suggestion({
-              q: topic.uid,
-              h: topic.getExcerpt().join(' '),
-              type: 'topic',
-              item: topic,
-            })
-          }
-        ),
-      'suggestions.solr.topics'
-    )
+  async suggestMentions({ q }) {
+    return await this.suggestItem(q, 'mentions', asMentionSuggestion)
+  }
+
+  async suggestTopics({ q }) {
+    return await this.suggestItem(q, 'topics', asTopicSuggestion)
   }
 
   async get(type, params) {
@@ -312,11 +294,13 @@ class Service {
       }),
     ]).then(values => {
       debug('[find] SUCCESS for params.query.q:', params.query.q)
+      // Use Array.prototype.flat() to flatten the array of suggestions
+      const suggestions = values.flat().filter(item => item != null)
+      // .flatten(values)
+      // .filter(d => !lodash.isEmpty(d))
+      // .value()
       return {
-        data: lodash(values)
-          .filter(d => !lodash.isEmpty(d))
-          .flatten()
-          .value(),
+        data: suggestions,
       }
     })
   }

@@ -16,6 +16,9 @@ const TTL = Object.freeze({
  * @typedef {{ ttl?: number, skipCache?: boolean }} Options
  */
 
+/**
+ * @deprecated use `SimpleSolrClient`
+ */
 class CachedSolrClient {
   constructor(solrClient, cacheManager) {
     this.solrClient = solrClient
@@ -24,6 +27,8 @@ class CachedSolrClient {
   }
 
   /**
+   * @deprecated use `SimpleSolrClient`
+   *
    * Send a `GET` request to Solr.
    * @param {any} request Solr request parameters
    * @param {string} namespace namespace to use.
@@ -43,6 +48,8 @@ class CachedSolrClient {
   }
 
   /**
+   * @deprecated use `SimpleSolrClient`
+   *
    * Send a `POST` request to Solr.
    * @param {any} request Solr request body
    * @param {string} namespace namespace to use.
@@ -62,6 +69,8 @@ class CachedSolrClient {
   }
 
   /**
+   * @deprecated use `SimpleSolrClient`
+   *
    * Search articles.
    * NOTE: Deprecated method. Use `get` or `post`.
    * @param {any} request a semi preprocessed Solr request.
@@ -82,6 +91,8 @@ class CachedSolrClient {
   }
 
   /**
+   * @deprecated use `SimpleSolrClient`
+   *
    * Search items.
    * NOTE: Deprecated method. Use `get` or `post`.
    * @param {any} request a semi preprocessed Solr request.
@@ -119,6 +130,8 @@ class CachedSolrClient {
   }
 
   /**
+   * @deprecated use `SimpleSolrClient`
+   *
    * Suggest items.
    * NOTE: Deprecated method. Use `get` or `post`.
    * @param {any} request a semi preprocessed Solr request.

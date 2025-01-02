@@ -17,7 +17,7 @@ const buildRedisUri = (config: Configuration['redis']): string => {
 export default (app: ImpressoApplication) => {
   const config = app.get('redis')
   const cacheConfig = app.get('cache')
-  const isEnabled = config?.enable && cacheConfig?.enabled
+  const isEnabled = cacheConfig?.enabled
 
   const redisStore = isEnabled
     ? new Keyv({

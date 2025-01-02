@@ -1,6 +1,7 @@
+import { SolrNamespace } from '../solr'
 import { QueryTypes, type Sequelize } from 'sequelize'
-import { MediaSource } from '../models/generated/schemas'
 import { Bucket, SelectRequestBody, SimpleSolrClient } from '../internalServices/simpleSolr'
+import { MediaSource } from '../models/generated/schemas'
 
 const sqlGetNewsappersDetails = `
 SELECT
@@ -86,7 +87,7 @@ export interface FacetBucket extends Bucket {
 export const consolidateMediaSources = async (
   dbClient: Sequelize,
   solrClient: SimpleSolrClient,
-  solrIndex: string
+  solrIndex: SolrNamespace
 ): Promise<MediaSource[]> => {
   const [solrResponse, dbNewspapersDetails] = await Promise.all([
     solrClient.select<unknown, 'sources', FacetBucket>(solrIndex, { body: articlesCountSolrQuery }),

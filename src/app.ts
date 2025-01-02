@@ -1,4 +1,4 @@
-import { Application } from '@feathersjs/express'
+import express, { Application, static as staticMiddleware } from '@feathersjs/express'
 import { feathers } from '@feathersjs/feathers'
 import bodyParser from 'body-parser'
 import appHooksFactory from './app.hooks'
@@ -19,22 +19,15 @@ import rateLimiter from './services/internal/rateLimiter/redis'
 import media from './services/media'
 import proxy from './services/proxy'
 import schemas from './services/schemas'
-import solr from './solr'
 import { ImpressoApplication } from './types'
-import { ensureServiceIsFeathersCompatible } from './util/feathers'
 import { init as simpleSolrClient } from './internalServices/simpleSolr'
+import path from 'path'
+import compress from 'compression'
+import middleware from './middleware'
+import multer from './multer'
 
-const path = require('path')
-const compress = require('compression')
 const helmet = require('helmet')
 const cookieParser = require('cookie-parser')
-
-const express = require('@feathersjs/express')
-
-const middleware = require('./middleware')
-
-const multer = require('./multer')
-const cachedSolr = require('./cachedSolr')
 
 const app: ImpressoApplication & Application = express(feathers())
 
@@ -43,15 +36,9 @@ app.configure(configuration)
 
 // configure internal services
 app.configure(sequelize)
-app.configure(solr)
 app.configure(redis)
 app.configure(rateLimiter)
 app.configure(cache)
-
-app.use('cachedSolr', ensureServiceIsFeathersCompatible(cachedSolr(app)), {
-  methods: [],
-})
-
 app.configure(simpleSolrClient)
 
 // Enable security, compression, favicon and body parsing
@@ -65,7 +52,7 @@ app.use(bodyParser.json({ limit: '50mb' }))
 app.configure(multer)
 
 // Host the public folder
-app.use('/', express.static(path.join(__dirname, app.get('public'))))
+app.use('/', staticMiddleware(path.join(__dirname, app.get('public') as string)))
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware)

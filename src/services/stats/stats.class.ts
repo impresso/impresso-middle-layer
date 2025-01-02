@@ -1,7 +1,8 @@
 import Debug from 'debug'
 import { ImpressoApplication } from '../../types'
-import { CachedSolrClient } from '../../cachedSolr'
 import { Id, Params } from '@feathersjs/feathers'
+import { SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
 const { statsConfiguration } = require('../../data')
 const { filtersToQueryAndVariables } = require('../../util/solr')
 const { getWidestInclusiveTimeInterval } = require('../../logic/filters')
@@ -35,8 +36,8 @@ const FacetLabelCache = Object.freeze({
     return topic.words.map(({ w }: any) => w).join(', ')
   },
   newspaper: async (key: string, app: ImpressoApplication) => {
-    const newspapersLookup = await app.service('newspapers').getLookup()
-    const newspaper = newspapersLookup[key]
+    const mediaSourcesLookup = await app.service('media-sources').getLookup()
+    const newspaper = optionalMediaSourceToNewspaper(mediaSourcesLookup[key])
     return newspaper == null ? key : newspaper.name
   },
   person: entityCacheExtractor,
@@ -117,7 +118,7 @@ function buildSolrRequest(facet: any, index: any, domain: any, stats: any, filte
         facet: getFacetQueryPart(facet, index, facetType, stats),
       },
     },
-  }
+  } satisfies SelectRequestBody
 }
 
 const parseDate = (val: any, resolution: any) => {
@@ -207,11 +208,11 @@ async function buildResponse(result: any, facet: any, index: any, domain: any, f
 }
 
 class Stats {
-  solr: CachedSolrClient
+  solr: SimpleSolrClient
   app: ImpressoApplication
 
   constructor(app: ImpressoApplication) {
-    this.solr = app.service('cachedSolr')
+    this.solr = app.service('simpleSolrClient')
     this.app = app
   }
 
@@ -240,18 +241,17 @@ class Stats {
       statsField
     )
     const { query } = filtersToQueryAndVariables(filters, index)
-    const result = await this.solr.post(
-      {
+    const result = await this.solr.select(index, {
+      body: {
         query,
         limit: 0,
         params: { hl: false, stats: true, 'stats.field': statsField },
       },
-      index
-    )
-    debug('[get] index:', index, 'stats result', result.stats.stats_fields.statistics)
+    })
+    debug('[get] index:', index, 'stats result', result.stats?.stats_fields?.statistics)
     return {
-      statistics: result.stats.stats_fields.statistics,
-      total: result.response.numFound,
+      statistics: result.stats?.stats_fields?.statistics,
+      total: result.response?.numFound,
     }
   }
 
@@ -273,7 +273,7 @@ class Stats {
       'facet:',
       JSON.stringify(request.facet, null, 2)
     )
-    const result = await this.solr.post(request, index)
+    const result = await this.solr.select(index, { body: request })
     debug('stats result', result.facets)
     const response: any = await buildResponse(result, facet, index, domain, filters, this.app)
     debug('stats response', response.query)
