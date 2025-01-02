@@ -1,13 +1,9 @@
 import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
 import Article from '../../models/articles.model'
-import Newspaper from '../../models/newspapers.model'
-import Topic from '../../models/topics.model'
-import Entity from '../../models/entities.model'
-import Year from '../../models/years.model'
 import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'
 import { Service } from '../articles/articles.class'
 import { ImpressoApplication } from '../../types'
-import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
+import { buildResolvers, CachedFacetType, IResolver } from '../../internalServices/cachedResolvers'
 
 function getAricleMatchesAndRegions(
   article: Article | undefined,
@@ -81,27 +77,14 @@ export async function getItemsFromSolrResponse(
   })
 }
 
-async function addCachedItems(bucket: { val: any }, provider: (id: string) => any) {
-  if (isUndefined(provider)) return bucket
+async function addCachedItems(bucket: { val: any }, resolver: IResolver<any>, type: CachedFacetType) {
+  if (isUndefined(resolver)) return bucket
   return {
     ...bucket,
-    item: await provider(bucket.val),
+    item: await resolver(bucket.val),
     uid: bucket.val,
   }
 }
-
-type CacheProviderType = 'newspaper' | 'topic' | 'person' | 'location' | 'year'
-
-const getCacheProviders = (
-  app: ImpressoApplication
-): Record<CacheProviderType, (id: string) => Promise<any> | any> => ({
-  newspaper: async (id: string) =>
-    optionalMediaSourceToNewspaper(await app.service('media-sources').getMediaSource(id)),
-  topic: Topic.getCached,
-  person: Entity.getCached,
-  location: Entity.getCached,
-  year: Year.getCached,
-})
 
 /**
  * Extract facets from Solr response.
@@ -114,14 +97,14 @@ export async function getFacetsFromSolrResponse(
 ) {
   const { facets = {} } = response
 
-  const cacheProviders = getCacheProviders(app)
+  const resolvers = buildResolvers(app)
 
   const facetPairs = await Promise.all(
     Object.keys(facets).map(async facetLabel => {
       if (!facets[facetLabel].buckets) return [facetLabel, facets[facetLabel]]
-      const cacheProvider = cacheProviders[facetLabel as CacheProviderType]
+      const resolver = resolvers[facetLabel as CachedFacetType]
       const buckets = await Promise.all(
-        facets[facetLabel].buckets.map(async (b: any) => addCachedItems(b, cacheProvider))
+        facets[facetLabel].buckets.map(async (b: any) => addCachedItems(b, resolver, facetLabel as CachedFacetType))
       )
 
       return [facetLabel, assignIn(clone(facets[facetLabel]), { buckets })]

@@ -1,10 +1,9 @@
 import { HookContext } from '@feathersjs/feathers'
 import { AppServices, ImpressoApplication } from '../types'
 import { mediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
+import { buildResolvers } from '../internalServices/cachedResolvers'
 
 const debug = require('debug')('impresso/hooks:search-info')
-
-const Topic = require('../models/topics.model')
 
 /**
  * check if there are any params to be added to our beloved facets.
@@ -63,11 +62,14 @@ const resolveFacets = () => async (context: HookContext<ImpressoApplication, App
 
     if (context.result.info.facets.topic) {
       debug('resolveFacets for topics')
-      context.result.info.facets.topic.buckets = context.result.info.facets.newspaper.buckets.map((d: any) => ({
-        ...d,
-        item: Topic.getCached(d.val),
-        uid: d.val,
-      }))
+      const resolvers = buildResolvers(context.app)
+      context.result.info.facets.topic.buckets = await Promise.all(
+        context.result.info.facets.newspaper.buckets.map(async (d: any) => ({
+          ...d,
+          item: await resolvers.topic(d.val),
+          uid: d.val,
+        }))
+      )
     }
   }
 }
@@ -88,10 +90,12 @@ const resolveQueryComponents = () => async (context: HookContext<ImpressoApplica
         d.items = d.q.map((uid: string) => mediaSourceToNewspaper(mediaSourcesLookup[uid]))
       }
     } else if (d.type === 'topic') {
+      const resolvers = buildResolvers(context.app)
+
       if (!Array.isArray(d.q)) {
-        d.items = [Topic.getCached(d.q)]
+        d.items = [resolvers.topic(d.q)]
       } else {
-        d.items = d.q.map((uid: string) => Topic.getCached(uid))
+        d.items = await Promise.all(d.q.map(async (uid: string) => await resolvers.topic(uid)))
       }
     } else if (d.type === 'collection' && context.params.user) {
       // eslint-disable-next-line no-await-in-loop

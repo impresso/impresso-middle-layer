@@ -62,7 +62,7 @@ class SearchFacetBucket implements ISearchFacetBucket {
     const uid = String(val)
     const resolver = resolvers[type as CachedFacetType]
 
-    const item = resolver != null ? await resolver(uid, type as CachedFacetType) : undefined
+    const item = resolver != null ? await resolver(uid) : undefined
 
     return new SearchFacetBucket({
       val,

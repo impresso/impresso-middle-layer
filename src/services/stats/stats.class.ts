@@ -2,12 +2,10 @@ import Debug from 'debug'
 import { ImpressoApplication } from '../../types'
 import { Id, Params } from '@feathersjs/feathers'
 import { SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
+import { buildResolvers } from '../../internalServices/cachedResolvers'
 const { statsConfiguration } = require('../../data')
 const { filtersToQueryAndVariables } = require('../../util/solr')
 const { getWidestInclusiveTimeInterval } = require('../../logic/filters')
-const Topic = require('../../models/topics.model')
-const Entity = require('../../models/entities.model')
 
 const { TimeDomain, StatsToSolrFunction, StatsToSolrStatistics } = require('./common')
 
@@ -24,28 +22,34 @@ const TemporalResolution = Object.freeze({
   Day: 'day',
 })
 
-const entityCacheExtractor = (key: string) => {
-  const entity = Entity.getCached(key)
-  return entity == null ? key : entity.name
-}
+type FacetLabel = 'topic' | 'newspaper' | 'person' | 'location' | 'language' | 'country' | 'type'
+type LabelExtractor = (id: string) => Promise<string>
 
-const FacetLabelCache = Object.freeze({
-  topic: async (key: string) => {
-    const topic = await Topic.getCached(key)
-    if (topic == null) return key
-    return topic.words.map(({ w }: any) => w).join(', ')
-  },
-  newspaper: async (key: string, app: ImpressoApplication) => {
-    const mediaSourcesLookup = await app.service('media-sources').getLookup()
-    const newspaper = optionalMediaSourceToNewspaper(mediaSourcesLookup[key])
-    return newspaper == null ? key : newspaper.name
-  },
-  person: entityCacheExtractor,
-  location: entityCacheExtractor,
-  language: (key: string) => key,
-  country: (key: string) => key,
-  type: (key: string) => key,
-})
+const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelExtractor> => {
+  const resolvers = buildResolvers(app)
+  return {
+    topic: async (key: string) => {
+      const topic = await resolvers.topic(key)
+      if (topic == null) return key
+      return topic.words.map(({ w }: any) => w).join(', ')
+    },
+    newspaper: async (key: string) => {
+      const newspaper = await resolvers.newspaper(key)
+      return newspaper == null ? key : newspaper.name
+    },
+    person: async (key: string) => {
+      const entity = await resolvers.person(key)
+      return entity == null ? key : entity.name
+    },
+    location: async (key: string) => {
+      const entity = await resolvers.location(key)
+      return entity == null ? key : entity.name
+    },
+    language: async (key: string) => key,
+    country: async (key: string) => key,
+    type: async (key: string) => key,
+  }
+}
 
 const getFacetType = (index: string, facet: any) => {
   const indexFacets = statsConfiguration.indexes[index].facets
@@ -132,10 +136,11 @@ const parseDate = (val: any, resolution: any) => {
   }
 }
 
-const withLabel = async (val: any, facet: keyof typeof FacetLabelCache, app: ImpressoApplication) => {
-  const extractor = FacetLabelCache[facet]
+const withLabel = async (val: any, facet: FacetLabel, app: ImpressoApplication) => {
+  const extractors = getFacetLabelCache(app)
+  const extractor = extractors[facet]
   return {
-    label: extractor ? await extractor(val, app) : val,
+    label: extractor ? await extractor(val) : val,
     value: val,
   }
 }
@@ -157,18 +162,20 @@ const parseValue = (object: any, facetType: any) => {
   }
 }
 
-async function buildItemsDictionary(items: any, facet: keyof typeof FacetLabelCache, app: ImpressoApplication) {
+async function buildItemsDictionary(items: any, facet: FacetLabel, app: ImpressoApplication) {
   const terms = new Set<string>(
     items.flatMap(({ value: { items: subitems = [] } }) => subitems).map(({ term }: any) => term)
   )
 
-  const extractor = FacetLabelCache[facet]
+  const extractors = getFacetLabelCache(app)
+  const extractor = extractors[facet]
+
   if (extractor == null) return {}
 
   return [...terms].reduce(
     async (accPromise, term: string) => {
       const acc = await accPromise
-      acc[term] = await extractor(term as string, app)
+      acc[term] = await extractor(term as string)
       return acc
     },
     {} as Promise<Record<string, any>>

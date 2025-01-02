@@ -8,30 +8,30 @@ import { Newspaper as NewspaperInternal } from '../models/generated/schemas'
 
 export type CachedFacetType = 'newspaper' | 'topic' | 'person' | 'location' | 'collection' | 'year'
 
-type IResolver<T> = (id: string, type: CachedFacetType) => Promise<T | undefined>
+export type IResolver<T> = (id: string) => Promise<T | undefined>
 
 export type ICachedResolvers = Record<CachedFacetType, IResolver<any>>
 
-const collectionResolver: IResolver<Collection> = async (id: string, _) =>
+const collectionResolver: IResolver<Collection> = async (id: string) =>
   new Collection({
     uid: id,
     name: id,
   })
 
-const entityResolver: IResolver<Entity> = async (id: string, type: CachedFacetType) =>
+const entityResolver = async (id: string, type: CachedFacetType) =>
   new Entity({
     uid: id,
     type,
     name: Entity.getNameFromUid(id),
   })
 
-const topicResolver: IResolver<Topic> = async (id: string, _) => Topic.getCached(id)
+const topicResolver: IResolver<Topic> = async (id: string) => Topic.getCached(id)
 
-const yearResolver: IResolver<Year> = async (id: string, _) => Year.getCached(id)
+const yearResolver: IResolver<Year> = async (id: string) => Year.getCached(id)
 
 const getNewspaperResolver = (app: ImpressoApplication): IResolver<NewspaperInternal> => {
   const mediaSources = app.service('media-sources')
-  return async (id: string, _) => {
+  return async (id: string) => {
     const lookup = await mediaSources.getLookup()
     const item = lookup[id]
     return optionalMediaSourceToNewspaper(item)
@@ -40,8 +40,8 @@ const getNewspaperResolver = (app: ImpressoApplication): IResolver<NewspaperInte
 
 export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => ({
   collection: collectionResolver,
-  location: entityResolver,
-  person: entityResolver,
+  location: (id: string) => entityResolver(id, 'location'),
+  person: (id: string) => entityResolver(id, 'person'),
   topic: topicResolver,
   year: yearResolver,
   newspaper: getNewspaperResolver(app),
