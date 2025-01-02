@@ -34,7 +34,7 @@ interface FindAllParams {
   highlightProps?: Record<string, string>
   vars?: Record<string, string>
   order_by?: string
-  facets?: Record<string, SolrFacetQueryParams>
+  facets?: Record<string, SolrFacetQueryParams> | string
   group_by?: string
   collapse_by?: string
   collapse_fn?: string
@@ -95,7 +95,7 @@ export const findAllRequestAdapter = (params: FindAllParams): SelectRequestBody 
 
   const request: SelectRequestBody = {
     query: params.form?.q ?? params?.q ?? '*:*',
-    facet: params.facets,
+    facet: typeof params.facets === 'string' ? JSON.parse(params.facets) : params.facets,
     limit: params.limit ?? 10,
     offset: params.offset ?? 0,
     filter: filter,

@@ -53,7 +53,7 @@ class Service {
     // at least 1 of content length, max 500 articles
     const request = {
       q: `meta_issue_id_s:${id} AND filter(content_length_i:[1 TO *])`,
-      facets: JSON.stringify({
+      facets: {
         person: {
           type: 'terms',
           field: 'pers_entities_dpfs',
@@ -70,7 +70,7 @@ class Service {
           offset: 0,
           numBuckets: true,
         },
-      }),
+      },
       limit: 500,
       offset: 0,
       order_by: 'id ASC',
