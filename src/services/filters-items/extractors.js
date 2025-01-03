@@ -31,7 +31,7 @@ async function newspaperExtractor({ q = '' }, app) {
 async function topicExtractor({ q = '' }, app) {
   const resolvers = buildResolvers(app)
   const items = Array.isArray(q) ? q : [q]
-  return await Promise.all(items.map(async item => await resolvers.topic(item.trim()))).filter(item => item != null)
+  return (await Promise.all(items.map(async item => await resolvers.topic(item.trim())))).filter(item => item != null)
 }
 
 async function entityExtractor({ q = '' }, app) {
@@ -50,7 +50,7 @@ async function yearExtractor({ q = '' }, app) {
   const resolvers = buildResolvers(app)
 
   const items = Array.isArray(q) ? q : [q]
-  return await Promise.all(items.map(async item => resolvers.year(item.trim()))).filter(item => item != null)
+  return (await Promise.all(items.map(async item => resolvers.year(item.trim())))).filter(item => item != null)
 }
 
 async function collectionExtractor({ q = '' }, app) {
