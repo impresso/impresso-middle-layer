@@ -31,26 +31,29 @@ async function newspaperExtractor({ q = '' }, app) {
 async function topicExtractor({ q = '' }, app) {
   const resolvers = buildResolvers(app)
   const items = Array.isArray(q) ? q : [q]
-  return (await Promise.all(items.map(async item => await resolvers.topic(item.trim())))).filter(item => item != null)
+  const mappedItems = await Promise.all(items.map(async item => await resolvers.topic(item.trim())))
+  return mappedItems.filter(item => item != null)
 }
 
 async function entityExtractor({ q = '' }, app) {
   const resolvers = buildResolvers(app)
   const items = Array.isArray(q) ? q : [q]
-  return await Promise.all(
+  const mappedItems = await Promise.all(
     items.map(async item => {
       const uid = item.trim()
       const type = Entity.getTypeFromUid(uid)
       return type === 'person' ? await resolvers.person(uid) : await resolvers.location(uid)
     })
-  ).filter(item => item != null)
+  )
+  return mappedItems.filter(item => item != null)
 }
 
 async function yearExtractor({ q = '' }, app) {
   const resolvers = buildResolvers(app)
 
   const items = Array.isArray(q) ? q : [q]
-  return (await Promise.all(items.map(async item => resolvers.year(item.trim())))).filter(item => item != null)
+  const mappedItems = await Promise.all(items.map(async item => resolvers.year(item.trim())))
+  return mappedItems.filter(item => item != null)
 }
 
 async function collectionExtractor({ q = '' }, app) {
