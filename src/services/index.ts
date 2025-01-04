@@ -63,6 +63,7 @@ const internalApiServices = [
   'password-reset',
   'change-password',
   'terms-of-use',
+  'user-change-plan-request',
   'user-requests',
   'user-requests-reviews',
   'newspapers',

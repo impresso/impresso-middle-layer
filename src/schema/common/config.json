@@ -11,6 +11,13 @@
       "type": "boolean",
       "description": "If `true`, the app serves a public API"
     },
+    "availablePlans": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of available plans"
+    },
     "allowedCorsOrigins": {
       "type": "array",
       "items": {
