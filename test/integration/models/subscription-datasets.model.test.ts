@@ -2,13 +2,13 @@ import assert from 'assert'
 import debug from 'debug'
 
 import { client as getSequelizeClient } from '../../../src/sequelize'
-import configuration, { SequelizeConfiguration } from '../../../src/configuration'
-
+import configuration from '../../../src/configuration'
+import {type SequelizeConfig} from '../../../src/models/generated/common'
 import SubscriptionDataset, { SubscriptionDatasetAttributes } from '../../../src/models/subscription-datasets.model'
 
 const logger = debug('impresso/test:models:subscription-datasets.model.test')
 const userId = process.env.USER_ID
-const config: SequelizeConfiguration = configuration()().get('sequelize')
+const config: SequelizeConfig = configuration()().get('sequelize')
 
 logger(`Sequelize configuration: ${config.host}:${config.port} db:${config.database}`)
 
