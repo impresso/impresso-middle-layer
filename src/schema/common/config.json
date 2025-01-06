@@ -69,7 +69,8 @@
     "cache": { "$ref": "#/definitions/CacheConfig" },
     "appHooks": { "$ref": "#/definitions/AppHooksConfig" },
     "media": { "$ref": "#/definitions/MediaConfig" },
-    "solrConfiguration": { "$ref": "./solrConfiguration.json" }
+    "solrConfiguration": { "$ref": "./solrConfiguration.json" },
+    "proxy": { "$ref": "#/definitions/ProxyConfig" }
   },
   "required": ["solr", "sequelize", "authentication"],
   "definitions": {
@@ -265,6 +266,16 @@
         "host": { "type": "string", "description": "Host of the media server" },
         "path": { "type": "string", "description": "Path to the media server" },
         "services": { "type": "array", "items": { "type": "string" }, "description": "List of media services" }
+      }
+    },
+    "ProxyConfig": {
+      "properties": {
+        "host": { "type": "string", "description": "Host of the proxy server" },
+        "localPrefixes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of local prefixes to replace in IIIF URLs in Issue pages"
+        }
       }
     }
   }

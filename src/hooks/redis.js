@@ -22,7 +22,7 @@ const { generateHash } = require('../crypto')
  * @return {feathers.SKIP or undefined} if undefined, following hooks will be loaded
  */
 // prettier-ignore
-const checkCachedContents =
+export const checkCachedContents =
   ({
     useAuthenticatedUser = false, //
     useAuthentication = false,
@@ -100,7 +100,7 @@ const checkCachedContents =
  * @return {feathers.SKIP or undefined}
  */
 // prettier-ignore
-const returnCachedContents =
+export const returnCachedContents =
   ({ skipHooks = false } = {}) => context => {
     debug(`returnCachedContents: ${!!context.params.isCached}`);
     if (context.params.isCached) {
@@ -117,7 +117,7 @@ const returnCachedContents =
  * [saveResultsInCache description]
  * @return {[type]} [description]
  */
-const saveResultsInCache = () => async context => {
+export const saveResultsInCache = () => async context => {
   if (context.params.isCached) {
     debug('saveResultsInCache: skipping saving, cached content already served.')
     return
@@ -143,10 +143,4 @@ const saveResultsInCache = () => async context => {
     // do not override cached contents. See returnCachedContents
     await client.set(context.params.cacheKey, JSON.stringify(context.result, customJSONReplacer))
   }
-}
-
-module.exports = {
-  checkCachedContents,
-  returnCachedContents,
-  saveResultsInCache,
 }
