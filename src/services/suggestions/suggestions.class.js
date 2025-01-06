@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { mediaSourceToNewspaper } from '../newspapers/newspapers.class'
+import { SolrNamespaces } from '../../solr'
 const debug = require('debug')('impresso/services:suggestions')
 const chrono = require('chrono-node')
 const moment = require('moment')
@@ -132,20 +133,20 @@ class Service {
 
   async suggestItem(q, type, builder) {
     const request = { q, count: 3 }
-    const result = await this.solr.suggest('entities', request)
+    const result = await this.solr.suggest(type, request)
     return (result.suggestions ?? []).map(builder)
   }
 
   async suggestEntities({ q }) {
-    return await this.suggestItem(q, 'entities', asEntitySuggestion)
+    return await this.suggestItem(q, SolrNamespaces.Entities, asEntitySuggestion)
   }
 
   async suggestMentions({ q }) {
-    return await this.suggestItem(q, 'mentions', asMentionSuggestion)
+    return await this.suggestItem(q, SolrNamespaces.Mentions, asMentionSuggestion)
   }
 
   async suggestTopics({ q }) {
-    return await this.suggestItem(q, 'topics', asTopicSuggestion)
+    return await this.suggestItem(q, SolrNamespaces.Topics, asTopicSuggestion)
   }
 
   async get(type, params) {
