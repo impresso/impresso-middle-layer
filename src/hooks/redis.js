@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import { customJSONReplacer } from '../util/jsonEncoder'
+import { customJSONReplacer } from '../util/jsonCodec'
 const debug = require('debug')('impresso/hooks:redis')
 const feathers = require('@feathersjs/feathers')
 const { generateHash } = require('../crypto')

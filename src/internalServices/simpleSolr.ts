@@ -16,6 +16,7 @@ import { ensureServiceIsFeathersCompatible } from '../util/feathers'
 import { serialize } from '../util/serialize'
 import { defaultCachingStrategy } from '../util/solr/cacheControl'
 import { removeNullAndUndefined } from '../util/fn'
+import { safeParseJson, safeStringifyJson } from '../util/jsonCodec'
 
 const DefaultSuggesterDictonary = 'm_suggester_infix'
 
@@ -81,7 +82,7 @@ export interface ErrorContainer {
 }
 
 export type Bucket = {
-  val?: string | number
+  val?: string | number | BigInt
   count?: number
 } & {
   // subfacets
@@ -278,11 +279,11 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
         ...buildAuthHeader(auth),
         'Content-Type': 'application/json',
       }),
-      body: JSON.stringify(removeNullAndUndefined(request.body)),
+      body: safeStringifyJson(removeNullAndUndefined(request.body)),
     }
 
     const responseBody = await this.fetch(pool, url, init)
-    return JSON.parse(responseBody)
+    return safeParseJson(responseBody)
   }
 }
 
@@ -313,7 +314,7 @@ class CachedDefaultSimpleSolrClient extends DefaultSimpleSolrClient {
 
     const response = await super.fetch(pool, url, init)
 
-    const action = this.cachingStrategy?.(url, init.body as string, JSON.stringify(response)) ?? 'cache'
+    const action = this.cachingStrategy?.(url, init.body as string, safeStringifyJson(response)) ?? 'cache'
 
     if (action === 'cache') {
       await this.cache.set(cacheKey, response)
@@ -334,7 +335,7 @@ export const init = (app: ImpressoApplication) => {
     ? new CachedDefaultSimpleSolrClient(solrConfiguration, cache, defaultCachingStrategy)
     : new DefaultSimpleSolrClient(solrConfiguration)
 
-  console.log('is cache enabled', isCacheEnabled)
+  logger.info(`Using SOLR client: ${client.constructor.name}`)
   app.use('simpleSolrClient', ensureServiceIsFeathersCompatible(client), {
     methods: [],
   })

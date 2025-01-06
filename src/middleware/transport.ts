@@ -1,5 +1,5 @@
 import type { Application as ExpressApplication } from '@feathersjs/express'
-import { json, rest, urlencoded } from '@feathersjs/express'
+import { rest, urlencoded } from '@feathersjs/express'
 import { Decoder } from 'socket.io-parser'
 import cors from 'cors'
 import { ImpressoApplication } from '../types'
@@ -7,7 +7,8 @@ import { ImpressoApplication } from '../types'
 
 import socketio from '@feathersjs/socketio'
 import { logger } from '../logger'
-import { CustomEncoder } from '../util/jsonEncoder'
+import { CustomEncoder, CustomDecoder } from '../util/jsonCodec'
+import { customJsonMiddleware } from '../util/express'
 
 export default (app: ImpressoApplication & ExpressApplication) => {
   const isPublicApi = app.get('isPublicApi')
@@ -15,7 +16,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
   if (isPublicApi) {
     logger.info('Public API - enabling REST transport')
     // Turn on JSON parser for REST services
-    app.use(json())
+    app.use(customJsonMiddleware())
     // Turn on URL-encoded parser for REST services
     app.use(urlencoded({ extended: true }))
 

@@ -1,5 +1,5 @@
 import { JSONPath } from 'jsonpath-plus'
-import { customJSONReplacer } from './jsonEncoder'
+import { customJSONReplacer } from './jsonCodec'
 
 /**
  * Represents a redactable object with arbitrary string keys and values.

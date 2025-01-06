@@ -21,6 +21,8 @@ const publicApiServices = [
   'media-sources',
 ]
 
+const adminServices = ['admin']
+
 const internalApiServices = [
   'issues',
   'suggestions',
@@ -71,7 +73,14 @@ const internalApiServices = [
 
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi')
-  const services = isPublicApi ? publicApiServices : publicApiServices.concat(internalApiServices)
+  const features = app.get('features')
+  const adminEndpointsEnabled = features?.adminEndpoints?.enabled
+
+  const services = [
+    ...publicApiServices,
+    ...(!isPublicApi ? internalApiServices : []),
+    ...(isPublicApi && adminEndpointsEnabled ? adminServices : []),
+  ]
 
   logger.info(`Loading services: ${services.join(', ')}`)
 

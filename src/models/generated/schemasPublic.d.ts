@@ -367,6 +367,14 @@ export interface EntityMention {
 
 
 /**
+ * Freeform schema - a schema that allows any property to be added to the object.
+ */
+export interface Freeform {
+  [k: string]: unknown;
+}
+
+
+/**
  * A media source is what a content item belongs to. This can be a newspaper, a TV or a radio station, etc.
  */
 export interface MediaSource {
