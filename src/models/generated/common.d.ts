@@ -17,6 +17,10 @@ export interface Config {
    */
   isPublicApi?: boolean;
   /**
+   * List of available plans
+   */
+  availablePlans?: string[];
+  /**
    * List of allowed origins for CORS
    */
   allowedCorsOrigins?: string[];
@@ -67,6 +71,7 @@ export interface Config {
   appHooks?: AppHooksConfig;
   media?: MediaConfig;
   solrConfiguration?: SolrConfiguration;
+  proxy?: ProxyConfig;
   [k: string]: unknown;
 }
 /**
@@ -394,6 +399,17 @@ export interface SolrServerNamespaceConfiguration {
    * Solr index name
    */
   index: string;
+}
+export interface ProxyConfig {
+  /**
+   * Host of the proxy server
+   */
+  host?: string;
+  /**
+   * List of local prefixes to replace in IIIF URLs in Issue pages
+   */
+  localPrefixes?: string[];
+  [k: string]: unknown;
 }
 
 
