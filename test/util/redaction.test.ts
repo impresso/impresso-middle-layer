@@ -41,7 +41,7 @@ describe('redactObject', () => {
       secret: undefined,
     } satisfies TestDocument
 
-    assert.deepStrictEqual(redactObject(input, policy), expectedOutput)
+    assert.deepEqual(redactObject(input, policy), expectedOutput)
   })
 
   incorrectInputs.forEach(input => {

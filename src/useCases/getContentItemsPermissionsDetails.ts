@@ -1,14 +1,15 @@
 import { SolrFacetQueryParams } from '../data/types'
 import { SimpleSolrClient, SelectRequestBody, Bucket } from '../internalServices/simpleSolr'
 import { SolrNamespaces } from '../solr'
+import { bigIntToBitString, bigIntToLongString } from '../util/bigint'
 
-type PermissionsScope = 'explore' | 'get_transcript' | 'get_images'
+export type PermissionsScope = 'explore' | 'get_transcript' | 'get_images'
 const permissionsScopes: PermissionsScope[] = ['explore', 'get_transcript', 'get_images']
 
 type BitmapFacetField = 'rights_bm_explore_l' | 'rights_bm_get_tr_l' | 'rights_bm_get_img_l'
 const bitmapFacetFields: BitmapFacetField[] = ['rights_bm_explore_l', 'rights_bm_get_tr_l', 'rights_bm_get_img_l']
 
-interface PermissionDetails {
+export interface PermissionDetails {
   bitmap: BigInt // this may not be displayed correctly in the browser because it may be out of safe integer range
   bitmapString: string
   bitmapStringBin: string
@@ -116,12 +117,17 @@ export const getContentItemsPermissionsDetails = async (
 }
 
 const toPermissionDetails = (buckets: Bucket[]): Omit<PermissionDetails, 'sample'>[] => {
-  return buckets.map(bucket => ({
-    bitmap: bucket.val! as BigInt,
-    bitmapString: bucket.val!.toString(10),
-    bitmapStringBin: bucket.val!.toString(2).padStart(64, '0'),
-    totalItems: bucket.count ?? 0,
-  }))
+  return buckets.map(bucket => {
+    // Value can be either a number (if it fits) or a bigint (if it doesn't)
+    const bitmap = typeof bucket.val === 'bigint' ? bucket.val! : BigInt(bucket.val! as number)
+
+    return {
+      bitmap,
+      bitmapString: bigIntToLongString(bitmap),
+      bitmapStringBin: bigIntToBitString(bitmap),
+      totalItems: bucket.count ?? 0,
+    }
+  })
 }
 
 const withSample =

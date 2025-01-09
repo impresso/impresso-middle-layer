@@ -1,5 +1,5 @@
 import { JSONPath } from 'jsonpath-plus'
-import { customJSONReplacer } from './jsonCodec'
+import { safeParseJson, safeStringifyJson } from './jsonCodec'
 
 /**
  * Represents a redactable object with arbitrary string keys and values.
@@ -20,7 +20,7 @@ export interface RedactionPolicy {
   items: RedactionPolicyItem[]
 }
 
-const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> = {
+export const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> = {
   redact: value => '[REDACTED]',
   contextNotAllowedImage: value => 'https://impresso-project.ch/assets/images/not-allowed.png',
   remove: value => undefined,
@@ -35,7 +35,7 @@ export const redactObject = <T extends Redactable>(object: T, policy: RedactionP
     throw new Error('The provided object is not Redactable')
   }
 
-  const objectCopy = JSON.parse(JSON.stringify(object, customJSONReplacer))
+  const objectCopy = safeParseJson(safeStringifyJson(object))
 
   policy.items.forEach(item => {
     JSONPath({

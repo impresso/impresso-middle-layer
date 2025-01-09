@@ -2,15 +2,15 @@ import assert from 'assert'
 import debug from 'debug'
 
 import { client as getSequelizeClient } from '../../../src/sequelize'
-import configuration, { SequelizeConfiguration } from '../../../src/configuration'
 
 import User, { UserAttributes } from '../../../src/models/users.model'
 import UserBitmap from '../../../src/models/user-bitmap.model'
 import Group from '../../../src/models/groups.model'
+import app from '../../../src/app'
 
 const logger = debug('impresso/test:models:users.model.test')
 const userId = process.env.USER_ID
-const config: SequelizeConfiguration = configuration()().get('sequelize')
+const config = app.get('sequelize')
 
 logger(`Test started using env variable USER_ID: ${userId} and NODE_ENV=${process.env.NODE_ENV}`)
 logger(`Sequelize configuration: ${config.host}:${config.port} db:${config.database}`)

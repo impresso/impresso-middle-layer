@@ -15,8 +15,6 @@ export default (app: ImpressoApplication & ExpressApplication) => {
 
   if (isPublicApi) {
     logger.info('Public API - enabling REST transport')
-    // Turn on JSON parser for REST services
-    app.use(customJsonMiddleware())
     // Turn on URL-encoded parser for REST services
     app.use(urlencoded({ extended: true }))
 

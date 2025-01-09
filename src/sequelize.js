@@ -1,3 +1,4 @@
+import { logger } from './logger'
 const debug = require('debug')('impresso/sequelize')
 const verbose = require('debug')('verbose:impresso/sequelize')
 
@@ -34,7 +35,7 @@ const getSequelizeClient = config =>
     },
   })
 
-module.exports = function (app) {
+export default function (app) {
   const config = app.get('sequelize')
   const sequelize = getSequelizeClient(config)
   debug(`Sequelize ${config.dialect} database name: ${config.database} ..`)
@@ -43,7 +44,9 @@ module.exports = function (app) {
   sequelize
     .authenticate()
     .then(() => {
-      debug(`Sequelize is ready! ${config.dialect} database name: ${config.database}`)
+      logger.info(
+        `DB connection has been established successfully to a "${config.dialect}" database: ${config.database} on ${config.host}:${config.port}`
+      )
     })
     .catch(err => {
       debug(`Unable to connect to the ${config.dialect}: ${config.database}: ${err}`)
@@ -52,4 +55,4 @@ module.exports = function (app) {
   app.set('sequelizeClient', sequelize)
 }
 
-module.exports.client = getSequelizeClient
+export const client = getSequelizeClient

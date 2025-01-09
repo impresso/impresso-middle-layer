@@ -3,9 +3,7 @@ import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { ImpressoApplication } from '../../types'
 import { docs } from './articles.schema'
 import createService from './articles.class'
-
-// Initializes the `articles` service on path `/articles`
-const hooks = require('./articles.hooks')
+import hooks from './articles.hooks'
 
 export default function (app: ImpressoApplication) {
   const paginate = app.get('paginate')

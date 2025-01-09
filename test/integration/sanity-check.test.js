@@ -1,5 +1,5 @@
-const assert = require('assert')
-const app = require('../../src/app')
+import assert from 'assert'
+import app from '../../src/app'
 
 /*
   ./node_modules/.bin/eslint \
@@ -100,7 +100,11 @@ describe("'OpenPrivate' behaviour", function () {
 describe("'Luxwort' contents", function () {
   this.timeout(15000)
 
-  const service = app.service('content-items')
+  let service
+
+  before(async () => {
+    service = app.service('content-items')
+  })
 
   it('registered the service', () => {
     assert.ok(service)
@@ -133,7 +137,13 @@ describe("'Luxwort' contents", function () {
 
 describe('Test /images service for crazy contents', function () {
   this.timeout(5000)
-  const service = app.service('images')
+
+  let service
+
+  before(async () => {
+    service = app.service('images')
+  })
+
   it('get NO images from issue obermosel-1930-12-23-a without errors', async () => {
     assert.ok(service)
     const result = await service.find({

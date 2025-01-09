@@ -71,7 +71,7 @@ export class Service {
       defaults: {
         user_id: parseInt(params.user.id, 10),
         // set user as authenticated user
-        bitmap: Buffer.from([Number(BufferUserPlanAuthUser)]),
+        bitmap: BufferUserPlanAuthUser,
         dateAcceptedTerms: new Date(),
       },
     })

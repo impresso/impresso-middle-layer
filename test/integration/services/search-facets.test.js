@@ -1,5 +1,5 @@
-const assert = require('assert');
-const app = require('../../../src/app');
+const assert = require('assert')
+const app = require('../../../src/app')
 
 /*
 ./node_modules/.bin/eslint  \
@@ -9,12 +9,16 @@ test/services/search-facets.test.js \
 --config .eslintrc.json --fix \
 && NODE_ENV=development DEBUG=verbose*,imp* mocha test/services/search-facets.test.js
 */
-describe('\'search-facets\' service', () => {
-  const service = app.service('search-facets');
+describe("'search-facets' service", () => {
+  let service
+
+  before(() => {
+    service = app.service('search-facets')
+  })
 
   it('registered the service', () => {
-    assert.ok(service, 'Registered the service');
-  });
+    assert.ok(service, 'Registered the service')
+  })
 
   it('registered the service', async () => {
     const results = await service.find({
@@ -22,7 +26,7 @@ describe('\'search-facets\' service', () => {
         group_by: 'articles',
         facets: ['person'],
       },
-    });
-    console.log(results);
-  });
-});
+    })
+    console.log(results)
+  })
+})

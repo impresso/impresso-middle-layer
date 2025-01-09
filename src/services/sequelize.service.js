@@ -11,26 +11,26 @@ function getCacheKeyForReadSqlRequest(request, modelName) {
   return ['cache', 'db', modelName != null ? modelName : 'unk', key].join(':')
 }
 
+const loadDynamicModule = async name => {
+  return import(name).catch(e => {
+    return require(name)
+  })
+}
+
 class SequelizeService {
   constructor({ name = '', app = null, modelName = null, cacheReads = false } = {}) {
     this.name = String(name)
     this.modelName = String(modelName || name)
     this.sequelize = sequelize.client(app.get('sequelize'))
-    import(`../models/${this.modelName}.model`)
+    loadDynamicModule(`../models/${this.modelName}.model`)
       .then(m => {
-        debug('MODEL', m)
-        if (m.Model) {
-          this.Model = m.Model
-          this.sequelizeKlass = this.Model.sequelize(this.sequelize)
-        } else {
-          this.Model = m.default
-          this.sequelizeKlass = this.Model.sequelize(this.sequelize)
-        }
+        this.Model = m.Model ?? m.default ?? m
+        this.sequelizeKlass = this.Model.sequelize(this.sequelize)
 
         debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
       })
       .catch(err => {
-        throw new Error(`Sequelize Model not found in import: ${this.modelName}`, err)
+        throw new Error(`Sequelize Model not found in import: ${this.modelName}: ${err.message}`, err)
       })
 
     this.cacheReads = cacheReads

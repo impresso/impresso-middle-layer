@@ -27,10 +27,12 @@ const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/arti
 const { obfuscate } = require('../../hooks/access-rights')
 const { SolrMappings } = require('../../data/constants')
 
-const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicy.yml`)
-const contentItemRedactionPolicyWebApp = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`)
+export const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicy.yml`)
+export const contentItemRedactionPolicyWebApp = loadYamlFile(
+  `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
+)
 
-module.exports = {
+export default {
   around: {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },

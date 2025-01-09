@@ -4,9 +4,11 @@ import {
   ContentItemPermissionsDetails,
   getContentItemsPermissionsDetails,
 } from '../../useCases/getContentItemsPermissionsDetails'
+import { getUserAccountsWithAvailablePermissions, UserAccount } from '../../useCases/getUsersPermissionsDetails'
 
 interface FindResponse {
   permissionsDetails: ContentItemPermissionsDetails
+  userAccounts: UserAccount[]
 }
 interface FindParams {}
 
@@ -17,6 +19,7 @@ export class Service implements IService {
 
   async find(params?: Params<FindParams>): Promise<FindResponse> {
     const permissionsDetails = await getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'))
-    return { permissionsDetails } satisfies FindResponse
+    const userAccounts = await getUserAccountsWithAvailablePermissions(this.app.get('sequelizeClient')!)
+    return { permissionsDetails, userAccounts } satisfies FindResponse
   }
 }

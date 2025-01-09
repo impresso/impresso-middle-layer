@@ -1,6 +1,6 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/service.test.html
 import assert from 'assert'
-const app = require('../../src/app')
+import app from '../../../src/app'
 
 describe('test Service method to get users representations', () => {
   if (!process.env.USER_ID) {

@@ -29,6 +29,6 @@ export const safeParseJson = (json: string) => {
   return parser.parse(json)
 }
 
-export const safeStringifyJson = (o: any) => {
-  return parser.stringify(o)
+export const safeStringifyJson = (o: any, space?: number) => {
+  return parser.stringify(o, undefined, space)
 }

@@ -1,17 +1,21 @@
 import express, { Application, static as staticMiddleware } from '@feathersjs/express'
 import { feathers } from '@feathersjs/feathers'
-import bodyParser from 'body-parser'
+import compress from 'compression'
+import path from 'path'
 import appHooksFactory from './app.hooks'
 import authentication from './authentication'
 import cache from './cache'
 import celery, { init as initCelery } from './celery'
 import channels from './channels'
-import configuration from './configuration'
+import configuration, { Configuration } from './configuration'
+import { init as simpleSolrClient } from './internalServices/simpleSolr'
 import { startupJobs } from './jobs'
+import middleware from './middleware'
 import errorHandling from './middleware/errorHandling'
 import openApiValidator, { init as initOpenApiValidator } from './middleware/openApiValidator'
 import swagger from './middleware/swagger'
 import transport from './middleware/transport'
+import multer from './multer'
 import redis, { init as initRedis } from './redis'
 import sequelize from './sequelize'
 import services from './services'
@@ -19,17 +23,13 @@ import rateLimiter from './services/internal/rateLimiter/redis'
 import media from './services/media'
 import proxy from './services/proxy'
 import schemas from './services/schemas'
-import { ImpressoApplication } from './types'
-import { init as simpleSolrClient } from './internalServices/simpleSolr'
-import path from 'path'
-import compress from 'compression'
-import middleware from './middleware'
-import multer from './multer'
+import { AppServices, ImpressoApplication } from './types'
+import { customJsonMiddleware } from './util/express'
 
 const helmet = require('helmet')
 const cookieParser = require('cookie-parser')
 
-const app: ImpressoApplication & Application = express(feathers())
+const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
 
 // Load app configuration
 app.configure(configuration)
@@ -45,8 +45,7 @@ app.configure(simpleSolrClient)
 app.use(helmet())
 app.use(compress())
 app.use(cookieParser())
-// needed to access body in non-feathers middlewares, like openapi validator
-app.use(bodyParser.json({ limit: '50mb' }))
+app.use(customJsonMiddleware()) // JSON body parser / serializer
 
 // configure local multer service.
 app.configure(multer)

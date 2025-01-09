@@ -1,11 +1,11 @@
 import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
 import SubscriptionDataset, { type SubscriptionDatasetAttributes } from './subscription-datasets.model'
-import Group from './groups.model'
+import { bigIntToBuffer, bufferToBigInt } from '../util/bigint'
 
 export interface UserBitmapAttributes {
   id: number
   user_id: number
-  bitmap: number | Buffer
+  bitmap: bigint
   dateAcceptedTerms: Date | null
   subscriptionDatasets?: SubscriptionDatasetAttributes[]
 }
@@ -21,14 +21,14 @@ export const BufferUserPlanResearcher = BigInt(0b1011)
 export default class UserBitmap {
   id: number
   user_id: number
-  bitmap: number | Buffer
+  bitmap: bigint
   dateAcceptedTerms: Date | null
   subscriptionDatasets?: SubscriptionDatasetAttributes[]
 
   constructor({
     id = 0,
     user_id = 0,
-    bitmap = Number(BufferUserPlanGuest),
+    bitmap = BufferUserPlanGuest,
     dateAcceptedTerms = null,
     subscriptionDatasets = [],
   }: UserBitmapAttributes) {
@@ -73,13 +73,15 @@ export default class UserBitmap {
           field: 'user_id',
         },
         bitmap: {
-          // models.BinaryField
+          // Storing the bitmap as a BLOB
           type: DataTypes.BLOB,
           allowNull: true,
-          defaultValue: Buffer.from([Number(BufferUserPlanGuest)]),
+          defaultValue: bigIntToBuffer(BufferUserPlanGuest),
           get() {
-            const value = this.getDataValue('bitmap') as Buffer
-            return value.readUInt8(0)
+            return bufferToBigInt(this.getDataValue('bitmap') as any as Buffer)
+          },
+          set(value: bigint) {
+            this.setDataValue('bitmap', bigIntToBuffer(value) as any as bigint)
           },
         },
         dateAcceptedTerms: {
