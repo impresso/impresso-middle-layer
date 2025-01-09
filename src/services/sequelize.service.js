@@ -24,7 +24,7 @@ class SequelizeService {
     this.sequelize = sequelize.client(app.get('sequelize'))
     loadDynamicModule(`../models/${this.modelName}.model`)
       .then(m => {
-        this.Model = m.Model ?? m.default ?? m
+        this.Model = m.Model ?? m.default?.default ?? m.default ?? m
         this.sequelizeKlass = this.Model.sequelize(this.sequelize)
 
         debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
