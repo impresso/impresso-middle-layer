@@ -27,7 +27,7 @@
     "copy-files": "tscp",
     "test": "mocha",
     "test-watch": "mocha --watch 'test/**/*.test.{js,ts}'",
-    "integration-test": "NODE_ENV=test mocha --config ./.mocharc-integration.json 'test/integration/**/*.test.js'",
+    "integration-test": "mocha --inspect --config ./.mocharc-integration.json",
     "lintfix": "eslint src/. --config .eslintrc.js --fix",
     "lint": "eslint src/. --config .eslintrc.js",
     "lint-api-spec": "spectral lint http://localhost:3030/swagger.json ",
@@ -55,6 +55,7 @@
     "async": "^2.6.1",
     "aws-sdk": "^2.395.0",
     "axios": "^1.6.7",
+    "bigint-buffer": "^1.1.5",
     "body-parser": "^1.18.3",
     "bufferutil": "4.0.8",
     "cache-manager": "^6.3.1",
@@ -91,6 +92,7 @@
     "helmet": "^3.21.1",
     "http-proxy-middleware": "^2.0.1",
     "impresso-jscommons": "https://github.com/impresso/impresso-jscommons/tarball/v1.4.3",
+    "json-bigint": "^1.0.0",
     "json2csv": "^4.3.3",
     "jsonpath-plus": "^10.0.1",
     "jsonschema": "^1.4.1",
@@ -134,6 +136,7 @@
     "@types/cache-manager": "^2.10.3",
     "@types/generic-pool": "^3.1.9",
     "@types/ioredis": "^4.28.5",
+    "@types/json-bigint": "^1.0.4",
     "@types/mocha": "^10.0.6",
     "@types/node": "^22.5.5",
     "@types/node-fetch": "^2.5.6",
@@ -150,7 +153,7 @@
     "prettier": "3.2.5",
     "sinon": "^19.0.2",
     "tsx": "^4.19.2",
-    "typescript": "5.6.3",
+    "typescript": "5.7.3",
     "typescript-cp": "0.1.9"
   }
 }

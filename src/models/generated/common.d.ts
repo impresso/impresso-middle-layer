@@ -218,6 +218,13 @@ export interface FeaturesConfig {
     enabled: boolean;
     [k: string]: unknown;
   };
+  adminEndpoints?: {
+    /**
+     * Enable admin endpoints (see services/index)
+     */
+    enabled: boolean;
+    [k: string]: unknown;
+  };
   [k: string]: unknown;
 }
 export interface PaginateConfig {

@@ -5,9 +5,9 @@
   "package": "./package.json",
   "reporter": "spec",
   "ui": "bdd",
-  "recursive": true,
   "exit": true,
+  "recursive": true,
   "extension": ["ts", "js"],
   "watch-files": ["src/**/*.{js,ts}", "test/**/*.{js,ts}"],
-  "ignore": ["node_modules", "test/integration/**/*"]
+  "ignore": ["node_modules", "test/integration/**/*.{js,ts}"]
 }

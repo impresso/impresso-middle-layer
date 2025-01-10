@@ -15,7 +15,13 @@ const app = require('../../../src/app')
 */
 describe("'articles' service", function () {
   this.timeout(15000)
-  const service = app.service('content-items')
+
+  let service
+
+  before(() => {
+    service = app.service('content-items')
+  })
+
   it('registered the service', () => {
     assert.ok(service)
   })

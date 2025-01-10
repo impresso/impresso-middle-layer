@@ -1,6 +1,11 @@
 import { isSolrError, SolrError } from '../../solr'
 import { BadRequest, GeneralError } from '@feathersjs/errors'
 
+const withErrorStack = (sourceError: Error, targetError: Error): Error => {
+  targetError.stack = sourceError.stack
+  return targetError
+}
+
 /**
  * Parse Solr error and convert it to a standard FetahtersJs error
  * with a sensible message.
@@ -26,6 +31,6 @@ export function preprocessSolrError(error: Error | SolrError) {
     }
   }
 
-  if (code === 400) return new BadRequest(message)
-  return new GeneralError(message)
+  if (code === 400) return withErrorStack(error, new BadRequest(message))
+  return withErrorStack(error, new GeneralError(message))
 }

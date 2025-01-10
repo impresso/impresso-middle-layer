@@ -100,29 +100,12 @@ export const bitmapsAlign = (
    * and we use the user's bitmap.
    * If the context is not authenticated, we use the bitmap of a guest user.
    */
-  const userBitmap: bigint | undefined = user?.bitmap ?? BufferUserPlanGuest
+  const userBitmap = user?.bitmap ?? BufferUserPlanGuest
 
-  const contentBitmap: bigint | undefined =
-    contentBitmapExtractor != null && redactable != null ? contentBitmapExtractor(redactable) : undefined
-
-  if (
-    userBitmap == null ||
-    contentBitmap == null ||
-    !(typeof userBitmap == 'bigint') ||
-    !(typeof contentBitmap == 'bigint')
-  )
-    return false
+  const contentBitmap =
+    contentBitmapExtractor != null && redactable != null ? contentBitmapExtractor(redactable) : BigInt(0)
 
   return (contentBitmap & userBitmap) != BigInt(0)
-}
-
-/**
- * Default condition we should currently use:
- * - running as Public API
- * - AND user is not in the NoRedaction group
- */
-export const defaultCondition: RedactCondition = (context, redactable) => {
-  return inPublicApi(context, redactable) && !bitmapsAlign(context, redactable)
 }
 
 export type { RedactionPolicy }
@@ -136,7 +119,10 @@ const authBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBi
 }
 
 /**
- * condition that grants user access to content (transcript, title).
+ * Condition that instructs redactor to redact parts of the content:
+ * Redact if:
+ * - the request is made through the public API
+ * - user bitmap does not align with the content item bitmap
  */
 export const publicApiTranscriptRedactionCondition: RedactCondition = (context, redactable) => {
   return (
@@ -146,12 +132,19 @@ export const publicApiTranscriptRedactionCondition: RedactCondition = (context, 
 
 const webappAuthBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
   const actualKey = `bitmap${kind.charAt(0).toUpperCase() + kind.slice(1)}`
-  return redactable[actualKey] ?? BigInt(0)
+  const value = redactable[actualKey]
+  return value != null ? BigInt(value) : BigInt(0)
 }
 
+/**
+ * Condition that instructs redactor to redact parts of the content:
+ * Redact if:
+ * - the request is made through the app (not the public API)
+ * - user bitmap does not align with the content item bitmap
+ */
 export const webAppTranscriptRedactionCondition: RedactCondition = (context, redactable) => {
   return (
     !inPublicApi(context, redactable) &&
-    !bitmapsAlign(context, redactable, x => webappAuthBitmapExtractor(x, 'getTranscript'))
+    !bitmapsAlign(context, redactable, x => webappAuthBitmapExtractor(x, 'explore'))
   )
 }

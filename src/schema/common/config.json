@@ -190,6 +190,13 @@
             "enabled": { "type": "boolean", "description": "Enable text reuse features" }
           },
           "required": ["enabled"]
+        },
+        "adminEndpoints": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean", "description": "Enable admin endpoints (see services/index)" }
+          },
+          "required": ["enabled"]
         }
       }
     },

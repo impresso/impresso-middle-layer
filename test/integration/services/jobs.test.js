@@ -1,5 +1,5 @@
-const assert = require('assert');
-const app = require('../../../src/app');
+const assert = require('assert')
+const app = require('../../../src/app')
 
 /**
  * use with
@@ -10,18 +10,25 @@ const app = require('../../../src/app');
  --config .eslintrc.json --fix \
  && DEBUG=impresso/* mocha test/services/jobs.test.js
  */
-describe('\'jobs\' service', () => {
-  const service = app.service('jobs');
+describe("'jobs' service", () => {
+  let service
+
+  before(() => {
+    service = app.service('jobs')
+  })
 
   it('registered the service', () => {
-    assert.ok(service, 'Registered the service');
-  });
+    assert.ok(service, 'Registered the service')
+  })
   it('create test job', async () => {
-    const result = await service.create({}, {
-      user: {
-        id: 1,
-      },
-    });
-    console.log(result);
-  });
-});
+    const result = await service.create(
+      {},
+      {
+        user: {
+          id: 1,
+        },
+      }
+    )
+    console.log(result)
+  })
+})

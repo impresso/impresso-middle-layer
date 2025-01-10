@@ -10,8 +10,13 @@ const User = require('../../../src/models/users.model')
   && DEBUG=impresso/* mocha test/services/users.test.js
  */
 describe("'users' service", function () {
-  const service = app.service('users')
   this.timeout(10000)
+
+  let service
+
+  before(() => {
+    service = app.service('users')
+  })
 
   it('registered the service', () => {
     assert.ok(service, 'Registered the service')

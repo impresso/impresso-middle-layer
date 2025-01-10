@@ -11,7 +11,12 @@ const app = require('../../../src/app')
  */
 describe("'search-exporter' service", function () {
   this.timeout(20000)
-  const service = app.service('search-exporter')
+
+  let service
+
+  before(() => {
+    service = app.service('search-exporter')
+  })
 
   it('registered the service', () => {
     assert.ok(service, 'Registered the service')

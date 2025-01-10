@@ -1,5 +1,5 @@
-const assert = require('assert');
-const app = require('../../../src/app');
+const assert = require('assert')
+const app = require('../../../src/app')
 
 /**
 ./node_modules/.bin/eslint \
@@ -8,12 +8,16 @@ src/services/errors-collector \
 --config .eslintrc.json --fix \
 && mocha test/services/errors-collector.test.js
 */
-describe('\'errors-collector\' service', () => {
-  const service = app.service('errors-collector');
+describe("'errors-collector' service", () => {
+  let service
+
+  before(() => {
+    service = app.service('errors-collector')
+  })
 
   it('registered the service', () => {
-    assert.ok(service, 'Registered the service');
-  });
+    assert.ok(service, 'Registered the service')
+  })
 
   it('send BadRequest data to Error console', async () => {
     const stderr = await service.create({
@@ -59,7 +63,7 @@ describe('\'errors-collector\' service', () => {
           },
         },
       },
-    });
-    console.log(stderr);
-  });
-});
+    })
+    console.log(stderr)
+  })
+})

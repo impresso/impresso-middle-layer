@@ -10,7 +10,12 @@ src/services/images \
 */
 describe("'images' service", function () {
   this.timeout(20000)
-  const service = app.service('images')
+
+  let service
+
+  before(() => {
+    service = app.service('images')
+  })
 
   it('registered a working service', () => {
     assert.ok(service, 'Registered the service')

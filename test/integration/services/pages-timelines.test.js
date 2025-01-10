@@ -1,5 +1,5 @@
-const assert = require('assert');
-const app = require('../../../src/app');
+const app = require('../../../src/app')
+const assert = require('assert')
 
 /*
 ./node_modules/.bin/eslint \
@@ -10,38 +10,44 @@ src/models src/hooks \
 && NODE_ENV=test DEBUG=impresso* mocha test/services/pages-timelines.test.js
 */
 
-describe('\'pages-timelines\' service', function () {
-  this.timeout(15000);
+describe("'pages-timelines' service", function () {
+  this.timeout(15000)
 
-  const service = app.service('pages-timelines');
+  let service
+
+  before(() => {
+    service = app.service('pages-timelines')
+  })
 
   it('registered the service', () => {
-    assert.ok(service, 'Registered the service');
-  });
+    assert.ok(service, 'Registered the service')
+  })
 
   it('timeline fn not found', async () => {
-    await app.service('pages-timelines').get('not-valid', {})
+    await app
+      .service('pages-timelines')
+      .get('not-valid', {})
       .then(() => {
-        assert.fail('not here');
+        assert.fail('not here')
       })
-      .catch((err) => {
-        assert.equal(err.name, 'NotFound', 'should get a 404 NotFound error');
-        assert.ok(err, 'should get an error');
-      });
-  });
+      .catch(err => {
+        assert.equal(err.name, 'NotFound', 'should get a 404 NotFound error')
+        assert.ok(err, 'should get an error')
+      })
+  })
 
   it.only('global pages timelines', async () => {
-    const results = await app.service('pages-timelines').get('stats', {});
-    console.log(results);
-    assert.ok(results);
-  });
+    const results = await app.service('pages-timelines').get('stats', {})
+    console.log(results)
+    assert.ok(results)
+  })
 
   it('JDG pages timelines', async () => {
     const results = await app.service('pages-timelines').get('stats', {
       query: {
         newspaper_uid: 'GDL',
       },
-    });
-    console.log(results);
-  });
-});
+    })
+    console.log(results)
+  })
+})

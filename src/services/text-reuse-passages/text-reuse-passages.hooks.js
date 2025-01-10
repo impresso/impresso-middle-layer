@@ -3,7 +3,13 @@ import { decodeJsonQueryParameters, decodePathParameters } from '../../hooks/par
 import { validate } from '../../hooks/params'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { parseFilters } from '../../util/queryParameters'
-import { redactResponse, redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
+import {
+  redactResponse,
+  redactResponseDataItem,
+  webAppTranscriptRedactionCondition,
+  publicApiTranscriptRedactionCondition,
+  inPublicApi,
+} from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
 import { transformResponseDataItem, transformResponse } from '../../hooks/transformation'
 import { transformTextReusePassage } from '../../transformers/textReuse'
@@ -37,12 +43,14 @@ module.exports = {
   after: {
     get: [
       transformResponse(transformTextReusePassage, inPublicApi),
-      redactResponse(trPassageRedactionPolicy, defaultCondition),
+      redactResponse(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponse(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     find: [
       transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformTextReusePassage, inPublicApi),
-      redactResponseDataItem(trPassageRedactionPolicy, defaultCondition),
+      redactResponseDataItem(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponseDataItem(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
   },
 }

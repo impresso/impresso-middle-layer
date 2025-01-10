@@ -3,7 +3,13 @@ import { rateLimit } from '../../hooks/rateLimiter'
 import { decodeJsonQueryParameters } from '../../hooks/parameters'
 import { validate } from '../../hooks/params'
 import { parseFilters } from '../../util/queryParameters'
-import { redactResponse, redactResponseDataItem, defaultCondition, inPublicApi } from '../../hooks/redaction'
+import {
+  redactResponse,
+  redactResponseDataItem,
+  webAppTranscriptRedactionCondition,
+  publicApiTranscriptRedactionCondition,
+  inPublicApi,
+} from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
 import {
   transformResponseDataItem,
@@ -49,13 +55,15 @@ module.exports = {
     all: [],
     get: [
       transformResponse(transformTextReuseCluster, inPublicApi),
-      redactResponse(trPassageRedactionPolicy, defaultCondition),
+      redactResponse(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponse(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     find: [
       renameTopLevelField(['clusters', 'data'], inPublicApi),
       transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformTextReuseCluster, inPublicApi),
-      redactResponseDataItem(trPassageRedactionPolicy, defaultCondition),
+      redactResponseDataItem(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponseDataItem(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     // find: [validateWithSchema('services/text-reuse-clusters/schema/find/response.json', 'result')],
     // get: [validateWithSchema('services/text-reuse-clusters/schema/get/response.json', 'result')],

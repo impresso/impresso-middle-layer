@@ -23,7 +23,7 @@ export interface UserAttributes {
   profile: Profile
   groups: Group[]
   userBitmap?: UserBitmap
-  bitmap?: number
+  bitmap?: bigint
   toJSON: (params?: { obfuscate?: boolean; groups?: Group[] }) => UserAttributes
 }
 
@@ -44,7 +44,7 @@ export default class User {
   creationDate: Date | string
   profile: Profile
   groups: Group[]
-  bitmap?: number
+  bitmap?: bigint
 
   constructor({
     id = 0,
@@ -85,7 +85,7 @@ export default class User {
     }
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate)
     this.groups = groups
-    this.bitmap = bitmap ?? 1
+    this.bitmap = bitmap ?? BufferUserPlanGuest
   }
 
   static getMe({ user, profile }: { user: User; profile: Profile }) {
@@ -270,7 +270,7 @@ export default class User {
       return new User({
         ...this.get(),
         groups,
-        bitmap: userBitmap?.bitmap ?? Number(BufferUserPlanGuest),
+        bitmap: userBitmap?.bitmap ?? BufferUserPlanGuest,
       })
     }
 

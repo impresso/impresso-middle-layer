@@ -15,10 +15,18 @@ import User from './models/users.model'
 import { docs } from './services/authentication/authentication.schema'
 import { ImpressoApplication } from './types'
 import { BufferUserPlanGuest } from './models/user-bitmap.model'
+import { bigIntToBuffer, bufferToBigInt } from './util/bigint'
 
 const debug = initDebug('impresso/authentication')
 
-type AuthPayload = Omit<SlimUser, 'uid' | 'id' | 'bitmap'> & { userId: string; bitmap: number }
+/**
+ * Using base64 for the bitmap to keep the size
+ * of the JWT token as small as possible.
+ */
+type AuthPayload = Omit<SlimUser, 'uid' | 'id' | 'bitmap'> & {
+  userId: string
+  bitmap: string // bigint as a base64 string
+}
 
 class CustomisedAuthenticationService extends AuthenticationService {
   async getPayload(authResult: AuthenticationResult, params: AuthenticationParams) {
@@ -31,7 +39,9 @@ class CustomisedAuthenticationService extends AuthenticationService {
         payload.groups = user.groups.map(d => d.name)
       }
       payload.isStaff = user.isStaff
-      payload.bitmap = Number(user.bitmap != null ? BigInt(user.bitmap) : BufferUserPlanGuest)
+      payload.bitmap = bigIntToBuffer(user.bitmap != null ? BigInt(user.bitmap) : BufferUserPlanGuest).toString(
+        'base64'
+      )
     }
     return payload
   }
@@ -64,9 +74,6 @@ export interface SlimUser {
   uid: string
   id: number
   isStaff: boolean
-  /**
-   * Bitmap as number Number(BigInt)
-   */
   bitmap: bigint
   groups: string[]
 }
@@ -99,7 +106,7 @@ class NoDBJWTStrategy extends JWTStrategy {
     const slimUser: SlimUser = {
       uid: payload.userId,
       id: parseInt(payload.sub),
-      bitmap: payload.bitmap != null ? BigInt(payload.bitmap) : BufferUserPlanGuest,
+      bitmap: payload.bitmap != null ? bufferToBigInt(Buffer.from(payload.bitmap, 'base64')) : BufferUserPlanGuest,
       isStaff: payload.isStaff ?? false,
       groups: payload.groups ?? [],
     }
