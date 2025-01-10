@@ -5,7 +5,7 @@ import User from '../../models/users.model'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import UserChangePlanRequest from '../../models/user-change-plan-request'
 
-const debug = initDebug('impresso:services/change-plan')
+const debug = initDebug('impresso:services/user-change-plan-request')
 
 export interface ServiceOptions {
   app: ImpressoApplication
@@ -41,7 +41,7 @@ export class Service {
     return userChangePlanRequest?.get()
   }
 
-  async create(data: any, params: { user: { id: number } }) {
+  async create(data: { plan: string }, params: { user: { id: number; groups: string[] } }) {
     const client = this.app.get('celeryClient')
     if (!client) {
       throw new Error('Celery client not available')
@@ -50,6 +50,10 @@ export class Service {
       throw new Error('Sequelize client not available')
     }
     debug('[create] plan request for user.pk', params.user.id, 'plan:', data.plan, params.user)
+    // check if the plan selected is already included in params.user.groups
+    if (params.user.groups?.includes(data.plan)) {
+      throw new BadRequest('User is already granted access to the requested plan.', { plan: 'Already granted' })
+    }
     // check if the user is already in the process of changing the plan
     const userChangePlanRequestModel = UserChangePlanRequest.initModel(this.sequelizeClient)
     const userChangePlanRequest = await userChangePlanRequestModel.findOne({
@@ -59,15 +63,7 @@ export class Service {
     })
     if (userChangePlanRequest) {
       // return the existing request as data in BadRequest error
-      throw new BadRequest('User is already in the process of changing the plan', 
-        userChangePlanRequest?.get())
-    }
-    // check if the user already belongs to the data.plan (it is a group name)
-    const user = await User.sequelize(this.sequelizeClient).findByPk(params.user.id, {
-      include: ['groups'],
-    })
-    if (!user) {
-      throw new NotFound()
+      throw new BadRequest('User is already in the process of changing the plan', userChangePlanRequest?.get())
     }
 
     return client
