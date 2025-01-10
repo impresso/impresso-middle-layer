@@ -2,7 +2,7 @@ import type { Sequelize } from 'sequelize'
 import initDebug from 'debug'
 import type { ImpressoApplication } from '../../types'
 import User from '../../models/users.model'
-import { NotFound } from '@feathersjs/errors'
+import { BadRequest, NotFound } from '@feathersjs/errors'
 import UserChangePlanRequest from '../../models/user-change-plan-request'
 
 const debug = initDebug('impresso:services/change-plan')
@@ -46,8 +46,29 @@ export class Service {
     if (!client) {
       throw new Error('Celery client not available')
     }
-
+    if (!this.sequelizeClient) {
+      throw new Error('Sequelize client not available')
+    }
     debug('[create] plan request for user.pk', params.user.id, 'plan:', data.plan, params.user)
+    // check if the user is already in the process of changing the plan
+    const userChangePlanRequestModel = UserChangePlanRequest.initModel(this.sequelizeClient)
+    const userChangePlanRequest = await userChangePlanRequestModel.findOne({
+      where: {
+        userId: params.user.id,
+      },
+    })
+    if (userChangePlanRequest) {
+      // return the existing request as data in BadRequest error
+      throw new BadRequest('User is already in the process of changing the plan', 
+        userChangePlanRequest?.get())
+    }
+    // check if the user already belongs to the data.plan (it is a group name)
+    const user = await User.sequelize(this.sequelizeClient).findByPk(params.user.id, {
+      include: ['groups'],
+    })
+    if (!user) {
+      throw new NotFound()
+    }
 
     return client
       .run({
