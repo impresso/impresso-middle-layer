@@ -1,3 +1,5 @@
+import { OpenPermissions } from '../util/bigint'
+
 const { DataTypes } = require('sequelize')
 const lodash = require('lodash')
 const config = require('@feathersjs/configuration')()()
@@ -725,9 +727,9 @@ class Article extends BaseArticle {
         // permissions bitmaps
         // if it's not defined, set max permissions for compatibility
         // with old Solr version
-        bitmapExplore: BigInt(doc.rights_bm_explore_l ?? Number.MAX_SAFE_INTEGER),
-        bitmapGetTranscript: BigInt(doc.rights_bm_get_tr_l ?? Number.MAX_SAFE_INTEGER),
-        bitmapGetImages: BigInt(doc.rights_bm_get_img_l ?? Number.MAX_SAFE_INTEGER),
+        bitmapExplore: BigInt(doc.rights_bm_explore_l ?? OpenPermissions),
+        bitmapGetTranscript: BigInt(doc.rights_bm_get_tr_l ?? OpenPermissions),
+        bitmapGetImages: BigInt(doc.rights_bm_get_img_l ?? OpenPermissions),
       })
 
       if (!doc.pp_plain) {

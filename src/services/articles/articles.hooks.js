@@ -4,7 +4,7 @@ import {
   redactResponse,
   redactResponseDataItem,
   publicApiTranscriptRedactionCondition,
-  webAppTranscriptRedactionCondition,
+  webAppExploreRedactionCondition,
   inPublicApi,
 } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
@@ -107,7 +107,7 @@ export default {
       obfuscate(),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
-      redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppTranscriptRedactionCondition),
+      redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     get: [
       // save here cache, flush cache here
@@ -120,7 +120,7 @@ export default {
       obfuscate(),
       transformResponse(transformContentItem, inPublicApi),
       redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
-      redactResponse(contentItemRedactionPolicyWebApp, webAppTranscriptRedactionCondition),
+      redactResponse(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     create: [],
     update: [],

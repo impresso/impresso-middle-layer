@@ -11,6 +11,7 @@ import { NewspapersService } from '../newspapers/newspapers.class'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { getToSelect } from '../../util/solr/adapters'
 import { MediaSources } from '../media-sources/media-sources.class'
+import { OpenPermissions } from '../../util/bigint'
 
 const { mapValues, groupBy, values, uniq, clone, get } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
@@ -50,8 +51,8 @@ function buildResponseClusters(
     ({ id, text: textSample, permissionBitmapExplore, permissionsBitmapGetTranscript }) => ({
       cluster: clustersById[id],
       textSample,
-      bitmapExplore: BigInt(permissionBitmapExplore ?? Number.MAX_SAFE_INTEGER),
-      bitmapGetTranscript: BigInt(permissionsBitmapGetTranscript ?? Number.MAX_SAFE_INTEGER),
+      bitmapExplore: BigInt(permissionBitmapExplore ?? OpenPermissions),
+      bitmapGetTranscript: BigInt(permissionsBitmapGetTranscript ?? OpenPermissions),
     })
   )
   return results

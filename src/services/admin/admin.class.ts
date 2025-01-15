@@ -7,7 +7,8 @@ import {
 import { getUserAccountsWithAvailablePermissions, UserAccount } from '../../useCases/getUsersPermissionsDetails'
 
 interface FindResponse {
-  permissionsDetails: ContentItemPermissionsDetails
+  contentItemsPermissionsDetails: ContentItemPermissionsDetails
+  imagesPermissionsDetails: ContentItemPermissionsDetails
   userAccounts: UserAccount[]
 }
 interface FindParams {}
@@ -18,8 +19,12 @@ export class Service implements IService {
   constructor(private readonly app: ImpressoApplication) {}
 
   async find(params?: Params<FindParams>): Promise<FindResponse> {
-    const permissionsDetails = await getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'))
+    const [contentItemsPermissionsDetails, imagesPermissionsDetails] = await Promise.all([
+      getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Search'),
+      getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Images'),
+    ])
+
     const userAccounts = await getUserAccountsWithAvailablePermissions(this.app.get('sequelizeClient')!)
-    return { permissionsDetails, userAccounts } satisfies FindResponse
+    return { contentItemsPermissionsDetails, imagesPermissionsDetails, userAccounts } satisfies FindResponse
   }
 }

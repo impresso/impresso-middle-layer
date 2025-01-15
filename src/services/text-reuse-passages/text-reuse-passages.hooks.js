@@ -6,7 +6,7 @@ import { parseFilters } from '../../util/queryParameters'
 import {
   redactResponse,
   redactResponseDataItem,
-  webAppTranscriptRedactionCondition,
+  webAppExploreRedactionCondition,
   publicApiTranscriptRedactionCondition,
   inPublicApi,
 } from '../../hooks/redaction'
@@ -15,7 +15,7 @@ import { transformResponseDataItem, transformResponse } from '../../hooks/transf
 import { transformTextReusePassage } from '../../transformers/textReuse'
 import { transformBaseFind } from '../../transformers/base'
 
-const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trPassageRedactionPolicy.yml`)
+export const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trPassageRedactionPolicy.yml`)
 
 // import { validateParameters } from '../../util/openapi'
 // import { docs } from './text-reuse-passages.schema'
@@ -43,13 +43,13 @@ module.exports = {
   after: {
     get: [
       transformResponse(transformTextReusePassage, inPublicApi),
-      redactResponse(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponse(trPassageRedactionPolicy, webAppExploreRedactionCondition),
       redactResponse(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     find: [
       transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformTextReusePassage, inPublicApi),
-      redactResponseDataItem(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponseDataItem(trPassageRedactionPolicy, webAppExploreRedactionCondition),
       redactResponseDataItem(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
   },

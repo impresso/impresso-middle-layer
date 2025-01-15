@@ -1,19 +1,24 @@
+import { loadYamlFile } from '../../util/yaml'
+import { redactResponse, redactResponseDataItem, webAppExploreRedactionCondition } from '../../hooks/redaction'
+
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
-  utils, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID,
-} = require('../../hooks/params');
-const {
-  qToSolrFilter, filtersToSolrQuery,
-} = require('../../hooks/search');
+  utils,
+  validate,
+  validateEach,
+  queryWithCommonParams,
+  displayQueryParams,
+  REGEX_UID,
+} = require('../../hooks/params')
+const { qToSolrFilter, filtersToSolrQuery } = require('../../hooks/search')
 
-const {
-  resolveFacets,
-  resolveQueryComponents,
-} = require('../../hooks/search-info');
+const { resolveFacets, resolveQueryComponents } = require('../../hooks/search-info')
 
-const { eachFilterValidator } = require('../search/search.validators');
+const { eachFilterValidator } = require('../search/search.validators')
 
-module.exports = {
+export const imageRedactionPolicyWebApp = loadYamlFile(`${__dirname}/resources/imageRedactionPolicyWebApp.yml`)
+
+export default {
   before: {
     all: [
       // authenticate('jwt')
@@ -92,8 +97,9 @@ module.exports = {
       resolveFacets(),
       displayQueryParams(['queryComponents', 'filters']),
       resolveQueryComponents(),
+      redactResponseDataItem(imageRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
-    get: [],
+    get: [redactResponse(imageRedactionPolicyWebApp, webAppExploreRedactionCondition)],
     create: [],
     update: [],
     patch: [],
@@ -109,4 +115,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

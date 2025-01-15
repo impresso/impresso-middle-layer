@@ -4,7 +4,7 @@ import {
   redactResponseDataItem,
   inPublicApi,
   publicApiTranscriptRedactionCondition,
-  webAppTranscriptRedactionCondition,
+  webAppExploreRedactionCondition,
 } from '../../hooks/redaction'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { transformBaseFind } from '../../transformers/base'
@@ -120,7 +120,7 @@ module.exports = {
       protect('content'),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
-      redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppTranscriptRedactionCondition),
+      redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     get: [],
     create: [],

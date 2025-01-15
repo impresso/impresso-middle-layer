@@ -32,3 +32,9 @@ const Zero = BigInt(0)
 export const bitmapsAlign = (bitmap: bigint, mask: bigint): boolean => {
   return (bitmap & mask) != Zero
 }
+
+/**
+ * A bitmap that allows all permissions.
+ * Useful to assign to resources that do not declare any permissions.
+ */
+export const OpenPermissions = BigInt('0b' + [...Array(64)].map(() => '1').join(''))

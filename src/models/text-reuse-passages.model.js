@@ -1,3 +1,5 @@
+import { OpenPermissions } from '../util/bigint'
+
 const { invert } = require('lodash')
 const { solrDocsMapCallbackFn } = require('../util/solr/fields')
 
@@ -103,8 +105,8 @@ class TextReusePassage {
     this.pageNumbers = pageNumbers
     this.collections = collections
 
-    this.bitmapExplore = BigInt(bitmapExplore ?? Number.MAX_SAFE_INTEGER)
-    this.bitmapGetTranscript = BigInt(bitmapGetTranscript ?? Number.MAX_SAFE_INTEGER)
+    this.bitmapExplore = BigInt(bitmapExplore ?? OpenPermissions)
+    this.bitmapGetTranscript = BigInt(bitmapGetTranscript ?? OpenPermissions)
   }
 
   static CreateFromSolr(fieldsToPropsMapper = SolrFieldsToPropsMapper) {
