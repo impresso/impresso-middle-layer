@@ -15,7 +15,7 @@ import { transformResponseDataItem, transformResponse } from '../../hooks/transf
 import { transformTextReusePassage } from '../../transformers/textReuse'
 import { transformBaseFind } from '../../transformers/base'
 
-const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trPassageRedactionPolicy.yml`)
+export const trPassageRedactionPolicy = loadYamlFile(`${__dirname}/resources/trPassageRedactionPolicy.yml`)
 
 // import { validateParameters } from '../../util/openapi'
 // import { docs } from './text-reuse-passages.schema'

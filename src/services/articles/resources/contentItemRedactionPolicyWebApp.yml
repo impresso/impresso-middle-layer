@@ -5,3 +5,15 @@ items:
     valueConverterName: redact
   - jsonPath: $.excerpt
     valueConverterName: redact
+  - jsonPath: $.content
+    valueConverterName: redact
+  - jsonPath: $.matches.[*].fragment
+    valueConverterName: redact
+  - jsonPath: $.regions.[*].iiifFragment
+    valueConverterName: contextNotAllowedImage
+  - jsonPath: $.pages.[*].iiif
+    valueConverterName: contextNotAllowedImage
+  - jsonPath: $.pages.[*].iiifThumbnail
+    valueConverterName: contextNotAllowedImage
+  - jsonPath: $.pages.[*].iiifFragment
+    valueConverterName: contextNotAllowedImage

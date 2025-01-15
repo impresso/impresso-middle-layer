@@ -15,6 +15,8 @@ import {
   contentItemRedactionPolicy,
   contentItemRedactionPolicyWebApp,
 } from '../../../src/services/articles/articles.hooks'
+import { trPassageRedactionPolicy } from '../../../src/services/text-reuse-passages/text-reuse-passages.hooks'
+
 import { DefaultConverters, RedactionPolicy } from '../../../src/util/redaction'
 import { JSONPath } from 'jsonpath-plus'
 
@@ -93,14 +95,66 @@ const getPaths = (policy: RedactionPolicy, object: any, redactionExpectation: 'r
   return paths
 }
 
+const runner = async (
+  testCases: RedactionTestContext[],
+  getter: (ctx: RedactionTestContext) => Promise<any>,
+  redactionPolicy: RedactionPolicy,
+  assertions?: (result: any, ctx: RedactionTestContext) => void,
+  inspect?: 'none' | 'redacted' | 'notRedacted'
+) => {
+  let resultReceivedCounter = 0
+
+  const awaitables = testCases.map(async (testCase, idx) => {
+    const result = await getter(testCase)
+    resultReceivedCounter++
+
+    process.stdout.write(`Got result ${resultReceivedCounter} of ${testCases.length}...\r`)
+
+    const paths = getPaths(redactionPolicy, result, testCase.accessAllowed ? 'notRedacted' : 'redacted')
+
+    // inspect redaction
+    if (inspect != 'none') {
+      if (
+        (!testCase.accessAllowed && inspect === 'redacted') ||
+        (testCase.accessAllowed && inspect === 'notRedacted')
+      ) {
+        console.log(
+          safeStringifyJson(
+            {
+              testCase,
+              result,
+            },
+            2
+          )
+        )
+      }
+    }
+
+    const failMessage = `
+        Test case item ${testCase.contentItemId} is supposed to be ${testCase.accessAllowed ? 'not redacted' : 'redacted'} for user ${testCase.userAccountId},
+        but these paths are ${testCase.accessAllowed ? 'redacted' : 'not redacted'}: ${paths.join(',')}.
+        Content bitmap:\t${bigIntToBitString(testCase.contentItemPermissions)}
+        User bitmap:\t${bigIntToBitString(testCase.userAccountPermissions)}
+        Content: ${safeStringifyJson(result, 2)}
+        `
+
+    assert.strictEqual(paths.length, 0, failMessage)
+    assertions?.(result, testCase)
+  })
+
+  await Promise.all(awaitables)
+}
+
 describe('Bitmap permissions', function () {
-  this.timeout(30000)
+  this.timeout(300000)
 
   let isPublicApi = false
   let testMatrix: RedactionTestContext[] = []
 
   before(async () => {
     isPublicApi = app.get('isPublicApi') ?? false
+
+    if (app.get('cache')?.enabled) assert.fail('Cache is enabled. Disable it to run the test without cache.')
 
     const solrCilent = app.service('simpleSolrClient')
     const sequelize = app.get('sequelizeClient')!
@@ -119,35 +173,112 @@ describe('Bitmap permissions', function () {
       `${totalContentItemPermissions} various content item permissions across ${contentPermissionsDetails.permissions.length} scopes found`
     )
     console.log(`${userAccounts.length} various user accounts permissions found`)
-    console.log(`${testMatrix.length} test cases to run`)
+    console.log(`${testMatrix.length} test cases in total`)
   })
 
-  it('Web App: get article', async () => {
+  describe('Web app', () => {
     if (isPublicApi) return
 
-    const redactionPolicy = contentItemRedactionPolicyWebApp
-    const getTranscriptCases = testMatrix.filter(test => test.scope === 'explore')
-    const service = app.service('articles')
+    it('Get article', async () => {
+      const getTranscriptCases = testMatrix.filter(test => test.scope === 'explore')
+      const service = app.service('articles')
 
-    const indices = Array.from({ length: getTranscriptCases.length }, (_, i) => i)
+      await runner(
+        getTranscriptCases,
+        async testCase => {
+          const params = { user: buildSlimUser(testCase), authenticated: true }
+          return await service.get(testCase.contentItemId, params)
+        },
+        contentItemRedactionPolicyWebApp,
+        undefined,
+        'none'
+      )
+    })
 
-    for await (const idx of indices) {
-      const testCase = getTranscriptCases[idx]
-      console.log(`Testing case ${idx} of ${getTranscriptCases.length}...`)
-      const params = { user: buildSlimUser(testCase) }
-      const result = await service.get(testCase.contentItemId, params)
+    it('Search', async () => {
+      const getTranscriptCases = testMatrix.filter(test => test.scope === 'explore')
+      const service = app.service('search')
 
-      const paths = getPaths(redactionPolicy, result, testCase.accessAllowed ? 'notRedacted' : 'redacted')
+      await runner(
+        getTranscriptCases,
+        async testCase => {
+          const params = {
+            user: buildSlimUser(testCase),
+            authenticated: true,
+            query: {
+              sq: '*:*',
+              filters: [{ q: [testCase.contentItemId], type: 'uid' }],
+            },
+          }
+          return await service.find(params)
+        },
+        contentItemRedactionPolicyWebApp,
+        (result, testCase) => {
+          assert.strictEqual(
+            result.data.length,
+            1,
+            `search for ${testCase.contentItemId} yielded ${result.data.length}. Should be 1`
+          )
+        },
+        'none'
+      )
+    })
 
-      const failMessage = `
-        Content item ${testCase.contentItemId} is supposed to be ${testCase.accessAllowed ? 'not redacted' : 'redacted'} for user ${testCase.userAccountId},
-        but these paths are ${testCase.accessAllowed ? 'redacted' : 'not redacted'}: ${paths.join(',')}.
-        Content bitmap:\t${bigIntToBitString(testCase.contentItemPermissions)}
-        User bitmap:\t${bigIntToBitString(testCase.userAccountPermissions)}
-        Content: ${safeStringifyJson(result, 2)}
-        `
+    // TODO when the data is ready
+    // it('Web App: text reuse passages', async () => {
+    //   // get samples code needs to be updated
+    //   // right now it gets samples from the main search index only.
+    // })
+  })
 
-      assert.strictEqual(paths.length, 0, failMessage)
-    }
+  describe('Public API', () => {
+    if (!isPublicApi) return
+
+    it('Get content item', async () => {
+      const getTranscriptCases = testMatrix.filter(test => test.scope === 'get_transcript')
+      const service = app.service('content-items')
+
+      await runner(
+        getTranscriptCases,
+        async testCase => {
+          const params = { user: buildSlimUser(testCase), authenticated: true }
+          return await service.get(testCase.contentItemId, params)
+        },
+        contentItemRedactionPolicy,
+        undefined,
+        'none'
+      )
+    })
+
+    it('Search', async () => {
+      if (!isPublicApi) return
+
+      const getTranscriptCases = testMatrix.filter(test => test.scope === 'get_transcript')
+      const service = app.service('search')
+
+      await runner(
+        getTranscriptCases,
+        async testCase => {
+          const params = {
+            user: buildSlimUser(testCase),
+            authenticated: true,
+            query: {
+              sq: '*:*',
+              filters: [{ q: [testCase.contentItemId], type: 'uid' }],
+            },
+          }
+          return await service.find(params)
+        },
+        contentItemRedactionPolicy,
+        (result, testCase) => {
+          assert.strictEqual(
+            result.data.length,
+            1,
+            `search for ${testCase.contentItemId} yielded ${result.data.length}. Should be 1`
+          )
+        },
+        'none'
+      )
+    })
   })
 })
