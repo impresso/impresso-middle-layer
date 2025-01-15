@@ -16,12 +16,15 @@ import {
   contentItemRedactionPolicyWebApp,
 } from '../../../src/services/articles/articles.hooks'
 import { trPassageRedactionPolicy } from '../../../src/services/text-reuse-passages/text-reuse-passages.hooks'
-
+import { imageRedactionPolicyWebApp } from '../../../src/services/images/images.hooks'
 import { DefaultConverters, RedactionPolicy } from '../../../src/util/redaction'
 import { JSONPath } from 'jsonpath-plus'
+import { SolrNamespaces } from '../../../src/solr'
 
 interface RedactionTestContext {
   scope: PermissionsScope
+
+  contentItemNamespace: keyof typeof SolrNamespaces
 
   contentItemId: string
   contentItemPermissions: bigint
@@ -43,30 +46,41 @@ const buildSlimUser = (context: RedactionTestContext): SlimUser => ({
 
 const buildTestMatrix = (
   contentItemDetails: ContentItemPermissionsDetails,
+  imageDetails: ContentItemPermissionsDetails,
   userAccounts: UserAccount[]
 ): RedactionTestContext[] => {
-  const items = contentItemDetails.permissions.map(scopeItem => {
-    return scopeItem.permissions.map(permissionItem => {
-      return userAccounts.map(userAccount => {
-        const contentBitmap = permissionItem.bitmap.valueOf() // as bigint
-        const userBitmap = userAccount.bitmap.valueOf() // as bigint
+  const groups: {
+    namespace: keyof typeof SolrNamespaces
+    permissions: ContentItemPermissionsDetails['permissions']
+  }[] = [
+    { namespace: 'Search', permissions: contentItemDetails.permissions },
+    { namespace: 'Images', permissions: imageDetails.permissions },
+  ]
+  const items = groups.map(({ namespace, permissions }) => {
+    return permissions.map(scopeItem => {
+      return scopeItem.permissions.map(permissionItem => {
+        return userAccounts.map(userAccount => {
+          const contentBitmap = permissionItem.bitmap.valueOf() // as bigint
+          const userBitmap = userAccount.bitmap.valueOf() // as bigint
 
-        return {
-          scope: scopeItem.scope,
+          return {
+            scope: scopeItem.scope,
 
-          contentItemId: permissionItem.sample.id,
-          contentItemPermissions: contentBitmap,
-          contentSample: permissionItem.sample,
+            contentItemNamespace: namespace,
+            contentItemId: permissionItem.sample.id,
+            contentItemPermissions: contentBitmap,
+            contentSample: permissionItem.sample,
 
-          userAccountId: userAccount.sample_user_id,
-          userAccountPermissions: userBitmap,
+            userAccountId: userAccount.sample_user_id,
+            userAccountPermissions: userBitmap,
 
-          accessAllowed: bitmapsAlign(contentBitmap, userBitmap),
-        } satisfies RedactionTestContext
+            accessAllowed: bitmapsAlign(contentBitmap, userBitmap),
+          } satisfies RedactionTestContext
+        })
       })
     })
   })
-  return items.flat(3) as RedactionTestContext[]
+  return items.flat(4) as RedactionTestContext[]
 }
 
 const getPaths = (policy: RedactionPolicy, object: any, redactionExpectation: 'redacted' | 'notRedacted') => {
@@ -148,26 +162,24 @@ const runner = async (
 describe('Bitmap permissions', function () {
   this.timeout(300000)
 
-  let isPublicApi = false
   let testMatrix: RedactionTestContext[] = []
 
   before(async () => {
-    isPublicApi = app.get('isPublicApi') ?? false
-
     if (app.get('cache')?.enabled) assert.fail('Cache is enabled. Disable it to run the test without cache.')
 
     const solrCilent = app.service('simpleSolrClient')
     const sequelize = app.get('sequelizeClient')!
 
-    const [userAccounts, contentPermissionsDetails] = await Promise.all([
+    const [userAccounts, contentPermissionsDetails, imagesPermissionsDetails] = await Promise.all([
       getUserAccountsWithAvailablePermissions(sequelize),
-      getContentItemsPermissionsDetails(solrCilent),
+      getContentItemsPermissionsDetails(solrCilent, 'Search'),
+      getContentItemsPermissionsDetails(solrCilent, 'Images'),
     ])
-    testMatrix = buildTestMatrix(contentPermissionsDetails, userAccounts)
-    const totalContentItemPermissions = contentPermissionsDetails.permissions.reduce(
-      (acc, item) => acc + item.permissions.length,
-      0
-    )
+    testMatrix = buildTestMatrix(contentPermissionsDetails, imagesPermissionsDetails, userAccounts)
+    const totalContentItemPermissions = [
+      ...contentPermissionsDetails.permissions,
+      ...imagesPermissionsDetails.permissions,
+    ].reduce((acc, item) => acc + item.permissions.length, 0)
 
     console.log(
       `${totalContentItemPermissions} various content item permissions across ${contentPermissionsDetails.permissions.length} scopes found`
@@ -177,10 +189,15 @@ describe('Bitmap permissions', function () {
   })
 
   describe('Web app', () => {
-    if (isPublicApi) return
+    if (app.get('isPublicApi')) {
+      console.log('Skipping web app tests because this is a public API')
+      return
+    }
 
     it('Get article', async () => {
-      const getTranscriptCases = testMatrix.filter(test => test.scope === 'explore')
+      const getTranscriptCases = testMatrix.filter(
+        test => test.scope === 'explore' && test.contentItemNamespace === 'Search'
+      )
       const service = app.service('articles')
 
       await runner(
@@ -196,7 +213,9 @@ describe('Bitmap permissions', function () {
     })
 
     it('Search', async () => {
-      const getTranscriptCases = testMatrix.filter(test => test.scope === 'explore')
+      const getTranscriptCases = testMatrix.filter(
+        test => test.scope === 'explore' && test.contentItemNamespace === 'Search'
+      )
       const service = app.service('search')
 
       await runner(
@@ -224,6 +243,24 @@ describe('Bitmap permissions', function () {
       )
     })
 
+    it('Get image', async () => {
+      const getTranscriptCases = testMatrix.filter(
+        test => test.scope === 'explore' && test.contentItemNamespace === 'Images'
+      )
+      const service = app.service('images')
+
+      await runner(
+        getTranscriptCases,
+        async testCase => {
+          const params = { user: buildSlimUser(testCase), authenticated: true }
+          return await service.get(testCase.contentItemId, params)
+        },
+        imageRedactionPolicyWebApp,
+        undefined,
+        'none'
+      )
+    })
+
     // TODO when the data is ready
     // it('Web App: text reuse passages', async () => {
     //   // get samples code needs to be updated
@@ -232,10 +269,15 @@ describe('Bitmap permissions', function () {
   })
 
   describe('Public API', () => {
-    if (!isPublicApi) return
+    if (!app.get('isPublicApi')) {
+      console.log('Skipping public API tests because this is not a public API')
+      return
+    }
 
     it('Get content item', async () => {
-      const getTranscriptCases = testMatrix.filter(test => test.scope === 'get_transcript')
+      const getTranscriptCases = testMatrix.filter(
+        test => test.scope === 'get_transcript' && test.contentItemNamespace === 'Search'
+      )
       const service = app.service('content-items')
 
       await runner(
@@ -251,9 +293,9 @@ describe('Bitmap permissions', function () {
     })
 
     it('Search', async () => {
-      if (!isPublicApi) return
-
-      const getTranscriptCases = testMatrix.filter(test => test.scope === 'get_transcript')
+      const getTranscriptCases = testMatrix.filter(
+        test => test.scope === 'get_transcript' && test.contentItemNamespace === 'Search'
+      )
       const service = app.service('search')
 
       await runner(

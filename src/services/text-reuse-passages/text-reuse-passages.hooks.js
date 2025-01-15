@@ -6,7 +6,7 @@ import { parseFilters } from '../../util/queryParameters'
 import {
   redactResponse,
   redactResponseDataItem,
-  webAppTranscriptRedactionCondition,
+  webAppExploreRedactionCondition,
   publicApiTranscriptRedactionCondition,
   inPublicApi,
 } from '../../hooks/redaction'
@@ -43,13 +43,13 @@ module.exports = {
   after: {
     get: [
       transformResponse(transformTextReusePassage, inPublicApi),
-      redactResponse(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponse(trPassageRedactionPolicy, webAppExploreRedactionCondition),
       redactResponse(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     find: [
       transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformTextReusePassage, inPublicApi),
-      redactResponseDataItem(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponseDataItem(trPassageRedactionPolicy, webAppExploreRedactionCondition),
       redactResponseDataItem(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
   },

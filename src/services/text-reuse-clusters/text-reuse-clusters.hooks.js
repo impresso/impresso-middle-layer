@@ -6,7 +6,7 @@ import { parseFilters } from '../../util/queryParameters'
 import {
   redactResponse,
   redactResponseDataItem,
-  webAppTranscriptRedactionCondition,
+  webAppExploreRedactionCondition,
   publicApiTranscriptRedactionCondition,
   inPublicApi,
 } from '../../hooks/redaction'
@@ -55,14 +55,14 @@ module.exports = {
     all: [],
     get: [
       transformResponse(transformTextReuseCluster, inPublicApi),
-      redactResponse(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponse(trPassageRedactionPolicy, webAppExploreRedactionCondition),
       redactResponse(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     find: [
       renameTopLevelField(['clusters', 'data'], inPublicApi),
       transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformTextReuseCluster, inPublicApi),
-      redactResponseDataItem(trPassageRedactionPolicy, webAppTranscriptRedactionCondition),
+      redactResponseDataItem(trPassageRedactionPolicy, webAppExploreRedactionCondition),
       redactResponseDataItem(trPassageRedactionPolicy, publicApiTranscriptRedactionCondition),
     ],
     // find: [validateWithSchema('services/text-reuse-clusters/schema/find/response.json', 'result')],

@@ -142,7 +142,7 @@ const webappAuthBitmapExtractor = (redactable: Redactable, kind: keyof Authoriza
  * - the request is made through the app (not the public API)
  * - user bitmap does not align with the content item bitmap
  */
-export const webAppTranscriptRedactionCondition: RedactCondition = (context, redactable) => {
+export const webAppExploreRedactionCondition: RedactCondition = (context, redactable) => {
   return (
     !inPublicApi(context, redactable) &&
     !bitmapsAlign(context, redactable, x => webappAuthBitmapExtractor(x, 'explore'))

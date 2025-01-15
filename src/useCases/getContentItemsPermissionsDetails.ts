@@ -89,9 +89,10 @@ interface SampleSolrDocument {
 }
 
 export const getContentItemsPermissionsDetails = async (
-  solrClient: SimpleSolrClient
+  solrClient: SimpleSolrClient,
+  index: keyof typeof SolrNamespaces
 ): Promise<ContentItemPermissionsDetails> => {
-  const response = await solrClient.select<unknown, BitmapFacetField, Bucket>(SolrNamespaces.Search, {
+  const response = await solrClient.select<unknown, BitmapFacetField, Bucket>(SolrNamespaces[index], {
     body: getBitmapsFacets,
   })
 
@@ -108,7 +109,7 @@ export const getContentItemsPermissionsDetails = async (
       async ({ scope, permissions }) =>
         ({
           scope,
-          permissions: await Promise.all(permissions.map(withSample(scope, solrClient))),
+          permissions: await Promise.all(permissions.map(withSample(scope, solrClient, index))),
         }) satisfies ScopedPermissions
     )
   )
@@ -131,9 +132,9 @@ const toPermissionDetails = (buckets: Bucket[]): Omit<PermissionDetails, 'sample
 }
 
 const withSample =
-  (scope: PermissionsScope, solrClient: SimpleSolrClient) =>
+  (scope: PermissionsScope, solrClient: SimpleSolrClient, index: keyof typeof SolrNamespaces) =>
   async (details: Omit<PermissionDetails, 'sample'>): Promise<PermissionDetails> => {
-    const response = await solrClient.select<SampleSolrDocument, never, never>(SolrNamespaces.Search, {
+    const response = await solrClient.select<SampleSolrDocument, never, never>(SolrNamespaces[index], {
       body: getSample(ScopeToField[scope], details.bitmap),
     })
 
