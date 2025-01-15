@@ -30,7 +30,7 @@ class Service {
 
     return client
       .run({
-        task: task,
+        task,
         args: [
           // user id
           params.user.id,

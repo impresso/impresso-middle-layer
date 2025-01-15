@@ -82,15 +82,13 @@ class Image {
         issue: new Issue({
           uid: doc.meta_issue_id_s,
         }),
-        pages: Array.isArray(doc.page_nb_is)
-          ? doc.page_nb_is.map(
-              num =>
-                new Page({
-                  uid: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
-                  num,
-                })
-            )
-          : [],
+        pages: (Array.isArray(doc.page_nb_is) ? doc.page_nb_is : []).map(
+          num =>
+            new Page({
+              uid: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
+              num,
+            })
+        ),
         title: Article.getUncertainField(doc, 'title'),
         type: doc.item_type_s,
         year: doc.meta_year_i,
