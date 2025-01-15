@@ -1,14 +1,16 @@
 # yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
 name: content-item-redaction-policy
 items:
-  - jsonPath: $.title
-    valueConverterName: redact
+  # NOTE: decided to show title and fragment so that guest users can see at least something
+  # - jsonPath: $.title
+  #   valueConverterName: redact
   - jsonPath: $.excerpt
     valueConverterName: redact
   - jsonPath: $.content
     valueConverterName: redact
-  - jsonPath: $.matches.[*].fragment
-    valueConverterName: redact
+  # NOTE: decided to show title and fragment so that guest users can see at least something
+  # - jsonPath: $.matches.[*].fragment
+  #   valueConverterName: redact
   - jsonPath: $.regions.[*].iiifFragment
     valueConverterName: contextNotAllowedImage
   - jsonPath: $.pages.[*].iiif
