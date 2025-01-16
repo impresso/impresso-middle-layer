@@ -51,11 +51,14 @@ export const ARTICLE_SOLR_FL_LIST_ITEM = [
   'rc_plains',
   // snippet
   'snippet_plain',
-  'access_right_s',
   'meta_partnerid_s',
   // layout & quality
   'olr_b',
   // access & download
+  /**
+   * @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
+   * https://github.com/impresso/impresso-middle-layer/issues/462
+   */
   'access_right_s',
   'exportable_plain',
   // permissions bitmaps
@@ -63,6 +66,8 @@ export const ARTICLE_SOLR_FL_LIST_ITEM = [
   'rights_bm_explore_l',
   'rights_bm_get_tr_l',
   'rights_bm_get_img_l',
+  'rights_data_domain_s',
+  'rights_copyright_s',
 ]
 
 export const ARTICLE_SOLR_FL_LITE = [
@@ -316,6 +321,8 @@ class Article extends BaseArticle {
     bitmapExplore = undefined,
     bitmapGetTranscript = undefined,
     bitmapGetImages = undefined,
+    dataDomain = undefined,
+    copyright = undefined,
   } = {}) {
     super({
       uid,
@@ -400,6 +407,9 @@ class Article extends BaseArticle {
     this.bitmapExplore = bitmapExplore
     this.bitmapGetTranscript = bitmapGetTranscript
     this.bitmapGetImages = bitmapGetImages
+
+    this.dataDomain = dataDomain
+    this.copyright = copyright
   }
 
   enrich(rc, lb, rb) {
@@ -718,6 +728,10 @@ class Article extends BaseArticle {
 
         rc,
         // accessRight
+        /**
+         * @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
+         * https://github.com/impresso/impresso-middle-layer/issues/462
+         */
         accessRight: doc.access_right_s || ACCESS_RIGHT_NOT_SPECIFIED,
         mentions: typeof doc.nem_offset_plain === 'string' ? JSON.parse(doc.nem_offset_plain) : doc.nem_offset_plain,
         topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs),
@@ -730,6 +744,9 @@ class Article extends BaseArticle {
         bitmapExplore: BigInt(doc.rights_bm_explore_l ?? OpenPermissions),
         bitmapGetTranscript: BigInt(doc.rights_bm_get_tr_l ?? OpenPermissions),
         bitmapGetImages: BigInt(doc.rights_bm_get_img_l ?? OpenPermissions),
+
+        dataDomain: doc.rights_data_domain_s,
+        copyright: doc.rights_copyright_s,
       })
 
       if (!doc.pp_plain) {

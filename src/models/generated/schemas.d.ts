@@ -175,7 +175,18 @@ export interface ContentItem {
    * TODO
    */
   labels: "article"[];
-  accessRight: "na" | "OpenPrivate" | "Closed" | "OpenPublic";
+  /**
+   * The access rights of the content item. Available in Impresso 1.0 only
+   */
+  accessRight?: "na" | "OpenPrivate" | "Closed" | "OpenPublic";
+  /**
+   * The data domain of the content item ('pbl' for Public Domain, 'prt' for Protected Domain). Available in Impresso 2.0 only
+   */
+  dataDomain?: "pbl" | "prt";
+  /**
+   * Copyright of the content item. Available in Impresso 2.0 only. pbl: 'Public Domain', und: 'Protected Domain: Copyright undetermined', nkn: 'Protected Domain: No Known Copyright', euo: 'Protected Domain: In copyright - EU Orphan Work', unk: 'Protected Domain: In copyright - Unknown rightsholders', in_cpy: 'Protected Domain: In copyright'.
+   */
+  copyright?: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
   /**
    * TODO
    */

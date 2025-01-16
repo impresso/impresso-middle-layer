@@ -31,8 +31,18 @@ indexes:
       uid:
         field: id
         rule: value
+      # @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
+      # https://github.com/impresso/impresso-middle-layer/issues/462
       accessRight:
         field: access_right_s
+        rule: value
+      # Impresso 2.0 only
+      dataDomain:
+        field: rights_data_domain_s
+        rule: value
+      # Impresso 2.0 only
+      copyright:
+        field: rights_copyright_s
         rule: value
       partner:
         field: meta_partnerid_s

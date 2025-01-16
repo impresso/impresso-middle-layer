@@ -158,6 +158,10 @@ export const SolrMappings: Record<string, ISolrMappings> = Object.freeze({
         offset: 0,
         numBuckets: true,
       },
+      /**
+       * @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
+       * https://github.com/impresso/impresso-middle-layer/issues/462
+       */
       accessRight: {
         type: 'terms',
         field: 'access_right_s',
@@ -169,6 +173,28 @@ export const SolrMappings: Record<string, ISolrMappings> = Object.freeze({
       partner: {
         type: 'terms',
         field: 'meta_partnerid_s',
+        mincount: 0,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      /**
+       * Available in Impresso 2.0 only.
+       */
+      dataDomain: {
+        type: 'terms',
+        field: 'rights_data_domain_s',
+        mincount: 0,
+        limit: 10,
+        offset: 0,
+        numBuckets: true,
+      },
+      /**
+       * Available in Impresso 2.0 only.
+       */
+      copyright: {
+        type: 'terms',
+        field: 'rights_copyright_s',
         mincount: 0,
         limit: 10,
         offset: 0,
