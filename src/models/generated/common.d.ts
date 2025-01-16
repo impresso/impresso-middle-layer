@@ -55,7 +55,6 @@ export interface Config {
    * Base URI for problem URIs. Falls back to the default URI (https://impresso-project.ch/probs) if not set
    */
   problemUriBase?: string;
-  solr: SolrConfig;
   sequelize: SequelizeConfig;
   openapi?: OpenApiConfig;
   /**
@@ -70,9 +69,25 @@ export interface Config {
   cache?: CacheConfig;
   appHooks?: AppHooksConfig;
   media?: MediaConfig;
-  solrConfiguration?: SolrConfiguration;
+  solrConfiguration: SolrConfiguration;
   proxy?: ProxyConfig;
-  [k: string]: unknown;
+  recommender?: RecommenderConfig;
+  images?: ImagesConfig;
+  accessRights?: AccessRightsConfig;
+  callbackUrls?: CallbackUrlsConfig;
+  /**
+   * Host of the server
+   */
+  host?: string;
+  /**
+   * Port of the server
+   */
+  port?: number;
+  /**
+   * Path to the public folder
+   */
+  public?: string;
+  multer?: MulterConfig;
 }
 /**
  * Redis configuration
@@ -82,57 +97,6 @@ export interface RedisConfig {
    * Redis host
    */
   host?: string;
-  [k: string]: unknown;
-}
-/**
- * Deprecated solr configuration
- */
-export interface SolrConfig {
-  auth: {
-    /**
-     * Solr user
-     */
-    user: string;
-    /**
-     * Solr password
-     */
-    pass: string;
-    [k: string]: unknown;
-  };
-  socksProxy?: SocksProxyConfig;
-  search?: SolrIndexConfig;
-  mentions?: SolrIndexConfig;
-  topics?: SolrIndexConfig;
-  entities?: SolrIndexConfig;
-  images?: SolrIndexConfig;
-  tr_passages?: SolrIndexConfig;
-  tr_clusters?: SolrIndexConfig;
-  embeddings_de?: SolrIndexConfig;
-  embeddings_fr?: SolrIndexConfig;
-  embeddings_lb?: SolrIndexConfig;
-  entities_mentions?: SolrIndexConfig;
-  [k: string]: unknown;
-}
-export interface SocksProxyConfig {
-  enabled?: boolean;
-  host: string;
-  port: number;
-  type?: 4 | 5;
-  [k: string]: unknown;
-}
-export interface SolrIndexConfig {
-  /**
-   * Solr endpoint
-   */
-  endpoint: string;
-  /**
-   * Solr update endpoint
-   */
-  update?: string;
-  /**
-   * Solr suggest endpoint
-   */
-  suggest?: string;
   [k: string]: unknown;
 }
 /**
@@ -416,6 +380,38 @@ export interface ProxyConfig {
    * List of local prefixes to replace in IIIF URLs in Issue pages
    */
   localPrefixes?: string[];
+  [k: string]: unknown;
+}
+export interface RecommenderConfig {
+  articles: {
+    endpoint?: string;
+    [k: string]: unknown;
+  };
+  [k: string]: unknown;
+}
+export interface ImagesConfig {
+  visualSignature?: {
+    endpoint?: string;
+    [k: string]: unknown;
+  };
+  [k: string]: unknown;
+}
+export interface AccessRightsConfig {
+  /**
+   * If `true`, show excerpt
+   */
+  showExcerpt?: boolean;
+  [k: string]: unknown;
+}
+export interface CallbackUrlsConfig {
+  passwordReset?: string;
+  [k: string]: unknown;
+}
+export interface MulterConfig {
+  /**
+   * Destination folder for uploads
+   */
+  dest: string;
   [k: string]: unknown;
 }
 

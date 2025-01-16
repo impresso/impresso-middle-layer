@@ -48,6 +48,18 @@ class Service {
           throw new NotFound()
         })
 
+      // if there are no topics, there is no point in trying to get
+      // similar articles since topics are used for weighting.
+      // return an empty array
+      if (topics.length === 0) {
+        return {
+          data: [],
+          offset: params.query.offset,
+          limit: params.query.limit,
+          total: 0,
+        }
+      }
+
       let topicWeight
       const topicsChoosen = lodash.take(
         topics.sort((a, b) => b.relevance - a.relevance),
@@ -77,7 +89,8 @@ class Service {
 
       debug(`get(${id}) method: ${params.query.method} topics loaded, get articles using fn topicWeight`, topicWeight)
       const request = {
-        q: `filter(topics_dpfs:*) AND NOT(id:${id})`,
+        q: '*:*',
+        fq: `filter(topics_dpfs:*) AND NOT(id:${id})`,
         // eslint-disable-next-line no-template-curly-in-string
         fl: Article.ARTICLE_SOLR_FL_LIST_ITEM.concat(['dist:${topicWeight}']),
         vars: {

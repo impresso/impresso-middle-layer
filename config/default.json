@@ -69,14 +69,6 @@
       "secure": true
     }
   },
-  "neo4j": {
-    "host": "bolt://localhost:7687",
-    "project": "impresso",
-    "auth": {
-      "user": "neo4j",
-      "pass": "neo4j"
-    }
-  },
   "media": {
     "host": "http://localhost:3030",
     "path": "/media",

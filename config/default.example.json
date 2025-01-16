@@ -48,14 +48,6 @@
       "secure": false
     }
   },
-  "neo4j": {
-    "host": "bolt://localhost:7687",
-    "project": "projectname",
-    "auth": {
-      "user": "neo4j",
-      "pass": "neo4j"
-    }
-  },
   "proxy": {
     "host": "http://localhost:3030",
     "iiif": {

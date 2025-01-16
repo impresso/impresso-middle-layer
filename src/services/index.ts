@@ -26,11 +26,7 @@ const adminServices = ['admin']
 const internalApiServices = [
   'issues',
   'suggestions',
-  'projects',
   'pages',
-  'tags',
-  'articles-tags',
-  'buckets-items',
   'search-exporter',
   'topics',
   'init',
