@@ -16,14 +16,14 @@ const { getRegionCoordinatesFromDocument } = require('../util/solr')
 
 const { getExternalFragment } = require('../hooks/iiif')
 
-const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
-const ACCESS_RIGHT_OPEN_PRIVATE = 'OpenPrivate'
-const ACCESS_RIGHT_CLOSED = 'Closed'
-const ACCESS_RIGHT_OPEN_PUBLIC = 'OpenPublic'
+export const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
+export const ACCESS_RIGHT_OPEN_PRIVATE = 'OpenPrivate'
+export const ACCESS_RIGHT_CLOSED = 'Closed'
+export const ACCESS_RIGHT_OPEN_PUBLIC = 'OpenPublic'
 
-const ARTICLE_SOLR_FL_MINIMAL = ['id', 'item_type_s', 'doc_type_s']
+export const ARTICLE_SOLR_FL_MINIMAL = ['id', 'item_type_s', 'doc_type_s']
 
-const ARTICLE_SOLR_FL_LIST_ITEM = [
+export const ARTICLE_SOLR_FL_LIST_ITEM = [
   'id',
   'lg_s', // 'fr',
   'title_txt_fr',
@@ -65,7 +65,7 @@ const ARTICLE_SOLR_FL_LIST_ITEM = [
   'rights_bm_get_img_l',
 ]
 
-const ARTICLE_SOLR_FL_LITE = [
+export const ARTICLE_SOLR_FL_LITE = [
   'id',
   'lg_s', // 'fr',
   'content_txt_fr',
@@ -98,7 +98,7 @@ const ARTICLE_SOLR_FL_LITE = [
   'loc_entities_dpfs',
 ]
 
-const ARTICLE_SOLR_FL_TO_CSV = [
+export const ARTICLE_SOLR_FL_TO_CSV = [
   'id',
   'lg_s', // 'fr',
 
@@ -125,9 +125,9 @@ const ARTICLE_SOLR_FL_TO_CSV = [
   'loc_entities_dpfs',
 ]
 
-const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat(['pp_plain:[json]'])
+export const ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_LITE.concat(['pp_plain:[json]'])
 
-const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
+export const ARTICLE_SOLR_FL = ARTICLE_SOLR_FL_LITE.concat([
   'lb_plain:[json]',
   'rb_plain:[json]',
   'pp_plain:[json]',
@@ -188,7 +188,7 @@ class ArticleMatch extends Fragment {
   }
 }
 
-class BaseArticle {
+export class BaseArticle {
   constructor({
     uid = '',
     type = '',
@@ -758,19 +758,6 @@ class Article extends BaseArticle {
   }
 }
 
-// module.exports.SequelizeFactory = model;
-module.exports = Article
-module.exports.solrFactory = Article.solrFactory
-module.exports.Model = Article
-module.exports.BaseArticle = BaseArticle
-module.exports.ARTICLE_SOLR_FL = ARTICLE_SOLR_FL
-module.exports.ARTICLE_SOLR_FL_LITE = ARTICLE_SOLR_FL_LITE
-module.exports.ARTICLE_SOLR_FL_SEARCH = ARTICLE_SOLR_FL_SEARCH
-module.exports.ARTICLE_SOLR_FL_LIST_ITEM = ARTICLE_SOLR_FL_LIST_ITEM
-module.exports.ARTICLE_SOLR_FL_TO_CSV = ARTICLE_SOLR_FL_TO_CSV
-module.exports.ARTICLE_SOLR_FL_MINIMAL = ARTICLE_SOLR_FL_MINIMAL
-
-module.exports.ACCESS_RIGHT_NOT_SPECIFIED = ACCESS_RIGHT_NOT_SPECIFIED
-module.exports.ACCESS_RIGHT_OPEN_PRIVATE = ACCESS_RIGHT_OPEN_PRIVATE
-module.exports.ACCESS_RIGHT_CLOSED = ACCESS_RIGHT_CLOSED
-module.exports.ACCESS_RIGHT_OPEN_PUBLIC = ACCESS_RIGHT_OPEN_PUBLIC
+export default Article
+export const solrFactory = Article.solrFactory
+export const Model = Article

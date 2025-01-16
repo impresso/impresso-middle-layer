@@ -4,7 +4,7 @@ import { Op } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
 
 import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
-import Article from '../../models/articles.model'
+import Article, { ARTICLE_SOLR_FL_LIST_ITEM } from '../../models/articles.model'
 import Issue from '../../models/issues.model'
 import { measureTime } from '../../util/instruments'
 import { ImpressoApplication } from '../../types'
@@ -85,7 +85,7 @@ export class Service {
   }
 
   async _find(params: FindOptions) {
-    const fl = Article.ARTICLE_SOLR_FL_LIST_ITEM
+    const fl = ARTICLE_SOLR_FL_LIST_ITEM
     const pageUids = (params.query.filters || []).filter(d => d.type === 'page').map(d => d.q)
 
     debug('[find] use auth user:', params.user ? params.user.uid : 'no user')
@@ -148,7 +148,7 @@ export class Service {
           article.pages = addonsIndex[article.uid].pages.map((d: any) => (d.constructor === Object ? d : d.toJSON()))
         }
         if (pageUids.length === 1) {
-          article.regions = article?.regions?.filter(r => pageUids.indexOf(r.pageUid) !== -1)
+          article.regions = article?.regions?.filter((r: { pageUid: string }) => pageUids.indexOf(r.pageUid) !== -1)
         }
         article.assignIIIF()
         return article
@@ -158,7 +158,7 @@ export class Service {
 
   async get(id: string, params: any) {
     debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found')
-    const fl = Article.ARTICLE_SOLR_FL_LIST_ITEM.concat([
+    const fl = ARTICLE_SOLR_FL_LIST_ITEM.concat([
       'lb_plain:[json]',
       'rb_plain:[json]',
       'pp_plain:[json]',
