@@ -6,7 +6,7 @@ import type { RedisClientOptions } from 'redis'
 import { AuthenticationConfiguration } from '@feathersjs/authentication'
 import { Sequelize } from 'sequelize'
 import { CeleryClient } from './celery'
-import type { CeleryConfig, Config, RedisConfig, SocksProxyConfig } from './models/generated/common'
+import type { CeleryConfig, Config, RedisConfig, SolrServerProxy } from './models/generated/common'
 import { ImpressoApplication } from './types'
 
 const ajv = new Ajv()
@@ -15,7 +15,7 @@ ajv.addSchema(require('./schema/common/solrConfiguration.json'), 'solrConfigurat
 
 type RedisConfiguration = RedisConfig & RedisClientOptions
 
-export type { CeleryConfig, RedisConfiguration, SocksProxyConfig }
+export type { CeleryConfig, RedisConfiguration, SolrServerProxy }
 
 export interface LocalAuthenticationConfiguration extends AuthenticationConfiguration {
   jwtOptions: {

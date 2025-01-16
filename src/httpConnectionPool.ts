@@ -2,7 +2,7 @@ import { request, RequestInfo, RequestInit, Dispatcher, Agent, RetryAgent, Retry
 import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
 import { IncomingHttpHeaders } from 'undici/types/header'
-import { SocksProxyConfig } from './configuration'
+import { SolrServerProxy } from './configuration'
 
 export { RequestInfo, RequestInit, Headers }
 
@@ -77,9 +77,9 @@ export class Response implements IResponse {
  * because functions are sometimes not recognised by the pool.
  */
 class ConnectionWrapper implements IConnectionWrapper {
-  socksProxyOptions?: SocksProxyConfig
+  socksProxyOptions?: SolrServerProxy
 
-  constructor(socksProxyOptions?: SocksProxyConfig) {
+  constructor(socksProxyOptions?: SolrServerProxy) {
     this.socksProxyOptions = socksProxyOptions
   }
 
@@ -87,7 +87,7 @@ class ConnectionWrapper implements IConnectionWrapper {
     if (this.socksProxyOptions != null) {
       const proxyConfig: SocksProxies = [
         {
-          type: this.socksProxyOptions.type ?? 5,
+          type: 5,
           host: this.socksProxyOptions.host,
           port: this.socksProxyOptions.port,
         },
@@ -138,9 +138,9 @@ class ConnectionWrapper implements IConnectionWrapper {
 }
 
 class ConnectionFactory implements Factory<IConnectionWrapper> {
-  socksProxyOptions?: SocksProxyConfig
+  socksProxyOptions?: SolrServerProxy
 
-  constructor(socksProxyOptions?: SocksProxyConfig) {
+  constructor(socksProxyOptions?: SolrServerProxy) {
     this.socksProxyOptions = socksProxyOptions
   }
 
@@ -156,7 +156,7 @@ class ConnectionFactory implements Factory<IConnectionWrapper> {
 export interface InitHttpPoolOptions {
   maxParallelConnections?: number
   acquireTimeoutSec?: number
-  socksProxy?: SocksProxyConfig
+  socksProxy?: SolrServerProxy
 }
 
 export function initHttpPool({

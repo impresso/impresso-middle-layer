@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "Impresso config file.",
   "type": "object",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "properties": {
     "$schema": {
       "type": "string"
@@ -45,9 +45,6 @@
       "type": "string",
       "description": "Base URI for problem URIs. Falls back to the default URI (https://impresso-project.ch/probs) if not set"
     },
-    "solr": {
-      "$ref": "#/definitions/SolrConfig"
-    },
     "sequelize": {
       "$ref": "#/definitions/SequelizeConfig"
     },
@@ -70,49 +67,49 @@
     "appHooks": { "$ref": "#/definitions/AppHooksConfig" },
     "media": { "$ref": "#/definitions/MediaConfig" },
     "solrConfiguration": { "$ref": "./solrConfiguration.json" },
-    "proxy": { "$ref": "#/definitions/ProxyConfig" }
+    "proxy": { "$ref": "#/definitions/ProxyConfig" },
+    "recommender": { "$ref": "#/definitions/RecommenderConfig" },
+    "images": { "$ref": "#/definitions/ImagesConfig" },
+    "accessRights": { "$ref": "#/definitions/AccessRightsConfig" },
+    "callbackUrls": { "$ref": "#/definitions/CallbackUrlsConfig" },
+    "host": { "type": "string", "description": "Host of the server" },
+    "port": { "type": "number", "description": "Port of the server" },
+    "public": { "type": "string", "description": "Path to the public folder" },
+    "multer": { "$ref": "#/definitions/MulterConfig" }
   },
-  "required": ["solr", "sequelize", "authentication"],
+  "required": ["solrConfiguration", "sequelize", "authentication"],
   "definitions": {
-    "SolrConfig": {
+    "MulterConfig": {
       "type": "object",
-      "description": "Deprecated solr configuration",
-      "additionalProperties": true,
       "properties": {
-        "auth": {
-          "type": "object",
-          "properties": {
-            "user": { "type": "string", "description": "Solr user" },
-            "pass": { "type": "string", "description": "Solr password" }
-          },
-          "required": ["user", "pass"]
-        },
-        "socksProxy": {
-          "$ref": "#/definitions/SocksProxyConfig"
-        },
-        "search": { "$ref": "#/definitions/SolrIndexConfig" },
-        "mentions": { "$ref": "#/definitions/SolrIndexConfig" },
-        "topics": { "$ref": "#/definitions/SolrIndexConfig" },
-        "entities": { "$ref": "#/definitions/SolrIndexConfig" },
-        "images": { "$ref": "#/definitions/SolrIndexConfig" },
-        "tr_passages": { "$ref": "#/definitions/SolrIndexConfig" },
-        "tr_clusters": { "$ref": "#/definitions/SolrIndexConfig" },
-        "embeddings_de": { "$ref": "#/definitions/SolrIndexConfig" },
-        "embeddings_fr": { "$ref": "#/definitions/SolrIndexConfig" },
-        "embeddings_lb": { "$ref": "#/definitions/SolrIndexConfig" },
-        "entities_mentions": { "$ref": "#/definitions/SolrIndexConfig" }
+        "dest": { "type": "string", "description": "Destination folder for uploads" }
       },
-      "required": ["auth"]
+      "required": ["dest"]
     },
-    "SolrIndexConfig": {
+    "CallbackUrlsConfig": {
       "type": "object",
       "properties": {
-        "endpoint": { "type": "string", "description": "Solr endpoint" },
-        "update": { "type": "string", "description": "Solr update endpoint" },
-        "suggest": { "type": "string", "description": "Solr suggest endpoint" }
+        "passwordReset": { "type": "string" }
+      }
+    },
+    "AccessRightsConfig": {
+      "type": "object",
+      "properties": {
+        "showExcerpt": { "type": "boolean", "description": "If `true`, show excerpt" }
+      }
+    },
+    "ImagesConfig": {
+      "type": "object",
+      "properties": {
+        "visualSignature": { "type": "object", "properties": { "endpoint": { "type": "string" } } }
+      }
+    },
+    "RecommenderConfig": {
+      "type": "object",
+      "properties": {
+        "articles": { "type": "object", "properties": { "endpoint": { "type": "string" } } }
       },
-      "additionalProperties": true,
-      "required": ["endpoint"]
+      "required": ["articles"]
     },
     "SocksProxyConfig": {
       "type": "object",

@@ -1,7 +1,7 @@
 import { consolidateMediaSources } from '../useCases/consolidateMediaSources'
 import { WellKnownKeys } from '../cache'
 import { ImpressoApplication } from '../types'
-import { getSolrIndex, SolrNamespaces } from '../solr'
+import { SolrNamespaces } from '../solr'
 
 /**
  * Consolidate media sources and store them in cache.
