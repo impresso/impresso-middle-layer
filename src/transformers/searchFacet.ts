@@ -34,6 +34,8 @@ const transformBucket = (
     case 'type':
     case 'language':
     case 'accessRight':
+    case 'dataDomain':
+    case 'copyright':
       return {
         count: input.count,
         value: String(input.val),
