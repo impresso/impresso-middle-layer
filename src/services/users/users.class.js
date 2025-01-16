@@ -96,6 +96,7 @@ class Service {
       .create({
         ...user.profile,
         user_id: createdUser.id,
+        pattern: data.sanitized.pattern
       })
       .catch(sequelizeErrorHandler)
 
