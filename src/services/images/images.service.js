@@ -1,12 +1,11 @@
-// Initializes the `images` service on path `/images`
-import hooks from './images.hooks'
-const createService = require('./images.class.js')
+import hooksV1 from './images-v1.hooksoks'
+import ServiceV1 from './images-v1.class'
 
 module.exports = function (app) {
   // Initialize our service with any options it requires
   app.use(
     '/images',
-    createService({
+    new ServiceV1({
       app,
       name: 'images',
     })
@@ -15,5 +14,5 @@ module.exports = function (app) {
   // Get our initialized service so that we can register hooks
   const service = app.service('images')
 
-  service.hooks(hooks)
+  service.hooks(hooksV1)
 }

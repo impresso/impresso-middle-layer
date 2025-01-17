@@ -98,7 +98,7 @@ export default {
         },
         randomPage: {
           required: false,
-          transform: d => ['true', ''].includes(d),
+          transform: (d: string) => ['true', ''].includes(d),
         },
         facets: utils.facets({
           values: {

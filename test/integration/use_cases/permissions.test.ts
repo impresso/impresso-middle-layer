@@ -16,7 +16,7 @@ import {
   contentItemRedactionPolicyWebApp,
 } from '../../../src/services/articles/articles.hooks'
 import { trPassageRedactionPolicy } from '../../../src/services/text-reuse-passages/text-reuse-passages.hooks'
-import { imageRedactionPolicyWebApp } from '../../../src/services/images/images.hooks'
+import { imageRedactionPolicyWebApp } from '../../../src/services/images/images-v1.hooks'
 import { DefaultConverters, RedactionPolicy } from '../../../src/util/redaction'
 import { JSONPath } from 'jsonpath-plus'
 import { SolrNamespaces } from '../../../src/solr'

@@ -11,7 +11,7 @@ const {
   SolrNamespaces,
 } = require('../../solr')
 
-class Service {
+export default class Service {
   constructor({ app = null, name = '' }) {
     this.app = app
     this.name = name
@@ -285,9 +285,3 @@ class Service {
     return { id }
   }
 }
-
-module.exports = function (options) {
-  return new Service(options)
-}
-
-module.exports.Service = Service
