@@ -9,6 +9,10 @@
       "type": "string",
       "description": "The unique identifier of the image"
     },
+    "caption": {
+      "type": "string",
+      "description": "Image caption"
+    },
     "issueUid": {
       "type": "string",
       "description": "The unique identifier of the issue that the image belongs to."

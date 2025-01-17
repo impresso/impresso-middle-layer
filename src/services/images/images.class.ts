@@ -11,6 +11,7 @@ const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024'
 
 export interface FindQuery {
   similar_to_image_id?: string
+  term?: string
   limit?: number
   offset?: number
 }
@@ -23,6 +24,10 @@ export class Images implements Pick<ClientService<Image, unknown, unknown, Publi
     const offset = params?.query?.offset ?? 0
 
     const queryParts: string[] = []
+
+    if ((params?.query?.term?.length ?? 0) !== 0) {
+      queryParts.push(`caption_txt:${params?.query?.term}`)
+    }
 
     if (params?.query?.similar_to_image_id) {
       const referenceId = params.query.similar_to_image_id
@@ -81,6 +86,7 @@ const toImage = (doc: ImageDocument): Image => {
     uid: doc.id!,
     ...(doc.linked_ci_s != null ? { contentItemUid: doc.linked_ci_s } : {}),
     issueUid: doc.meta_issue_id_s!,
-    previewUrl: doc.iiif_url_s!,
+    previewUrl: doc.iiif_url_s ?? doc.iiif_link_s!,
+    ...(doc.caption_txt != null ? { caption: doc.caption_txt.join('\n') } : {}),
   }
 }

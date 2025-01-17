@@ -24,7 +24,7 @@ const similarToImageId: QueryParameter = {
 }
 
 const findParameters: MethodParameter[] = [
-  // parameterTerm,
+  parameterTerm,
   similarToImageId,
   ...getStandardParameters({ method: 'find', maxPageSize: 100 }),
 ]

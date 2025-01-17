@@ -26,6 +26,7 @@ export interface Image {
   coords_is?: number[];
   front_b?: boolean;
   iiif_url_s?: string;
+  iiif_link_s?: string;
   cc_b?: boolean;
   rights_data_domain_s?: string;
   rights_copyright_s?: string;

@@ -880,6 +880,10 @@ export interface Image {
    */
   uid: string;
   /**
+   * Image caption
+   */
+  caption?: string;
+  /**
    * The unique identifier of the issue that the image belongs to.
    */
   issueUid: string;
