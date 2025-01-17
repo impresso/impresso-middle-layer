@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Image",
+  "description": "Image Solr document in Impresso v2",
+  "properties": {
+    "id": { "type": "string" },
+    "meta_journal_s": { "type": "string" },
+    "meta_year_i": { "type": "integer" },
+    "meta_day_i": { "type": "integer" },
+    "meta_ed_s": { "type": "string" },
+    "meta_issue_id_s": { "type": "string" },
+    "meta_date_dt": { "type": "string", "format": "date-time" },
+    "linked_ci_s": { "type": "string" },
+    "reading_order_i": { "type": "integer" },
+    "caption_txt": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "item_type_s": { "type": "string" },
+    "page_nb_is": {
+      "type": "array",
+      "items": { "type": "integer" }
+    },
+    "coords_is": {
+      "type": "array",
+      "items": { "type": "integer" }
+    },
+    "front_b": { "type": "boolean" },
+    "iiif_url_s": { "type": "string", "format": "uri" },
+    "cc_b": { "type": "boolean" },
+    "rights_data_domain_s": { "type": "string" },
+    "rights_copyright_s": { "type": "string" },
+    "rights_perm_use_explore_plain": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rights_perm_use_get_tr_plain": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rights_perm_use_get_img_plain": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rights_bm_explore_l": { "type": "integer" },
+    "rights_bm_get_tr_l": { "type": "integer" },
+    "rights_bm_get_img_l": { "type": "integer" },
+    "dinov2_emb_v1024": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "openclip_emb_v768": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "_version_": { "type": "number" }
+  },
+  "additionalProperties": false
+}

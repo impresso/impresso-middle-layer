@@ -12,7 +12,7 @@ const {
 } = require('../../solr')
 
 export default class Service {
-  constructor({ app = null, name = '' }) {
+  constructor({ app, name = '' }) {
     this.app = app
     this.name = name
     this.sequelizeClient = this.app.get('sequelizeClient')

@@ -370,6 +370,10 @@ export interface SolrServerNamespaceConfiguration {
    * Solr index name
    */
   index: string;
+  /**
+   * Version of the data schema used in the index. Optional.
+   */
+  schemaVersion?: string;
 }
 export interface ProxyConfig {
   /**
@@ -514,4 +518,8 @@ export interface SolrServerNamespaceConfiguration {
    * Solr index name
    */
   index: string;
+  /**
+   * Version of the data schema used in the index. Optional.
+   */
+  schemaVersion?: string;
 }

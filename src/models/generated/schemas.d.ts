@@ -880,35 +880,17 @@ export interface Image {
    */
   uid: string;
   /**
+   * The unique identifier of the issue that the image belongs to.
+   */
+  issueUid: string;
+  /**
    * The unique identifier of the content item that the image belongs to.
    */
-  contentItemUid: string;
+  contentItemUid?: string;
   /**
    * The URL of the image preview
    */
   previewUrl: string;
-  /**
-   * The URL of the IIIF info.json file
-   */
-  iiifInfoUrl: string;
-  permissions?: ContentPermissions;
-}
-/**
- * Content item permissions
- */
-export interface ContentPermissions {
-  /**
-   * Bitmap representing the 'explore' permissions of the content item
-   */
-  exploreBitmap?: number;
-  /**
-   * Bitmap representing the 'get transcript' permissions of the content item
-   */
-  getTranscriptBitmap?: number;
-  /**
-   * Bitmap representing the 'get images' permissions of the content item
-   */
-  getImagesBitmap?: number;
 }
 
 
