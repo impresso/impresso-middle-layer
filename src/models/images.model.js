@@ -1,9 +1,9 @@
 import { OpenPermissions } from '../util/bigint'
+import Article from './articles.model'
 
 const Page = require('./pages.model')
 const Issue = require('./issues.model')
 const Newspaper = require('./newspapers.model')
-const Article = require('./articles.model')
 const { getExternalFragment } = require('../hooks/iiif.js')
 
 class Image {
