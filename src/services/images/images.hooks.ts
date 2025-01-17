@@ -1,5 +1,12 @@
 import { loadYamlFile } from '../../util/yaml'
-import { redactResponse, redactResponseDataItem, webAppExploreRedactionCondition } from '../../hooks/redaction'
+import {
+  RedactionPolicy,
+  redactResponse,
+  redactResponseDataItem,
+  webAppExploreRedactionCondition,
+} from '../../hooks/redaction'
+import { HookContext } from '@feathersjs/feathers'
+import { ImpressoApplication } from '../../types'
 
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
@@ -16,7 +23,47 @@ const { resolveFacets, resolveQueryComponents } = require('../../hooks/search-in
 
 const { eachFilterValidator } = require('../search/search.validators')
 
-export const imageRedactionPolicyWebApp = loadYamlFile(`${__dirname}/resources/imageRedactionPolicyWebApp.yml`)
+export const imageRedactionPolicyWebApp: RedactionPolicy = loadYamlFile(
+  `${__dirname}/resources/imageRedactionPolicyWebApp.yml`
+)
+
+const getPrefix = (prefixes: string[], url?: string): string | undefined => {
+  return url == null ? undefined : prefixes.find(prefix => url.startsWith(prefix))
+}
+
+/**
+ * A hook used in development environment to update the IIIF URLs in images to
+ * point to the local server.
+ * The prefixes to match are defined in the `localPrefixes` configuration key.
+ */
+const updateIiifUrls = (context: HookContext<ImpressoApplication>) => {
+  if (context.type !== 'after') {
+    throw new Error('The updateIiifUrls hook should be used as an after hook only')
+  }
+
+  const proxyConfig = context.app.get('proxy')
+  const prefixes = proxyConfig?.localPrefixes
+  const host = proxyConfig?.host
+
+  const replaceableItems = ['pages', 'regions']
+  const replaceableFields = ['iiif', 'iiifThumbnail', 'iiifFragment']
+
+  if (prefixes != null && prefixes.length > 0 && host != null) {
+    context.result?.data?.forEach((image: Record<string, any>) => {
+      replaceableItems.forEach((key: string) => {
+        image?.[key]?.forEach((item: Record<string, any>) => {
+          replaceableFields.forEach((field: string) => {
+            const iiifPrefix = getPrefix(prefixes, item[field])
+            if (iiifPrefix != null) {
+              item[field] = item[field].replace(iiifPrefix, host)
+            }
+          })
+        })
+      })
+    })
+    console.log(context.result.data)
+  }
+}
 
 export default {
   before: {
@@ -97,6 +144,7 @@ export default {
       resolveFacets(),
       displayQueryParams(['queryComponents', 'filters']),
       resolveQueryComponents(),
+      updateIiifUrls,
       redactResponseDataItem(imageRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     get: [redactResponse(imageRedactionPolicyWebApp, webAppExploreRedactionCondition)],
