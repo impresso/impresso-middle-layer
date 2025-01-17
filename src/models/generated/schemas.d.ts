@@ -704,6 +704,25 @@ export interface TopicWord {
 
 
 /**
+ * Content item permissions
+ */
+export interface ContentPermissions {
+  /**
+   * Bitmap representing the 'explore' permissions of the content item
+   */
+  exploreBitmap?: number;
+  /**
+   * Bitmap representing the 'get transcript' permissions of the content item
+   */
+  getTranscriptBitmap?: number;
+  /**
+   * Bitmap representing the 'get images' permissions of the content item
+   */
+  getImagesBitmap?: number;
+}
+
+
+/**
  * An entity like location, person, etc
  */
 export interface Entity {
@@ -849,6 +868,47 @@ export interface TextReuseClusterDetails {
    * Resolution for the 'date' facet
    */
   resolution?: "year" | "month" | "day";
+}
+
+
+/**
+ * An image from a content item
+ */
+export interface Image {
+  /**
+   * The unique identifier of the image
+   */
+  uid: string;
+  /**
+   * The unique identifier of the content item that the image belongs to.
+   */
+  contentItemUid: string;
+  /**
+   * The URL of the image preview
+   */
+  previewUrl: string;
+  /**
+   * The URL of the IIIF info.json file
+   */
+  iiifInfoUrl: string;
+  permissions?: ContentPermissions;
+}
+/**
+ * Content item permissions
+ */
+export interface ContentPermissions {
+  /**
+   * Bitmap representing the 'explore' permissions of the content item
+   */
+  exploreBitmap?: number;
+  /**
+   * Bitmap representing the 'get transcript' permissions of the content item
+   */
+  getTranscriptBitmap?: number;
+  /**
+   * Bitmap representing the 'get images' permissions of the content item
+   */
+  getImagesBitmap?: number;
 }
 
 
