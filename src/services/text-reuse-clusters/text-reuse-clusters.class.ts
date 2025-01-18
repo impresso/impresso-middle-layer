@@ -7,13 +7,14 @@ import type {
   GetTextReuseClusterResponse,
 } from './models/generated'
 import { FindQueyParameters } from './text-reuse-clusters.schema'
-import { NewspapersService } from '../newspapers/newspapers.class'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { getToSelect } from '../../util/solr/adapters'
 import { MediaSources } from '../media-sources/media-sources.class'
 import { OpenPermissions } from '../../util/bigint'
+import { filtersToSolrQueries } from '../../util/solr'
+import { Filter } from '../../models'
 
-const { mapValues, groupBy, values, uniq, clone, get } = require('lodash')
+const { mapValues, groupBy, clone, get } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
 const { protobuf } = require('impresso-jscommons')
 const {
@@ -31,9 +32,7 @@ const {
   parseConnectedClustersCountResponse,
 } = require('../../logic/textReuse/solr')
 const { parseOrderBy } = require('../../util/queryParameters')
-const { sameTypeFiltersToQuery } = require('../../util/solr')
 const { SolrNamespaces } = require('../../solr')
-const Newspaper = require('../../models/newspapers.model')
 
 interface ClusterIdAndTextAndPermission {
   id: any
@@ -59,11 +58,6 @@ function buildResponseClusters(
 }
 
 const deserializeFilters = (serializedFilters: string) => protobuf.searchQuery.deserialize(serializedFilters).filters
-
-function filtersToSolrQueries(filters: any, namespace = SolrNamespaces.TextReusePassages) {
-  const filtersGroupsByType = values(groupBy(filters, 'type'))
-  return uniq(filtersGroupsByType.map((f: any) => sameTypeFiltersToQuery(f, namespace)))
-}
 
 export const OrderByKeyToField = {
   'passages-count': PassageFields.ClusterSize,
@@ -148,7 +142,7 @@ export class TextReuseClusters {
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
     const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
     const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
-    const filterQueryParts = filtersToSolrQueries(filters, SolrNamespaces.TextReusePassages)
+    const filterQueryParts = filtersToSolrQueries(filters as Filter[], SolrNamespaces.TextReusePassages)
     const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
       text,

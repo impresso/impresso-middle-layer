@@ -1,5 +1,12 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getStandardParameters, getStandardResponses, MethodParameter, QueryParameter } from '../../util/openapi'
+import {
+  filtersQueryParameter,
+  getStandardParameters,
+  getStandardResponses,
+  MethodParameter,
+  QueryParameter,
+} from '../../util/openapi'
+import { OrderByChoices } from './images.class'
 
 const parameterTerm: QueryParameter = {
   in: 'query',
@@ -23,9 +30,22 @@ const similarToImageId: QueryParameter = {
   description: 'Find images similar to the image with the given ID',
 }
 
+const parameterOrderBy: QueryParameter = {
+  in: 'query',
+  name: 'order_by',
+  required: false,
+  schema: {
+    type: 'string',
+    enum: OrderByChoices,
+  },
+  description: 'Order by',
+}
+
 const findParameters: MethodParameter[] = [
   parameterTerm,
   similarToImageId,
+  parameterOrderBy,
+  filtersQueryParameter,
   ...getStandardParameters({ method: 'find', maxPageSize: 100 }),
 ]
 const getParameters: MethodParameter[] = [...getStandardParameters({ method: 'get' })]
