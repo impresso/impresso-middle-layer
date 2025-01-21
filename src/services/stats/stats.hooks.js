@@ -9,7 +9,7 @@ const { TimeDomain, SupportedStats, DefaultStats } = require('./common')
 const SupportedIndexes = Object.freeze(Object.keys(statsConfiguration.indexes))
 const SupportedFacetsByIndex = SupportedIndexes.reduce((acc, index) => {
   const { term, numeric } = statsConfiguration.indexes[index].facets
-  acc[index] = Object.keys(term).concat(Object.keys(numeric))
+  acc[index] = Object.keys(term ?? {}).concat(Object.keys(numeric ?? {}))
   return acc
 }, {})
 const SupportedDomainsByIndex = SupportedIndexes.reduce((acc, index) => {

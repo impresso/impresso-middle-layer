@@ -110,3 +110,13 @@ indexes:
         date:
           field: meta_date_dt
           limit: 186
+  images:
+    facets:
+      term:
+        newspaper:
+          field: meta_journal_s
+          limit: 100
+        year:
+          field: meta_year_i
+          limit: 400
+      numeric:

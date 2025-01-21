@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ContentPermissions",
+  "description": "Content item permissions",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "exploreBitmap": {
+      "type": "integer",
+      "description": "Bitmap representing the 'explore' permissions of the content item"
+    },
+    "getTranscriptBitmap": {
+      "type": "integer",
+      "description": "Bitmap representing the 'get transcript' permissions of the content item"
+    },
+    "getImagesBitmap": {
+      "type": "integer",
+      "description": "Bitmap representing the 'get images' permissions of the content item"
+    }
+  }
+}

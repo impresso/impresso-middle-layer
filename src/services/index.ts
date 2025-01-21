@@ -19,6 +19,7 @@ const publicApiServices = [
   'entities',
   'impresso-ner',
   'media-sources',
+  'images',
 ]
 
 const adminServices = ['admin']
@@ -35,7 +36,6 @@ const internalApiServices = [
   'articles-timelines',
   'jobs',
   'logs',
-  'images',
   'articles-suggestions',
   'uploaded-images',
   'mentions',

@@ -10,18 +10,20 @@ import {
 
 const SupportedIndexes = Object.keys(SolrMappings)
 
-export type IndexId = 'search' | 'tr-clusters' | 'tr-passages'
+export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images'
 
 export const facetTypes: Record<IndexId, string[]> = {
   search: Object.keys(SolrMappings.search.facets),
   'tr-clusters': Object.keys(SolrMappings['tr_clusters'].facets),
   'tr-passages': Object.keys(SolrMappings['tr_passages'].facets),
+  images: Object.keys(SolrMappings.images.facets),
 }
 
 const facetNames: Record<IndexId, string> = {
   search: 'search index',
   'tr-clusters': 'text reuse clusters index',
   'tr-passages': 'text reuse passages index',
+  images: 'images index',
 }
 
 export const OrderByChoices = ['-count', 'count', '-value', 'value']

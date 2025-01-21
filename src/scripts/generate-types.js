@@ -12,7 +12,7 @@ const banner = `
 
 const basePath = './src/schema'
 const outputPath = './src/models/generated'
-const schemaBits = ['schemas', 'schemasPublic', 'shared', 'parameters', 'requestBodies', 'responses', 'common']
+const schemaBits = ['schemas', 'schemasPublic', 'shared', 'parameters', 'requestBodies', 'responses', 'common', 'solr']
 const directories = fs
   .readdirSync(basePath)
   .filter(item => {

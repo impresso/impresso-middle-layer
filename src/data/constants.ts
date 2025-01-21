@@ -394,6 +394,24 @@ export const SolrMappings: Record<string, ISolrMappings> = Object.freeze({
       },
     },
   },
+  images: {
+    facets: {
+      newspaper: {
+        type: 'terms',
+        field: 'meta_journal_s',
+        mincount: 1,
+        limit: 20,
+        numBuckets: true,
+      },
+      year: {
+        type: 'terms',
+        field: 'meta_year_i',
+        mincount: 1,
+        limit: 400, // 400 years
+        numBuckets: true,
+      },
+    },
+  },
 })
 
 /* Check that facets are a subset of filter types */

@@ -1,12 +1,13 @@
-const assert = require('assert')
-const { uniq, includes, groupBy } = require('lodash')
-const { filtersToSolr, escapeValue } = require('./filterReducers')
-const { SolrNamespaces } = require('../../solr')
+import assert from 'assert'
+import { uniq, includes, groupBy, values } from 'lodash'
+import { filtersToSolr, escapeValue } from './filterReducers'
+import { SolrNamespace, SolrNamespaces } from '../../solr'
+import { Filter } from '../../models'
 
 /**
  * Languages that have content indexes in Solr.
  */
-const ContentLanguages = ['en', 'fr', 'de']
+export const ContentLanguages = ['en', 'fr', 'de']
 
 /**
  * Fields names that should not be wrapped into `filter(...)` when
@@ -18,25 +19,24 @@ const NON_FILTERED_FIELDS = ['uid', 'string', 'entity-string', 'topic-string']
 
 /**
  * Translate DPF filter to appropriate field names
- * @type {Object}
  */
-const SOLR_FILTER_DPF = {
+const SOLR_FILTER_DPF: Record<string, string> = {
   topic: 'topics_dpfs',
   person: 'pers_entities_dpfs',
   location: 'loc_entities_dpfs',
 }
 
-const reduceFiltersToVars = filters =>
+const reduceFiltersToVars = (filters: Filter[]) =>
   filters.reduce((sq, filter) => {
     if (Array.isArray(filter.q)) {
       filter.q.forEach(q => {
         sq.push(q)
       })
-    } else {
+    } else if (filter.q != null) {
       sq.push(filter.q)
     }
     return sq
-  }, [])
+  }, [] as string[])
 
 /**
  * Return a section of the Solr query based on the filters **of the same type**.
@@ -46,7 +46,7 @@ const reduceFiltersToVars = filters =>
  *
  * @return {string} a Solr query.
  */
-function sameTypeFiltersToQuery(filters, solrNamespace = SolrNamespaces.Search) {
+export function sameTypeFiltersToQuery(filters: Filter[], solrNamespace: SolrNamespace = SolrNamespaces.Search) {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
 
   const filtersTypes = uniq(filters.map(f => f.type))
@@ -58,13 +58,18 @@ function sameTypeFiltersToQuery(filters, solrNamespace = SolrNamespaces.Search) 
   return includes(NON_FILTERED_FIELDS, type) ? statement : `filter(${statement})`
 }
 
+export const filtersToSolrQueries = (filters: Filter[], namespace: SolrNamespace) => {
+  const filtersGroupsByType = values(groupBy(filters, 'type'))
+  return uniq(filtersGroupsByType.map(f => sameTypeFiltersToQuery(f, namespace)))
+}
+
 /**
  * @typedef SolrQueryAndVariables
  * @property {string} query Solr query string (`q` field)
  * @property {Object.<string, string>} variables variables that are referenced in `query`
  */
 
-const wrapAsFilter = q => {
+const wrapAsFilter = (q: string) => {
   if (q.startsWith('NOT ')) {
     return `NOT filter(${q.substr(4)})`
   }
@@ -77,14 +82,14 @@ const wrapAsFilter = q => {
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  * @return {SolrQueryAndVariables}
  */
-function filtersToQueryAndVariables(filters, solrNamespace = SolrNamespaces.Search) {
+export function filtersToQueryAndVariables(filters: Filter[], solrNamespace: SolrNamespace = SolrNamespaces.Search) {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
 
   const filtersGroupedByType = groupBy(filters, 'type')
 
   /** @type {Object.<string, string>} */
-  const variables = {}
-  const queries = []
+  const variables: Record<string, string> = {}
+  const queries: string[] = []
 
   Object.keys(filtersGroupedByType).forEach(key => {
     if (NON_FILTERED_FIELDS.indexOf(key) !== -1) {
@@ -108,7 +113,12 @@ function filtersToQueryAndVariables(filters, solrNamespace = SolrNamespaces.Sear
   }
 }
 
-function getRegionCoordinatesFromDocument(document) {
+interface DocWithRegionCoordinates {
+  rc_plains?: string | string[]
+  pp_plain?: any[]
+}
+
+export function getRegionCoordinatesFromDocument(document: DocWithRegionCoordinates) {
   if (document.rc_plains) {
     const rcPlainsArray = typeof document.rc_plains === 'string' ? [document.rc_plains] : document.rc_plains
     return rcPlainsArray.map(d => {
@@ -123,11 +133,4 @@ function getRegionCoordinatesFromDocument(document) {
     return document.pp_plain
   }
   return []
-}
-
-module.exports = {
-  sameTypeFiltersToQuery,
-  filtersToQueryAndVariables,
-  ContentLanguages,
-  getRegionCoordinatesFromDocument,
 }

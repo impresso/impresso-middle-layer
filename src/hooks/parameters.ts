@@ -1,4 +1,6 @@
 import type { Application, HookContext } from '@feathersjs/feathers'
+import { parseFilters } from '../util/queryParameters'
+import { AppServices, ImpressoApplication } from '../types'
 
 export const decodeJsonQueryParameters = (parametersNames: string[]) => async (context: HookContext<Application>) => {
   const { query } = context.params
@@ -31,3 +33,16 @@ export const decodePathParameters = (parametersNames: string[]) => async (contex
     }
   }
 }
+
+/**
+ * Converts filters in query parameters to canonical format.
+ */
+export const sanitizeFilters =
+  (queryParameter = 'filters') =>
+  (context: HookContext<ImpressoApplication, AppServices>) => {
+    if (context.type !== 'before') {
+      throw new Error('The sanitizeFilters hook should be used as a before hook only')
+    }
+
+    context.params.query[queryParameter] = parseFilters(context.params.query[queryParameter])
+  }

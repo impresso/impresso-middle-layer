@@ -90,6 +90,10 @@
         "index": {
           "type": "string",
           "description": "Solr index name"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "description": "Version of the data schema used in the index. Optional."
         }
       },
       "required": ["namespaceId", "serverId", "index"]

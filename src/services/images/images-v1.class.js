@@ -1,3 +1,7 @@
+/**
+ * @deprecated This file will be removed once we switch to the new Solr.
+ */
+
 /* eslint-disable no-unused-vars */
 import { asFindAll, asGet } from '../../util/solr/adapters'
 const { NotFound, BadGateway } = require('@feathersjs/errors')
@@ -11,8 +15,8 @@ const {
   SolrNamespaces,
 } = require('../../solr')
 
-class Service {
-  constructor({ app = null, name = '' }) {
+export default class Service {
+  constructor({ app, name = '' }) {
     this.app = app
     this.name = name
     this.sequelizeClient = this.app.get('sequelizeClient')
@@ -81,15 +85,15 @@ class Service {
   async find(params) {
     debug(`[find] with params.isSafe:${params.isSafe} and params.query:`, params.query)
     let signature
-    if (params.query.similarTo) {
+    if (params.query.similar_to_image_id) {
       debug(
         '[find] get signature for params.query.similarTo:',
-        params.query.similarTo,
+        params.query.similar_to_image_id,
         '- vector:',
         `_vector_${params.query.vectorType}_bv`
       )
       const request = {
-        q: `id:${params.query.similarTo}`,
+        q: `id:${params.query.similar_to_image_id}`,
         fl: ['id', `signature:_vector_${params.query.vectorType}_bv`],
         namespace: 'images',
         limit: 1,
@@ -106,10 +110,10 @@ class Service {
         'images.find.solr.image_signatures'
       )
       if (!signature) {
-        debug('[find] signature NOT retrieved for params.query.similarTo:', params.query.similarTo)
+        debug('[find] signature NOT retrieved for params.query.similarTo:', params.query.similar_to_image_id)
         throw new NotFound('signature not found')
       } else {
-        debug('[find] signature retrieved for params.query.similarTo:', params.query.similarTo)
+        debug('[find] signature retrieved for params.query.similarTo:', params.query.similar_to_image_id)
       }
     } else if (params.query.similarToUploaded) {
       debug(
@@ -285,9 +289,3 @@ class Service {
     return { id }
   }
 }
-
-module.exports = function (options) {
-  return new Service(options)
-}
-
-module.exports.Service = Service

@@ -279,6 +279,13 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "List of local prefixes to replace in IIIF URLs in Issue pages"
+        },
+        "iiif": {
+          "type": "object",
+          "properties": {
+            "internalOnly": { "type": "boolean", "description": "If `true`, only internal IIIF URLs are allowed" }
+          },
+          "additionalProperties": true
         }
       }
     }

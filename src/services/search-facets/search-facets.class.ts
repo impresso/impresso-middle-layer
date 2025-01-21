@@ -31,6 +31,8 @@ export const getIndexMeta = (indexId: IndexId) => {
       return SolrMappings['tr_clusters']
     case 'tr-passages':
       return SolrMappings['tr_passages']
+    case 'images':
+      return SolrMappings.images
     default:
       throw new Error(`Unknown index: ${indexId}`)
   }

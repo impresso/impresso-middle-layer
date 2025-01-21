@@ -1,5 +1,6 @@
 import lodash from 'lodash'
 import { protobuf } from 'impresso-jscommons'
+import { Filter } from '../models'
 
 export const parseOrderBy = (orderBy: string, keyFieldMap: Record<string, string> = {}) => {
   if (orderBy == null) return []
@@ -19,21 +20,23 @@ export const parseOrderBy = (orderBy: string, keyFieldMap: Record<string, string
  *
  * @return {object[]} List of filters as objects
  */
-export const parseFilters = (value?: string | string[] | object | object[]) => {
+export const parseFilters = (value?: string | string[] | object | object[]): Filter[] => {
   if (value == null) return []
-  if (Array.isArray(value) && value.every(item => lodash.isObjectLike(item))) return value
-  if (lodash.isObjectLike(value) && !Array.isArray(value)) return [value]
+  if (Array.isArray(value) && value.every(item => lodash.isObjectLike(item))) return value as Filter[]
+  if (lodash.isObjectLike(value) && !Array.isArray(value)) return [value] as Filter[]
 
   if (lodash.isString(value)) {
     try {
       return [JSON.parse(value)]
     } catch (error) {
       const decoded = protobuf.searchQuery.deserialize(value)
-      return decoded.filters
+      return decoded.filters as Filter[]
     }
   }
 
   if (Array.isArray(value) && value.every(item => lodash.isString(item))) {
     return value.map(item => JSON.parse(item as unknown as string))
   }
+
+  return value as Filter[]
 }

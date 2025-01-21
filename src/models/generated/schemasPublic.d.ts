@@ -375,6 +375,58 @@ export interface Freeform {
 
 
 /**
+ * An image from a content item
+ */
+export interface Image {
+  /**
+   * The unique identifier of the image
+   */
+  uid: string;
+  /**
+   * Image caption
+   */
+  caption?: string;
+  /**
+   * The unique identifier of the issue that the image belongs to.
+   */
+  issueUid: string;
+  /**
+   * The unique identifier of the content item that the image belongs to.
+   */
+  contentItemUid?: string;
+  /**
+   * The URL of the image preview
+   */
+  previewUrl: string;
+  /**
+   * The page numbers of the issue that the image belongs to.
+   */
+  pageNumbers?: number[];
+  /**
+   * The media source of the image
+   */
+  mediaSourceRef: {
+    /**
+     * The unique identifier of the media source
+     */
+    uid: string;
+    /**
+     * The name of the media source
+     */
+    name: string;
+    /**
+     * The type of the media source
+     */
+    type?: "newspaper";
+  };
+  /**
+   * The date of the image or the date of the issue that the image belongs to.
+   */
+  date: string;
+}
+
+
+/**
  * A media source is what a content item belongs to. This can be a newspaper, a TV or a radio station, etc.
  */
 export interface MediaSource {

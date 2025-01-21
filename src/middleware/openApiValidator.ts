@@ -72,11 +72,11 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
   app.set('openApiMiddlewareOpts', options)
   app.set('openApiValidatorMiddlewares', middlewares)
 
-  // TODO: an ugly way to handle `filters` query parameter before it reqches validation
+  // TODO: an ugly way to handle `filters` query parameter before it reaches validation
   // Move this somewhere where it's more explicit
   app.use((req, res, next) => {
     if (req.query.filters != null) {
-      req.query.filters = parseFilters(req.query.filters)
+      req.query.filters = parseFilters(req.query.filters) as any as string[]
     }
     next()
   })
