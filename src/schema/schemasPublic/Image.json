@@ -25,7 +25,40 @@
       "type": "string",
       "format": "uri",
       "description": "The URL of the image preview"
+    },
+    "pageNumbers": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "The page numbers of the issue that the image belongs to."
+    },
+    "mediaSourceRef": {
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The unique identifier of the media source"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the media source"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the media source",
+          "enum": ["newspaper"]
+        }
+      },
+      "required": ["uid", "name"],
+      "description": "The media source of the image",
+      "additionalProperties": false
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "The date of the image or the date of the issue that the image belongs to."
     }
   },
-  "required": ["uid", "issueUid", "previewUrl"]
+  "required": ["uid", "issueUid", "previewUrl", "mediaSourceRef", "date"]
 }

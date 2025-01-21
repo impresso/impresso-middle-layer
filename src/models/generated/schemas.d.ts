@@ -895,6 +895,31 @@ export interface Image {
    * The URL of the image preview
    */
   previewUrl: string;
+  /**
+   * The page numbers of the issue that the image belongs to.
+   */
+  pageNumbers?: number[];
+  /**
+   * The media source of the image
+   */
+  mediaSourceRef: {
+    /**
+     * The unique identifier of the media source
+     */
+    uid: string;
+    /**
+     * The name of the media source
+     */
+    name: string;
+    /**
+     * The type of the media source
+     */
+    type?: "newspaper";
+  };
+  /**
+   * The date of the image or the date of the issue that the image belongs to.
+   */
+  date: string;
 }
 
 

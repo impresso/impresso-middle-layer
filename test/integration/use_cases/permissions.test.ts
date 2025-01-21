@@ -16,7 +16,7 @@ import {
   contentItemRedactionPolicyWebApp,
 } from '../../../src/services/articles/articles.hooks'
 import { trPassageRedactionPolicy } from '../../../src/services/text-reuse-passages/text-reuse-passages.hooks'
-import { imageRedactionPolicyWebApp } from '../../../src/services/images/images-v1.hooks'
+import { imageRedactionPolicy } from '../../../src/services/images/images.hooks'
 import { DefaultConverters, RedactionPolicy } from '../../../src/util/redaction'
 import { JSONPath } from 'jsonpath-plus'
 import { SolrNamespaces } from '../../../src/solr'
@@ -255,7 +255,7 @@ describe('Bitmap permissions', function () {
           const params = { user: buildSlimUser(testCase), authenticated: true }
           return await service.get(testCase.contentItemId, params)
         },
-        imageRedactionPolicyWebApp,
+        imageRedactionPolicy,
         undefined,
         'none'
       )
@@ -319,6 +319,24 @@ describe('Bitmap permissions', function () {
             `search for ${testCase.contentItemId} yielded ${result.data.length}. Should be 1`
           )
         },
+        'none'
+      )
+    })
+
+    it('Get image', async () => {
+      const getTranscriptCases = testMatrix.filter(
+        test => test.scope === 'get_transcript' && test.contentItemNamespace === 'Images'
+      )
+      const service = app.service('images')
+
+      await runner(
+        getTranscriptCases,
+        async testCase => {
+          const params = { user: buildSlimUser(testCase), authenticated: true }
+          return await service.get(testCase.contentItemId, params)
+        },
+        imageRedactionPolicy,
+        undefined,
         'none'
       )
     })

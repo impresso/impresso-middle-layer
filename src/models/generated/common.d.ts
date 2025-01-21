@@ -384,6 +384,13 @@ export interface ProxyConfig {
    * List of local prefixes to replace in IIIF URLs in Issue pages
    */
   localPrefixes?: string[];
+  iiif?: {
+    /**
+     * If `true`, only internal IIIF URLs are allowed
+     */
+    internalOnly?: boolean;
+    [k: string]: unknown;
+  };
   [k: string]: unknown;
 }
 export interface RecommenderConfig {

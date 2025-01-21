@@ -214,6 +214,9 @@ indexes:
       newspaper:
         field: meta_journal_s
         rule: value
+      issue:
+        field: meta_issue_id_s
+        rule: value
       isFront:
         field: front_b
         rule: boolean

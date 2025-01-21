@@ -1,3 +1,6 @@
+/**
+ * @deprecated This file will be removed once we switch to the new Solr.
+ */
 import { loadYamlFile } from '../../util/yaml'
 import {
   RedactionPolicy,
@@ -7,6 +10,7 @@ import {
 } from '../../hooks/redaction'
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../../types'
+import { Image } from '../../models/generated/schemas'
 
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
@@ -23,9 +27,7 @@ const { resolveFacets, resolveQueryComponents } = require('../../hooks/search-in
 
 const { eachFilterValidator } = require('../search/search.validators')
 
-export const imageRedactionPolicyWebApp: RedactionPolicy = loadYamlFile(
-  `${__dirname}/resources/imageRedactionPolicyWebApp.yml`
-)
+export const imageRedactionPolicy: RedactionPolicy = loadYamlFile(`${__dirname}/resources/imageRedactionPolicy.yml`)
 
 const getPrefix = (prefixes: string[], url?: string): string | undefined => {
   return url == null ? undefined : prefixes.find(prefix => url.startsWith(prefix))
@@ -65,12 +67,61 @@ const updateIiifUrls = (context: HookContext<ImpressoApplication>) => {
   }
 }
 
+const toNewImageFormat = (image?: Record<string, any>): Image | undefined => {
+  if (image == null) return undefined
+  return {
+    uid: image.uid,
+    issueUid: image.issue?.uid,
+    previewUrl: image?.regions?.[0]?.iiifFragment,
+    date: image.date,
+    caption: (image.title ?? '') != '' ? image.title : undefined,
+    pageNumbers: image.pages?.map((p: any) => p.num),
+    contentItemUid: image.article,
+    mediaSourceRef: {
+      uid: image.newspaper?.uid,
+      name: image.newspaper?.title,
+      type: 'newspaper',
+    },
+  }
+}
+
+const convertItemsToNewImageFormat = (context: HookContext<ImpressoApplication>) => {
+  if (context.type !== 'after') {
+    throw new Error('The updateIiifUrls hook should be used as an after hook only')
+  }
+
+  const newResult = {
+    ...context.result,
+    data: context.result?.data?.map(toNewImageFormat),
+    pagination: {
+      total: context.result?.total,
+      limit: context.result?.limit,
+      offset: context.result?.offset,
+    },
+  }
+  context.result = newResult
+}
+
+const convertItemToNewImageFormat = (context: HookContext<ImpressoApplication>) => {
+  if (context.type !== 'after') {
+    throw new Error('The updateIiifUrls hook should be used as an after hook only')
+  }
+  const newResult = toNewImageFormat(context.result)
+
+  context.result = newResult
+}
+
 export default {
   before: {
     all: [
       // authenticate('jwt')
     ],
     find: [
+      (context: HookContext<ImpressoApplication>) => {
+        if (context?.params?.query?.term) {
+          context.params.query.q = context.params.query.term
+        }
+      },
       validate({
         order_by: utils.orderBy({
           values: {
@@ -84,7 +135,7 @@ export default {
           },
           defaultValue: 'id',
         }),
-        similarTo: {
+        similar_to_image_id: {
           regex: REGEX_UID,
           required: false,
         },
@@ -145,9 +196,10 @@ export default {
       displayQueryParams(['queryComponents', 'filters']),
       resolveQueryComponents(),
       updateIiifUrls,
-      redactResponseDataItem(imageRedactionPolicyWebApp, webAppExploreRedactionCondition),
+      convertItemsToNewImageFormat,
+      redactResponseDataItem(imageRedactionPolicy, webAppExploreRedactionCondition),
     ],
-    get: [redactResponse(imageRedactionPolicyWebApp, webAppExploreRedactionCondition)],
+    get: [convertItemToNewImageFormat, redactResponse(imageRedactionPolicy, webAppExploreRedactionCondition)],
     create: [],
     update: [],
     patch: [],

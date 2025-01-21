@@ -19,7 +19,7 @@ const init = (app: ImpressoApplication) => {
   const isPublicApiEnabled = isPublicApi && isSchemaVersionV2
 
   const service = isSchemaVersionV2
-    ? new ServiceV2(app.service('simpleSolrClient'))
+    ? new ServiceV2(app.service('simpleSolrClient'), app.service('media-sources'), app.get('proxy')!)
     : new ServiceV1({
         app,
         name: 'images',

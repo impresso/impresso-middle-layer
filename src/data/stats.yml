@@ -119,3 +119,4 @@ indexes:
         year:
           field: meta_year_i
           limit: 400
+      numeric:

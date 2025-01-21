@@ -29,14 +29,18 @@ export interface AuthorizationBitmapsDTO {
   getImages?: bigint
 }
 
+const isPossiblyBigInt = (value: any): value is bigint => {
+  return typeof value === 'bigint' || (typeof value === 'number' && value <= Number.MAX_SAFE_INTEGER)
+}
+
 /**
  * Type guard.
  */
 export const isAuthorizationBitmapsDTO = (obj: any): obj is AuthorizationBitmapsDTO => {
   return (
     obj != null &&
-    (obj.explore == null || typeof obj.explore === 'bigint') &&
-    (obj.getTranscript == null || typeof obj.getTranscript === 'bigint') &&
-    (obj.getImages == null || typeof obj.getImages === 'bigint')
+    (obj.explore == null || isPossiblyBigInt(obj.explore)) &&
+    (obj.getTranscript == null || isPossiblyBigInt(obj.getTranscript)) &&
+    (obj.getImages == null || isPossiblyBigInt(obj.getImages))
   )
 }
