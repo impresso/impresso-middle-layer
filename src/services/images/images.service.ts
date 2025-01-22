@@ -16,19 +16,19 @@ const init = (app: ImpressoApplication) => {
     .namespaces?.find(({ namespaceId }) => namespaceId === 'images')?.schemaVersion
 
   const isSchemaVersionV2 = schemaVersion === SchemaVersionV2
-  const isPublicApiEnabled = isPublicApi && isSchemaVersionV2
 
-  const service = isSchemaVersionV2
-    ? new ServiceV2(app.service('simpleSolrClient'), app.service('media-sources'), app.get('proxy')!)
-    : new ServiceV1({
-        app,
-        name: 'images',
-      })
+  const service =
+    isSchemaVersionV2 || isPublicApi
+      ? new ServiceV2(app.service('simpleSolrClient'), app.service('media-sources'), app.get('proxy')!)
+      : new ServiceV1({
+          app,
+          name: 'images',
+        })
   const hooks = isSchemaVersionV2 ? hooksV2 : hooksV1
 
   app.use('/images', service, {
     events: [],
-    docs: createSwaggerServiceOptions({ schemas: {}, docs: getDocs(isPublicApiEnabled) }),
+    docs: createSwaggerServiceOptions({ schemas: {}, docs: getDocs(isSchemaVersionV2 || isPublicApi) }),
   } as ServiceOptions)
   app.service('images').hooks(hooks)
 }
