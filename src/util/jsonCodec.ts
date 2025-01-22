@@ -23,7 +23,7 @@ export class CustomDecoder extends Decoder {
   }
 }
 
-const parser = JSONBigInt({ useNativeBigInt: false })
+const parser = JSONBigInt({ useNativeBigInt: true })
 
 export const safeParseJson = (json: string) => {
   return parser.parse(json)
