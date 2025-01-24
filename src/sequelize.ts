@@ -1,8 +1,11 @@
 import { logger } from './logger'
-const debug = require('debug')('impresso/sequelize')
-const verbose = require('debug')('verbose:impresso/sequelize')
+import Debug from 'debug'
+import { Sequelize, Options, Dialect } from 'sequelize'
+import { SequelizeConfig } from './models/generated/common'
+import { ImpressoApplication } from './types'
 
-const Sequelize = require('sequelize')
+const verbose = Debug('verbose:impresso/sequelize')
+const debug = Debug('impresso/sequelize')
 
 const defaultPoolConfig = {
   max: 30,
@@ -11,14 +14,25 @@ const defaultPoolConfig = {
   evict: 30000,
 }
 
-const getSequelizeClient = config =>
-  new Sequelize({
+const getSequelizeClient = (config: SequelizeConfig) => {
+  return new Sequelize({
     host: config.host,
     port: config.port,
     database: config.database,
     username: config.auth.user,
     password: config.auth.pass,
-    dialect: config.dialect,
+    dialect: config.dialect as Dialect,
+
+    dialectOptions: {
+      supportBigNumbers: true,
+      ssl: {
+        require: true,
+        // NOTE: the new DB fails this test, likely because it's
+        // accessed via a SSH tunnel.
+        // Since we trust the tunnel, we can disable this check.
+        rejectUnauthorized: false, // Disables SSL/TLS certificate verification
+      },
+    },
 
     pool: config.pool ?? defaultPoolConfig,
 
@@ -33,9 +47,10 @@ const getSequelizeClient = config =>
       verbose('cursor:', config.host, config.port, config.database)
       verbose(str)
     },
-  })
+  } satisfies Options)
+}
 
-export default function (app) {
+export default function (app: ImpressoApplication) {
   const config = app.get('sequelize')
   const sequelize = getSequelizeClient(config)
   debug(`Sequelize ${config.dialect} database name: ${config.database} ..`)
@@ -49,7 +64,7 @@ export default function (app) {
       )
     })
     .catch(err => {
-      debug(`Unable to connect to the ${config.dialect}: ${config.database}: ${err}`)
+      logger.error(`Unable to connect to the ${config.dialect}: ${config.database}: ${err}`)
     })
 
   app.set('sequelizeClient', sequelize)

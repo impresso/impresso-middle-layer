@@ -16,6 +16,14 @@ services:
     ports:
       - 3306:3306
     command: ssh -N cli-mysql-tunnel
+  new-mysql-tunnel:
+    image: kroniak/ssh-client
+    restart: always
+    volumes:
+      - ./docker/config/ssh:/root/.ssh
+    ports:
+      - 3307:3307
+    command: ssh -N cli-new-mysql-tunnel
   # uncomment to run impresso middle layer in docker
   # iml:
   #   image: impresso_middle_layer

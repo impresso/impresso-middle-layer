@@ -141,7 +141,7 @@ export class Service {
       data: rs[0].map((d: any) => new CollectableItemGroup(d)),
       limit: params.query?.limit,
       offset: params.query?.offset,
-      total: rs[1][0].total,
+      total: rs?.[1]?.[0]?.['total'] ?? 0,
     }))
 
     debug("'find' success! n. results:", results.total, ' - where clause:', reducedWhere)
