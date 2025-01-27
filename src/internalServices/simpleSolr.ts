@@ -95,12 +95,12 @@ interface Count {
   count: number
 }
 
-interface TermsFacetDetails<B extends BucketValue> {
+export interface TermsFacetDetails<B extends BucketValue = Bucket> {
   numBuckets?: number
   buckets: B[]
 }
 
-interface RangeFacetDetails<B extends BucketValue> {
+interface RangeFacetDetails<B extends BucketValue = Bucket> {
   buckets: B[]
   before?: Count
   after?: Count

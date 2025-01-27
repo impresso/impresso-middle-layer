@@ -494,23 +494,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -519,16 +527,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
     /**
-     * TODO
+     * Related topic average combined topic weight
      */
     avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -536,7 +562,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -634,23 +660,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -659,16 +693,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
     /**
-     * TODO
+     * Related topic average combined topic weight
      */
     avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -676,7 +728,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -1419,23 +1471,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -1444,16 +1504,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
     /**
-     * TODO
+     * Related topic average combined topic weight
      */
     avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -1461,7 +1539,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -1722,23 +1800,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -1747,16 +1833,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
     /**
-     * TODO
+     * Related topic average combined topic weight
      */
     avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -1764,7 +1868,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -2099,23 +2203,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -2124,16 +2236,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
     /**
-     * TODO
+     * Related topic average combined topic weight
      */
     avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -2141,7 +2271,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
