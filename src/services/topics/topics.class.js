@@ -7,6 +7,7 @@ const Topic = require('../../models/topics.model')
 const { measureTime } = require('../../util/instruments')
 const { asFindAll, asGet } = require('../../util/solr/adapters')
 const { buildResolvers } = require('../../internalServices/cachedResolvers')
+const { SolrNamespaces } = require('../../solr')
 
 class Service {
   constructor({ app = null, name = '' }) {
@@ -189,7 +190,7 @@ class Service {
 
     return measureTime(
       () =>
-        asGet(this.solr, id, params, Topic.solrFactory).then(async topic => {
+        asGet(this.solr, SolrNamespaces.Topics, id, params, Topic.solrFactory).then(async topic => {
           const cached = await resolvers.topic(id)
           topic.countItems = cached.countItems
           topic.relatedTopics = cached.relatedTopics
