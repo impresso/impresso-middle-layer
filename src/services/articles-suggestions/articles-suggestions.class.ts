@@ -1,4 +1,6 @@
 /* eslint-disable no-unused-vars */
+import { SelectRequest, SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { SolrNamespaces } from '../../solr'
 import { asFindAll } from '../../util/solr/adapters'
 const lodash = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
@@ -13,15 +15,20 @@ const {
 const SIM_BY_TOPICS = 'topics'
 const SIM_BY_TOPICS_SQEDIST = 'topics_sqedist'
 
-class Service {
-  constructor(options) {
-    this.app = options.app
-    this.solr = options.app.service('simpleSolrClient')
-    this.name = options.name
-    this.options = options
+interface Options {
+  solr: SimpleSolrClient
+}
+
+type ArticleTopicType = typeof ArticleTopic
+
+export class ArticlesSuggestionsService {
+  private readonly solr: SimpleSolrClient
+
+  constructor({ solr }: Options) {
+    this.solr = solr
   }
 
-  async get(id, params) {
+  async get(id: string, params: any) {
     if ([SIM_BY_TOPICS_SQEDIST, SIM_BY_TOPICS].indexOf(params.query.method) !== -1) {
       debug(`get(${id}) method: ${params.query.method} load topics ...`)
       // const topics = await measureTime(
@@ -42,7 +49,10 @@ class Service {
         fq: `id:${id}`,
         fl: 'topics_dpfs',
       })
-        .then(res => ArticleTopic.solrDPFsFactory(res.response.docs[0].topics_dpfs))
+        .then(res => {
+          const item = res?.response?.docs?.[0] as any
+          return ArticleTopic.solrDPFsFactory(item?.topics_dpfs)
+        })
         .catch(err => {
           console.error(err)
           throw new NotFound()
@@ -60,9 +70,9 @@ class Service {
         }
       }
 
-      let topicWeight
-      const topicsChoosen = lodash.take(
-        topics.sort((a, b) => b.relevance - a.relevance),
+      let topicWeight: string = '1'
+      const topicsChoosen: ArticleTopicType[] = lodash.take(
+        topics.sort((a: ArticleTopicType, b: ArticleTopicType) => b.relevance - a.relevance),
         params.query.amount
       )
 
@@ -73,7 +83,7 @@ class Service {
           .reduce((acc, d) => {
             acc.push(`abs(sub(${d.relevance},payload(topics_dpfs,${d.topicUid})))`)
             return acc
-          }, [])
+          }, [] as string[])
           .join(',')
         topicWeight = `sum(${topicWeight})`
       } else if (params.query.method === SIM_BY_TOPICS_SQEDIST) {
@@ -88,31 +98,26 @@ class Service {
       }
 
       debug(`get(${id}) method: ${params.query.method} topics loaded, get articles using fn topicWeight`, topicWeight)
-      const request = {
-        q: '*:*',
-        fq: `filter(topics_dpfs:*) AND NOT(id:${id})`,
-        // eslint-disable-next-line no-template-curly-in-string
-        fl: Article.ARTICLE_SOLR_FL_LIST_ITEM.concat(['dist:${topicWeight}']),
-        vars: {
-          topicWeight,
-        },
+
+      const requestBody: SelectRequest['body'] = {
+        query: '*:*',
+        filter: `filter(topics_dpfs:*) AND NOT(id:${id})`,
+        fields: Article.ARTICLE_SOLR_FL_LIST_ITEM.concat(['dist:${topicWeight}']),
         offset: params.query.offset,
         limit: params.query.limit,
-        // eslint-disable-next-line no-template-curly-in-string
-        order_by: '${topicWeight} asc',
+        sort: '${topicWeight} asc',
+        params: { topicWeight },
       }
-      return measureTime(
-        () =>
-          // this.solrClient
-          //   .findAll(request, Article.solrFactory)
-          asFindAll(this.solr, 'search', request)
-            .then(wrapAll)
-            .catch(err => {
-              console.error(err)
-              throw new NotFound()
-            }),
-        'articles-suggestions.solr.articles'
-      )
+
+      const result = await this.solr.select(SolrNamespaces.Search, {
+        body: requestBody,
+      })
+
+      if (result.response) {
+        result.response.docs = result.response?.docs?.map(Article.solrFactory(result.response))
+      }
+
+      return wrapAll(result)
     }
 
     return {
@@ -121,9 +126,3 @@ class Service {
     }
   }
 }
-
-module.exports = function (options) {
-  return new Service(options)
-}
-
-module.exports.Service = Service
