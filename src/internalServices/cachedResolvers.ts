@@ -5,6 +5,8 @@ import Year from '../models/years.model'
 import { optionalMediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
 import { ImpressoApplication } from '../types'
 import { Newspaper as NewspaperInternal } from '../models/generated/schemas'
+import { Topic as ITopic } from '../models/generated/schemas'
+import { WellKnownKeys } from '../cache'
 
 export type CachedFacetType = 'newspaper' | 'topic' | 'person' | 'location' | 'collection' | 'year'
 
@@ -25,7 +27,15 @@ const entityResolver = async (id: string, type: CachedFacetType) =>
     name: Entity.getNameFromUid(id),
   })
 
-const topicResolver: IResolver<Topic> = async (id: string) => Topic.getCached(id)
+const getTopicResolver = (app: ImpressoApplication): IResolver<Topic> => {
+  return async (id: string) => {
+    const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
+    const deserialisedTopics: ITopic[] = JSON.parse(result ?? '[]')
+
+    const topic = deserialisedTopics[id]
+    return new Topic(topic)
+  }
+}
 
 const yearResolver: IResolver<Year> = async (id: string) => Year.getCached(id)
 
@@ -42,7 +52,7 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => ({
   collection: collectionResolver,
   location: (id: string) => entityResolver(id, 'location'),
   person: (id: string) => entityResolver(id, 'person'),
-  topic: topicResolver,
+  topic: getTopicResolver(app),
   year: yearResolver,
   newspaper: getNewspaperResolver(app),
 })
