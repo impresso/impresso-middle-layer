@@ -1,5 +1,5 @@
 import { OpenPermissions } from '../util/bigint'
-import { getExternalFragmentUrl } from '../util/iiif'
+import { getManifestJSONUrl, getExternalFragmentUrl } from '../util/iiif'
 
 const { DataTypes } = require('sequelize')
 const lodash = require('lodash')
@@ -188,7 +188,7 @@ class ArticleMatch extends Fragment {
     super({ fragment })
     this.coords = coords.map(coord => parseInt(coord, 10))
     this.pageUid = String(pageUid)
-    this.iiif = String(iiif)
+    this.iiif = getManifestJSONUrl(iiif)
   }
 }
 

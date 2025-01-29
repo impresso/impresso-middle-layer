@@ -40,10 +40,17 @@ export const getJSONUrl = (uid: string, config: ProxyConfig) => {
   return `${host}/${uid}/info.json`
 }
 
+export const getManifestJSONUrl = (url: string) => {
+  if (url.endsWith('/info.json')) {
+    return url
+  }
+  return `${url}/info.json`
+}
+
 export const getThumbnailUrl = (
   uid: string,
   config: ProxyConfig,
-  { dimension }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
+  { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
 ) => {
   const host = config?.host ?? ''
   const dim = dimension == 'full' ? dimension : `${dimension},`
@@ -52,7 +59,7 @@ export const getThumbnailUrl = (
 
 export const getExternalThumbnailUrl = (
   iiifManifestUrl: string,
-  { dimension }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
+  { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
 ) => {
   const externalUid = iiifManifestUrl.split('/info.json').shift()
   const dim = dimension == 'full' ? dimension : `${dimension},`

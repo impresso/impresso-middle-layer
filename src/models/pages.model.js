@@ -1,4 +1,4 @@
-import { getJSONUrl, getThumbnailUrl, getExternalThumbnailUrl } from '../util/iiif'
+import { getJSONUrl, getManifestJSONUrl, getThumbnailUrl, getExternalThumbnailUrl } from '../util/iiif'
 const { DataTypes } = require('sequelize')
 const Issue = require('./issues.model')
 const ArticleEntity = require('./articles-entities.model')
@@ -46,7 +46,7 @@ class Page {
       this.iiif = getJSONUrl(this.uid, config.proxy)
       this.iiifThumbnail = getThumbnailUrl(this.uid, config.proxy)
     } else {
-      this.iiif = String(iiif)
+      this.iiif = getManifestJSONUrl(iiif)
       this.iiifThumbnail = getExternalThumbnailUrl(this.iiif, config.proxy)
     }
 
