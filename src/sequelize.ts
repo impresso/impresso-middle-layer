@@ -32,6 +32,7 @@ const getSequelizeClient = (config: SequelizeConfig) => {
         // Since we trust the tunnel, we can disable this check.
         rejectUnauthorized: false, // Disables SSL/TLS certificate verification
       },
+      connectTimeout: 300000,
     },
 
     pool: config.pool ?? defaultPoolConfig,
