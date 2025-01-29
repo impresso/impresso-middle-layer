@@ -1,10 +1,10 @@
 import { OpenPermissions } from '../util/bigint'
+import { getExternalFragmentUrl } from '../util/iiif'
 import Article from './articles.model'
 
 const Page = require('./pages.model')
 const Issue = require('./issues.model')
 const Newspaper = require('./newspapers.model')
-const { getExternalFragment } = require('../hooks/iiif.js')
 
 class Image {
   constructor({
@@ -63,7 +63,7 @@ class Image {
     this.regions = this.pages.map(page => ({
       pageUid: page.uid,
       coords: this.coords,
-      iiifFragment: getExternalFragment(page.iiif, { coords: this.coords, dim: '250,' }),
+      iiifFragment: getExternalFragmentUrl(page.iiif, { coordinates: this.coords, dimension: 250 }),
     }))
   }
 

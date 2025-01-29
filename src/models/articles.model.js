@@ -1,4 +1,5 @@
 import { OpenPermissions } from '../util/bigint'
+import { getManifestJSONUrl, getExternalFragmentUrl } from '../util/iiif'
 
 const { DataTypes } = require('sequelize')
 const lodash = require('lodash')
@@ -13,8 +14,6 @@ const ArticleTopic = require('./articles-topics.model')
 
 const { toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt } = require('../helpers')
 const { getRegionCoordinatesFromDocument } = require('../util/solr')
-
-const { getExternalFragment } = require('../hooks/iiif')
 
 export const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
 export const ACCESS_RIGHT_OPEN_PRIVATE = 'OpenPrivate'
@@ -189,7 +188,7 @@ class ArticleMatch extends Fragment {
     super({ fragment })
     this.coords = coords.map(coord => parseInt(coord, 10))
     this.pageUid = String(pageUid)
-    this.iiif = String(iiif)
+    this.iiif = getManifestJSONUrl(iiif)
   }
 }
 
@@ -472,22 +471,6 @@ class Article extends BaseArticle {
     //
   }
 
-  assignIIIF(props = ['regions', 'matches']) {
-    // get iiif of pages
-    const pagesIndex = lodash.keyBy(this.pages, 'uid') // d => d.iiif);
-    props.forEach(prop => {
-      if (Array.isArray(this[prop])) {
-        this[prop].forEach((d, i) => {
-          if (pagesIndex[this[prop][i].pageUid]) {
-            this[prop][i].iiifFragment = getExternalFragment(pagesIndex[this[prop][i].pageUid].iiif, {
-              coords: d.coords,
-            })
-          }
-        })
-      }
-    })
-  }
-
   static assignIIIF(article, props = ['regions', 'matches']) {
     // get iiif of pages
     const pagesIndex = lodash.keyBy(article.pages, 'uid') // d => d.iiif);
@@ -495,8 +478,8 @@ class Article extends BaseArticle {
       if (Array.isArray(article[prop])) {
         article[prop].forEach((d, i) => {
           if (pagesIndex[article[prop][i].pageUid]) {
-            article[prop][i].iiifFragment = getExternalFragment(pagesIndex[article[prop][i].pageUid].iiif, {
-              coords: d.coords,
+            article[prop][i].iiifFragment = getExternalFragmentUrl(pagesIndex[article[prop][i].pageUid].iiif, {
+              coordinates: d.coords,
             })
           }
         })

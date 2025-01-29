@@ -20,3 +20,48 @@ export const sanitizeIiifImageUrl = (url: string, proxyConfig: ProxyConfig): str
   }
   return url
 }
+
+interface FragmentOptions {
+  coordinates: [number, number]
+  dimension: 'full' | number
+}
+
+export const getExternalFragmentUrl = (
+  iiifManifestUrl: string,
+  { coordinates, dimension = 'full' }: FragmentOptions
+) => {
+  const externalUid = iiifManifestUrl.split('/info.json').shift()
+  const dim = dimension == 'full' ? dimension : `${dimension},`
+  return `${externalUid}/${coordinates.join(',')}/${dim}/0/default.png`
+}
+
+export const getJSONUrl = (uid: string, config: ProxyConfig) => {
+  const host = config?.host ?? ''
+  return `${host}/${uid}/info.json`
+}
+
+export const getManifestJSONUrl = (url: string) => {
+  if (url.endsWith('/info.json')) {
+    return url
+  }
+  return `${url}/info.json`
+}
+
+export const getThumbnailUrl = (
+  uid: string,
+  config: ProxyConfig,
+  { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
+) => {
+  const host = config?.host ?? ''
+  const dim = dimension == 'full' ? dimension : `${dimension},`
+  return `${host}/${uid}/full/${dim}/0/default.png`
+}
+
+export const getExternalThumbnailUrl = (
+  iiifManifestUrl: string,
+  { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
+) => {
+  const externalUid = iiifManifestUrl.split('/info.json').shift()
+  const dim = dimension == 'full' ? dimension : `${dimension},`
+  return `${externalUid}/full/${dim}/0/default.png`
+}
