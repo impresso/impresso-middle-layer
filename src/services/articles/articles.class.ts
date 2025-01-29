@@ -150,8 +150,7 @@ export class Service {
         if (pageUids.length === 1) {
           article.regions = article?.regions?.filter((r: { pageUid: string }) => pageUids.indexOf(r.pageUid) !== -1)
         }
-        article.assignIIIF()
-        return article
+        return Article.assignIIIF(article)
       }),
     }))
   }
@@ -207,8 +206,7 @@ export class Service {
           }
           article.pages = addons.pages.map((d: any) => d.toJSON())
         }
-        article?.assignIIIF?.()
-        return article
+        return article != null ? Article.assignIIIF(article) : undefined
       })
       .catch(err => {
         console.error(err)

@@ -1,8 +1,9 @@
+import { getJSONUrl, getThumbnailUrl, getExternalThumbnailUrl } from '../util/iiif'
 const { DataTypes } = require('sequelize')
 const Issue = require('./issues.model')
 const ArticleEntity = require('./articles-entities.model')
 const ArticleTag = require('./articles-tags.model')
-const { getJSON, getThumbnail, getExternalThumbnail } = require('../hooks/iiif.js')
+const config = require('@feathersjs/configuration')()()
 
 class Page {
   constructor(
@@ -42,11 +43,11 @@ class Page {
 
     // if any iiif is provided
     if (!iiif.length) {
-      this.iiif = getJSON(this.uid)
-      this.iiifThumbnail = getThumbnail(this.uid)
+      this.iiif = getJSONUrl(this.uid, config.proxy)
+      this.iiifThumbnail = getThumbnailUrl(this.uid, config.proxy)
     } else {
       this.iiif = String(iiif)
-      this.iiifThumbnail = getExternalThumbnail(this.iiif)
+      this.iiifThumbnail = getExternalThumbnailUrl(this.iiif, config.proxy)
     }
 
     this.accessRights = accessRights
