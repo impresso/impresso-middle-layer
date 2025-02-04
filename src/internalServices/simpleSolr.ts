@@ -301,7 +301,7 @@ class CachedDefaultSimpleSolrClient extends DefaultSimpleSolrClient {
     configuration: SolrConfiguration,
     private cache: Cache,
     private cachingStrategy?: CachingStrategy,
-    private cacheTtlSeconds = 60 * 60 * 24 * 30 // 30 days
+    private cacheTtlMs = 60 * 60 * 24 * 30 * 1000 // 30 days
   ) {
     super(configuration)
   }
@@ -318,7 +318,7 @@ class CachedDefaultSimpleSolrClient extends DefaultSimpleSolrClient {
     const action = this.cachingStrategy?.(url, init.body as string, safeStringifyJson(response)) ?? 'cache'
 
     if (action === 'cache') {
-      await this.cache.set(cacheKey, response, this.cacheTtlSeconds)
+      await this.cache.set(cacheKey, response, this.cacheTtlMs)
     }
     return response
   }

@@ -1,13 +1,13 @@
 /* eslint-disable no-unused-vars */
 import { buildResolvers } from '../../internalServices/cachedResolvers'
 import { asFindAll } from '../../util/solr/adapters'
+import { WellKnownKeys } from '../../cache'
 
 const debug = require('debug')('impresso/services:topics-graph')
 const { min, max } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
 const { escapeValue } = require('../../util/solr/filterReducers')
 const Topic = require('../../models/topics.model')
-const topicsIndex = require('../../data')('topics')
 const { measureTime } = require('../../util/instruments')
 
 const toNode = topic => ({
@@ -127,9 +127,12 @@ class TopicsGraph {
     }
 
     if (!params.sanitized.filters.length) {
-      debug('[find] no filters, return all topics, n.', Object.keys(topicsIndex).length)
-      Object.keys(topicsIndex.values).forEach(uid => {
-        const topic = new Topic(topicsIndex.getValue(uid))
+      const result = await this.app.get('cacheManager').get(WellKnownKeys.Topics)
+      /** @type {import('../../models/generated/schemas').Topic[]} */
+      const deserialisedTopics = JSON.parse(result ?? '[]')
+
+      debug('[find] no filters, return all topics, n.', deserialisedTopics.length)
+      deserialisedTopics.forEach(topic => {
         const source = getOrCreateNode(toNode(topic), { forceUpdate: true })
         topic.relatedTopics.forEach((linked, i) => {
           if (i <= 5) {

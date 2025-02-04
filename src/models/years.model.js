@@ -1,7 +1,9 @@
-const yearsIndex = require('../data')('years');
+import getData from '../data'
+
+const yearsIndex = getData('years')
 
 class Weights {
-  constructor ({
+  constructor({
     // number of content items
     c,
     // number of articles
@@ -14,41 +16,37 @@ class Weights {
     m,
   } = {}) {
     if (typeof c !== 'undefined') {
-      this.c = parseFloat(c);
+      this.c = parseFloat(c)
     }
     if (typeof a !== 'undefined') {
-      this.a = parseFloat(a);
+      this.a = parseFloat(a)
     }
     if (typeof p !== 'undefined') {
-      this.p = parseFloat(p);
+      this.p = parseFloat(p)
     }
     if (typeof i !== 'undefined') {
-      this.i = parseFloat(i);
+      this.i = parseFloat(i)
     }
     if (typeof m !== 'undefined') {
-      this.m = parseFloat(m);
+      this.m = parseFloat(m)
     }
   }
 }
 
-class Year {
-  constructor ({
-    y,
-    values = null,
-    refs = null,
-  } = {}) {
-    this.y = parseInt(y, 10);
+export default class Year {
+  constructor({ y, values = null, refs = null } = {}) {
+    this.y = parseInt(y, 10)
     // values
     if (values) {
-      this.values = values instanceof Weights ? values : new Weights(values);
+      this.values = values instanceof Weights ? values : new Weights(values)
     }
     // reference values to calculate percentage
     if (refs) {
-      this.refs = refs instanceof Weights ? refs : new Weights(refs);
+      this.refs = refs instanceof Weights ? refs : new Weights(refs)
     }
 
     if (refs && values) {
-      this.norm = this.normalize();
+      this.norm = this.normalize()
     }
   }
 
@@ -56,21 +54,19 @@ class Year {
    * Normalize values against a specific weight
    * @return {Weights} new Weights instances with normalized values
    */
-  normalize () {
-    const normalized = new Weights();
-    Object.keys(this.values).forEach((k) => {
+  normalize() {
+    const normalized = new Weights()
+    Object.keys(this.values).forEach(k => {
       if (typeof this.refs[k] === 'undefined' || this.refs[k] === 0) {
-        normalized[k] = 0;
+        normalized[k] = 0
       } else {
-        normalized[k] = this.values[k] / this.refs[k];
+        normalized[k] = this.values[k] / this.refs[k]
       }
-    });
-    return normalized;
+    })
+    return normalized
   }
 
-  static getCached (y) {
-    return new Year(yearsIndex.getValue(y));
+  static getCached(y) {
+    return new Year(yearsIndex.getValue(y))
   }
 }
-
-module.exports = Year;

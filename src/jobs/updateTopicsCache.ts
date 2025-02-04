@@ -3,7 +3,7 @@ import { WellKnownKeys } from '../cache'
 import { ImpressoApplication } from '../types'
 
 /** 100 days */
-const DefaultTtlSeconds = 60 * 60 * 24 * 100
+const DefaultTtlSeconds = 60 * 60 * 24 * 100 * 1000
 
 /**
  * Prepare topics and store them in cache.
