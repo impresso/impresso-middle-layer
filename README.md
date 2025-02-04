@@ -204,6 +204,16 @@ When a schema is updated, the typescript types should be regenerated. This can b
 npm run generate-types
 ```
 
+## Projecting new indexed Solr field
+
+A new indexed Solr field should be added to four places:
+
+1. The protobuf definition in the `impresso-jscommons`. A new filter name should be added with its unique ID.
+1. The `SolrMappings` structure in `src/data/constants.ts`. It defines a mapping between the new filter name and the Solr faceting configuration for this filter.
+1. The `solfFilters.yml` file. It defines a mapping between the new filter name and the Solr filter statement builder function.
+1. Optionally: the `stats.yml` file. It defines the statistics datapoint name and the field it maps to. Used to provide faceted data to various graphs and charts.
+
+
 ## Configuration
 
 ### Public API

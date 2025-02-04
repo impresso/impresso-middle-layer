@@ -530,3 +530,99 @@ export interface SolrServerNamespaceConfiguration {
    */
   schemaVersion?: string;
 }
+
+
+export interface SolrFiltersConfiguration {
+  /**
+   * Indexes (by Solr namespace) with their filter definitions.
+   */
+  indexes?: {
+    [k: string]: IndexDefinition;
+  };
+}
+/**
+ * An index configuration with a set of filters.
+ *
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` "^.*$".
+ */
+export interface IndexDefinition {
+  /**
+   * Filters available for this index.
+   */
+  filters: {
+    [k: string]: FilterDefinition;
+  };
+}
+/**
+ * A filter definition with a field and a rule.
+ *
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` "^.*$".
+ */
+export interface FilterDefinition {
+  field:
+    | string
+    | string[]
+    | {
+        /**
+         * Field prefix to be expanded according to supported languages.
+         */
+        prefix: string;
+      };
+  /**
+   * The name of the rule to parse the filter value.
+   */
+  rule: string;
+}
+
+
+/**
+ * Schema for stats.yml
+ */
+export interface StatsConfiguration {
+  indexes: Indexes;
+}
+/**
+ * Indexes configuration
+ */
+export interface Indexes {
+  [k: string]: Index;
+}
+/**
+ * This interface was referenced by `Indexes`'s JSON-Schema definition
+ * via the `patternProperty` ".*".
+ */
+export interface Index {
+  facets: FacetTypeGroup;
+}
+/**
+ * Facets group configuration
+ */
+export interface FacetTypeGroup {
+  term?: FacetSet;
+  numeric?: FacetSet;
+  temporal?: FacetSet;
+}
+/**
+ * Facet set configuration
+ */
+export interface FacetSet {
+  [k: string]: Facet;
+}
+/**
+ * Single facet description
+ *
+ * This interface was referenced by `FacetSet`'s JSON-Schema definition
+ * via the `patternProperty` ".*".
+ */
+export interface Facet {
+  /**
+   * Solr field name
+   */
+  field: string;
+  /**
+   * Limit of buckets returned
+   */
+  limit?: number;
+}

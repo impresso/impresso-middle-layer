@@ -1,8 +1,7 @@
+import assert from 'assert'
+import { constants } from 'impresso-jscommons'
+import { DataIndex } from './index'
 import { SolrFacetQueryParams } from './types'
-
-const assert = require('assert')
-const { constants } = require('impresso-jscommons')
-const { DataIndex } = require('./index')
 
 const facetRanges = new DataIndex({ name: 'facetRanges' })
 
@@ -39,7 +38,7 @@ function getRangeFacetParametersWithDefault(
 
 interface ISolrMappings {
   facets: {
-    [key: string]: SolrFacetQueryParams
+    [filterName: string]: SolrFacetQueryParams
   }
   orderBy?: Record<string, string>
   groupBy?: Record<string, string>

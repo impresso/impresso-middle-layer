@@ -4,7 +4,7 @@ import { ImpressoApplication } from '../types'
 import { SolrNamespaces } from '../solr'
 
 /** 100 days */
-const DefaultTtlSeconds = 60 * 60 * 24 * 100
+const DefaultTtlSeconds = 60 * 60 * 24 * 100 * 1000
 
 /**
  * Consolidate media sources and store them in cache.

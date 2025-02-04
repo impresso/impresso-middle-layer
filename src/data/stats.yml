@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../schema/common/stats.json
 indexes:
   # index ID
   search:
@@ -35,6 +36,9 @@ indexes:
           limit: 10
         nag:
           field: nag_entities_dpfs
+          limit: 10
+        partner:
+          field: meta_partnerid_s
           limit: 10
       # numeric facets for which we calculate statistics
       numeric:
@@ -119,4 +123,3 @@ indexes:
         year:
           field: meta_year_i
           limit: 400
-      numeric:

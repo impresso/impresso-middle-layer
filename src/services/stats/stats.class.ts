@@ -1,13 +1,14 @@
-import Debug from 'debug'
-import { ImpressoApplication } from '../../types'
 import { Id, Params } from '@feathersjs/feathers'
-import { SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
+import Debug from 'debug'
+import { statsConfiguration } from '../../data'
+import { SolrFacetQueryParams } from '../../data/types'
 import { buildResolvers } from '../../internalServices/cachedResolvers'
-const { statsConfiguration } = require('../../data')
-const { filtersToQueryAndVariables } = require('../../util/solr')
-const { getWidestInclusiveTimeInterval } = require('../../logic/filters')
-
-const { TimeDomain, StatsToSolrFunction, StatsToSolrStatistics } = require('./common')
+import { SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { getWidestInclusiveTimeInterval } from '../../logic/filters'
+import { FacetTypeGroup } from '../../models/generated/common'
+import { ImpressoApplication } from '../../types'
+import { filtersToQueryAndVariables } from '../../util/solr'
+import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from './common'
 
 const debug = Debug('impresso/services:stats')
 
@@ -51,19 +52,30 @@ const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelE
   }
 }
 
-const getFacetType = (index: string, facet: any) => {
+const getFacetType = (index: string, facet: string): keyof FacetTypeGroup | undefined => {
   const indexFacets = statsConfiguration.indexes[index].facets
-  return Object.keys(indexFacets).find(type => Object.keys(indexFacets[type]).includes(facet))
+  return Object.keys(indexFacets).find(type =>
+    Object.keys(indexFacets[type as keyof FacetTypeGroup] ?? {}).includes(facet)
+  ) as keyof FacetTypeGroup | undefined
 }
 
-const getFacetQueryPart = (facet: any, index: string, type: any, stats: any) => {
-  const facetDetails = statsConfiguration.indexes[index].facets[type][facet]
+const getFacetQueryPart = (
+  facet: string,
+  index: string,
+  type: keyof FacetTypeGroup,
+  stats: (keyof typeof StatsToSolrFunction)[]
+) => {
+  const facetDetails = statsConfiguration.indexes[index].facets[type]?.[facet]
+  if (facetDetails == null) throw new Error(`Facet ${facet} not found in index ${index}`)
   switch (type) {
     case FacetTypes.Numeric:
-      return stats.reduce((acc: any, stat: any) => {
-        acc[stat] = StatsToSolrFunction[stat](facetDetails.field)
-        return acc
-      }, {})
+      return stats.reduce(
+        (acc, stat) => {
+          acc[stat] = StatsToSolrFunction[stat](facetDetails.field)
+          return acc
+        },
+        {} as Record<keyof typeof StatsToSolrFunction, any>
+      )
     case FacetTypes.Term:
       return {
         items: {
@@ -86,9 +98,9 @@ const getTemporalResolution = (domain: any, filters: any) => {
   return TemporalResolution.Year
 }
 
-const getDomainDetails = (index: any, domain: any, filters: any) => {
+const getDomainDetails = (index: string, domain: string, filters: any) => {
   if (domain === TimeDomain) {
-    const { date, yearAndMonth, year } = statsConfiguration.indexes[index].facets.temporal
+    const { date, yearAndMonth, year } = statsConfiguration.indexes[index].facets.temporal ?? {}
     switch (getTemporalResolution(domain, filters)) {
       case TemporalResolution.Day:
         return date
@@ -98,12 +110,14 @@ const getDomainDetails = (index: any, domain: any, filters: any) => {
         return year
     }
   }
-  return statsConfiguration.indexes[index].facets.term[domain]
+  return statsConfiguration.indexes[index].facets.term?.[domain]
 }
 
 function buildSolrRequest(facet: any, index: any, domain: any, stats: any, filters: any, sort: any, groupby: any) {
   const facetType = getFacetType(index, facet)
   const domainDetails = getDomainDetails(index, domain, filters)
+  if (domainDetails == null) throw new Error(`Domain ${domain} not found in index ${index}`)
+  if (facetType == null) throw new Error(`Facet ${facet} not found in index ${index}`)
 
   const { query } = filtersToQueryAndVariables(filters, index)
   // add
@@ -119,7 +133,7 @@ function buildSolrRequest(facet: any, index: any, domain: any, stats: any, filte
         field: domainDetails.field,
         limit: domainDetails.limit,
         sort,
-        facet: getFacetQueryPart(facet, index, facetType, stats),
+        facet: getFacetQueryPart(facet, index, facetType, stats) as Record<string, SolrFacetQueryParams>,
       },
     },
   } satisfies SelectRequestBody
@@ -227,12 +241,12 @@ class Stats {
   async get(id: Id, params: Params<any>) {
     const { index, stats, filters } = params.query
     // get field name from config stats.yml (numeric only)
-    const field = statsConfiguration.indexes[index].facets.numeric[id].field
+    const field = statsConfiguration.indexes[index].facets.numeric?.[id]?.field
     // transform ["min","max"] in their corresponding solr function to build the query
     // {!min=true+max=true}field
     const statsField = `{!key=statistics ${stats
       .split(',')
-      .map((s: string) => StatsToSolrStatistics[s])
+      .map((s: keyof typeof StatsToSolrStatistics) => StatsToSolrStatistics[s])
       .join(' ')}}${field}`
 
     debug(

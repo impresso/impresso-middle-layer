@@ -1,16 +1,19 @@
-const YAML = require('yaml')
-const { readFileSync } = require('fs')
-const { InvalidArgumentError } = require('../error')
-const { default: valueFilterBuilder } = require('./filterBuilders/value')
-const { default: capitalisedValueFilterBuilder } = require('./filterBuilders/capitalisedValue')
+import { readFileSync } from 'fs'
+import YAML from 'yaml'
+import { Filter, FilterPrecision } from '../../models'
+import { SolrFiltersConfiguration } from '../../models/generated/common'
+import { SolrNamespace } from '../../solr'
+import { InvalidArgumentError } from '../error'
+import capitalisedValueFilterBuilder from './filterBuilders/capitalisedValue'
+import valueFilterBuilder from './filterBuilders/value'
 
-const filtersConfig = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
+const filtersConfig: SolrFiltersConfiguration = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
 
-const escapeValue = value => value.replace(/[()\\+&|!{}[\]?:;,]/g, d => `\\${d}`)
+export const escapeValue = (value: string) => value.replace(/[()\\+&|!{}[\]?:;,]/g, (d: string) => `\\${d}`)
 
 const RangeValueRegex = /^\s*\d+\s+TO\s+\d+\s*$/
 
-const reduceNumericRangeFilters = (filters, field) => {
+const reduceNumericRangeFilters = (filters: Filter[], field: string) => {
   const items = filters.reduce((sq, filter) => {
     let q // q is in the form array ['1 TO 10', '20 TO 30'] (OR condition)
     // or simple string '1 TO X';
@@ -33,14 +36,14 @@ const reduceNumericRangeFilters = (filters, field) => {
     }
     sq.push(q)
     return sq
-  }, [])
+  }, [] as string[])
 
   return items.join(' AND ')
 }
 
 const SolrSupportedLanguages = ['en', 'fr', 'de']
 
-const fullyEscapeValue = value => escapeValue(value).replace(/"/g, d => `\\${d}`)
+const fullyEscapeValue = (value: string) => escapeValue(value).replace(/"/g, d => `\\${d}`)
 
 /**
  * Convert filter to a Solr request.
@@ -48,7 +51,7 @@ const fullyEscapeValue = value => escapeValue(value).replace(/"/g, d => `\\${d}`
  * @param {string[]} solrFields Solr fields to apply the value to.
  * @param {import('../../models').FilterPrecision} precision filter precision.
  */
-const getStringQueryWithFields = (value, solrFields, precision) => {
+const getStringQueryWithFields = (value: string | null, solrFields: string[], precision?: FilterPrecision) => {
   let q
   if (value != null) {
     q = value.trim()
@@ -93,7 +96,7 @@ const getStringQueryWithFields = (value, solrFields, precision) => {
  * @param {string | string[] | object} field
  * @return {string} solr query
  */
-const reduceStringFiltersToSolr = (filters, field) => {
+const reduceStringFiltersToSolr = (filters: Filter[], field: string | string[] | { prefix?: string }) => {
   const languages = SolrSupportedLanguages
   const items = filters.map(({ q, op = 'OR', precision, context }, index) => {
     let fields = []
@@ -103,7 +106,7 @@ const reduceStringFiltersToSolr = (filters, field) => {
     else if (field.prefix != null) fields = languages.map(lang => `${field.prefix}${lang}`)
     else throw new InvalidArgumentError(`Unknown type of Solr field: ${JSON.stringify(field)}`)
 
-    let queryList = [null]
+    let queryList: (string | null)[] = [null]
 
     if (Array.isArray(q) && q.length > 0) {
       queryList = q.filter(v => v != null && v !== '')
@@ -129,7 +132,7 @@ const reduceStringFiltersToSolr = (filters, field) => {
 
 const DateRangeValueRegex = /^\s*[TZ:\d-]+\s+TO\s+[TZ:\d-]+\s*$/
 
-const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
+const reduceDaterangeFiltersToSolr = (filters: Filter[], field: string, rule: string) => {
   const items = filters.reduce((sq, filter) => {
     const query = Array.isArray(filter.q) && filter.q.length === 1 ? filter.q[0] : filter.q
     const op = filter.op || 'OR'
@@ -157,11 +160,11 @@ const reduceDaterangeFiltersToSolr = (filters, field, rule) => {
     }
     sq.push(q)
     return sq
-  }, [])
+  }, [] as string[])
   return items.join(' AND ')
 }
 
-const reduceRegexFiltersToSolr = (filters, field) => {
+const reduceRegexFiltersToSolr = (filters: Filter[], field: string | string[] | { prefix?: string }) => {
   let fields = []
   if (typeof field === 'string') fields = [field]
   else if (Array.isArray(field)) fields = field
@@ -200,21 +203,21 @@ const reduceRegexFiltersToSolr = (filters, field) => {
         // rebuild;
         .map(d => fields.map(f => `${f}:/${d}/`).join(` ${op} `))
       return reduced.concat(query.map(v => (fields.length > 1 ? `(${v})` : v)))
-    }, [])
+    }, [] as string[])
     .join(' AND ')
 }
 
-const minLengthOneHandler = (filters, field, filterRule) => {
+const minLengthOneHandler = (filters: Filter[], field: string, filterRule: string) => {
   if (typeof field !== 'string') throw new InvalidArgumentError(`"${filterRule}" supports only "string" fields`)
   return `${field}:[1 TO *]`
 }
 
-const booleanHandler = (filters, field, filterRule) => {
+const booleanHandler = (filters: Filter[], field: string, filterRule: string) => {
   if (typeof field !== 'string') throw new InvalidArgumentError(`"${filterRule}" supports only "string" fields`)
   return `${field}:1`
 }
 
-const textAsOpenEndedSearchString = (text, field) => {
+const textAsOpenEndedSearchString = (text: string, field: string) => {
   const parts = text.split(' ').filter(v => v !== '')
   const statement = parts
     .map(part => part.replace(/"/g, '\\"').replace(/\(/g, '').replace(/\)/g, ''))
@@ -226,10 +229,10 @@ const textAsOpenEndedSearchString = (text, field) => {
   return parts.length > 1 ? `(${statement})` : statement
 }
 
-const reduceOpenEndedStringValue = (filters, field) => {
+const reduceOpenEndedStringValue = (filters: Filter[], field: string) => {
   const outerStatement = filters
     .map(filter => {
-      const strings = Array.isArray(filter.q) ? filter.q : [filter.q]
+      const strings = Array.isArray(filter.q) ? filter.q : [filter.q!]
       const statement = strings.map(v => textAsOpenEndedSearchString(v, field)).join(` ${filter.op || 'OR'} `)
       return strings.length > 1 ? `(${statement})` : statement
     })
@@ -261,25 +264,22 @@ const FiltersHandlers = Object.freeze({
  *
  * @returns {string} a SOLR query string that can be wrapped into a `filter()` statement.
  */
-const filtersToSolr = (filters, solrNamespace) => {
+export const filtersToSolr = (filters: Filter[], solrNamespace: SolrNamespace) => {
   if (filters.length < 1) throw new InvalidArgumentError('At least one filter must be provided')
   const types = [...new Set(filters.map(({ type }) => type))]
   if (types.length > 1) throw new InvalidArgumentError(`Filters must be of the same type. Found types: "${types}"`)
   const type = types[0]
 
-  const filtersRules = filtersConfig.indexes[solrNamespace] ? filtersConfig.indexes[solrNamespace].filters : {}
+  const filtersRules = filtersConfig.indexes?.[solrNamespace as string]
+    ? filtersConfig.indexes[solrNamespace as string].filters
+    : {}
   const filterRules = filtersRules[type]
   if (filterRules == null) {
-    throw new InvalidArgumentError(`Unknown filter type "${type}" in namespace "${solrNamespace}"`)
+    throw new InvalidArgumentError(`Unknown filter type "${type}" in namespace "${solrNamespace as string}"`)
   }
 
-  const handler = FiltersHandlers[filterRules.rule]
+  const handler = FiltersHandlers[filterRules.rule as keyof typeof FiltersHandlers]
   if (handler == null) throw new InvalidArgumentError(`Could not find handler for rule ${filterRules.rule}`)
 
-  return handler(filters, filterRules.field, filterRules.rule)
-}
-
-module.exports = {
-  filtersToSolr,
-  escapeValue,
+  return handler(filters, filterRules.field as any, filterRules.rule)
 }
