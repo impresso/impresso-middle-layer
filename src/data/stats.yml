@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../schema/common/stats.json
 indexes:
   # index ID
   search:
@@ -119,4 +120,3 @@ indexes:
         year:
           field: meta_year_i
           limit: 400
-      numeric:

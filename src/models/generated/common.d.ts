@@ -530,3 +530,54 @@ export interface SolrServerNamespaceConfiguration {
    */
   schemaVersion?: string;
 }
+
+
+/**
+ * Schema for stats.yml
+ */
+export interface StatsConfiguration {
+  indexes: Indexes;
+}
+/**
+ * Indexes configuration
+ */
+export interface Indexes {
+  [k: string]: Index;
+}
+/**
+ * This interface was referenced by `Indexes`'s JSON-Schema definition
+ * via the `patternProperty` ".*".
+ */
+export interface Index {
+  facets: FacetTypeGroup;
+}
+/**
+ * Facets group configuration
+ */
+export interface FacetTypeGroup {
+  term?: FacetSet;
+  numeric?: FacetSet;
+  temporal?: FacetSet;
+}
+/**
+ * Facet set configuration
+ */
+export interface FacetSet {
+  [k: string]: Facet;
+}
+/**
+ * Single facet description
+ *
+ * This interface was referenced by `FacetSet`'s JSON-Schema definition
+ * via the `patternProperty` ".*".
+ */
+export interface Facet {
+  /**
+   * Solr field name
+   */
+  field: string;
+  /**
+   * Limit of buckets returned
+   */
+  limit?: number;
+}

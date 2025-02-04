@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Schema for stats.yml",
+  "title": "StatsConfiguration",
+  "type": "object",
+  "properties": {
+    "indexes": { "$ref": "#/definitions/Indexes" }
+  },
+  "additionalProperties": false,
+  "required": ["indexes"],
+  "definitions": {
+    "Indexes": {
+      "type": "object",
+      "description": "Indexes configuration",
+      "patternProperties": {
+        ".*": { "$ref": "#/definitions/Index" }
+      },
+      "additionalProperties": false
+    },
+    "Index": {
+      "type": "object",
+      "properties": {
+        "facets": { "$ref": "#/definitions/FacetTypeGroup" }
+      },
+      "additionalProperties": false,
+      "required": ["facets"]
+    },
+    "FacetTypeGroup": {
+      "type": "object",
+      "description": "Facets group configuration",
+      "properties": {
+        "term": { "$ref": "#/definitions/FacetSet" },
+        "numeric": { "$ref": "#/definitions/FacetSet" },
+        "temporal": { "$ref": "#/definitions/FacetSet" }
+      },
+      "additionalProperties": false
+    },
+    "FacetSet": {
+      "type": "object",
+      "description": "Facet set configuration",
+      "patternProperties": {
+        ".*": { "$ref": "#/definitions/Facet" }
+      }
+    },
+    "Facet": {
+      "type": "object",
+      "description": "Single facet description",
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "Solr field name"
+        },
+        "limit": {
+          "type": "number",
+          "description": "Limit of buckets returned"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["field"]
+    }
+  }
+}
