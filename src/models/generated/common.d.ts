@@ -532,6 +532,51 @@ export interface SolrServerNamespaceConfiguration {
 }
 
 
+export interface SolrFiltersConfiguration {
+  /**
+   * Indexes (by Solr namespace) with their filter definitions.
+   */
+  indexes?: {
+    [k: string]: IndexDefinition;
+  };
+}
+/**
+ * An index configuration with a set of filters.
+ *
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` "^.*$".
+ */
+export interface IndexDefinition {
+  /**
+   * Filters available for this index.
+   */
+  filters: {
+    [k: string]: FilterDefinition;
+  };
+}
+/**
+ * A filter definition with a field and a rule.
+ *
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` "^.*$".
+ */
+export interface FilterDefinition {
+  field:
+    | string
+    | string[]
+    | {
+        /**
+         * Field prefix to be expanded according to supported languages.
+         */
+        prefix: string;
+      };
+  /**
+   * The name of the rule to parse the filter value.
+   */
+  rule: string;
+}
+
+
 /**
  * Schema for stats.yml
  */

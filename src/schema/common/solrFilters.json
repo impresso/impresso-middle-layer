@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Solr Filters Configuration",
+  "type": "object",
+  "properties": {
+    "indexes": {
+      "type": "object",
+      "description": "Indexes (by Solr namespace) with their filter definitions.",
+      "patternProperties": {
+        "^.*$": { "$ref": "#/definitions/IndexDefinition" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [],
+  "additionalProperties": false,
+  "definitions": {
+    "IndexDefinition": {
+      "type": "object",
+      "description": "An index configuration with a set of filters.",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "description": "Filters available for this index.",
+          "patternProperties": {
+            "^.*$": { "$ref": "#/definitions/FilterDefinition" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["filters"],
+      "additionalProperties": false
+    },
+    "FilterDefinition": {
+      "type": "object",
+      "description": "A filter definition with a field and a rule.",
+      "properties": {
+        "field": {
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "A single Solr field."
+            },
+            {
+              "type": "array",
+              "description": "Multiple Solr fields.",
+              "items": { "type": "string" }
+            },
+            {
+              "type": "object",
+              "description": "An object defining a field prefix.",
+              "properties": {
+                "prefix": {
+                  "type": "string",
+                  "description": "Field prefix to be expanded according to supported languages."
+                }
+              },
+              "required": ["prefix"],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "rule": {
+          "type": "string",
+          "description": "The name of the rule to parse the filter value."
+        }
+      },
+      "required": ["field", "rule"],
+      "additionalProperties": false
+    }
+  }
+}

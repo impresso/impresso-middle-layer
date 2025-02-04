@@ -1,8 +1,8 @@
 import assert from 'assert'
-import { uniq, includes, groupBy, values } from 'lodash'
-import { filtersToSolr, escapeValue } from './filterReducers'
-import { SolrNamespace, SolrNamespaces } from '../../solr'
+import { groupBy, includes, uniq, values } from 'lodash'
 import { Filter } from '../../models'
+import { SolrNamespace, SolrNamespaces } from '../../solr'
+import { escapeValue, filtersToSolr } from './filterReducers'
 
 /**
  * Languages that have content indexes in Solr.

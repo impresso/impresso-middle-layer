@@ -1,12 +1,5 @@
-import Debug from 'debug'
-import lodash from 'lodash'
-import { preprocessSolrError } from './util/solr/errors'
-import { ConnectionPool, FetchOptions, initHttpPool, IResponse } from './httpConnectionPool'
-import { ImpressoApplication } from './types'
+import { FetchOptions, IResponse } from './httpConnectionPool'
 import { logger } from './logger'
-
-const debug = Debug('impresso/solr')
-const debugRequest = Debug('impresso/solr-request')
 
 export type SolrNamespace =
   | 'search'
