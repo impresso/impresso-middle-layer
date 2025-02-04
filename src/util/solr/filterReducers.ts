@@ -51,7 +51,7 @@ const fullyEscapeValue = (value: string) => escapeValue(value).replace(/"/g, d =
  * @param {string[]} solrFields Solr fields to apply the value to.
  * @param {import('../../models').FilterPrecision} precision filter precision.
  */
-const getStringQueryWithFields = (value: string, solrFields: string[], precision?: FilterPrecision) => {
+const getStringQueryWithFields = (value: string | null, solrFields: string[], precision?: FilterPrecision) => {
   let q
   if (value != null) {
     q = value.trim()
@@ -114,7 +114,6 @@ const reduceStringFiltersToSolr = (filters: Filter[], field: string | string[] |
     } else if (typeof q === 'string' && q != null && q !== '') queryList = [q]
 
     let transformedQuery = queryList
-      .filter(value => value != null)
       .map(value => getStringQueryWithFields(value, fields, precision))
       // @ts-ignore
       .flat()
