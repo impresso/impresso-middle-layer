@@ -37,6 +37,9 @@ indexes:
         nag:
           field: nag_entities_dpfs
           limit: 10
+        partner:
+          field: meta_partnerid_s
+          limit: 10
       # numeric facets for which we calculate statistics
       numeric:
         contentLength:
