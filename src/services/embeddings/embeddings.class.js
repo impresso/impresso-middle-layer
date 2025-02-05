@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+import { escapeValue } from '../../util/solr/filterReducers'
 const debug = require('debug')('impresso/services:embeddings')
 const { NotFound } = require('@feathersjs/errors')
 const { measureTime } = require('../../util/instruments')
@@ -22,7 +22,7 @@ class Service {
     debug('[find] with params', params.query)
 
     const bvRequest = {
-      q: `word_s:(${params.query.q})`,
+      q: `word_s:(${escapeValue(params.query.q)})`,
       fl: 'embedding_bv',
       namespace,
     }
