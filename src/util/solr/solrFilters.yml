@@ -65,7 +65,7 @@ indexes:
         rule: value
       topic:
         field: topics_dpfs
-        rule: value
+        rule: idValue
       year:
         field: meta_year_i
         rule: value
@@ -81,16 +81,16 @@ indexes:
         rule: value
       entity:
         field: [pers_entities_dpfs, loc_entities_dpfs]
-        rule: value
+        rule: idValue
       person:
         field: pers_entities_dpfs
-        rule: value
+        rule: idValue
       location:
         field: loc_entities_dpfs
-        rule: value
+        rule: idValue
       nag:
         field: nag_entities_dpfs
-        rule: value
+        rule: idValue
       topicmodel:
         field: tp_model_s
         rule: value
@@ -170,7 +170,7 @@ indexes:
         rule: boolean
       topic:
         field: topics_dpfs
-        rule: value
+        rule: idValue
       language:
         field: lg_s
         rule: value
@@ -186,16 +186,16 @@ indexes:
         rule: value
       entity:
         field: [pers_entities_dpfs, loc_entities_dpfs, nag_entities_dpfs]
-        rule: value
+        rule: idValue
       person:
         field: pers_entities_dpfs
-        rule: value
+        rule: idValue
       location:
         field: loc_entities_dpfs
-        rule: value
+        rule: idValue
       nag:
         field: nag_entities_dpfs
-        rule: value
+        rule: idValue
   entities:
     filters:
       string:
@@ -206,7 +206,7 @@ indexes:
         rule: capitalisedValue
       uid:
         field: id
-        rule: value
+        rule: idValue
       wikidataId:
         field: na
         rule: noop

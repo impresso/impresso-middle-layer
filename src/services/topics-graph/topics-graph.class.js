@@ -6,7 +6,6 @@ import { WellKnownKeys } from '../../cache'
 const debug = require('debug')('impresso/services:topics-graph')
 const { min, max } = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
-const { escapeValue } = require('../../util/solr/filterReducers')
 const Topic = require('../../models/topics.model')
 const { measureTime } = require('../../util/instruments')
 

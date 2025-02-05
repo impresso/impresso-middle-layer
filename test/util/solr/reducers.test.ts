@@ -1,9 +1,9 @@
-const assert = require('assert')
-const { SolrNamespaces } = require('../../../src/solr')
-const { filtersToSolr } = require('../../../src/util/solr/filterReducers')
-const { filtersToQueryAndVariables } = require('../../../src/util/solr/index')
-
-const { InvalidArgumentError } = require('../../../src/util/error')
+import assert from 'assert'
+import { filtersToSolr, escapeValue, escapeIdValue, unescapeIdValue } from '../../../src/util/solr/filterReducers'
+import { SolrNamespaces } from '../../../src/solr'
+import { filtersToQueryAndVariables } from '../../../src/util/solr/index'
+import { InvalidArgumentError } from '../../../src/util/error'
+import { Filter } from '../../../src/models'
 
 describe('filtersToSolr', () => {
   it('escapes parentheses', () => {
@@ -151,6 +151,7 @@ describe('filtersToSolr', () => {
       const query = filtersToSolr([filter], SolrNamespaces.Search)
       assert.equal(
         query,
+        // eslint-ignore-next-line
         '((content_txt_en:"ministre portugais" OR content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais") OR (content_txt_en:"ministre italien" OR content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien"))'
       )
     })
@@ -476,6 +477,16 @@ describe('filtersToSolr', () => {
       )
     })
   })
+
+  it('escapes IDs', () => {
+    const filter: Filter = {
+      type: 'person',
+      q: 'aida-0001-50-Poseidon_(film)',
+    }
+    const query = filtersToSolr([filter], SolrNamespaces.Search)
+    const expectedQuery = 'pers_entities_dpfs:aida-0001-50-Poseidon_$28$film$29$'
+    assert.strictEqual(query, expectedQuery)
+  })
 })
 
 describe('filtersToQueryAndVariables', () => {
@@ -492,6 +503,20 @@ describe('filtersToQueryAndVariables', () => {
       ]
       const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
       assert.strictEqual(result.query, 'filter(meta_journal_s:SGZ) AND NOT filter(topics_dpfs:tm-de-all-v2.0_tp23_de)')
+    })
+  })
+})
+
+describe('escapeIdValue/unescapeIdValue', () => {
+  it('escapes and unescapes', () => {
+    const pairs = [
+      ['aida-0001-50-Poseidon_(horse)', 'aida-0001-50-Poseidon_$28$horse$29$'],
+      ['aida-0001-50-Van_Etten_(town),_New_York', 'aida-0001-50-Van_Etten_$28$town$29$$2c$_New_York'],
+    ]
+
+    pairs.forEach(([original, escaped]) => {
+      assert.strictEqual(escapeIdValue(original), escaped)
+      assert.strictEqual(unescapeIdValue(escaped), original)
     })
   })
 })

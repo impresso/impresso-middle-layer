@@ -5,7 +5,9 @@ import { SolrFiltersConfiguration } from '../../models/generated/common'
 import { SolrNamespace } from '../../solr'
 import { InvalidArgumentError } from '../error'
 import capitalisedValueFilterBuilder from './filterBuilders/capitalisedValue'
-import valueFilterBuilder from './filterBuilders/value'
+import { valueBuilder, idValueBuilder, escapeIdValue, unescapeIdValue } from './filterBuilders/value'
+
+export { escapeIdValue, unescapeIdValue }
 
 const filtersConfig: SolrFiltersConfiguration = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
 
@@ -248,7 +250,8 @@ const FiltersHandlers = Object.freeze({
   boolean: booleanHandler,
   string: reduceStringFiltersToSolr,
   dateRange: reduceDaterangeFiltersToSolr,
-  value: valueFilterBuilder,
+  value: valueBuilder,
+  idValue: idValueBuilder,
   regex: reduceRegexFiltersToSolr,
   capitalisedValue: capitalisedValueFilterBuilder,
   openEndedString: reduceOpenEndedStringValue,

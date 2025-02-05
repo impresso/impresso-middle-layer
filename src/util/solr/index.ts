@@ -2,7 +2,7 @@ import assert from 'assert'
 import { groupBy, includes, uniq, values } from 'lodash'
 import { Filter } from '../../models'
 import { SolrNamespace, SolrNamespaces } from '../../solr'
-import { escapeValue, filtersToSolr } from './filterReducers'
+import { escapeIdValue, filtersToSolr } from './filterReducers'
 
 /**
  * Languages that have content indexes in Solr.
@@ -102,7 +102,7 @@ export function filtersToQueryAndVariables(filters: Filter[], solrNamespace: Sol
       reduceFiltersToVars(filtersGroupedByType[key]).forEach(d => {
         const l = Object.keys(variables).length
         const field = SOLR_FILTER_DPF[key]
-        variables[`v${l}`] = `payload(${field},${escapeValue(d)})`
+        variables[`v${l}`] = `payload(${field},${escapeIdValue(d)})`
       })
     }
   })
