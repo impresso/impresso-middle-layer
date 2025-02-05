@@ -11,7 +11,7 @@ export { escapeIdValue, unescapeIdValue }
 
 const filtersConfig: SolrFiltersConfiguration = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
 
-export const escapeValue = (value: string) => value.replace(/[()\\+&|!{}[\]?:;,]/g, (d: string) => `\\${d}`)
+export const escapeValue = (value: string) => value.replace(/[()\\+&|!{}[\]?:;,^]/g, (d: string) => `\\${d}`)
 
 const RangeValueRegex = /^\s*\d+\s+TO\s+\d+\s*$/
 
