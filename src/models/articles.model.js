@@ -706,8 +706,8 @@ class Article extends BaseArticle {
         // has reliable coordinates force as boolean
         isCC: !!doc.cc_b,
 
-        lb: doc.lb_plain,
-        rb: doc.rb_plain,
+        lb: typeof doc.lb_plain === 'string' ? JSON.parse(doc.lb_plain) : doc.lb_plain,
+        rb: typeof doc.rb_plain === 'string' ? JSON.parse(doc.rb_plain) : doc.rb_plain,
 
         rc,
         // accessRight
