@@ -1,6 +1,7 @@
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../models/authorization'
 import { ContentItem as ContentItemPrivate, Entity, ContentItemTopic } from '../models/generated/schemas'
 import { ContentItem as ContentItemPublic, EntityMention, TopicMention } from '../models/generated/schemasPublic'
+import { OpenPermissions } from '../util/bigint'
 
 const toType = (input: string): ContentItemPublic['type'] => {
   if (input == null || input.trim() === '') return 'ar'
@@ -45,9 +46,9 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
 
     // Authorization information
     [AuthorizationBitmapsKey]: {
-      explore: BigInt(input.bitmapExplore ?? 0),
-      getTranscript: BigInt(input.bitmapGetTranscript ?? 0),
-      getImages: BigInt(input.bitmapGetImages ?? 0),
+      explore: BigInt(input.bitmapExplore ?? OpenPermissions),
+      getTranscript: BigInt(input.bitmapGetTranscript ?? OpenPermissions),
+      getImages: BigInt(input.bitmapGetImages ?? OpenPermissions),
     } satisfies AuthorizationBitmapsDTO,
   }
 }

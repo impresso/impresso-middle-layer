@@ -21,7 +21,6 @@ const {
   REGEX_UID,
 } = require('../../hooks/params')
 const { filtersToSolrQuery } = require('../../hooks/search')
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
 
 const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers')
 const { obfuscate } = require('../../hooks/access-rights')
@@ -37,12 +36,7 @@ export default {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
-    all: [
-      checkCachedContents({
-        useAuthenticatedUser: false,
-        useAuthentication: true,
-      }),
-    ],
+    all: [],
     find: [
       validate({
         resolve: {
@@ -99,23 +93,14 @@ export default {
     find: [
       displayQueryParams(['filters']),
       protect('content'),
-      returnCachedContents({
-        skipHooks: false,
-      }),
       resolveTopics(),
-      saveResultsInCache(),
       obfuscate(),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     get: [
-      // save here cache, flush cache here
-      returnCachedContents({
-        skipHooks: false,
-      }),
       resolveTopics(),
-      saveResultsInCache(),
       resolveUserAddons(),
       obfuscate(),
       transformResponse(transformContentItem, inPublicApi),

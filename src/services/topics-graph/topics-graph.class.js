@@ -128,7 +128,7 @@ class TopicsGraph {
     if (!params.sanitized.filters.length) {
       const result = await this.app.get('cacheManager').get(WellKnownKeys.Topics)
       /** @type {import('../../models/generated/schemas').Topic[]} */
-      const deserialisedTopics = JSON.parse(result ?? '[]')
+      const deserialisedTopics = JSON.parse(result ?? '[]').map(d => new Topic(d))
 
       debug('[find] no filters, return all topics, n.', deserialisedTopics.length)
       deserialisedTopics.forEach(topic => {

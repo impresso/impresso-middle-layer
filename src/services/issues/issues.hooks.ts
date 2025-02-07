@@ -2,7 +2,6 @@ import { Hook, HookContext } from '@feathersjs/feathers'
 import { obfuscate } from '../../hooks/access-rights'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
-import { checkCachedContents, returnCachedContents, saveResultsInCache } from '../../hooks/redis'
 import { filtersToSolrQuery } from '../../hooks/search'
 import { ImpressoApplication } from '../../types'
 
@@ -46,11 +45,7 @@ export default {
     all: [authenticate({ allowUnauthenticated: true })],
   },
   before: {
-    all: [
-      checkCachedContents({
-        useAuthenticatedUser: false,
-      }),
-    ],
+    all: [],
     find: [
       validate({
         q: {
@@ -98,7 +93,7 @@ export default {
   },
 
   after: {
-    find: [returnCachedContents(), saveResultsInCache()],
+    find: [],
     get: [
       // change count_pages
       obfuscate(),

@@ -513,6 +513,7 @@ describe('escapeIdValue/unescapeIdValue', () => {
       ['aida-0001-50-Poseidon_(horse)', 'aida-0001-50-Poseidon_$28$horse$29$'],
       ['aida-0001-50-Van_Etten_(town),_New_York', 'aida-0001-50-Van_Etten_$28$town$29$$2c$_New_York'],
       ['aida-0001-50-Igor_Đurić_(Serbian_footballer)', 'aida-0001-50-Igor_Đurić_$28$Serbian_footballer$29$'],
+      ['aida-0001-50-Antônio_da_Silva_(footballer)', 'aida-0001-50-Antônio_da_Silva_$28$footballer$29$'],
     ]
 
     pairs.forEach(([original, escaped]) => {

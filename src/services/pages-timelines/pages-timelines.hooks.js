@@ -1,16 +1,9 @@
-const { validate, REGEX_UID } = require('../../hooks/params');
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+const { validate, REGEX_UID } = require('../../hooks/params')
 
 module.exports = {
   before: {
-    all: [
-      checkCachedContents({
-        useAuthenticatedUser: false,
-      }),
-    ],
-    find: [
-
-    ],
+    all: [],
+    find: [],
     get: [
       validate({
         newspaper_uid: {
@@ -26,10 +19,7 @@ module.exports = {
   },
 
   after: {
-    all: [
-      returnCachedContents(),
-      saveResultsInCache(),
-    ],
+    all: [],
     find: [],
     get: [],
     create: [],
@@ -47,4 +37,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

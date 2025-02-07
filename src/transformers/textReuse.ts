@@ -1,6 +1,7 @@
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../models/authorization'
 import { TextReusePassage as TextReusePassageInternal, TextReuseClusterCompound } from '../models/generated/schemas'
 import { TextReusePassage as TextReusePassagePublic, TextReuseCluster } from '../models/generated/schemasPublic'
+import { OpenPermissions } from '../util/bigint'
 
 export const transformTextReusePassage = (input: TextReusePassageInternal): TextReusePassagePublic => {
   return {
@@ -13,8 +14,8 @@ export const transformTextReusePassage = (input: TextReusePassageInternal): Text
     },
     // Authorization information
     [AuthorizationBitmapsKey]: {
-      explore: BigInt(input.bitmapExplore ?? 0),
-      getTranscript: BigInt(input.bitmapGetTranscript ?? 0),
+      explore: BigInt(input.bitmapExplore ?? OpenPermissions),
+      getTranscript: BigInt(input.bitmapGetTranscript ?? OpenPermissions),
     } satisfies AuthorizationBitmapsDTO,
   }
 }
