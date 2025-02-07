@@ -1,33 +1,30 @@
-const {
-  validate, validateEach, queryWithCommonParams, REGEX_UID,
-} = require('../../hooks/params');
-const { filtersToSolrQuery } = require('../../hooks/search');
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+const { validate, validateEach, queryWithCommonParams, REGEX_UID } = require('../../hooks/params')
+const { filtersToSolrQuery } = require('../../hooks/search')
 
 module.exports = {
   before: {
     all: [],
     find: [],
     get: [
-      checkCachedContents({
-        useAuthenticatedUser: false,
-      }),
-      validate({
-      }),
-      validateEach('filters', {
-        type: {
-          choices: ['uid', 'issue', 'page', 'newspaper', 'topic'],
-          required: true,
+      validate({}),
+      validateEach(
+        'filters',
+        {
+          type: {
+            choices: ['uid', 'issue', 'page', 'newspaper', 'topic'],
+            required: true,
+          },
+          q: {
+            regex: REGEX_UID,
+            required: true,
+            // we cannot transform since Mustache is render the filters...
+            // transform: d => d.split(',')
+          },
         },
-        q: {
-          regex: REGEX_UID,
-          required: true,
-          // we cannot transform since Mustache is render the filters...
-          // transform: d => d.split(',')
-        },
-      }, {
-        required: false,
-      }),
+        {
+          required: false,
+        }
+      ),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
@@ -40,10 +37,7 @@ module.exports = {
   after: {
     all: [],
     find: [],
-    get: [
-      returnCachedContents(),
-      saveResultsInCache(),
-    ],
+    get: [],
     create: [],
     update: [],
     patch: [],
@@ -59,4 +53,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

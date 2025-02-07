@@ -130,7 +130,7 @@ class Service {
     //   () => this.app.get('solrClient').findAllPost(request),
     //   'topics.find.solr.posts'
     // )
-    const solrResponse = await asFindAll(this.solr, 'topics', request)
+    const solrResponse = await asFindAll(this.solr, SolrNamespaces.Search, request)
 
     debug('[find] solrResponse total document matching:', solrResponse.response.numFound)
     if (!solrResponse.response.numFound || !solrResponse.facets || !solrResponse.facets.topic) {
@@ -162,7 +162,7 @@ class Service {
 
     const resolvers = buildResolvers(this.app)
     // remap data
-    data = Promise.all(
+    data = await Promise.all(
       data.map(async d => {
         const topic = await resolvers.topic(d.val)
         if (uids.length && topics[d.val]) {
@@ -175,7 +175,7 @@ class Service {
 
     return {
       total,
-      data,
+      data: data.filter(d => d.uid !== ''),
       limit: params.query.limit,
       offset: params.query.offset,
       info: {

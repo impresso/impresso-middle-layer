@@ -4,16 +4,14 @@ const {
   validateEach,
   // REGEX_UID,
   utils,
-} = require('../../hooks/params');
-const { filtersToSolrQuery } = require('../../hooks/search');
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
-const { eachFilterValidator } = require('../search/search.validators');
+} = require('../../hooks/params')
+const { filtersToSolrQuery } = require('../../hooks/search')
+const { eachFilterValidator } = require('../search/search.validators')
 
 module.exports = {
   before: {
     all: [],
     find: [
-      checkCachedContents(),
       validate({
         q: {
           required: false,
@@ -45,10 +43,7 @@ module.exports = {
 
   after: {
     all: [],
-    find: [
-      returnCachedContents(),
-      saveResultsInCache(),
-    ],
+    find: [],
     get: [],
     create: [],
     update: [],
@@ -65,4 +60,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}
