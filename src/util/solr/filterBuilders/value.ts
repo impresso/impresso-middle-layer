@@ -15,12 +15,38 @@ export const valueBuilder: FilterBuilderFn = (filters: Filter[], filterField: Fi
   )
 }
 
+/**
+ * Escapes non-alphanumeric characters
+ * by percent-encoding them. Alphanumeric characters remain intact.
+ */
+function customEscape(str: string) {
+  let result = ''
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i]
+    // \p{L} matches any kind of letter from any language,
+    // \p{N} matches any kind of numeric character.
+    if (/[\p{L}\p{N}]/u.test(ch)) {
+      result += ch
+    } else {
+      result += escape(ch)
+    }
+  }
+  return result
+}
+
+/**
+ * Converts a percent-encoded string back to its original form.
+ */
+function customUnescape(str: string) {
+  return decodeURIComponent(str)
+}
+
 export const escapeIdValue = (value: string) => {
-  return escape(value).replace(/%([0-9a-f]{2})/gi, (_, hex) => `$${hex.toLowerCase()}$`)
+  return customEscape(value).replace(/%([0-9a-f]{2})/gi, (_, hex) => `$${hex.toLowerCase()}$`)
 }
 
 export const unescapeIdValue = (value: string) => {
-  return unescape(value.replace(/\$([0-9a-f]{2})\$/gi, '%$1'))
+  return customUnescape(value.replace(/\$([0-9a-f]{2})\$/gi, '%$1'))
 }
 
 /**
