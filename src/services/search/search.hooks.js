@@ -10,6 +10,7 @@ import { transformResponseDataItem, transformResponse, renameQueryParameters } f
 import { transformBaseFind } from '../../transformers/base'
 import { transformContentItem } from '../../transformers/contentItem'
 import { loadYamlFile } from '../../util/yaml'
+import { resolveTopics } from '../../hooks/resolvers/articles.resolvers'
 
 const { protect } = require('@feathersjs/authentication-local').hooks
 const {
@@ -114,6 +115,7 @@ module.exports = {
   after: {
     all: [],
     find: [
+      resolveTopics(),
       displayQueryParams(['queryComponents', 'filters']),
       transformResponse(transformBaseFind, inPublicApi),
       resolveQueryComponents(),
