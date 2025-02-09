@@ -5,6 +5,7 @@ import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { transformVersionDetails } from '../../transformers/version'
 import { VersionDetails } from '../../models/generated/schemas'
+import { WellKnownKeys } from '../../cache'
 
 const log = debug('impresso/services:version')
 const { getFirstAndLastDocumentDates, getNewspaperIndex } = require('./logic')
@@ -18,9 +19,12 @@ module.exports = function (app: ImpressoApplication) {
         const sequelizeConfig = app.get('sequelize')
         const solr = app.service('simpleSolrClient')
         const isPublicApi = app.get('isPublicApi')
-
+        const cache = app.get('cacheManager')
         const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr)
         log('branch:', process.env.GIT_BRANCH, 'revision:', process.env.GIT_REVISION, 'version:', process.env.GIT_TAG)
+        const ms = await cache.get<string>(WellKnownKeys.MediaSources)
+        const deserialisedResult: { uid: string; name: string; type: string }[] = JSON.parse(ms ?? '[]')
+
         const response: VersionDetails = {
           solr: {
             endpoints: {},
@@ -35,7 +39,16 @@ module.exports = function (app: ImpressoApplication) {
             version: process.env.GIT_TAG || 'N/A',
           },
           documentsDateSpan: { firstDate, lastDate },
-          newspapers: await getNewspaperIndex(),
+          newspapers: deserialisedResult.reduce(
+            (acc: Record<string, Record<string, any>>, d: { uid: string; name: string; type: string }) => {
+              acc[d.uid] = {
+                name: d.name,
+                type: d.type,
+              }
+              return acc
+            },
+            {}
+          ),
           features: (app.get('features') ?? {}) as Record<string, Record<string, any>>,
         }
 
