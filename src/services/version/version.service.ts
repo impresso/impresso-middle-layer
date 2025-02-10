@@ -7,7 +7,7 @@ import { transformVersionDetails } from '../../transformers/version'
 import { VersionDetails } from '../../models/generated/schemas'
 
 const log = debug('impresso/services:version')
-const { getFirstAndLastDocumentDates, getNewspaperIndex } = require('./logic')
+const { getFirstAndLastDocumentDates } = require('./logic')
 
 module.exports = function (app: ImpressoApplication) {
   // Initialize our service with any options it requires
@@ -18,9 +18,10 @@ module.exports = function (app: ImpressoApplication) {
         const sequelizeConfig = app.get('sequelize')
         const solr = app.service('simpleSolrClient')
         const isPublicApi = app.get('isPublicApi')
-
         const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr)
         log('branch:', process.env.GIT_BRANCH, 'revision:', process.env.GIT_REVISION, 'version:', process.env.GIT_TAG)
+        const mediaSources = app.service('media-sources')
+        const lookup = await mediaSources.getLookup()
         const response: VersionDetails = {
           solr: {
             endpoints: {},
@@ -35,7 +36,7 @@ module.exports = function (app: ImpressoApplication) {
             version: process.env.GIT_TAG || 'N/A',
           },
           documentsDateSpan: { firstDate, lastDate },
-          newspapers: await getNewspaperIndex(),
+          newspapers: lookup as Record<string, Record<string, any>>,
           features: (app.get('features') ?? {}) as Record<string, Record<string, any>>,
         }
 
