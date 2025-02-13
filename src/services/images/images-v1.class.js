@@ -4,6 +4,7 @@
 
 /* eslint-disable no-unused-vars */
 import { asFindAll, asGet } from '../../util/solr/adapters'
+import { logger } from '../../logger'
 const { NotFound, BadGateway } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:images')
 const Image = require('../../models/images.model')
@@ -104,7 +105,7 @@ export default class Service {
           asFindAll(this.solr, 'images', request)
             .then(res => res.response.docs[0].signature)
             .catch(err => {
-              console.error(err)
+              logger.error(err)
               throw new NotFound()
             }),
         'images.find.solr.image_signatures'
@@ -158,7 +159,7 @@ export default class Service {
       solrResponse = await measureTime(
         () =>
           asFindAll(this.solr, 'images', request, Image.solrFactory).catch(err => {
-            console.error(err)
+            logger.error(err)
             throw new BadGateway('unable to load similar images')
           }),
         'images.find.solr.signature_similar_images'
@@ -238,7 +239,7 @@ export default class Service {
         },
         Image.solrFactory
       ).catch(err => {
-        console.error(err)
+        logger.error(err)
         throw new BadGateway('unable to load similar images')
       })
     }

@@ -43,8 +43,8 @@ class Page {
 
     // if any iiif is provided
     if (!iiif.length) {
-      this.iiif = getJSONUrl(this.uid, config.proxy)
-      this.iiifThumbnail = getThumbnailUrl(this.uid, config.proxy)
+      this.iiif = getJSONUrl(this.uid, config.images.baseUrl)
+      this.iiifThumbnail = getThumbnailUrl(this.uid, config.images.baseUrl)
     } else {
       this.iiif = getManifestJSONUrl(iiif)
       this.iiifThumbnail = getExternalThumbnailUrl(this.iiif, config.proxy)

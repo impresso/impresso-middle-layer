@@ -1,3 +1,5 @@
+import { logger } from '../logger'
+
 const debug = require('debug')('verbose:impresso/services:sequelize.utils')
 const { Conflict, BadRequest, BadGateway } = require('@feathersjs/errors')
 const { Op } = require('sequelize')
@@ -44,7 +46,7 @@ const sequelizeErrorHandler = err => {
   } else if (err.name) {
     debug('sequelize failed. Check error below.')
     debug(err.name)
-    console.error(err)
+    logger.error(err)
     throw new BadGateway(err.name)
   }
   throw new BadRequest()

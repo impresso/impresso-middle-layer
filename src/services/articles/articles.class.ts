@@ -1,8 +1,8 @@
 import { keyBy } from 'lodash'
 import Debug from 'debug'
 import { Op } from 'sequelize'
-import { NotFound } from '@feathersjs/errors'
 
+import { logger } from '../../logger'
 import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
 import Article, { ARTICLE_SOLR_FL_LIST_ITEM } from '../../models/articles.model'
 import Issue from '../../models/issues.model'
@@ -55,7 +55,7 @@ interface FindOptions {
   fl?: string[]
 }
 
-export class Service {
+export class ContentItemService {
   name: string
   app?: ImpressoApplication
   SequelizeService: SequelizeService
@@ -80,7 +80,7 @@ export class Service {
     return await this._find(params)
   }
 
-  async findInternal(params: any) {
+  async findInternal(params: FindOptions) {
     return await this._find(params)
   }
 
@@ -111,7 +111,7 @@ export class Service {
           order_by: [['uid', 'DESC']],
         })
           .catch(err => {
-            console.error(err)
+            logger.error(err)
             return { data: [] }
           })
           .then(({ data }) => keyBy(data, 'uid')),
@@ -209,12 +209,12 @@ export class Service {
         return article != null ? Article.assignIIIF(article) : undefined
       })
       .catch(err => {
-        console.error(err)
+        logger.error(err)
         throw err
       })
   }
 }
 
 export default function (options: ServiceOptions) {
-  return new Service(options)
+  return new ContentItemService(options)
 }

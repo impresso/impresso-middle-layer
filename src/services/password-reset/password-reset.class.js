@@ -1,5 +1,5 @@
 import User from '../../models/users.model'
-
+import { logger } from '../../logger'
 const jwt = require('jsonwebtoken')
 const { NotImplemented, BadRequest, NotFound } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:password-reset')
@@ -91,7 +91,7 @@ class PasswordReset {
           // probably a service related to the task is not available (smtp?)
           throw new NotImplemented('email service not available')
         }
-        console.error(err)
+        logger.error(err)
         throw new NotImplemented()
       })
       .then(() => ({
@@ -142,7 +142,7 @@ class PasswordReset {
         response: 'ok',
       }
     } catch (err) {
-      console.error(err)
+      logger.error(err)
       throw new BadRequest('Invalid token')
     }
   }

@@ -75,10 +75,54 @@
     "host": { "type": "string", "description": "Host of the server" },
     "port": { "type": "number", "description": "Port of the server" },
     "public": { "type": "string", "description": "Path to the public folder" },
-    "multer": { "$ref": "#/definitions/MulterConfig" }
+    "multer": { "$ref": "#/definitions/MulterConfig" },
+    "imageProxy": { "$ref": "#/definitions/ImageProxyConfig" },
+    "imageUrlRewriteRules": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/ImageUrlRewriteRule" }
+    }
   },
-  "required": ["solrConfiguration", "sequelize", "authentication"],
+  "required": ["solrConfiguration", "sequelize", "authentication", "images"],
   "definitions": {
+    "ImageUrlRewriteRule": {
+      "type": "object",
+      "properties": {
+        "pattern": { "type": "string", "description": "Regex Pattern to match" },
+        "replacement": { "type": "string", "description": "Replacement for the pattern" }
+      },
+      "required": ["pattern", "replacement"]
+    },
+    "ImageProxyConfig": {
+      "type": "object",
+      "description": "Image and IIIF proxy configuration options",
+      "additionalProperties": false,
+      "required": ["sources"],
+      "properties": {
+        "defaultSourceId": { "type": "string" },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "endpoint"],
+            "properties": {
+              "id": { "type": "string" },
+              "endpoint": { "type": "string" },
+              "auth": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["user", "pass"],
+                "properties": {
+                  "user": { "type": "string" },
+                  "pass": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "MulterConfig": {
       "type": "object",
       "properties": {
@@ -101,8 +145,15 @@
     "ImagesConfig": {
       "type": "object",
       "properties": {
-        "visualSignature": { "type": "object", "properties": { "endpoint": { "type": "string" } } }
-      }
+        "baseUrl": { "type": "string", "description": "Base URL for images" },
+        "visualSignature": { "type": "object", "properties": { "endpoint": { "type": "string" } } },
+        "proxy": { "$ref": "#/definitions/ImageProxyConfig" },
+        "rewriteRules": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ImageUrlRewriteRule" }
+        }
+      },
+      "required": ["baseUrl", "proxy"]
     },
     "RecommenderConfig": {
       "type": "object",
