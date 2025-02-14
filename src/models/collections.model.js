@@ -151,9 +151,7 @@ export default class Collection {
       })
 
       if (this.creator) {
-        sq.creator = this.creator.toJSON({
-          obfuscate,
-        })
+        delete sq.creator
       }
       return sq
     }
