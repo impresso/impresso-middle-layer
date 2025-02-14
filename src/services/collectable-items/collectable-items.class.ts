@@ -131,6 +131,33 @@ export class Service {
     const collectionIds = Array.from(new Set(results.data.flatMap(d => d.collectionIds)))
     debug('[find] collectionIds:', collectionIds)
 
+    const collections = await this.app
+      .service('collections')
+      .findInternal({
+        user: params.user,
+        query: {
+          uids: collectionIds,
+        },
+      })
+      .then((res: any) => res.data)
+    debug('[find] collections:', collections)
+    if (!collections) {
+      return results
+    }
+    debug('[find] results:', results.data)
+    const collectionsById = collections.reduce((acc: Record<string, any>, d: any) => {
+      acc[d.uid] = d
+      return acc
+    }, {})
+    // distribute collections to CollectableItemGroup
+    results.data.map((d: CollectableItemGroup) => {
+      d.collections = d.collectionIds.map((id: string) => {
+        const collection = collectionsById[id]
+        delete collection.creator
+        return collection
+      })
+      return d
+    })
     return results
   }
 
