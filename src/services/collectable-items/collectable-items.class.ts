@@ -50,11 +50,11 @@ export class Service {
       statusDeleted: STATUS_DELETED,
     }
     // Handle filters
-    if (params.sanitized.item_uids) {
+    if (Array.isArray(params.sanitized.item_uids) && params.sanitized.item_uids.length) {
       whereClauses.push(`item_id IN (:itemUids)`)
       replacements.itemUids = params.sanitized.item_uids
     }
-    if (params.sanitized.collection_uids) {
+    if (Array.isArray(params.sanitized.collection_uids) && params.sanitized.collection_uids.length) {
       whereClauses.push(`collection_id IN (:collectionUids)`)
       replacements.collectionUids = params.sanitized.collection_uids
     }
