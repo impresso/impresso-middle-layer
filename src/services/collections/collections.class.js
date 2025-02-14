@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
+import Collection from '../../models/collections.model'
 const debug = require('debug')('impresso/services:collections')
 const { pick, identity } = require('lodash')
 const { Op } = require('sequelize')
 const { BadGateway } = require('@feathersjs/errors')
-import Collection from '../../models/collections.model'
 
 const SequelizeService = require('../sequelize.service')
 const { measureTime } = require('../../util/instruments')
