@@ -271,7 +271,7 @@ const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S
 const REGEX_SLUG = /^[a-z0-9-]+$/
 const REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()-]+$/
 const EXTENDED_REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()/$-]+$/
-const REGEX_UIDS = /^[A-zÀ-Ÿ0-9_.–,"'-]+[A-zÀ-Ÿ0-9_.,"'-]+$/
+const REGEX_UIDS = /^[A-zÀ-Ÿ0-9_.–,"'-]+[A-zÀ-Ÿ0-9_.,"'-]+\*?$/
 const REGEX_NUMERIC = /^\d+$/
 
 const VALIDATE_OPTIONAL_UID = {

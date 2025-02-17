@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
+import Collection from '../../models/collections.model'
 const debug = require('debug')('impresso/services:collections')
 const { pick, identity } = require('lodash')
 const { Op } = require('sequelize')
 const { BadGateway } = require('@feathersjs/errors')
 
-const Collection = require('../../models/collections.model')
 const SequelizeService = require('../sequelize.service')
 const { measureTime } = require('../../util/instruments')
 
@@ -74,7 +74,7 @@ class Service {
       if (params.user) {
         where[Op.not] = { status: { [Op.in]: [Collection.STATUS_DELETED] } }
         where[Op.or] = [
-          { '$creator.profile.uid$': params.user.uid },
+          { creatorId: params.user.id },
           { status: { [Op.in]: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED] } },
         ]
       } else {
