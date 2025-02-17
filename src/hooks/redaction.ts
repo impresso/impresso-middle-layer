@@ -5,6 +5,7 @@ import { Redactable, RedactionPolicy, redactObject } from '../util/redaction'
 import { SlimUser } from '../authentication'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '../models/authorization'
 import { BufferUserPlanGuest } from '../models/user-bitmap.model'
+import { OpenPermissions, bitmapsAlign as bitmapsAlignCheck } from '../util/bigint'
 
 export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 
@@ -103,9 +104,9 @@ export const bitmapsAlign = (
   const userBitmap = user?.bitmap ?? BufferUserPlanGuest
 
   const contentBitmap =
-    contentBitmapExtractor != null && redactable != null ? contentBitmapExtractor(redactable) : BigInt(0)
+    contentBitmapExtractor != null && redactable != null ? contentBitmapExtractor(redactable) : OpenPermissions
 
-  return (contentBitmap & userBitmap) != BigInt(0)
+  return bitmapsAlignCheck(contentBitmap, userBitmap)
 }
 
 export type { RedactionPolicy }
@@ -113,9 +114,9 @@ export type { RedactionPolicy }
 const authBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
   const authorizationBitmapDto = redactable[AuthorizationBitmapsKey]
   if (isAuthorizationBitmapsDTO(authorizationBitmapDto)) {
-    return authorizationBitmapDto[kind] ?? BigInt(0)
+    return authorizationBitmapDto[kind] ?? OpenPermissions
   }
-  return BigInt(0)
+  return OpenPermissions
 }
 
 /**
@@ -137,7 +138,7 @@ const webappAuthBitmapExtractor = (redactable: Redactable, kind: keyof Authoriza
   }
   const actualKey = `bitmap${kind.charAt(0).toUpperCase() + kind.slice(1)}`
   const value = redactable[actualKey]
-  return value != null ? BigInt(value) : BigInt(0)
+  return value != null ? BigInt(value) : OpenPermissions
 }
 
 /**
