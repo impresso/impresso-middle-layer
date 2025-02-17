@@ -31,7 +31,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
   debug('configuring media ...', config.host, config.path)
   app.use(`${config?.path}/:service/:id`, [
     function (req: Request, res: Response, next: NextFunction) {
-      if (config.services.indexOf(req.params.service) === -1) {
+      if (config.services?.indexOf(req.params.service) === -1) {
         return res.status(400).json({ message: 'Bad param service' })
       }
 

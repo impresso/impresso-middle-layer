@@ -17,6 +17,7 @@ const { SolrMappings } = require('../../data/constants')
 
 const { getFacetsFromSolrResponse } = require('../search/search.extractors')
 const { filtersToQueryAndVariables } = require('../../util/solr')
+const { SolrNamespaces } = require('../../solr')
 
 /**
  * Create SOLR query for getting facets.
@@ -138,8 +139,8 @@ function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = [])
  * @param {any} solrResponse
  * @returns {Promise<Facet[]>}
  */
-async function getResponseFacetsFromSolrResponse(solrResponse) {
-  const facets = await getFacetsFromSolrResponse(solrResponse)
+async function getResponseFacetsFromSolrResponse(solrResponse, app) {
+  const facets = await getFacetsFromSolrResponse(solrResponse, app)
   return Object.keys(facets)
     .filter(type => typeof facets[type] === 'object')
     .map(type => ({
@@ -150,10 +151,10 @@ async function getResponseFacetsFromSolrResponse(solrResponse) {
 
 class SearchQueriesComparison {
   setup(app) {
-    // this.solrClient = app.get('solrClient');
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
 
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    this.app = app
 
     // this.handlers = {
     //   intersection: this.findIntersectingItemsBetweenQueries.bind(this),
@@ -172,8 +173,8 @@ class SearchQueriesComparison {
 
     const intersectionSolrQuery = createSolrQuery(intersectionFilters, request.facets)
     const intersectionFacets = await this.solr
-      .post(intersectionSolrQuery, this.solr.namespaces.Search)
-      .then(getResponseFacetsFromSolrResponse)
+      .select(SolrNamespaces.Search, { body: intersectionSolrQuery })
+      .then(r => getResponseFacetsFromSolrResponse(r, this.app))
 
     const otherQueries = request.filtersSets.map(filtersSet =>
       createSolrQuery(filtersSet, request.facets, intersectionFacets)
@@ -182,9 +183,9 @@ class SearchQueriesComparison {
     const otherQueriesFacets = await Promise.all(
       otherQueries.map(query =>
         this.solr
-          .post(query, this.solr.namespaces.Search)
+          .select(SolrNamespaces.Search, { body: query })
           .then(response => normaliseFacetsInSolrResponse(response, intersectionFacets))
-          .then(getResponseFacetsFromSolrResponse)
+          .then(r => getResponseFacetsFromSolrResponse(r, this.app))
       )
     )
 

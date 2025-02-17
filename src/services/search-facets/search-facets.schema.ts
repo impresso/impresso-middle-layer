@@ -1,84 +1,111 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import { SolrMappings } from '../../data/constants'
-import { QueryParameter, filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
+import {
+  MethodParameter,
+  QueryParameter,
+  filtersQueryParameter,
+  getStandardParameters,
+  getStandardResponses,
+} from '../../util/openapi'
 
 const SupportedIndexes = Object.keys(SolrMappings)
 
-export type IndexId = 'search' | 'tr-clusters' | 'tr-passages'
+export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images'
 
 export const facetTypes: Record<IndexId, string[]> = {
   search: Object.keys(SolrMappings.search.facets),
   'tr-clusters': Object.keys(SolrMappings['tr_clusters'].facets),
   'tr-passages': Object.keys(SolrMappings['tr_passages'].facets),
+  images: Object.keys(SolrMappings.images.facets),
 }
 
 const facetNames: Record<IndexId, string> = {
   search: 'search index',
   'tr-clusters': 'text reuse clusters index',
   'tr-passages': 'text reuse passages index',
+  images: 'images index',
 }
 
 export const OrderByChoices = ['-count', 'count', '-value', 'value']
 
-const getGetParameters = (index: IndexId): QueryParameter[] => [
-  {
-    in: 'query',
-    name: 'order_by',
-    required: false,
-    schema: {
-      type: 'string',
-      enum: OrderByChoices,
-    },
-    description: 'Order by',
+const parameterOrderBy: QueryParameter = {
+  in: 'query',
+  name: 'order_by',
+  required: false,
+  schema: {
+    type: 'string',
+    enum: OrderByChoices,
   },
-  {
-    in: 'query',
-    name: 'group_by',
-    required: false,
-    schema: {
-      type: 'string',
-      enum: facetTypes[index],
-    },
-    description: 'Group by',
+  description: 'Order by',
+}
+
+const parameterGroupBy = (index: IndexId): QueryParameter => ({
+  in: 'query',
+  name: 'group_by',
+  required: false,
+  schema: {
+    type: 'string',
+    enum: facetTypes[index],
   },
+  description: 'Group by',
+})
+
+const parameterRangeStart: QueryParameter = {
+  in: 'query',
+  name: 'range_start',
+  required: false,
+  schema: {
+    type: 'number',
+  },
+  description: 'Range start',
+}
+
+const parameterRangeEnd: QueryParameter = {
+  in: 'query',
+  name: 'range_end',
+  required: false,
+  schema: {
+    type: 'number',
+  },
+  description: 'Range end',
+}
+
+const parameterRangeGap: QueryParameter = {
+  in: 'query',
+  name: 'range_gap',
+  required: false,
+  schema: {
+    type: 'number',
+  },
+  description: 'Range gap',
+}
+
+const parameterRangeInclude: QueryParameter = {
+  in: 'query',
+  name: 'range_include',
+  required: false,
+  schema: {
+    type: 'string',
+    enum: ['edge', 'all', 'upper'],
+  },
+  description: 'Range include',
+}
+
+const getGetParameters = (index: IndexId): MethodParameter[] => [
+  parameterOrderBy,
+  parameterGroupBy(index),
   filtersQueryParameter,
-  {
-    in: 'query',
-    name: 'range_start',
-    required: false,
-    schema: {
-      type: 'number',
-    },
-    description: 'Range start',
-  },
-  {
-    in: 'query',
-    name: 'range_end',
-    required: false,
-    schema: {
-      type: 'number',
-    },
-    description: 'Range end',
-  },
-  {
-    in: 'query',
-    name: 'range_gap',
-    required: false,
-    schema: {
-      type: 'number',
-    },
-    description: 'Range gap',
-  },
-  {
-    in: 'query',
-    name: 'range_include',
-    required: false,
-    schema: {
-      type: 'string',
-      enum: ['edge', 'all', 'upper'],
-    },
-    description: 'Range include',
-  },
+  parameterRangeStart,
+  parameterRangeEnd,
+  parameterRangeGap,
+  parameterRangeInclude,
+  ...getStandardParameters({ method: 'find' }),
+]
+
+const getGetParametersPublic = (index: IndexId): MethodParameter[] => [
+  parameterOrderBy,
+  filtersQueryParameter,
+  ...getStandardParameters({ method: 'find' }),
 ]
 
 const getFindParameters = (index: IndexId): QueryParameter[] => [
@@ -102,10 +129,13 @@ const toPascalCase = (s: string) => {
   return result.charAt(0).toUpperCase() + result.slice(1)
 }
 
-export const getDocs = (index: IndexId): ServiceSwaggerOptions => ({
+export const getDocs = (index: IndexId, isPublicApi: boolean): ServiceSwaggerOptions => ({
   description: `${facetNames[index]} facets`,
-  securities: ['get', 'find'],
+  securities: ['get' /*, 'find' */],
   operations: {
+    // RK: I disabled the find operation because it can be entirely replaced by individual get operations,
+    // not used in impresso-py and adds extra maintenance burden.
+    /*
     find: {
       operationId: `find${toPascalCase(index)}Facets`,
       description: `Get mutliple ${facetNames[index]} facets`,
@@ -119,6 +149,7 @@ export const getDocs = (index: IndexId): ServiceSwaggerOptions => ({
         schema: 'SearchFacet',
       }),
     },
+    */
     get: {
       operationId: `get${toPascalCase(index)}Facet`,
       description: `Get a single ${facetNames[index]} facet`,
@@ -133,12 +164,12 @@ export const getDocs = (index: IndexId): ServiceSwaggerOptions => ({
           },
           description: 'Type of the facet',
         },
-        ...getGetParameters(index),
-        ...getStandardParameters({ method: 'find' }),
+        ...(isPublicApi ? getGetParametersPublic(index) : getGetParameters(index)),
       ],
       responses: getStandardResponses({
-        method: 'get',
-        schema: 'SearchFacet',
+        method: 'find',
+        schema: 'SearchFacetBucket',
+        isPublic: isPublicApi,
       }),
     },
   },

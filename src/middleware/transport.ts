@@ -1,19 +1,20 @@
 import type { Application as ExpressApplication } from '@feathersjs/express'
-import { json, rest, urlencoded } from '@feathersjs/express'
+import { rest, urlencoded } from '@feathersjs/express'
+import { Decoder } from 'socket.io-parser'
 import cors from 'cors'
 import { ImpressoApplication } from '../types'
 // import { Server as EioWsServer } from 'eiows'
 
 import socketio from '@feathersjs/socketio'
 import { logger } from '../logger'
+import { CustomEncoder, CustomDecoder } from '../util/jsonCodec'
+import { customJsonMiddleware } from '../util/express'
 
 export default (app: ImpressoApplication & ExpressApplication) => {
   const isPublicApi = app.get('isPublicApi')
 
   if (isPublicApi) {
     logger.info('Public API - enabling REST transport')
-    // Turn on JSON parser for REST services
-    app.use(json())
     // Turn on URL-encoded parser for REST services
     app.use(urlencoded({ extended: true }))
 
@@ -34,6 +35,8 @@ export default (app: ImpressoApplication & ExpressApplication) => {
             credentials: true,
             origin: app.get('allowedCorsOrigins') ?? [],
           },
+          parser: { Encoder: CustomEncoder, Decoder },
+          // parser: customParser,
           // wsEngine: EioWsServer,
         },
         io => {

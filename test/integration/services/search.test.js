@@ -1,5 +1,5 @@
-const assert = require('assert');
-const app = require('../../../src/app');
+const assert = require('assert')
+const app = require('../../../src/app')
 
 /**
  * Test for search endpoint. Usage:
@@ -16,17 +16,23 @@ const app = require('../../../src/app');
   && NODE_ENV=test DEBUG=impresso* mocha test/services/search.test.js
 
  */
-describe('\'search\' service', function () {
-  this.timeout(15000);
-  const service = app.service('search');
+describe("'search' service", function () {
+  this.timeout(15000)
+
+  let service
+
+  before(() => {
+    service = app.service('search')
+  })
+
   // const staff = {
   //   uid: 'local-user-test-only',
   //   is_staff: true,
   // };
 
   it('registered the service', () => {
-    assert.ok(service, 'Registered the service');
-  });
+    assert.ok(service, 'Registered the service')
+  })
 
   it('get user collection facets (if any, but should not be any err)', async () => {
     const result = await service.find({
@@ -38,19 +44,20 @@ describe('\'search\' service', function () {
         facets: ['collection'],
         filters: [],
       },
-    });
+    })
 
-    assert.ok(result.data);
-    assert.ok(result.info.facets);
+    assert.ok(result.data)
+    assert.ok(result.info.facets)
 
-    console.log(result.info.facets.collection);
-  });
+    console.log(result.info.facets.collection)
+  })
 
   it('get search results for one specific topic', async () => {
     // find one topic
-    const [t1, t2] = await app.service('topics')
+    const [t1, t2] = await app
+      .service('topics')
       .find({ query: { limit: 2 } })
-      .then(({ data }) => data);
+      .then(({ data }) => data)
 
     const result = await service.find({
       query: {
@@ -69,11 +76,11 @@ describe('\'search\' service', function () {
           },
         ],
       },
-    });
+    })
     // console.log(result.info.facets.topic);
-    assert.ok(result.info.facets.topic, 'should expose topic in facet');
-    assert.ok(result.info.facets.year, 'should expose year in facet');
-  });
+    assert.ok(result.info.facets.topic, 'should expose topic in facet')
+    assert.ok(result.info.facets.year, 'should expose year in facet')
+  })
   it('get search results with regex queries', async () => {
     const result = await service.find({
       query: {
@@ -87,10 +94,10 @@ describe('\'search\' service', function () {
           },
         ],
       },
-    });
+    })
     // console.log(result)
-    assert.ok(result.info.facets.year);
-  });
+    assert.ok(result.info.facets.year)
+  })
 
   it('get search results when no filters is given', async () => {
     // return;
@@ -102,10 +109,10 @@ describe('\'search\' service', function () {
         limit: 12,
         order_by: '-relevance',
       },
-    });
-    assert.ok(result.info.queryComponents);
-    assert.ok(result.info.facets.year);
-  });
+    })
+    assert.ok(result.info.queryComponents)
+    assert.ok(result.info.facets.year)
+  })
 
   it('get search results with daterange filters', async () => {
     const result = await service.find({
@@ -125,9 +132,9 @@ describe('\'search\' service', function () {
           },
         ],
       },
-    });
-    assert.ok(result.info.facets.year);
-  });
+    })
+    assert.ok(result.info.facets.year)
+  })
 
   it('get search results with newspaper filters, without searching for text', async () => {
     const result = await service.find({
@@ -142,10 +149,10 @@ describe('\'search\' service', function () {
         limit: 1,
         order_by: '-relevance',
       },
-    });
-    assert.ok(result);
-    assert.deepEqual(result.data[0].newspaper.uid, 'NZZ');
-  });
+    })
+    assert.ok(result)
+    assert.deepEqual(result.data[0].newspaper.uid, 'NZZ')
+  })
 
   it('get search results with newspaper filters, with string filter', async () => {
     const result = await service.find({
@@ -160,24 +167,26 @@ describe('\'search\' service', function () {
         limit: 12,
         order_by: '-relevance',
       },
-    });
-    assert.ok(result);
-    assert.deepEqual(result.data[0].newspaper.uid, 'NZZ');
-  });
+    })
+    assert.ok(result)
+    assert.deepEqual(result.data[0].newspaper.uid, 'NZZ')
+  })
 
   it('loaded solr content', async () => {
-    const results = await service.find({
-      query: {
-        q: 'avion accident',
-        group_by: 'articles',
-        facets: ['year'],
-      },
-    }).catch((err) => {
-      assert.fail(err);
-    });
+    const results = await service
+      .find({
+        query: {
+          q: 'avion accident',
+          group_by: 'articles',
+          facets: ['year'],
+        },
+      })
+      .catch(err => {
+        assert.fail(err)
+      })
 
-    assert.ok(results.data.length);
-  });
+    assert.ok(results.data.length)
+  })
 
   // it('loaded solr content, filters & facets, with current user having a bucket ;)', async () => {
   //   // remove the bucket if any
@@ -254,9 +263,7 @@ describe('\'search\' service', function () {
         group_by: 'articles',
         order_by: '-date,-relevance',
         limit: 1,
-        facets: [
-          'language',
-        ],
+        facets: ['language'],
         filters: [
           {
             type: 'string',
@@ -268,7 +275,7 @@ describe('\'search\' service', function () {
       user: {
         uid: 'local-user-test-only',
       },
-    });
-    assert.ok(res);
-  });
-});
+    })
+    assert.ok(res)
+  })
+})

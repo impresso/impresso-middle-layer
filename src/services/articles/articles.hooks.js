@@ -1,7 +1,15 @@
 import { rateLimit } from '../../hooks/rateLimiter'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { redactResponse, redactResponseDataItem, defaultCondition } from '../../hooks/redaction'
+import {
+  redactResponse,
+  redactResponseDataItem,
+  publicApiTranscriptRedactionCondition,
+  webAppExploreRedactionCondition,
+  inPublicApi,
+} from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
+import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
+import { transformContentItem } from '../../transformers/contentItem'
 
 const {
   utils,
@@ -13,25 +21,22 @@ const {
   REGEX_UID,
 } = require('../../hooks/params')
 const { filtersToSolrQuery } = require('../../hooks/search')
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis')
 
 const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers')
 const { obfuscate } = require('../../hooks/access-rights')
 const { SolrMappings } = require('../../data/constants')
 
-const articleRedactionPolicy = loadYamlFile(`${__dirname}/resources/articleRedactionPolicy.yml`)
+export const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicy.yml`)
+export const contentItemRedactionPolicyWebApp = loadYamlFile(
+  `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
+)
 
-module.exports = {
+export default {
   around: {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
-    all: [
-      checkCachedContents({
-        useAuthenticatedUser: false,
-        useAuthentication: true,
-      }),
-    ],
+    all: [],
     find: [
       validate({
         resolve: {
@@ -88,24 +93,19 @@ module.exports = {
     find: [
       displayQueryParams(['filters']),
       protect('content'),
-      returnCachedContents({
-        skipHooks: false,
-      }),
       resolveTopics(),
-      saveResultsInCache(),
       obfuscate(),
-      redactResponseDataItem(articleRedactionPolicy, defaultCondition),
+      transformResponseDataItem(transformContentItem, inPublicApi),
+      redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
+      redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     get: [
-      // save here cache, flush cache here
-      returnCachedContents({
-        skipHooks: false,
-      }),
       resolveTopics(),
-      saveResultsInCache(),
       resolveUserAddons(),
       obfuscate(),
-      redactResponse(articleRedactionPolicy, defaultCondition),
+      transformResponse(transformContentItem, inPublicApi),
+      redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
+      redactResponse(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     create: [],
     update: [],

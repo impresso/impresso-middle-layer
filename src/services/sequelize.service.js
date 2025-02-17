@@ -11,14 +11,27 @@ function getCacheKeyForReadSqlRequest(request, modelName) {
   return ['cache', 'db', modelName != null ? modelName : 'unk', key].join(':')
 }
 
+const loadDynamicModule = async name => {
+  return import(name).catch(e => {
+    return require(name)
+  })
+}
+
 class SequelizeService {
   constructor({ name = '', app = null, modelName = null, cacheReads = false } = {}) {
     this.name = String(name)
     this.modelName = String(modelName || name)
     this.sequelize = sequelize.client(app.get('sequelize'))
+    loadDynamicModule(`../models/${this.modelName}.model`)
+      .then(m => {
+        this.Model = m.Model ?? m.default?.default ?? m.default ?? m
+        this.sequelizeKlass = this.Model.sequelize(this.sequelize)
 
-    this.Model = require(`../models/${this.modelName}.model`)
-    this.sequelizeKlass = this.Model.sequelize(this.sequelize)
+        debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
+      })
+      .catch(err => {
+        throw new Error(`Sequelize Model not found in import: ${this.modelName}: ${err.message}`, err)
+      })
 
     this.cacheReads = cacheReads
     this.cacheManager = app.get('cacheManager')
@@ -180,7 +193,7 @@ class SequelizeService {
         }))
       return dbResultPromise
     }
-    const cachedPromise = this.cacheReads ? this.cacheManager.wrap(cacheKey, getFromDb, cacheOptions) : getFromDb()
+    const cachedPromise = this.cacheReads ? this.cacheManager.wrap(cacheKey, getFromDb, cacheOptions.ttl) : getFromDb()
 
     return cachedPromise.catch(sequelizeErrorHandler)
   }

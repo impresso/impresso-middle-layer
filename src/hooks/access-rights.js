@@ -16,7 +16,7 @@ const obfuscatePageMapper = page => {
 }
 
 /**
- * Gibven an issue instance, obfuscate iiif for any page
+ * Given an issue instance, obfuscate iiif for any page
  * @param  {[type]} issue [description]
  * @return {[type]}       [description]
  */

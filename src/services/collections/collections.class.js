@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
+import Collection from '../../models/collections.model'
 const debug = require('debug')('impresso/services:collections')
 const { pick, identity } = require('lodash')
 const { Op } = require('sequelize')
 const { BadGateway } = require('@feathersjs/errors')
 
-const Collection = require('../../models/collections.model')
 const SequelizeService = require('../sequelize.service')
 const { measureTime } = require('../../util/instruments')
 
@@ -24,6 +24,14 @@ class Service {
   }
 
   async find(params) {
+    return this._find(params)
+  }
+
+  async findInternal(params) {
+    return this._find(params)
+  }
+
+  async _find(params) {
     const where = {
       [Op.not]: { status: Collection.STATUS_DELETED },
       [Op.and]: [
@@ -58,16 +66,6 @@ class Service {
   }
 
   async get(id, params) {
-    const uids = id.split(',')
-    if (params.findAll || (uids.length > 1 && uids.length < 20)) {
-      return this.find({
-        ...params,
-        query: {
-          ...params.query,
-          uids,
-        },
-      }).then(d => d.data)
-    }
     const where = {
       uid: id,
     }
@@ -76,7 +74,7 @@ class Service {
       if (params.user) {
         where[Op.not] = { status: { [Op.in]: [Collection.STATUS_DELETED] } }
         where[Op.or] = [
-          { '$creator.profile.uid$': params.user.uid },
+          { creatorId: params.user.id },
           { status: { [Op.in]: [Collection.STATUS_PUBLIC, Collection.STATUS_SHARED] } },
         ]
       } else {

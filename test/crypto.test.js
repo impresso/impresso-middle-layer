@@ -1,5 +1,5 @@
-const assert = require('assert');
-const { encrypt } = require('../src/crypto');
+const assert = require('assert')
+const { encrypt } = require('../src/crypto')
 
 /**
  * use with
@@ -15,8 +15,19 @@ describe('encrypt password as django does', () => {
       length: 32,
       formatPassword: p => p, // identity
       encoding: 'base64',
-    });
-    assert.equal('JN8F5rBKNpEg', result.salt);
-    assert.equal('LwibtC6lSSSAIUimQcRRjwPMB+No5g/eQRbhwsA++tQ=', result.password);
-  });
-});
+    })
+    assert.equal('JN8F5rBKNpEg', result.salt)
+    assert.equal('LwibtC6lSSSAIUimQcRRjwPMB+No5g/eQRbhwsA++tQ=', result.password)
+  })
+
+  it('should encrypt password with custom salt', () => {
+    const result = encrypt('armada84', {
+      salt: '',
+      iterations: 120000,
+      length: 32,
+      formatPassword: p => p, // identity
+      encoding: 'base64',
+    })
+    assert.ok(result.salt.length > 0, 'returned salt should not be empty')
+  })
+})

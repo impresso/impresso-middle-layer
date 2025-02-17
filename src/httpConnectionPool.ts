@@ -1,6 +1,10 @@
-import { request, RequestInfo, RequestInit, Dispatcher, Agent, RetryAgent } from 'undici'
+import { request, RequestInfo, RequestInit, Dispatcher, Agent, RetryAgent, RetryHandler, Headers } from 'undici'
+import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
 import { IncomingHttpHeaders } from 'undici/types/header'
+import { SolrServerProxy } from './configuration'
+
+export { RequestInfo, RequestInit, Headers }
 
 export interface IResponse {
   get ok(): boolean
@@ -9,8 +13,13 @@ export interface IResponse {
   json(): Promise<any>
 }
 
+export interface FetchOptions {
+  retryOptions?: RetryHandler.RetryOptions
+  onUnsuccessfulResponse?: (url: string, method: string, body: Record<string, any>, response: IResponse) => void
+}
+
 interface IConnectionWrapper {
-  fetch(url: RequestInfo, init?: RequestInit): Promise<IResponse>
+  fetch(url: RequestInfo, init?: RequestInit, options?: FetchOptions): Promise<IResponse>
 }
 
 function urlSearchParamsToFormData(urlSearchParams: URLSearchParams): FormData {
@@ -47,7 +56,7 @@ export class Response implements IResponse {
   }
 
   async text() {
-    if (this._text) return this._text
+    if (this._text != null) return this._text
 
     const chunks = []
     for await (const chunk of this.data.body) {
@@ -68,17 +77,45 @@ export class Response implements IResponse {
  * because functions are sometimes not recognised by the pool.
  */
 class ConnectionWrapper implements IConnectionWrapper {
-  async fetch(url: RequestInfo, init?: RequestInit): Promise<IResponse> {
+  socksProxyOptions?: SolrServerProxy
+
+  constructor(socksProxyOptions?: SolrServerProxy) {
+    this.socksProxyOptions = socksProxyOptions
+  }
+
+  _createBaseAgent(): Agent {
+    if (this.socksProxyOptions != null) {
+      const proxyConfig: SocksProxies = [
+        {
+          type: 5,
+          host: this.socksProxyOptions.host,
+          port: this.socksProxyOptions.port,
+        },
+      ]
+      const socksAgent = socksDispatcher(proxyConfig, {
+        connect: {
+          // set some TLS options
+          rejectUnauthorized: false,
+        },
+      })
+
+      return socksAgent
+    } else {
+      return new Agent()
+    }
+  }
+
+  async fetch(url: RequestInfo, init?: RequestInit, options?: FetchOptions): Promise<IResponse> {
     const body = init?.body instanceof URLSearchParams ? urlSearchParamsToFormData(init.body) : init?.body
 
     if (url instanceof Request) throw new Error('Request object not supported by undici')
 
     const theUrl: string = url instanceof Request ? url.url : new String(url).toString()
 
-    const agent = new RetryAgent(new Agent(), {
-      maxRetries: 3,
-      maxTimeout: 10000,
-    })
+    const agent =
+      options?.retryOptions != null
+        ? new RetryAgent(this._createBaseAgent(), options?.retryOptions)
+        : this._createBaseAgent()
 
     const result = await request(theUrl, {
       method: init?.method as Dispatcher.HttpMethod,
@@ -86,14 +123,29 @@ class ConnectionWrapper implements IConnectionWrapper {
       body: body as any,
       dispatcher: agent,
     })
+    const response = new Response(result)
+    await response.text()
+    if (!response.ok) {
+      try {
+        options?.onUnsuccessfulResponse?.(theUrl, init?.method as string, body as Record<string, any>, response)
+      } catch (error) {
+        // do nothing
+      }
+    }
 
-    return new Response(result)
+    return response
   }
 }
 
 class ConnectionFactory implements Factory<IConnectionWrapper> {
+  socksProxyOptions?: SolrServerProxy
+
+  constructor(socksProxyOptions?: SolrServerProxy) {
+    this.socksProxyOptions = socksProxyOptions
+  }
+
   async create() {
-    return new ConnectionWrapper()
+    return new ConnectionWrapper(this.socksProxyOptions)
   }
 
   async destroy() {
@@ -101,13 +153,24 @@ class ConnectionFactory implements Factory<IConnectionWrapper> {
   }
 }
 
-export function initHttpPool({ maxParallelConnections = 200, acquireTimeoutSec = 25 } = {}): Pool<IConnectionWrapper> {
-  const opts = {
+export interface InitHttpPoolOptions {
+  maxParallelConnections?: number
+  acquireTimeoutSec?: number
+  socksProxy?: SolrServerProxy
+}
+
+export function initHttpPool({
+  maxParallelConnections = 200,
+  acquireTimeoutSec = 25,
+  socksProxy,
+}: InitHttpPoolOptions = {}): Pool<IConnectionWrapper> {
+  const poolOptions = {
     min: maxParallelConnections ?? 200,
     max: maxParallelConnections ?? 200,
     acquireTimeoutMillis: acquireTimeoutSec * 1000,
   }
-  return createPool(new ConnectionFactory(), opts)
+
+  return createPool(new ConnectionFactory(socksProxy), poolOptions)
 }
 
 type ConnectionPool = Pool<IConnectionWrapper>

@@ -2,10 +2,8 @@ import { ServiceOptions } from '@feathersjs/feathers'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { ImpressoApplication } from '../../types'
 import { docs } from './articles.schema'
-
-// Initializes the `articles` service on path `/articles`
-const createService = require('./articles.class')
-const hooks = require('./articles.hooks')
+import createService from './articles.class'
+import hooks from './articles.hooks'
 
 export default function (app: ImpressoApplication) {
   const paginate = app.get('paginate')
@@ -28,6 +26,7 @@ export default function (app: ImpressoApplication) {
   // Initialize our service with any options it requires
   app.use('/content-items', svc, {
     events: [],
+    methods: ['get'],
     docs: createSwaggerServiceOptions({ schemas: {}, docs }),
   } as ServiceOptions)
 

@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Content Item",
+  "description": "A journal/magazine content item (article, advertisement, etc.)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "The unique identifier of the content item.",
+      "minLength": 1
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of the content item, as present in the OLR provided by the data provider. All content items are not characterised by the same set of types."
+    },
+    "title": {
+      "type": "string",
+      "description": "The title of the content item."
+    },
+    "transcript": {
+      "type": "string",
+      "description": "Transcript of the content item."
+    },
+    "locations": {
+      "type": "array",
+      "description": "Locations mentioned in the content item.",
+      "items": {
+        "$ref": "./EntityMention.json"
+      }
+    },
+    "persons": {
+      "type": "array",
+      "description": "Persions mentioned in the content item.",
+      "items": {
+        "$ref": "./EntityMention.json"
+      }
+    },
+    "topics": {
+      "type": "array",
+      "description": "Topics mentioned in the content item.",
+      "items": {
+        "$ref": "./TopicMention.json"
+      }
+    },
+    "transcriptLength": {
+      "type": "number",
+      "description": "The length of the transcript in characters.",
+      "minimum": 0
+    },
+    "totalPages": {
+      "type": "number",
+      "description": "Total number of pages the item covers.",
+      "minimum": 0
+    },
+    "languageCode": {
+      "type": "string",
+      "description": "ISO 639-1 language code of the content item."
+    },
+    "isOnFrontPage": {
+      "type": "boolean",
+      "description": "Whether the content item is on the front page of the publication."
+    },
+    "publicationDate": {
+      "type": "string",
+      "description": "The publication date of the content item.",
+      "format": "date-time"
+    },
+    "countryCode": {
+      "type": "string",
+      "description": "ISO 3166-1 alpha-2 country code of the content item."
+    },
+    "dataProviderCode": {
+      "type": "string",
+      "description": "The code of the data provider."
+    },
+    "mediaCode": {
+      "type": "string",
+      "description": "Code of the newspaper or the other media the content item belongs to."
+    },
+    "mediaType": {
+      "type": "string",
+      "description": "The type of the media the content item belongs to.",
+      "enum": ["newspaper"]
+    }
+  },
+  "required": ["uid"]
+}

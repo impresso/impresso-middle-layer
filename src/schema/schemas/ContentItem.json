@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ContentItem",
+  "title": "Content Item",
   "description": "A journal/magazine content item (article, advertisement, etc.)",
   "type": "object",
   "additionalProperties": false,
@@ -85,7 +85,18 @@
     },
     "accessRight": {
       "type": "string",
-      "enum": ["na", "OpenPrivate", "Closed", "OpenPublic"]
+      "enum": ["na", "OpenPrivate", "Closed", "OpenPublic"],
+      "description": "The access rights of the content item. Available in Impresso 1.0 only"
+    },
+    "dataDomain": {
+      "type": "string",
+      "enum": ["pbl", "prt"],
+      "description": "The data domain of the content item ('pbl' for Public Domain, 'prt' for Protected Domain). Available in Impresso 2.0 only"
+    },
+    "copyright": {
+      "type": "string",
+      "enum": ["pbl", "und", "nkn", "euo", "unk", "in_cpy"],
+      "description": "Copyright of the content item. Available in Impresso 2.0 only. pbl: 'Public Domain', und: 'Protected Domain: Copyright undetermined', nkn: 'Protected Domain: No Known Copyright', euo: 'Protected Domain: In copyright - EU Orphan Work', unk: 'Protected Domain: In copyright - Unknown rightsholders', in_cpy: 'Protected Domain: In copyright'."
     },
     "isFront": {
       "type": "boolean",
@@ -159,7 +170,19 @@
     "v": {
       "type": "string",
       "description": "TODO"
+    },
+    "bitmapExplore": {
+      "type": "integer",
+      "description": "Access rights bitmap for the UI"
+    },
+    "bitmapGetTranscript": {
+      "type": "integer",
+      "description": "Access rights bitmap for downloading the transcript"
+    },
+    "bitmapGetImages": {
+      "type": "integer",
+      "description": "Access rights bitmap for getting images"
     }
   },
-  "required": ["uid", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt", "labels", "accessRight", "year"]
+  "required": ["uid", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt", "labels", "year"]
 }

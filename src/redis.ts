@@ -4,13 +4,15 @@ import type { RedisConfiguration } from './configuration'
 import { logger } from './logger'
 import { ImpressoApplication } from './types'
 import { ensureServiceIsFeathersCompatible } from './util/feathers'
+import { Application } from '@feathersjs/feathers'
+import { HookContext, NextFunction } from '@feathersjs/hooks'
 
 type RedisClient = ReturnType<typeof createClient>
 
 export type { RedisClient }
 
 const getRedisClient = (config: RedisConfiguration): RedisClient => {
-  const { host, enable, ...redisConfig } = config
+  const { host, ...redisConfig } = config
   if (host != null) {
     redisConfig.url = `redis://${host}`
   }
@@ -28,6 +30,8 @@ const getRedisClient = (config: RedisConfiguration): RedisClient => {
  */
 export interface IRedisClientContainer {
   client?: RedisClient
+
+  setup(app: ImpressoApplication, path: string): Promise<void>
 }
 
 /**
@@ -40,8 +44,11 @@ class RedisClientContainer implements IRedisClientContainer {
   }
 
   async setup(app: ImpressoApplication, path: string) {
-    if (this._client == null || this._client.isReady) return
+    if (this._client == null || this._client.isReady) {
+      return
+    }
     await this._client.connect()
+    logger.info('Redis client connected.')
   }
 }
 
@@ -50,12 +57,11 @@ export default (app: ImpressoApplication) => {
   const config = app.get('redis')
   let client: RedisClient | undefined = undefined
 
-  if (!config?.enable) {
-    logger.info('Redis is not configured. No cache is available.')
-  } else {
-    logger.info("Redis configuration found, let's see if it works...")
-    client = getRedisClient(config)
-  }
+  if (config == null) throw new Error('Redis config is missing')
+
+  logger.info("Redis configuration found, let's see if it works...")
+  client = getRedisClient(config)
+  logger.info('Redis client created.')
 
   // Create the redis client container.
   const container = new RedisClientContainer(client)
@@ -68,4 +74,19 @@ export default (app: ImpressoApplication) => {
       all: disallow('external'),
     },
   })
+}
+
+export const init = async (context: HookContext<ImpressoApplication & Application>, next: NextFunction) => {
+  const client = context.app.service('redisClient')
+  if (client) {
+    try {
+      await client.setup(context.app, 'redisClient')
+      logger.info('Redis is active.')
+    } catch (err) {
+      logger.error('Error setting up redis:', err)
+    }
+  } else {
+    logger.warn('Redis is not configured. Cannot activate.')
+  }
+  await next()
 }

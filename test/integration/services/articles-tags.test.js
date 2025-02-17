@@ -15,7 +15,12 @@ mocha test/services/articles-tags.test.js
 describe("'articles-tags' service", function () {
   this.timeout(10000)
 
-  const service = app.service('articles-tags')
+  let service
+
+  before(() => {
+    service = app.service('articles-tags')
+  })
+
   let user = {
     username: 'guest-test-2',
     password: 'Apaaiiai87!!',

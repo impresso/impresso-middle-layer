@@ -3,45 +3,6 @@ import { HookContext } from '@feathersjs/feathers'
 const { authenticate } = require('@feathersjs/authentication').hooks
 const { queryWithCommonParams, validate, validateEach, utils, REGEX_UID, REGEX_UIDS } = require('../../hooks/params')
 
-const { resolve } = require('../../hooks/results')
-
-const reconcile = () => (context: HookContext) => {
-  if (!context.result.resolved) {
-    return
-  }
-
-  const collections = context.result.resolved.find((d: { service: string }) => d.service === 'collections')
-
-  if (!collections || !collections.data || !collections.data.length) {
-    return
-  }
-
-  // fill CollectableItemGroup.collections
-  context.result.data = context.result.data.map((d: any) => {
-    // clean collections
-    d.collections = []
-    collections.data.forEach((coll: { uid: string }) => {
-      if (d.collectionIds.indexOf(coll.uid) !== -1) {
-        d.collections.push(coll)
-      }
-    })
-    return d
-  })
-
-  const articles = context.result.resolved.find((d: any) => d.service === 'articles')
-
-  if (!articles || !articles.data || !articles.data.length) {
-    return
-  }
-
-  // fill CollectableItemGroup.collections
-  context.result.data = context.result.data.map((d: { item: any; itemId: string }) => {
-    // add item
-    d.item = articles.data.find((art: { uid: string }) => art.uid === d.itemId)
-    return d
-  })
-}
-
 export default {
   before: {
     all: [authenticate('jwt')],
@@ -147,25 +108,5 @@ export default {
         }
       ),
     ],
-  },
-
-  after: {
-    all: [],
-    find: [resolve(), reconcile()],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
-  },
-
-  error: {
-    all: [],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
   },
 }

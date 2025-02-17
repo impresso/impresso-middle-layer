@@ -15,24 +15,32 @@
       "description": "The language code of the topic"
     },
     "community": {
-      "type": "string",
-      "description": "TODO"
+      "type": "number",
+      "description": "Topic community score using Louvain algorithm"
     },
     "pagerank": {
       "type": "number",
-      "description": "TODO"
+      "description": "Topic score using PageRank algorithm"
     },
     "degree": {
       "type": "number",
-      "description": "TODO"
+      "description": "Degree score (total related topics)"
+    },
+    "hub": {
+      "type": "number",
+      "description": "Hub score using HITS algorithm"
+    },
+    "authority": {
+      "type": "number",
+      "description": "Authority score using HITS algorithm"
     },
     "x": {
       "type": "number",
-      "description": "TODO"
+      "description": "Graph x position"
     },
     "y": {
       "type": "number",
-      "description": "TODO"
+      "description": "Graph y position"
     },
     "relatedTopics": {
       "type": "array",
@@ -46,19 +54,41 @@
           },
           "w": {
             "type": "number",
-            "description": "TODO"
+            "description": "Related topic weight (total articles in common)"
           },
           "avg": {
             "type": "number",
-            "description": "TODO"
+            "description": "Related topic average combined topic weight"
           }
         },
         "required": ["uid", "w"]
       }
     },
+    "relatedTopicsStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "MinArticlesIncommon": {
+          "type": "number",
+          "description": "TODO"
+        },
+        "MaxRelatedTopicsToKeep": {
+          "type": "number",
+          "description": "TODO"
+        },
+        "RelatedThreshold": {
+          "type": "number",
+          "description": "TODO"
+        },
+        "Threshold": {
+          "type": "number",
+          "description": "TODO"
+        }
+      }
+    },
     "countItems": {
       "type": "number",
-      "description": "TODO"
+      "description": "Number of content items with this topic"
     },
     "excerpt": {
       "type": "array",
@@ -68,7 +98,7 @@
     "words": {
       "type": "array",
       "items": { "$ref": "./TopicWord.json" },
-      "description": "TODO"
+      "description": "Top N words associated with the topic"
     },
     "model": {
       "type": "string",

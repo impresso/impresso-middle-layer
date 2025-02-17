@@ -1,18 +1,18 @@
-import { CachedSolrClient } from '../../cachedSolr'
 import { ImpressoApplication } from '../../types'
 import { Service as SequelizeService } from '../sequelize.service'
 import User from '../../models/users.model'
 import { Params } from '@feathersjs/feathers'
 import { Filter } from 'impresso-jscommons'
 import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters } from './util'
+import { IHuman, ILocation, resolve as resolveWikidata } from '../wikidata'
+import { SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { SolrNamespaces } from '../../solr'
 
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:entities')
 const lodash = require('lodash')
 const { Op } = require('sequelize')
 const { NotFound } = require('@feathersjs/errors')
-
-const wikidata = require('../wikidata')
 
 const Entity = require('../../models/entities.model')
 const { measureTime } = require('../../util/instruments')
@@ -39,7 +39,7 @@ class Service {
   app: ImpressoApplication
   name: string
   sequelizeService: SequelizeService
-  solr: CachedSolrClient
+  solr: SimpleSolrClient
 
   constructor({ app }: { app: ImpressoApplication }) {
     this.app = app
@@ -49,7 +49,7 @@ class Service {
       name: this.name,
       cacheReads: true,
     })
-    this.solr = app.service('cachedSolr')
+    this.solr = app.service('simpleSolrClient')
   }
 
   async create(data: any, params: any) {
@@ -58,6 +58,10 @@ class Service {
   }
 
   async find(params: Params<FindQuery> & Sanitized<FindQuery> & WithUser) {
+    return await this._find(params)
+  }
+
+  async _find(params: Params<FindQuery> & Sanitized<FindQuery> & WithUser) {
     const qp = params.query!
     debug('[find] with params:', qp)
 
@@ -102,7 +106,7 @@ class Service {
     debug('[find] solr query:', query)
 
     const solrResult = await measureTime(
-      () => this.solr.post(query, this.solr.namespaces.Entities),
+      () => this.solr.select(SolrNamespaces.Entities, { body: query }),
       'entities.find.solr.mentions'
     )
 
@@ -174,20 +178,18 @@ class Service {
     const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value()
 
     debug('[find] wikidata loading:', wkdIds.length)
-    const resolvedEntities: Record<string, any> = {}
+    const resolvedEntities: Record<string, IHuman | ILocation> = {}
 
     return Promise.all(
       wkdIds.map((wkdId: string) =>
         measureTime(
           () =>
-            wikidata
-              .resolve({
-                ids: [wkdId],
-                cache: this.app.service('redisClient').client,
-              })
-              .then((resolved: any) => {
-                resolvedEntities[wkdId] = resolved[wkdId]
-              }),
+            resolveWikidata({
+              ids: [wkdId],
+              cache: this.app.service('redisClient').client,
+            }).then(resolved => {
+              resolvedEntities[wkdId] = resolved[wkdId]
+            }),
           'entities.find.wikidata.get'
         )
       )
@@ -209,8 +211,9 @@ class Service {
   }
 
   async get(id: string, params: any) {
-    return this.find({
+    const findParams = {
       ...params,
+      sanitized: { ...params.sanitized, resolve: true },
       query: {
         resolve: true,
         limit: 1,
@@ -222,7 +225,8 @@ class Service {
           },
         ],
       },
-    }).then(res => {
+    }
+    return await this._find(findParams).then(res => {
       if (!res.data.length) {
         throw new NotFound()
       }

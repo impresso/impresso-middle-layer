@@ -1,20 +1,18 @@
-const { eachFilterValidator } = require('../search/search.validators');
-const { validateEach, queryWithCommonParams, validate } = require('../../hooks/params');
-const { filtersToSolrQuery } = require('../../hooks/search');
-const { checkCachedContents, returnCachedContents, saveResultsInCache } = require('../../hooks/redis');
+const { eachFilterValidator } = require('../search/search.validators')
+const { validateEach, queryWithCommonParams, validate } = require('../../hooks/params')
+const { filtersToSolrQuery } = require('../../hooks/search')
 
 /**
  * A special case context validator for the 'find' endpoint here.
  */
-const findEachFilterValidator = { ...eachFilterValidator };
-findEachFilterValidator.context = { ...eachFilterValidator.context };
-findEachFilterValidator.context.choices = eachFilterValidator.context.choices.concat[['visualize']];
+const findEachFilterValidator = { ...eachFilterValidator }
+findEachFilterValidator.context = { ...eachFilterValidator.context }
+findEachFilterValidator.context.choices = eachFilterValidator.context.choices.concat[['visualize']]
 
 module.exports = {
   before: {
     all: [],
     find: [
-      checkCachedContents(),
       validate({
         q: {
           required: false,
@@ -47,10 +45,7 @@ module.exports = {
 
   after: {
     all: [],
-    find: [
-      returnCachedContents(),
-      saveResultsInCache(),
-    ],
+    find: [],
     get: [],
     create: [],
     update: [],
@@ -67,4 +62,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

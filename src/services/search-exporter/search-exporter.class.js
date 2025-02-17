@@ -7,7 +7,6 @@ const article = require('../../models/articles.model')
 
 class Service {
   constructor(options) {
-    this.solr = solr.client(options.app.get('solr'), options.app.get('solrConnectionPool'))
     this.name = options.name
     this.options = options || {}
     this.app = options.app
@@ -26,11 +25,12 @@ class Service {
     const pq = protobuf.searchQuery.serialize({
       filters: params.sanitized.filters,
     })
-    debug('[create] protobuffered:', pq)
+    const task = `impresso.tasks.${data.sanitized.taskname}`
+    debug('[create] - task:', task, '- protobuffered:', pq)
 
     return client
       .run({
-        task: 'impresso.tasks.export_query_as_csv',
+        task,
         args: [
           // user id
           params.user.id,

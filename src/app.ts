@@ -1,75 +1,57 @@
+import express, { Application, static as staticMiddleware } from '@feathersjs/express'
 import { feathers } from '@feathersjs/feathers'
+import compress from 'compression'
+import path from 'path'
+import appHooksFactory from './app.hooks'
+import authentication from './authentication'
+import cache from './cache'
 import celery, { init as initCelery } from './celery'
-import configuration from './configuration'
+import channels from './channels'
+import configuration, { Configuration } from './configuration'
+import { init as simpleSolrClient } from './internalServices/simpleSolr'
+import { startupJobs } from './jobs'
+import middleware from './middleware'
 import errorHandling from './middleware/errorHandling'
 import openApiValidator, { init as initOpenApiValidator } from './middleware/openApiValidator'
 import swagger from './middleware/swagger'
 import transport from './middleware/transport'
-import redis from './redis'
+import multer from './multer'
+import redis, { init as initRedis } from './redis'
 import sequelize from './sequelize'
 import services from './services'
 import rateLimiter from './services/internal/rateLimiter/redis'
 import media from './services/media'
 import proxy from './services/proxy'
 import schemas from './services/schemas'
-import solr from './solr'
-import { ensureServiceIsFeathersCompatible } from './util/feathers'
-import channels from './channels'
-import { ImpressoApplication } from './types'
-import { Application } from '@feathersjs/express'
-import bodyParser from 'body-parser'
-import authentication from './authentication'
+import { AppServices, ImpressoApplication } from './types'
+import { customJsonMiddleware } from './util/express'
 
-const path = require('path')
-const compress = require('compression')
 const helmet = require('helmet')
 const cookieParser = require('cookie-parser')
 
-const express = require('@feathersjs/express')
-
-const middleware = require('./middleware')
-// const services = require('./services');
-const appHooks = require('./app.hooks')
-
-const multer = require('./multer')
-const cache = require('./cache')
-const cachedSolr = require('./cachedSolr')
-
-const app: ImpressoApplication & Application = express(feathers())
+const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
 
 // Load app configuration
-app.configure(configuration())
+app.configure(configuration)
 
 // configure internal services
 app.configure(sequelize)
-app.configure(solr)
 app.configure(redis)
 app.configure(rateLimiter)
-
-app.set(
-  'cacheManager',
-  cache(app.get('redis'), app.get('cache').enabled, (error: Error) => {
-    console.error('Cache error. Restarting', error.stack)
-    process.exit(1)
-  })
-)
-
-app.use('cachedSolr', ensureServiceIsFeathersCompatible(cachedSolr(app)), {
-  methods: [],
-})
+app.configure(cache)
+app.configure(simpleSolrClient)
 
 // Enable security, compression, favicon and body parsing
 app.use(helmet())
 app.use(compress())
 app.use(cookieParser())
-// needed to access body in non-feathers middlewares, like openapi validator
-app.use(bodyParser.json({ limit: '50mb' }))
+app.use(customJsonMiddleware()) // JSON body parser / serializer
 
 // configure local multer service.
 app.configure(multer)
 
 // Host the public folder
-app.use('/', express.static(path.join(__dirname, app.get('public'))))
+app.use('/', staticMiddleware(path.join(__dirname, app.get('public') as string)))
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware)
@@ -96,10 +78,7 @@ app.configure(transport)
 app.configure(authentication)
 app.configure(services)
 
-app.hooks({
-  setup: [initOpenApiValidator, initCelery],
-})
-app.configure(appHooks)
+app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startupJobs], []))
 
 // part of sockets.io (see transport), but must go after services are defined
 // because one of the services is used in the channels.
@@ -107,4 +86,4 @@ app.configure(channels)
 
 app.configure(errorHandling)
 
-module.exports = app
+export default app

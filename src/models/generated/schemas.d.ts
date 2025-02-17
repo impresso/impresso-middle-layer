@@ -7,33 +7,148 @@
  */
 
 
+export interface BaseFind {
+  /**
+   * The number of items returned in this response
+   */
+  limit: number;
+  /**
+   * Starting index of the items subset returned in this response
+   */
+  offset: number;
+  /**
+   * The total number of items matching the query
+   */
+  total: number;
+  /**
+   * Additional information about the response.
+   */
+  info?: {
+    [k: string]: unknown;
+  };
+  data: unknown[];
+}
+
+
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+
+
 export type StatusOfTheCollection = string;
 export type NumberOfItemsInTheCollection = number | string;
 export type UniqueIdentifierForTheUser = string;
 export type UniqueUsernameForTheUserForOtherHumans = string;
 
 /**
- * A journal/magazine article
+ * Collectable item group object
  */
-export interface Article {
+export interface CollectableItemGroup {
   /**
-   * The unique identifier of the article
+   * The id of the collectable item group
+   */
+  itemId?: string;
+  /**
+   * Content type of the collectable item group: (A)rticle, (E)ntities, (P)ages, (I)ssues
+   */
+  contentType?: "A" | "E" | "P" | "I";
+  /**
+   * Ids of the collections
+   */
+  collectionIds?: string[];
+  /**
+   * Search queries
+   */
+  searchQueries?: string[];
+  /**
+   * Collection objects
+   */
+  collections?: Collection[];
+  /**
+   * The latest date added to the collectable item group
+   */
+  latestDateAdded?: string;
+  [k: string]: unknown;
+}
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+
+
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+/**
+ * Description of the collection object (Collection class)
+ */
+export interface Collection {
+  uid: string;
+  name: string;
+  description: string;
+  status: StatusOfTheCollection;
+  creationDate: string;
+  lastModifiedDate: string;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUser;
+  labels?: string[];
+}
+export interface BaseUser {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
+}
+
+
+export type StatusOfTheCollection = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+/**
+ * A journal/magazine content item (article, advertisement, etc.)
+ */
+export interface ContentItem {
+  /**
+   * The unique identifier of the content item
    */
   uid: string;
   /**
-   * The type of the article. NOTE: may be empty.
+   * The type of the content item. NOTE: may be empty.
    */
   type: string;
   /**
-   * The title of the article
+   * The title of the content item
    */
   title: string;
   /**
-   * The size of the article in characters
+   * The size of the content item in characters
    */
   size: number;
   /**
-   * The number of pages in this article
+   * The number of pages in this content item
    */
   nbPages: number;
   pages: Page[];
@@ -42,45 +157,56 @@ export interface Article {
    */
   isCC: boolean;
   /**
-   * The excerpt of the article
+   * The excerpt of the content item
    */
   excerpt: string;
   locations?: Entity[];
   persons?: Entity[];
   /**
-   * The language code of the article
+   * The language code of the content item
    */
   language?: string;
   issue?: NewspaperIssue;
-  matches?: ArticleMatch[];
-  regions?: ArticleRegion[];
+  matches?: ContentItemMatch[];
+  regions?: ContentItemRegion[];
   regionBreaks?: number[];
   contentLineBreaks?: number[];
   /**
    * TODO
    */
   labels: "article"[];
-  accessRight: "na" | "OpenPrivate" | "Closed" | "OpenPublic";
+  /**
+   * The access rights of the content item. Available in Impresso 1.0 only
+   */
+  accessRight?: "na" | "OpenPrivate" | "Closed" | "OpenPublic";
+  /**
+   * The data domain of the content item ('pbl' for Public Domain, 'prt' for Protected Domain). Available in Impresso 2.0 only
+   */
+  dataDomain?: "pbl" | "prt";
+  /**
+   * Copyright of the content item. Available in Impresso 2.0 only. pbl: 'Public Domain', und: 'Protected Domain: Copyright undetermined', nkn: 'Protected Domain: No Known Copyright', euo: 'Protected Domain: In copyright - EU Orphan Work', unk: 'Protected Domain: In copyright - Unknown rightsholders', in_cpy: 'Protected Domain: In copyright'.
+   */
+  copyright?: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
   /**
    * TODO
    */
   isFront?: boolean;
   date?: string | null;
   /**
-   * The year of the article
+   * The year of the content item
    */
   year: number;
   /**
-   * The country code of the article
+   * The country code of the content item
    */
   country?: string;
   tags?: string[];
   collections?: string[] | Collection[];
   newspaper?: Newspaper;
   dataProvider?: string | null;
-  topics?: ArticleTopic[];
+  topics?: ContentItemTopic[];
   /**
-   * The content of the article
+   * The content of the content item
    */
   content?: string;
   mentions?: {
@@ -91,6 +217,18 @@ export interface Article {
    * TODO
    */
   v?: string;
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
+  /**
+   * Access rights bitmap for getting images
+   */
+  bitmapGetImages?: number;
 }
 /**
  * A page of an article
@@ -197,7 +335,7 @@ export interface NewspaperIssue {
 /**
  * TODO
  */
-export interface ArticleMatch {
+export interface ContentItemMatch {
   /**
    * TODO
    */
@@ -218,7 +356,7 @@ export interface ArticleMatch {
 /**
  * TODO
  */
-export interface ArticleRegion {
+export interface ContentItemRegion {
   pageUid: string;
   coords: number[];
   /**
@@ -332,7 +470,7 @@ export interface NewspaperProperty {
 /**
  * TODO
  */
-export interface ArticleTopic {
+export interface ContentItemTopic {
   topic?: Topic;
   /**
    * TODO
@@ -356,23 +494,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -381,12 +527,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
+    /**
+     * Related topic average combined topic weight
+     */
+    avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -394,7 +562,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -424,7 +592,7 @@ export interface TopicWord {
 /**
  * TODO
  */
-export interface ArticleMatch {
+export interface ContentItemMatch {
   /**
    * TODO
    */
@@ -447,7 +615,7 @@ export interface ArticleMatch {
 /**
  * TODO
  */
-export interface ArticleRegion {
+export interface ContentItemRegion {
   pageUid: string;
   coords: number[];
   /**
@@ -468,7 +636,7 @@ export interface ArticleRegion {
 /**
  * TODO
  */
-export interface ArticleTopic {
+export interface ContentItemTopic {
   topic?: Topic;
   /**
    * TODO
@@ -492,23 +660,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -517,12 +693,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
+    /**
+     * Related topic average combined topic weight
+     */
+    avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -530,7 +728,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -558,204 +756,21 @@ export interface TopicWord {
 
 
 /**
- * Request body for the authentication endpoint
+ * Content item permissions
  */
-export interface AuthenticationCreateRequest {
-  strategy: "local" | "jwt-app";
-  email?: string;
-  password?: string;
-  accessToken?: string;
-  [k: string]: unknown;
-}
-
-
-/**
- * Authentication Response
- */
-export interface AuthenticationResponse {
-  accessToken: string;
-  authentication: {
-    strategy?: string;
-    payload?: {
-      [k: string]: unknown;
-    };
-    [k: string]: unknown;
-  };
-  user: User;
-}
-/**
- * User details
- */
-export interface User {
-  id: number;
-  username: string;
-  firstname: string;
-  lastname: string;
-  isStaff: boolean;
-  isActive: boolean;
-  isSuperuser: boolean;
-  uid: string;
-}
-
-
-export interface BaseFind {
+export interface ContentPermissions {
   /**
-   * The number of items returned in this response
+   * Bitmap representing the 'explore' permissions of the content item
    */
-  limit: number;
+  exploreBitmap?: number;
   /**
-   * Starting index of the items subset returned in this response
+   * Bitmap representing the 'get transcript' permissions of the content item
    */
-  offset: number;
+  getTranscriptBitmap?: number;
   /**
-   * The total number of items matching the query
+   * Bitmap representing the 'get images' permissions of the content item
    */
-  total: number;
-  /**
-   * Additional information about the response.
-   */
-  info: {
-    [k: string]: unknown;
-  };
-  data: unknown[];
-}
-
-
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
-}
-
-
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
-/**
- * Collectable item group object
- */
-export interface CollectableItemGroup {
-  /**
-   * The id of the collectable item group
-   */
-  itemId?: string;
-  /**
-   * Content type of the collectable item group: (A)rticle, (E)ntities, (P)ages, (I)ssues
-   */
-  contentType?: "A" | "E" | "P" | "I";
-  /**
-   * Ids of the collections
-   */
-  collectionIds?: string[];
-  /**
-   * Search queries
-   */
-  searchQueries?: string[];
-  /**
-   * Collection objects
-   */
-  collections?: Collection[];
-  /**
-   * The latest date added to the collectable item group
-   */
-  latestDateAdded?: string;
-  [k: string]: unknown;
-}
-/**
- * Description of the collection object (Collection class)
- */
-export interface Collection {
-  uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
-}
-
-
-/**
- * Request to update collectible items in a collection
- */
-export interface CollectableItemsUpdatedResponse {
-  /**
-   * Total number of items added to the collection
-   */
-  totalAdded: number;
-  /**
-   * Total number of items removed from the collection
-   */
-  totalRemoved: number;
-  [k: string]: unknown;
-}
-
-
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
-/**
- * Description of the collection object (Collection class)
- */
-export interface Collection {
-  uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
-}
-
-
-/**
- * Remove collection response
- */
-export interface RemoveCollectionResponse {
-  params: {
-    /**
-     * The collection id
-     */
-    id?: string;
-    /**
-     * The status of the operation
-     */
-    status?: "DEL";
-  };
-  /**
-   * Deletion task details
-   */
-  task: {
-    /**
-     * The ID of the task
-     */
-    task_id?: string;
-    /**
-     * When task was created
-     */
-    creationDate?: string;
-  };
+  getImagesBitmap?: number;
 }
 
 
@@ -830,48 +845,6 @@ export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
 
 
 /**
- * Error response that follows https://datatracker.ietf.org/doc/html/rfc7807#section-3.1
- */
-export interface Error {
-  /**
-   * A URI reference [RFC3986] that identifies the problem type.
-   */
-  type: string;
-  /**
-   * A short, human-readable summary of the problem type.
-   */
-  title: string;
-  /**
-   * The HTTP status code ([RFC7231], Section 6)
-   */
-  status: number;
-  /**
-   * A human-readable explanation specific to this occurrence of the problem.
-   */
-  detail?: string;
-  [k: string]: unknown;
-}
-
-
-/**
- * A single filter criteria
- */
-export interface Filter {
-  context?: "include" | "exclude";
-  op?: "AND" | "OR";
-  /**
-   * Possible values are in 'search.validators:eachFilterValidator.type.choices'
-   */
-  type: string;
-  precision?: "fuzzy" | "soft" | "exact" | "partial";
-  q?: string | string[];
-  daterange?: string;
-  uids?: string;
-  uid?: string;
-}
-
-
-/**
  * ID of the text reuse passage
  */
 export type PassageID = string;
@@ -892,6 +865,14 @@ export interface TextReuseClusterCompound {
   cluster?: TextReuseCluster;
   textSample: string;
   details?: TextReuseClusterDetails;
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
 }
 /**
  * Represents a cluster of text reuse passages
@@ -943,193 +924,119 @@ export interface TextReuseClusterDetails {
 
 
 /**
- * Impresso NER entity
+ * An image from a content item
  */
-export interface ImpressoNamedEntityRecognitionEntity {
+export interface Image {
   /**
-   * ID of the entity
+   * The unique identifier of the image
    */
-  id: string;
+  uid: string;
   /**
-   * Type of the entity
+   * Image caption
    */
-  type:
-    | "comp.demonym"
-    | "comp.function"
-    | "comp.name"
-    | "comp.qualifier"
-    | "comp.title"
-    | "loc"
-    | "loc.add.elec"
-    | "loc.add.phys"
-    | "loc.adm.nat"
-    | "loc.adm.reg"
-    | "loc.adm.sup"
-    | "loc.adm.town"
-    | "loc.fac"
-    | "loc.oro"
-    | "loc.phys.astro"
-    | "loc.phys.geo"
-    | "loc.phys.hydro"
-    | "loc.unk"
-    | "org"
-    | "org.adm"
-    | "org.ent"
-    | "org.ent.pressagency"
-    | "pers"
-    | "pers.coll"
-    | "pers.ind"
-    | "pers.ind.articleauthor"
-    | "prod"
-    | "prod.doctr"
-    | "prod.media"
-    | "time"
-    | "time.date.abs"
-    | "time.hour.abs";
+  caption?: string;
   /**
-   * Surface form of the entity
+   * The unique identifier of the issue that the image belongs to.
    */
-  surfaceForm: string;
-  offset: {
+  issueUid: string;
+  /**
+   * The unique identifier of the content item that the image belongs to.
+   */
+  contentItemUid?: string;
+  /**
+   * The URL of the image preview
+   */
+  previewUrl: string;
+  /**
+   * The page numbers of the issue that the image belongs to.
+   */
+  pageNumbers?: number[];
+  /**
+   * The media source of the image
+   */
+  mediaSourceRef: {
     /**
-     * Start offset of the entity in the text
+     * The unique identifier of the media source
      */
-    start: number;
+    uid: string;
     /**
-     * End offset of the entity in the text
+     * The name of the media source
      */
-    end: number;
+    name: string;
+    /**
+     * The type of the media source
+     */
+    type?: "newspaper";
   };
   /**
-   * Whether the entity type is nested
+   * The date of the image or the date of the issue that the image belongs to.
    */
-  isTypeNested: boolean;
-  confidence: {
-    /**
-     * Confidence score for the named entity recognition
-     */
-    ner: number;
-    /**
-     * Confidence score for the named entity linking
-     */
-    nel?: number;
-  };
+  date: string;
 }
 
 
 /**
- * Request body for the Impresso NER endpoint
+ * A media source is what a content item belongs to. This can be a newspaper, a TV or a radio station, etc.
  */
-export interface ImpressoNamedEntityRecognitionRequest {
+export interface MediaSource {
   /**
-   * Text to be processed for named entity recognition
+   * The unique identifier of the media source.
    */
-  text: string;
-}
-
-
-/**
- * Response of the Impresso NER endpoint
- */
-export interface ImpressoNamedEntityRecognitionResponse {
+  uid: string;
   /**
-   * ID of the model used for the named entity recognition
+   * The type of the media source.
    */
-  modelId: string;
+  type: "newspaper";
   /**
-   * Text processed for named entity recognition
+   * A display name of the media source.
    */
-  text: string;
-  /**
-   * Timestamp of when named entity recognition was performed
-   */
-  timestamp: string;
-  entities: ImpressoNamedEntityRecognitionEntity[];
-}
-/**
- * Impresso NER entity
- */
-export interface ImpressoNamedEntityRecognitionEntity {
-  /**
-   * ID of the entity
-   */
-  id: string;
-  /**
-   * Type of the entity
-   */
-  type:
-    | "comp.demonym"
-    | "comp.function"
-    | "comp.name"
-    | "comp.qualifier"
-    | "comp.title"
-    | "loc"
-    | "loc.add.elec"
-    | "loc.add.phys"
-    | "loc.adm.nat"
-    | "loc.adm.reg"
-    | "loc.adm.sup"
-    | "loc.adm.town"
-    | "loc.fac"
-    | "loc.oro"
-    | "loc.phys.astro"
-    | "loc.phys.geo"
-    | "loc.phys.hydro"
-    | "loc.unk"
-    | "org"
-    | "org.adm"
-    | "org.ent"
-    | "org.ent.pressagency"
-    | "pers"
-    | "pers.coll"
-    | "pers.ind"
-    | "pers.ind.articleauthor"
-    | "prod"
-    | "prod.doctr"
-    | "prod.media"
-    | "time"
-    | "time.date.abs"
-    | "time.hour.abs";
-  /**
-   * Surface form of the entity
-   */
-  surfaceForm: string;
-  offset: {
-    /**
-     * Start offset of the entity in the text
-     */
-    start: number;
-    /**
-     * End offset of the entity in the text
-     */
-    end: number;
-  };
-  /**
-   * Whether the entity type is nested
-   */
-  isTypeNested: boolean;
-  confidence: {
-    /**
-     * Confidence score for the named entity recognition
-     */
-    ner: number;
-    /**
-     * Confidence score for the named entity linking
-     */
-    nel?: number;
-  };
-}
-
-
-export type StatusOfTheCollection = string;
-
-/**
- * Create new collection request
- */
-export interface NewCollection {
   name: string;
-  description?: string;
-  status?: StatusOfTheCollection;
+  /**
+   * ISO 639-2 language codes this media source has content in.
+   */
+  languageCodes: string[];
+  /**
+   * The range of years this media source has been published for. Impresso may not have data for all this period. Is not defined if there is no information.
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  publishedPeriodYears?: [number, number];
+  /**
+   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.  Is not defined if there are no content items for this source.
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  availableDatesRange?: [string, string];
+  totals: {
+    /**
+     * The number of articles in the media source.
+     */
+    articles?: number;
+    /**
+     * The number of issues in the media source.
+     */
+    issues?: number;
+    /**
+     * The number of pages in the media source.
+     */
+    pages?: number;
+  };
+  properties?: {
+    /**
+     * The unique identifier of the property.
+     */
+    id: string;
+    /**
+     * The name of the property.
+     */
+    label: string;
+    /**
+     * The value of the property.
+     */
+    value: string;
+  }[];
 }
 
 
@@ -1564,23 +1471,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -1589,12 +1504,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
+    /**
+     * Related topic average combined topic weight
+     */
+    avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -1602,7 +1539,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -1863,23 +1800,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -1888,12 +1833,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
+    /**
+     * Related topic average combined topic weight
+     */
+    avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -1901,7 +1868,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -2031,6 +1998,14 @@ export interface TextReuseClusterCompound {
   cluster?: TextReuseCluster;
   textSample: string;
   details?: TextReuseClusterDetails;
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
 }
 /**
  * Represents a cluster of text reuse passages
@@ -2189,6 +2164,14 @@ export interface TextReusePassage {
    * Collection IDs the passage belongs to
    */
   collections: string[];
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
 }
 /**
  * Details of the article the passage belongs to
@@ -2220,23 +2203,31 @@ export interface Topic {
    */
   language: string;
   /**
-   * TODO
+   * Topic community score using Louvain algorithm
    */
-  community?: string;
+  community?: number;
   /**
-   * TODO
+   * Topic score using PageRank algorithm
    */
   pagerank?: number;
   /**
-   * TODO
+   * Degree score (total related topics)
    */
   degree?: number;
   /**
-   * TODO
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
    */
   x?: number;
   /**
-   * TODO
+   * Graph y position
    */
   y?: number;
   relatedTopics?: {
@@ -2245,12 +2236,34 @@ export interface Topic {
      */
     uid: string;
     /**
-     * TODO
+     * Related topic weight (total articles in common)
      */
     w: number;
+    /**
+     * Related topic average combined topic weight
+     */
+    avg?: number;
   }[];
+  relatedTopicsStats?: {
+    /**
+     * TODO
+     */
+    MinArticlesIncommon?: number;
+    /**
+     * TODO
+     */
+    MaxRelatedTopicsToKeep?: number;
+    /**
+     * TODO
+     */
+    RelatedThreshold?: number;
+    /**
+     * TODO
+     */
+    Threshold?: number;
+  };
   /**
-   * TODO
+   * Number of content items with this topic
    */
   countItems?: number;
   /**
@@ -2258,7 +2271,7 @@ export interface Topic {
    */
   excerpt?: TopicWord[];
   /**
-   * TODO
+   * Top N words associated with the topic
    */
   words?: TopicWord[];
   /**
@@ -2305,22 +2318,6 @@ export interface TopicWord {
 
 
 /**
- * Request to update collectible items in a collection
- */
-export interface UpdateCollectableItems {
-  /**
-   * IDs of the items to add to the collection
-   */
-  add?: string[];
-  /**
-   * IDs of the items to remove from the collection
-   */
-  remove?: string[];
-  [k: string]: unknown;
-}
-
-
-/**
  * User details
  */
 export interface User {
@@ -2338,7 +2335,7 @@ export interface User {
 /**
  * Version of the API. Contains information about the current version of the API, features, etc.
  */
-export interface APIVersion {
+export interface VersionDetails {
   solr: {
     endpoints?: {
       [k: string]: string;

@@ -15,20 +15,19 @@ const publicApiServices = [
   'text-reuse-passages',
   'text-reuse-clusters',
   'version',
-  'newspapers',
   'search-facets',
   'entities',
   'impresso-ner',
+  'media-sources',
+  'images',
 ]
+
+const adminServices = ['admin']
 
 const internalApiServices = [
   'issues',
   'suggestions',
-  'projects',
   'pages',
-  'tags',
-  'articles-tags',
-  'buckets-items',
   'search-exporter',
   'topics',
   'init',
@@ -37,7 +36,6 @@ const internalApiServices = [
   'articles-timelines',
   'jobs',
   'logs',
-  'images',
   'articles-suggestions',
   'uploaded-images',
   'mentions',
@@ -58,13 +56,27 @@ const internalApiServices = [
   'articles-search',
   'entities-suggestions',
   'entity-mentions-timeline',
+  'subscriptions',
   'text-reuse-connected-clusters',
   'password-reset',
+  'change-password',
+  'terms-of-use',
+  'user-change-plan-request',
+  'user-requests',
+  'user-requests-reviews',
+  'newspapers',
 ]
 
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi')
-  const services = isPublicApi ? publicApiServices : publicApiServices.concat(internalApiServices)
+  const features = app.get('features')
+  const adminEndpointsEnabled = features?.adminEndpoints?.enabled
+
+  const services = [
+    ...publicApiServices,
+    ...(!isPublicApi ? internalApiServices : []),
+    ...(isPublicApi && adminEndpointsEnabled ? adminServices : []),
+  ]
 
   logger.info(`Loading services: ${services.join(', ')}`)
 

@@ -1,21 +1,22 @@
 /* eslint-disable no-unused-vars */
-const lodash = require('lodash');
-const { NotFound } = require('@feathersjs/errors');
-const Timeline = require('../../models/timelines.model');
-const { measureTime } = require('../../util/instruments');
+const lodash = require('lodash')
+const { NotFound } = require('@feathersjs/errors')
+const Timeline = require('../../models/timelines.model')
+const { measureTime } = require('../../util/instruments')
+const { asFindAll } = require('../../util/solr/adapters')
 
 class Service {
-  constructor ({
-    name = '',
-    app,
-  }) {
-    this.name = name;
-    this.app = app;
-    this.solr = this.app.get('solrClient');
+  constructor({ name = '', app }) {
+    this.name = name
+    this.app = app
   }
 
-  async total () {
-    return measureTime(() => this.solr.findAll({
+  get solr() {
+    return this.app.service('simpleSolrClient')
+  }
+
+  async total() {
+    const request = {
       q: '*:*',
       limit: 0,
       fl: 'id',
@@ -28,11 +29,13 @@ class Service {
         },
       }),
       namespace: 'search',
-    }), 'articles-timelines.solr.total');
+    }
+    // return measureTime(() => this.solr.findAll(request), 'articles-timelines.solr.total')
+    return asFindAll(this.solr, 'search', request)
   }
 
-  async filtered (params) {
-    return measureTime(() => this.solr.findAll({
+  async filtered(params) {
+    const request = {
       q: params.q || params.query.sq || '*:*',
       limit: 0,
       fl: 'id',
@@ -45,19 +48,18 @@ class Service {
         },
       }),
       namespace: 'search',
-    }), 'articles-timelines.solr.filtered');
+    }
+    // return measureTime(() => this.solr.findAll(request), 'articles-timelines.solr.filtered')
+    return asFindAll(this.solr, 'search', request)
   }
 
-  async stats (params) {
+  async stats(params) {
     if (params.query.filters && params.query.filters.length) {
-      return Promise.all([
-        this.total(),
-        this.filtered(params),
-      ]).then((results) => {
-        let filteredYearIndex = {};
+      return Promise.all([this.total(), this.filtered(params)]).then(results => {
+        let filteredYearIndex = {}
 
         if (results[1].facets.year) {
-          filteredYearIndex = lodash.keyBy(results[1].facets.year.buckets, 'val');
+          filteredYearIndex = lodash.keyBy(results[1].facets.year.buckets, 'val')
         }
 
         return new Timeline({
@@ -71,37 +73,40 @@ class Service {
             w: bucket.count,
             w1: filteredYearIndex[bucket.val] ? filteredYearIndex[bucket.val].count : 0,
           })),
-        });
-      });
+        })
+      })
     }
-    return this.total().then(res => new Timeline({
-      name: 'stats',
-      legend: {
-        w: 'total',
-      },
-      values: res.facets.year.buckets.map(bucket => ({
-        t: bucket.val,
-        w: bucket.count,
-      })),
-    }));
+    return this.total().then(
+      res =>
+        new Timeline({
+          name: 'stats',
+          legend: {
+            w: 'total',
+          },
+          values: res.facets.year.buckets.map(bucket => ({
+            t: bucket.val,
+            w: bucket.count,
+          })),
+        })
+    )
   }
 
-  async get (id, params) {
-    let result;
+  async get(id, params) {
+    let result
 
     if (id === 'stats') {
-      result = await this.stats(params);
+      result = await this.stats(params)
     }
 
     if (!result) {
-      throw new NotFound();
+      throw new NotFound()
     }
-    return result;
+    return result
   }
 }
 
 module.exports = function (options) {
-  return new Service(options);
-};
+  return new Service(options)
+}
 
-module.exports.Service = Service;
+module.exports.Service = Service

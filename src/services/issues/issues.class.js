@@ -2,10 +2,19 @@ const debug = require('debug')('impresso/services:issues')
 const { NotFound } = require('@feathersjs/errors')
 
 const SequelizeService = require('../sequelize.service')
-const SolrService = require('../solr.service')
 const Issue = require('../../models/issues.model')
 const Page = require('../../models/pages.model')
 const { measureTime } = require('../../util/instruments')
+const { asFind } = require('../../util/solr/adapters')
+
+const CoversQuery = `
+SELECT id as uid,
+  issue_id as issue_uid,
+  iiif_manifest as iiif,
+  page_number as num,
+  has_converted_coordinates as hasCoords,
+  has_corrupted_json as hasErrors
+FROM pages WHERE id IN (:pageUids)`
 
 class Service {
   constructor({ app, name = '' } = {}) {
@@ -15,49 +24,44 @@ class Service {
       app,
       name,
     })
-    this.SolrService = SolrService({
-      app,
-      name,
-      namespace: 'search',
-    })
+    this.solrFactory = require(`../../models/${this.name}.model`).solrFactory
+  }
+
+  get solr() {
+    return this.app.service('simpleSolrClient')
   }
 
   async find(params) {
     debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query)
-    const results = await measureTime(
-      () =>
-        this.SolrService.find({
-          ...params,
-          fl: Issue.ISSUE_SOLR_FL_MINIMAL,
-          collapse_by: 'meta_issue_id_s',
-          // get first ARTICLE result
-          collapse_fn: "sort='page_id_ss ASC'",
-        }),
-      'issues.find.solr.find_issues'
-    )
+    const request = {
+      ...params,
+      fl: Issue.ISSUE_SOLR_FL_MINIMAL,
+      collapse_by: 'meta_issue_id_s',
+      // get first ARTICLE result
+      collapse_fn: "sort='page_id_ss ASC'",
+    }
+    const results = await asFind(this.solr, 'search', request, this.solrFactory)
     // add Sequelize Rawquery to get proper frontPage
-    const coversIndex = await measureTime(
-      () =>
-        this.SequelizeService.rawSelect({
-          query: `
-        SELECT id as uid,
-          issue_id as issue_uid,
-          iiif_manifest as iiif,
-          page_number as num,
-          has_converted_coordinates as hasCoords,
-          has_corrupted_json as hasErrors
-        FROM pages WHERE id IN (:pageUids)`,
-          replacements: {
-            pageUids: results.data.map(d => d.cover),
-          },
-        }).then(covers =>
-          covers.reduce((index, cover) => {
-            index[cover.uid] = new Page(cover)
-            return index
-          }, {})
-        ),
-      'issues.find.db.get_pages'
-    )
+
+    const getCoverIndex = async () => {
+      return await measureTime(
+        () =>
+          this.SequelizeService.rawSelect({
+            query: CoversQuery,
+            replacements: {
+              pageUids: results.data.map(d => d.cover),
+            },
+          }).then(covers =>
+            covers.reduce((index, cover) => {
+              index[cover.uid] = new Page(cover)
+              return index
+            }, {})
+          ),
+        'issues.find.db.get_pages'
+      )
+    }
+
+    const coversIndex = (results.data?.length ?? 0) > 0 ? await getCoverIndex() : {}
 
     results.data = results.data.map(d => {
       if (coversIndex[d.cover]) {
@@ -70,24 +74,22 @@ class Service {
 
   // eslint-disable-next-line no-unused-vars
   async get(id, params) {
+    const request = {
+      query: {
+        limit: 1,
+        offset: 0,
+      },
+      q: `meta_issue_id_s:${id}`,
+      fl: Issue.ISSUE_SOLR_FL_MINIMAL,
+      collapse_by: 'meta_issue_id_s',
+      // get first ARTICLE result
+      collapse_fn: "sort='id ASC'",
+    }
+
     return Promise.all([
       // we perform a solr request to get
       // the full text, regions of the specified article
-      measureTime(
-        () =>
-          this.SolrService.find({
-            query: {
-              limit: 1,
-              offset: 0,
-            },
-            q: `meta_issue_id_s:${id}`,
-            fl: Issue.ISSUE_SOLR_FL_MINIMAL,
-            collapse_by: 'meta_issue_id_s',
-            // get first ARTICLE result
-            collapse_fn: "sort='id ASC'",
-          }).then(res => res.data[0]),
-        'issues.get.solr.issue'
-      ),
+      asFind(this.solr, 'search', request, this.solrFactory).then(res => res.data?.[0]),
       measureTime(
         () =>
           this.SequelizeService.rawSelect({

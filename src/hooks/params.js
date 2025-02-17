@@ -212,7 +212,6 @@ const _validateOne = (key, item, rule) => {
 
   if (Object.keys(_errors).length) {
     debug('_validateOne: errors:', _errors)
-    console.error('_validateOne throws errors:', _errors, '- item:', item)
     throw new errors.BadRequest(_errors)
   }
 
@@ -232,7 +231,7 @@ const _validate = (params, rules) => {
 
   Object.keys(rules).forEach(key => {
     if (typeof params[key] === 'undefined') {
-      if (rules[key] && rules[key].required) {
+      if (rules[key] && rules[key].required && rules[key].defaultValue == null) {
         // required!
         _errors[key] = {
           code: 'NotFound',
@@ -272,7 +271,7 @@ const REGEX_PASSWORD = /^(?=\S*[a-z])(?=\S*[A-Z])(?=\S*\d)(?=\S*([^\w\s]|[_]))\S
 const REGEX_SLUG = /^[a-z0-9-]+$/
 const REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()-]+$/
 const EXTENDED_REGEX_UID = /^[A-zÀ-Ÿ0-9_.–"',()/$-]+$/
-const REGEX_UIDS = /^[A-zÀ-Ÿ0-9_.–,"'-]+[A-zÀ-Ÿ0-9_.,"'-]+$/
+const REGEX_UIDS = /^[A-zÀ-Ÿ0-9_.–,"'-]+[A-zÀ-Ÿ0-9_.,"'-]+\*?$/
 const REGEX_NUMERIC = /^\d+$/
 
 const VALIDATE_OPTIONAL_UID = {

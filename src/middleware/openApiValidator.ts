@@ -72,18 +72,18 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
   app.set('openApiMiddlewareOpts', options)
   app.set('openApiValidatorMiddlewares', middlewares)
 
-  // TODO: an ugly way to handle `filters` query parameter before it reqches validation
+  // TODO: an ugly way to handle `filters` query parameter before it reaches validation
   // Move this somewhere where it's more explicit
   app.use((req, res, next) => {
     if (req.query.filters != null) {
-      req.query.filters = parseFilters(req.query.filters)
+      req.query.filters = parseFilters(req.query.filters) as any as string[]
     }
     next()
   })
 
   // app.use(middlewares as any)
   middlewares.forEach((middleware, index) => {
-    logger.debug('Install', middleware)
+    logger.debug(`Install middleware: ${middleware.name}`)
     app.use((req, res, next) => {
       const handler = app.get('openApiValidatorMiddlewares')[index]
       handler(req, res, next)
@@ -129,12 +129,17 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
       'OpenAPI middleware options not found. Have you called the `init` hook before installing the middleware?'
     )
 
-  await dereferenceSpec(spec)
+  try {
+    await dereferenceSpec(spec)
+  } catch (error) {
+    logger.error('Failed to dereference OpenAPI spec', error)
+    throw error
+  }
 
   const middlewares = OpenApiValidator.middleware({ ...options, apiSpec: spec })
   app.set('openApiValidatorMiddlewares', middlewares)
 
-  logger.info('OpenAPI validator middleware intialised')
+  logger.info('OpenAPI validator middleware initialised')
   await next()
 }
 

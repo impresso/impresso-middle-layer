@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../schema/common/solrFilters.json
 indexes:
   # Index id (solr namespace)
   search:
@@ -31,8 +32,18 @@ indexes:
       uid:
         field: id
         rule: value
+      # @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
+      # https://github.com/impresso/impresso-middle-layer/issues/462
       accessRight:
         field: access_right_s
+        rule: value
+      # Impresso 2.0 only
+      dataDomain:
+        field: rights_data_domain_s
+        rule: value
+      # Impresso 2.0 only
+      copyright:
+        field: rights_copyright_s
         rule: value
       partner:
         field: meta_partnerid_s
@@ -54,7 +65,7 @@ indexes:
         rule: value
       topic:
         field: topics_dpfs
-        rule: value
+        rule: idValue
       year:
         field: meta_year_i
         rule: value
@@ -70,16 +81,16 @@ indexes:
         rule: value
       entity:
         field: [pers_entities_dpfs, loc_entities_dpfs]
-        rule: value
+        rule: idValue
       person:
         field: pers_entities_dpfs
-        rule: value
+        rule: idValue
       location:
         field: loc_entities_dpfs
-        rule: value
+        rule: idValue
       nag:
         field: nag_entities_dpfs
-        rule: value
+        rule: idValue
       topicmodel:
         field: tp_model_s
         rule: value
@@ -159,7 +170,7 @@ indexes:
         rule: boolean
       topic:
         field: topics_dpfs
-        rule: value
+        rule: idValue
       language:
         field: lg_s
         rule: value
@@ -175,16 +186,16 @@ indexes:
         rule: value
       entity:
         field: [pers_entities_dpfs, loc_entities_dpfs, nag_entities_dpfs]
-        rule: value
+        rule: idValue
       person:
         field: pers_entities_dpfs
-        rule: value
+        rule: idValue
       location:
         field: loc_entities_dpfs
-        rule: value
+        rule: idValue
       nag:
         field: nag_entities_dpfs
-        rule: value
+        rule: idValue
   entities:
     filters:
       string:
@@ -195,7 +206,24 @@ indexes:
         rule: capitalisedValue
       uid:
         field: id
-        rule: value
+        rule: idValue
       wikidataId:
         field: na
         rule: noop
+  images:
+    filters:
+      newspaper:
+        field: meta_journal_s
+        rule: value
+      issue:
+        field: meta_issue_id_s
+        rule: value
+      isFront:
+        field: front_b
+        rule: boolean
+      daterange:
+        field: meta_date_dt
+        rule: dateRange
+      title:
+        field: caption_txt
+        rule: string

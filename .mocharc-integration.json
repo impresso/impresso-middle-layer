@@ -1,9 +1,13 @@
 {
+  "$schema": "https://json.schemastore.org/mocharc.json",
+  "require": "tsx",
   "diff": true,
   "package": "./package.json",
   "reporter": "spec",
   "ui": "bdd",
+  "exit": true,
   "recursive": true,
-  "watch-files": ["src/**/*.js", "test/**/*.js"],
+  "extension": ["ts", "js"],
+  "watch-files": ["src/**/*.{js,ts}", "test/**/*.{js,ts}"],
   "ignore": ["node_modules"]
 }

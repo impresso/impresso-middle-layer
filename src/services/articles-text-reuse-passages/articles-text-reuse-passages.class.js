@@ -1,3 +1,4 @@
+import { getToSelect } from '../../util/solr/adapters'
 const { groupBy, mapValues, first } = require('lodash')
 const {
   getTextReusePassagesRequestForArticle,
@@ -8,6 +9,7 @@ const {
 
   PassageFields,
 } = require('../../logic/textReuse/solr')
+const { SolrNamespaces } = require('../../solr')
 
 function buildResponse(passages, clusters) {
   const clustersById = mapValues(groupBy(clusters, 'id'), first)
@@ -37,8 +39,8 @@ const MinimalPassageFields = [
 class ArticlesTextReusePassages {
   constructor(options, app) {
     this.options = options || {}
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
   }
 
   async find(params) {
@@ -47,8 +49,8 @@ class ArticlesTextReusePassages {
     // 1. Get passages and clusters
     const passages = await this.solr
       .get(
-        getTextReusePassagesRequestForArticle(articleId, MinimalPassageFields),
-        this.solr.namespaces.TextReusePassages
+        SolrNamespaces.TextReusePassages,
+        getToSelect(getTextReusePassagesRequestForArticle(articleId, MinimalPassageFields))
       )
       .then(convertPassagesSolrResponseToPassages)
     const clusterIds = [...new Set(passages.map(({ clusterId }) => clusterId))]
@@ -56,7 +58,7 @@ class ArticlesTextReusePassages {
     const clusters =
       clusterIds.length > 0
         ? await this.solr
-          .get(getTextReuseClustersRequestForIds(clusterIds), this.solr.namespaces.TextReuseClusters)
+          .selectOne(SolrNamespaces.TextReuseClusters, getToSelect(getTextReuseClustersRequestForIds(clusterIds)))
           .then(convertClustersSolrResponseToClusters)
         : []
 

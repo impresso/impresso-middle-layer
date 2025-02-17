@@ -1,15 +1,17 @@
+import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
 const {
   getTextReuseClusterPassagesRequest,
   getPaginationInfoFromPassagesSolrResponse,
   convertPassagesSolrResponseToPassages,
   PassageFields,
 } = require('../../logic/textReuse/solr')
-const Newspaper = require('../../models/newspapers.model')
 const sequelize = require('../../sequelize')
 const { QueryGetIIIFManifests } = require('../../logic/iiif')
 const { toArticlePageDetails } = require('../../logic/ids')
 const { parseOrderBy } = require('../../util/queryParameters')
 const { measureTime } = require('../../util/instruments')
+const { SolrNamespaces } = require('../../solr')
+const { getToSelect } = require('../../util/solr/adapters')
 
 const OrderByKeyToField = {
   date: PassageFields.Date,
@@ -18,10 +20,11 @@ const OrderByKeyToField = {
 class TextReuseClusterPassages {
   constructor(options = {}, app) {
     this.options = options
-    /** @type {import('../../cachedSolr').CachedSolrClient} */
-    this.solr = app.service('cachedSolr')
+    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    this.solr = app.service('simpleSolrClient')
     /** @type {import('sequelize') & import('sequelize').Sequelize} */
     this.sequelize = sequelize.client(app.get('sequelize'))
+    this.app = app
   }
 
   async find(params) {
@@ -31,18 +34,18 @@ class TextReuseClusterPassages {
 
     const [passages, info] = await this.solr
       .get(
-        getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderByField, orderByDescending),
-        this.solr.namespaces.TextReusePassages
+        SolrNamespaces.TextReusePassages,
+        getToSelect(getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderByField, orderByDescending))
       )
       .then(response => [
         convertPassagesSolrResponseToPassages(response),
         getPaginationInfoFromPassagesSolrResponse(response),
       ])
 
-    return { passages: await this.asPassageItems(passages), info }
+    return { passages: await this.asPassageItems(passages, this.app), info }
   }
 
-  async asPassageItems(passages) {
+  async asPassageItems(passages, app) {
     const articleIdToPageId = passages
       .map(({ articleId, pageNumbers }) => toArticlePageDetails(articleId, pageNumbers[0]))
       .reduce((acc, { pageId, articleId }) => {
@@ -56,12 +59,14 @@ class TextReuseClusterPassages {
       return acc
     }, {})
 
+    const mediaSourcesLookup = await app.service('media-sources').getLookup()
+
     return Promise.all(
       passages.map(async passage => {
         const iifUrl = pageIdToIIIFUrl[articleIdToPageId[passage.articleId]]
         return {
           passage,
-          newspaper: Newspaper.getCached(passage.journalId),
+          newspaper: optionalMediaSourceToNewspaper(mediaSourcesLookup[passage.journalId]),
           iiifUrls: iifUrl != null ? [iifUrl] : [],
         }
       })

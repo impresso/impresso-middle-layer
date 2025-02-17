@@ -3,23 +3,20 @@ const debug = require('debug')('impresso/services:topics')
 const { NotFound } = require('@feathersjs/errors')
 const { escapeValue } = require('../../util/solr/filterReducers')
 const SequelizeService = require('../sequelize.service')
-const SolrService = require('../solr.service')
 const Topic = require('../../models/topics.model')
 const { measureTime } = require('../../util/instruments')
+const { asFindAll, asGet } = require('../../util/solr/adapters')
+const { buildResolvers } = require('../../internalServices/cachedResolvers')
+const { SolrNamespaces } = require('../../solr')
 
 class Service {
   constructor({ app = null, name = '' }) {
     this.name = String(name)
     this.app = app
-    // this.sql = SequelizeService({
-    //   app,
-    //   name,
-    // });
-    this.solrService = SolrService({
-      app,
-      name,
-      namespace: 'topics',
-    })
+  }
+
+  get solr() {
+    return this.app.service('simpleSolrClient')
   }
 
   async find(params) {
@@ -29,18 +26,21 @@ class Service {
     // fill topics dict with results
     if (params.sanitized.q && params.sanitized.q.length > 2) {
       const q = escapeValue(params.sanitized.q).split(/\s/).join(' OR ')
-      const solrSuggestResponse = await measureTime(
-        () =>
-          this.app.get('solrClient').findAll({
-            q: `topic_suggest:${q}`,
-            highlight_by: 'topic_suggest',
-            order_by: params.query.order_by,
-            namespace: 'topics',
-            limit: 300,
-            offset: 0,
-          }),
-        'topics.find.solr.topics_suggest'
-      )
+
+      const request = {
+        q: `topic_suggest:${q}`,
+        highlight_by: 'topic_suggest',
+        order_by: params.query.order_by,
+        namespace: 'topics',
+        limit: 300,
+        offset: 0,
+      }
+      // const solrSuggestResponse = await measureTime(
+      //   () => this.app.get('solrClient').findAll(request),
+      //   'topics.find.solr.topics_suggest'
+      // )
+      const solrSuggestResponse = await asFindAll(this.solr, 'topics', request)
+
       // set initial query time for suggestions
       qtime = solrSuggestResponse.responseHeader.QTime
 
@@ -60,17 +60,21 @@ class Service {
       }
 
       if (!params.sanitized.filters.length) {
+        const resolvers = buildResolvers(this.app)
+
         return {
           total: solrSuggestResponse.response.numFound,
-          data: solrSuggestResponse.response.docs
-            .slice(params.query.offset, params.query.offset + params.query.limit)
-            .map(d => {
-              const t = Topic.getCached(d.id)
-              if (solrSuggestResponse.highlighting[t.uid].topic_suggest) {
-                t.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
-              }
-              return t
-            }),
+          data: Promise.all(
+            solrSuggestResponse.response.docs
+              .slice(params.query.offset, params.query.offset + params.query.limit)
+              .map(async d => {
+                const t = await resolvers.topic(d.id)
+                if (solrSuggestResponse.highlighting[t.uid].topic_suggest) {
+                  t.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
+                }
+                return t
+              })
+          ),
           limit: params.query.limit,
           offset: params.query.offset,
           info: {
@@ -104,28 +108,29 @@ class Service {
 
     debug('[find] params.sanitized:', params.sanitized, '- topic uids:', uids.length)
 
-    // console.log(topics);
-    const solrResponse = await measureTime(
-      () =>
-        this.app.get('solrClient').findAllPost({
-          q: solrQueryParts.join(' AND '),
-          facets: JSON.stringify({
-            topic: {
-              type: 'terms',
-              field: 'topics_dpfs',
-              mincount: 1,
-              limit: 300,
-              offset: 0,
-              numBuckets: true,
-            },
-          }),
-          limit: 0,
+    const request = {
+      q: solrQueryParts.join(' AND '),
+      facets: JSON.stringify({
+        topic: {
+          type: 'terms',
+          field: 'topics_dpfs',
+          mincount: 1,
+          limit: 300,
           offset: 0,
-          fl: 'id',
-          vars: params.sanitized.sv,
-        }),
-      'topics.find.solr.posts'
-    )
+          numBuckets: true,
+        },
+      }),
+      limit: 0,
+      offset: 0,
+      fl: 'id',
+      vars: params.sanitized.sv,
+    }
+    // console.log(topics);
+    // const solrResponse = await measureTime(
+    //   () => this.app.get('solrClient').findAllPost(request),
+    //   'topics.find.solr.posts'
+    // )
+    const solrResponse = await asFindAll(this.solr, SolrNamespaces.Search, request)
 
     debug('[find] solrResponse total document matching:', solrResponse.response.numFound)
     if (!solrResponse.response.numFound || !solrResponse.facets || !solrResponse.facets.topic) {
@@ -154,19 +159,23 @@ class Service {
       // get only the portion we need.
       data = data.slice(params.query.offset, params.query.offset + params.query.limit)
     }
+
+    const resolvers = buildResolvers(this.app)
     // remap data
-    data = data.map(d => {
-      const topic = Topic.getCached(d.val)
-      if (uids.length && topics[d.val]) {
-        topic.matches = topics[d.val].matches
-      }
-      topic.countItems = d.count
-      return topic
-    })
+    data = await Promise.all(
+      data.map(async d => {
+        const topic = await resolvers.topic(d.val)
+        if (uids.length && topics[d.val]) {
+          topic.matches = topics[d.val].matches
+        }
+        topic.countItems = d.count
+        return topic
+      })
+    )
 
     return {
       total,
-      data,
+      data: data.filter(d => d.uid !== ''),
       limit: params.query.limit,
       offset: params.query.offset,
       info: {
@@ -177,10 +186,12 @@ class Service {
   }
 
   async get(id, params) {
+    const resolvers = buildResolvers(this.app)
+
     return measureTime(
       () =>
-        this.solrService.get(id, params).then(topic => {
-          const cached = this.solrService.Model.getCached(id)
+        asGet(this.solr, SolrNamespaces.Topics, id, params, Topic.solrFactory).then(async topic => {
+          const cached = await resolvers.topic(id)
           topic.countItems = cached.countItems
           topic.relatedTopics = cached.relatedTopics
           return topic

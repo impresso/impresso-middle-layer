@@ -1,4 +1,8 @@
 const stringifyReplacer = (key: any, value: any) => {
+  if (typeof value === 'bigint') {
+    return value.toString(10)
+  }
+
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     const keys = Object.getOwnPropertyNames(value)
     const symbols = Object.getOwnPropertySymbols(value)
@@ -20,4 +24,8 @@ const stringifyReplacer = (key: any, value: any) => {
  */
 export const getCacheKey = (input: Record<any, any>): string => {
   return Buffer.from(JSON.stringify(input, stringifyReplacer)).toString('base64')
+}
+
+export const serialize = (input: Record<any, any>): string => {
+  return JSON.stringify(input, stringifyReplacer)
 }

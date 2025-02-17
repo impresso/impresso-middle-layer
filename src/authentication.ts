@@ -14,19 +14,34 @@ import { createSwaggerServiceOptions } from 'feathers-swagger'
 import User from './models/users.model'
 import { docs } from './services/authentication/authentication.schema'
 import { ImpressoApplication } from './types'
+import { BufferUserPlanGuest } from './models/user-bitmap.model'
+import { bigIntToBuffer, bufferToBigInt } from './util/bigint'
 
 const debug = initDebug('impresso/authentication')
 
+/**
+ * Using base64 for the bitmap to keep the size
+ * of the JWT token as small as possible.
+ */
+type AuthPayload = Omit<SlimUser, 'uid' | 'id' | 'bitmap'> & {
+  userId: string
+  bitmap: string // bigint as a base64 string
+}
+
 class CustomisedAuthenticationService extends AuthenticationService {
   async getPayload(authResult: AuthenticationResult, params: AuthenticationParams) {
-    const payload = await super.getPayload(authResult, params)
+    const payload = (await super.getPayload(authResult, params)) as AuthPayload
     const { user } = authResult as { user: User }
+
     if (user) {
       payload.userId = user.uid
       if (user.groups.length) {
-        payload.userGroups = user.groups.map(d => d.name)
+        payload.groups = user.groups.map(d => d.name)
       }
       payload.isStaff = user.isStaff
+      payload.bitmap = bigIntToBuffer(user.bitmap != null ? BigInt(user.bitmap) : BufferUserPlanGuest).toString(
+        'base64'
+      )
     }
     return payload
   }
@@ -59,6 +74,7 @@ export interface SlimUser {
   uid: string
   id: number
   isStaff: boolean
+  bitmap: bigint
   groups: string[]
 }
 
@@ -87,12 +103,12 @@ class NoDBJWTStrategy extends JWTStrategy {
     if (entity === null) {
       return result
     }
-
     const slimUser: SlimUser = {
       uid: payload.userId,
       id: parseInt(payload.sub),
+      bitmap: payload.bitmap != null ? bufferToBigInt(Buffer.from(payload.bitmap, 'base64')) : BufferUserPlanGuest,
       isStaff: payload.isStaff ?? false,
-      groups: payload.userGroups ?? [],
+      groups: payload.groups ?? [],
     }
     return {
       ...result,
@@ -115,7 +131,7 @@ class ImlAppJWTStrategy extends JWTStrategy {
     const authConfig = (this.app as ImpressoApplication)?.get('imlAuthConfiguration')
 
     const imlOps: JwtVerifyOptions = { ...params.jwt }
-    if (authConfig != null) {
+    if (authConfig?.jwtOptions?.audience != null) {
       imlOps.audience = authConfig.jwtOptions.audience
     }
 
