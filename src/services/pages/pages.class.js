@@ -1,10 +1,8 @@
-/* eslint-disable no-unused-vars */
+import Page from '../../models/pages.model'
+
 const debug = require('debug')('impresso/services:pages')
 const { NotFound } = require('@feathersjs/errors')
-const solr = require('../../solr')
 const SequelizeService = require('../sequelize.service')
-const Article = require('../../models/articles.model')
-const Page = require('../../models/pages.model')
 const { measureTime } = require('../../util/instruments')
 const { asFindAll } = require('../../util/solr/adapters')
 

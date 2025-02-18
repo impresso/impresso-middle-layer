@@ -1,8 +1,8 @@
 import { OpenPermissions } from '../util/bigint'
 import { getExternalFragmentUrl } from '../util/iiif'
 import Article from './articles.model'
+import Page from './pages.model'
 
-const Page = require('./pages.model')
 const Issue = require('./issues.model')
 const Newspaper = require('./newspapers.model')
 

@@ -120,6 +120,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
           } satisfies Problem)
         },
       },
+      logger: false,
     })
   )
 }

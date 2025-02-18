@@ -2,7 +2,12 @@ import { AuthenticationService } from '@feathersjs/authentication'
 import { Forbidden } from '@feathersjs/errors'
 import { Application as ExpressApplication, Request, RequestHandler, Response } from 'express'
 import { ServerResponse } from 'http'
-import { createProxyMiddleware, responseInterceptor } from 'http-proxy-middleware'
+import {
+  createProxyMiddleware,
+  debugProxyErrorsPlugin,
+  proxyEventsPlugin,
+  responseInterceptor,
+} from 'http-proxy-middleware'
 import { extname, join } from 'node:path'
 import { SimpleSolrClient } from '../internalServices/simpleSolr'
 import { logger } from '../logger'
@@ -25,13 +30,16 @@ const getContentItemPermissionBitmap = async (
   contentItemId: string | undefined
 ): Promise<bigint | undefined> => {
   if (contentItemId == null) return
-  const result = await solr.selectOne<{ rights_bm_get_img_l: bigint | undefined }>(SolrNamespaces.Search, {
+  const result = await solr.selectOne<{
+    rights_bm_get_img_l: bigint | undefined
+    rights_bm_explore_l: bigint | undefined
+  }>(SolrNamespaces.Search, {
     body: {
       query: `page_id_ss:${contentItemId}`,
-      fields: 'rights_bm_get_img_l',
+      fields: 'rights_bm_get_img_l,rights_bm_explore_l',
     },
   })
-  return result?.rights_bm_get_img_l
+  return result?.rights_bm_explore_l != null ? BigInt(result?.rights_bm_explore_l) : undefined
 }
 
 const getUserBitmap = async (
@@ -43,18 +51,36 @@ const getUserBitmap = async (
   if (tokenContent.bitmap != null) return bufferToBigInt(Buffer.from(tokenContent.bitmap, 'base64'))
 }
 
+const getToken = (req: Request): string | undefined => {
+  const cookieToken = req.cookies['feathers-jwt']
+  const bearerHeaderToken = (req.headers['authentication'] as string)?.replace?.(/^Bearer /, '')
+  return cookieToken ?? bearerHeaderToken
+}
+
 const getAuthHandlerMiddleware = (app: ImpressoApplication): RequestHandler => {
   const handler: RequestHandler = async (req, res, next) => {
     const { imagePath } = req.params
-    const contentBitmap =
-      (await getContentItemPermissionBitmap(app.service('simpleSolrClient'), getContentItemId(imagePath))) ??
-      OpenPermissions
-    const token = (req.headers['authentication'] as string)?.replace?.(/^Bearer /, '')
-    const userBitmap = (await getUserBitmap(app.service('authentication'), token)) ?? BufferUserPlanGuest
-    const accessAllowed = (userBitmap & contentBitmap) != BigInt(0)
+    const token = getToken(req)
 
-    if (!accessAllowed) return next(new Forbidden())
-    return next()
+    try {
+      const contentBitmapAwaitable = getContentItemPermissionBitmap(
+        app.service('simpleSolrClient'),
+        getContentItemId(imagePath)
+      )
+      const userBitmapAwaitable = getUserBitmap(app.service('authentication'), token)
+
+      const [contentBitmap = OpenPermissions, userBitmap = BufferUserPlanGuest] = await Promise.all([
+        contentBitmapAwaitable,
+        userBitmapAwaitable,
+      ])
+
+      const accessAllowed = (userBitmap & contentBitmap) != BigInt(0)
+
+      if (!accessAllowed) return next(new Forbidden())
+      return next()
+    } catch (e) {
+      return next(e)
+    }
   }
   return handler
 }
@@ -68,6 +94,7 @@ const getProxyMiddleware = (app: ImpressoApplication, prefix: string) => {
     selfHandleResponse: true, // res.end() will be called internally by responseInterceptor()
     followRedirects: true,
     logger,
+    plugins: [proxyEventsPlugin, debugProxyErrorsPlugin] as any as undefined,
     on: {
       proxyReq: (proxyReq, req) => {
         if (source.auth != null) {

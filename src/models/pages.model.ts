@@ -1,11 +1,55 @@
-import { getJSONUrl, getManifestJSONUrl, getThumbnailUrl, getExternalThumbnailUrl } from '../util/iiif'
-const { DataTypes } = require('sequelize')
-const Issue = require('./issues.model')
-const ArticleEntity = require('./articles-entities.model')
-const ArticleTag = require('./articles-tags.model')
-const config = require('@feathersjs/configuration')()()
+import {
+  getJSONUrl,
+  getManifestJSONUrl,
+  getThumbnailUrl,
+  getExternalThumbnailUrl,
+  sanitizeIiifImageUrl,
+} from '../util/iiif'
+import { Config, ImageUrlRewriteRule } from './generated/common'
+import { IArticleEntity, ArticleEntity } from './articles-entities.model'
+import { IArticleTag, ArticleTag } from './articles-tags.model'
+import { Sequelize } from 'sequelize'
 
-class Page {
+import { DataTypes } from 'sequelize'
+import Issue from './issues.model'
+import initConfig from '@feathersjs/configuration'
+
+const config = initConfig()() as any as Config
+
+interface IPage {
+  uid: string
+  num: number
+  issueUid: string
+  newspaperUid: string
+  iiif: string
+  iiifThumbnail: string
+  accessRights: string
+  labels: string[]
+  countArticles: number
+  hasCoords: boolean
+  hasErrors: boolean
+  regions: any[]
+  articlesEntities: IArticleEntity[]
+  articlesTags: IArticleTag[]
+}
+
+export default class Page implements IPage {
+  public uid: string
+  public num: number
+  public issueUid: string
+  public newspaperUid: string
+  public iiif: string
+  public iiifThumbnail: string
+  public accessRights: string
+  public labels: string[]
+  public countArticles: number = 0
+  public hasCoords: boolean
+  public hasErrors: boolean
+  public regions: any[] = []
+  public articlesEntities: IArticleEntity[] = []
+  public articlesTags: IArticleTag[] = []
+  public collections: any[] = []
+
   constructor(
     {
       uid = '',
@@ -35,19 +79,24 @@ class Page {
     this.uid = String(uid)
 
     // "LCE-1864-07-17-a-p0004".match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
-    const [, issueUid, newspaperUid, num] = this.uid.match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
+    const match = this.uid.match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
+    if (!match) {
+      throw new Error(`Invalid page UID: ${this.uid}`)
+    }
+    const [, issueUid, newspaperUid, num] = match
 
     this.num = parseInt(num, 10)
     this.issueUid = issueUid
     this.newspaperUid = newspaperUid
 
     // if any iiif is provided
+    const rules = config.images.rewriteRules
     if (!iiif.length) {
-      this.iiif = getJSONUrl(this.uid, config.images.baseUrl)
-      this.iiifThumbnail = getThumbnailUrl(this.uid, config.images.baseUrl)
+      this.iiif = sanitizeIiifImageUrl(getJSONUrl(this.uid, config.images.baseUrl), rules ?? [])
+      this.iiifThumbnail = sanitizeIiifImageUrl(getThumbnailUrl(this.uid, config.images.baseUrl), rules ?? [])
     } else {
-      this.iiif = getManifestJSONUrl(iiif)
-      this.iiifThumbnail = getExternalThumbnailUrl(this.iiif, config.proxy)
+      this.iiif = sanitizeIiifImageUrl(getManifestJSONUrl(iiif), rules ?? [])
+      this.iiifThumbnail = sanitizeIiifImageUrl(getExternalThumbnailUrl(this.iiif), rules ?? [])
     }
 
     this.accessRights = accessRights
@@ -55,7 +104,7 @@ class Page {
     this.labels = labels
 
     if (countArticles > -1) {
-      this.countArticles = parseInt(countArticles, 10)
+      this.countArticles = typeof countArticles == 'string' ? parseInt(countArticles, 10) : countArticles
     }
 
     this.hasCoords = Boolean(hasCoords)
@@ -70,14 +119,14 @@ class Page {
     }
 
     if (complete) {
-      this.articlesEntities = articlesEntities.map(d => {
+      this.articlesEntities = articlesEntities.map((d: any) => {
         if (d instanceof ArticleEntity) {
           return d
         }
         return new ArticleEntity(d)
       })
 
-      this.articlesTags = articlesTags.map(d => {
+      this.articlesTags = articlesTags.map((d: any) => {
         if (d instanceof ArticleTag) {
           return d
         }
@@ -88,7 +137,7 @@ class Page {
     }
   }
 
-  static sequelize(client) {
+  static sequelize(client: Sequelize) {
     const issue = Issue.sequelize(client)
 
     const page = client.define(
@@ -148,10 +197,10 @@ class Page {
     })
 
     page.prototype.toJSON = function () {
-      if (this.issue) {
+      if ((this as any).issue) {
         return new Page({
           ...this.get(),
-          accessRights: this.issue.accessRights,
+          accessRights: (this as any).issue.accessRights,
         })
       }
       return new Page(this.get())
@@ -161,4 +210,10 @@ class Page {
   }
 }
 
-module.exports = Page
+export const withRewrittenIIIF = (page: IPage, rewriteRules: ImageUrlRewriteRule[] = []): IPage => {
+  return {
+    ...page,
+    iiif: sanitizeIiifImageUrl(page.iiif, rewriteRules),
+    iiifThumbnail: sanitizeIiifImageUrl(page.iiifThumbnail, rewriteRules),
+  }
+}

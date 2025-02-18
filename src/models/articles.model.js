@@ -1,5 +1,6 @@
 import { OpenPermissions } from '../util/bigint'
 import { getManifestJSONUrl, getExternalFragmentUrl } from '../util/iiif'
+import Page from './pages.model'
 
 const { DataTypes } = require('sequelize')
 const lodash = require('lodash')
@@ -9,7 +10,6 @@ const Newspaper = require('./newspapers.model')
 const Collection = require('./collections.model')
 const CollectableItem = require('./collectable-items.model')
 const Issue = require('./issues.model')
-const Page = require('./pages.model')
 const ArticleTopic = require('./articles-topics.model')
 
 const { toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt } = require('../helpers')

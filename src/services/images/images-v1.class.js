@@ -5,10 +5,11 @@
 /* eslint-disable no-unused-vars */
 import { asFindAll, asGet } from '../../util/solr/adapters'
 import { logger } from '../../logger'
+import Page from '../../models/pages.model'
+
 const { NotFound, BadGateway } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:images')
 const Image = require('../../models/images.model')
-const Page = require('../../models/pages.model')
 const { getFacetsFromSolrResponse } = require('../search/search.extractors')
 const { measureTime } = require('../../util/instruments')
 const {

@@ -11,6 +11,7 @@ import { ImpressoApplication } from '../../types'
 import { SlimUser } from '../../authentication'
 import { asFind, asGet, SolrFactory } from '../../util/solr/adapters'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { withRewrittenIIIF } from '../../models/pages.model'
 
 const debug = Debug('impresso/services:articles')
 
@@ -145,7 +146,10 @@ export class ContentItemService {
           // it came from cache. Otherwise it is a model instance and it was
           // loaded from the database.
           // This should be moved to the SequelizeService layer.
-          article.pages = addonsIndex[article.uid].pages.map((d: any) => (d.constructor === Object ? d : d.toJSON()))
+          const rewriteRules = this.app?.get('images')?.rewriteRules ?? []
+          article.pages = addonsIndex[article.uid].pages.map((d: any) =>
+            withRewrittenIIIF(d.constructor === Object ? d : d.toJSON(), rewriteRules)
+          )
         }
         if (pageUids.length === 1) {
           article.regions = article?.regions?.filter((r: { pageUid: string }) => pageUids.indexOf(r.pageUid) !== -1)
@@ -204,7 +208,7 @@ export class ContentItemService {
           if (issue && article.issue) {
             article.issue.accessRights = (issue as any).accessRights
           }
-          article.pages = addons.pages.map((d: any) => d.toJSON())
+          article.pages = addons.pages.map((d: any) => withRewrittenIIIF(d.toJSON()))
         }
         return article != null ? Article.assignIIIF(article) : undefined
       })
