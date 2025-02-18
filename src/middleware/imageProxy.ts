@@ -53,7 +53,7 @@ const getUserBitmap = async (
 
 const getToken = (req: Request): string | undefined => {
   const cookieToken = req.cookies['feathers-jwt']
-  const bearerHeaderToken = (req.headers['authentication'] as string)?.replace?.(/^Bearer /, '')
+  const bearerHeaderToken = (req.headers['authorization'] as string)?.replace?.(/^Bearer /, '')
   return cookieToken ?? bearerHeaderToken
 }
 
