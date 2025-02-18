@@ -93,8 +93,7 @@ const getProxyMiddleware = (app: ImpressoApplication, prefix: string) => {
     changeOrigin: true,
     selfHandleResponse: true, // res.end() will be called internally by responseInterceptor()
     followRedirects: true,
-    logger,
-    plugins: [proxyEventsPlugin, debugProxyErrorsPlugin] as any as undefined,
+    logger: undefined,
     on: {
       proxyReq: (proxyReq, req) => {
         if (source.auth != null) {
