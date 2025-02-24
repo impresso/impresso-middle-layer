@@ -112,8 +112,9 @@ const convertItemToNewImageFormat = (context: HookContext<ImpressoApplication>) 
   context.result = newResult
 }
 
-const deserializeFilters = (serializedFilters: string) => {
+const deserializeFilters = (serializedFilters: string | object) => {
   if (serializedFilters == null) return []
+  if (typeof serializedFilters !== 'string') return serializedFilters
   try {
     return protobuf.searchQuery.deserialize(serializedFilters).filters || []
   } catch (error) {
