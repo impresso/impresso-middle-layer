@@ -7,6 +7,7 @@ import { AuthenticationService } from '@feathersjs/authentication'
 import { MediaSources } from './services/media-sources/media-sources.class'
 import { NewspapersService } from './services/newspapers/newspapers.class'
 import { SimpleSolrClient } from './internalServices/simpleSolr'
+import { ContentItemService } from './services/articles/articles.class'
 
 export interface AppServices {
   redisClient?: IRedisClientContainer
@@ -18,6 +19,7 @@ export interface AppServices {
   // Services
   ['media-sources']: MediaSources
   newspapers: NewspapersService
+  ['content-item']: ContentItemService
 }
 
 export type ImpressoApplication = Application<AppServices & Record<string, any>, Configuration>

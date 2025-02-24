@@ -1,8 +1,8 @@
 import { keyBy } from 'lodash'
 import Debug from 'debug'
 import { Op } from 'sequelize'
-import { NotFound } from '@feathersjs/errors'
 
+import { logger } from '../../logger'
 import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
 import Article, { ARTICLE_SOLR_FL_LIST_ITEM } from '../../models/articles.model'
 import Issue from '../../models/issues.model'
@@ -11,6 +11,7 @@ import { ImpressoApplication } from '../../types'
 import { SlimUser } from '../../authentication'
 import { asFind, asGet, SolrFactory } from '../../util/solr/adapters'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { withRewrittenIIIF } from '../../models/pages.model'
 
 const debug = Debug('impresso/services:articles')
 
@@ -55,7 +56,7 @@ interface FindOptions {
   fl?: string[]
 }
 
-export class Service {
+export class ContentItemService {
   name: string
   app?: ImpressoApplication
   SequelizeService: SequelizeService
@@ -80,7 +81,7 @@ export class Service {
     return await this._find(params)
   }
 
-  async findInternal(params: any) {
+  async findInternal(params: FindOptions) {
     return await this._find(params)
   }
 
@@ -111,7 +112,7 @@ export class Service {
           order_by: [['uid', 'DESC']],
         })
           .catch(err => {
-            console.error(err)
+            logger.error(err)
             return { data: [] }
           })
           .then(({ data }) => keyBy(data, 'uid')),
@@ -145,7 +146,10 @@ export class Service {
           // it came from cache. Otherwise it is a model instance and it was
           // loaded from the database.
           // This should be moved to the SequelizeService layer.
-          article.pages = addonsIndex[article.uid].pages.map((d: any) => (d.constructor === Object ? d : d.toJSON()))
+          const rewriteRules = this.app?.get('images')?.rewriteRules ?? []
+          article.pages = addonsIndex[article.uid].pages.map((d: any) =>
+            withRewrittenIIIF(d.constructor === Object ? d : d.toJSON(), rewriteRules)
+          )
         }
         if (pageUids.length === 1) {
           article.regions = article?.regions?.filter((r: { pageUid: string }) => pageUids.indexOf(r.pageUid) !== -1)
@@ -204,17 +208,17 @@ export class Service {
           if (issue && article.issue) {
             article.issue.accessRights = (issue as any).accessRights
           }
-          article.pages = addons.pages.map((d: any) => d.toJSON())
+          article.pages = addons.pages.map((d: any) => withRewrittenIIIF(d.toJSON()))
         }
         return article != null ? Article.assignIIIF(article) : undefined
       })
       .catch(err => {
-        console.error(err)
+        logger.error(err)
         throw err
       })
   }
 }
 
 export default function (options: ServiceOptions) {
-  return new Service(options)
+  return new ContentItemService(options)
 }

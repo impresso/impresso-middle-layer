@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import { logger } from '../logger'
 import Collection from '../models/collections.model'
 import { HookContext } from '@feathersjs/feathers'
 import { Service as SearchFacetService } from '../services/search-facets/search-facets.class'
@@ -61,8 +62,8 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
       return lodash.keyBy(data, 'textReuseCluster.id')
     })
     .catch((err: Error) => {
-      console.error('hook resolveTextReuseClusters ERROR')
-      console.error(err)
+      logger.error('hook resolveTextReuseClusters ERROR')
+      logger.error(err)
     })
   debug('resolveTextReuseClusters index keys:', Object.keys(index))
 
@@ -106,8 +107,8 @@ export const resolveCollections = () => async (context: HookContext<ImpressoAppl
       )
     )
     .catch((err: Error) => {
-      console.error('hook resolveCollections ERROR')
-      console.error(err)
+      logger.error('hook resolveCollections ERROR')
+      logger.error(err)
       return {}
     })) as lodash.Dictionary<any>
 

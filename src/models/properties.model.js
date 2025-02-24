@@ -1,7 +1,8 @@
+import { logger } from '../logger'
 const { DataTypes } = require('sequelize')
 
 class Property {
-  constructor ({
+  constructor({
     name = '',
     label = '',
     // eslint-disable-next-line camelcase
@@ -13,7 +14,7 @@ class Property {
     this.label = label
     if (!this.value) {
       // eslint-disable-next-line no-console
-      console.warn(
+      logger.warning(
         'Property',
         name,
         // eslint-disable-next-line quotes
@@ -27,7 +28,7 @@ class Property {
     }
   }
 
-  static sequelize (client) {
+  static sequelize(client) {
     const prop = client.define(
       'prop',
       {

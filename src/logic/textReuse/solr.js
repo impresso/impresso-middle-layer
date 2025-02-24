@@ -1,3 +1,4 @@
+import { logger } from '../../logger'
 const assert = require('assert')
 const { get, omitBy, isUndefined } = require('lodash')
 const { SolrMappings } = require('../../data/constants')
@@ -222,7 +223,7 @@ function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
         total: get(solrResponse, 'response.numFound'),
       }
     } catch (e) {
-      console.warn(e)
+      logger.warning(e)
       return {
         limit: 10,
         offset: 0,

@@ -7,6 +7,7 @@ import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters 
 import { IHuman, ILocation, resolve as resolveWikidata } from '../wikidata'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { SolrNamespaces } from '../../solr'
+import { logger } from '../../logger'
 
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:entities')
@@ -205,7 +206,7 @@ class Service {
         return result
       })
       .catch(err => {
-        console.error(err)
+        logger.error(err)
         return result
       })
   }

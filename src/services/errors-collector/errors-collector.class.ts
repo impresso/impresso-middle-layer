@@ -1,3 +1,4 @@
+import { logger } from '../../logger'
 import { Params } from '@feathersjs/feathers'
 import { SlimUser } from '../../authentication'
 
@@ -22,6 +23,6 @@ export default class ErrorsCollector {
     const user: SlimUser | undefined = (params as any).user
     const context = { ...data, userId: user?.uid, timestamp: new Date().toISOString() }
     const message = `[WebApp Error] ${JSON.stringify(context)}`
-    console.error(message)
+    logger.error(message)
   }
 }

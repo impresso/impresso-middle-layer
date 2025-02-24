@@ -11,6 +11,8 @@ import {
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../../types'
 import { Image } from '../../models/generated/schemas'
+import { ImageUrlRewriteRule } from '../../models/generated/common'
+import { sanitizeIiifImageUrl } from '../../util/iiif'
 import { protobuf } from 'impresso-jscommons'
 import { BadRequest } from '@feathersjs/errors'
 
@@ -45,35 +47,28 @@ const updateIiifUrls = (context: HookContext<ImpressoApplication>) => {
     throw new Error('The updateIiifUrls hook should be used as an after hook only')
   }
 
-  const proxyConfig = context.app.get('proxy')
-  const prefixes = proxyConfig?.localPrefixes
-  const host = proxyConfig?.host
+  const rewriteRules = context.app.get('images').rewriteRules
 
   const replaceableItems = ['pages', 'regions']
   const replaceableFields = ['iiif', 'iiifThumbnail', 'iiifFragment']
 
-  if (prefixes != null && prefixes.length > 0 && host != null) {
-    context.result?.data?.forEach((image: Record<string, any>) => {
-      replaceableItems.forEach((key: string) => {
-        image?.[key]?.forEach((item: Record<string, any>) => {
-          replaceableFields.forEach((field: string) => {
-            const iiifPrefix = getPrefix(prefixes, item[field])
-            if (iiifPrefix != null) {
-              item[field] = item[field].replace(iiifPrefix, host)
-            }
-          })
+  context.result?.data?.forEach((image: Record<string, any>) => {
+    replaceableItems.forEach((key: string) => {
+      image?.[key]?.forEach((item: Record<string, any>) => {
+        replaceableFields.forEach((field: string) => {
+          item[field] = sanitizeIiifImageUrl(item[field], rewriteRules ?? [])
         })
       })
     })
-  }
+  })
 }
 
-const toNewImageFormat = (image?: Record<string, any>): Image | undefined => {
+const toNewImageFormat = (image?: Record<string, any>, rewriteRules?: ImageUrlRewriteRule[]): Image | undefined => {
   if (image == null) return undefined
   return {
     uid: image.uid,
     issueUid: image.issue?.uid,
-    previewUrl: image?.regions?.[0]?.iiifFragment,
+    previewUrl: sanitizeIiifImageUrl(image?.regions?.[0]?.iiifFragment, rewriteRules ?? []),
     date: image.date,
     caption: (image.title ?? '') != '' ? image.title : undefined,
     pageNumbers: image.pages?.map((p: any) => p.num),
@@ -91,9 +86,11 @@ const convertItemsToNewImageFormat = (context: HookContext<ImpressoApplication>)
     throw new Error('The updateIiifUrls hook should be used as an after hook only')
   }
 
+  const rewriteRules = context.app.get('images').rewriteRules
+
   const newResult = {
     ...context.result,
-    data: context.result?.data?.map(toNewImageFormat),
+    data: context.result?.data?.map((item: any) => toNewImageFormat(item, rewriteRules)),
     pagination: {
       total: context.result?.total,
       limit: context.result?.limit,
@@ -107,7 +104,10 @@ const convertItemToNewImageFormat = (context: HookContext<ImpressoApplication>) 
   if (context.type !== 'after') {
     throw new Error('The updateIiifUrls hook should be used as an after hook only')
   }
-  const newResult = toNewImageFormat(context.result)
+
+  const rewriteRules = context.app.get('images').rewriteRules
+
+  const newResult = toNewImageFormat(context.result, rewriteRules)
 
   context.result = newResult
 }

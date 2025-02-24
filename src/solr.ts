@@ -115,7 +115,7 @@ const wrapAll = (res: Record<string, any>) => {
       limit = typeof params.rows === 'number' ? params.rows : limit
       offset = typeof params.start === 'number' ? params.start : offset
     } catch (e) {
-      console.warn(e)
+      logger.warning(e)
     }
   }
   return {

@@ -4,6 +4,7 @@ import { ApplicationHookFunction, ApplicationHookOptions, HookContext } from '@f
 import { ValidationError } from 'ajv'
 import { GeneralError, BadGateway, BadRequest, Unprocessable } from '@feathersjs/errors'
 import { ImpressoApplication } from './types'
+import { logger } from './logger'
 const { authenticate } = require('@feathersjs/authentication').hooks
 
 const debug = Debug('impresso/app.hooks')
@@ -56,7 +57,7 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
     const error = ctx.error
 
     if (!excludedStatusCodes.includes(error.code) || !error.code) {
-      console.error(
+      logger.error(
         `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
         error.stack
       )

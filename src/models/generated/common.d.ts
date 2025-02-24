@@ -72,7 +72,7 @@ export interface Config {
   solrConfiguration: SolrConfiguration;
   proxy?: ProxyConfig;
   recommender?: RecommenderConfig;
-  images?: ImagesConfig;
+  images: ImagesConfig;
   accessRights?: AccessRightsConfig;
   callbackUrls?: CallbackUrlsConfig;
   /**
@@ -88,6 +88,8 @@ export interface Config {
    */
   public?: string;
   multer?: MulterConfig;
+  imageProxy?: ImageProxyConfig;
+  imageUrlRewriteRules?: ImageUrlRewriteRule[];
 }
 /**
  * Redis configuration
@@ -401,10 +403,54 @@ export interface RecommenderConfig {
   [k: string]: unknown;
 }
 export interface ImagesConfig {
+  /**
+   * Base URL for images
+   */
+  baseUrl: string;
   visualSignature?: {
     endpoint?: string;
     [k: string]: unknown;
   };
+  proxy: ImageProxyConfig;
+  rewriteRules?: ImageUrlRewriteRule[];
+  [k: string]: unknown;
+}
+/**
+ * Image and IIIF proxy configuration options
+ */
+export interface ImageProxyConfig {
+  defaultSourceId?: string;
+  /**
+   * @minItems 1
+   */
+  sources: [
+    {
+      id: string;
+      endpoint: string;
+      auth?: {
+        user: string;
+        pass: string;
+      };
+    },
+    ...{
+      id: string;
+      endpoint: string;
+      auth?: {
+        user: string;
+        pass: string;
+      };
+    }[]
+  ];
+}
+export interface ImageUrlRewriteRule {
+  /**
+   * Regex Pattern to match
+   */
+  pattern: string;
+  /**
+   * Replacement for the pattern
+   */
+  replacement: string;
   [k: string]: unknown;
 }
 export interface AccessRightsConfig {

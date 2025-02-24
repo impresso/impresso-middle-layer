@@ -1,9 +1,10 @@
+import Page from '../../models/pages.model'
+
 const debug = require('debug')('impresso/services:issues')
 const { NotFound } = require('@feathersjs/errors')
 
 const SequelizeService = require('../sequelize.service')
 const Issue = require('../../models/issues.model')
-const Page = require('../../models/pages.model')
 const { measureTime } = require('../../util/instruments')
 const { asFind } = require('../../util/solr/adapters')
 

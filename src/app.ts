@@ -21,7 +21,8 @@ import sequelize from './sequelize'
 import services from './services'
 import rateLimiter from './services/internal/rateLimiter/redis'
 import media from './services/media'
-import proxy from './services/proxy'
+// import imageProxyv1 from './services/proxy'
+import { init as imageProxy } from './middleware/imageProxy'
 import schemas from './services/schemas'
 import { AppServices, ImpressoApplication } from './types'
 import { customJsonMiddleware } from './util/express'
@@ -61,7 +62,7 @@ app.configure(celery)
 
 // configure express services
 app.configure(media)
-app.configure(proxy)
+app.configure(imageProxy)
 app.configure(schemas)
 
 // Enable Swagger and API validator if needed

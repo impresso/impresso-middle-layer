@@ -2,12 +2,12 @@
 import { SelectRequest, SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { SolrNamespaces } from '../../solr'
 import { asFindAll } from '../../util/solr/adapters'
+import { logger } from '../../logger'
 const lodash = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:articles-suggestions')
 const Article = require('../../models/articles.model')
 const ArticleTopic = require('../../models/articles-topics.model')
-const { measureTime } = require('../../util/instruments')
 const {
   utils: { wrapAll },
 } = require('../../solr')
@@ -54,7 +54,7 @@ export class ArticlesSuggestionsService {
           return ArticleTopic.solrDPFsFactory(item?.topics_dpfs)
         })
         .catch(err => {
-          console.error(err)
+          logger.error(err)
           throw new NotFound()
         })
 

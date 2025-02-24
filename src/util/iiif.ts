@@ -1,24 +1,14 @@
-import { ProxyConfig } from '../models/generated/common'
-
-const getPrefix = (prefixes: string[], url?: string): string | undefined => {
-  return url == null ? undefined : prefixes.find(prefix => url.startsWith(prefix))
-}
+import { ImageUrlRewriteRule } from '../models/generated/common'
 
 /**
  * Some images are hosted on internal servers. For them we need
  * to replace the IIIF URLs with the local server proxy URL.
  */
-export const sanitizeIiifImageUrl = (url: string, proxyConfig: ProxyConfig): string => {
-  const { host, iiif } = proxyConfig
-  const proxiedEndpointPrefixes = Object.values(iiif ?? {})
-    .map((item: any) => (typeof item === 'object' && 'endpoint' in item ? item.endpoint : undefined))
-    .filter(item => item != null)
+export const sanitizeIiifImageUrl = (url: string, rules: ImageUrlRewriteRule[]): string => {
+  const rule = rules.find(rule => url.match(new RegExp(rule.pattern)))
 
-  const iiifPrefix = getPrefix(proxiedEndpointPrefixes, url)
-  if (iiifPrefix != null && host != null) {
-    return url.replace(iiifPrefix, `${host}/proxy/iiif/`)
-  }
-  return url
+  if (rule == null) return url
+  return url.replace(new RegExp(rule.pattern), rule.replacement)
 }
 
 interface FragmentOptions {
@@ -35,9 +25,8 @@ export const getExternalFragmentUrl = (
   return `${externalUid}/${coordinates.join(',')}/${dim}/0/default.png`
 }
 
-export const getJSONUrl = (uid: string, config: ProxyConfig) => {
-  const host = config?.host ?? ''
-  return `${host}/${uid}/info.json`
+export const getJSONUrl = (uid: string, baseUrl: string) => {
+  return `${baseUrl}/${uid}/info.json`
 }
 
 export const getManifestJSONUrl = (url: string) => {
@@ -49,12 +38,11 @@ export const getManifestJSONUrl = (url: string) => {
 
 export const getThumbnailUrl = (
   uid: string,
-  config: ProxyConfig,
+  baseUrl: string,
   { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
 ) => {
-  const host = config?.host ?? ''
   const dim = dimension == 'full' ? dimension : `${dimension},`
-  return `${host}/${uid}/full/${dim}/0/default.png`
+  return `${baseUrl}/${uid}/full/${dim}/0/default.png`
 }
 
 export const getExternalThumbnailUrl = (
