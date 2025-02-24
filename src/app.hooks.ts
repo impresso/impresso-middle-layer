@@ -44,13 +44,18 @@ const requireAuthentication =
     return context
   }
 
-const LoggingExcludedStatusCodes = [400, 401, 403, 404, 422]
+const LoggingExcludedStatusCodesInternalApi = [401, 403, 404]
+const LoggingExcludedStatusCodesPublicApi = [400, 401, 403, 404, 422]
 
 const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
+  const excludedStatusCodes = ctx.app.get('isPublicApi')
+    ? LoggingExcludedStatusCodesPublicApi
+    : LoggingExcludedStatusCodesInternalApi
+
   if (ctx.error) {
     const error = ctx.error
 
-    if (!LoggingExcludedStatusCodes.includes(error.code) || !error.code) {
+    if (!excludedStatusCodes.includes(error.code) || !error.code) {
       console.error(
         `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
         error.stack
