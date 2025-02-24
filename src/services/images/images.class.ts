@@ -31,7 +31,9 @@ export interface FindQuery {
   order_by?: OrderByParam
 }
 
-export class Images implements Pick<ClientService<Image, unknown, unknown, PublicFindResponse<Image>>, 'find' | 'get'> {
+type ImageService = Pick<ClientService<Image, unknown, unknown, PublicFindResponse<Image>>, 'find' | 'get'>
+
+export class Images implements ImageService {
   constructor(
     private readonly solrClient: SimpleSolrClient,
     private mediaSources: MediaSources,
