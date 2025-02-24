@@ -11,9 +11,10 @@ import {
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../../types'
 import { Image } from '../../models/generated/schemas'
-import { logger } from '../../logger'
 import { ImageUrlRewriteRule } from '../../models/generated/common'
 import { sanitizeIiifImageUrl } from '../../util/iiif'
+import { protobuf } from 'impresso-jscommons'
+import { BadRequest } from '@feathersjs/errors'
 
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
@@ -111,17 +112,37 @@ const convertItemToNewImageFormat = (context: HookContext<ImpressoApplication>) 
   context.result = newResult
 }
 
+const deserializeFilters = (serializedFilters: string | object) => {
+  if (serializedFilters == null) return []
+  if (typeof serializedFilters !== 'string') return serializedFilters
+  try {
+    return protobuf.searchQuery.deserialize(serializedFilters).filters || []
+  } catch (error) {
+    throw new BadRequest(`Could not deserialize filters: ${(error as Error).message}`)
+  }
+}
+
+// parse filters
+const parseFiltersHook = (context: HookContext<ImpressoApplication>) => {
+  const { filters } = context.params?.query ?? {}
+  context.params.query.filters = deserializeFilters(filters)
+  console.log('ooo', context.params.query.filters)
+}
+
+const parseQ = (context: HookContext<ImpressoApplication>) => {
+  if (context?.params?.query?.term) {
+    context.params.query.q = context.params.query.term
+  }
+}
+
 export default {
   before: {
     all: [
       // authenticate('jwt')
     ],
     find: [
-      (context: HookContext<ImpressoApplication>) => {
-        if (context?.params?.query?.term) {
-          context.params.query.q = context.params.query.term
-        }
-      },
+      parseFiltersHook,
+      parseQ,
       validate({
         order_by: utils.orderBy({
           values: {
