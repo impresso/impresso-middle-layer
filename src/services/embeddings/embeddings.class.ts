@@ -3,6 +3,7 @@ import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { PublicFindResponse as FindResponse } from '../../models/common'
 import { ImpressoApplication } from '../../types'
 import { escapeValue } from '../../util/solr/filterReducers'
+import { WordMatch } from '../../models/generated/schemasPublic'
 
 type FindQuery = Pick<FindResponse<unknown>['pagination'], 'limit' | 'offset'> & {
   term: string
@@ -18,6 +19,12 @@ interface SolrEmbeddingsDoc {
   lg_s: string
   id: string
 }
+
+const asWordMatch = (doc: Omit<SolrEmbeddingsDoc, typeof EmbeddingProperty>): WordMatch => ({
+  id: doc.id,
+  word: doc.word_s,
+  languageCode: doc.lg_s,
+})
 
 export const buildGetTermEmbeddingVectorSolrQuery = (term: string, language?: string): string => {
   const parts = [`word_s:(${escapeValue(term)})`, language ? `lg_s:${language}` : undefined]
@@ -36,7 +43,9 @@ export const buildFindBySimilarEmbeddingsSolrQuery = (vectors: number[][], topK:
 export const DefaultPageSize = 20
 export const DefaultTopK = 20
 
-export class EmbeddingsService implements Pick<ClientService<string, unknown, unknown, FindResponse<string>>, 'find'> {
+export class EmbeddingsService
+  implements Pick<ClientService<WordMatch, unknown, unknown, FindResponse<WordMatch>>, 'find'>
+{
   private readonly app: ImpressoApplication
 
   constructor({ app }: { app: ImpressoApplication }) {
@@ -83,7 +92,7 @@ export class EmbeddingsService implements Pick<ClientService<string, unknown, un
     return result?.response?.docs ?? []
   }
 
-  async find(params?: Params<FindQuery>): Promise<FindResponse<string>> {
+  async find(params?: Params<FindQuery>): Promise<FindResponse<WordMatch>> {
     if (!params?.query) {
       throw new Error('Query parameters are required')
     }
@@ -99,7 +108,7 @@ export class EmbeddingsService implements Pick<ClientService<string, unknown, un
         offset,
         total: matches.length,
       },
-      data: matches.map(d => d.word_s),
+      data: matches.map(asWordMatch),
     }
   }
 }
