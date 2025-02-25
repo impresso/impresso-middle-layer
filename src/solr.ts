@@ -12,6 +12,7 @@ export type SolrNamespace =
   | 'embeddings_de'
   | 'embeddings_fr'
   | 'embeddings_lb'
+  | 'word_embeddings'
   | 'entities_mentions'
 
 export const SolrNamespaces = Object.freeze({
@@ -25,6 +26,7 @@ export const SolrNamespaces = Object.freeze({
   EmbeddingsDE: 'embeddings_de',
   EmbeddingsFR: 'embeddings_fr',
   EmbeddingsLB: 'embeddings_lb',
+  WordEmbeddings: 'word_embeddings',
   EntitiesMentions: 'entities_mentions',
 }) satisfies Record<string, SolrNamespace>
 

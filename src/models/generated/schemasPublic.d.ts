@@ -810,3 +810,22 @@ export interface WikidataLocation {
     longitude?: number;
   };
 }
+
+
+/**
+ * Represents a word match result from word embeddings similarity search
+ */
+export interface WordMatch {
+  /**
+   * Unique identifier for the word
+   */
+  id: string;
+  /**
+   * The language code of the word
+   */
+  languageCode: string;
+  /**
+   * The word
+   */
+  word: string;
+}
