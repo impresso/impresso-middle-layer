@@ -5,9 +5,12 @@ import { ImpressoApplication } from '../../types'
 import { escapeValue } from '../../util/solr/filterReducers'
 import { WordMatch } from '../../models/generated/schemasPublic'
 
+export type ValidLanguageCodes = 'de' | 'fr' | 'lb'
+
 type FindQuery = Pick<FindResponse<unknown>['pagination'], 'limit' | 'offset'> & {
   term: string
-  language?: 'de' | 'fr' | 'lb'
+  /** filter baseline vectors search by language. */
+  language_code?: ValidLanguageCodes
   top_k?: number
 }
 
@@ -31,13 +34,8 @@ export const buildGetTermEmbeddingVectorSolrQuery = (term: string, language?: st
   return parts.filter(p => p != null).join(' AND ')
 }
 
-export const buildFindBySimilarEmbeddingsSolrQuery = (vectors: number[][], topK: number, language?: string): string => {
-  const vectorsCondition = vectors
-    .map(vector => `({!knn f=${EmbeddingProperty} topK=${topK}}${JSON.stringify(vector)})`)
-    .join(' OR ')
-  const languageCondition = language ? `lg_s:${language}` : undefined
-  const parts = [vectorsCondition, languageCondition].filter(p => p != null)
-  return parts.length > 1 ? parts.map(p => `(${p})`).join(' AND ') : parts[0]
+export const buildFindBySimilarEmbeddingsSolrQuery = (vectors: number[][], topK: number): string => {
+  return vectors.map(vector => `({!knn f=${EmbeddingProperty} topK=${topK}}${JSON.stringify(vector)})`).join(' OR ')
 }
 
 export const DefaultPageSize = 20
@@ -75,14 +73,14 @@ export class EmbeddingsService
     vectors: number[][],
     topK: number,
     offset: number,
-    limit: number,
-    language?: string
+    limit: number
   ): Promise<Omit<SolrEmbeddingsDoc, typeof EmbeddingProperty>[]> {
+    if (vectors.length === 0) return []
     const result = await this.solr.select<Omit<SolrEmbeddingsDoc, typeof EmbeddingProperty>>(
       this.solr.namespaces.WordEmbeddings,
       {
         body: {
-          query: buildFindBySimilarEmbeddingsSolrQuery(vectors, topK, language),
+          query: buildFindBySimilarEmbeddingsSolrQuery(vectors, topK),
           fields: ['word_s', 'lg_s', 'id'].join(','),
           limit,
           offset,
@@ -97,10 +95,16 @@ export class EmbeddingsService
       throw new Error('Query parameters are required')
     }
 
-    const { term, language, top_k: topK = DefaultTopK, limit = DefaultPageSize, offset = 0 } = params.query
+    const {
+      term,
+      language_code: languageCode,
+      top_k: topK = DefaultTopK,
+      limit = DefaultPageSize,
+      offset = 0,
+    } = params.query
 
-    const vectors = await this.getTermEmbeddingVectors(term, language)
-    const matches = await this.getWordsMatchingVectors(vectors, topK, offset, limit, language)
+    const vectors = await this.getTermEmbeddingVectors(term, languageCode)
+    const matches = await this.getWordsMatchingVectors(vectors, topK, offset, limit)
 
     return {
       pagination: {
