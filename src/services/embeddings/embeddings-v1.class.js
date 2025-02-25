@@ -1,8 +1,10 @@
 import { escapeValue } from '../../util/solr/filterReducers'
-const debug = require('debug')('impresso/services:embeddings')
-const { NotFound } = require('@feathersjs/errors')
-const { measureTime } = require('../../util/instruments')
-const { asFindAll } = require('../../util/solr/adapters')
+import { NotFound } from '@feathersjs/errors'
+import { measureTime } from '../../util/instruments'
+import { asFindAll } from '../../util/solr/adapters'
+import debugModule from 'debug'
+
+const debug = debugModule('impresso/services:embeddings')
 
 class Service {
   constructor({ app = null, name = '' }) {
@@ -92,8 +94,5 @@ class Service {
   }
 }
 
-module.exports = function (options) {
-  return new Service(options)
-}
-
-module.exports.Service = Service
+export const createService = options => new Service(options)
+export { Service }
