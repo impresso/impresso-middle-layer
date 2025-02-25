@@ -17,14 +17,14 @@ class Service {
   }
 
   async find(params) {
-    const namespace = `embeddings_${params.query.language}`
+    const namespace = `embeddings_${params.query.language_code}`
     // use en to get embedding vector for the queried word
     //
     // https:// solrdev.dhlab.epfl.ch/solr/impresso_embeddings_de/select?q=word_s:amour&fl=embedding_bv
     debug('[find] with params', params.query)
 
     const bvRequest = {
-      q: `word_s:(${escapeValue(params.query.q)})`,
+      q: `word_s:(${escapeValue(params.query.term)})`,
       fl: 'embedding_bv',
       namespace,
     }
@@ -32,7 +32,7 @@ class Service {
       () =>
         asFindAll(this.solr, namespace, bvRequest).then(res => {
           if (!res.response.docs.length) {
-            throw new NotFound(`word "${params.query.q}" not found in available embeddings`)
+            throw new NotFound(`word "${params.query.term}" not found in available embeddings`)
           }
           return res.response.docs[0].embedding_bv
         }),
@@ -60,8 +60,8 @@ class Service {
       limit: params.query.limit,
       offset: params.query.offset,
       info: {
-        q: params.query.q,
-        language: params.query.language,
+        q: params.query.term,
+        language: params.query.language_code,
       },
     }
   }
