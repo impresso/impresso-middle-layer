@@ -17,7 +17,7 @@ interface FeedbackCollectorPayload {
 export default class FeedbackCollector {
   async create(data: { errorMessages: any[]; sanitized: FeedbackCollectorPayload }, params: Params) {
     const user: SlimUser | undefined = (params as any).user
-    const context = { ...data.sanitized, ...data.errorMessages, userId: user?.uid, timestamp: new Date().toISOString() }
+    const context = { ...data, userId: user?.uid, timestamp: new Date().toISOString() }
     const message = `[Feedback] ${JSON.stringify(context)}`
     logger.info(message)
   }

@@ -8,41 +8,66 @@
       "type": "array",
       "items": {
         "type": "object",
-        "id": {
-          "type": "string",
-          "description": "id of the error message"
-        },
-        "name": {
-          "type": "string",
-          "description": "name of the error message"
-        },
-        "message": {
-          "type": "string",
-          "description": "error message"
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "id of the error message"
+          },
+          "name": {
+            "type": "string",
+            "description": "name of the error message"
+          },
+          "message": {
+            "type": "string",
+            "description": "error message"
+          }
         }
       },
-      "description": "error messages"
+      "description": "error messages",
+      "minItems": 0
     },
     "issue": {
       "type": "string",
       "description": "type of issue",
       "enum": [
-        "FeedbackOptionContentItemMetadataIssue",
-        "FeedbackOptionLayoutSegmentationIssue",
-        "FeedbackOptionDocumentLoadingIssue",
-        "FeedbackOptionOtherIssue"
+        "ContentItemMetadataIssue",
+        "ContentItemFacsimileIssue",
+        "ContentItemTranscriptionIssue",
+        "LayoutSegmentationIssue",
+        "DocumentLoadingIssue",
+        "OtherIssue"
       ],
       "default": "FeedbackOptionOtherIssue"
     },
     "content": {
       "type": "string",
       "description": "content of the feedback",
-      "maxLength": 500
+      "maxLength": 1000,
+      "pattern": "^(?!.*<\\/?[a-zA-Z]+).*"
     },
     "route": {
-      "type": "string",
-      "description": "route related to the feedback",
-      "maxLength": 500
+      "type": "object",
+      "description": "route params related to the feedback",
+      "properties": {
+        "fullPath": {
+          "type": "string",
+          "description": "full path of the route"
+        },
+        "params": {
+          "type": "object",
+          "description": "route parameters"
+        },
+        "query": {
+          "type": "object",
+          "description": "query parameters"
+        },
+        "name": {
+          "type": "string",
+          "description": "name of the route"
+        }
+      },
+      "required": ["fullPath", "params", "query", "name"],
+      "additionalProperties": false
     }
   },
   "required": ["issue", "route"],
