@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/feedback-collector/schema/create/payload.json",
+  "description": "Request payload for POST /feedback-collector (create method)",
+  "type": "object",
+  "properties": {
+    "errorMessages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "id": {
+          "type": "string",
+          "description": "id of the error message"
+        },
+        "name": {
+          "type": "string",
+          "description": "name of the error message"
+        },
+        "message": {
+          "type": "string",
+          "description": "error message"
+        }
+      },
+      "description": "error messages"
+    },
+    "issue": {
+      "type": "string",
+      "description": "type of issue",
+      "enum": [
+        "FeedbackOptionContentItemMetadataIssue",
+        "FeedbackOptionLayoutSegmentationIssue",
+        "FeedbackOptionDocumentLoadingIssue",
+        "FeedbackOptionOtherIssue"
+      ],
+      "default": "FeedbackOptionOtherIssue"
+    },
+    "content": {
+      "type": "string",
+      "description": "content of the feedback",
+      "maxLength": 500
+    },
+    "route": {
+      "type": "string",
+      "description": "route related to the feedback",
+      "maxLength": 500
+    }
+  },
+  "required": ["issue", "route"],
+  "additionalProperties": false
+}
