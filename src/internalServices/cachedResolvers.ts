@@ -7,8 +7,9 @@ import { ImpressoApplication } from '../types'
 import { Newspaper as NewspaperInternal } from '../models/generated/schemas'
 import { Topic as ITopic } from '../models/generated/schemas'
 import { WellKnownKeys } from '../cache'
+import { getPartnerResolver } from './facetResolvers/partnerResolver'
 
-export type CachedFacetType = 'newspaper' | 'topic' | 'person' | 'location' | 'collection' | 'year'
+export type CachedFacetType = 'newspaper' | 'topic' | 'person' | 'location' | 'collection' | 'year' | 'partner'
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
 
@@ -48,11 +49,14 @@ const getNewspaperResolver = (app: ImpressoApplication): IResolver<NewspaperInte
   }
 }
 
-export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => ({
-  collection: collectionResolver,
-  location: (id: string) => entityResolver(id, 'location'),
-  person: (id: string) => entityResolver(id, 'person'),
-  topic: getTopicResolver(app),
-  year: yearResolver,
-  newspaper: getNewspaperResolver(app),
-})
+export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
+  return {
+    collection: collectionResolver,
+    location: (id: string) => entityResolver(id, 'location'),
+    person: (id: string) => entityResolver(id, 'person'),
+    topic: getTopicResolver(app),
+    year: yearResolver,
+    newspaper: getNewspaperResolver(app),
+    partner: getPartnerResolver(app),
+  }
+}
