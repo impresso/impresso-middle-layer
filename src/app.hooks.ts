@@ -58,8 +58,8 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
 
     if (!excludedStatusCodes.includes(error.code) || !error.code) {
       logger.error(
-        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method}: `,
-        error.stack
+        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method} - message:"${error.message}" - stack:`,
+        error
       )
     }
 

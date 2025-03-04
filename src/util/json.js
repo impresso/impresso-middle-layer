@@ -31,6 +31,7 @@ ajv.addSchema(require('../services/entities-suggestions/schema/create/payload.js
 ajv.addSchema(require('../services/entities-suggestions/schema/create/response.json'))
 ajv.addSchema(require('../services/entity-mentions-timeline/schema/create/payload.json'))
 ajv.addSchema(require('../services/entity-mentions-timeline/schema/create/response.json'))
+ajv.addSchema(require('../services/feedback-collector/schema/create/payload.json'))
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src'
 
@@ -73,7 +74,6 @@ function formatValidationErrors(errors) {
       if (error.propertyName !== undefined) {
         return [`${dataPath}['${error.propertyName}']`, `invalid property name: ${error.message}`]
       }
-
       return [dataPath, error.message]
     })
     .filter(e => e !== undefined)

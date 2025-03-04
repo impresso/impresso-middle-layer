@@ -65,6 +65,7 @@ const internalApiServices = [
   'user-requests',
   'user-requests-reviews',
   'newspapers',
+  'feedback-collector',
 ]
 
 export default (app: ImpressoApplication) => {
