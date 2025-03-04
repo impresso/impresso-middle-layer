@@ -43,7 +43,7 @@
       "type": "string",
       "description": "content of the feedback",
       "maxLength": 1000,
-      "pattern": "^(?!.*<\\/?[a-zA-Z]+).*"
+      "pattern": "^(?!.*<\\/?[\\p{L}\\p{M}]+).*"
     },
     "route": {
       "type": "object",
