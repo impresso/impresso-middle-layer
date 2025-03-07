@@ -25,9 +25,7 @@ export interface RedactionPolicy {
 export const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> = {
   redact: _value => '[REDACTED]',
   contextNotAllowedImage: (value, rewriteRules) =>
-    rewriteRules
-      ? sanitizeIiifImageUrl('https://impresso-project.ch/assets/images/not-allowed.png', rewriteRules)
-      : 'https://impresso-project.ch/assets/images/not-allowed.png',
+    sanitizeIiifImageUrl('https://impresso-project.ch/assets/images/not-allowed.png', rewriteRules ?? []),
   remove: value => undefined,
   emptyArray: value => [],
 }
