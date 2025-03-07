@@ -93,8 +93,8 @@ const getTemporalResolution = (domain: any, filters: any) => {
   if (domain !== TimeDomain) return undefined
   const days = getWidestInclusiveTimeInterval(filters)
   if (!Number.isFinite(days)) return TemporalResolution.Year
-  if (days < 6 * 31) return TemporalResolution.Day
-  if (days < 5 * 365) return TemporalResolution.Month
+  if (days! < 6 * 31) return TemporalResolution.Day
+  if (days! < 5 * 365) return TemporalResolution.Month
   return TemporalResolution.Year
 }
 

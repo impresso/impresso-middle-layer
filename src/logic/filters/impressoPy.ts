@@ -1,48 +1,4 @@
-import { Filter as UntypedFilter } from 'impresso-jscommons'
-import {
-  FilterTypeMap,
-  FilterContextMap,
-  FilterOperatorMap,
-  FilterPrecisionMap,
-} from 'impresso-jscommons/src/generated/query_pb'
-
-// Utility type to convert SNAKE_CASE to camelCase
-type SnakeToCamel<S extends string> = S extends `${infer T}_${infer U}` ? `${T}${Capitalize<SnakeToCamel<U>>}` : S
-
-// Utility type to omit 'unspecified' from a union of literals
-type OmitUnspecified<T> = T extends 'unspecified' ? never : T
-
-// Remapped type without the TYPE_ prefix and in camelCase
-type FilterTypeWithoutPrefix = {
-  [K in keyof FilterTypeMap as K extends `TYPE_${infer R}`
-    ? OmitUnspecified<SnakeToCamel<Lowercase<R>>>
-    : K]: FilterTypeMap[K]
-}
-type FilterType = keyof FilterTypeWithoutPrefix
-
-// Remapped type without the CONTEXT_ prefix and in camelCase
-type FilterContextWithoutPrefix = {
-  [K in keyof FilterContextMap as K extends `CONTEXT_${infer R}`
-    ? OmitUnspecified<SnakeToCamel<Lowercase<R>>>
-    : K]: FilterContextMap[K]
-}
-type FilterContext = keyof FilterContextWithoutPrefix
-
-// Remapped type without the OP_ prefix and in camelCase
-type FilterOperatorWithoutPrefix = {
-  [K in keyof FilterOperatorMap as K extends `OPERATOR_${infer R}`
-    ? OmitUnspecified<SnakeToCamel<Lowercase<R>>>
-    : K]: FilterOperatorMap[K]
-}
-type FilterOperator = keyof FilterOperatorWithoutPrefix
-
-// Remapped type without the PRECISION_ prefix and in camelCase
-type FilterPrecisionWithoutPrefix = {
-  [K in keyof FilterPrecisionMap as K extends `PRECISION_${infer R}`
-    ? OmitUnspecified<SnakeToCamel<Lowercase<R>>>
-    : K]: FilterPrecisionMap[K]
-}
-type FilterPrecision = keyof FilterPrecisionWithoutPrefix
+import { Filter, FilterPrecision, FilterType, FilterContext, FilterOperator } from 'impresso-jscommons'
 
 const FilterTypeToPythonArgumentName: Record<FilterType, string> = {
   string: 'term',
@@ -98,12 +54,12 @@ const FilterPrecisionToPythonOperator: Record<FilterPrecision, string> = {
   soft: 'Soft',
 }
 
-interface Filter extends UntypedFilter {
-  type: FilterType
-  context?: FilterContext
-  precision?: FilterPrecision
-  op?: FilterOperator
-}
+// interface Filter extends UntypedFilter {
+//   type: FilterType
+//   context?: FilterContext
+//   precision?: FilterPrecision
+//   op?: FilterOperator
+// }
 
 const asPythonValue = (filterValue: string | string[]): string => {
   return JSON.stringify(filterValue)

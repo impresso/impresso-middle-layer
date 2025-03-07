@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { constants } from 'impresso-jscommons'
+import { constants, FilterType } from 'impresso-jscommons'
 import { DataIndex } from './index'
 import { SolrFacetQueryParams } from './types'
 
@@ -415,7 +415,7 @@ export const SolrMappings: Record<string, ISolrMappings> = Object.freeze({
 
 /* Check that facets are a subset of filter types */
 Object.keys(SolrMappings.search.facets).forEach(type =>
-  assert(constants.filter.Types.includes(type), `Unknown filter type found in facets: ${type}`)
+  assert(constants.filter.Types.includes(type as FilterType), `Unknown filter type found in facets: ${type}`)
 )
 
 export const FilterTypes = constants.filter.Types
