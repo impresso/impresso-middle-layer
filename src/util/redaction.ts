@@ -1,6 +1,9 @@
 import { JSONPath } from 'jsonpath-plus'
 import { safeParseJson, safeStringifyJson } from './jsonCodec'
-
+import { sanitizeIiifImageUrl } from '../util/iiif'
+import initConfig from '@feathersjs/configuration'
+import { Config, ImageUrlRewriteRule } from '../models/generated/common'
+const config = initConfig()() as any as Config
 /**
  * Represents a redactable object with arbitrary string keys and values.
  * The `symbol` keys are for internal use (like the `AuthorizationBitmapsKey`).
@@ -22,7 +25,11 @@ export interface RedactionPolicy {
 
 export const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> = {
   redact: value => '[REDACTED]',
-  contextNotAllowedImage: value => 'https://impresso-project.ch/assets/images/not-allowed.png',
+  contextNotAllowedImage: value =>
+    sanitizeIiifImageUrl(
+      'https://impresso-project.ch/assets/images/not-allowed.png',
+      config.images.rewriteRules as ImageUrlRewriteRule[]
+    ),
   remove: value => undefined,
   emptyArray: value => [],
 }
