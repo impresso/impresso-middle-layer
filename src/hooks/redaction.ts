@@ -23,7 +23,7 @@ export const redactResponse = <S>(
     if (context.result != null) {
       if (condition != null && !condition(context, context.result)) return context
 
-      context.result = redactObject(context.result, policy)
+      context.result = redactObject(context.result, policy, context.app)
     }
     return context
   }
@@ -48,13 +48,13 @@ export const redactResponseDataItem = <S>(
         const result = context.result as Record<string, any>
         result[dataItemsField] = result[dataItemsField].map((item: Redactable) => {
           if (condition != null && !condition(context, item)) return item
-          else return redactObject(item, policy)
+          else return redactObject(item, policy, context.app)
         })
       } else {
         const result = context.result as any as FindResponse<Redactable>
         result.data = result.data.map(item => {
           if (condition != null && !condition(context, item)) return item
-          else return redactObject(item, policy)
+          else return redactObject(item, policy, context.app)
         })
       }
     }
