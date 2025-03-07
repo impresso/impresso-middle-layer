@@ -1,12 +1,14 @@
 import { JSONPath } from 'jsonpath-plus'
 import { safeParseJson, safeStringifyJson } from './jsonCodec'
-
+import { sanitizeIiifImageUrl } from '../util/iiif'
+import { ImageUrlRewriteRule } from '../models/generated/common'
+import { ImpressoApplication } from '../types'
 /**
  * Represents a redactable object with arbitrary string keys and values.
  * The `symbol` keys are for internal use (like the `AuthorizationBitmapsKey`).
  */
 export type Redactable = Record<string | symbol, any>
-export type ValueConverter = (value: any) => any
+export type ValueConverter = (value: any, rewriteRules?: ImageUrlRewriteRule[]) => any
 
 export type DefaultConvertersNames = 'redact' | 'contextNotAllowedImage' | 'remove' | 'emptyArray'
 
@@ -21,8 +23,9 @@ export interface RedactionPolicy {
 }
 
 export const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> = {
-  redact: value => '[REDACTED]',
-  contextNotAllowedImage: value => 'https://impresso-project.ch/assets/images/not-allowed.png',
+  redact: _value => '[REDACTED]',
+  contextNotAllowedImage: (value, rewriteRules) =>
+    sanitizeIiifImageUrl('https://impresso-project.ch/assets/images/not-allowed.png', rewriteRules ?? []),
   remove: value => undefined,
   emptyArray: value => [],
 }
@@ -30,7 +33,11 @@ export const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> =
 /**
  * Redacts sensitive information from the provided object based on the specified redaction policy.
  */
-export const redactObject = <T extends Redactable>(object: T, policy: RedactionPolicy): T => {
+export const redactObject = <T extends Redactable>(
+  object: T,
+  policy: RedactionPolicy,
+  rules?: ImageUrlRewriteRule[]
+): T => {
   if (typeof object !== 'object' || object === null || Array.isArray(object)) {
     throw new Error('The provided object is not Redactable')
   }
@@ -44,7 +51,7 @@ export const redactObject = <T extends Redactable>(object: T, policy: RedactionP
       resultType: 'value',
       callback: (value, type, payload) => {
         const valueConverter = DefaultConverters[item.valueConverterName]
-        payload.parent[payload.parentProperty] = valueConverter(value)
+        payload.parent[payload.parentProperty] = valueConverter(value, rules)
       },
     })
   })
