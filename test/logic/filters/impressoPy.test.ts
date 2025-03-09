@@ -190,6 +190,18 @@ describe('buildPythonFunctionCall', () => {
       expectedResult:
         'impresso.search.find(\n\tdate_range=DateRange("1912-01-01T00:00:00Z", "1942-10-31T23:59:59Z")\n)',
     },
+    {
+      name: 'numeric filter',
+      resource: 'search',
+      functionName: 'find',
+      filters: [
+        {
+          type: 'textReuseClusterSize',
+          q: ['1', '3'],
+        },
+      ],
+      expectedResult: 'impresso.search.find(\n\tcluster_size=(1, 3)\n)',
+    },
   ]
 
   testCases.forEach(tc => {

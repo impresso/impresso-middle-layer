@@ -25,7 +25,7 @@ export class DatalabSupportService implements Pick<ClientService<Result, unknown
       if (filters == null || !isResource(resource) || !isFunctionName(functionName)) {
         throw new Error('Missing required parameters')
       }
-      const deserialisedFilters = parseFilters(filters) as Filter[]
+      const deserialisedFilters = filters?.trim() === '' ? [] : (parseFilters(filters) as Filter[])
       return { code: buildPythonFunctionCall(resource, functionName, deserialisedFilters) }
     }
     throw new NotFound(`Aspect ${id} not found`)

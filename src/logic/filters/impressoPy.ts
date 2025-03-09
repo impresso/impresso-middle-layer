@@ -38,7 +38,11 @@ const FilterTypeToPythonArgumentName: Record<FilterType, string> = {
 }
 
 const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']
-const NumericRangeTypes: FilterType[] = ['textReuseClusterSize', 'textReuseClusterLexicalOverlap']
+const NumericRangeTypes: FilterType[] = [
+  'textReuseClusterSize',
+  'textReuseClusterLexicalOverlap',
+  'textReuseClusterDayDelta',
+]
 const DateRangeTypes: FilterType[] = ['daterange']
 
 const FilterContextToPythonOperatorPrefix: Record<FilterContext, string> = {
@@ -87,7 +91,7 @@ const asPythonValue = (filterValue: string | string[], type: FilterType): Python
   }
   if (NumericRangeTypes.includes(type)) {
     const val = Array.isArray(filterValue) ? filterValue : [filterValue]
-    return { type: 'pureValue', render: () => JSON.stringify(val.map(v => parseFloat(v))), totalItems }
+    return { type: 'pureValue', render: () => `(${val.map(v => parseFloat(v)).join(', ')})`, totalItems: 1 }
   }
   if (DateRangeTypes.includes(type)) {
     const val = Array.isArray(filterValue) ? filterValue : filterValue.split(' TO ')
