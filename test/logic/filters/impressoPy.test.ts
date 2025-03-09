@@ -1,5 +1,6 @@
 import assert from 'assert'
 import { buildPythonFunctionCall } from '../../../src/logic/filters/impressoPy'
+import { Filter } from 'impresso-jscommons'
 
 describe('buildPythonFunctionCall', () => {
   interface TestCase {
@@ -13,7 +14,7 @@ describe('buildPythonFunctionCall', () => {
       | 'text_reuse.clusters'
       | 'text_reuse.passages'
     functionName: 'find' | 'facet'
-    filters: any[]
+    filters: Filter[]
     expectedResult: string
   }
 
@@ -23,7 +24,7 @@ describe('buildPythonFunctionCall', () => {
       resource: 'search',
       functionName: 'find',
       filters: [],
-      expectedResult: 'search.find()',
+      expectedResult: 'impresso.search.find()',
     },
     {
       name: 'single string filter with default operator',
@@ -35,7 +36,7 @@ describe('buildPythonFunctionCall', () => {
           q: 'test',
         },
       ],
-      expectedResult: 'search.find(term=AND("test"))',
+      expectedResult: 'impresso.search.find(\n\tterm="test"\n)',
     },
     {
       name: 'single string filter with OR operator',
@@ -45,10 +46,10 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'string',
           q: 'test',
-          op: 'or',
+          op: 'OR',
         },
       ],
-      expectedResult: 'search.find(term=OR("test"))',
+      expectedResult: 'impresso.search.find(\n\tterm="test"\n)',
     },
     {
       name: 'string filter with array value',
@@ -58,10 +59,10 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'string',
           q: ['test1', 'test2'],
-          op: 'and',
+          op: 'AND',
         },
       ],
-      expectedResult: 'search.find(term=AND(["test1","test2"]))',
+      expectedResult: 'impresso.search.find(\n\tterm=AND(["test1","test2"])\n)',
     },
     {
       name: 'filter with precision',
@@ -71,11 +72,11 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'string',
           q: 'test',
-          op: 'and',
+          op: 'AND',
           precision: 'fuzzy',
         },
       ],
-      expectedResult: 'search.find(term=Fuzzy(AND("test")))',
+      expectedResult: 'impresso.search.find(\n\tterm=Fuzzy("test")\n)',
     },
     {
       name: 'filter with context exclude',
@@ -85,11 +86,11 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'string',
           q: 'test',
-          op: 'and',
+          op: 'AND',
           context: 'exclude',
         },
       ],
-      expectedResult: 'search.find(term=~AND("test"))',
+      expectedResult: 'impresso.search.find(\n\tterm=~AND("test")\n)',
     },
     {
       name: 'filter with context include',
@@ -99,11 +100,11 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'string',
           q: 'test',
-          op: 'and',
+          op: 'AND',
           context: 'include',
         },
       ],
-      expectedResult: 'search.find(term=AND("test"))',
+      expectedResult: 'impresso.search.find(\n\tterm="test"\n)',
     },
     {
       name: 'filter with precision and context',
@@ -113,12 +114,12 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'string',
           q: 'test',
-          op: 'and',
+          op: 'AND',
           precision: 'fuzzy',
           context: 'exclude',
         },
       ],
-      expectedResult: 'search.find(term=~Fuzzy(AND("test")))',
+      expectedResult: 'impresso.search.find(\n\tterm=~Fuzzy("test")\n)',
     },
     {
       name: 'multiple filters',
@@ -128,15 +129,16 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'newspaper',
           q: 'gazette',
-          op: 'and',
+          op: 'AND',
         },
         {
           type: 'daterange',
           q: ['1900-01-01', '1950-12-31'],
-          op: 'and',
+          op: 'AND',
         },
       ],
-      expectedResult: 'content_items.facet(newspaper_id=AND("gazette"), date_range=AND(["1900-01-01","1950-12-31"]))',
+      expectedResult:
+        'impresso.content_items.facet(\n\tnewspaper_id="gazette",\n\tdate_range=DateRange("1900-01-01", "1950-12-31")\n)',
     },
     {
       name: 'ignore filters with unsupported types',
@@ -146,15 +148,15 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'newspaper',
           q: 'gazette',
-          op: 'and',
+          op: 'AND',
         },
         {
           type: 'copyright', // This has an empty argument name in the mapping
           q: 'some-value',
-          op: 'and',
+          op: 'AND',
         },
       ],
-      expectedResult: 'entities.find(newspaper_id=AND("gazette"))',
+      expectedResult: 'impresso.entities.find(\n\tnewspaper_id="gazette"\n)',
     },
     {
       name: 'filters with undefined q value should be ignored',
@@ -164,15 +166,29 @@ describe('buildPythonFunctionCall', () => {
         {
           type: 'newspaper',
           q: 'gazette',
-          op: 'and',
+          op: 'AND',
         },
         {
           type: 'language',
           q: undefined,
-          op: 'and',
+          op: 'AND',
         },
       ],
-      expectedResult: 'collections.find(newspaper_id=AND("gazette"))',
+      expectedResult: 'impresso.collections.find(\n\tnewspaper_id="gazette"\n)',
+    },
+    {
+      name: 'daterange filter with TO',
+      resource: 'search',
+      functionName: 'find',
+      filters: [
+        {
+          type: 'daterange',
+          q: '1912-01-01T00:00:00Z TO 1942-10-31T23:59:59Z',
+          op: 'AND',
+        },
+      ],
+      expectedResult:
+        'impresso.search.find(\n\tdate_range=DateRange("1912-01-01T00:00:00Z", "1942-10-31T23:59:59Z")\n)',
     },
   ]
 

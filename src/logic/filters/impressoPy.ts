@@ -37,14 +37,18 @@ const FilterTypeToPythonArgumentName: Record<FilterType, string> = {
   wikidataId: 'wikidata_id',
 }
 
+const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']
+const NumericRangeTypes: FilterType[] = ['textReuseClusterSize', 'textReuseClusterLexicalOverlap']
+const DateRangeTypes: FilterType[] = ['daterange']
+
 const FilterContextToPythonOperatorPrefix: Record<FilterContext, string> = {
   exclude: '~',
   include: '',
 }
 
 const FilterOperatorToPythonOperator: Record<FilterOperator, string> = {
-  and: 'AND',
-  or: 'OR',
+  AND: 'AND',
+  OR: 'OR',
 }
 
 const FilterPrecisionToPythonOperator: Record<FilterPrecision, string> = {
@@ -54,57 +58,112 @@ const FilterPrecisionToPythonOperator: Record<FilterPrecision, string> = {
   soft: 'Soft',
 }
 
-// interface Filter extends UntypedFilter {
-//   type: FilterType
-//   context?: FilterContext
-//   precision?: FilterPrecision
-//   op?: FilterOperator
-// }
-
-const asPythonValue = (filterValue: string | string[]): string => {
-  return JSON.stringify(filterValue)
+interface PythonValueItem {
+  type: 'pureValue' | 'method' | 'operator'
+  render: (inner?: string) => string
+  child?: PythonValueItem
+  totalItems?: number
 }
 
-const withPythonOperator = (pythonValue: string, operator: FilterOperator): string => {
+const renderPythonValueItem = (item: PythonValueItem): string => {
+  const chain = [item]
+  let current: PythonValueItem = item
+  while (current.child != null) {
+    current = current.child
+    chain.push(current)
+  }
+
+  const invertedChain = chain.reverse()
+
+  return invertedChain.reduce((acc, item) => item.render(acc), '')
+}
+
+const asPythonValue = (filterValue: string | string[], type: FilterType): PythonValueItem => {
+  const totalItems = Array.isArray(filterValue) ? filterValue.length : 1
+
+  if (BooleanTypes.includes(type)) {
+    const val = filterValue === 'true' ? 'True' : 'False'
+    return { type: 'pureValue', render: () => val, totalItems }
+  }
+  if (NumericRangeTypes.includes(type)) {
+    const val = Array.isArray(filterValue) ? filterValue : [filterValue]
+    return { type: 'pureValue', render: () => JSON.stringify(val.map(v => parseFloat(v))), totalItems }
+  }
+  if (DateRangeTypes.includes(type)) {
+    const val = Array.isArray(filterValue) ? filterValue : filterValue.split(' TO ')
+    return {
+      type: 'method',
+      render: () => `DateRange(${JSON.stringify(val[0])}, ${JSON.stringify(val[1])})`,
+      totalItems: 1,
+    }
+  }
+  return { type: 'pureValue', render: () => JSON.stringify(filterValue), totalItems }
+}
+
+const withPythonOperator = (pythonValue: PythonValueItem, operator: FilterOperator): PythonValueItem => {
   const pythonOperator = FilterOperatorToPythonOperator[operator]
-  const valueWithOperator = `${pythonOperator}(${pythonValue})`
-  return valueWithOperator
+
+  if ((pythonValue.totalItems ?? 1) === 1) return pythonValue
+
+  return {
+    type: 'method',
+    render: inner => `${operator}(${inner})`,
+    child: pythonValue,
+  }
 }
 
-const withPythonPrecisionOp = (pythonValue: string, precision?: FilterPrecision): string => {
+const withPythonPrecisionOp = (pythonValue: PythonValueItem, precision?: FilterPrecision): PythonValueItem => {
   if (precision == null) return pythonValue
   const precisionValue = FilterPrecisionToPythonOperator[precision]
-  return `${precisionValue}(${pythonValue})`
+  if (precisionValue === '') return pythonValue
+  return {
+    type: 'method',
+    render: inner => `${precisionValue}(${inner})`,
+    child: pythonValue,
+  }
 }
 
-const withPythonContextPrefix = (pythonValue: string, context?: FilterContext): string => {
+const withPythonContextPrefix = (pythonValue: PythonValueItem, context?: FilterContext): PythonValueItem => {
   if (context == null) return pythonValue
   const contextPrefix = FilterContextToPythonOperatorPrefix[context]
-  return `${contextPrefix}${pythonValue}`
+  if (contextPrefix === '') return pythonValue
+  return {
+    type: 'operator',
+    render:
+      pythonValue?.type === 'pureValue'
+        ? inner => `${contextPrefix}AND(${inner})`
+        : inner => `${contextPrefix}${inner}`,
+    child: pythonValue,
+  }
 }
 
 const buildPythonArgumentValue = (
   q: string | string[],
+  type: FilterType,
   operator: FilterOperator,
   precision?: FilterPrecision,
   context?: FilterContext
 ): string => {
-  return withPythonContextPrefix(
-    withPythonPrecisionOp(withPythonOperator(asPythonValue(q), operator), precision),
+  const item = withPythonContextPrefix(
+    withPythonPrecisionOp(withPythonOperator(asPythonValue(q, type), operator), precision),
     context
   )
+
+  return renderPythonValueItem(item)
 }
 
-const DefaultOp = 'and'
+const DefaultOp = 'AND'
 
 const buildPythonArgument = (filter: Filter): string | undefined => {
-  const argumentName = FilterTypeToPythonArgumentName[filter.type as FilterType]
+  const argumentName = FilterTypeToPythonArgumentName[filter.type]
   if ([undefined, null, ''].includes(argumentName)) return undefined
 
   const { op, precision, q, context } = filter
-  if (q === undefined) return undefined
 
-  const value = buildPythonArgumentValue(q, op ?? DefaultOp, precision, context)
+  const argumentValue = BooleanTypes.includes(filter.type) && q == null ? `true` : q
+  if (argumentValue === undefined) return undefined
+
+  const value = buildPythonArgumentValue(argumentValue, filter.type, op ?? DefaultOp, precision, context)
 
   return `${argumentName}=${value}`
 }
@@ -123,8 +182,26 @@ type Resource =
   | 'text_reuse.passages'
 type FunctionName = 'find' | 'facet'
 
+export const isResource = (resource: any): resource is Resource => {
+  return [
+    'search',
+    'media_sources',
+    'entities',
+    'content_items',
+    'collections',
+    'text_reuse.clusters',
+    'text_reuse.passages',
+  ].includes(resource)
+}
+
+export const isFunctionName = (resource: any): resource is FunctionName => {
+  return ['find', 'facet'].includes(resource)
+}
+
 export const buildPythonFunctionCall = (resource: Resource, functionName: FunctionName, filters: Filter[]): string => {
   const argumentsList = buildPythonArguments(filters)
-  const argumentsString = argumentsList.join(', ')
-  return `${resource}.${functionName}(${argumentsString})`
+  const argumentsString = argumentsList.join(',\n\t')
+  const fnString = `impresso.${resource}.${functionName}`
+  if (argumentsString.length === 0) return `${fnString}()`
+  return `${fnString}(\n\t${argumentsString}\n)`
 }
