@@ -126,7 +126,6 @@ const deserializeFilters = (serializedFilters: string | object) => {
 const parseFiltersHook = (context: HookContext<ImpressoApplication>) => {
   const { filters } = context.params?.query ?? {}
   context.params.query.filters = deserializeFilters(filters)
-  console.log('ooo', context.params.query.filters)
 }
 
 const parseQ = (context: HookContext<ImpressoApplication>) => {

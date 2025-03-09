@@ -66,6 +66,7 @@ const internalApiServices = [
   'user-requests-reviews',
   'newspapers',
   'feedback-collector',
+  'datalab-support',
 ]
 
 export default (app: ImpressoApplication) => {
