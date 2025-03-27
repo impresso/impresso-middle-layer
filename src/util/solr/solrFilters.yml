@@ -203,7 +203,6 @@ indexes:
         rule: openEndedString
       type:
         field: t_s
-        # rule: capitalisedValue
         rule: value
       uid:
         field: id

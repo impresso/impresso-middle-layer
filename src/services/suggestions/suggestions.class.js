@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { mediaSourceToNewspaper } from '../newspapers/newspapers.class'
 import { SolrNamespaces } from '../../solr'
+import Entity from '../../models/entities.model'
+
 const debug = require('debug')('impresso/services:suggestions')
 const chrono = require('chrono-node')
 const moment = require('moment')
@@ -10,7 +12,6 @@ const { NotFound, NotImplemented } = require('@feathersjs/errors')
 const { latinise, toPlainText } = require('../../helpers')
 
 const Mention = require('../../models/mentions.model')
-const Entity = require('../../models/entities.model')
 const Topic = require('../../models/topics.model')
 const Suggestion = require('../../models/suggestions.model')
 const { measureTime } = require('../../util/instruments')

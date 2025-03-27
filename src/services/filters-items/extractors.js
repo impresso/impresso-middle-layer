@@ -1,5 +1,5 @@
 import { buildResolvers } from '../../internalServices/cachedResolvers'
-const Entity = require('../../models/entities.model')
+import Entity from '../../models/entities.model'
 
 const isDateRangeString = v => v.match(/.+ TO .+/) != null
 const getDateStrings = v => v.match(/(.+) TO (.+)/).slice(1, 3)
