@@ -12,6 +12,7 @@ import { SlimUser } from '../../authentication'
 import { asFind, asGet, SolrFactory } from '../../util/solr/adapters'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { withRewrittenIIIF } from '../../models/pages.model'
+import { buildResolvers } from '../../internalServices/cachedResolvers'
 
 const debug = Debug('impresso/services:articles')
 
@@ -129,34 +130,47 @@ export class ContentItemService {
     const getRelatedIssuesPromise = measureTime(() => getIssues(issuesRequest, this.app!), 'articles.find.db.issues')
 
     // do the loop
-    return Promise.all([getAddonsPromise, getRelatedIssuesPromise]).then(([addonsIndex, issuesIndex]) => ({
-      ...results,
-      data: results.data.map((article: Article) => {
-        if (article?.issue?.uid != null && issuesIndex[article?.issue?.uid]) {
-          article.issue.accessRights = issuesIndex[article.issue.uid].accessRights
-        }
-        if (!addonsIndex[article.uid]) {
-          debug('[find] no pages for uid', article.uid)
-          return article
-        }
-        // add pages
-        if (addonsIndex[article.uid].pages) {
-          // NOTE [RK]: Checking type of object is a quick fix around cached
-          // sequelized results. When a result is a plain Object instance it means
-          // it came from cache. Otherwise it is a model instance and it was
-          // loaded from the database.
-          // This should be moved to the SequelizeService layer.
-          const rewriteRules = this.app?.get('images')?.rewriteRules ?? []
-          article.pages = addonsIndex[article.uid].pages.map((d: any) =>
-            withRewrittenIIIF(d.constructor === Object ? d : d.toJSON(), rewriteRules)
-          )
-        }
-        if (pageUids.length === 1) {
-          article.regions = article?.regions?.filter((r: { pageUid: string }) => pageUids.indexOf(r.pageUid) !== -1)
-        }
-        return Article.assignIIIF(article)
-      }),
-    }))
+    const result = await Promise.all([getAddonsPromise, getRelatedIssuesPromise]).then(
+      ([addonsIndex, issuesIndex]) => ({
+        ...results,
+        data: results.data.map((article: Article) => {
+          if (article?.issue?.uid != null && issuesIndex[article?.issue?.uid]) {
+            article.issue.accessRights = issuesIndex[article.issue.uid].accessRights
+          }
+          if (!addonsIndex[article.uid]) {
+            debug('[find] no pages for uid', article.uid)
+            return article
+          }
+          // add pages
+          if (addonsIndex[article.uid].pages) {
+            // NOTE [RK]: Checking type of object is a quick fix around cached
+            // sequelized results. When a result is a plain Object instance it means
+            // it came from cache. Otherwise it is a model instance and it was
+            // loaded from the database.
+            // This should be moved to the SequelizeService layer.
+            const rewriteRules = this.app?.get('images')?.rewriteRules ?? []
+            article.pages = addonsIndex[article.uid].pages.map((d: any) =>
+              withRewrittenIIIF(d.constructor === Object ? d : d.toJSON(), rewriteRules)
+            )
+          }
+          if (pageUids.length === 1) {
+            article.regions = article?.regions?.filter((r: { pageUid: string }) => pageUids.indexOf(r.pageUid) !== -1)
+          }
+          return Article.assignIIIF(article)
+        }),
+      })
+    )
+
+    const resolvers = buildResolvers(this.app!)
+    result.data = await Promise.all(
+      result.data.map(async (item: Article) => {
+        item.locations = await Promise.all(item.locations?.map(item => resolvers.location(item.uid)) ?? [])
+        item.persons = await Promise.all(item.persons?.map(item => resolvers.person(item.uid)) ?? [])
+        return item
+      })
+    )
+
+    return results
   }
 
   async get(id: string, params: any) {

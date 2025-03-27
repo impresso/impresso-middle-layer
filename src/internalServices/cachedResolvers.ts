@@ -8,6 +8,7 @@ import { Newspaper as NewspaperInternal } from '../models/generated/schemas'
 import { Topic as ITopic } from '../models/generated/schemas'
 import { WellKnownKeys } from '../cache'
 import { getPartnerResolver } from './facetResolvers/partnerResolver'
+import { getNameFromUid } from '../utils/entity.utils'
 
 export type CachedFacetType = 'newspaper' | 'topic' | 'person' | 'location' | 'collection' | 'year' | 'partner'
 
@@ -25,7 +26,7 @@ const entityResolver = async (id: string, type: CachedFacetType) =>
   new Entity({
     uid: id,
     type,
-    name: Entity.getNameFromUid(id),
+    name: getNameFromUid(id),
   })
 
 const getTopicResolver = (app: ImpressoApplication): IResolver<Topic> => {
