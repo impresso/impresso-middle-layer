@@ -1,5 +1,5 @@
 import { DataTypes, Sequelize } from 'sequelize'
-import { getNameFromUid, getTypeCodeFromUid, TypeCodeToType } from '../utils/entity.utils'
+import { getNameFromUid, getTypeCodeFromUid, TypeCodeToType, TypeShorthandToType } from '../utils/entity.utils'
 
 interface IEntity {
   uid: string
@@ -118,7 +118,7 @@ export default class Entity implements IEntity {
       new Entity({
         uid: doc.id,
         name: (doc.l_s || '').split('_').join(' '),
-        type: doc.t_s,
+        type: TypeShorthandToType[doc.t_s?.toLowerCase()] ?? doc.t_s,
         countItems: doc.article_fq_f,
         countMentions: doc.mention_fq_f,
       })

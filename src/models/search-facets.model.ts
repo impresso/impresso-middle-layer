@@ -13,7 +13,6 @@ import { ImpressoApplication } from '../types'
 
 const Topic = require('./topics.model')
 const Year = require('./years.model')
-const Entity = require('./entities.model')
 const Collection = require('./collections.model')
 
 type FacetType = 'newspaper' | 'language' | 'topic' | 'person' | 'location' | 'collection' | 'year'

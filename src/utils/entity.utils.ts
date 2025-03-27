@@ -5,6 +5,13 @@
 export const TypeCodeToType: Record<string, string> = {
   '50': 'person',
   '54': 'location',
+  '55': 'newsagency',
+}
+
+export const TypeShorthandToType: Record<string, string> = {
+  pers: 'person',
+  loc: 'location',
+  nag: 'newsagency',
 }
 
 /**
