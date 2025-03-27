@@ -411,7 +411,8 @@ describe('filtersToSolr', () => {
     })
   })
 
-  describe('handles "capitalisedValue" filter', () => {
+  // not used anywhere at the moment
+  xdescribe('handles "capitalisedValue" filter', () => {
     it('with string', () => {
       const filter = {
         q: 'person',

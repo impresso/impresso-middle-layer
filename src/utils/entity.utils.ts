@@ -14,6 +14,14 @@ export const TypeShorthandToType: Record<string, string> = {
   nag: 'newsagency',
 }
 
+export const TypeToTypeShorthand: Record<string, string> = Object.entries(TypeShorthandToType).reduce(
+  (acc, [key, value]) => {
+    acc[value] = key
+    return acc
+  },
+  {} as Record<string, string>
+)
+
 /**
  * Extracts the display name from an entity UID
  */
