@@ -80,6 +80,9 @@
     "imageUrlRewriteRules": {
       "type": "array",
       "items": { "$ref": "#/definitions/ImageUrlRewriteRule" }
+    },
+    "barista": {
+      "$ref": "#/definitions/BaristaConfig"
     }
   },
   "required": ["solrConfiguration", "sequelize", "authentication", "images"],
@@ -339,6 +342,14 @@
           "additionalProperties": true
         }
       }
+    },
+    "BaristaConfig": {
+      "type": "object",
+      "description": "Barista configuration",
+      "properties": {
+        "url": { "type": "string", "description": "URL of the Barista chat endpoint" }
+      },
+      "required": ["url"]
     }
   }
 }

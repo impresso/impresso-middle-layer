@@ -90,6 +90,7 @@ export interface Config {
   multer?: MulterConfig;
   imageProxy?: ImageProxyConfig;
   imageUrlRewriteRules?: ImageUrlRewriteRule[];
+  barista?: BaristaConfig;
 }
 /**
  * Redis configuration
@@ -469,6 +470,13 @@ export interface MulterConfig {
    * Destination folder for uploads
    */
   dest: string;
+  [k: string]: unknown;
+}
+export interface BaristaConfig {
+  /**
+   * URL of the Barista chat endpoint
+   */
+  url: string;
   [k: string]: unknown;
 }
 
