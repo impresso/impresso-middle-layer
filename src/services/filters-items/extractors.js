@@ -1,5 +1,5 @@
 import { buildResolvers } from '../../internalServices/cachedResolvers'
-import Entity from '../../models/entities.model'
+import { getTypeFromUid } from '../../utils/entity.utils'
 
 const isDateRangeString = v => v.match(/.+ TO .+/) != null
 const getDateStrings = v => v.match(/(.+) TO (.+)/).slice(1, 3)
@@ -41,7 +41,7 @@ async function entityExtractor({ q = '' }, app) {
   const mappedItems = await Promise.all(
     items.map(async item => {
       const uid = item.trim()
-      const type = Entity.getTypeFromUid(uid)
+      const type = getTypeFromUid(uid)
       return type === 'person' ? await resolvers.person(uid) : await resolvers.location(uid)
     })
   )

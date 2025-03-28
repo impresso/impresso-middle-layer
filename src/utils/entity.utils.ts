@@ -62,3 +62,7 @@ export function getTypeCodeFromUid(uid: string): string {
   // Handle aida formats (both aida-10-50 and aida-0001-50)
   return uid.replace(/^aida-\d+-(\d+)-.*/, '$1')
 }
+
+export const getTypeFromUid = (uid: string): string | undefined => {
+  return TypeCodeToType[getTypeCodeFromUid(uid)]
+}
