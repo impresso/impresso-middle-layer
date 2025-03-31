@@ -67,6 +67,7 @@ const internalApiServices = [
   'newspapers',
   'feedback-collector',
   'datalab-support',
+  'barista-proxy',
 ]
 
 export default (app: ImpressoApplication) => {
