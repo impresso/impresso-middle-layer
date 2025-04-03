@@ -120,6 +120,16 @@
                   "user": { "type": "string" },
                   "pass": { "type": "string" }
                 }
+              },
+              "proxy": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Socks proxy configuration for the image source (optional)",
+                "required": ["host", "port"],
+                "properties": {
+                  "host": { "type": "string", "description": "Proxy host" },
+                  "port": { "type": "integer", "description": "Proxy port" }
+                }
               }
             }
           }

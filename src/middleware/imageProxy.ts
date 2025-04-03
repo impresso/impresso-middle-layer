@@ -2,13 +2,9 @@ import { AuthenticationService } from '@feathersjs/authentication'
 import { Forbidden } from '@feathersjs/errors'
 import { Application as ExpressApplication, Request, RequestHandler, Response } from 'express'
 import { ServerResponse } from 'http'
-import {
-  createProxyMiddleware,
-  debugProxyErrorsPlugin,
-  proxyEventsPlugin,
-  responseInterceptor,
-} from 'http-proxy-middleware'
+import { createProxyMiddleware, responseInterceptor } from 'http-proxy-middleware'
 import { extname, join } from 'node:path'
+import { SocksProxyAgent } from 'socks-proxy-agent'
 import { SimpleSolrClient } from '../internalServices/simpleSolr'
 import { logger } from '../logger'
 import { BufferUserPlanGuest } from '../models/user-bitmap.model'
@@ -88,19 +84,25 @@ const getAuthHandlerMiddleware = (app: ImpressoApplication): RequestHandler => {
 const getProxyMiddleware = (app: ImpressoApplication, prefix: string) => {
   const { defaultSourceId, sources } = app.get('images').proxy
   const source = sources.find(({ id }) => id === defaultSourceId) ?? sources[0]
+
+  const agent =
+    source.proxy != null ? new SocksProxyAgent(`socks://${source.proxy.host}:${source.proxy.port}`) : undefined
+
+  const headers: Record<string, string> = {}
+  if (source.auth != null) {
+    const credentials = Buffer.from(`${source.auth.user}:${source.auth.pass}`).toString('base64')
+    headers['Authorization'] = `Basic ${credentials}`
+  }
+
   return createProxyMiddleware<Request, Response>({
     target: source.endpoint,
     changeOrigin: true,
     selfHandleResponse: true, // res.end() will be called internally by responseInterceptor()
     followRedirects: true,
     logger: undefined,
+    agent,
+    headers,
     on: {
-      proxyReq: (proxyReq, req) => {
-        if (source.auth != null) {
-          const credentials = Buffer.from(`${source.auth.user}:${source.auth.pass}`).toString('base64')
-          proxyReq.setHeader('Authorization', `Basic ${credentials}`)
-        }
-      },
       proxyRes: responseInterceptor(async (buffer: Buffer, proxyRes, req, res) => {
         const response = res as ServerResponse
 
