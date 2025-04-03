@@ -131,11 +131,17 @@ const getProxyMiddleware = (app: ImpressoApplication, prefix: string) => {
   })
 }
 
-const isJSONContent = (contentType: string | undefined) => contentType === 'application/json'
+const isJSONContent = (contentType: string | undefined) => {
+  if (contentType === 'application/json') return true
+  if (contentType?.startsWith('application/ld+json')) return true
+  return false
+}
 
 interface IIIFManifest {
-  '@id': string
+  '@id'?: string
+  id?: string
 }
+type IIIFIDs = '@id' | 'id'
 
 const rewriteIIIFManifest = (
   manifest: IIIFManifest | undefined,
@@ -144,7 +150,14 @@ const rewriteIIIFManifest = (
 ): IIIFManifest | undefined => {
   if (manifest == null) return
   const sourcePath = new URL(sourceEndpoint).pathname
-  manifest['@id'] = manifest['@id'].replace(new RegExp(`^.*?${sourcePath}`), `${proxyPrefix}/`)
+
+  const idFields: IIIFIDs[] = ['@id', 'id']
+  for (const field of idFields) {
+    if (manifest?.[field] != null) {
+      manifest[field] = manifest[field].replace(new RegExp(`^.*?${sourcePath}`), `${proxyPrefix}/`)
+    }
+  }
+
   return manifest
 }
 
