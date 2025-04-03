@@ -432,6 +432,20 @@ export interface ImageProxyConfig {
         user: string;
         pass: string;
       };
+      /**
+       * Socks proxy configuration for the image source (optional)
+       */
+      proxy?: {
+        /**
+         * Proxy host
+         */
+        host: string;
+        /**
+         * Proxy port
+         */
+        port: number;
+        [k: string]: unknown;
+      };
     },
     ...{
       id: string;
@@ -439,6 +453,20 @@ export interface ImageProxyConfig {
       auth?: {
         user: string;
         pass: string;
+      };
+      /**
+       * Socks proxy configuration for the image source (optional)
+       */
+      proxy?: {
+        /**
+         * Proxy host
+         */
+        host: string;
+        /**
+         * Proxy port
+         */
+        port: number;
+        [k: string]: unknown;
       };
     }[]
   ];
@@ -472,6 +500,9 @@ export interface MulterConfig {
   dest: string;
   [k: string]: unknown;
 }
+/**
+ * Barista configuration
+ */
 export interface BaristaConfig {
   /**
    * URL of the Barista chat endpoint
