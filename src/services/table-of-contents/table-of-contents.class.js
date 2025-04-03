@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { SearchFacet } from '../../models/search-facets.model'
+import { getNameFromUid } from '../../utils/entity.utils'
 const Newspaper = require('../../models/newspapers.model')
 const { BaseArticle } = require('../../models/articles.model')
 const { measureTime } = require('../../util/instruments')
@@ -100,6 +101,28 @@ class Service {
         return t.getItems()
       })
     )
+
+    const personById = persons.reduce((acc, person) => ({ ...acc, [person.uid]: person }), {})
+    const locationById = locations.reduce((acc, location) => ({ ...acc, [location.uid]: location }), {})
+
+    result.response.docs.forEach(doc => {
+      doc.persons = doc.persons?.map(person => {
+        return {
+          ...person,
+          type: 'person',
+          name: getNameFromUid(person.uid),
+        }
+      })
+
+      doc.locations = doc.locations?.map(location => {
+        return {
+          ...location,
+          type: 'location',
+          name: getNameFromUid(location.uid),
+        }
+      })
+    })
+
     // return a TOC instance without instantiating a class.
     return {
       newspaper,
