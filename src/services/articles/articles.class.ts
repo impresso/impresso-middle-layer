@@ -217,14 +217,24 @@ export class ContentItemService {
         'articles.get.db.issue'
       ),
     ])
-      .then(([article, addons, issue]) => {
+      .then(async ([article, addons, issue]) => {
         if (addons && article) {
           if (issue && article.issue) {
             article.issue.accessRights = (issue as any).accessRights
           }
           article.pages = addons.pages.map((d: any) => withRewrittenIIIF(d.toJSON()))
         }
-        return article != null ? Article.assignIIIF(article) : undefined
+
+        if (article != null) {
+          const resolvers = buildResolvers(this.app!)
+
+          article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.uid)) ?? [])
+          article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])
+
+          return Article.assignIIIF(article)
+        }
+
+        return
       })
       .catch(err => {
         logger.error(err)
