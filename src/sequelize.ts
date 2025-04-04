@@ -44,6 +44,13 @@ const getSequelizeClient = (config: SequelizeConfig) => {
     // define: {
     //   freezeTableName: true
     // }
+
+    retry: {
+      max: 5, // Maximum retry attempts
+      backoffBase: 1000, // Initial backoff in milliseconds (1 second)
+      backoffExponent: 1.5, // Exponential backoff factor
+    },
+
     logging(str) {
       verbose('cursor:', config.host, config.port, config.database)
       verbose(str)
