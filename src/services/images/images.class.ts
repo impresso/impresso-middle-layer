@@ -13,7 +13,7 @@ import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/a
 import { ImageUrlRewriteRule } from '../../models/generated/common'
 
 const DefaultLimit = 10
-const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024'
+export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024'
 
 const OrderByParamToSolrFieldMap = {
   date: 'meta_date_dt asc',
