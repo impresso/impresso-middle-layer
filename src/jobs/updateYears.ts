@@ -3,7 +3,7 @@ import { ImpressoApplication } from '../types'
 import { prepareAvailableYearBuckets } from '../useCases/prepareAvailableYearBuckets' // Import the use case
 
 /** 100 days */
-const DefaultTtlSeconds = 60 * 60 * 24 * 100 * 1000
+const DefaultTtlMilliSeconds = 60 * 60 * 24 * 100 * 1000
 
 /**
  * Prepare year statistics and store them in cache.
@@ -24,7 +24,7 @@ const run = async (app: ImpressoApplication) => {
     // Use the imported function from the use case
     const years = await prepareAvailableYearBuckets(solrClient)
 
-    await cache.set(WellKnownKeys.Years, JSON.stringify(years), DefaultTtlSeconds)
+    await cache.set(WellKnownKeys.Years, JSON.stringify(years), DefaultTtlMilliSeconds)
     console.log(`Successfully updated and cached years data for ${Object.keys(years).length} years.`)
   } catch (error) {
     console.error('Error updating years data:', error)
