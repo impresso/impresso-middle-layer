@@ -41,4 +41,5 @@ export default (app: ImpressoApplication) => {
 export const WellKnownKeys = Object.freeze({
   MediaSources: 'cache:mediaSources',
   Topics: 'cache:topics',
+  Years: 'cache:years',
 })
