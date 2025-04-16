@@ -23,13 +23,12 @@ const writeCache = async (data: any) => {
  * IML depends on it. Cache can be moved to Redis later
  * when the static code is refactored.
  */
-const run = async (app: ImpressoApplication) => {
-  const cache = app.get('cacheManager')
+const run = async (app: ImpressoApplication, reload: boolean = true) => {
   const solrClient = app.service('simpleSolrClient')
 
   // Check cache first
   const exists = await cacheExists()
-  if (exists) {
+  if (exists && !reload) {
     console.log('Facet ranges data found in cache, skipping update.')
     return
   }
