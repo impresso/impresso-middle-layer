@@ -1,9 +1,10 @@
 import type { HookContext, NextFunction } from '@feathersjs/hooks'
+import { logger } from '../logger'
 import type { ImpressoApplication } from '../types'
+import updateFacetRangesCache from './updateFacetRanges'
 import updateMediaSourcesCache from './updateMediaSourcesCache'
 import updateTopicsCache from './updateTopicsCache'
 import updateYearsCache from './updateYears'
-import { logger } from '../logger'
 
 /**
  * Jobs to run on startup
@@ -21,6 +22,9 @@ export const startupJobs = async (context: HookContext<ImpressoApplication>, nex
     updateYearsCache(context.app)
       .then(() => logger.info('Years cache updated.'))
       .catch(e => logger.error('Error updating years cache:', e)),
+    updateFacetRangesCache(context.app)
+      .then(() => logger.info('Facet ranges cache updated.'))
+      .catch(e => logger.error('Error updating facet ranges cache:', e)),
   ])
   logger.info('Async jobs completed...')
 
