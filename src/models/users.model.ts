@@ -1,4 +1,3 @@
-const config = require('@feathersjs/configuration')()()
 import { Sequelize, DataTypes, ModelDefined } from 'sequelize'
 import { encrypt } from '../crypto'
 import UserBitmap, { BufferUserPlanGuest } from './user-bitmap.model'
@@ -20,6 +19,7 @@ export interface UserAttributes {
   isActive: boolean
   isSuperuser: boolean
   creationDate: Date
+  lastLogin: Date | null
   profile: Profile
   groups: Group[]
   userBitmap?: UserBitmap
@@ -42,6 +42,7 @@ export default class User {
   isActive: boolean
   isSuperuser: boolean
   creationDate: Date | string
+  lastLogin: Date | null
   profile: Profile
   groups: Group[]
   bitmap?: bigint
@@ -59,6 +60,7 @@ export default class User {
     isSuperuser = false,
     profile = new Profile(),
     creationDate = new Date(),
+    lastLogin = null,
     groups = [],
     bitmap,
   }: Partial<UserAttributes> = {}) {
@@ -84,6 +86,7 @@ export default class User {
       this.uid = String(uid)
     }
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate)
+    this.lastLogin = lastLogin instanceof Date ? lastLogin : null
     this.groups = groups
     this.bitmap = bitmap ?? BufferUserPlanGuest
   }
@@ -100,6 +103,7 @@ export default class User {
       picture: profile.picture,
       pattern: profile.pattern,
       creationDate: user.creationDate,
+      lastLogin: user.lastLogin,
       emailAccepted: profile.emailAccepted,
       displayName: profile.displayName,
       bitmap: user.bitmap,
@@ -224,9 +228,15 @@ export default class User {
           field: 'date_joined',
           defaultValue: DataTypes.NOW,
         },
+        lastLogin: {
+          type: DataTypes.DATE,
+          field: 'last_login',
+          allowNull: true,
+          defaultValue: null,
+        },
       },
       {
-        tableName: config.sequelize.tables.users,
+        tableName: 'auth_user',
         defaultScope: {
           include: [
             {
