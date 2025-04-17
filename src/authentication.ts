@@ -6,6 +6,7 @@ import {
   JWTStrategy,
   JwtVerifyOptions,
 } from '@feathersjs/authentication'
+import { logger } from './logger'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 import { NotAuthenticated } from '@feathersjs/errors'
 import { ServiceOptions } from '@feathersjs/feathers'
@@ -16,9 +17,10 @@ import { docs } from './services/authentication/authentication.schema'
 import { ImpressoApplication } from './types'
 import { BufferUserPlanGuest } from './models/user-bitmap.model'
 import { bigIntToBuffer, bufferToBigInt } from './util/bigint'
+import type { Sequelize } from 'sequelize'
 
 const debug = initDebug('impresso/authentication')
-
+debug('initialising authentication')
 /**
  * Using base64 for the bitmap to keep the size
  * of the JWT token as small as possible.
@@ -48,25 +50,47 @@ class CustomisedAuthenticationService extends AuthenticationService {
 }
 
 class HashedPasswordVerifier extends LocalStrategy {
-  comparePassword(user: User, password: string) {
-    return new Promise((resolve, reject) => {
-      if (!(user instanceof User)) {
-        debug('_comparePassword: user is not valid', user)
-        return reject(new NotAuthenticated('Login incorrect'))
-      }
-
-      const isValid = User.comparePassword({
-        encrypted: user.password,
-        password,
-      })
-
-      if (!isValid) {
-        return reject(new NotAuthenticated('Login incorrect'))
-      }
-      return resolve({
-        ...user,
-      })
+  app: ImpressoApplication
+  constructor(app: ImpressoApplication) {
+    super()
+    this.app = app
+  }
+  async comparePassword(user: User, password: string) {
+    if (!(user instanceof User)) {
+      debug('_comparePassword: user is not valid', user)
+      throw new NotAuthenticated('Login incorrect')
+    }
+    const isValid = User.comparePassword({
+      encrypted: user.password,
+      password,
     })
+    if (!isValid) {
+      throw new NotAuthenticated('Login incorrect')
+    }
+    debug('_comparePassword: password is valid. user: ', user.id)
+    // update user lastLogin
+    // get current app sequelize
+    const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
+
+    try {
+      const affectedCount = await User.sequelize(sequelizeClient).update(
+        {
+          lastLogin: new Date(),
+        },
+        {
+          where: {
+            id: user.id,
+          },
+        }
+      )
+      debug('_comparePassword: updated login for user, count updated:', affectedCount)
+    } catch (err) {
+      logger.error(`Error updating login for user ${user.id}`, err)
+      debug('_comparePassword: error updating login for user', err)
+    }
+    return {
+      ...user,
+    }
   }
 }
 
@@ -167,7 +191,7 @@ export default (app: ImpressoApplication) => {
   const jwtStrategy = useDbUserInRequestContext ? new JWTStrategy() : new NoDBJWTStrategy()
 
   authentication.register('jwt', jwtStrategy)
-  authentication.register('local', new HashedPasswordVerifier())
+  authentication.register('local', new HashedPasswordVerifier(app))
 
   if (isPublicApi) {
     authentication.register('jwt-app', new ImlAppJWTStrategy())
