@@ -32,7 +32,7 @@
     "lint": "eslint src/. --config .eslintrc.js",
     "lint-api-spec": "spectral lint http://localhost:3030/swagger.json ",
     "start": "node dist/",
-    "dev": "nodemon --enable-source-maps --inspect dist/",
+    "dev": "nodemon --enable-source-maps --inspect dist/ --ignore 'data/*'",
     "cli": "node src/admin/cli.js",
     "generate-types": "node dist/scripts/generate-types.js",
     "update-years": "node dist/scripts/update-years.js",
