@@ -6,6 +6,7 @@ import {
   JWTStrategy,
   JwtVerifyOptions,
 } from '@feathersjs/authentication'
+import { logger } from './logger'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 import { NotAuthenticated } from '@feathersjs/errors'
 import { ServiceOptions } from '@feathersjs/feathers'
@@ -54,48 +55,42 @@ class HashedPasswordVerifier extends LocalStrategy {
     super()
     this.app = app
   }
-  comparePassword(user: User, password: string) {
-    return new Promise((resolve, reject) => {
-      if (!(user instanceof User)) {
-        debug('_comparePassword: user is not valid', user)
-        return reject(new NotAuthenticated('Login incorrect'))
-      }
-
-      const isValid = User.comparePassword({
-        encrypted: user.password,
-        password,
-      })
-
-      if (!isValid) {
-        return reject(new NotAuthenticated('Login incorrect'))
-      }
-      debug('_comparePassword: password is valid', user)
-      // update user lastLogin
-      // get current app sequelize
-      const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
-      User.sequelize(sequelizeClient)
-        .update(
-          {
-            lastLogin: new Date(),
-          },
-          {
-            where: {
-              id: user.id,
-            },
-          }
-        )
-        .then(affectedCount => {
-          debug('_comparePassword: updated login for user, count updated:', affectedCount)
-        })
-        .catch(err => {
-          debug('_comparePassword: error updating login for user', err)
-        })
-        .finally(() => {
-          return resolve({
-            ...user,
-          })
-        })
+  async comparePassword(user: User, password: string) {
+    if (!(user instanceof User)) {
+      debug('_comparePassword: user is not valid', user)
+      throw new NotAuthenticated('Login incorrect')
+    }
+    const isValid = User.comparePassword({
+      encrypted: user.password,
+      password,
     })
+    if (!isValid) {
+      throw new NotAuthenticated('Login incorrect')
+    }
+    debug('_comparePassword: password is valid. user: ', user.id)
+    // update user lastLogin
+    // get current app sequelize
+    const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
+
+    try {
+      const affectedCount = await User.sequelize(sequelizeClient).update(
+        {
+          lastLogin: new Date(),
+        },
+        {
+          where: {
+            id: user.id,
+          },
+        }
+      )
+      debug('_comparePassword: updated login for user, count updated:', affectedCount)
+    } catch (err) {
+      logger.error(`Error updating login for user ${user.id}`, err)
+      debug('_comparePassword: error updating login for user', err)
+    }
+    return {
+      ...user,
+    }
   }
 }
 
