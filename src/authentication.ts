@@ -16,9 +16,10 @@ import { docs } from './services/authentication/authentication.schema'
 import { ImpressoApplication } from './types'
 import { BufferUserPlanGuest } from './models/user-bitmap.model'
 import { bigIntToBuffer, bufferToBigInt } from './util/bigint'
+import type { Sequelize } from 'sequelize'
 
 const debug = initDebug('impresso/authentication')
-
+debug('initialising authentication')
 /**
  * Using base64 for the bitmap to keep the size
  * of the JWT token as small as possible.
@@ -48,6 +49,11 @@ class CustomisedAuthenticationService extends AuthenticationService {
 }
 
 class HashedPasswordVerifier extends LocalStrategy {
+  app: ImpressoApplication
+  constructor(app: ImpressoApplication) {
+    super()
+    this.app = app
+  }
   comparePassword(user: User, password: string) {
     return new Promise((resolve, reject) => {
       if (!(user instanceof User)) {
@@ -63,9 +69,32 @@ class HashedPasswordVerifier extends LocalStrategy {
       if (!isValid) {
         return reject(new NotAuthenticated('Login incorrect'))
       }
-      return resolve({
-        ...user,
-      })
+      debug('_comparePassword: password is valid', user)
+      // update user lastLogin
+      // get current app sequelize
+      const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
+      User.sequelize(sequelizeClient)
+        .update(
+          {
+            lastLogin: new Date(),
+          },
+          {
+            where: {
+              id: user.id,
+            },
+          }
+        )
+        .then(affectedCount => {
+          debug('_comparePassword: updated login for user, count updated:', affectedCount)
+        })
+        .catch(err => {
+          debug('_comparePassword: error updating login for user', err)
+        })
+        .finally(() => {
+          return resolve({
+            ...user,
+          })
+        })
     })
   }
 }
@@ -167,7 +196,7 @@ export default (app: ImpressoApplication) => {
   const jwtStrategy = useDbUserInRequestContext ? new JWTStrategy() : new NoDBJWTStrategy()
 
   authentication.register('jwt', jwtStrategy)
-  authentication.register('local', new HashedPasswordVerifier())
+  authentication.register('local', new HashedPasswordVerifier(app))
 
   if (isPublicApi) {
     authentication.register('jwt-app', new ImlAppJWTStrategy())
