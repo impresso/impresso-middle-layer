@@ -89,6 +89,7 @@ class Service {
     user.profile.provider = 'local'
     user.profile.uid = `local-${nanoid(8)}` //= > "7hy8hvrX"
     user.profile.displayName = data.sanitized.displayName
+    user.profile.pattern = data.sanitized.pattern
     user.uid = user.profile.uid
     user.id = createdUser.id
 
@@ -96,7 +97,7 @@ class Service {
       .create({
         ...user.profile,
         user_id: createdUser.id,
-        pattern: data.sanitized.pattern
+        pattern: data.sanitized.pattern,
       })
       .catch(sequelizeErrorHandler)
 
