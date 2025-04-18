@@ -244,6 +244,18 @@ describe('filtersToSolr', () => {
       assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]')
     })
 
+    it('with multiple ISO date strings in array', () => {
+      const filter = {
+        q: ['1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z', '1945-01-01T00:00:00Z TO 1946-01-01T00:00:00Z'],
+        type: 'daterange',
+      }
+      const query = filtersToSolr([filter], SolrNamespaces.Search)
+      assert.equal(
+        query,
+        '(meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z] OR meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T23:59:59Z])'
+      )
+    })
+
     it('with array', () => {
       const filter = {
         q: ['1918', '2018'],
