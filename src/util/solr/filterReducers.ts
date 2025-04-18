@@ -133,27 +133,99 @@ const reduceStringFiltersToSolr = (filters: Filter[], field: string | string[] |
 }
 
 const DateRangeValueRegex = /^\s*[TZ:\d-]+\s+TO\s+[TZ:\d-]+\s*$/
+const DateOnlyRegex = /^\s*(\d{4}-\d{2}-\d{2})\s*$/
+const YearMonthRegex = /^\s*(\d{4}-\d{2})\s*$/
+const YearOnlyRegex = /^\s*(\d{4})\s*$/
+
+/**
+ * Normalise date value to a Solr date format:
+ * * YYYY -> YYYY-01-01T00:00:00Z
+ * * YYYY-MM -> YYYY-MM-01T00:00:00Z
+ * * YYYY-MM-DD -> YYYY-MM-DDT00:00:00Z
+ * * YYYY-MM-DDTHH:MM:SSZ -> YYYY-MM-DDTHH:MM:SSZ
+ */
+const normaliseDate = (value: string, timeBound: 'start' | 'end' = 'start'): string => {
+  const timeComponent = timeBound === 'start' ? 'T00:00:00Z' : 'T23:59:59Z'
+  const yearMatch = value.match(YearOnlyRegex)
+  if (yearMatch) {
+    return `${yearMatch[1]}-01-01${timeComponent}`
+  }
+  const yearMonthMatch = value.match(YearMonthRegex)
+  if (yearMonthMatch) {
+    return `${yearMonthMatch[1]}-01${timeComponent}`
+  }
+  const dateMatch = value.match(DateOnlyRegex)
+  if (dateMatch) {
+    return `${dateMatch[1]}${timeComponent}`
+  }
+  // Assume it's already in the correct full format or handle other cases if needed
+  return value
+}
+
+// Helper to get the last day of the month in YYYY-MM-DD format
+const getLastDayOfMonth = (year: number, month: number): string => {
+  const date = new Date(Date.UTC(year, month, 0)) // Day 0 gives the last day of the previous month
+  return date.toISOString().split('T')[0]
+}
 
 const reduceDaterangeFiltersToSolr = (filters: Filter[], field: string, rule: string) => {
   const items = filters.reduce((sq, filter) => {
-    const query = Array.isArray(filter.q) && filter.q.length === 1 ? filter.q[0] : filter.q
-    const op = filter.op || 'OR'
+    // Allow q to be string | string[] | null
+    const query: string | string[] | undefined =
+      Array.isArray(filter.q) && filter.q.length === 1 ? filter.q[0] : filter.q
+    const op = filter.op || 'OR' // Default OR, though less relevant when joining filters with AND
 
     let q
     if (Array.isArray(query)) {
+      // Case: q = ["YYYY-MM-DD", "YYYY-MM-DD"]
       if (query.length !== 2) {
-        throw new InvalidArgumentError(`"${rule}" filter rule: unknown values encountered in "q": ${filter.q}`)
+        throw new InvalidArgumentError(`"${rule}" filter rule: array "q" must have exactly 2 elements: ${filter.q}`)
       }
-      q = `${query.map(d => `${field}:[${d}]`).join(` ${op} `)}`
-      if (query.length > 1) {
-        q = `(${q})`
-      }
-    } else if (query != null) {
-      if (!query.match(DateRangeValueRegex)) {
+      const start = normaliseDate(query[0], 'start')
+      const end = normaliseDate(query[1], 'end')
+      q = `${field}:[${start} TO ${end}]`
+    } else if (typeof query === 'string' && query !== null) {
+      if (!DateRangeValueRegex.test(query)) {
         throw new InvalidArgumentError(`"${rule}" filter rule: unknown value encountered in "q": ${filter.q}`)
       }
-      q = `${field}:[${query}]`
+
+      // Case: q is a single string value
+      const trimmedQuery = query.trim()
+      const rangeMatch = trimmedQuery.match(DateRangeValueRegex)
+      const yearMatch = trimmedQuery.match(YearOnlyRegex)
+      const yearMonthMatch = trimmedQuery.match(YearMonthRegex)
+      const dateMatch = trimmedQuery.match(DateOnlyRegex)
+
+      if (rangeMatch) {
+        // Case: q = "YYYY-MM-DD TO YYYY-MM-DD" (potentially with times)
+        const parts = trimmedQuery.split(/\s+TO\s+/)
+        const start = normaliseDate(parts[0], 'start')
+        const end = normaliseDate(parts[1], 'end')
+        const endInclusive = end.endsWith('T00:00:00Z') ? end.replace('T00:00:00Z', 'T23:59:59Z') : end
+        q = `${field}:[${start} TO ${endInclusive}]`
+      } else if (yearMatch) {
+        // Case: q = "YYYY" -> range for the whole year
+        const year = yearMatch[1]
+        q = `${field}:[${year}-01-01T00:00:00Z TO ${year}-12-31T23:59:59Z]`
+      } else if (yearMonthMatch) {
+        // Case: q = "YYYY-MM" -> range for the whole month
+        const [yearStr, monthStr] = yearMonthMatch[1].split('-')
+        const year = parseInt(yearStr, 10)
+        const month = parseInt(monthStr, 10)
+        const lastDay = getLastDayOfMonth(year, month) // month is 1-based for Date constructor trick
+        q = `${field}:[${yearStr}-${monthStr}-01T00:00:00Z TO ${lastDay}T23:59:59Z]`
+      } else if (dateMatch) {
+        // Case: q = "YYYY-MM-DD" -> range for the whole day
+        const date = dateMatch[1]
+        q = `${field}:[${date}T00:00:00Z TO ${date}T23:59:59Z]`
+      } else {
+        // If it doesn't match known patterns, treat as potentially already valid Solr range or throw error
+        // Using as is for now:
+        // throw new InvalidArgumentError(`"${rule}" filter rule: unknown date/range format encountered in "q": ${filter.q}`)
+        q = `${field}:[${trimmedQuery}]` // Fallback, might be incorrect
+      }
     } else {
+      // Case: q is null or empty array -> match all
       q = `${field}:*`
     }
 
@@ -163,6 +235,8 @@ const reduceDaterangeFiltersToSolr = (filters: Filter[], field: string, rule: st
     sq.push(q)
     return sq
   }, [] as string[])
+
+  // Join multiple filter conditions with AND
   return items.join(' AND ')
 }
 
