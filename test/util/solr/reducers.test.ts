@@ -199,22 +199,40 @@ describe('filtersToSolr', () => {
   })
 
   describe('handles "dateRange" filter', () => {
-    it('with string', () => {
+    it('with year string', () => {
       const filter = {
         q: '1918 TO 2018',
         type: 'daterange',
       }
       const query = filtersToSolr([filter], SolrNamespaces.Search)
-      assert.equal(query, 'meta_date_dt:[1918 TO 2018]')
+      assert.equal(query, 'meta_date_dt:[1918-01-01T00:00:00Z TO 2018-01-01T23:59:59Z]')
     })
 
-    it('with ISO dates string', () => {
+    it('with yea-month string', () => {
+      const filter = {
+        q: '1918-02 TO 2018-03',
+        type: 'daterange',
+      }
+      const query = filtersToSolr([filter], SolrNamespaces.Search)
+      assert.equal(query, 'meta_date_dt:[1918-02-01T00:00:00Z TO 2018-03-01T23:59:59Z]')
+    })
+
+    it('with ISO datetime string', () => {
       const filter = {
         q: '1857-01-01T00:00:00Z TO 2014-12-31T23:59:59',
         type: 'daterange',
       }
       const query = filtersToSolr([filter], SolrNamespaces.Search)
       assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]')
+    })
+
+    it('with ISO date string', () => {
+      const filter = {
+        q: '1857-01-01 TO 2014-12-31',
+        type: 'daterange',
+      }
+      const query = filtersToSolr([filter], SolrNamespaces.Search)
+      assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59Z]')
     })
 
     it('with ISO dates string in array', () => {
@@ -226,13 +244,25 @@ describe('filtersToSolr', () => {
       assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]')
     })
 
+    it('with multiple ISO date strings in array', () => {
+      const filter = {
+        q: ['1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z', '1945-01-01T00:00:00Z TO 1946-01-01T00:00:00Z'],
+        type: 'daterange',
+      }
+      const query = filtersToSolr([filter], SolrNamespaces.Search)
+      assert.equal(
+        query,
+        '(meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z] OR meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T23:59:59Z])'
+      )
+    })
+
     it('with array', () => {
       const filter = {
         q: ['1918', '2018'],
         type: 'daterange',
       }
       const query = filtersToSolr([filter], SolrNamespaces.Search)
-      assert.equal(query, '(meta_date_dt:[1918] OR meta_date_dt:[2018])')
+      assert.equal(query, 'meta_date_dt:[1918-01-01T00:00:00Z TO 2018-01-01T23:59:59Z]')
     })
 
     it('with no value', () => {
@@ -261,7 +291,7 @@ describe('filtersToSolr', () => {
       }
       assert.throws(
         () => filtersToSolr([filter], SolrNamespaces.Search),
-        new InvalidArgumentError(`"dateRange" filter rule: unknown values encountered in "q": ${filter.q}`)
+        new InvalidArgumentError(`"dateRange" filter rule: array "q" must have exactly 2 elements: ${filter.q}`)
       )
     })
   })
