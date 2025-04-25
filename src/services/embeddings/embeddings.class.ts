@@ -103,7 +103,7 @@ export class EmbeddingsService
       offset = 0,
     } = params.query
 
-    const vectors = await this.getTermEmbeddingVectors(term, languageCode)
+    const vectors = await this.getTermEmbeddingVectors(term?.toLowerCase(), languageCode)
     const matches = await this.getWordsMatchingVectors(vectors, topK, offset, limit)
 
     return {
