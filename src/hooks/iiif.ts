@@ -13,7 +13,7 @@ const iiifMapper = (d: Record<string, any>, proxyConfig: ProxyConfig) => {
 
   if (d.pageUid && Array.isArray(d.coords)) {
     // fragments matches from SOLR
-    _d.iiif_fragment = `${host}/proxy/iiif/${d.pageUid}/${d.coords.join(',')}/full/0/default.png`
+    _d.iiif_fragment = `${host}/proxy/iiif/${d.pageUid}/${d.coords.join(',')}/max/0/default.png`
     _d.iiifFragment = _d.iiif_fragment
   } else if (!d.labels) {
     // non canonical neo4j objects, ignore...

@@ -11,6 +11,7 @@ import { BufferUserPlanGuest } from '../models/user-bitmap.model'
 import { SolrNamespaces } from '../solr'
 import { ImpressoApplication } from '../types'
 import { bufferToBigInt, OpenPermissions } from '../util/bigint'
+import { getV3CompatibleIIIFUrlWithoutDomain } from '../util/iiif'
 
 const NotAuthorizedImageUrl = '/images/notAuthorized.jpg'
 
@@ -110,6 +111,7 @@ const getProxyMiddleware = (app: ImpressoApplication, prefix: string) => {
           case 401:
             response.statusCode = 302
             response.setHeader('Location', NotAuthorizedImageUrl)
+            break
           case 200:
             if (isJSONContent(proxyRes.headers['content-type'])) {
               const proxyHost = req.headers['host'] ? `${req.protocol}://${req.headers['host']}` : 'http://localhost'
@@ -125,8 +127,13 @@ const getProxyMiddleware = (app: ImpressoApplication, prefix: string) => {
     pathRewrite: async (path, req) => {
       const imagePath = req.baseUrl.replace(prefix, '')
       const extension = extname(imagePath)
-      if (extension == null || extension.trim() === '') return join(imagePath, 'info.json')
-      return imagePath
+
+      let imageUrl = imagePath
+      if (extension == null || extension.trim() === '') {
+        imageUrl = join(imagePath, 'info.json')
+      }
+      const finalUrl = getV3CompatibleIIIFUrlWithoutDomain(imageUrl)
+      return finalUrl ?? imageUrl
     },
   })
 }
