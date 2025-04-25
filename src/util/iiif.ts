@@ -5,6 +5,7 @@ import {
   sizeParameterToString,
   rotationParameterToString,
   parseImageServiceRequest,
+  SizeParameter,
 } from '@iiif/parser/image-3'
 
 /**
@@ -18,9 +19,26 @@ export const sanitizeIiifImageUrl = (url: string, rules: ImageUrlRewriteRule[]):
   return url.replace(new RegExp(rule.pattern), rule.replacement)
 }
 
+const formatSizeParameter = (size: SizeParameter): string => {
+  let sizeParam = sizeParameterToString(size)
+  if (sizeParam.includes('pct:') && sizeParam.endsWith(',')) {
+    sizeParam = sizeParam.substring(0, sizeParam.length - 1)
+  }
+  return sizeParam
+}
+
+const dimensionToFormattedSizeParameter = (dimension: 'full' | 'max' | number): string => {
+  if (dimension === 'full' || dimension === 'max') {
+    return 'max'
+  } else if (typeof dimension === 'number') {
+    return `${dimension},`
+  }
+  throw new Error(`Invalid dimension: ${dimension}`)
+}
+
 interface FragmentOptions {
   coordinates: [number, number]
-  dimension: 'full' | number
+  dimension: 'full' | 'max' | number
 }
 
 export const getExternalFragmentUrl = (
@@ -28,8 +46,8 @@ export const getExternalFragmentUrl = (
   { coordinates, dimension = 'full' }: FragmentOptions
 ) => {
   const externalUid = iiifManifestUrl.split('/info.json').shift()
-  const dim = dimension == 'full' ? dimension : `${dimension},`
-  return `${externalUid}/${coordinates.join(',')}/${dim}/0/default.png`
+  const size = dimensionToFormattedSizeParameter(dimension)
+  return `${externalUid}/${coordinates.join(',')}/${size}/0/default.png`
 }
 
 export const getJSONUrl = (uid: string, baseUrl: string) => {
@@ -48,8 +66,8 @@ export const getThumbnailUrl = (
   baseUrl: string,
   { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
 ) => {
-  const dim = dimension == 'full' ? dimension : `${dimension},`
-  return `${baseUrl}/${uid}/max/${dim}/0/default.png`
+  const size = dimensionToFormattedSizeParameter(dimension)
+  return `${baseUrl}/${uid}/max/${size}/0/default.png`
 }
 
 export const getExternalThumbnailUrl = (
@@ -57,8 +75,8 @@ export const getExternalThumbnailUrl = (
   { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
 ) => {
   const externalUid = iiifManifestUrl.split('/info.json').shift()
-  const dim = dimension == 'full' ? dimension : `${dimension},`
-  return `${externalUid}/max/${dim}/0/default.png`
+  const size = dimensionToFormattedSizeParameter(dimension)
+  return `${externalUid}/max/${size}/0/default.png`
 }
 
 /**
@@ -90,14 +108,10 @@ export const getV3CompatibleIIIFUrl = (url: string) => {
     size = { ...size, serialiseAsFull: false }
   }
 
-  let sizeParam = sizeParameterToString(size)
-  if (sizeParam.includes('pct:') && sizeParam.endsWith(',')) {
-    sizeParam = sizeParam.substring(0, sizeParam.length - 1)
-  }
   return [
     baseUrl,
     regionParameterToString(region),
-    sizeParam,
+    formatSizeParameter(size),
     rotationParameterToString(rotation),
     `${quality}.${format}`,
   ]
