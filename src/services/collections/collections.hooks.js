@@ -59,7 +59,7 @@ module.exports = {
           // optionally
           description: {
             required: false,
-            max_length: 500,
+            max_length: 2000,
           },
           // optionally
           status: {
