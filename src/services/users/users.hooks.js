@@ -55,7 +55,7 @@ module.exports = {
           },
           pattern: {
             required: false,
-            regex: /^[\d,#]+$/,
+            regex: /^#[0-9a-fA-F]{2,6}(,#[0-9a-fA-F]{2,6})*$/,
           },
           ...VALIDATE_EMAIL,
           ...VALIDATE_PASSWORD,
