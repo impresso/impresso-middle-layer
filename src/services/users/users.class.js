@@ -59,7 +59,7 @@ class Service {
   }
 
   async create(data, params = {}) {
-    const uid = `local-${nanoid(8)}`, //= > "7hy8hvrX"
+    const uid = `local-${nanoid(8)}` //= > "7hy8hvrX"
     // prepare user.
     const user = new User({
       uid,
@@ -78,8 +78,6 @@ class Service {
         [Op.or]: [{ email: user.email }, { username: user.username }],
       },
     })
-
-    
 
     if (existingUser) {
       debug('[create] user already exists:', existingUser.id)
@@ -110,7 +108,6 @@ class Service {
 
     debug(`[create] user with profile: ${user.uid} success`)
     debug(`[create] user ${user.username} created!`, createdUser.toJSON())
-    
 
     const client = this.app.get('celeryClient')
     if (client) {
@@ -129,7 +126,7 @@ class Service {
     return {
       ...createdUser.toJSON(),
       profile: userProfile.toJSON(),
-      groups: [group.toJSON()]
+      groups: [group.toJSON()],
     }
   }
 

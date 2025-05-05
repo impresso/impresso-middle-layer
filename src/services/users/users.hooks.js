@@ -1,6 +1,5 @@
 const { protect } = require('@feathersjs/authentication-local').hooks
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
-const { authenticate } = require('@feathersjs/authentication').hooks
 import {
   queryWithCommonParams,
   validate,
