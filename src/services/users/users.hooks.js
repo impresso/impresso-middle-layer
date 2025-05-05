@@ -1,4 +1,3 @@
-const { protect } = require('@feathersjs/authentication-local').hooks
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import {
   queryWithCommonParams,
@@ -11,6 +10,7 @@ import {
   VALIDATE_OPTIONAL_PASSWORD,
   REGEX_SLUG,
 } from '../../hooks/params'
+const { protect } = require('@feathersjs/authentication-local').hooks
 
 module.exports = {
   around: {
@@ -59,13 +59,14 @@ module.exports = {
           affiliation: {
             required: false,
             max_length: 255,
-            regex: /^[\p{L}\p{N}\s\-\(\)\.,'&\/]+$/u,
+            regex: /^[\p{L}\p{N}\s\-().,'&/]+$/u,
             transform: d => d.trim(),
           },
           institutionalUrl: {
             required: false,
             max_length: 200,
-            regex: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/,
+            // /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/
+            regex: /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/,
             transform: d => d.trim(),
           },
           pattern: {
