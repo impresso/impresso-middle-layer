@@ -78,6 +78,15 @@ const toTopicStubWithCountItems = (stub: TopicStub, counts: Record<string, numbe
   countItems: counts[stub.uid] ?? 0,
 })
 
+const getHits = (graph: Graph): ReturnType<typeof hits> | { hubs: undefined; authorities: undefined } => {
+  try {
+    return hits(graph, { normalize: false })
+  } catch (error) {
+    logger.error('Error calculating HITS: %s', error)
+    return { hubs: undefined, authorities: undefined }
+  }
+}
+
 const requestTopicsCounts: SelectRequestBody = {
   query: '*:*',
   limit: 0,
@@ -354,7 +363,8 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
 
   const pageranks = pagerank(graph, { alpha: 0.9, getEdgeWeight: 1 })
   const communities = louvain(graph)
-  const { hubs, authorities } = hits(graph, { normalize: false })
+
+  const { hubs = undefined, authorities = undefined } = getHits(graph)
 
   return topics.map(
     topic =>
@@ -364,8 +374,8 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
         y: positions[topic.uid].y,
         pagerank: pageranks[topic.uid],
         community: communities[topic.uid],
-        hub: hubs[topic.uid],
-        authority: authorities[topic.uid],
+        hub: hubs?.[topic.uid],
+        authority: authorities?.[topic.uid],
       }) satisfies Topic
   )
 }
