@@ -1,4 +1,4 @@
-import { Sequelize, DataTypes, ModelDefined } from 'sequelize'
+import { Sequelize, DataTypes, ModelDefined, CreationOptional } from 'sequelize'
 import { encrypt } from '../crypto'
 import UserBitmap, { BufferUserPlanGuest } from './user-bitmap.model'
 import Group from './groups.model'
@@ -31,7 +31,8 @@ export interface UserAttributes {
 export interface UserCreationAttributes extends Omit<UserAttributes, 'id'> {}
 
 export default class User {
-  id: number | string
+  declare id: CreationOptional<number>
+
   email?: string
   uid: string
   username: string
@@ -48,10 +49,11 @@ export default class User {
   bitmap?: bigint
 
   constructor({
-    id = 0,
+    id,
     uid = '',
     firstname = '',
     lastname = '',
+    email = '',
     // encrypted password
     password = '',
     username = '',
@@ -64,12 +66,14 @@ export default class User {
     groups = [],
     bitmap,
   }: Partial<UserAttributes> = {}) {
-    this.id = typeof id === 'number' ? id : parseInt(id, 10)
+    if (typeof id === 'number') {
+      this.id = id
+    }
     this.username = String(username)
     this.firstname = String(firstname)
     this.lastname = String(lastname)
     this.password = String(password)
-
+    this.email = String(email)
     this.isStaff = Boolean(isStaff)
     this.isActive = Boolean(isActive)
     this.isSuperuser = Boolean(isSuperuser)
@@ -79,11 +83,9 @@ export default class User {
     } else {
       this.profile = new Profile(profile)
     }
-
-    if (this.profile.isValid()) {
+    this.uid = String(uid)
+    if (!uid.length && this.profile.uid) {
       this.uid = this.profile.uid
-    } else {
-      this.uid = String(uid)
     }
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate)
     this.lastLogin = lastLogin instanceof Date ? lastLogin : null
@@ -168,7 +170,7 @@ export default class User {
   }
 
   static sequelize(client: Sequelize) {
-    const profile = Profile.sequelize(client)
+    const profile = Profile.initModel(client)
     const userBitmap = UserBitmap.sequelize(client)
     const group = Group.initModel(client)
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
@@ -285,6 +287,7 @@ export default class User {
     }
 
     user.hasOne(profile, {
+      as: 'profile',
       foreignKey: {
         field: 'user_id',
       },
