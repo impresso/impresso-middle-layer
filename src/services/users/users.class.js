@@ -59,71 +59,78 @@ class Service {
   }
 
   async create(data, params = {}) {
-    // prepare empty user.
-    const user = new User()
-    user.password = User.buildPassword({
-      password: data.sanitized.password,
+    const uid = `local-${nanoid(8)}`, //= > "7hy8hvrX"
+    // prepare user.
+    const user = new User({
+      uid,
+      firstname: data.sanitized.firstname,
+      lastname: data.sanitized.lastname,
+      username: data.sanitized.username,
+      email: data.sanitized.email,
+      password: User.buildPassword({
+        password: data.sanitized.password,
+      }),
+      isActive: false,
     })
-    user.email = data.sanitized.email
-    user.username = data.sanitized.username
-    user.firstname = data.sanitized.firstname
-    user.lastname = data.sanitized.lastname
-    // if the request comes from a staff user
-    user.isActive = params.user && params.user.is_staff
-
     // check if user already exists
     const existingUser = await this.sequelizeKlass.findOne({
       where: {
         [Op.or]: [{ email: user.email }, { username: user.username }],
       },
     })
+
+    
+
     if (existingUser) {
       debug('[create] user already exists:', existingUser.id)
       throw new BadRequest('User with this email address or username already exists')
+    } else {
+      debug('[create] new user:', user.username, data.sanitized)
     }
     // create user
     const createdUser = await this.sequelizeKlass.create(user).catch(sequelizeErrorHandler)
-
     debug('[create] user created!', createdUser.id)
-    // N.B. sequelize profile uid is the user uid.
-    user.profile.provider = 'local'
-    user.profile.uid = `local-${nanoid(8)}` //= > "7hy8hvrX"
-    user.profile.displayName = data.sanitized.displayName
-    user.profile.pattern = data.sanitized.pattern
-    user.uid = user.profile.uid
-    user.id = createdUser.id
-
-    await Profile.sequelize(this.sequelizeClient)
-      .create({
-        ...user.profile,
-        user_id: createdUser.id,
-        pattern: data.sanitized.pattern,
-      })
-      .catch(sequelizeErrorHandler)
-
-    // add user to desired groups (they are still not active anyway, ad we cna change them later)
-    if (data.sanitized.plan !== 'plan-basic') {
-      const [group, created] = await Group.findOrCreate({
-        where: { name: data.sanitized.plan },
-      })
-      debug(`[create] group ${group.name} created: ${created}`)
-      createdUser.addGroup(group)
-    }
+    // create profile
+    const userProfile = await Profile.create({
+      uid,
+      user_id: createdUser.id,
+      displayName: data.sanitized.displayName,
+      provider: 'local',
+      affiliation: data.sanitized.affiliation,
+      institutionalUrl: data.sanitized.institutionalUrl,
+      pattern: data.sanitized.pattern,
+    }).catch(sequelizeErrorHandler)
+    debug('[create] profile created!', userProfile.toJSON())
+    // add user to desired groups (they are still not active)
+    const [group, created] = await Group.findOrCreate({
+      where: { name: data.sanitized.plan },
+    })
+    debug(`[create] group ${group.name} created: ${created}`)
+    createdUser.addGroup(group)
 
     debug(`[create] user with profile: ${user.uid} success`)
+    debug(`[create] user ${user.username} created!`, createdUser.toJSON())
+    
+
     const client = this.app.get('celeryClient')
     if (client) {
       debug(`[create] inform impresso admin to activate this user: ${user.uid}`)
       await client
         .run({
           task: 'impresso.tasks.after_user_registered',
-          args: [user.id],
+          args: [createdUser.id],
         })
         .catch(err => {
           debug('Error', err)
         })
     }
-    return user
+
+    // send email to user
+    return {
+      ...createdUser.toJSON(),
+      profile: userProfile.toJSON(),
+      groups: [group.toJSON()]
+    }
   }
 
   async update(id, data, params) {
