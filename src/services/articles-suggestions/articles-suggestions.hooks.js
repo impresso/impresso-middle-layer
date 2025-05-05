@@ -1,6 +1,5 @@
-const { authenticate } = require('../../hooks/authenticate');
-const { queryWithCommonParams, validate } = require('../../hooks/params');
-// const { obfuscate } = require('../../hooks/access-rights');
+const { authenticate } = require('../../hooks/authenticate')
+const { queryWithCommonParams, validate } = require('../../hooks/params')
 
 module.exports = {
   before: {
@@ -9,8 +8,7 @@ module.exports = {
         allowUnauthenticated: true,
       }),
     ],
-    find: [
-    ],
+    find: [],
     get: [
       // give article id, we should provide the correct method
       validate({
@@ -25,7 +23,6 @@ module.exports = {
         },
       }),
       queryWithCommonParams(),
-
     ],
     create: [],
     update: [],
@@ -36,8 +33,7 @@ module.exports = {
   after: {
     all: [],
     find: [],
-    get: [
-    ],
+    get: [],
     create: [],
     update: [],
     patch: [],
@@ -53,4 +49,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

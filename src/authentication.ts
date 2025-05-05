@@ -185,7 +185,7 @@ class ImlAppJWTStrategy extends JWTStrategy {
 
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi')
-  const useDbUserInRequestContext = app.get('useDbUserInRequestContext')
+  const useDbUserInRequestContext = app.get('authentication')?.useDbUserInRequestContext
   const authentication = new CustomisedAuthenticationService(app)
 
   const jwtStrategy = useDbUserInRequestContext ? new JWTStrategy() : new NoDBJWTStrategy()

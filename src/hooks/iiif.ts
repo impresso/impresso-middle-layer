@@ -1,7 +1,8 @@
 import type { HookContext } from '@feathersjs/feathers'
 import Debug from 'debug'
-import { ProxyConfig } from '../models/generated/common'
 import type { ImpressoApplication } from '../types'
+
+type ProxyConfig = any
 
 const debug = Debug('impresso/hooks:iiif')
 
@@ -36,13 +37,13 @@ const iiifMapper = (d: Record<string, any>, proxyConfig: ProxyConfig) => {
 /**
  * @deprecated Not used in any working code.
  */
-export const assignIIIF =
+const assignIIIF =
   (...resultProperties: string[]) =>
   async (context: HookContext<ImpressoApplication>) => {
     if (!context.result) throw new Error("The 'assignIIIF' hook should only be used with a defined context.result")
     if (context.type != 'after') throw new Error("The 'assignIIIF' hook should be used as an after hook only")
 
-    const proxyConfig = context.app.get('proxy') ?? {}
+    const proxyConfig = context.app.get('proxy' as any) ?? {}
 
     const _recursiveReplace = (d: Record<string, any>) => {
       const _d = iiifMapper(d, proxyConfig)

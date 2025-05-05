@@ -9,7 +9,7 @@
     },
     "isPublicApi": {
       "type": "boolean",
-      "description": "If `true`, the app serves a public API"
+      "description": "If `true`, the app serves a public API. It is `falsee` by default."
     },
     "availablePlans": {
       "type": "array",
@@ -26,21 +26,8 @@
       "description": "List of allowed origins for CORS"
     },
     "redis": { "$ref": "#/definitions/RedisConfig" },
-    "rateLimiter": {
-      "type": "object",
-      "properties": {
-        "enabled": { "type": "boolean", "description": "Enable rate limiter" },
-        "capacity": { "type": "number", "description": "Capacity of the rate limiter" },
-        "refillRate": { "type": "number", "description": "Refill rate of the rate limiter" }
-      },
-      "description": "Rate limiter configuration",
-      "required": ["capacity", "refillRate"]
-    },
+    "rateLimiter": { "$ref": "#/definitions/RateLimiterConfig" },
     "publicApiPrefix": { "type": "string", "description": "Prefix for the public API" },
-    "useDbUserInRequestContext": {
-      "type": "boolean",
-      "description": "If `true`, the user object is loaded from the db on every request. If `false` (default), the user object is created from the JWT token"
-    },
     "problemUriBase": {
       "type": "string",
       "description": "Base URI for problem URIs. Falls back to the default URI (https://impresso-project.ch/probs) if not set"
@@ -67,23 +54,13 @@
     "appHooks": { "$ref": "#/definitions/AppHooksConfig" },
     "media": { "$ref": "#/definitions/MediaConfig" },
     "solrConfiguration": { "$ref": "./solrConfiguration.json" },
-    "proxy": { "$ref": "#/definitions/ProxyConfig" },
     "recommender": { "$ref": "#/definitions/RecommenderConfig" },
     "images": { "$ref": "#/definitions/ImagesConfig" },
-    "accessRights": { "$ref": "#/definitions/AccessRightsConfig" },
     "callbackUrls": { "$ref": "#/definitions/CallbackUrlsConfig" },
     "host": { "type": "string", "description": "Host of the server" },
     "port": { "type": "number", "description": "Port of the server" },
     "public": { "type": "string", "description": "Path to the public folder" },
-    "multer": { "$ref": "#/definitions/MulterConfig" },
-    "imageProxy": { "$ref": "#/definitions/ImageProxyConfig" },
-    "imageUrlRewriteRules": {
-      "type": "array",
-      "items": { "$ref": "#/definitions/ImageUrlRewriteRule" }
-    },
-    "barista": {
-      "$ref": "#/definitions/BaristaConfig"
-    }
+    "multer": { "$ref": "#/definitions/MulterConfig" }
   },
   "required": ["solrConfiguration", "sequelize", "authentication", "images"],
   "definitions": {
@@ -149,17 +126,10 @@
         "passwordReset": { "type": "string" }
       }
     },
-    "AccessRightsConfig": {
-      "type": "object",
-      "properties": {
-        "showExcerpt": { "type": "boolean", "description": "If `true`, show excerpt" }
-      }
-    },
     "ImagesConfig": {
       "type": "object",
       "properties": {
         "baseUrl": { "type": "string", "description": "Base URL for images" },
-        "visualSignature": { "type": "object", "properties": { "endpoint": { "type": "string" } } },
         "proxy": { "$ref": "#/definitions/ImageProxyConfig" },
         "rewriteRules": {
           "type": "array",
@@ -258,12 +228,16 @@
             "enabled": { "type": "boolean", "description": "Enable admin endpoints (see services/index)" }
           },
           "required": ["enabled"]
+        },
+        "barista": {
+          "$ref": "#/definitions/BaristaConfig"
         }
       }
     },
     "PaginateConfig": {
+      "description": "DEPRECATED. Referenced in code but not used anymore.",
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "properties": {
         "default": { "type": "number", "description": "Default limit for pagination" },
         "max": { "type": "number", "description": "Maximum limit for pagination" }
@@ -281,16 +255,17 @@
     "CeleryConfig": {
       "type": "object",
       "properties": {
-        "enable": { "type": "boolean", "description": "Enable Celery" },
+        "enable": { "type": "boolean", "description": "Enable Celery (disabled by default)" },
         "brokerUrl": { "type": "string", "description": "URL of the Redis broker" },
         "backendUrl": { "type": "string", "description": "URL of the Redis backend" }
       },
-      "description": "Celery configuration",
+      "description": "Celery task manager configuration.",
       "required": ["brokerUrl", "backendUrl"],
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "AuthConfig": {
       "type": "object",
+      "additionalProperties": true,
       "properties": {
         "secret": { "type": "string", "description": "Secret for JWT" },
         "jwtOptions": {
@@ -306,12 +281,17 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "List of authentication strategies"
+        },
+        "useDbUserInRequestContext": {
+          "type": "boolean",
+          "description": "If `true`, the user object is loaded from the db on every request. If `false` (default), the user object is created from the JWT token"
         }
       },
       "required": ["secret"]
     },
     "CacheConfig": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean", "description": "Enable cache" }
       },
@@ -319,6 +299,7 @@
     },
     "AppHooksConfig": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "alwaysRequired": { "type": "boolean", "description": "If `true`, hooks are always required" },
         "excludePaths": {
@@ -336,30 +317,25 @@
         "services": { "type": "array", "items": { "type": "string" }, "description": "List of media services" }
       }
     },
-    "ProxyConfig": {
-      "properties": {
-        "host": { "type": "string", "description": "Host of the proxy server" },
-        "localPrefixes": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "List of local prefixes to replace in IIIF URLs in Issue pages"
-        },
-        "iiif": {
-          "type": "object",
-          "properties": {
-            "internalOnly": { "type": "boolean", "description": "If `true`, only internal IIIF URLs are allowed" }
-          },
-          "additionalProperties": true
-        }
-      }
-    },
     "BaristaConfig": {
       "type": "object",
       "description": "Barista configuration",
       "properties": {
+        "enabled": { "type": "boolean", "description": "Enable Barista (off by default)" },
         "url": { "type": "string", "description": "URL of the Barista chat endpoint" }
       },
       "required": ["url"]
+    },
+    "RateLimiterConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "description": "Enable rate limiter" },
+        "capacity": { "type": "number", "description": "Capacity of the rate limiter" },
+        "refillRate": { "type": "number", "description": "Refill rate of the rate limiter" }
+      },
+      "description": "Rate limiter configuration",
+      "required": ["capacity", "refillRate"]
     }
   }
 }
