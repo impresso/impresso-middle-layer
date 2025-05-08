@@ -26,11 +26,15 @@ export default (app: ImpressoApplication) => {
         // validate a JWT token using a regular expression
         validate(
           {
-            password: {
+            currentPassword: {
               required: true,
               regex: REGEX_PASSWORD,
             },
-            verifyPassword: {
+            newPassword: {
+              required: true,
+              regex: REGEX_PASSWORD,
+            },
+            repeatNewPassword: {
               required: true,
               regex: REGEX_PASSWORD,
             },
@@ -38,8 +42,8 @@ export default (app: ImpressoApplication) => {
           'POST'
         ),
         (context: HookContext) => {
-          const { password, verifyPassword } = context.data
-          if (password !== verifyPassword) {
+          const { newPassword, repeatNewPassword } = context.data
+          if (newPassword !== repeatNewPassword) {
             throw new BadRequest('Passwords do not match')
           }
           return context

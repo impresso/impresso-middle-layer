@@ -2,7 +2,7 @@ import type { Sequelize } from 'sequelize'
 import initDebug from 'debug'
 import type { ImpressoApplication } from '../../types'
 import User from '../../models/users.model'
-import { NotAuthenticated } from '@feathersjs/errors'
+import { NotAuthenticated, BadRequest } from '@feathersjs/errors'
 
 const debug = initDebug('impresso:services/change-password')
 
@@ -23,7 +23,15 @@ export class Service {
     debug('change-password initialized.')
   }
 
-  async create(data: any, params: { user: { id: number } }) {
+  async create(
+    data: {
+      sanitized: {
+        newPassword: string
+        currentPassword: string
+      }
+    },
+    params: { user: { id: number } }
+  ) {
     if (!this.sequelizeClient) {
       throw new Error('Sequelize client not available')
     }
@@ -37,9 +45,18 @@ export class Service {
     if (!user || user.get('id') !== params.user.id) {
       throw new NotAuthenticated('User not found')
     }
+    if (
+      !User.comparePassword({
+        encrypted: user.get('password') as string,
+        password: data.sanitized.currentPassword,
+      })
+    ) {
+      throw new BadRequest('Previous password is incorrect')
+    }
+
     const updated = await userSequelize.update(
       {
-        password: User.buildPassword({ password: data.sanitized.password }),
+        password: User.buildPassword({ password: data.sanitized.newPassword }),
       },
       {
         // criteria
