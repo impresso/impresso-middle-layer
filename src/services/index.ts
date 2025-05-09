@@ -67,8 +67,9 @@ const internalApiServices = [
   'newspapers',
   'feedback-collector',
   'datalab-support',
-  'barista-proxy',
 ]
+
+const baristaServices = ['barista-proxy']
 
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi')
@@ -79,6 +80,7 @@ export default (app: ImpressoApplication) => {
     ...publicApiServices,
     ...(!isPublicApi ? internalApiServices : []),
     ...(isPublicApi && adminEndpointsEnabled ? adminServices : []),
+    ...(!isPublicApi && features?.barista?.enabled ? baristaServices : []),
   ]
 
   logger.info(`Loading services: ${services.join(', ')}`)

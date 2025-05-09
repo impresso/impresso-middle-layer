@@ -1,5 +1,4 @@
 import { Hook, HookContext } from '@feathersjs/feathers'
-import { obfuscate } from '../../hooks/access-rights'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
 import { filtersToSolrQuery } from '../../hooks/search'
@@ -86,7 +85,6 @@ export default {
     find: [],
     get: [
       // change count_pages
-      obfuscate(),
       updateIiifUrls,
     ],
   },

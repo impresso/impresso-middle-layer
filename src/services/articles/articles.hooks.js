@@ -23,7 +23,6 @@ const {
 const { filtersToSolrQuery } = require('../../hooks/search')
 
 const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers')
-const { obfuscate } = require('../../hooks/access-rights')
 const { SolrMappings } = require('../../data/constants')
 
 export const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicy.yml`)
@@ -94,7 +93,6 @@ export default {
       displayQueryParams(['filters']),
       protect('content'),
       resolveTopics(),
-      obfuscate(),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
@@ -102,7 +100,6 @@ export default {
     get: [
       resolveTopics(),
       resolveUserAddons(),
-      obfuscate(),
       transformResponse(transformContentItem, inPublicApi),
       redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponse(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),

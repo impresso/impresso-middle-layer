@@ -92,15 +92,15 @@ export default (app: ImpressoApplication) => {
   const config = app.get('celery')
   // wait for redis to be ready
   if (!config?.enable) {
-    logger.warn('Celery is not configured. No task management is available.')
+    logger.warn('Celery: disabled.')
     app.set('celeryClient', undefined)
   } else {
-    logger.info('Enabling Celery...')
     try {
       const client = getCeleryClient(config, app)()
       app.set('celeryClient', client)
+      logger.info('Celery: configured and enabled.')
     } catch (err) {
-      logger.error(err)
+      logger.error('Celery: an error occurred while configuring celery.', err)
     }
   }
 }
