@@ -15,22 +15,12 @@
       "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json"
     }
   },
-  "required": [
-    "results",
-    "pagination"
-  ],
+  "required": ["results", "pagination"],
   "definitions": {
     "entity": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "uid",
-        "type",
-        "name",
-        "matches",
-        "countItems",
-        "countMentions"
-      ],
+      "required": ["uid", "type", "name", "matches", "countItems", "countMentions"],
       "properties": {
         "uid": {
           "type": "string",
@@ -41,7 +31,7 @@
         "type": {
           "type": "string",
           "description": "Type of the entity",
-          "enum": ["person", "location"]
+          "enum": ["person", "location", "organisation", "newsagency"]
         },
         "name": {
           "type": "string",
