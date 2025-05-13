@@ -59,6 +59,18 @@ describe('Entity utility functions', () => {
       assert.strictEqual(result, '54')
     })
 
+    it('should extract type from aida uid for organisation', () => {
+      const uid = 'aida-2-53-Kreiszahl'
+      const result = getTypeCodeFromUid(uid)
+      assert.strictEqual(result, '53')
+    })
+
+    it('should extract type from org uid for organisation', () => {
+      const uid = '2-53-Kreiszahl'
+      const result = getTypeCodeFromUid(uid)
+      assert.strictEqual(result, '53')
+    })
+
     it('should handle uids with complex names', () => {
       const uid = 'aida-10-50-Complex$20$Name_With$2D$Symbols'
       const result = getTypeCodeFromUid(uid)

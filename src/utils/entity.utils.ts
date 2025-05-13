@@ -4,6 +4,7 @@
 
 export const TypeCodeToType: Record<string, string> = {
   '50': 'person',
+  '53': 'organisation',
   '54': 'location',
   '55': 'newsagency',
 }
@@ -12,6 +13,7 @@ export const TypeShorthandToType: Record<string, string> = {
   pers: 'person',
   loc: 'location',
   nag: 'newsagency',
+  org: 'organisation',
 }
 
 export const TypeToTypeShorthand: Record<string, string> = Object.entries(TypeShorthandToType).reduce(

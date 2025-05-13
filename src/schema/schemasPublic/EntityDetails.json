@@ -15,7 +15,7 @@
     },
     "type": {
       "type": "string",
-      "enum": ["person", "location"]
+      "enum": ["person", "location", "organisation", "newsagency"]
     },
     "wikidataId": {
       "type": "string",

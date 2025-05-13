@@ -22,7 +22,7 @@
     "mentionType": {
       "type": "string",
       "description": "Type of mention",
-      "enum": ["person", "location"]
+      "enum": ["person", "location", "organisation", "newsagency"]
     },
     "timeResolution": {
       "type": "string",
