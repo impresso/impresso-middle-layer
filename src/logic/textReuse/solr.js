@@ -216,10 +216,10 @@ function getClusterIdsTextAndPermissionsFromPassagesSolrResponse(solrResponse) {
 function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
   if (typeof get(solrResponse, 'responseHeader.params.json') === 'string') {
     try {
-      const { params } = JSON.parse(solrResponse.responseHeader.params.json)
+      const { offset, limit } = JSON.parse(solrResponse.responseHeader.params.json)
       return {
-        limit: typeof params.rows === 'number' ? params.rows : 10,
-        offset: typeof params.start === 'number' ? params.start : 0,
+        limit: typeof limit === 'number' ? limit : 10,
+        offset: typeof offset === 'number' ? offset : 0,
         total: get(solrResponse, 'response.numFound'),
       }
     } catch (e) {
