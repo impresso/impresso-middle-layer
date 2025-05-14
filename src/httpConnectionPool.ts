@@ -3,6 +3,7 @@ import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
 import { IncomingHttpHeaders } from 'undici/types/header'
 import { SolrServerProxy } from './configuration'
+import { logger } from './logger'
 
 export { RequestInfo, RequestInit, Headers }
 
@@ -14,6 +15,7 @@ export interface IResponse {
 }
 
 export interface FetchOptions {
+  requestTimeoutMs?: number
   retryOptions?: RetryHandler.RetryOptions
   onUnsuccessfulResponse?: (url: string, method: string, body: Record<string, any>, response: IResponse) => void
 }
@@ -114,7 +116,28 @@ class ConnectionWrapper implements IConnectionWrapper {
 
     const agent =
       options?.retryOptions != null
-        ? new RetryAgent(this._createBaseAgent(), options?.retryOptions)
+        ? new RetryAgent(this._createBaseAgent(), {
+            ...(options?.retryOptions ?? {}),
+            // see https://github.com/nodejs/undici/discussions/3072
+            errorCodes: ['UND_ERR_HEADERS_TIMEOUT'],
+            retry: (err, ctx, cb) => {
+              const retryCount = ctx.state.counter
+              const maxRetries = ctx.opts.retryOptions?.maxRetries ?? 0
+              const shouldRetry = retryCount <= maxRetries
+
+              const retryConfig = ctx.opts.retryOptions
+
+              if (!shouldRetry) {
+                logger.error(
+                  `Max retries reached for ${theUrl} with ${body}. Retry config: ${JSON.stringify(retryConfig)}`
+                )
+                return cb(err)
+              } else {
+                logger.debug(`Retrying request ${retryCount} of ${maxRetries} for ${theUrl} with ${body}`)
+                cb()
+              }
+            },
+          })
         : this._createBaseAgent()
 
     const result = await request(theUrl, {
@@ -122,6 +145,7 @@ class ConnectionWrapper implements IConnectionWrapper {
       headers: init?.headers as IncomingHttpHeaders,
       body: body as any,
       dispatcher: agent,
+      headersTimeout: options?.requestTimeoutMs ?? 30 * 1000,
     })
     const response = new Response(result)
     await response.text()

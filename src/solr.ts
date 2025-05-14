@@ -91,8 +91,10 @@ const logUnsuccessfulResponses = async (url: string, method: string, body: any, 
 }
 
 const defaultRetryOptions: FetchOptions['retryOptions'] = {
-  maxRetries: 3,
-  maxTimeout: 10000,
+  maxRetries: 2,
+  maxTimeout: 1000,
+  minTimeout: 100,
+  timeoutFactor: 3,
   // excluding 500 - it often means the query is not correct
   statusCodes: [502, 503, 504, 429],
 }
