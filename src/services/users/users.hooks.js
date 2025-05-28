@@ -53,6 +53,10 @@ module.exports = {
             choices: ['plan-basic', 'plan-educational', 'plan-researcher'],
             default: 'plan-basic',
           },
+          pattern: {
+            required: false,
+            regex: /^#[0-9a-fA-F]{2,6}(,#[0-9a-fA-F]{2,6})*$/,
+          },
           ...VALIDATE_EMAIL,
           ...VALIDATE_PASSWORD,
           // ...VALIDATE_OPTIONAL_GITHUB_ID,

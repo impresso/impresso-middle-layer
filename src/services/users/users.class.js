@@ -79,7 +79,7 @@ class Service {
     })
     if (existingUser) {
       debug('[create] user already exists:', existingUser.id)
-      throw new BadRequest('User with this email address or username already exists')
+      throw new BadRequest('An account with this email already exists. Please use a different email address.')
     }
     // create user
     const createdUser = await this.sequelizeKlass.create(user).catch(sequelizeErrorHandler)
@@ -96,7 +96,7 @@ class Service {
       .create({
         ...user.profile,
         user_id: createdUser.id,
-        pattern: data.sanitized.pattern
+        pattern: data.sanitized.pattern,
       })
       .catch(sequelizeErrorHandler)
 
