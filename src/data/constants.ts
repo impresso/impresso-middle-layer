@@ -415,7 +415,7 @@ export const SolrMappings: Record<string, ISolrMappings> = Object.freeze({
 
 /* Check that facets are a subset of filter types */
 Object.keys(SolrMappings.search.facets).forEach(type =>
-  assert(constants.filter.Types.includes(type), `Unknown filter type found in facets: ${type}`)
+  assert(constants.filter.Types.includes(type as any), `Unknown filter type found in facets: ${type}`)
 )
 
 export const FilterTypes = constants.filter.Types
