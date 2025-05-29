@@ -67,7 +67,7 @@ export const getThumbnailUrl = (
   { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
 ) => {
   const size = dimensionToFormattedSizeParameter(dimension)
-  return `${baseUrl}/${uid}/max/${size}/0/default.png`
+  return `${baseUrl}/${uid}/full/${size}/0/default.png`
 }
 
 export const getExternalThumbnailUrl = (
@@ -76,7 +76,7 @@ export const getExternalThumbnailUrl = (
 ) => {
   const externalUid = iiifManifestUrl.split('/info.json').shift()
   const size = dimensionToFormattedSizeParameter(dimension)
-  return `${externalUid}/max/${size}/0/default.png`
+  return `${externalUid}/full/${size}/0/default.png`
 }
 
 /**
