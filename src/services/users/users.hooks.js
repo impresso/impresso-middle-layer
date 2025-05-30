@@ -56,6 +56,7 @@ module.exports = {
           pattern: {
             required: false,
             regex: /^#[0-9a-fA-F]{2,6}(,#[0-9a-fA-F]{2,6})*$/,
+            before: d => (Array.isArray(d) ? d.join(',') : d),
           },
           ...VALIDATE_EMAIL,
           ...VALIDATE_PASSWORD,
