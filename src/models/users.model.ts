@@ -27,6 +27,24 @@ export interface UserAttributes {
   toJSON: (params?: { obfuscate?: boolean; groups?: Group[] }) => UserAttributes
 }
 
+export interface Me {
+  firstname: string
+  lastname: string
+  email: string
+  uid: string
+  isActive: boolean
+  isStaff: boolean
+  picture: string
+  pattern: string
+  creationDate: Date
+  lastLogin: Date | null
+  emailAccepted: boolean
+  bitmap?: bigint
+  groups: Group[]
+  affiliation: string
+  institutionalUrl: string
+}
+
 // Define the creation attributes for the Group model
 export interface UserCreationAttributes extends Omit<UserAttributes, 'id'> {}
 
@@ -43,7 +61,7 @@ export default class User {
   isActive: boolean
   isSuperuser: boolean
   creationDate: Date | string
-  lastLogin: Date | null
+  lastLogin: Date | string | null
   profile: Profile
   groups: Group[]
   bitmap?: bigint
@@ -93,23 +111,23 @@ export default class User {
     this.bitmap = bitmap ?? BufferUserPlanGuest
   }
 
-  static getMe({ user, profile }: { user: User; profile: Profile }) {
+  static getMe({ user, profile }: { user: User; profile: Profile }): Me {
     return {
       firstname: user.firstname,
       lastname: user.lastname,
-      email: user.email,
+      email: user.email || '',
       uid: profile.uid,
-      username: user.username,
       isActive: user.isActive,
       isStaff: user.isStaff,
       picture: profile.picture,
       pattern: profile.pattern,
-      creationDate: user.creationDate,
-      lastLogin: user.lastLogin,
+      creationDate: user.creationDate as Date,
+      lastLogin: user.lastLogin as Date,
       emailAccepted: profile.emailAccepted,
-      displayName: profile.displayName,
       bitmap: user.bitmap,
       groups: user.groups,
+      affiliation: profile.affiliation || '',
+      institutionalUrl: profile.institutionalUrl || '',
     }
   }
 
