@@ -38,7 +38,7 @@
       "description": "user affiliation, e.g. university, institution, company",
       "maxLength": 100
     },
-    "insitutionalUrl": {
+    "institutionalUrl": {
       "type": "string",
       "description": "user institutional URL, e.g. university, institution, company",
       "pattern": "^(https?:\\/\\/)?([\\w\\-]+\\.)+[\\w\\-]+(\\/[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*)?$",
