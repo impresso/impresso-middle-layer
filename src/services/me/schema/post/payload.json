@@ -32,12 +32,19 @@
         "type": "string"
       },
       "description": "set of colors to be used as user pattern background"
+    },
+    "affiliation": {
+      "type": "string",
+      "description": "user affiliation, e.g. university, institution, company",
+      "maxLength": 100
+    },
+    "institutionalUrl": {
+      "type": "string",
+      "description": "user institutional URL, e.g. university, institution, company",
+      "pattern": "^(https?:\\/\\/)?([\\w\\-]+\\.)+[\\w\\-]+(\\/[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*)?$",
+      "maxLength": 200
     }
   },
-  "required": [
-    "firstname",
-    "lastname",
-    "email",
-    "displayName"
-  ]
+  "required": ["firstname", "lastname", "email", "displayName"],
+  "additionalProperties": false
 }
