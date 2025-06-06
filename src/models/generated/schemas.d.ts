@@ -801,7 +801,7 @@ export interface EntityDetails {
    * Entity name
    */
   name: string;
-  type: "person" | "location";
+  type: "person" | "location" | "organisation" | "newsagency";
   /**
    * TODO
    */

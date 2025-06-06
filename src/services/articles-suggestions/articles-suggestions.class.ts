@@ -5,7 +5,8 @@ import { asFindAll } from '../../util/solr/adapters'
 import { logger } from '../../logger'
 import { buildResolvers } from '../../internalServices/cachedResolvers'
 import { ImpressoApplication } from '../../types'
-import Article, { ARTICLE_SOLR_FL_LIST_ITEM } from '../../models/articles.model'
+import Article from '../../models/articles.model'
+import { FindMethodFields } from '../content-items/content-items.class'
 
 const lodash = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
@@ -108,7 +109,7 @@ export class ArticlesSuggestionsService {
       const requestBody: SelectRequest['body'] = {
         query: '*:*',
         filter: `filter(topics_dpfs:*) AND NOT(id:${id})`,
-        fields: ARTICLE_SOLR_FL_LIST_ITEM.concat(['dist:${topicWeight}']).join(','),
+        fields: ['dist:${topicWeight}'].concat(FindMethodFields).join(','),
         offset: params.query.offset,
         limit: params.query.limit,
         sort: '${topicWeight} asc',

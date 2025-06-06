@@ -134,3 +134,18 @@ export function getRegionCoordinatesFromDocument(document: DocWithRegionCoordina
   }
   return []
 }
+
+/**
+ * Wrap a Solr plain field name as a JSON field.
+ * Instructs Solr to treat the field as a JSON object and return it as such.
+ *
+ * @param fieldName The name of the field to wrap.
+ * @returns The wrapped field name.
+ */
+export const plainFieldAsJson = (fieldName: `${string}_plain`): string => {
+  if (!fieldName.endsWith('_plain')) {
+    throw new Error(`Field name must end with '_plain': ${fieldName}`)
+  }
+
+  return `${fieldName}:[json]`
+}
