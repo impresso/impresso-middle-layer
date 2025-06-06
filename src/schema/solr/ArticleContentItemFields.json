@@ -58,6 +58,118 @@
     "ci_id_s": {
       "type": "string",
       "description": "Content item identifier (alternative ID format)"
+    },
+    "page_id_ss": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of page identifiers where the article appears"
+    },
+    "reading_order_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Reading order position of the article on the page"
+    },
+    "snippet_plain": {
+      "type": "string",
+      "description": "Plain text snippet of the article content"
+    },
+    "rc_plains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Region coordinates in plain text format with page and coordinate information"
+    },
+    "lb_plain": {
+      "type": "string",
+      "description": "Line boundaries in plain text format"
+    },
+    "pb_plain": {
+      "type": "string",
+      "description": "Paragraph boundaries in plain text format"
+    },
+    "rb_plain": {
+      "type": "string",
+      "description": "Region boundaries in plain text format"
+    },
+    "ocrqa_f": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "OCR quality assessment score (0-1)"
+    },
+    "topics_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Topic distributions with confidence scores in format 'topic_id|score'"
+    },
+    "nem_offset_plain": {
+      "type": "string",
+      "description": "Named entity mentions with character offsets in JSON format"
+    },
+    "pers_mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of person mentions found in the text"
+    },
+    "pers_mention_conf_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Person mentions with confidence scores in format 'mention|score'"
+    },
+    "loc_mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of location mentions found in the text"
+    },
+    "loc_mention_conf_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Location mentions with confidence scores in format 'mention|score'"
+    },
+    "org_mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of organization mentions found in the text"
+    },
+    "org_mention_conf_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Organization mentions with confidence scores in format 'mention|score'"
+    },
+    "loc_entities_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Linked location entities with confidence scores in format 'entity_id|score'"
+    },
+    "gte_multi_v768": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "768-dimensional vector embeddings for the content"
+    },
+    "pp_plain": {
+      "type": "string",
+      "description": "Segment items on the page."
     }
   },
   "patternProperties": {
@@ -73,19 +185,35 @@
   "additionalProperties": false,
   "examples": [
     {
-      "page_nb_is": [4],
+      "page_nb_is": [5],
       "nb_pages_i": 1,
       "front_b": false,
-      "page_regions_plains": ["2600,1873,761,208"],
-      "content_txt_fr": "Le title",
-      "content_length_i": 215,
-      "title_txt_fr": "Le content",
+      "page_id_ss": ["EZR-1826-01-06-a-p0005"],
+      "reading_order_i": 7,
+      "content_txt_de": "nicht vorenthalten",
+      "content_length_i": 568,
+      "title_txt_de": "Wenn man auchauf die Ernennung des H. Ri...",
+      "snippet_plain": "nicht vorenthalten werden dürfen, und d « dcr _Zte Vers. Ar « tilel genau bezeichnet, was den Confeßlonen noch des wei » lern zustehe. Diese Verhandlu",
+      "rc_plains": [
+        "{'pid': 'EZR-1826-01-06-a-p0005', 'c': [[1189, 91, 1014, 927], [1189, 1032, 1017, 934], [1182, 1973, 1024, 742]]}"
+      ],
+      "lb_plain": "[61, 120]",
+      "pb_plain": "[1236, 2525]",
+      "rb_plain": "[1236, 2525]",
       "cc_b": true,
-      "cluster_id_s": "25769809096",
-      "cluster_size_l": 20,
-      "beg_offset_i": 1683,
-      "end_offset_i": 1898,
-      "ci_id_s": "GDL-1938-05-13-a-i0042"
+      "ocrqa_f": 0.86,
+      "topics_dpfs": ["tm-de-all-v2.0_tp68_de|0.571", "tm-de-all-v2.0_tp30_de|0.132"],
+      "nem_offset_plain": "[{\"pers\": [[1037, 32]]}, {\"loc\": [[1647, 7], [2363, 4], [2566, 7], [2626, 20]]}, {\"org\": [[1872, 18]]}]",
+      "pers_mentions": ["H. Hauptmann Franz Auf der Mauer"],
+      "pers_mention_conf_dpfs": ["H. Hauptmann Franz Auf der Mauer|97.85"],
+      "loc_mentions": ["Simplon", "Bern", "Schweiz", "Kanton St. Gal « len"],
+      "loc_mention_conf_dpfs": ["Simplon|41.93", "Bern|94.31", "Schweiz|89.15", "Kanton St. Gal « len|90.04"],
+      "org_mentions": ["gr. Rath zu Luzern"],
+      "org_mention_conf_dpfs": ["gr. Rath zu Luzern|73.77"],
+      "loc_entities_dpfs": ["2-54-Simplonpass|1", "2-54-Bern|1", "2-54-Schweiz|1", "2-54-Kanton_St._Gallen|1"],
+      "gte_multi_v768": [],
+      "pp_plain": "[]",
+      "_version_": 1833530242983002112
     }
   ]
 }

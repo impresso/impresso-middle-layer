@@ -97,6 +97,38 @@
     "lg_s": {
       "type": "string",
       "description": "Language code or 'no_lg' if no language detected"
+    },
+    "rights_data_domain_s": {
+      "type": "string",
+      "description": "Data domain for rights management"
+    },
+    "rights_copyright_s": {
+      "type": "string",
+      "description": "Copyright information"
+    },
+    "rights_perm_use_explore_plain": {
+      "type": "string",
+      "description": "Permission level for exploration use in plain format"
+    },
+    "rights_perm_use_get_tr_plain": {
+      "type": "string",
+      "description": "Permission level for getting text reuse data in plain format"
+    },
+    "rights_perm_use_get_img_plain": {
+      "type": "string",
+      "description": "Permission level for getting images in plain format"
+    },
+    "rights_bm_explore_l": {
+      "type": "integer",
+      "description": "Bitmap flag for exploration rights"
+    },
+    "rights_bm_get_tr_l": {
+      "type": "integer",
+      "description": "Bitmap flag for text reuse retrieval rights"
+    },
+    "rights_bm_get_img_l": {
+      "type": "integer",
+      "description": "Bitmap flag for image retrieval rights"
     }
   },
   "required": [
@@ -133,7 +165,15 @@
       "item_type_s": "radio_broadcast_episode",
       "olr_b": false,
       "lg_orig_s": "fr",
-      "lg_s": "no_lg"
+      "lg_s": "no_lg",
+      "rights_data_domain_s": "pbl",
+      "rights_copyright_s": "pbl",
+      "rights_perm_use_explore_plain": "nur",
+      "rights_perm_use_get_tr_plain": "nur",
+      "rights_perm_use_get_img_plain": "nur",
+      "rights_bm_explore_l": 1,
+      "rights_bm_get_tr_l": 1,
+      "rights_bm_get_img_l": 1
     }
   ]
 }
