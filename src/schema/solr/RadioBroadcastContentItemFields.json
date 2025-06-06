@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RadioBroadcastContentItemFields",
+  "description": "Additional fields specific to radio broadcast content items in the Impresso project",
+  "type": "object",
+  "properties": {
+    "source_medium_s": {
+      "type": "string",
+      "enum": ["audio"],
+      "description": "Medium of the source (radio broadcasts use audio)"
+    },
+    "record_id_ss": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of record identifiers for radio broadcast segments"
+    },
+    "record_nb_is": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "Array of record numbers corresponding to radio broadcast segments"
+    },
+    "nb_record_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of records/segments in the radio broadcast"
+    },
+    "start_time_s": {
+      "type": "string",
+      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+      "description": "Start time of the radio broadcast in HH:MM:SS format"
+    },
+    "duration_s": {
+      "type": "string",
+      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+      "description": "Duration of the radio broadcast in HH:MM:SS format"
+    },
+    "radio_channel_s": {
+      "type": "string",
+      "description": "Name of the radio channel that aired the broadcast"
+    },
+    "radio_program_s": {
+      "type": "string",
+      "description": "Name of the radio program or show"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "source_medium_s": "audio",
+      "record_id_ss": ["RDN-1950-01-12-a-r0001"],
+      "record_nb_is": [1],
+      "nb_record_i": 1,
+      "start_time_s": "00:00:00",
+      "duration_s": "00:17:13",
+      "radio_channel_s": "Chaîne Parisienne (RTF)",
+      "radio_program_s": "La ronde des nations"
+    }
+  ]
+}

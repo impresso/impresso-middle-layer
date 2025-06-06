@@ -8,7 +8,7 @@ import { logger } from '../logger'
  */
 const publicApiServices = [
   'search', // search items
-  'articles', // get articles
+  'content-items', // get content items
   'users', // required for authentication
   'collectable-items', // required by 'search'
   'collections', // CRUD collections

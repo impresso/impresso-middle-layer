@@ -1,9 +1,9 @@
 import { ServiceOptions } from '@feathersjs/feathers'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { ImpressoApplication } from '../../types'
-import { docs } from './articles.schema'
-import createService from './articles.class'
-import hooks from './articles.hooks'
+import { docs } from './content-items.schema'
+import createService from './content-items.class'
+import hooks from './content-items.hooks'
 
 export default function (app: ImpressoApplication) {
   const paginate = app.get('paginate')
@@ -15,13 +15,7 @@ export default function (app: ImpressoApplication) {
    */
   const prefix = app.get('isPublicApi') ? '/content-items' : '/articles'
 
-  const options = {
-    name: 'articles',
-    paginate,
-    app,
-  }
-
-  const svc = createService(options)
+  const svc = createService({ app })
 
   // Initialize our service with any options it requires
   app.use('/content-items', svc, {

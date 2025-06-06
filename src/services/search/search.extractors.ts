@@ -1,7 +1,7 @@
 import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
 import Article from '../../models/articles.model'
 import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'
-import { ContentItemService } from '../articles/articles.class'
+import { ContentItemService } from '../content-items/content-items.class'
 import { ImpressoApplication } from '../../types'
 import { buildResolvers, CachedFacetType, IResolver } from '../../internalServices/cachedResolvers'
 

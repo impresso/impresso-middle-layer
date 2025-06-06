@@ -14,7 +14,7 @@ import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { withRewrittenIIIF } from '../../models/pages.model'
 import { buildResolvers } from '../../internalServices/cachedResolvers'
 
-const debug = Debug('impresso/services:articles')
+const debug = Debug('impresso/services:content-items')
 
 async function getIssues(request: Record<string, any>, app: ImpressoApplication) {
   const sequelize = app.get('sequelizeClient')
@@ -31,8 +31,7 @@ async function getIssues(request: Record<string, any>, app: ImpressoApplication)
 }
 
 interface ServiceOptions {
-  name?: string
-  app?: ImpressoApplication
+  app: ImpressoApplication
 }
 
 interface FindOptions {
@@ -58,20 +57,18 @@ interface FindOptions {
 }
 
 export class ContentItemService {
-  name: string
-  app?: ImpressoApplication
+  app: ImpressoApplication
   SequelizeService: SequelizeService
   solrFactory: SolrFactory<any, any, any, Article>
 
-  constructor({ name = '', app = undefined }: ServiceOptions = {}) {
-    this.name = String(name)
+  constructor({ app }: ServiceOptions) {
     this.app = app
     this.SequelizeService = initSequelizeService({
       app,
-      name,
+      name: 'articles',
       cacheReads: true,
     })
-    this.solrFactory = require(`../../models/${this.name}.model`).solrFactory
+    this.solrFactory = Article.solrFactory as SolrFactory<any, any, any, Article>
   }
 
   get solr(): SimpleSolrClient {

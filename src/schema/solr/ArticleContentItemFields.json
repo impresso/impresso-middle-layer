@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ArticleContentItemFields",
+  "description": "Additional fields specific to newspaper article content items in the Impresso project",
+  "type": "object",
+  "properties": {
+    "page_nb_is": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "Array of page numbers where the article appears"
+    },
+    "nb_pages_i": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Total number of pages the article spans"
+    },
+    "front_b": {
+      "type": "boolean",
+      "description": "Whether the article appears on the front page"
+    },
+    "page_regions_plains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of page region coordinates in plain text format (x,y,width,height)"
+    },
+    "content_txt_fr": {
+      "type": "string",
+      "description": "Full text content of the article in French"
+    },
+    "content_length_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Length of the article content in characters"
+    },
+    "title_txt_fr": {
+      "type": "string",
+      "description": "Title of the article in French"
+    },
+    "cc_b": {
+      "type": "boolean",
+      "description": "Whether the article has reliable coordinate information"
+    },
+    "cluster_id_s": {
+      "type": "string",
+      "description": "Text reuse cluster identifier (for text reuse analysis)"
+    },
+    "cluster_size_l": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Size of the text reuse cluster"
+    },
+    "beg_offset_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Beginning character offset for text reuse passage"
+    },
+    "end_offset_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Ending character offset for text reuse passage"
+    },
+    "ci_id_s": {
+      "type": "string",
+      "description": "Content item identifier (alternative ID format)"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "page_nb_is": [4],
+      "nb_pages_i": 1,
+      "front_b": false,
+      "page_regions_plains": ["2600,1873,761,208"],
+      "content_txt_fr": "Le title",
+      "content_length_i": 215,
+      "title_txt_fr": "Le content",
+      "cc_b": true,
+      "cluster_id_s": "25769809096",
+      "cluster_size_l": 20,
+      "beg_offset_i": 1683,
+      "end_offset_i": 1898,
+      "ci_id_s": "GDL-1938-05-13-a-i0042"
+    }
+  ]
+}
