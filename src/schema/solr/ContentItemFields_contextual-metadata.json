@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ContentItem",
+    "description": "Schema for contextual metadata field of media content items in the Impresso project.",
+    "type": "object",
+    "properties": {
+        "meta_country_code_s": {
+            "type": "string",
+            "description": "Country code of the publication.",
+            "nullable": true
+        },
+        "meta_province_code_s": {
+            "type": "string",
+            "description": "Province code of the publication.",
+            "nullable": true
+        },
+        "meta_periodicity_s": {
+            "type": "string",
+            "description": "Periodicity of the publication, e.g., daily, weekly.",
+            "nullable": true
+        },
+        "meta_topics_s": {
+            "type": "string",
+            "description": "Topics associated with the publication.",
+            "nullable": true
+        },
+        "meta_polorient_s": {
+            "type": "string",
+            "description": "Political orientation of the publication.",
+            "nullable": true
+        },
+        "meta_partnerid_s": {
+            "type": "string",
+            "description": "Partner ID associated with the publication.",
+            "nullable": true
+        },
+        "additionalProperties": false
+    }
+}

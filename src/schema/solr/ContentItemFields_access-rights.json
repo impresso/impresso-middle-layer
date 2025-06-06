@@ -1,0 +1,59 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ContentItem",
+    "description": "Schema for access right information of media content items in the Impresso project.",
+    "type": "object",
+    "properties": {
+        "rights_data_domain_s": {
+            "type": "string",
+            "description": "Rights data domain.",
+            "nullable": true
+        },
+        "rights_copyright_s": {
+            "type": "string",
+            "description": "Copyright status.",
+            "nullable": true
+        },
+        "rights_perm_use_explore_plain": {
+            "type": "string",
+            "description": "Permission for use in exploration.",
+            "nullable": true
+        },
+        "rights_perm_use_get_tr_plain": {
+            "type": "string",
+            "description": "Permission for use in text retrieval.",
+            "nullable": true
+        },
+        "rights_perm_use_get_img_plain": {
+            "type": "string",
+            "description": "Permission for use in image retrieval.",
+            "nullable": true
+        },
+        "rights_bm_explore_l": {
+            "type": "integer",
+            "description": "Bookmark limit for exploration.",
+            "nullable": true
+        },
+        "rights_bm_get_tr_l": {
+            "type": "integer",
+            "description": "Bookmark limit for text retrieval.",
+            "nullable": true
+        },
+        "rights_bm_get_img_l": {
+            "type": "integer",
+            "description": "Bookmark limit for image retrieval.",
+            "nullable": true
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "rights_data_domain_s",
+        "rights_copyright_s",
+        "rights_perm_use_explore_plain",
+        "rights_perm_use_get_tr_plain",
+        "rights_perm_use_get_img_plain",
+        "rights_bm_explore_l",
+        "rights_bm_get_tr_l",
+        "rights_bm_get_img_l"
+    ]
+}
