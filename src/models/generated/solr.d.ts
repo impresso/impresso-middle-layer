@@ -64,10 +64,6 @@ export interface ArticleContentItemFields {
    */
   reading_order_i?: number;
   /**
-   * Plain text snippet of the article content
-   */
-  snippet_plain?: string;
-  /**
    * Region coordinates in plain text format with page and coordinate information
    */
   rc_plains?: string[];
@@ -115,14 +111,6 @@ export interface ArticleContentItemFields {
    * Organization mentions with confidence scores in format 'mention|score'
    */
   org_mention_conf_dpfs?: string[];
-  /**
-   * Linked location entities with confidence scores in format 'entity_id|score'
-   */
-  loc_entities_dpfs?: string[];
-  /**
-   * Linked person entities with confidence scores in format 'entity_id|score'
-   */
-  pers_entities_dpfs?: string[];
   /**
    * 768-dimensional vector embeddings for the content
    */
@@ -203,6 +191,10 @@ export interface ContentItem {
    */
   meta_partnerid_s?: string;
   /**
+   * Plain text snippet of the article content
+   */
+  snippet_plain?: string;
+  /**
    * Document type (ci = content item, p = page)
    */
   doc_type_s: "ci" | "p";
@@ -226,6 +218,14 @@ export interface ContentItem {
    * Topic distributions with confidence scores in format 'topic_id|score'
    */
   topics_dpfs?: string[];
+  /**
+   * Linked location entities with confidence scores in format 'entity_id|score'
+   */
+  loc_entities_dpfs?: string[];
+  /**
+   * Linked person entities with confidence scores in format 'entity_id|score'
+   */
+  pers_entities_dpfs?: string[];
   /**
    * Data domain for rights management
    */
@@ -332,4 +332,12 @@ export interface RadioBroadcastContentItemFields {
    * Name of the radio program or show
    */
   radio_program_s?: string;
+  /**
+   * Timecodes. TODO: Explain this well
+   */
+  rrreb_plain?: string;
+  /**
+   * Utterance breaks as plain text. TODO: Explain this well
+   */
+  ub_plain?: string;
 }

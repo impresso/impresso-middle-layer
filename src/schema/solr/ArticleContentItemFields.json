@@ -71,10 +71,6 @@
       "minimum": 0,
       "description": "Reading order position of the article on the page"
     },
-    "snippet_plain": {
-      "type": "string",
-      "description": "Plain text snippet of the article content"
-    },
     "rc_plains": {
       "type": "array",
       "items": {
@@ -169,7 +165,6 @@
       "content_txt_de": "nicht vorenthalten",
       "content_length_i": 568,
       "title_txt_de": "Wenn man auchauf die Ernennung des H. Ri...",
-      "snippet_plain": "nicht vorenthalten werden dürfen, und d « dcr _Zte Vers. Ar « tilel genau bezeichnet, was den Confeßlonen noch des wei » lern zustehe. Diese Verhandlu",
       "rc_plains": [
         "{'pid': 'EZR-1826-01-06-a-p0005', 'c': [[1189, 91, 1014, 927], [1189, 1032, 1017, 934], [1182, 1973, 1024, 742]]}"
       ],

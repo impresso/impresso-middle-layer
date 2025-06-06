@@ -76,6 +76,10 @@
       "type": "string",
       "description": "Partner ID or 'na' if not applicable"
     },
+    "snippet_plain": {
+      "type": "string",
+      "description": "Plain text snippet of the article content"
+    },
     "doc_type_s": {
       "type": "string",
       "enum": ["ci", "p"],
@@ -193,6 +197,7 @@
       "meta_polorient_s": "na",
       "meta_partnerid_s": "na",
       "doc_type_s": "ci",
+      "snippet_plain": "nicht vorenthalten werden dürfen, und d « dcr _Zte Vers. Ar « tilel genau bezeichnet, was den Confeßlonen noch des wei » lern zustehe. Diese Verhandlu",
       "item_type_s": "radio_broadcast_episode",
       "olr_b": false,
       "lg_orig_s": "fr",
