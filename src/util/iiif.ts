@@ -38,7 +38,7 @@ const dimensionToFormattedSizeParameter = (dimension: 'full' | 'max' | number): 
 
 interface FragmentOptions {
   coordinates: [number, number]
-  dimension: 'full' | 'max' | number
+  dimension?: 'full' | 'max' | number
 }
 
 export const getExternalFragmentUrl = (

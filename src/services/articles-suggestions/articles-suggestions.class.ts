@@ -5,8 +5,9 @@ import { asFindAll } from '../../util/solr/adapters'
 import { logger } from '../../logger'
 import { buildResolvers } from '../../internalServices/cachedResolvers'
 import { ImpressoApplication } from '../../types'
-import Article from '../../models/articles.model'
+import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
 import { FindMethodFields } from '../content-items/content-items.class'
+import { PaperBasedContentItem } from '../../models/solr'
 
 const lodash = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
@@ -121,12 +122,14 @@ export class ArticlesSuggestionsService {
       })
 
       if (result.response) {
-        const solrFactory = Article.solrFactory(result.response)
+        const solrFactory = Article.solrFactory(
+          result.response as any as PaperBasedContentItem & IFragmentsAndHighlights
+        )
         const resolvers = buildResolvers(this.app!)
 
         result.response.docs = await Promise.all(
           result.response?.docs?.map(async doc => {
-            const article: Article = solrFactory(doc)
+            const article: Article = solrFactory(doc as any as PaperBasedContentItem & IFragmentsAndHighlights)
 
             article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.uid)) ?? [])
             article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])

@@ -33,3 +33,5 @@ export type ContentItemFieldNames =
   | RadioBroadcastContentItemFieldNames
 
 export { ArticleContentItemFields, RadioBroadcastContentItemFields }
+
+export type PaperBasedContentItem = ArticleContentItemFields & ContentItem
