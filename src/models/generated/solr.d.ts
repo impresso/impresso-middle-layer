@@ -88,10 +88,6 @@ export interface ArticleContentItemFields {
    */
   ocrqa_f?: number;
   /**
-   * Topic distributions with confidence scores in format 'topic_id|score'
-   */
-  topics_dpfs?: string[];
-  /**
    * Named entity mentions with character offsets in JSON format
    */
   nem_offset_plain?: string;
@@ -123,6 +119,10 @@ export interface ArticleContentItemFields {
    * Linked location entities with confidence scores in format 'entity_id|score'
    */
   loc_entities_dpfs?: string[];
+  /**
+   * Linked person entities with confidence scores in format 'entity_id|score'
+   */
+  pers_entities_dpfs?: string[];
   /**
    * 768-dimensional vector embeddings for the content
    */
@@ -223,6 +223,10 @@ export interface ContentItem {
    */
   lg_s?: string;
   /**
+   * Topic distributions with confidence scores in format 'topic_id|score'
+   */
+  topics_dpfs?: string[];
+  /**
    * Data domain for rights management
    */
   rights_data_domain_s?: string;
@@ -243,15 +247,15 @@ export interface ContentItem {
    */
   rights_perm_use_get_img_plain?: string;
   /**
-   * Bitmap flag for exploration rights
+   * Bitmap that controls accessibility to the 'Explore' action via the WebApp (browse). Encodes which user status or archive membership is sufficient to execute the EXPLORE action on this title.
    */
   rights_bm_explore_l?: number;
   /**
-   * Bitmap flag for text reuse retrieval rights
+   * Bitmap that controls accessibility to the 'Get Transcript' action (export via .csv or download via API). Encodes which user status or archive membership is sufficient to execute the GET action on TRANSCRIPTS of this title.
    */
   rights_bm_get_tr_l?: number;
   /**
-   * Bitmap flag for image retrieval rights
+   * Bitmap that controls accessibility to the 'Get any part of a facsimile' action (export via .csv or download via API). Encodes which user status or archive membership is sufficient to execute the GET action on IMAGES or ANY PART OF THE FACSIMILE of this title.
    */
   rights_bm_get_img_l?: number;
 }

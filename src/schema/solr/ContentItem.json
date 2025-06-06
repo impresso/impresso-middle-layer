@@ -98,6 +98,13 @@
       "type": "string",
       "description": "Language code or 'no_lg' if no language detected"
     },
+    "topics_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Topic distributions with confidence scores in format 'topic_id|score'"
+    },
     "rights_data_domain_s": {
       "type": "string",
       "description": "Data domain for rights management"
@@ -120,15 +127,25 @@
     },
     "rights_bm_explore_l": {
       "type": "integer",
-      "description": "Bitmap flag for exploration rights"
+      "description": "Bitmap that controls accessibility to the 'Explore' action via the WebApp (browse). Encodes which user status or archive membership is sufficient to execute the EXPLORE action on this title."
     },
     "rights_bm_get_tr_l": {
       "type": "integer",
-      "description": "Bitmap flag for text reuse retrieval rights"
+      "description": "Bitmap that controls accessibility to the 'Get Transcript' action (export via .csv or download via API). Encodes which user status or archive membership is sufficient to execute the GET action on TRANSCRIPTS of this title."
     },
     "rights_bm_get_img_l": {
       "type": "integer",
-      "description": "Bitmap flag for image retrieval rights"
+      "description": "Bitmap that controls accessibility to the 'Get any part of a facsimile' action (export via .csv or download via API). Encodes which user status or archive membership is sufficient to execute the GET action on IMAGES or ANY PART OF THE FACSIMILE of this title."
+    }
+  },
+  "patternProperties": {
+    "^title_txt_[a-z]{2}$": {
+      "type": "string",
+      "description": "Title of the article in the specified language (ISO 639-1 two-letter language code)"
+    },
+    "^content_txt_[a-z]{2}$": {
+      "type": "string",
+      "description": "Full text content of the article in the specified language (ISO 639-1 two-letter language code)"
     }
   },
   "required": [
@@ -166,6 +183,7 @@
       "olr_b": false,
       "lg_orig_s": "fr",
       "lg_s": "no_lg",
+      "topics_dpfs": ["tm-de-all-v2.0_tp68_de|0.571", "tm-de-all-v2.0_tp30_de|0.132"],
       "rights_data_domain_s": "pbl",
       "rights_copyright_s": "pbl",
       "rights_perm_use_explore_plain": "nur",

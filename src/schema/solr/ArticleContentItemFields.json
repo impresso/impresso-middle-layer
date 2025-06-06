@@ -100,13 +100,6 @@
       "maximum": 1,
       "description": "OCR quality assessment score (0-1)"
     },
-    "topics_dpfs": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Topic distributions with confidence scores in format 'topic_id|score'"
-    },
     "nem_offset_plain": {
       "type": "string",
       "description": "Named entity mentions with character offsets in JSON format"
@@ -160,6 +153,13 @@
       },
       "description": "Linked location entities with confidence scores in format 'entity_id|score'"
     },
+    "pers_entities_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Linked person entities with confidence scores in format 'entity_id|score'"
+    },
     "gte_multi_v768": {
       "type": "array",
       "items": {
@@ -170,16 +170,6 @@
     "pp_plain": {
       "type": "string",
       "description": "Segment items on the page."
-    }
-  },
-  "patternProperties": {
-    "^title_txt_[a-z]{2}$": {
-      "type": "string",
-      "description": "Title of the article in the specified language (ISO 639-1 two-letter language code)"
-    },
-    "^content_txt_[a-z]{2}$": {
-      "type": "string",
-      "description": "Full text content of the article in the specified language (ISO 639-1 two-letter language code)"
     }
   },
   "additionalProperties": false,
@@ -202,7 +192,6 @@
       "rb_plain": "[1236, 2525]",
       "cc_b": true,
       "ocrqa_f": 0.86,
-      "topics_dpfs": ["tm-de-all-v2.0_tp68_de|0.571", "tm-de-all-v2.0_tp30_de|0.132"],
       "nem_offset_plain": "[{\"pers\": [[1037, 32]]}, {\"loc\": [[1647, 7], [2363, 4], [2566, 7], [2626, 20]]}, {\"org\": [[1872, 18]]}]",
       "pers_mentions": ["H. Hauptmann Franz Auf der Mauer"],
       "pers_mention_conf_dpfs": ["H. Hauptmann Franz Auf der Mauer|97.85"],
