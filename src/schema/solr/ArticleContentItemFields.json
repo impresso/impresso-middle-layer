@@ -146,20 +146,6 @@
       },
       "description": "Organization mentions with confidence scores in format 'mention|score'"
     },
-    "loc_entities_dpfs": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Linked location entities with confidence scores in format 'entity_id|score'"
-    },
-    "pers_entities_dpfs": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Linked person entities with confidence scores in format 'entity_id|score'"
-    },
     "gte_multi_v768": {
       "type": "array",
       "items": {
@@ -199,7 +185,6 @@
       "loc_mention_conf_dpfs": ["Simplon|41.93", "Bern|94.31", "Schweiz|89.15", "Kanton St. Gal « len|90.04"],
       "org_mentions": ["gr. Rath zu Luzern"],
       "org_mention_conf_dpfs": ["gr. Rath zu Luzern|73.77"],
-      "loc_entities_dpfs": ["2-54-Simplonpass|1", "2-54-Bern|1", "2-54-Schweiz|1", "2-54-Kanton_St._Gallen|1"],
       "gte_multi_v768": [],
       "pp_plain": "[]",
       "_version_": 1833530242983002112

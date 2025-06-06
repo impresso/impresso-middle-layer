@@ -105,6 +105,20 @@
       },
       "description": "Topic distributions with confidence scores in format 'topic_id|score'"
     },
+    "loc_entities_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Linked location entities with confidence scores in format 'entity_id|score'"
+    },
+    "pers_entities_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Linked person entities with confidence scores in format 'entity_id|score'"
+    },
     "rights_data_domain_s": {
       "type": "string",
       "description": "Data domain for rights management"
@@ -184,6 +198,7 @@
       "lg_orig_s": "fr",
       "lg_s": "no_lg",
       "topics_dpfs": ["tm-de-all-v2.0_tp68_de|0.571", "tm-de-all-v2.0_tp30_de|0.132"],
+      "loc_entities_dpfs": ["2-54-Simplonpass|1", "2-54-Bern|1", "2-54-Schweiz|1", "2-54-Kanton_St._Gallen|1"],
       "rights_data_domain_s": "pbl",
       "rights_copyright_s": "pbl",
       "rights_perm_use_explore_plain": "nur",

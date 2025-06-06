@@ -45,6 +45,14 @@
     "radio_program_s": {
       "type": "string",
       "description": "Name of the radio program or show"
+    },
+    "rrreb_plain": {
+      "type": "string",
+      "description": "Timecodes. TODO: Explain this well"
+    },
+    "ub_plain": {
+      "type": "string",
+      "description": "Utterance breaks as plain text. TODO: Explain this well"
     }
   },
   "additionalProperties": false,
