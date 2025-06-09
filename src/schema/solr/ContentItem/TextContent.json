@@ -34,16 +34,6 @@
       "type": "string",
       "description": "Computed language of the content item."
     },
-    "patternProperties": {
-      "^title_txt_[a-z]{2}$": {
-        "type": "string",
-        "description": "Title of the article in the specified language (ISO 639-1 two-letter language code)"
-      },
-      "^content_txt_[a-z]{2}$": {
-        "type": "string",
-        "description": "Full text content of the article in the specified language (ISO 639-1 two-letter language code)"
-      }
-    },
     "content_length_i": {
       "type": "integer",
       "description": "Token count of the content item (space split)."
@@ -51,7 +41,17 @@
     "snippet_plain": {
       "type": "string",
       "description": "Snippet of the content item (first 150 characters)."
+    }
+  },
+  "patternProperties": {
+    "^title_txt_[a-z]{2}$": {
+      "type": "string",
+      "description": "Title of the article in the specified language (ISO 639-1 two-letter language code)"
     },
-    "additionalProperties": false
-  }
+    "^content_txt_[a-z]{2}$": {
+      "type": "string",
+      "description": "Full text content of the article in the specified language (ISO 639-1 two-letter language code)"
+    }
+  },
+  "additionalProperties": false
 }

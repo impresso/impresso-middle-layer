@@ -10,7 +10,7 @@ import Issue from './issues.model'
 import ArticleTopic from './articles-topics.model'
 import { toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt } from '../helpers'
 import { getRegionCoordinatesFromDocument } from '../util/solr'
-import { PaperBasedContentItem } from './solr'
+import { PrintContentItem } from './solr'
 import { ImpressoApplication } from '../types'
 
 const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
@@ -213,9 +213,7 @@ export class BaseArticle {
   /**
    * Return an Article mapper for Solr response document
    */
-  static solrFactory(
-    res: PaperBasedContentItem & IFragmentsAndHighlights
-  ): (doc: PaperBasedContentItem) => BaseArticle {
+  static solrFactory(res: PrintContentItem & IFragmentsAndHighlights): (doc: PrintContentItem) => BaseArticle {
     const fragments = res.fragments || {}
     return doc =>
       new BaseArticle({
@@ -628,7 +626,7 @@ class Article extends BaseArticle {
    * @return {String}       the field value
    */
   static getUncertainField(
-    doc: PaperBasedContentItem,
+    doc: PrintContentItem,
     field: 'title' | 'content',
     langs: string[] = ['fr', 'de', 'en']
   ): string {
@@ -645,7 +643,7 @@ class Article extends BaseArticle {
     return value
   }
 
-  static solrFactory(res: PaperBasedContentItem & IFragmentsAndHighlights): (doc: PaperBasedContentItem) => Article {
+  static solrFactory(res: PrintContentItem & IFragmentsAndHighlights): (doc: PrintContentItem) => Article {
     return doc => {
       // region coordinates may be loaded directly from the new field rc_plains
       const rc = getRegionCoordinatesFromDocument(doc)

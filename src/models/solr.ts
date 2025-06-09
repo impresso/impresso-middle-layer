@@ -1,8 +1,13 @@
 import type {
-  ContentItem as ContentItemGenerated,
-  ArticleContentItemFields,
-  RadioBroadcastContentItemFields,
-} from './generated/solr'
+  ContentItemCore,
+  AccessRightFields,
+  ArticleFields,
+  AudioFields,
+  ContextualMetadataFields,
+  ImageFields,
+  SemanticEnrichmentsFields,
+  TextContentFields as TextContentFieldsGenerated,
+} from './generated/solr/contentItem'
 
 type LanguageCode = string
 
@@ -22,16 +27,29 @@ type LanguageSpecificFields = {
   [K in `content_txt_${LanguageCode}`]: string
 }
 
-export type ContentItem = ContentItemGenerated & LanguageSpecificFields
+export interface CollectionFields {
+  ucoll_ss?: string[] // collection IDs the content item belongs to
+}
 
-export type ContentItemGenericFieldNames = keyof ContentItem
-export type ArticleContentItemFieldNames = keyof ArticleContentItemFields
-export type RadioBroadcastContentItemFieldNames = keyof RadioBroadcastContentItemFields
-export type ContentItemFieldNames =
-  | ContentItemGenericFieldNames
-  | ArticleContentItemFieldNames
-  | RadioBroadcastContentItemFieldNames
+export type TextContentFields = TextContentFieldsGenerated & LanguageSpecificFields
 
-export { ArticleContentItemFields, RadioBroadcastContentItemFields }
+export type ContentItemCoreFieldsNames = keyof ContentItemCore
+export type AccessRightFieldsNames = keyof AccessRightFields
+export type ArticleFieldsNames = keyof ArticleFields
+export type AudioFieldsNames = keyof AudioFields
+export type ContextualMetadataFieldsNames = keyof ContextualMetadataFields
+export type ImageFieldsNames = keyof ImageFields
+export type SemanticEnrichmentsFieldsNames = keyof SemanticEnrichmentsFields
+export type TextContentFieldsNames = keyof TextContentFields
 
-export type PaperBasedContentItem = ArticleContentItemFields & ContentItem
+/**
+ * A composite model used in the old code to refer
+ * to an "article" content item.
+ */
+export type PrintContentItem = ArticleFields &
+  TextContentFields &
+  SemanticEnrichmentsFields &
+  ContentItemCore &
+  AccessRightFields &
+  CollectionFields &
+  ContextualMetadataFields

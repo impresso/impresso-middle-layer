@@ -18,9 +18,8 @@ import {
   ArticleContentItemMetadataFields,
   ArticleCoordinatesFields,
   ContentFields,
-  CoreIdentifierFields,
+  IdAndMetaFields,
   ExcerptFields,
-  MetaFields,
   NamedEntitiesFields,
   RadioBroadcastContentItemMetadataFields,
   RadioBroadcastTimecodeFields,
@@ -35,8 +34,7 @@ import { plainFieldAsJson } from '../../util/solr'
  */
 export const FindMethodFields = [
   // common fields
-  ...CoreIdentifierFields,
-  ...MetaFields,
+  ...IdAndMetaFields,
   ...RightsFields,
   ...TitleFields,
   ...ExcerptFields,

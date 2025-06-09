@@ -3,7 +3,7 @@ import { groupBy, includes, uniq, values } from 'lodash'
 import { Filter } from '../../models'
 import { SolrNamespace, SolrNamespaces } from '../../solr'
 import { escapeIdValue, filtersToSolr } from './filterReducers'
-import { PaperBasedContentItem } from '../../models/solr'
+import { PrintContentItem } from '../../models/solr'
 
 /**
  * Languages that have content indexes in Solr.
@@ -114,12 +114,12 @@ export function filtersToQueryAndVariables(filters: Filter[], solrNamespace: Sol
   }
 }
 
-type DocWithRegionCoordinates = Pick<PaperBasedContentItem, 'rc_plains' | 'pp_plain'>
+type DocWithRegionCoordinates = Pick<PrintContentItem, 'rc_plains' | 'pp_plain'>
 
 export function getRegionCoordinatesFromDocument(document: DocWithRegionCoordinates) {
   if (document.rc_plains) {
     const rcPlainsArray = typeof document.rc_plains === 'string' ? [document.rc_plains] : document.rc_plains
-    return rcPlainsArray.map(d => {
+    return rcPlainsArray.map((d: string) => {
       const page = JSON.parse(d.replace(/'/g, '"'))
       return {
         id: page.pid,

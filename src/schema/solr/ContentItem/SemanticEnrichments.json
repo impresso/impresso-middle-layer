@@ -54,7 +54,7 @@
       "type": "array",
       "description": "",
       "items": {
-        "type": "number"
+        "type": "string"
       }
     },
     "loc_mentions": {
@@ -96,7 +96,7 @@
       "type": "array",
       "description": "",
       "items": {
-        "type": "number"
+        "type": "string"
       }
     },
     "nem_offset_plain": {
@@ -126,7 +126,7 @@
       "items": {
         "type": "number"
       }
-    },
-    "additionalProperties": false
-  }
+    }
+  },
+  "additionalProperties": false
 }

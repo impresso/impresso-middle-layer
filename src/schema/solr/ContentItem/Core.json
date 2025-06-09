@@ -57,30 +57,6 @@
       "enum": ["audio", "print", "typescript"]
     }
   },
-  "meta_start_time_s": {
-    "type": "string",
-    "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
-    "description": "Start time of media in HH:MM:SS format (relative to the day of broadcast). Applies only to audio radio broadcasts."
-  },
-  "meta_duration_s": {
-    "type": "string",
-    "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
-    "description": "Duration of the radio broadcast in HH:MM:SS format (relative to the start of the broadcast on the given broadcast day).  Applies only to audio radio broadcasts.\""
-  },
   "required": ["id", "meta_journal_s", "meta_year_i", "meta_month_i", "meta_day_i", "meta_date_dt"],
-  "dependentRequired": {
-    "meta_source_medium_s": ["meta_source_type_s"],
-    "meta_source_type_s": ["meta_source_medium_s"]
-  },
-  "if": {
-    "properties": {
-      "meta_source_medium_s": {
-        "const": "audio"
-      }
-    }
-  },
-  "then": {
-    "required": ["meta_start_time_s", "meta_duration_s"]
-  },
   "additionalProperties": false
 }

@@ -12,11 +12,24 @@ const banner = `
 
 const basePath = './src/schema'
 const outputPath = './src/models/generated'
-const schemaBits = ['schemas', 'schemasPublic', 'shared', 'parameters', 'requestBodies', 'responses', 'common', 'solr']
+const schemaBits = [
+  'schemas',
+  'schemasPublic',
+  'shared',
+  'parameters',
+  'requestBodies',
+  'responses',
+  'common',
+  'solr',
+  'solr/contentItem',
+]
 const directories = fs
-  .readdirSync(basePath)
+  .readdirSync(basePath, {
+    recursive: true,
+  })
   .filter(item => {
-    return fs.statSync(`${basePath}/${item}`).isDirectory()
+    const s = fs.statSync(`${basePath}/${item}`)
+    return s.isDirectory()
   })
   .filter(item => schemaBits.includes(item))
 

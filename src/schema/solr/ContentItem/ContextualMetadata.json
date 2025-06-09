@@ -27,7 +27,7 @@
     "meta_partnerid_s": {
       "type": "string",
       "description": "Partner ID associated with the publication."
-    },
-    "additionalProperties": false
-  }
+    }
+  },
+  "additionalProperties": false
 }

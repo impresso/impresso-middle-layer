@@ -60,7 +60,7 @@
     "cc_b": {
       "type": "boolean",
       "description": "Indicates whether coordinates were converted."
-    },
-    "additionalProperties": false
-  }
+    }
+  },
+  "additionalProperties": false
 }
