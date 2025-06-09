@@ -3,6 +3,7 @@ import { groupBy, includes, uniq, values } from 'lodash'
 import { Filter } from '../../models'
 import { SolrNamespace, SolrNamespaces } from '../../solr'
 import { escapeIdValue, filtersToSolr } from './filterReducers'
+import { PaperBasedContentItem } from '../../models/solr'
 
 /**
  * Languages that have content indexes in Solr.
@@ -113,10 +114,7 @@ export function filtersToQueryAndVariables(filters: Filter[], solrNamespace: Sol
   }
 }
 
-interface DocWithRegionCoordinates {
-  rc_plains?: string | string[]
-  pp_plain?: any[]
-}
+type DocWithRegionCoordinates = Pick<PaperBasedContentItem, 'rc_plains' | 'pp_plain'>
 
 export function getRegionCoordinatesFromDocument(document: DocWithRegionCoordinates) {
   if (document.rc_plains) {
@@ -130,7 +128,23 @@ export function getRegionCoordinatesFromDocument(document: DocWithRegionCoordina
     })
   }
   if (document.pp_plain) {
-    return document.pp_plain
+    const ppPlainArray = typeof document.pp_plain === 'string' ? [document.pp_plain] : document.pp_plain
+    return ppPlainArray
   }
   return []
+}
+
+/**
+ * Wrap a Solr plain field name as a JSON field.
+ * Instructs Solr to treat the field as a JSON object and return it as such.
+ *
+ * @param fieldName The name of the field to wrap.
+ * @returns The wrapped field name.
+ */
+export const plainFieldAsJson = (fieldName: `${string}_plain`): string => {
+  if (!fieldName.endsWith('_plain')) {
+    throw new Error(`Field name must end with '_plain': ${fieldName}`)
+  }
+
+  return `${fieldName}:[json]`
 }

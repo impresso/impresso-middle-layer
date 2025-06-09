@@ -4,7 +4,7 @@ import { Op } from 'sequelize'
 
 import { logger } from '../../logger'
 import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
-import Article, { ARTICLE_SOLR_FL_LIST_ITEM } from '../../models/articles.model'
+import Article from '../../models/articles.model'
 import Issue from '../../models/issues.model'
 import { measureTime } from '../../util/instruments'
 import { ImpressoApplication } from '../../types'
@@ -13,6 +13,55 @@ import { asFind, asGet, SolrFactory } from '../../util/solr/adapters'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { withRewrittenIIIF } from '../../models/pages.model'
 import { buildResolvers } from '../../internalServices/cachedResolvers'
+import {
+  AricleContentItemOffsetsAndBoundariesFields,
+  ArticleContentItemMetadataFields,
+  ArticleCoordinatesFields,
+  ContentFields,
+  CoreIdentifierFields,
+  ExcerptFields,
+  MetaFields,
+  NamedEntitiesFields,
+  RadioBroadcastContentItemMetadataFields,
+  RadioBroadcastTimecodeFields,
+  RightsFields,
+  TitleFields,
+} from '../../models/content-item.model'
+import { plainFieldAsJson } from '../../util/solr'
+
+/**
+ * Fields needed to fetch a list of content items.
+ * Some things are excluded here, like full content, etc.
+ */
+export const FindMethodFields = [
+  // common fields
+  ...CoreIdentifierFields,
+  ...MetaFields,
+  ...RightsFields,
+  ...TitleFields,
+  ...ExcerptFields,
+  ...NamedEntitiesFields,
+  // article specific
+  ...ArticleCoordinatesFields,
+  ...ArticleContentItemMetadataFields,
+  // radio specific
+  ...RadioBroadcastContentItemMetadataFields,
+]
+
+/**
+ * Fields needed to fetch a single content item.
+ * Same as above but with extra data:
+ *  - content
+ *  - content breaks (for articles)
+ */
+const GetMethodFields = [
+  ...FindMethodFields,
+  ...ContentFields,
+  // article json fields
+  ...AricleContentItemOffsetsAndBoundariesFields.map(plainFieldAsJson),
+  // radio json fields
+  ...RadioBroadcastTimecodeFields.map(plainFieldAsJson),
+]
 
 const debug = Debug('impresso/services:content-items')
 
@@ -84,7 +133,7 @@ export class ContentItemService {
   }
 
   async _find(params: FindOptions) {
-    const fl = ARTICLE_SOLR_FL_LIST_ITEM
+    const fl = FindMethodFields
     const pageUids = (params.query.filters || []).filter(d => d.type === 'page').map(d => d.q)
 
     debug('[find] use auth user:', params.user ? params.user.uid : 'no user')
@@ -172,18 +221,7 @@ export class ContentItemService {
 
   async get(id: string, params: any) {
     debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found')
-    const fl = ARTICLE_SOLR_FL_LIST_ITEM.concat([
-      'lb_plain:[json]',
-      'rb_plain:[json]',
-      'pp_plain:[json]',
-      'nem_offset_plain:[json]',
-      // [RK] Note: The content fields below are missing in
-      // `ARTICLE_SOLR_FL_LIST_ITEM`. They may not be needed in 'find' endpoint
-      // but are certainly needed here.
-      'content_txt_fr',
-      'content_txt_en',
-      'content_txt_de',
-    ])
+    const fl = GetMethodFields
 
     return Promise.all([
       // we perform a solr request to get
