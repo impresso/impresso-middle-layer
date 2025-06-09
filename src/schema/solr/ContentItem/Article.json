@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ArticleContentItemFields",
-  "description": "Additional fields specific to newspaper article content items in the Impresso project",
+  "title": "ArticleFields",
+  "description": "Newspaper article specific content item fields in the Impresso project",
   "type": "object",
   "properties": {
     "page_nb_is": {
