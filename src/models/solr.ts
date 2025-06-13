@@ -9,7 +9,25 @@ import type {
   TextContentFields as TextContentFieldsGenerated,
 } from './generated/solr/contentItem'
 
-type LanguageCode = string
+/**
+ * IMPORTANT: This field should be kept in sync with the ingestion code.
+ * If a new language is added, it should be reflected here.
+ */
+export type LanguageCode = 'fr' | 'de' | 'en' | 'it' | 'es' | 'hu' | 'pl' | 'pt' | 'nl' | 'tr' | 'br' | 'sw'
+export const SupportedLanguageCodes = [
+  'fr',
+  'de',
+  'en',
+  'it',
+  'es',
+  'hu',
+  'pl',
+  'pt',
+  'nl',
+  'tr',
+  'br',
+  'sw',
+] satisfies LanguageCode[]
 
 /**
  * JSON Schema to TS generator does not know how to generate

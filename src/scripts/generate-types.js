@@ -14,6 +14,7 @@ const basePath = './src/schema'
 const outputPath = './src/models/generated'
 const schemaBits = [
   'schemas',
+  'schemas/contentItem',
   'schemasPublic',
   'shared',
   'parameters',

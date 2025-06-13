@@ -41,6 +41,14 @@
     "snippet_plain": {
       "type": "string",
       "description": "Snippet of the content item (first 150 characters)."
+    },
+    "title_txt": {
+      "type": "string",
+      "description": "Title of the content item. This field is present when no language specific title fields are available (e.g. title_txt_f)."
+    },
+    "content_txt": {
+      "type": "string",
+      "description": "Full text content of the content item. This field is present when no language specific content fields are available (e.g. content_txt_f)."
     }
   },
   "patternProperties": {

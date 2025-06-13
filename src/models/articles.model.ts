@@ -1,17 +1,19 @@
-import { OpenPermissions } from '../util/bigint'
-import { getManifestJSONUrl, getExternalFragmentUrl } from '../util/iiif'
-import Page from './pages.model'
-import { DataTypes, Sequelize } from 'sequelize'
 import * as lodash from 'lodash'
-import Newspaper from './newspapers.model'
-import Collection from './collections.model'
-import CollectableItem from './collectable-items.model'
-import Issue from './issues.model'
-import ArticleTopic from './articles-topics.model'
-import { toHierarchy, sliceAtSplitpoints, render, annotate, toExcerpt } from '../helpers'
-import { getRegionCoordinatesFromDocument } from '../util/solr'
-import { PrintContentItem } from './solr'
+import { DataTypes, Sequelize } from 'sequelize'
+import { annotate, render, sliceAtSplitpoints, toExcerpt, toHierarchy } from '../helpers'
 import { ImpressoApplication } from '../types'
+import { OpenPermissions } from '../util/bigint'
+import { getExternalFragmentUrl, getManifestJSONUrl } from '../util/iiif'
+import { getRegionCoordinatesFromDocument } from '../util/solr'
+import ArticleTopic from './articles-topics.model'
+import CollectableItem from './collectable-items.model'
+import Collection from './collections.model'
+import { ContentItem } from './generated/schemas'
+import Issue from './issues.model'
+import Newspaper from './newspapers.model'
+import Page from './pages.model'
+import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from './solr'
+import { ContentItemTextMatch } from './generated/schemas/contentItem'
 
 const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
 
@@ -24,16 +26,6 @@ interface IArticleRegion {
   pageUid?: string
   g?: any[]
   c?: number[]
-}
-
-interface IFragment {
-  fragment?: string
-}
-
-interface IArticleMatch extends IFragment {
-  coords?: any[]
-  pageUid?: string
-  iiif?: string
 }
 
 interface IBaseArticle {
@@ -66,7 +58,7 @@ interface IArticleOptions extends IBaseArticle {
   date?: Date | string
   nbPages?: number | string
   isFront?: boolean
-  accessRight?: string
+  accessRight?: ContentItem['accessRight']
   lb?: any[]
   rb?: any[]
   rc?: any[]
@@ -76,8 +68,8 @@ interface IArticleOptions extends IBaseArticle {
   bitmapExplore?: bigint
   bitmapGetTranscript?: bigint
   bitmapGetImages?: bigint
-  dataDomain?: string
-  copyright?: string
+  dataDomain?: ContentItem['dataDomain']
+  copyright?: ContentItem['copyright']
 }
 
 class ArticleDPF {
@@ -127,28 +119,36 @@ class ArticleRegion {
   }
 }
 
-class Fragment {
+class Fragment implements ContentItemTextMatch {
   fragment: string
 
-  constructor({ fragment = '' }: IFragment = {}) {
+  constructor(
+    { fragment = '' }: ContentItemTextMatch = {
+      fragment: '',
+    }
+  ) {
     this.fragment = String(fragment)
   }
 }
 
-class ArticleMatch extends Fragment {
+class ArticleMatch extends Fragment implements ContentItemTextMatch {
   coords: number[]
   pageUid: string
-  iiif: string
 
-  constructor({ coords = [], fragment = '', pageUid = '', iiif = '' }: IArticleMatch = {}) {
+  constructor(
+    { coords = [], fragment = '', pageUid = '' }: ContentItemTextMatch = {
+      coords: [],
+      fragment: '',
+      pageUid: '',
+    }
+  ) {
     super({ fragment })
-    this.coords = coords.map(coord => parseInt(coord, 10))
+    this.coords = coords.map(coord => (typeof coord == 'string' ? parseInt(coord, 10) : coord))
     this.pageUid = String(pageUid)
-    this.iiif = getManifestJSONUrl(iiif)
   }
 }
 
-export class BaseArticle {
+export class BaseArticle implements Omit<ContentItem, 'labels' | 'year'> {
   uid: string
   type: string
   title: string
@@ -235,7 +235,18 @@ export class BaseArticle {
   }
 }
 
-class Article extends BaseArticle {
+type ContentItemWithCorrectTypes = Omit<
+  ContentItem,
+  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages'
+> & {
+  issue?: Issue
+  date?: Date
+  bitmapExplore?: bigint
+  bitmapGetTranscript?: bigint
+  bitmapGetImages?: bigint
+}
+
+class Article extends BaseArticle implements ContentItemWithCorrectTypes {
   language: string
   content: string
   issue?: Issue
@@ -246,8 +257,8 @@ class Article extends BaseArticle {
   year: number
   date: Date
   isFront: boolean
-  accessRight: string
-  labels: string[]
+  accessRight: ContentItem['accessRight']
+  labels: 'article'[]
   mentions?: any[]
   topics?: ArticleTopic[]
   regions?: ArticleRegion[]
@@ -257,8 +268,8 @@ class Article extends BaseArticle {
   bitmapExplore?: bigint
   bitmapGetTranscript?: bigint
   bitmapGetImages?: bigint
-  dataDomain?: string
-  copyright?: string
+  dataDomain?: ContentItem['dataDomain']
+  copyright?: ContentItem['copyright']
 
   constructor({
     uid = '',
@@ -509,7 +520,7 @@ class Article extends BaseArticle {
     solrDocument?: any
     fragments?: string[]
     highlights?: any
-  } = {}): (ArticleMatch | Fragment)[] {
+  } = {}): ContentItemTextMatch[] {
     if (!solrDocument.pp_plain || !highlights || !highlights.offsets || !highlights.offsets.length) {
       return fragments.map(fragment => new Fragment({ fragment }))
     }
@@ -628,9 +639,10 @@ class Article extends BaseArticle {
   static getUncertainField(
     doc: PrintContentItem,
     field: 'title' | 'content',
-    langs: string[] = ['fr', 'de', 'en']
+    langs: LanguageCode[] = SupportedLanguageCodes
   ): string {
-    let value = doc[`${field}_txt_${doc.lg_s}`]
+    const langCode = doc.lg_s! as LanguageCode
+    let value = doc[`${field}_txt_${langCode}`]
 
     if (!value) {
       for (let i = 0, l = langs.length; i < l; i += 1) {

@@ -301,6 +301,10 @@ export interface Entity {
    * Relevance of the entity in the document
    */
   relevance: number;
+  /**
+   * Name of the entity
+   */
+  name?: string;
 }
 export interface NewspaperIssue {
   /**
@@ -786,6 +790,10 @@ export interface Entity {
    * Relevance of the entity in the document
    */
   relevance: number;
+  /**
+   * Name of the entity
+   */
+  name?: string;
 }
 
 
@@ -1262,6 +1270,22 @@ export interface Page {
 }
 
 
+export interface Partner {
+  /**
+   * Partner ID
+   */
+  id: string;
+  /**
+   * Partner Title
+   */
+  title: string;
+  /**
+   * URL of the partner's website
+   */
+  url?: string;
+}
+
+
 export type StatusOfTheCollection = string;
 export type NumberOfItemsInTheCollection = number | string;
 export type UniqueIdentifierForTheUser = string;
@@ -1318,7 +1342,7 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year;
+  item?: Newspaper | Collection | Entity | Topic | Year | Partner;
 }
 /**
  * A newspaper
@@ -1457,6 +1481,10 @@ export interface Entity {
    * Relevance of the entity in the document
    */
   relevance: number;
+  /**
+   * Name of the entity
+   */
+  name?: string;
 }
 /**
  * A topic (TODO)
@@ -1599,6 +1627,20 @@ export interface YearWeights {
    * Number of images (with or without vectors)
    */
   m?: number;
+}
+export interface Partner {
+  /**
+   * Partner ID
+   */
+  id: string;
+  /**
+   * Partner Title
+   */
+  title: string;
+  /**
+   * URL of the partner's website
+   */
+  url?: string;
 }
 /**
  * Facet bucket
@@ -1647,7 +1689,7 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year;
+  item?: Newspaper | Collection | Entity | Topic | Year | Partner;
 }
 /**
  * A newspaper
@@ -1786,6 +1828,10 @@ export interface Entity {
    * Relevance of the entity in the document
    */
   relevance: number;
+  /**
+   * Name of the entity
+   */
+  name?: string;
 }
 /**
  * A topic (TODO)
@@ -1928,6 +1974,20 @@ export interface YearWeights {
    * Number of images (with or without vectors)
    */
   m?: number;
+}
+export interface Partner {
+  /**
+   * Partner ID
+   */
+  id: string;
+  /**
+   * Partner Title
+   */
+  title: string;
+  /**
+   * URL of the partner's website
+   */
+  url?: string;
 }
 
 

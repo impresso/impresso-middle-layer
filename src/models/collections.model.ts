@@ -1,5 +1,7 @@
 import User from './users.model'
 import { nanoid } from 'nanoid'
+import { BaseUser, Collection as ICollection } from './generated/schemas'
+import { ModelDefined, Sequelize } from 'sequelize'
 
 const { DataTypes } = require('sequelize')
 
@@ -8,7 +10,25 @@ export const STATUS_SHARED = 'SHA'
 export const STATUS_PUBLIC = 'PUB'
 export const STATUS_DELETED = 'DEL'
 
-export default class Collection {
+type IDBCollection = Omit<ICollection, 'creationDate' | 'lastModifiedDate' | 'creator'> & {
+  creator?: User
+  creationDate: Date
+  lastModifiedDate: Date
+}
+
+export type CollectionDbModel = ModelDefined<IDBCollection, Omit<IDBCollection, 'uid'>>
+
+export default class Collection implements IDBCollection {
+  uid: string
+  name: string
+  description: string
+  status: string
+  labels: string[]
+  creationDate: Date
+  lastModifiedDate: Date
+  countItems: number
+  creator?: User
+
   constructor(
     {
       uid = '',
@@ -27,7 +47,7 @@ export default class Collection {
     this.labels = labels
     this.name = String(name)
     this.description = String(description)
-    this.countItems = parseInt(countItems, 10)
+    this.countItems = typeof countItems === 'string' ? parseInt(countItems, 10) : countItems
     this.creationDate = creationDate instanceof Date ? creationDate : new Date(creationDate)
     this.status = String(status)
 
@@ -37,14 +57,14 @@ export default class Collection {
       this.lastModifiedDate = new Date(lastModifiedDate)
     }
 
-    if (creator instanceof User) {
+    if (creator != null && (creator as any) instanceof User) {
       this.creator = creator
     } else if (creator) {
       this.creator = new User(creator)
     }
 
     if (!this.uid.length) {
-      this.uid = `${this.creator.uid}-${nanoid(8)}` //= > "local-useruid-7hy8hvrX"
+      this.uid = `${this.creator?.uid}-${nanoid(8)}` //= > "local-useruid-7hy8hvrX"
     }
 
     if (complete) {
@@ -52,7 +72,26 @@ export default class Collection {
     }
   }
 
-  static sequelize(client) {
+  toJSON(): Omit<ICollection, 'creator'> & Partial<Pick<ICollection, 'creator'>> {
+    return {
+      countItems: this.countItems,
+      creator: this.creator
+        ? {
+            uid: this.creator.uid,
+            username: this.creator.username,
+          }
+        : undefined,
+      description: this.description,
+      lastModifiedDate: this.lastModifiedDate.toISOString(),
+      creationDate: this.creationDate.toISOString(),
+      labels: this.labels,
+      name: this.name,
+      status: this.status,
+      uid: this.uid,
+    }
+  }
+
+  static sequelize(client: Sequelize) {
     const creator = User.sequelize(client)
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
@@ -133,27 +172,12 @@ export default class Collection {
 
     collection.belongsTo(creator, {
       as: 'creator',
-      foreignKey: {
-        fieldName: 'creator_id',
-      },
+      foreignKey: 'creator_id',
       onDelete: 'CASCADE',
     })
 
-    collection.prototype.toJSON = function (obfuscate = true) {
-      const sq = new Collection({
-        uid: this.uid,
-        name: this.name,
-        description: this.description,
-        status: this.status,
-        creationDate: this.creationDate,
-        lastModifiedDate: this.lastModifiedDate,
-        countItems: this.countItems,
-      })
-
-      if (this.creator) {
-        delete sq.creator
-      }
-      return sq
+    collection.prototype.toJSON = function () {
+      return new Collection(this.get())
     }
 
     return collection

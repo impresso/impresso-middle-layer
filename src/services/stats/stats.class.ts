@@ -32,7 +32,7 @@ const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelE
     topic: async (key: string) => {
       const topic = await resolvers.topic(key)
       if (topic == null) return key
-      return topic.words.map(({ w }: any) => w).join(', ')
+      return topic.words?.map(({ w }: any) => w)?.join(', ') ?? ''
     },
     newspaper: async (key: string) => {
       const newspaper = await resolvers.newspaper(key)
@@ -40,11 +40,11 @@ const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelE
     },
     person: async (key: string) => {
       const entity = await resolvers.person(key)
-      return entity == null ? key : entity.name
+      return entity == null ? key : entity.name!
     },
     location: async (key: string) => {
       const entity = await resolvers.location(key)
-      return entity == null ? key : entity.name
+      return entity == null ? key : entity.name!
     },
     language: async (key: string) => key,
     country: async (key: string) => key,

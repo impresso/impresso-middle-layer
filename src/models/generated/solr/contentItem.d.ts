@@ -12,13 +12,13 @@
  */
 export interface AccessRightFields {
   /**
-   * Rights data domain.
+   * Rights data domain. (e.g., 'pbl' for public, 'prt' for private)
    */
-  rights_data_domain_s: string;
+  rights_data_domain_s: "pbl" | "prt";
   /**
    * Copyright status.
    */
-  rights_copyright_s: string;
+  rights_copyright_s: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
   /**
    * Permission for use in exploration.
    */
@@ -266,7 +266,7 @@ export interface ContentItemCore {
   /**
    * Type of the media source. Should be a value from impresso-essentials.utils SourceType enum.
    */
-  meta_source_type_s?:
+  meta_source_type_s:
     | "newspaper"
     | "radio_broadcast"
     | "radio_magazine"
@@ -276,7 +276,7 @@ export interface ContentItemCore {
   /**
    * Medium of the source (audio for audio radio broadcasts, print for newspapers, typescript for digitised radio bulletin typescripts).
    */
-  meta_source_medium_s?: "audio" | "print" | "typescript";
+  meta_source_medium_s: "audio" | "print" | "typescript";
 }
 
 
@@ -309,7 +309,7 @@ export interface ImageFields {
    */
   olr_b?: boolean;
   /**
-   * Serialized JSON of page information.
+   * Serialized JSON of page information. A large object containing tokens regions. Use `rc_plains` if you only need page regions.
    */
   pp_plain?: string;
   /**
@@ -354,19 +354,19 @@ export interface SemanticEnrichmentsFields {
   /**
    * Confidence scores for news agency mentions.
    */
-  nag_mention_conf_dpfs?: number[];
+  nag_mention_conf_dpfs?: string[];
   /**
    * Entities of type news agency.
    */
   nag_entities_dpfs?: string[];
   pers_mentions?: string[];
-  pers_mention_conf_dpfs?: number[];
+  pers_mention_conf_dpfs?: string[];
   pers_entities_dpfs?: string[];
   loc_mentions?: string[];
-  loc_mention_conf_dpfs?: number[];
+  loc_mention_conf_dpfs?: string[];
   loc_entities_dpfs?: string[];
   org_mentions?: string[];
-  org_mention_conf_dpfs?: number[];
+  org_mention_conf_dpfs?: string[];
   org_entities_dpfs?: string[];
   /**
    * Offsets for named entity mentions in plain text.
@@ -426,4 +426,12 @@ export interface TextContentFields {
    * Snippet of the content item (first 150 characters).
    */
   snippet_plain?: string;
+  /**
+   * Title of the content item. This field is present when no language specific title fields are available (e.g. title_txt_f).
+   */
+  title_txt?: string;
+  /**
+   * Full text content of the content item. This field is present when no language specific content fields are available (e.g. content_txt_f).
+   */
+  content_txt?: string;
 }

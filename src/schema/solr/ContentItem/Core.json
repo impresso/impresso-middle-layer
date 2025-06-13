@@ -57,6 +57,15 @@
       "enum": ["audio", "print", "typescript"]
     }
   },
-  "required": ["id", "meta_journal_s", "meta_year_i", "meta_month_i", "meta_day_i", "meta_date_dt"],
+  "required": [
+    "id",
+    "meta_journal_s",
+    "meta_year_i",
+    "meta_month_i",
+    "meta_day_i",
+    "meta_date_dt",
+    "meta_source_type_s",
+    "meta_source_medium_s"
+  ],
   "additionalProperties": false
 }

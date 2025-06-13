@@ -36,7 +36,7 @@
     },
     "pp_plain": {
       "type": "string",
-      "description": "Serialized JSON of page information."
+      "description": "Serialized JSON of page information. A large object containing tokens regions. Use `rc_plains` if you only need page regions."
     },
     "rc_plains": {
       "type": "array",

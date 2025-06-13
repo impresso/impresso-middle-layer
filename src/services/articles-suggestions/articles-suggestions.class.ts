@@ -129,8 +129,10 @@ export class ArticlesSuggestionsService {
           result.response?.docs?.map(async doc => {
             const article: Article = solrFactory(doc as any as PrintContentItem & IFragmentsAndHighlights)
 
-            article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.uid)) ?? [])
-            article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])
+            article.locations = (await Promise.all(
+              article.locations?.map(item => resolvers.location(item.uid)) ?? []
+            )) as any
+            article.persons = (await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])) as any
 
             return article as any
           })

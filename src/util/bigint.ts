@@ -8,6 +8,11 @@ export const bufferToBigInt = (buffer: Buffer): bigint => {
   return toBigIntBE(buffer)
 }
 
+export const bigIntToBase64Bytes = (value: bigint): string => {
+  const buffer = bigIntToBuffer(value)
+  return buffer.toString('base64')
+}
+
 /**
  * @returns a string representation of the bigint value as a bit string.
  * The string is padded to 64 bits.

@@ -6,11 +6,13 @@
   "properties": {
     "rights_data_domain_s": {
       "type": "string",
-      "description": "Rights data domain."
+      "description": "Rights data domain. (e.g., 'pbl' for public, 'prt' for private)",
+      "enum": ["pbl", "prt"]
     },
     "rights_copyright_s": {
       "type": "string",
-      "description": "Copyright status."
+      "description": "Copyright status.",
+      "enum": ["pbl", "und", "nkn", "euo", "unk", "in_cpy"]
     },
     "rights_perm_use_explore_plain": {
       "type": "string",

@@ -1,67 +1,51 @@
-import { keyBy } from 'lodash'
+import { Dictionary, keyBy, take } from 'lodash'
 import Debug from 'debug'
 import { Op } from 'sequelize'
 
 import { logger } from '../../logger'
 import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
-import Article from '../../models/articles.model'
+import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
 import Issue from '../../models/issues.model'
 import { measureTime } from '../../util/instruments'
 import { ImpressoApplication } from '../../types'
 import { SlimUser } from '../../authentication'
-import { asFind, asGet, SolrFactory } from '../../util/solr/adapters'
+import { asFind, asGet, findAllRequestAdapter, findRequestAdapter, SolrFactory } from '../../util/solr/adapters'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { withRewrittenIIIF } from '../../models/pages.model'
+import Page, { withRewrittenIIIF } from '../../models/pages.model'
 import { buildResolvers } from '../../internalServices/cachedResolvers'
 import {
-  AricleContentItemOffsetsAndBoundariesFields,
-  ArticleContentItemMetadataFields,
-  ArticleCoordinatesFields,
-  ContentFields,
-  IdAndMetaFields,
-  ExcerptFields,
-  NamedEntitiesFields,
-  RadioBroadcastContentItemMetadataFields,
-  RadioBroadcastTimecodeFields,
-  RightsFields,
-  TitleFields,
-} from '../../models/content-item.model'
-import { plainFieldAsJson } from '../../util/solr'
+  SlimContentItemFieldsNames,
+  FullContentItemFieldsNames,
+  SlimDocumentFields,
+  toContentItem,
+  FullContentOnlyFieldsType,
+  AllDocumentFields,
+} from '../../models/content-item'
+import { ClientService } from '@feathersjs/feathers'
+import { FindResponse } from '../../models/common'
+import { ContentItem, ContentItemPage } from '../../models/generated/schemas/contentItem'
+import { ContentItemDbModel } from '../../models/content-item.model'
+import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '../../models/content-item-page.model'
+import { mapRecordValues } from '../../util/fn'
+import { NotFound } from '@feathersjs/errors'
+import { BaseUser, Collection, Topic } from '../../models/generated/schemas'
+import { WellKnownKeys } from '../../cache'
+import { getContentItemMatches } from '../search/search.extractors'
+
+const debug = Debug('impresso/services:content-items')
+const DefaultLimit = 10
 
 /**
  * Fields needed to fetch a list of content items.
  * Some things are excluded here, like full content, etc.
  */
-export const FindMethodFields = [
-  // common fields
-  ...IdAndMetaFields,
-  ...RightsFields,
-  ...TitleFields,
-  ...ExcerptFields,
-  ...NamedEntitiesFields,
-  // article specific
-  ...ArticleCoordinatesFields,
-  ...ArticleContentItemMetadataFields,
-  // radio specific
-  ...RadioBroadcastContentItemMetadataFields,
-]
+export const FindMethodFields = [...SlimContentItemFieldsNames]
 
 /**
  * Fields needed to fetch a single content item.
- * Same as above but with extra data:
- *  - content
- *  - content breaks (for articles)
+ * All fields are included here.
  */
-const GetMethodFields = [
-  ...FindMethodFields,
-  ...ContentFields,
-  // article json fields
-  ...AricleContentItemOffsetsAndBoundariesFields.map(plainFieldAsJson),
-  // radio json fields
-  ...RadioBroadcastTimecodeFields.map(plainFieldAsJson),
-]
-
-const debug = Debug('impresso/services:content-items')
+const GetMethodFields = [...FullContentItemFieldsNames]
 
 async function getIssues(request: Record<string, any>, app: ImpressoApplication) {
   const sequelize = app.get('sequelizeClient')
@@ -70,7 +54,7 @@ async function getIssues(request: Record<string, any>, app: ImpressoApplication)
 
   return cacheManager
     .wrap(cacheKey, async () =>
-      Issue.sequelize(sequelize)
+      Issue.sequelize(sequelize!)
         .findAll(request)
         .then((rows: any[]) => rows.map(d => d.get()))
     )
@@ -103,176 +87,380 @@ interface FindOptions {
   fl?: string[]
 }
 
-export class ContentItemService {
+const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: ImpressoApplication): ContentItemPage => {
+  return {
+    ...page,
+    iiif: {
+      manifestUrl: getIIIFManifestUrl(dbPage, app),
+      thumnbnailUrl: getIIIFThumbnailUrl(dbPage, app),
+    },
+  }
+}
+
+const withIIIF = (
+  contentItems: ContentItem[],
+  dbPagesLookup: Dictionary<Dictionary<DBContentItemPage>>,
   app: ImpressoApplication
-  SequelizeService: SequelizeService
-  solrFactory: SolrFactory<any, any, any, Article>
+) => {
+  return contentItems.map(item => {
+    const pages = item.image?.pages ?? []
+    const enrichedPages = pages.map(page => {
+      const dbPage = dbPagesLookup[item.id]?.[page.id!]
+      if (dbPage) return pageWithIIIF(page, dbPage, app)
+      return page
+    })
+    if (enrichedPages.length > 0) {
+      return {
+        ...item,
+        imgage: {
+          ...item.image,
+          pages: enrichedPages,
+        },
+      }
+    }
+    return item
+  })
+}
+
+const withTopics = (contentItems: ContentItem[], topicsLookup: Dictionary<Topic>): ContentItem[] => {
+  return contentItems.map(item => {
+    const topics = item.semanticEnrichments?.topics ?? []
+    const enrichedTopics = topics.map(topic => {
+      const topicDetails = topicsLookup[topic.id]
+      if (topicDetails) {
+        return {
+          ...topic,
+          language: topicDetails.language,
+          label: take(topicDetails.words, 5).join(' · '),
+        }
+      }
+      return topic
+    })
+
+    if (enrichedTopics.length > 0) {
+      return {
+        ...item,
+        semanticEnrichments: {
+          ...item.semanticEnrichments,
+          topics: enrichedTopics,
+        },
+      }
+    }
+    return item
+  })
+}
+
+const withCollections = (contentItems: ContentItem[], collectionsLookup: Dictionary<Collection[]>): ContentItem[] => {
+  if (Object.keys(collectionsLookup).length === 0) return contentItems
+
+  return contentItems.map(item => {
+    const collections = collectionsLookup[item.id] ?? []
+    if (collections.length > 0) {
+      return {
+        ...item,
+        collections,
+      }
+    }
+    return item
+  })
+}
+
+export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights) => {
+  return (doc: AllDocumentFields): ContentItem => {
+    const contentItem = toContentItem(doc)
+    const matches = getContentItemMatches(contentItem, doc.pp_plain, fragmentsAndHighlights)
+
+    return {
+      ...contentItem,
+      text: {
+        ...contentItem.text,
+        matches: matches,
+      },
+    }
+  }
+}
+
+export class ContentItemService
+  implements Pick<ClientService<ContentItem, unknown, unknown, FindResponse<ContentItem>>, 'find' | 'get'>
+{
+  app: ImpressoApplication
+  contentItemsDbService: SequelizeService
+  _topicsCache: Topic[] | undefined = undefined
 
   constructor({ app }: ServiceOptions) {
     this.app = app
-    this.SequelizeService = initSequelizeService({
+    this.contentItemsDbService = initSequelizeService({
       app,
-      name: 'articles',
+      name: 'content-items',
       cacheReads: true,
     })
-    this.solrFactory = Article.solrFactory as SolrFactory<any, any, any, Article>
+  }
+
+  async getTopics(topicIds: string[]): Promise<Dictionary<Topic>> {
+    if (this._topicsCache === undefined) {
+      const result = await this.app.get('cacheManager').get<string>(WellKnownKeys.Topics)
+      this._topicsCache = JSON.parse(result ?? '[]')
+    }
+    const topics = this._topicsCache?.filter(t => topicIds.includes(t.uid)) ?? []
+    return keyBy(topics, 'uid')
+  }
+
+  async getCollections(contentItemIds: string[], user?: SlimUser): Promise<Dictionary<Collection[]>> {
+    if (contentItemIds.length === 0 || !user) return {}
+
+    const collectables = await this.app.service('collectable-items').find({
+      authenticated: true,
+      user,
+      query: {
+        resolve: 'collection',
+        item_uids: contentItemIds,
+      },
+    })
+
+    const collectablesIndex = keyBy(collectables.data, 'itemId')
+
+    return mapRecordValues(collectablesIndex, (group, _) => group.collections ?? [])
   }
 
   get solr(): SimpleSolrClient {
     return this.app?.service('simpleSolrClient')!
   }
 
-  async find(params: any) {
+  async find(params: FindOptions): Promise<FindResponse<ContentItem>> {
     return await this._find(params)
   }
 
-  async findInternal(params: FindOptions) {
+  async findInternal(params: FindOptions): Promise<FindResponse<ContentItem>> {
     return await this._find(params)
   }
 
-  async _find(params: FindOptions) {
-    const fl = FindMethodFields
-    const pageUids = (params.query.filters || []).filter(d => d.type === 'page').map(d => d.q)
+  async _findPages(contentItemIds: string[]): Promise<Dictionary<Dictionary<DBContentItemPage>>> {
+    if (contentItemIds.length === 0) {
+      return {}
+    }
+    const pagesByContentItemId: Record<string, { pages: DBContentItemPage[] }> = await this.contentItemsDbService
+      .find({
+        scope: 'pages',
+        where: {
+          uid: { [Op.in]: contentItemIds },
+        },
+        limit: contentItemIds.length,
+        order_by: [['uid', 'DESC']],
+      })
+      .then(({ data }) => keyBy(data, 'uid'))
 
-    debug('[find] use auth user:', params.user ? params.user.uid : 'no user')
-    // if(params.isSafe query.filters)
+    const pagesByIds = mapRecordValues(pagesByContentItemId, ({ pages }, ciId) => {
+      return keyBy(pages, 'uid')
+    })
 
-    const results = await asFind<any, any, any, Article>(this.solr, 'search', { ...params, fl }, this.solrFactory)
+    return pagesByIds
+  }
+
+  async _find(params: FindOptions): Promise<FindResponse<ContentItem>> {
+    const request = findRequestAdapter(params)
+    const requestBody = { ...request, fields: FindMethodFields.join(',') }
+    const results = await this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
+      body: requestBody,
+    })
+
+    const contentItems = results.response?.docs?.map(toContentItem) ?? []
+
+    // get data enrichment items
+    const topicIds = contentItems.flatMap(d => d.semanticEnrichments?.topics?.map(t => t.id) ?? [])
+    const contentItemIds = contentItems.map(d => d.id)
+
+    const [topicsLookup, dbPages, collectionsLookup] = await Promise.all([
+      this.getTopics(topicIds),
+      this._findPages(contentItemIds),
+      this.getCollections(contentItemIds, params.user),
+    ])
+
+    // add IIIF URLs to the content items pages
+    const enrichedContentItems = withCollections(
+      withTopics(withIIIF(contentItems, dbPages, this.app), topicsLookup),
+      collectionsLookup
+    )
+
+    return {
+      data: enrichedContentItems,
+      offset: results.response?.start ?? 0,
+      limit: request.limit ?? DefaultLimit,
+      total: results.response?.numFound ?? 0,
+    }
+
+    // if (results.response?.docs?.length)
+
+    // const results = await asFind<any, any, any, Article>(this.solr, 'search', { ...params, fl }, this.solrFactory)
 
     // go out if there's nothing to do.
-    if (results.total === 0) {
-      return results
-    }
+    // if (results.total === 0) {
+    //   return results
+    // }
 
     // add newspapers and other things from this class sequelize method
-    const getAddonsPromise = measureTime(
-      () =>
-        this.SequelizeService.find({
-          ...params,
-          scope: 'get',
-          where: {
-            uid: { [Op.in]: results.data.map(d => d.uid) },
-          },
-          limit: results.data.length,
-          order_by: [['uid', 'DESC']],
-        })
-          .catch(err => {
-            logger.error(err)
-            return { data: [] }
-          })
-          .then(({ data }) => keyBy(data, 'uid')),
-      'articles.find.db.articles'
-    )
+    // const getAddonsPromise = measureTime(
+    //   () =>
+    //     this.SequelizeService.find({
+    //       ...params,
+    //       scope: 'get',
+    //       where: {
+    //         uid: { [Op.in]: results.data.map(d => d.uid) },
+    //       },
+    //       limit: results.data.length,
+    //       order_by: [['uid', 'DESC']],
+    //     })
+    //       .catch(err => {
+    //         logger.error(err)
+    //         return { data: [] }
+    //       })
+    //       .then(({ data }) => keyBy(data, 'uid')),
+    //   'articles.find.db.articles'
+    // )
 
     // get accessRights from issues table
-    const issuesRequest = {
-      attributes: ['accessRights', 'uid'],
-      where: {
-        uid: { [Op.in]: results.data.map(d => d?.issue?.uid) },
-      },
-    }
-    const getRelatedIssuesPromise = measureTime(() => getIssues(issuesRequest, this.app!), 'articles.find.db.issues')
+    // const issuesRequest = {
+    //   attributes: ['accessRights', 'uid'],
+    //   where: {
+    //     uid: { [Op.in]: results.data.map(d => d?.issue?.uid) },
+    //   },
+    // }
+    // const getRelatedIssuesPromise = measureTime(() => getIssues(issuesRequest, this.app!), 'articles.find.db.issues')
 
     // do the loop
-    const result = await Promise.all([getAddonsPromise, getRelatedIssuesPromise]).then(
-      ([addonsIndex, issuesIndex]) => ({
-        ...results,
-        data: results.data.map((article: Article) => {
-          if (article?.issue?.uid != null && issuesIndex[article?.issue?.uid]) {
-            article.issue.accessRights = issuesIndex[article.issue.uid].accessRights
-          }
-          if (!addonsIndex[article.uid]) {
-            debug('[find] no pages for uid', article.uid)
-            return article
-          }
-          // add pages
-          if (addonsIndex[article.uid].pages) {
-            // NOTE [RK]: Checking type of object is a quick fix around cached
-            // sequelized results. When a result is a plain Object instance it means
-            // it came from cache. Otherwise it is a model instance and it was
-            // loaded from the database.
-            // This should be moved to the SequelizeService layer.
-            const rewriteRules = this.app?.get('images')?.rewriteRules ?? []
-            article.pages = addonsIndex[article.uid].pages.map((d: any) =>
-              withRewrittenIIIF(d.constructor === Object ? d : d.toJSON(), rewriteRules)
-            )
-          }
-          if (pageUids.length === 1) {
-            article.regions = article?.regions?.filter((r: { pageUid: string }) => pageUids.indexOf(r.pageUid) !== -1)
-          }
-          return Article.assignIIIF(article)
-        }),
-      })
-    )
+    // const result = await Promise.all([getAddonsPromise, getRelatedIssuesPromise]).then(
+    //   ([addonsIndex, issuesIndex]) => ({
+    //     ...results,
+    //     data: results.data.map((article: Article) => {
+    //       if (article?.issue?.uid != null && issuesIndex[article?.issue?.uid]) {
+    //         article.issue.accessRights = issuesIndex[article.issue.uid].accessRights
+    //       }
+    //       if (!addonsIndex[article.uid]) {
+    //         debug('[find] no pages for uid', article.uid)
+    //         return article
+    //       }
+    //       // add pages
+    //       if (addonsIndex[article.uid].pages) {
+    //         // NOTE [RK]: Checking type of object is a quick fix around cached
+    //         // sequelized results. When a result is a plain Object instance it means
+    //         // it came from cache. Otherwise it is a model instance and it was
+    //         // loaded from the database.
+    //         // This should be moved to the SequelizeService layer.
+    //         const rewriteRules = this.app?.get('images')?.rewriteRules ?? []
+    //         article.pages = addonsIndex[article.uid].pages.map((d: any) =>
+    //           withRewrittenIIIF(d.constructor === Object ? d : d.toJSON(), rewriteRules)
+    //         )
+    //       }
+    //       if (pageUids.length === 1) {
+    //         article.regions = article?.regions?.filter((r: { pageUid: string }) => pageUids.indexOf(r.pageUid) !== -1)
+    //       }
+    //       return Article.assignIIIF(article)
+    //     }),
+    //   })
+    // )
 
-    const resolvers = buildResolvers(this.app!)
-    result.data = await Promise.all(
-      result.data.map(async (item: Article) => {
-        item.locations = await Promise.all(item.locations?.map(item => resolvers.location(item.uid)) ?? [])
-        item.persons = await Promise.all(item.persons?.map(item => resolvers.person(item.uid)) ?? [])
-        return item
-      })
-    )
+    // const resolvers = buildResolvers(this.app!)
+    // result.data = await Promise.all(
+    //   result.data.map(async (item: Article) => {
+    //     item.locations = await Promise.all(item.locations?.map(item => resolvers.location(item.uid)) ?? [])
+    //     item.persons = await Promise.all(item.persons?.map(item => resolvers.person(item.uid)) ?? [])
+    //     return item
+    //   })
+    // )
 
-    return results
+    // return results
   }
 
-  async get(id: string, params: any) {
-    debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found')
-    const fl = GetMethodFields
+  async get(id: string, params: any): Promise<ContentItem> {
+    // debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found')
 
-    return Promise.all([
-      // we perform a solr request to get
-      // the full text, regions of the specified article
-      asGet(this.solr, 'search', id, { fl }, this.solrFactory),
+    const request = findAllRequestAdapter({
+      q: `id:${id}`,
+      limit: 1,
+      offset: 0,
+      fl: GetMethodFields,
+    })
 
-      // get the newspaper and the version,
-      measureTime(
-        () =>
-          this.SequelizeService.get(id, {
-            scope: 'get',
-            where: {
-              uid: id,
-            },
-          }).catch(() => {
-            debug(`[get:${id}]: SequelizeService warning, no data found for ${id} ...`)
-          }),
-        'articles.get.db.articles'
-      ),
-      measureTime(
-        () =>
-          Issue.sequelize(this.app!.get('sequelizeClient')).findOne({
-            attributes: ['accessRights'],
-            where: {
-              uid: id.split(/-i\d{4}/).shift(),
-            },
-          }),
-        'articles.get.db.issue'
-      ),
+    const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
+      body: request,
+    })
+    const dbPagesRequest = this._findPages([id])
+    const collectionsRequest = this.getCollections([id], params.user)
+
+    const [result, dbPagesLookup, collectionsLookup] = await Promise.all([
+      solrRequest,
+      dbPagesRequest,
+      collectionsRequest,
     ])
-      .then(async ([article, addons, issue]) => {
-        if (addons && article) {
-          if (issue && article.issue) {
-            article.issue.accessRights = (issue as any).accessRights
-          }
-          article.pages = addons.pages.map((d: any) => withRewrittenIIIF(d.toJSON()))
-        }
 
-        if (article != null) {
-          const resolvers = buildResolvers(this.app!)
+    const contentItem = (result.response?.docs?.map(
+      toContentItemWithMatches(result.response as IFragmentsAndHighlights)
+    ) ?? [])?.[0]
 
-          article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.uid)) ?? [])
-          article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])
+    if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)
 
-          return Article.assignIIIF(article)
-        }
+    const topicIds = contentItem.semanticEnrichments?.topics?.map(t => t.id) ?? []
+    const topicsLookup = await this.getTopics(topicIds)
 
-        return
-      })
-      .catch(err => {
-        logger.error(err)
-        throw err
-      })
+    const enrichedContentItem = withCollections(
+      withTopics(withIIIF([contentItem], dbPagesLookup, this.app), topicsLookup),
+      collectionsLookup
+    )?.[0]
+
+    return enrichedContentItem
+
+    //   return Promise.all([
+    //     // we perform a solr request to get
+    //     // the full text, regions of the specified article
+    //     asGet(this.solr, 'search', id, { fl }, this.solrFactory),
+
+    //     // get the newspaper and the version,
+    //     measureTime(
+    //       () =>
+    //         this.SequelizeService.get(id, {
+    //           scope: 'get',
+    //           where: {
+    //             uid: id,
+    //           },
+    //         }).catch(() => {
+    //           debug(`[get:${id}]: SequelizeService warning, no data found for ${id} ...`)
+    //         }),
+    //       'articles.get.db.articles'
+    //     ),
+    //     measureTime(
+    //       () =>
+    //         Issue.sequelize(this.app!.get('sequelizeClient')!).findOne({
+    //           attributes: ['accessRights'],
+    //           where: {
+    //             uid: id.split(/-i\d{4}/).shift(),
+    //           },
+    //         }),
+    //       'articles.get.db.issue'
+    //     ),
+    //   ])
+    //     .then(async ([article, addons, issue]) => {
+    //       if (addons && article) {
+    //         if (issue && article.issue) {
+    //           article.issue.accessRights = (issue as any).accessRights
+    //         }
+    //         article.pages = addons.pages.map((d: any) => withRewrittenIIIF(d.toJSON()))
+    //       }
+
+    //       if (article != null) {
+    //         const resolvers = buildResolvers(this.app!)
+
+    //         article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.uid)) ?? [])
+    //         article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])
+
+    //         return Article.assignIIIF(article)
+    //       }
+
+    //       return
+    //     })
+    //     .catch(err => {
+    //       logger.error(err)
+    //       throw err
+    //     })
+    // }
   }
 }
 

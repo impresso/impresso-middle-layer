@@ -1,5 +1,7 @@
-const Sequelize = require('sequelize')
-const Newspaper = require('./newspapers.model')
+import Sequelize from 'sequelize'
+import Newspaper from './newspapers.model'
+import { NewspaperIssue } from './generated/schemas'
+import { ArticleFields, ContentItemCore, ContextualMetadataFields } from './generated/solr/contentItem'
 
 const ACCESS_RIGHTS_ND = 'NotDefined'
 const ACCESS_RIGHTS_CLOSED = 'Closed'
@@ -7,21 +9,37 @@ const ACCESS_RIGHTS_OPEN_PUBLIC = 'OpenPublic'
 const ACCESS_RIGHTS_OPEN_PRIVATE = 'OpenPrivate'
 const ACCESS_RIGHTS = [ACCESS_RIGHTS_ND, ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PUBLIC, ACCESS_RIGHTS_OPEN_PRIVATE]
 
-class Issue {
+interface IIssueOptions {
+  newspaper?: Newspaper | string
+  pages?: any[]
+  cover?: string
+  frontPage?: any
+  uid?: string
+  labels?: string[]
+  accessRights?: string
+}
+
+class Issue implements Omit<NewspaperIssue, 'date'> {
+  uid: string
+  cover: string
+  labels: string[]
+  frontPage?: any
+  fresh: boolean
+  accessRights: string
+  date?: Date
+  year?: string
+  newspaper?: Newspaper
+  pages?: any[]
+
   constructor({
-    // collections = [],
-    // countArticles = 0,
-    // countPages = 0,
-    // date = new Date(),
-    // entities = [],
     newspaper,
     pages = [],
-    cover = '', // page uid
+    cover = '',
     frontPage = null,
     uid = '',
     labels = ['issue'],
     accessRights = ACCESS_RIGHTS_ND,
-  } = {}) {
+  }: IIssueOptions = {}) {
     this.uid = String(uid)
     this.cover = cover
     this.labels = labels
@@ -58,7 +76,7 @@ class Issue {
    * @return {function} {Issue} issue instance.
    */
   static solrFactory() {
-    return doc => {
+    return (doc: ContentItemCore & ArticleFields) => {
       const iss = new Issue({
         uid: doc.meta_issue_id_s,
         cover: doc.page_id_ss ? doc.page_id_ss[0] : undefined,
@@ -68,7 +86,7 @@ class Issue {
     }
   }
 
-  static sequelize(client) {
+  static sequelize(client: Sequelize.Sequelize) {
     const newspaper = Newspaper.sequelize(client)
     const issue = client.define(
       'issue',
@@ -135,8 +153,5 @@ class Issue {
 
 const ISSUE_SOLR_FL_MINIMAL = ['meta_issue_id_s', 'meta_journal_s', 'meta_issue_id_s', 'cc_b', 'front_b', 'page_id_ss']
 
-module.exports = Issue
-module.exports.ISSUE_SOLR_FL_MINIMAL = ISSUE_SOLR_FL_MINIMAL
-module.exports.ACCESS_RIGHTS_CLOSED = ACCESS_RIGHTS_CLOSED
-module.exports.ACCESS_RIGHTS_OPEN_PUBLIC = ACCESS_RIGHTS_OPEN_PUBLIC
-module.exports.ACCESS_RIGHTS_OPEN_PRIVATE = ACCESS_RIGHTS_OPEN_PRIVATE
+export default Issue
+export { ISSUE_SOLR_FL_MINIMAL, ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PUBLIC, ACCESS_RIGHTS_OPEN_PRIVATE }

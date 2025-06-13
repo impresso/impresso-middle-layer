@@ -6,12 +6,12 @@ import {
   publicApiTranscriptRedactionCondition,
   webAppExploreRedactionCondition,
   inPublicApi,
+  RedactionPolicy,
 } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
 import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
 import { transformContentItem } from '../../transformers/contentItem'
-
-const {
+import {
   utils,
   protect,
   validate,
@@ -19,16 +19,17 @@ const {
   queryWithCommonParams,
   displayQueryParams,
   REGEX_UID,
-} = require('../../hooks/params')
-const { filtersToSolrQuery } = require('../../hooks/search')
+} from '../../hooks/params'
+import { filtersToSolrQuery } from '../../hooks/search'
+import { resolveTopics, resolveUserAddons } from '../../hooks/resolvers/articles.resolvers'
+import { SolrMappings } from '../../data/constants'
 
-const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers')
-const { SolrMappings } = require('../../data/constants')
-
-export const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicy.yml`)
+export const contentItemRedactionPolicy = loadYamlFile(
+  `${__dirname}/resources/contentItemRedactionPolicy.yml`
+) as RedactionPolicy
 export const contentItemRedactionPolicyWebApp = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
-)
+) as RedactionPolicy
 
 export default {
   around: {
@@ -43,15 +44,15 @@ export default {
           choices: ['collection', 'tags'],
         },
         order_by: {
-          before: d => {
+          before: (d: string | string[]) => {
             if (typeof d === 'string') {
               return d.split(',')
             }
             return d
           },
           choices: ['-date', 'date', '-relevance', 'relevance'],
-          transform: d => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
-          after: d => {
+          transform: (d: string[]) => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
+          after: (d: string | string[]) => {
             if (Array.isArray(d)) {
               return d.join(',')
             }
@@ -91,15 +92,15 @@ export default {
     all: [],
     find: [
       displayQueryParams(['filters']),
-      protect('content'),
-      resolveTopics(),
+      // protect('content'),
+      // resolveTopics(),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     get: [
-      resolveTopics(),
-      resolveUserAddons(),
+      // resolveTopics(),
+      // resolveUserAddons(),
       transformResponse(transformContentItem, inPublicApi),
       redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponse(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),

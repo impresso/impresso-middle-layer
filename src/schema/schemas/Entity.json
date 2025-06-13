@@ -12,6 +12,10 @@
     "relevance": {
       "type": "integer",
       "description": "Relevance of the entity in the document"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the entity"
     }
   },
   "required": ["uid", "relevance"]
