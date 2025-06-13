@@ -25,6 +25,7 @@ import { setDifference } from '../util/fn'
 import { getNameFromUid } from '../utils/entity.utils'
 import { IFragmentsAndHighlights } from './articles.model'
 import { getContentItemMatches } from '../services/search/search.extractors'
+import { parsePlainsField } from '../util/solr'
 
 const ContentItemCoreFields = [
   'id',
@@ -122,7 +123,7 @@ export type FullContentOnlyFieldsType =
 
 export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType>
 
-type IFullContentItemFieldsNames = keyof (AllDocumentFields & IWildcardTextFields)
+export type IFullContentItemFieldsNames = keyof (AllDocumentFields & IWildcardTextFields)
 
 const FullContentOnlyFields = [
   'lb_plain',
@@ -154,7 +155,7 @@ type XYWH = [number, number, number, number] // x, y, width, height
 
 interface PageRegionCoordintates {
   pid: string // page ID
-  coordinates: XYWH[] // coordinates of the regions on the page:
+  c: XYWH[] // coordinates of the regions on the page:
 }
 
 type MentionTag = 'pers' | 'loc' | 'org' | 'nag'
@@ -197,12 +198,12 @@ const parseAudioRecordTimecodes = (field?: string | AudioRecordTimecodes[]): Aud
   return field as AudioRecordTimecodes[]
 }
 
-const parseMentionsOffsets = (field?: [MentionsOffsets] | string): MentionsOffsets => {
+const parseMentionsOffsets = (field?: MentionsOffsets[] | string): MentionsOffsets => {
   if (!field) return {}
-  if (typeof field === 'string') {
-    return JSON.parse(field)[0]
-  }
-  return field[0]
+  const offsets: MentionsOffsets[] = typeof field === 'string' ? JSON.parse(field) : field
+  return offsets.reduce((acc, item) => {
+    return { ...acc, item }
+  }, {} as MentionsOffsets)
 }
 
 const parseContentItemEntityDPFS = (dpfs?: string[]): ContentItemNamedEntity[] => {
@@ -257,8 +258,8 @@ const fromAudioRecordTimecode = (tc: AudioRecordTimecode): ContentItemAudioTimes
 })
 
 export const toContentItem = (doc: AllDocumentFields): ContentItem => {
-  const regionCoordinates = asList<PageRegionCoordintates>(doc.rc_plains?.[0])
-  const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain?.[0])
+  const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
+  const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
 
   return {
     id: doc.id,
@@ -302,7 +303,7 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
         return {
           id: pageId,
           number: doc.page_nb_is?.[idx],
-          regionCoordinates: regionCoordinates?.find(p => p.pid === pageId)?.coordinates ?? [],
+          regionCoordinates: regionCoordinates?.find(p => p.pid === pageId)?.c ?? [],
         }
       }),
     },

@@ -137,9 +137,9 @@ class SequelizeService {
     // directly.
     const p = {
       // for paginations.
-      limit: params.limit || params.query.limit,
-      offset: params.offset || params.query.offset,
-      order: params.order_by || params.query.order_by,
+      limit: params.limit ?? params.query?.limit,
+      offset: params.offset ?? params.query?.offset,
+      order: params.order_by ?? params.query?.order_by,
     }
 
     if (params.where) {
@@ -181,13 +181,13 @@ class SequelizeService {
         .then(res => ({
           data: res.rows.map(d => d.toJSON()),
           total: res.count,
-          limit: params.query.limit,
-          offset: params.query.offset,
+          limit: p.limit,
+          offset: p.offset,
           info: {
             query: {
-              filters: params.query.filters,
-              limit: params.query.limit,
-              offset: params.query.offset,
+              filters: params.query?.filters,
+              limit: p.limit,
+              offset: p.offset,
             },
           },
         }))

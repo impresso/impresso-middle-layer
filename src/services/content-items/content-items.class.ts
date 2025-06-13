@@ -20,6 +20,7 @@ import {
   toContentItem,
   FullContentOnlyFieldsType,
   AllDocumentFields,
+  IFullContentItemFieldsNames,
 } from '../../models/content-item'
 import { ClientService } from '@feathersjs/feathers'
 import { FindResponse } from '../../models/common'
@@ -31,35 +32,61 @@ import { NotFound } from '@feathersjs/errors'
 import { BaseUser, Collection, Topic } from '../../models/generated/schemas'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
+import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
+import { plainFieldAsJson } from '../../util/solr'
 
-const debug = Debug('impresso/services:content-items')
 const DefaultLimit = 10
+
+/**
+ * The fields below must be expanded to object from JSON.
+ */
+type ExpansionFields =
+  | keyof Pick<ImageFields, 'pp_plain' | 'lb_plain' | 'pb_plain' | 'rb_plain'>
+  | keyof Pick<AudioFields, 'rreb_plain'>
+  | keyof Pick<SemanticEnrichmentsFields, 'nem_offset_plain' | 'nag_offset_plain'>
+const JSONExpansionFields = [
+  'pp_plain',
+  'lb_plain',
+  'pb_plain',
+  'rb_plain',
+  'rreb_plain',
+  'nag_offset_plain',
+  'nem_offset_plain',
+] satisfies ExpansionFields[]
+
+const isExpansionField = (field: IFullContentItemFieldsNames): field is ExpansionFields => {
+  return JSONExpansionFields.includes(field as any as ExpansionFields)
+}
+
+const withJsonExpansion = (field: IFullContentItemFieldsNames) => {
+  return isExpansionField(field) ? plainFieldAsJson(field) : field
+}
 
 /**
  * Fields needed to fetch a list of content items.
  * Some things are excluded here, like full content, etc.
  */
-export const FindMethodFields = [...SlimContentItemFieldsNames]
+export const FindMethodFields = [...SlimContentItemFieldsNames].map(withJsonExpansion)
 
 /**
  * Fields needed to fetch a single content item.
  * All fields are included here.
  */
-const GetMethodFields = [...FullContentItemFieldsNames]
+const GetMethodFields = [...FullContentItemFieldsNames].map(withJsonExpansion)
 
-async function getIssues(request: Record<string, any>, app: ImpressoApplication) {
-  const sequelize = app.get('sequelizeClient')
-  const cacheManager = app.get('cacheManager')
-  const cacheKey = initSequelizeService.getCacheKeyForReadSqlRequest(request, 'issues')
+// async function getIssues(request: Record<string, any>, app: ImpressoApplication) {
+//   const sequelize = app.get('sequelizeClient')
+//   const cacheManager = app.get('cacheManager')
+//   const cacheKey = initSequelizeService.getCacheKeyForReadSqlRequest(request, 'issues')
 
-  return cacheManager
-    .wrap(cacheKey, async () =>
-      Issue.sequelize(sequelize!)
-        .findAll(request)
-        .then((rows: any[]) => rows.map(d => d.get()))
-    )
-    .then(rows => keyBy(rows, 'uid'))
-}
+//   return cacheManager
+//     .wrap(cacheKey, async () =>
+//       Issue.sequelize(sequelize!)
+//         .findAll(request)
+//         .then((rows: any[]) => rows.map(d => d.get()))
+//     )
+//     .then(rows => keyBy(rows, 'uid'))
+// }
 
 interface ServiceOptions {
   app: ImpressoApplication
@@ -191,7 +218,7 @@ export class ContentItemService
     this.app = app
     this.contentItemsDbService = initSequelizeService({
       app,
-      name: 'content-items',
+      name: 'content-item',
       cacheReads: true,
     })
   }
@@ -245,6 +272,7 @@ export class ContentItemService
           uid: { [Op.in]: contentItemIds },
         },
         limit: contentItemIds.length,
+        offset: 0,
         order_by: [['uid', 'DESC']],
       })
       .then(({ data }) => keyBy(data, 'uid'))
@@ -257,8 +285,10 @@ export class ContentItemService
   }
 
   async _find(params: FindOptions): Promise<FindResponse<ContentItem>> {
+    const fields = FindMethodFields
+
     const request = findRequestAdapter(params)
-    const requestBody = { ...request, fields: FindMethodFields.join(',') }
+    const requestBody = { ...request, fields: fields.join(',') }
     const results = await this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
       body: requestBody,
     })
