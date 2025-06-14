@@ -11,17 +11,8 @@ import {
 import { loadYamlFile } from '../../util/yaml'
 import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
 import { transformContentItem } from '../../transformers/contentItem'
-import {
-  utils,
-  protect,
-  validate,
-  validateEach,
-  queryWithCommonParams,
-  displayQueryParams,
-  REGEX_UID,
-} from '../../hooks/params'
+import { utils, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID } from '../../hooks/params'
 import { filtersToSolrQuery } from '../../hooks/search'
-import { resolveTopics, resolveUserAddons } from '../../hooks/resolvers/articles.resolvers'
 import { SolrMappings } from '../../data/constants'
 
 export const contentItemRedactionPolicy = loadYamlFile(
@@ -39,10 +30,10 @@ export default {
     all: [],
     find: [
       validate({
-        resolve: {
-          required: false,
-          choices: ['collection', 'tags'],
-        },
+        // resolve: {
+        //   required: false,
+        //   choices: ['collection', 'tags'],
+        // },
         order_by: {
           before: (d: string | string[]) => {
             if (typeof d === 'string') {
@@ -92,15 +83,11 @@ export default {
     all: [],
     find: [
       displayQueryParams(['filters']),
-      // protect('content'),
-      // resolveTopics(),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     get: [
-      // resolveTopics(),
-      // resolveUserAddons(),
       transformResponse(transformContentItem, inPublicApi),
       redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponse(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),

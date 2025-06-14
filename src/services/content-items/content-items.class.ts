@@ -139,7 +139,7 @@ const withIIIF = (
     if (enrichedPages.length > 0) {
       return {
         ...item,
-        imgage: {
+        image: {
           ...item.image,
           pages: enrichedPages,
         },

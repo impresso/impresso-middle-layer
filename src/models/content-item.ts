@@ -93,6 +93,7 @@ const ContentSemanticEnrichmentsFields = [
   'org_mention_conf_dpfs',
   'nag_mention_conf_dpfs',
   'nem_offset_plain',
+  'nag_offset_plain',
 ] satisfies (keyof SemanticEnrichmentsFields)[]
 
 const AudioContentFields = [
@@ -198,7 +199,7 @@ const parseAudioRecordTimecodes = (field?: string | AudioRecordTimecodes[]): Aud
   return field as AudioRecordTimecodes[]
 }
 
-const parseMentionsOffsets = (field?: MentionsOffsets[] | string): MentionsOffsets => {
+const parseMentionsOffsets = (field?: MentionsOffsets[] | string[]): MentionsOffsets => {
   if (!field) return {}
   const offsets: MentionsOffsets[] = typeof field === 'string' ? JSON.parse(field) : field
   return offsets.reduce((acc, item) => {
