@@ -14,6 +14,7 @@ import { transformContentItem } from '../../transformers/contentItem'
 import { utils, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID } from '../../hooks/params'
 import { filtersToSolrQuery } from '../../hooks/search'
 import { SolrMappings } from '../../data/constants'
+import { eachFilterValidator } from '../search/search.validators'
 
 export const contentItemRedactionPolicy = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicy.yml`
@@ -51,24 +52,9 @@ export default {
           },
         },
       }),
-      validateEach(
-        'filters',
-        {
-          type: {
-            choices: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
-            required: true,
-          },
-          q: {
-            regex: REGEX_UID,
-            required: false,
-            // we cannot transform since Mustache is render the filters...
-            // transform: d => d.split(',')
-          },
-        },
-        {
-          required: false,
-        }
-      ),
+      validateEach('filters', eachFilterValidator, {
+        required: false,
+      }),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],

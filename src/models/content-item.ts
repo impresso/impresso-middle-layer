@@ -344,3 +344,13 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
     },
   }
 }
+
+export const withMatches = (contentItem: ContentItem, fragmentsAndHighlighting: IFragmentsAndHighlights) => {
+  return {
+    ...contentItem,
+    text: {
+      ...contentItem.text,
+      matches: getContentItemMatches(contentItem, undefined, fragmentsAndHighlighting),
+    },
+  }
+}

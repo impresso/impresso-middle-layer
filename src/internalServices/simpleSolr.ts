@@ -28,7 +28,7 @@ export interface SelectRequestBody {
   facet?: Record<string, SolrFacetQueryParams>
   fields?: string
   sort?: string
-  params?: Record<string, string | number | boolean>
+  params?: Record<string, string | number | boolean | object>
 }
 
 export interface SelectQueryParameters {

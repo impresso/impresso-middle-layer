@@ -21,6 +21,7 @@ import {
   FullContentOnlyFieldsType,
   AllDocumentFields,
   IFullContentItemFieldsNames,
+  withMatches,
 } from '../../models/content-item'
 import { ClientService } from '@feathersjs/feathers'
 import { FindResponse } from '../../models/common'
@@ -288,12 +289,23 @@ export class ContentItemService
     const fields = FindMethodFields
 
     const request = findRequestAdapter(params)
-    const requestBody = { ...request, fields: fields.join(',') }
+    const requestBody = {
+      ...request,
+      fields: fields.join(','),
+      params: {
+        ...request.params,
+        highlight_by: 'content_txt_de,content_txt_fr,content_txt_en',
+        highlightProps: {
+          'hl.snippets': 10,
+          'hl.fragsize': 100,
+        },
+      },
+    }
     const results = await this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
       body: requestBody,
     })
 
-    const contentItems = results.response?.docs?.map(toContentItem) ?? []
+    const contentItems = (results.response?.docs?.map(toContentItem) ?? []).map(item => withMatches(item, results))
 
     // get data enrichment items
     const topicIds = contentItems.flatMap(d => d.semanticEnrichments?.topics?.map(t => t.id) ?? [])
