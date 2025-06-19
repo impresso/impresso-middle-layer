@@ -142,6 +142,10 @@ class SequelizeService {
       order: params.order_by ?? params.query?.order_by,
     }
 
+    if (params.include) {
+      p.include = params.include
+    }
+
     if (params.where) {
       p.where = params.where
     }

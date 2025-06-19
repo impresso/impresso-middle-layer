@@ -73,7 +73,7 @@ export const getIIIFManifestUrl = (page: ContentItemPage, app: ImpressoApplicati
   const { rewriteRules, baseUrl } = app.get('images')
 
   const originalUrl =
-    page.iiifManifest.length > 0 ? getJSONUrl(page.uid, baseUrl) : getManifestJSONUrl(page.iiifManifest)
+    (page.iiifManifest?.length ?? 0) === 0 ? getJSONUrl(page.uid, baseUrl) : getManifestJSONUrl(page.iiifManifest)
 
   return sanitizeIiifImageUrl(originalUrl, rewriteRules ?? [])
 }
@@ -89,7 +89,7 @@ export const getIIIFThumbnailUrl = (
   const { rewriteRules, baseUrl } = app.get('images')
 
   const originalUrl =
-    page.iiifManifest.length > 0
+    (page.iiifManifest?.length ?? 0) === 0
       ? getThumbnailUrl(page.uid, baseUrl, { dimension })
       : getExternalThumbnailUrl(page.iiifManifest, { dimension })
 

@@ -268,7 +268,7 @@ export class ContentItemService
     }
     const pagesByContentItemId: Record<string, { pages: DBContentItemPage[] }> = await this.contentItemsDbService
       .find({
-        scope: 'pages',
+        include: 'pages',
         where: {
           uid: { [Op.in]: contentItemIds },
         },

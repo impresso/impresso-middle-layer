@@ -12,6 +12,7 @@ interface ContentItemAttributes {
   uid: string
   v: string
   creationDate: Date
+  pages?: ContentItemPage[]
 }
 
 export type ContentItemDbModel = ModelDefined<ContentItemAttributes, Omit<ContentItemAttributes, 'id'>>
@@ -20,11 +21,13 @@ export default class ContentItem implements ContentItemAttributes {
   uid: string
   v: string
   creationDate: Date
+  pages: ContentItemPage[]
 
-  constructor({ uid, v, creationDate }: ContentItemAttributes) {
+  constructor({ uid, v, creationDate, pages }: ContentItemAttributes) {
     this.uid = uid
     this.v = v
     this.creationDate = creationDate
+    this.pages = pages ?? []
   }
 
   static sequelize(client: Sequelize, app: ImpressoApplication) {
