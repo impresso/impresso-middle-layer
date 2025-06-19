@@ -39,7 +39,8 @@ const getAndFindHooks = (index: IndexId) => [
       required: false,
       fn: (value?: string) => {
         if (typeof value === 'string' && value.length > 0) {
-          if (!facetTypes[index].includes(value)) {
+          const theFacetTypes = facetTypes[index]
+          if (!theFacetTypes.includes(value)) {
             return false
           }
         }

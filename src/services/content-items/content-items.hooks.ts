@@ -23,6 +23,13 @@ export const contentItemRedactionPolicyWebApp = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
 ) as RedactionPolicy
 
+type OrderBy = 'date' | 'relevance' | 'uid' | 'issue' | 'page' | 'newspaper' | 'hasTextContents'
+type ReverseOrderBy = `-${OrderBy}`
+type FullOrderBy = OrderBy | ReverseOrderBy
+
+const OrderByChoices: OrderBy[] = ['date', 'relevance', 'uid', 'issue', 'page', 'newspaper', 'hasTextContents']
+const FullOrderByChoices: FullOrderBy[] = [...OrderByChoices, ...OrderByChoices.map(o => `-${o}`)] as FullOrderBy[]
+
 export default {
   around: {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
@@ -31,10 +38,6 @@ export default {
     all: [],
     find: [
       validate({
-        // resolve: {
-        //   required: false,
-        //   choices: ['collection', 'tags'],
-        // },
         order_by: {
           before: (d: string | string[]) => {
             if (typeof d === 'string') {
@@ -42,7 +45,7 @@ export default {
             }
             return d
           },
-          choices: ['-date', 'date', '-relevance', 'relevance'],
+          choices: FullOrderByChoices,
           transform: (d: string[]) => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
           after: (d: string | string[]) => {
             if (Array.isArray(d)) {
