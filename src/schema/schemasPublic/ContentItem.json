@@ -26,14 +26,14 @@
       "type": "array",
       "description": "Locations mentioned in the content item.",
       "items": {
-        "$ref": "./EntityMention.json"
+        "$ref": "./NamedEntity.json"
       }
     },
     "persons": {
       "type": "array",
       "description": "Persions mentioned in the content item.",
       "items": {
-        "$ref": "./EntityMention.json"
+        "$ref": "./NamedEntity.json"
       }
     },
     "topics": {
@@ -81,7 +81,7 @@
     "mediaType": {
       "type": "string",
       "description": "The type of the media the content item belongs to.",
-      "enum": ["newspaper"]
+      "enum": ["newspaper", "radio_broadcast", "radio_magazine", "radio_schedule", "monograph", "encyclopedia"]
     }
   },
   "required": ["uid"]

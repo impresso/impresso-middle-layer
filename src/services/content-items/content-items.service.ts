@@ -20,17 +20,9 @@ export default function (app: ImpressoApplication) {
   // Initialize our service with any options it requires
   app.use('/content-items', svc, {
     events: [],
-    methods: ['get', 'find'],
+    methods: ['get'],
     docs: createSwaggerServiceOptions({ schemas: {}, docs }),
   } as ServiceOptions)
 
-  // Get our initialized service so that we can register hooks and filters
-  const service = app.service('content-items')
-
-  service.hooks(hooks)
-
-  if (!app.get('isPublicApi')) {
-    // Expose the service as 'articles' for the web app
-    app.use('/articles', service)
-  }
+  app.service('content-items').hooks(hooks)
 }

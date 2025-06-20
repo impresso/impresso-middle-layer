@@ -84,11 +84,11 @@ export interface ContentItem {
   /**
    * Locations mentioned in the content item.
    */
-  locations?: EntityMention[];
+  locations?: NamedEntity[];
   /**
    * Persions mentioned in the content item.
    */
-  persons?: EntityMention[];
+  persons?: NamedEntity[];
   /**
    * Topics mentioned in the content item.
    */
@@ -128,20 +128,20 @@ export interface ContentItem {
   /**
    * The type of the media the content item belongs to.
    */
-  mediaType?: "newspaper";
+  mediaType?: "newspaper" | "radio_broadcast" | "radio_magazine" | "radio_schedule" | "monograph" | "encyclopedia";
 }
 /**
- * An entity (location, persion) mention.
+ * An named entity (location, persion, etc) present in text.
  */
-export interface EntityMention {
+export interface NamedEntity {
   /**
    * Unique identifier of the entity
    */
   uid: string;
   /**
-   * Relevance of the entity in the document
+   * How many times it is mentioned in the text
    */
-  relevance?: number;
+  count?: number;
 }
 /**
  * Topic presence in a content item.
@@ -488,6 +488,21 @@ export interface MediaSource {
      */
     value: string;
   }[];
+}
+
+
+/**
+ * An named entity (location, persion, etc) present in text.
+ */
+export interface NamedEntity {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * How many times it is mentioned in the text
+   */
+  count?: number;
 }
 
 

@@ -27,6 +27,7 @@ export interface AuthorizationBitmapsDTO {
   explore?: bigint
   getTranscript?: bigint
   getImages?: bigint
+  getAudio?: bigint
 }
 
 const isPossiblyBigInt = (value: any): value is bigint => {

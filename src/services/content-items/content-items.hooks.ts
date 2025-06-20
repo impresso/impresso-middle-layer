@@ -15,6 +15,7 @@ import { utils, validate, validateEach, queryWithCommonParams, displayQueryParam
 import { filtersToSolrQuery } from '../../hooks/search'
 import { SolrMappings } from '../../data/constants'
 import { eachFilterValidator } from '../search/search.validators'
+import { transformBaseFind } from '../../transformers/base'
 
 export const contentItemRedactionPolicy = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicy.yml`
@@ -72,6 +73,7 @@ export default {
     all: [],
     find: [
       displayQueryParams(['filters']),
+      transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
