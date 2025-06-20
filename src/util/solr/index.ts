@@ -3,7 +3,7 @@ import { groupBy, includes, uniq, values } from 'lodash'
 import { Filter } from '../../models'
 import { SolrNamespace, SolrNamespaces } from '../../solr'
 import { escapeIdValue, filtersToSolr } from './filterReducers'
-import { PrintContentItem } from '../../models/solr'
+import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '../../models/solr'
 
 /**
  * Languages that have content indexes in Solr.
@@ -157,3 +157,9 @@ export const plainFieldAsJson = <T extends `${string}_plain` | `${string}_plains
 
   return `${fieldName}:[json]`
 }
+
+type ContentField = `content_txt_${LanguageCode}` | 'content_txt'
+export const allContentFields = [
+  'content_txt',
+  ...SupportedLanguageCodes.map(lang => `content_txt_${lang}` as ContentField),
+] satisfies ContentField[]

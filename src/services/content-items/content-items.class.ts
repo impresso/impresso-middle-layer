@@ -34,7 +34,7 @@ import { BaseUser, Collection, Topic } from '../../models/generated/schemas'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
-import { plainFieldAsJson } from '../../util/solr'
+import { allContentFields, plainFieldAsJson } from '../../util/solr'
 
 const DefaultLimit = 10
 
@@ -294,7 +294,7 @@ export class ContentItemService
       fields: fields.join(','),
       params: {
         ...request.params,
-        highlight_by: 'content_txt_de,content_txt_fr,content_txt_en',
+        highlight_by: allContentFields.join(','),
         highlightProps: {
           'hl.snippets': 10,
           'hl.fragsize': 100,
