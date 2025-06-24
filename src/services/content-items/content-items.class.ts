@@ -159,7 +159,9 @@ const withTopics = (contentItems: ContentItem[], topicsLookup: Dictionary<Topic>
         return {
           ...topic,
           language: topicDetails.language,
-          label: take(topicDetails.words, 5).join(' · '),
+          label: take(topicDetails.words, 5)
+            .map(word => word.w)
+            .join(' · '),
         }
       }
       return topic
@@ -299,6 +301,8 @@ export class ContentItemService
           'hl.snippets': 10,
           'hl.fragsize': 100,
         },
+        // add variables if there are any
+        ...((params.query as any)?.['sv'] ?? {}),
       },
     }
     const results = await this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
