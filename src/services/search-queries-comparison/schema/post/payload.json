@@ -10,10 +10,7 @@
       "minItems": 2,
       "items": {
         "type": "array",
-        "minItems": 0,
-        "items": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/search/filter.json"
-        }
+        "minItems": 0
       },
       "description": "Sets of filters to compare, a set per query"
     },
