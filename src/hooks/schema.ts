@@ -44,7 +44,7 @@ const validateWithSchema =
         throw new BadRequest('Validation failed', e)
       }
       console.error(e)
-      console.error(data)
+      console.error(JSON.stringify(data))
       throw new BadRequest(e.message, formatValidationErrors(e.errors))
     }
   }
