@@ -22,7 +22,7 @@ const schemaBits = [
   'responses',
   'common',
   'solr',
-  'solr/contentItem',
+  'solr/ContentItem',
 ]
 const directories = fs
   .readdirSync(basePath, {

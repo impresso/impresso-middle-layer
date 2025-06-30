@@ -7,7 +7,7 @@ import type {
   ImageFields,
   SemanticEnrichmentsFields,
   TextContentFields as TextContentFieldsGenerated,
-} from './generated/solr/contentItem'
+} from './generated/solr/ContentItem'
 
 /**
  * IMPORTANT: This field should be kept in sync with the ingestion code.

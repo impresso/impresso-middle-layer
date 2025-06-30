@@ -24,3 +24,18 @@ export const asNumberArray = (value?: string | number[]): number[] | undefined =
   }
   return value as number[]
 }
+
+/**
+ * Convert an array of items to pairs starting with the initial item.
+ * E.g.: [2,5,9], 0 => [[0,2],[2,5],[5,9]]
+ */
+export const toPairs = <T>(value: T[], initialItem: T): [T, T][] => {
+  return value.reduce(
+    (pairs, item, index) => {
+      const prevItem = index === 0 ? initialItem : value[index - 1]
+      pairs.push([prevItem, item])
+      return pairs
+    },
+    [] as [T, T][]
+  )
+}

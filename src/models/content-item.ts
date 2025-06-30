@@ -9,18 +9,19 @@ import type {
   ImageFields,
   SemanticEnrichmentsFields,
   AudioFields,
-} from './generated/solr/contentItem'
+} from './generated/solr/ContentItem'
 import type { LanguageCode, TextContentFields } from './solr'
 
 import type {
   ContentItem,
-  ContentItemAudioTimestamp,
+  ContentItemAudioRecord,
+  ContentItemAudioLocator,
   ContentItemMention,
   ContentItemNamedEntity,
   ContentItemTopic,
 } from './generated/schemas/contentItem'
 import { bigIntToBase64Bytes, OpenPermissions } from '../util/bigint'
-import { asList, asNumberArray, parseDPFS } from '../util/solr/transformers'
+import { asList, asNumberArray, parseDPFS, toPairs } from '../util/solr/transformers'
 import { setDifference } from '../util/fn'
 import { getNameFromUid } from '../utils/entity.utils'
 import { IFragmentsAndHighlights } from './articles.model'
@@ -103,6 +104,7 @@ const AudioContentFields = [
   'record_id_ss',
   'record_nb_is',
   'rreb_plain',
+  'ub_plain',
 ] satisfies (keyof AudioFields)[]
 
 export type AllDocumentFields = Pick<ContentItemCore, (typeof ContentItemCoreFields)[0]> &
@@ -121,6 +123,7 @@ export type FullContentOnlyFieldsType =
   | 'pp_plain'
   | 'content_txt_*'
   | 'rreb_plain'
+  | 'ub_plain'
 
 export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType>
 
@@ -133,6 +136,7 @@ const FullContentOnlyFields = [
   'pp_plain',
   'content_txt_*',
   'rreb_plain',
+  'ub_plain',
 ] satisfies FullContentOnlyFieldsType[]
 
 type ISlimContentItemFieldsNames = Exclude<IFullContentItemFieldsNames, FullContentOnlyFieldsType>
@@ -146,6 +150,7 @@ export const FullContentItemFieldsNames = [
   ...ContentSemanticEnrichmentsFields,
   ...AudioContentFields,
   ...WildcardTextFields,
+  'rrreb_plain' as IFullContentItemFieldsNames, // TODO: Remove the `rrreb_plain` option when the index is fixed. It's a mistake.
 ] satisfies IFullContentItemFieldsNames[]
 
 export const SlimContentItemFieldsNames = [
@@ -253,10 +258,38 @@ const mentionWithOffset = (offsets?: number[][]) => {
   }
 }
 
-const fromAudioRecordTimecode = (tc: AudioRecordTimecode): ContentItemAudioTimestamp => ({
-  textLocation: [tc.s, tc.l],
-  timeCode: tc.tc,
-})
+const toAudioSegmentLocator = (tc: AudioRecordTimecode, utterancesEndOffsets: number[]): ContentItemAudioLocator => {
+  const utteranceIndex = utterancesEndOffsets.reduce<number | undefined>((utteranceIndex, endOffset, currentIndex) => {
+    if (endOffset > tc.s) return utteranceIndex
+    return currentIndex + 1
+  }, 0)
+
+  return {
+    textLocation: [tc.s, tc.l],
+    timeCode: tc.tc,
+    utteranceIndex,
+  }
+}
+
+const toUtteranceLocator = (
+  breakStartOffset: number,
+  breakEndOffset: number,
+  audioSegmentsLocators: ContentItemAudioLocator[]
+): ContentItemAudioLocator | undefined => {
+  const startLocator = audioSegmentsLocators.find(({ textLocation }) => textLocation?.[0] === breakStartOffset)
+  const endLocator = audioSegmentsLocators.find(({ textLocation }) => textLocation?.[0] === breakEndOffset)
+
+  const [timeCodeStart, timeCodeEnd] = [startLocator?.timeCode?.[0], endLocator?.timeCode?.[0]]
+
+  if (timeCodeStart === undefined || timeCodeEnd === undefined) {
+    return undefined
+  }
+
+  return {
+    textLocation: [breakStartOffset, breakEndOffset - breakStartOffset],
+    timeCode: [timeCodeStart, timeCodeEnd - timeCodeStart],
+  }
+}
 
 export const toContentItem = (doc: AllDocumentFields): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
@@ -284,8 +317,14 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
       },
     },
     text: {
-      title: doc[`title_txt_${doc.lg_s as LanguageCode}`] ?? doc['title_txt'],
-      content: doc[`content_txt_${doc.lg_s as LanguageCode}`] ?? doc['content_txt'],
+      title:
+        doc[`title_txt_${doc.lg_s as LanguageCode}`] ??
+        doc[`title_txt_${doc.lg_orig_s as LanguageCode}`] ??
+        doc['title_txt'],
+      content:
+        doc[`content_txt_${doc.lg_s as LanguageCode}`] ??
+        doc[`content_txt_${doc.lg_orig_s as LanguageCode}`] ??
+        doc['content_txt'],
       contentLength: doc.content_length_i ?? 0,
       documentType: doc.doc_type_s,
       itemType: doc.item_type_s,
@@ -333,13 +372,25 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
       startTime: doc.meta_start_time_s,
       recordsCount: doc.nb_record_i,
       records: doc.record_id_ss?.map((recordId: string, idx: number) => {
+        const utterancesEndOffsets = asList<number>(doc.ub_plain) ?? []
+
+        // TODO: Remove the `rrreb_plain` option when the index is fixed. It's a mistake.
+        const audioSegmentsLocators = parseAudioRecordTimecodes(doc.rreb_plain ?? (doc as any)['rrreb_plain'])
+          .find(r => r.id === recordId)
+          ?.t?.map(item => toAudioSegmentLocator(item, utterancesEndOffsets))
+
+        // Uncomment if we want to provide utterances as their own locators.
+        // const utterancesLocators = toPairs(asList<number>(doc.ub_plain) ?? [], 0)
+        //   .map(([startOffset, endOffset]) => {
+        //     return toUtteranceLocator(startOffset, endOffset, audioSegmentsLocators ?? [])
+        //   })
+        //   .filter(item => item != null)
         return {
           id: recordId,
           number: doc.record_nb_is?.[idx],
-          timecode: parseAudioRecordTimecodes(doc.rreb_plain)
-            .find(r => r.id === recordId)
-            ?.t?.map(fromAudioRecordTimecode),
-        }
+          audioSegmentsLocators,
+          // utterancesLocators,
+        } satisfies ContentItemAudioRecord
       }),
     },
   }
