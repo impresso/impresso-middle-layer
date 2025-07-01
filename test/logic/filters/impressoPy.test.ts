@@ -65,6 +65,24 @@ describe('buildPythonFunctionCall', () => {
       expectedResult: 'impresso.search.find(\n\tterm=AND(["test1","test2"])\n)',
     },
     {
+      name: 'string filter with array value and a term',
+      resource: 'search',
+      functionName: 'find',
+      filters: [
+        {
+          type: 'string',
+          q: ['test1', 'test2'],
+          op: 'OR',
+        },
+        {
+          type: 'string',
+          q: 'test3',
+          op: 'OR',
+        },
+      ],
+      expectedResult: 'impresso.search.find(\n\tterm=AND([OR(["test1","test2"]),"test3"])\n)',
+    },
+    {
       name: 'filter with precision',
       resource: 'search',
       functionName: 'find',
