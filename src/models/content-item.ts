@@ -9,7 +9,7 @@ import type {
   ImageFields,
   SemanticEnrichmentsFields,
   AudioFields,
-} from './generated/solr/ContentItem'
+} from './generated/solr/contentItem'
 import type { LanguageCode, TextContentFields } from './solr'
 
 import type {

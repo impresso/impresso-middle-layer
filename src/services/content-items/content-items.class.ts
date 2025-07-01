@@ -33,7 +33,7 @@ import { NotFound } from '@feathersjs/errors'
 import { BaseUser, Collection, Topic } from '../../models/generated/schemas'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
-import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/ContentItem'
+import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
 import { allContentFields, plainFieldAsJson } from '../../util/solr'
 
 const DefaultLimit = 10
