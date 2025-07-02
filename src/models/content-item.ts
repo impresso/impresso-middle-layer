@@ -291,6 +291,12 @@ const toUtteranceLocator = (
   }
 }
 
+const buildAudioFileUrl = (recordId: string, partnerId: string): string => {
+  const idParts = recordId.split('-')
+  const idPrefix = idParts.slice(0, idParts.length - 1).join('/')
+  return `https://dev.impresso-project.ch/media/audio/${partnerId}/${idPrefix}/${recordId}.mp3`
+}
+
 export const toContentItem = (doc: AllDocumentFields): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
@@ -389,6 +395,7 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
           id: recordId,
           number: doc.record_nb_is?.[idx],
           audioSegmentsLocators,
+          audioFileUrl: buildAudioFileUrl(recordId, doc.meta_partnerid_s!),
           // utterancesLocators,
         } satisfies ContentItemAudioRecord
       }),

@@ -18,6 +18,10 @@
       "items": {
         "$ref": "./ContentItemAudioLocator.json"
       }
+    },
+    "audioFileUrl": {
+      "type": "string",
+      "description": "The URL of the audio file."
     }
   }
 }

@@ -68,4 +68,12 @@ describe('bigint utils', () => {
     assert.ok(bitmapsAlign(BigInt(0b1000111), BigInt(64)))
     assert.ok(bitmapsAlign(BigInt(0b0000000000000000000000000000000000000000100000000000000000000001), BigInt(8388608)))
   })
+
+  it('checks base64 encoded value', () => {
+    const researcher = 'AAAAAAAAAAs='
+    const buffer = Buffer.from(researcher, 'base64')
+    const bigint = bufferToBigInt(buffer)
+    assert.strictEqual(bigint.toString(2), BigInt(0b1011).toString(2))
+    assert.strictEqual(bigIntToBuffer(bigint).toString('base64'), researcher)
+  })
 })
