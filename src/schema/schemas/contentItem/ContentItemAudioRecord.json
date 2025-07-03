@@ -12,12 +12,16 @@
       "type": "integer",
       "description": "The number of the audio record."
     },
-    "audioTimestamps": {
+    "audioSegmentsLocators": {
       "type": "array",
-      "description": "List of audio timestamps.",
+      "description": "A list of audio segments locators.",
       "items": {
-        "$ref": "./ContentItemAudioTimestamp.json"
+        "$ref": "./ContentItemAudioLocator.json"
       }
+    },
+    "audioFileUrl": {
+      "type": "string",
+      "description": "The URL of the audio file."
     }
   }
 }

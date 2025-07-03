@@ -189,6 +189,10 @@ export interface AudioFields {
    * Audio time stamps of the audio record. Serialized JSON of radio broadcast segments as defined in https://github.com/impresso/impresso-schemas/blob/radio-broadcast-schemas/json/rebuilt/audio_record_contentitem.schema.json.
    */
   rreb_plain?: string;
+  /**
+   * Utterance breaks ends offsets in content item transcript. Serialized array of integers, see 'ub' in https://github.com/impresso/impresso-schemas/blob/radio-broadcast-schemas/json/rebuilt/audio_record_contentitem.schema.json.
+   */
+  ub_plain?: string;
 }
 
 

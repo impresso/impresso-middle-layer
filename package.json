@@ -34,7 +34,7 @@
     "start": "node dist/",
     "dev": "nodemon --exec 'node --env-file=.env' --enable-source-maps --inspect dist/ --ignore 'data/*' --env-file ./.env",
     "cli": "node src/admin/cli.js",
-    "generate-types": "node dist/scripts/generate-types.js"
+    "generate-types": "node src/scripts/generate-types.js"
   },
   "dependencies": {
     "@feathersjs/authentication": "5.0.31",
