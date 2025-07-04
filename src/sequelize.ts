@@ -20,6 +20,26 @@ const defaultPoolConfig = {
 const getSequelizeClient = (config: SequelizeConfig) => {
   const socksProxyOptions = getSocksProxyConfiguration()
 
+  const streamGetter = shouldUseSocksProxy(config.host, socksProxyOptions)
+    ? () => {
+        logger.info(
+          `Using SOCKS proxy (${socksProxyOptions?.host}:${socksProxyOptions?.port}) for a new DB connection to ${config.host}`
+        )
+
+        return new SocksConnection(
+          {
+            host: config.host,
+            port: config.port,
+            rejectUnauthorized: false,
+          },
+          {
+            host: socksProxyOptions?.host!,
+            port: socksProxyOptions?.port!,
+          }
+        )
+      }
+    : undefined
+
   const client = new Sequelize({
     host: config.host,
     port: config.port,
@@ -37,26 +57,7 @@ const getSequelizeClient = (config: SequelizeConfig) => {
         rejectUnauthorized: false, // Disables SSL/TLS certificate verification
       },
       connectTimeout: 300000,
-      stream: () => {
-        if (shouldUseSocksProxy(config.host, socksProxyOptions)) {
-          logger.info(
-            `Using SOCKS proxy (${socksProxyOptions?.host}:${socksProxyOptions?.port}) for a new DB connection to ${config.host}`
-          )
-
-          return new SocksConnection(
-            {
-              host: config.host,
-              port: config.port,
-              rejectUnauthorized: false,
-            },
-            {
-              host: socksProxyOptions?.host!,
-              port: socksProxyOptions?.port!,
-            }
-          )
-        }
-        return
-      },
+      stream: streamGetter,
     } satisfies ConnectionOptions,
 
     pool: config.pool ?? defaultPoolConfig,
