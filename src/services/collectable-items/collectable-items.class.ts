@@ -128,7 +128,7 @@ export class Service {
     debug('[find] success! n. results:', results.total)
     if (!results.total) return results
 
-    const collectionIds = Array.from(new Set(results.data.flatMap(d => d.collectionIds)))
+    const collectionIds = Array.from(new Set(results.data.flatMap((d: any) => d.collectionIds)))
     debug('[find] collectionIds:', collectionIds)
 
     const collections = await this.app

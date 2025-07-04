@@ -170,7 +170,7 @@ export interface EntityDetails {
    * Entity label
    */
   label?: string;
-  type?: "person" | "location";
+  type?: "person" | "location" | "organisation" | "newsagency";
   /**
    * Wikidata identifier of the entity.
    */
