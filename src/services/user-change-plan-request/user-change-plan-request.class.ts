@@ -1,4 +1,4 @@
-import type { Sequelize } from 'sequelize'
+import type { InferAttributes, Sequelize } from 'sequelize'
 import initDebug from 'debug'
 import type { ImpressoApplication } from '../../types'
 import User from '../../models/users.model'
@@ -75,7 +75,7 @@ export class Service {
    * const result = await service.find({ user: { id: 123 } });
    * console.log(result); // { id: ..., plan: ..., status: ..., ... }
    */
-  async find(params: { user: { id: number } }): Promise<object> {
+  async find(params: { user: { id: number } }): Promise<InferAttributes<UserChangePlanRequest>> {
     if (!this.sequelizeClient) {
       throw new Error('Sequelize client not available')
     }
