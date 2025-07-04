@@ -2,7 +2,7 @@
 /* eslint import/no-dynamic-require: "off" */
 const debug = require('debug')('impresso/services:SequelizeService')
 const { NotFound } = require('@feathersjs/errors')
-const sequelize = require('../sequelize')
+// const sequelize = require('../sequelize')
 const { sequelizeErrorHandler } = require('./sequelize.utils')
 const { getCacheKey } = require('../util/serialize')
 
@@ -21,7 +21,8 @@ class SequelizeService {
   constructor({ name = '', app = null, modelName = null, cacheReads = false } = {}) {
     this.name = String(name)
     this.modelName = String(modelName || name)
-    this.sequelize = sequelize.client(app.get('sequelize'))
+    // this.sequelize = sequelize.client(app.get('sequelize'))
+    this.sequelize = app.get('sequelizeClient')
     loadDynamicModule(`../models/${this.modelName}.model`)
       .then(m => {
         this.Model = m.Model ?? m.default?.default ?? m.default ?? m

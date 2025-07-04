@@ -423,20 +423,6 @@ export interface ImageProxyConfig {
         user: string;
         pass: string;
       };
-      /**
-       * Socks proxy configuration for the image source (optional)
-       */
-      proxy?: {
-        /**
-         * Proxy host
-         */
-        host: string;
-        /**
-         * Proxy port
-         */
-        port: number;
-        [k: string]: unknown;
-      };
     },
     ...{
       id: string;
@@ -444,20 +430,6 @@ export interface ImageProxyConfig {
       auth?: {
         user: string;
         pass: string;
-      };
-      /**
-       * Socks proxy configuration for the image source (optional)
-       */
-      proxy?: {
-        /**
-         * Proxy host
-         */
-        host: string;
-        /**
-         * Proxy port
-         */
-        port: number;
-        [k: string]: unknown;
       };
     }[]
   ];
@@ -483,6 +455,25 @@ export interface MulterConfig {
    */
   dest: string;
   [k: string]: unknown;
+}
+
+
+/**
+ * Impresso socks proxy configuration
+ */
+export interface ImpressoProxy {
+  /**
+   * The hostname of the proxy server.
+   */
+  host: string;
+  /**
+   * The port number of the proxy server.
+   */
+  port: number;
+  /**
+   * The list of domains to route through the proxy.
+   */
+  domains: string[];
 }
 
 

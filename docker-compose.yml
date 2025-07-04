@@ -8,22 +8,6 @@ services:
     entrypoint: redis-server --appendonly yes
     ports:
       - 6379:6379
-  mysql-tunnel:
-    image: kroniak/ssh-client
-    restart: always
-    volumes:
-      - ./docker/config/ssh:/root/.ssh
-    ports:
-      - 3306:3306
-    command: ssh -N cli-mysql-tunnel
-  new-mysql-tunnel:
-    image: kroniak/ssh-client
-    restart: always
-    volumes:
-      - ./docker/config/ssh:/root/.ssh
-    ports:
-      - 3307:3307
-    command: ssh -N cli-new-mysql-tunnel
   socks-proxy:
     image: kroniak/ssh-client
     restart: always
