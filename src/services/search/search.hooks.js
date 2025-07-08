@@ -12,7 +12,6 @@ import { transformContentItem } from '../../transformers/contentItem'
 import { loadYamlFile } from '../../util/yaml'
 import { resolveTopics } from '../../hooks/resolvers/articles.resolvers'
 
-const { protect } = require('@feathersjs/authentication-local').hooks
 const {
   validate,
   validateEach,
@@ -119,7 +118,6 @@ module.exports = {
       displayQueryParams(['queryComponents', 'filters']),
       transformResponse(transformBaseFind, inPublicApi),
       resolveQueryComponents(),
-      protect('content'),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),

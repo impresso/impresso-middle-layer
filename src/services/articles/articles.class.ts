@@ -87,7 +87,12 @@ export class ContentItemService {
   }
 
   async _find(params: FindOptions) {
-    const fl = ARTICLE_SOLR_FL_LIST_ITEM
+    let fl = ARTICLE_SOLR_FL_LIST_ITEM
+    if (this.app?.get('isPublicApi')) {
+      // in public API we want all content fields.
+      fl = fl.concat(['content_txt_fr', 'content_txt_en', 'content_txt_de'])
+    }
+
     const pageUids = (params.query.filters || []).filter(d => d.type === 'page').map(d => d.q)
 
     debug('[find] use auth user:', params.user ? params.user.uid : 'no user')
