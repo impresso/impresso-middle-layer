@@ -56,9 +56,6 @@ app.use('/', staticMiddleware(path.join(__dirname, app.get('public') as string))
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware)
 
-// configure celery client task manage if celery config is available
-app.configure(celery)
-
 // configure express services
 app.configure(media)
 app.configure(imageProxy)
@@ -77,6 +74,9 @@ app.configure(transport)
 // Set up our services (see `services/index.ts`)
 app.configure(authentication)
 app.configure(services)
+
+// configure celery client task manage if celery config is available
+app.configure(celery)
 
 app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startupJobs], []))
 
