@@ -12,6 +12,7 @@ import { SolrNamespaces } from '../solr'
 import { ImpressoApplication } from '../types'
 import { bufferToBigInt, OpenPermissions } from '../util/bigint'
 import { getV3CompatibleIIIFUrlWithoutDomain } from '../util/iiif'
+import { getSocksProxyConfiguration, shouldUseSocksProxy } from '../util/socksProxyConfiguration'
 
 const NotAuthorizedImageUrl = '/images/notAuthorized.jpg'
 
@@ -86,8 +87,17 @@ const getProxyMiddleware = (app: ImpressoApplication, prefix: string) => {
   const { defaultSourceId, sources } = app.get('images').proxy
   const source = sources.find(({ id }) => id === defaultSourceId) ?? sources[0]
 
-  const agent =
-    source.proxy != null ? new SocksProxyAgent(`socks://${source.proxy.host}:${source.proxy.port}`) : undefined
+  const socksProxyConfig = getSocksProxyConfiguration()
+
+  const agent = shouldUseSocksProxy(source.endpoint, socksProxyConfig)
+    ? new SocksProxyAgent(`socks://${socksProxyConfig?.host!}:${socksProxyConfig?.port!}`)
+    : undefined
+
+  if (agent != null) {
+    logger.info(
+      `Using SOCKS proxy (${socksProxyConfig?.host}:${socksProxyConfig?.port}) for IIIF image proxy to ${source.endpoint}`
+    )
+  }
 
   const headers: Record<string, string> = {}
   if (source.auth != null) {

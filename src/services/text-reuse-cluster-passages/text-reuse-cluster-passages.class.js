@@ -5,7 +5,7 @@ const {
   convertPassagesSolrResponseToPassages,
   PassageFields,
 } = require('../../logic/textReuse/solr')
-const sequelize = require('../../sequelize')
+// const sequelize = require('../../sequelize')
 const { QueryGetIIIFManifests } = require('../../logic/iiif')
 const { toArticlePageDetails } = require('../../logic/ids')
 const { parseOrderBy } = require('../../util/queryParameters')
@@ -22,8 +22,9 @@ class TextReuseClusterPassages {
     this.options = options
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
-    /** @type {import('sequelize') & import('sequelize').Sequelize} */
-    this.sequelize = sequelize.client(app.get('sequelize'))
+    // /** @type {import('sequelize') & import('sequelize').Sequelize} */
+    // this.sequelize = sequelize.client(app.get('sequelize'))
+    this.sequelize = app.get('sequelizeClient')
     this.app = app
   }
 

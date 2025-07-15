@@ -266,6 +266,14 @@ Sample settings:
 * 1 request per second (600 / 10 minutes): `capacity: 600, refillRate: 1`
 * 3 request per second (600 / 10 minutes): `capacity: 600, refillRate: 3`
 
+## Running with a proxy
+If database, Solr and/or IIIF server are only accessible via a proxy, you can configure the proxy in the `.env` file:
+
+```shell
+IMPRESSO_SOCKS_PROXY_CONFIG='{ "host": "localhost", "port": 1080, "domains": ["db.domain.to.proxy", "solr.domain.to.proxy", "iiif.domain.to.proxy"] }'
+
+```
+
 ## Help
 
 For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).

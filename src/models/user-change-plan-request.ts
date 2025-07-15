@@ -2,6 +2,11 @@ import type { Sequelize } from 'sequelize'
 import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize'
 import Group from './groups.model'
 
+export const StatusPending = 'pending'
+export const StatusApproved = 'approved'
+export const StatusRejected = 'rejected'
+export const AvailableStatuses = [StatusPending, StatusApproved, StatusRejected]
+
 export default class UserChangePlanRequest extends Model<
   InferAttributes<UserChangePlanRequest>,
   InferCreationAttributes<UserChangePlanRequest>

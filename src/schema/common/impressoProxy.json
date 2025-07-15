@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Impresso socks proxy configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "host": {
+      "type": "string",
+      "description": "The hostname of the proxy server."
+    },
+    "port": {
+      "type": "integer",
+      "description": "The port number of the proxy server."
+    },
+    "domains": {
+      "type": "array",
+      "description": "The list of domains to route through the proxy.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["host", "port", "domains"]
+}
