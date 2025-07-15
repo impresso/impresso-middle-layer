@@ -8,7 +8,6 @@ import Collection from '../../models/collections.model'
 import { PublicFindResponse } from '../../models/common'
 import { ContentItem } from '../../models/generated/schemas/contentItem'
 import Job from '../../models/jobs.model'
-import { client as sequelizeClient } from '../../sequelize'
 import { ImpressoApplication } from '../../types'
 
 const debugLog = debug('impresso/services:search')
@@ -22,7 +21,7 @@ class Service implements SearchService {
   constructor(private readonly app: ImpressoApplication) {
     this.app = app
     this.solr = app.service('simpleSolrClient')
-    this.sequelize = sequelizeClient(app.get('sequelize'))
+    this.sequelize = app.get('sequelizeClient')!
   }
 
   /**
