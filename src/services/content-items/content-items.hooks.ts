@@ -6,29 +6,30 @@ import {
   publicApiTranscriptRedactionCondition,
   webAppExploreRedactionCondition,
   inPublicApi,
+  RedactionPolicy,
 } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
 import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
 import { transformContentItem } from '../../transformers/contentItem'
+import { utils, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID } from '../../hooks/params'
+import { filtersToSolrQuery } from '../../hooks/search'
+import { SolrMappings } from '../../data/constants'
+import { eachFilterValidator } from '../search/search.validators'
+import { transformBaseFind } from '../../transformers/base'
 
-const {
-  utils,
-  protect,
-  validate,
-  validateEach,
-  queryWithCommonParams,
-  displayQueryParams,
-  REGEX_UID,
-} = require('../../hooks/params')
-const { filtersToSolrQuery } = require('../../hooks/search')
-
-const { resolveTopics, resolveUserAddons } = require('../../hooks/resolvers/articles.resolvers')
-const { SolrMappings } = require('../../data/constants')
-
-export const contentItemRedactionPolicy = loadYamlFile(`${__dirname}/resources/contentItemRedactionPolicy.yml`)
+export const contentItemRedactionPolicy = loadYamlFile(
+  `${__dirname}/resources/contentItemRedactionPolicy.yml`
+) as RedactionPolicy
 export const contentItemRedactionPolicyWebApp = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
-)
+) as RedactionPolicy
+
+type OrderBy = 'date' | 'relevance' | 'uid' | 'issue' | 'page' | 'newspaper' | 'hasTextContents'
+type ReverseOrderBy = `-${OrderBy}`
+type FullOrderBy = OrderBy | ReverseOrderBy
+
+const OrderByChoices: OrderBy[] = ['date', 'relevance', 'uid', 'issue', 'page', 'newspaper', 'hasTextContents']
+const FullOrderByChoices: FullOrderBy[] = [...OrderByChoices, ...OrderByChoices.map(o => `-${o}`)] as FullOrderBy[]
 
 export default {
   around: {
@@ -38,20 +39,16 @@ export default {
     all: [],
     find: [
       validate({
-        resolve: {
-          required: false,
-          choices: ['collection', 'tags'],
-        },
         order_by: {
-          before: d => {
+          before: (d: string | string[]) => {
             if (typeof d === 'string') {
               return d.split(',')
             }
             return d
           },
-          choices: ['-date', 'date', '-relevance', 'relevance'],
-          transform: d => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
-          after: d => {
+          choices: FullOrderByChoices,
+          transform: (d: string[]) => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
+          after: (d: string | string[]) => {
             if (Array.isArray(d)) {
               return d.join(',')
             }
@@ -59,24 +56,9 @@ export default {
           },
         },
       }),
-      validateEach(
-        'filters',
-        {
-          type: {
-            choices: ['uid', 'issue', 'page', 'newspaper', 'hasTextContents'],
-            required: true,
-          },
-          q: {
-            regex: REGEX_UID,
-            required: false,
-            // we cannot transform since Mustache is render the filters...
-            // transform: d => d.split(',')
-          },
-        },
-        {
-          required: false,
-        }
-      ),
+      validateEach('filters', eachFilterValidator, {
+        required: false,
+      }),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
@@ -91,15 +73,12 @@ export default {
     all: [],
     find: [
       displayQueryParams(['filters']),
-      protect('content'),
-      resolveTopics(),
+      transformResponse(transformBaseFind, inPublicApi),
       transformResponseDataItem(transformContentItem, inPublicApi),
       redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
     ],
     get: [
-      resolveTopics(),
-      resolveUserAddons(),
       transformResponse(transformContentItem, inPublicApi),
       redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
       redactResponse(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),

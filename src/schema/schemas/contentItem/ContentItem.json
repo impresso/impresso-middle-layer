@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ContentItem",
+  "description": "Unified schema for media content items in the Impresso project, with modular field groups.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the content item"
+    },
+    "issueId": {
+      "type": "string",
+      "description": "Unique issue identifier"
+    },
+    "meta": {
+      "$ref": "./ContentItemMeta.json"
+    },
+    "text": {
+      "$ref": "./ContentItemText.json"
+    },
+    "semanticEnrichments": {
+      "$ref": "./ContentItemSemanticEnrichments.json"
+    },
+    "image": {
+      "$ref": "./ContentItemImage.json"
+    },
+    "audio": {
+      "$ref": "./ContentItemAudio.json"
+    },
+    "access": {
+      "$ref": "./ContentItemAccessRights.json"
+    }
+  },
+  "required": ["id", "core"],
+  "additionalProperties": false
+}

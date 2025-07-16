@@ -34,11 +34,7 @@
     "start": "node dist/",
     "dev": "nodemon --exec 'node --env-file=.env' --enable-source-maps --inspect dist/ --ignore 'data/*' --env-file ./.env",
     "cli": "node src/admin/cli.js",
-    "generate-types": "node dist/scripts/generate-types.js",
-    "update-years": "node dist/scripts/update-years.js",
-    "update-topics": "node dist/scripts/update-topics.js && node dist/scripts/update-topics-related.js  && node dist/scripts/update-topics-positions.js",
-    "update-topics-related": "node dist/scripts/update-topics-related.js",
-    "update-topics-positions": "node dist/scripts/update-topics-positions.js"
+    "generate-types": "node src/scripts/generate-types.js"
   },
   "dependencies": {
     "@feathersjs/authentication": "5.0.31",
@@ -149,7 +145,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.2.3",
     "eslint-plugin-promise": "^6.0.0",
-    "json-schema-to-typescript": "14.0.0",
+    "json-schema-to-typescript": "15.0.4",
     "mocha": "10.8.2",
     "nodemon": "3.1.0",
     "prettier": "3.2.5",

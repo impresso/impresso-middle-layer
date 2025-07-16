@@ -2,6 +2,23 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Nodemon: Start",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "nodemon",
+      "args": [
+        "--exec",
+        "node --env-file=.env",
+        "--enable-source-maps",
+        "--inspect",
+        "dist/",
+        "--ignore",
+        "data/*",
+        "--env-file",
+        "./.env"
+      ]
+    },
+    {
       "name": "Nodemon: Attach",
       "type": "node",
       "request": "attach",

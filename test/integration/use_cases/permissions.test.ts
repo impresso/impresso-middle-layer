@@ -198,7 +198,7 @@ describe('Bitmap permissions', function () {
       const getTranscriptCases = testMatrix.filter(
         test => test.scope === 'explore' && test.contentItemNamespace === 'Search'
       )
-      const service = app.service('articles')
+      const service = app.service('content-items')
 
       await runner(
         getTranscriptCases,

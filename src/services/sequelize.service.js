@@ -26,7 +26,7 @@ class SequelizeService {
     loadDynamicModule(`../models/${this.modelName}.model`)
       .then(m => {
         this.Model = m.Model ?? m.default?.default ?? m.default ?? m
-        this.sequelizeKlass = this.Model.sequelize(this.sequelize)
+        this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
 
         debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
       })
@@ -138,9 +138,13 @@ class SequelizeService {
     // directly.
     const p = {
       // for paginations.
-      limit: params.limit || params.query.limit,
-      offset: params.offset || params.query.offset,
-      order: params.order_by || params.query.order_by,
+      limit: params.limit ?? params.query?.limit,
+      offset: params.offset ?? params.query?.offset,
+      order: params.order_by ?? params.query?.order_by,
+    }
+
+    if (params.include) {
+      p.include = params.include
     }
 
     if (params.where) {
@@ -182,13 +186,13 @@ class SequelizeService {
         .then(res => ({
           data: res.rows.map(d => d.toJSON()),
           total: res.count,
-          limit: params.query.limit,
-          offset: params.query.offset,
+          limit: p.limit,
+          offset: p.offset,
           info: {
             query: {
-              filters: params.query.filters,
-              limit: params.query.limit,
-              offset: params.query.offset,
+              filters: params.query?.filters,
+              limit: p.limit,
+              offset: p.offset,
             },
           },
         }))

@@ -4,18 +4,14 @@ items:
   # NOTE: decided to show title and fragment so that guest users can see at least something
   # - jsonPath: $.title
   #   valueConverterName: redact
-  - jsonPath: $.excerpt
+  - jsonPath: $.text.snippet
     valueConverterName: redact
-  - jsonPath: $.content
+  - jsonPath: $.text.content
     valueConverterName: redact
   # NOTE: decided to show title and fragment so that guest users can see at least something
   # - jsonPath: $.matches.[*].fragment
   #   valueConverterName: redact
-  - jsonPath: $.regions.[*].iiifFragment
+  - jsonPath: $.image.pages.[*].iiif.manifestUrl
     valueConverterName: contextNotAllowedImage
-  - jsonPath: $.pages.[*].iiif
-    valueConverterName: contextNotAllowedImage
-  - jsonPath: $.pages.[*].iiifThumbnail
-    valueConverterName: contextNotAllowedImage
-  - jsonPath: $.pages.[*].iiifFragment
+  - jsonPath: $.image.pages.[*].iiif.thumbnailUrl
     valueConverterName: contextNotAllowedImage

@@ -1,54 +1,67 @@
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../models/authorization'
-import { ContentItem as ContentItemPrivate, Entity, ContentItemTopic } from '../models/generated/schemas'
-import { ContentItem as ContentItemPublic, EntityMention, TopicMention } from '../models/generated/schemasPublic'
-import { OpenPermissions } from '../util/bigint'
+import {
+  ContentItemNamedEntity,
+  ContentItem as ContentItemPrivate,
+  ContentItemText,
+  ContentItemTopic,
+} from '../models/generated/schemas/contentItem'
+import { ContentItem as ContentItemPublic, NamedEntity, TopicMention } from '../models/generated/schemasPublic'
+import { base64BytesToBigInt, OpenPermissions } from '../util/bigint'
 
-const toType = (input: string): ContentItemPublic['type'] => {
+const toType = (input: ContentItemText['itemType']): ContentItemPublic['type'] => {
   if (input == null || input.trim() === '') return 'ar'
   return input
 }
 
-const toEntityMention = (entity: Entity): EntityMention => ({
-  uid: entity.uid,
-  relevance: entity.relevance,
+const toNamedEntity = (entity: ContentItemNamedEntity): NamedEntity => ({
+  uid: entity.id!,
+  count: entity.count ?? 0,
 })
 
 const toTopicMention = (topic: ContentItemTopic): TopicMention | undefined => {
-  if (topic.topicUid == null) return undefined
+  if (topic.id == null) return undefined
   return {
-    uid: topic.topicUid,
+    uid: topic.id,
     relevance: topic.relevance,
   }
 }
 
 export const transformContentItem = (input: ContentItemPrivate): ContentItemPublic => {
+  const {
+    explore: bmExplore,
+    getImages: bmGetImages,
+    getTranscript: bmGetTranscript,
+    getAudio: bmGetAudio,
+  } = input.access?.accessBitmaps ?? {}
+
   return {
-    uid: input.uid,
-    type: toType(input.type),
-    title: input.title,
-    transcript: input.content ?? '',
-    locations: input.locations?.map(toEntityMention) ?? [],
-    persons: input.persons?.map(toEntityMention) ?? [],
+    uid: input.id,
+    type: toType(input.text?.itemType),
+    title: input.text?.title,
+    transcript: input.text?.content,
+    locations: input.semanticEnrichments?.namedEntities?.locations?.map(toNamedEntity) ?? [],
+    persons: input.semanticEnrichments?.namedEntities?.persons?.map(toNamedEntity) ?? [],
     topics:
-      input.topics
+      input.semanticEnrichments?.topics
         ?.map(toTopicMention)
         ?.filter(v => v != null)
         .map(v => v as TopicMention) ?? [],
-    transcriptLength: input.size ?? 0,
-    totalPages: input.nbPages,
-    languageCode: input.language?.toLowerCase(),
-    isOnFrontPage: input.isFront ?? false,
-    publicationDate: input.date as string, // This should always be present
-    countryCode: input.country?.toUpperCase(),
-    dataProviderCode: input.dataProvider != null ? input.dataProvider : undefined,
-    mediaCode: input.newspaper?.uid,
-    mediaType: 'newspaper',
+    transcriptLength: input.text?.contentLength ?? 0,
+    totalPages: input.image?.pagesCount ?? 0,
+    languageCode: input.text?.langCode?.toLowerCase(),
+    isOnFrontPage: input.image?.isFrontPage ?? false,
+    publicationDate: input.meta?.date, // This should always be present
+    countryCode: input.meta?.countryCode?.toUpperCase(),
+    dataProviderCode: input.meta?.partnerId != null ? input.meta?.partnerId : undefined,
+    mediaCode: input.meta?.mediaId,
+    mediaType: input.meta?.sourceType,
 
     // Authorization information
     [AuthorizationBitmapsKey]: {
-      explore: BigInt(input.bitmapExplore ?? OpenPermissions),
-      getTranscript: BigInt(input.bitmapGetTranscript ?? OpenPermissions),
-      getImages: BigInt(input.bitmapGetImages ?? OpenPermissions),
+      explore: BigInt((bmExplore ? base64BytesToBigInt(bmExplore) : undefined) ?? OpenPermissions),
+      getTranscript: BigInt((bmGetTranscript ? base64BytesToBigInt(bmGetTranscript) : undefined) ?? OpenPermissions),
+      getImages: BigInt((bmGetImages ? base64BytesToBigInt(bmGetImages) : undefined) ?? OpenPermissions),
+      getAudio: BigInt((bmGetAudio ? base64BytesToBigInt(bmGetAudio) : undefined) ?? OpenPermissions),
     } satisfies AuthorizationBitmapsDTO,
   }
 }

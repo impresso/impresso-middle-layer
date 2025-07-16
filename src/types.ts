@@ -7,7 +7,7 @@ import { AuthenticationService } from '@feathersjs/authentication'
 import { MediaSources } from './services/media-sources/media-sources.class'
 import { NewspapersService } from './services/newspapers/newspapers.class'
 import { SimpleSolrClient } from './internalServices/simpleSolr'
-import { ContentItemService } from './services/articles/articles.class'
+import { ContentItemService } from './services/content-items/content-items.class'
 
 export interface AppServices {
   redisClient?: IRedisClientContainer

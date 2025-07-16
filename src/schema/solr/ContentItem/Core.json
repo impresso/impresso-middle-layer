@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ContentItemCore",
+  "description": "Core fields of media content items in the Impresso project.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the content item"
+    },
+    "meta_journal_s": {
+      "type": "string",
+      "description": "Media title alias. Will soon be deprecated in favor of meta_media_s."
+    },
+    "meta_year_i": {
+      "type": "integer",
+      "description": "Year of publication/broadcast"
+    },
+    "meta_month_i": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 12,
+      "description": "Month of publication/broadcast"
+    },
+    "meta_yearmonth_s": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}$",
+      "description": "Year-month in YYYY-MM format"
+    },
+    "meta_day_i": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 31,
+      "description": "Day of publication/broadcast"
+    },
+    "meta_ed_s": {
+      "type": "string",
+      "description": "Edition identifier"
+    },
+    "meta_date_dt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Full date and time in ISO 8601 format"
+    },
+    "meta_issue_id_s": {
+      "type": "string",
+      "description": "Issue identifier"
+    },
+    "meta_source_type_s": {
+      "type": "string",
+      "enum": ["newspaper", "radio_broadcast", "radio_magazine", "radio_schedule", "monograph", "encyclopedia"],
+      "description": "Type of the media source. Should be a value from impresso-essentials.utils SourceType enum."
+    },
+    "meta_source_medium_s": {
+      "type": "string",
+      "description": "Medium of the source (audio for audio radio broadcasts, print for newspapers, typescript for digitised radio bulletin typescripts).",
+      "enum": ["audio", "print", "typescript"]
+    }
+  },
+  "required": [
+    "id",
+    "meta_journal_s",
+    "meta_year_i",
+    "meta_month_i",
+    "meta_day_i",
+    "meta_date_dt",
+    "meta_source_type_s",
+    "meta_source_medium_s"
+  ],
+  "additionalProperties": false
+}

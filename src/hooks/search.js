@@ -36,7 +36,6 @@ const qToSolrFilter = (type = 'string') =>
  * filtersToSolrQuery transform string filters
  * in `context.params.sanitized.filters` array to a smart SOLR query
  *
- * @param {function} solrIndexProvider - a function that takes context
  * and returns the Solr index filters should be validated against.
  */
 // prettier-ignore
@@ -44,7 +43,7 @@ const filtersToSolrQuery =
   ({
     overrideOrderBy = true,
     prop = 'params',
-    solrIndexProvider = () => SolrNamespaces.Search
+    solrIndexProvider = (ctx) => SolrNamespaces.Search
   } = {}) => async context => {
     const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`
     if (context.type !== 'before') {

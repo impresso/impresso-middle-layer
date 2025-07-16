@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ContextualMetadataFields",
+  "description": "Contextual metadata field of a media content item.",
+  "type": "object",
+  "properties": {
+    "meta_country_code_s": {
+      "type": "string",
+      "description": "Country code of the publication."
+    },
+    "meta_province_code_s": {
+      "type": "string",
+      "description": "Province code of the publication."
+    },
+    "meta_periodicity_s": {
+      "type": "string",
+      "description": "Periodicity of the publication, e.g., daily, weekly."
+    },
+    "meta_topics_s": {
+      "type": "string",
+      "description": "Topics associated with the publication."
+    },
+    "meta_polorient_s": {
+      "type": "string",
+      "description": "Political orientation of the publication."
+    },
+    "meta_partnerid_s": {
+      "type": "string",
+      "description": "Partner ID associated with the publication."
+    }
+  },
+  "additionalProperties": false
+}

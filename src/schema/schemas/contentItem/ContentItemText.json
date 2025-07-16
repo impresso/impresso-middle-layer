@@ -1,0 +1,59 @@
+{
+  "type": "object",
+  "description": "Textual content details",
+  "properties": {
+    "documentType": {
+      "type": "string",
+      "description": "Type of document, e.g., page (p) or content item (ci).",
+      "enum": ["p", "ci"]
+    },
+    "itemType": {
+      "type": "string",
+      "enum": [
+        "ar",
+        "ad",
+        "page",
+        "tb",
+        "ob",
+        "w",
+        "chapter",
+        "chronicle",
+        "unsegmented",
+        "radio_broadcast_episode",
+        "radio_bulletin"
+      ],
+      "description": "Type of content item, e.g., article, section."
+    },
+    "originalLangCode": {
+      "type": "string",
+      "description": "Original language of the content item."
+    },
+    "langCode": {
+      "type": "string",
+      "description": "Computed language of the content item."
+    },
+    "contentLength": {
+      "type": "integer",
+      "description": "Token count of the content item (space split)."
+    },
+    "snippet": {
+      "type": "string",
+      "description": "Snippet of the content item (first 150 characters)."
+    },
+    "title": {
+      "type": "string",
+      "description": "Title of the content item"
+    },
+    "content": {
+      "type": "string",
+      "description": "Full text content"
+    },
+    "matches": {
+      "type": "array",
+      "items": {
+        "$ref": "./ContentItemTextMatch.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}
