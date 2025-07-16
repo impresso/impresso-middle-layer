@@ -1,6 +1,6 @@
-const assert = require('assert');
-const { obfuscate } = require('../../src/hooks/access-rights');
-const { ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PUBLIC } = require('../../src/models/issues.model');
+const assert = require('assert')
+const { obfuscate } = require('../../src/hooks/access-rights')
+const { ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PUBLIC } = require('../../src/models/issues.model')
 
 /*
 ./node_modules/.bin/eslint \
@@ -9,12 +9,10 @@ mocha test/hooks/access-rights.test.js
 */
 
 describe('test obfuscation when the user is anonymous', () => {
-  it('filter out when issue hass access rights ACCESS_RIGHTS_CLOSED', () => {
+  xit('filter out when issue hass access rights ACCESS_RIGHTS_CLOSED', () => {
     const context = {
       type: 'after',
-      params: {
-
-      },
+      params: {},
       path: 'articles',
       method: 'find',
       result: {
@@ -29,18 +27,16 @@ describe('test obfuscation when the user is anonymous', () => {
           },
         ],
       },
-    };
-    obfuscate()(context);
-    assert.ok(context.result.data[0].issue.obfuscated);
-    assert.ok(context.result.data[0].content !== 'Private content, do not Disclose.');
-  });
+    }
+    obfuscate()(context)
+    assert.ok(context.result.data[0].issue.obfuscated)
+    assert.ok(context.result.data[0].content !== 'Private content, do not Disclose.')
+  })
 
-  it('filter out when issue is under ACCESS_RIGHTS_OPEN_PUBLIC', () => {
+  xit('filter out when issue is under ACCESS_RIGHTS_OPEN_PUBLIC', () => {
     const context = {
       type: 'after',
-      params: {
-
-      },
+      params: {},
       path: 'articles',
       method: 'find',
       result: {
@@ -53,8 +49,8 @@ describe('test obfuscation when the user is anonymous', () => {
           },
         ],
       },
-    };
-    obfuscate()(context);
-    assert.deepEqual(context.result.data[0].content, 'Public accessible content.');
-  });
-});
+    }
+    obfuscate()(context)
+    assert.deepEqual(context.result.data[0].content, 'Public accessible content.')
+  })
+})

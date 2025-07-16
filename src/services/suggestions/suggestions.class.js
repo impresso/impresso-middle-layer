@@ -1,6 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { mediaSourceToNewspaper } from '../newspapers/newspapers.class'
 import { SolrNamespaces } from '../../solr'
+import Entity from '../../models/entities.model'
+import { getNameFromUid } from '../../utils/entity.utils'
+
 const debug = require('debug')('impresso/services:suggestions')
 const chrono = require('chrono-node')
 const moment = require('moment')
@@ -10,7 +13,6 @@ const { NotFound, NotImplemented } = require('@feathersjs/errors')
 const { latinise, toPlainText } = require('../../helpers')
 
 const Mention = require('../../models/mentions.model')
-const Entity = require('../../models/entities.model')
 const Topic = require('../../models/topics.model')
 const Suggestion = require('../../models/suggestions.model')
 const { measureTime } = require('../../util/instruments')
@@ -23,12 +25,12 @@ const asEntitySuggestion = doc => {
   const [uid, type] = doc.payload.split('|')
   const item = new Entity({
     uid,
-    name: Entity.getNameFromUid(uid),
+    name: getNameFromUid(uid),
     type,
   })
   return new Suggestion({
     q: item.uid,
-    h: Entity.getNameFromUid(doc.term),
+    h: getNameFromUid(doc.term),
     type: item.type,
     item,
     weight: doc.weight,

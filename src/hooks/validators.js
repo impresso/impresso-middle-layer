@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+import { logger } from '../logger'
 const debug = require('debug')('impresso/hooks/validators')
 const { get, set } = require('lodash')
 const { BadRequest } = require('@feathersjs/errors')
@@ -41,7 +42,7 @@ const validateWithSchemaUri =
       try {
         candidate = JSON.parse(candidate)
       } catch (e) {
-        console.error(e)
+        logger.error(e)
         throw new BadRequest('Bad JSON received, check your input data.', {
           [labelPath]: 'should be a valid JSON parameter',
         })

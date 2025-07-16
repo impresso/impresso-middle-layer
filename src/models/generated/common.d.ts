@@ -13,7 +13,7 @@
 export interface Config {
   $schema?: string;
   /**
-   * If `true`, the app serves a public API
+   * If `true`, the app serves a public API. It is `falsee` by default.
    */
   isPublicApi?: boolean;
   /**
@@ -25,32 +25,11 @@ export interface Config {
    */
   allowedCorsOrigins?: string[];
   redis?: RedisConfig;
-  /**
-   * Rate limiter configuration
-   */
-  rateLimiter?: {
-    /**
-     * Enable rate limiter
-     */
-    enabled?: boolean;
-    /**
-     * Capacity of the rate limiter
-     */
-    capacity: number;
-    /**
-     * Refill rate of the rate limiter
-     */
-    refillRate: number;
-    [k: string]: unknown;
-  };
+  rateLimiter?: RateLimiterConfig;
   /**
    * Prefix for the public API
    */
   publicApiPrefix?: string;
-  /**
-   * If `true`, the user object is loaded from the db on every request. If `false` (default), the user object is created from the JWT token
-   */
-  useDbUserInRequestContext?: boolean;
   /**
    * Base URI for problem URIs. Falls back to the default URI (https://impresso-project.ch/probs) if not set
    */
@@ -70,10 +49,8 @@ export interface Config {
   appHooks?: AppHooksConfig;
   media?: MediaConfig;
   solrConfiguration: SolrConfiguration;
-  proxy?: ProxyConfig;
   recommender?: RecommenderConfig;
-  images?: ImagesConfig;
-  accessRights?: AccessRightsConfig;
+  images: ImagesConfig;
   callbackUrls?: CallbackUrlsConfig;
   /**
    * Host of the server
@@ -98,6 +75,23 @@ export interface RedisConfig {
    */
   host?: string;
   [k: string]: unknown;
+}
+/**
+ * Rate limiter configuration
+ */
+export interface RateLimiterConfig {
+  /**
+   * Enable rate limiter
+   */
+  enabled?: boolean;
+  /**
+   * Capacity of the rate limiter
+   */
+  capacity: number;
+  /**
+   * Refill rate of the rate limiter
+   */
+  refillRate: number;
 }
 /**
  * Sequelize configuration
@@ -189,8 +183,26 @@ export interface FeaturesConfig {
     enabled: boolean;
     [k: string]: unknown;
   };
+  barista?: BaristaConfig;
   [k: string]: unknown;
 }
+/**
+ * Barista configuration
+ */
+export interface BaristaConfig {
+  /**
+   * Enable Barista (off by default)
+   */
+  enabled?: boolean;
+  /**
+   * URL of the Barista chat endpoint
+   */
+  url: string;
+  [k: string]: unknown;
+}
+/**
+ * DEPRECATED. Referenced in code but not used anymore.
+ */
 export interface PaginateConfig {
   /**
    * Default limit for pagination
@@ -200,14 +212,13 @@ export interface PaginateConfig {
    * Maximum limit for pagination
    */
   max: number;
-  [k: string]: unknown;
 }
 /**
- * Celery configuration
+ * Celery task manager configuration.
  */
 export interface CeleryConfig {
   /**
-   * Enable Celery
+   * Enable Celery (disabled by default)
    */
   enable?: boolean;
   /**
@@ -218,7 +229,6 @@ export interface CeleryConfig {
    * URL of the Redis backend
    */
   backendUrl: string;
-  [k: string]: unknown;
 }
 export interface AuthConfig {
   /**
@@ -244,6 +254,10 @@ export interface AuthConfig {
    * List of authentication strategies
    */
   authStrategies?: string[];
+  /**
+   * If `true`, the user object is loaded from the db on every request. If `false` (default), the user object is created from the JWT token
+   */
+  useDbUserInRequestContext?: boolean;
   [k: string]: unknown;
 }
 /**
@@ -273,6 +287,10 @@ export interface AuthConfig1 {
    * List of authentication strategies
    */
   authStrategies?: string[];
+  /**
+   * If `true`, the user object is loaded from the db on every request. If `false` (default), the user object is created from the JWT token
+   */
+  useDbUserInRequestContext?: boolean;
   [k: string]: unknown;
 }
 export interface CacheConfig {
@@ -280,7 +298,6 @@ export interface CacheConfig {
    * Enable cache
    */
   enabled: boolean;
-  [k: string]: unknown;
 }
 export interface AppHooksConfig {
   /**
@@ -291,7 +308,6 @@ export interface AppHooksConfig {
    * List of paths to exclude from hooks
    */
   excludePaths?: string[];
-  [k: string]: unknown;
 }
 export interface MediaConfig {
   /**
@@ -375,24 +391,6 @@ export interface SolrServerNamespaceConfiguration {
    */
   schemaVersion?: string;
 }
-export interface ProxyConfig {
-  /**
-   * Host of the proxy server
-   */
-  host?: string;
-  /**
-   * List of local prefixes to replace in IIIF URLs in Issue pages
-   */
-  localPrefixes?: string[];
-  iiif?: {
-    /**
-     * If `true`, only internal IIIF URLs are allowed
-     */
-    internalOnly?: boolean;
-    [k: string]: unknown;
-  };
-  [k: string]: unknown;
-}
 export interface RecommenderConfig {
   articles: {
     endpoint?: string;
@@ -401,17 +399,50 @@ export interface RecommenderConfig {
   [k: string]: unknown;
 }
 export interface ImagesConfig {
-  visualSignature?: {
-    endpoint?: string;
-    [k: string]: unknown;
-  };
+  /**
+   * Base URL for images
+   */
+  baseUrl: string;
+  proxy: ImageProxyConfig;
+  rewriteRules?: ImageUrlRewriteRule[];
   [k: string]: unknown;
 }
-export interface AccessRightsConfig {
+/**
+ * Image and IIIF proxy configuration options
+ */
+export interface ImageProxyConfig {
+  defaultSourceId?: string;
   /**
-   * If `true`, show excerpt
+   * @minItems 1
    */
-  showExcerpt?: boolean;
+  sources: [
+    {
+      id: string;
+      endpoint: string;
+      auth?: {
+        user: string;
+        pass: string;
+      };
+    },
+    ...{
+      id: string;
+      endpoint: string;
+      auth?: {
+        user: string;
+        pass: string;
+      };
+    }[]
+  ];
+}
+export interface ImageUrlRewriteRule {
+  /**
+   * Regex Pattern to match
+   */
+  pattern: string;
+  /**
+   * Replacement for the pattern
+   */
+  replacement: string;
   [k: string]: unknown;
 }
 export interface CallbackUrlsConfig {
@@ -424,6 +455,25 @@ export interface MulterConfig {
    */
   dest: string;
   [k: string]: unknown;
+}
+
+
+/**
+ * Impresso socks proxy configuration
+ */
+export interface ImpressoProxy {
+  /**
+   * The hostname of the proxy server.
+   */
+  host: string;
+  /**
+   * The port number of the proxy server.
+   */
+  port: number;
+  /**
+   * The list of domains to route through the proxy.
+   */
+  domains: string[];
 }
 
 

@@ -6,6 +6,7 @@ import { SlimUser } from '../authentication'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '../models/authorization'
 import { BufferUserPlanGuest } from '../models/user-bitmap.model'
 import { OpenPermissions, bitmapsAlign as bitmapsAlignCheck } from '../util/bigint'
+import { ImageUrlRewriteRule } from '../models/generated/common'
 
 export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 
@@ -19,11 +20,10 @@ export const redactResponse = <S>(
 ): HookFunction<ImpressoApplication, S> => {
   return context => {
     if (context.type != 'after') throw new Error('The redactResponse hook should be used as an after hook only')
-
     if (context.result != null) {
       if (condition != null && !condition(context, context.result)) return context
-
-      context.result = redactObject(context.result, policy)
+      const rules = context.app.get('images').rewriteRules
+      context.result = redactObject(context.result, policy, rules)
     }
     return context
   }
@@ -44,17 +44,18 @@ export const redactResponseDataItem = <S>(
     if (context.type != 'after') throw new Error('The redactResponseDataItem hook should be used as an after hook only')
 
     if (context.result != null) {
+      const rules = context.app.get('images').rewriteRules
       if (dataItemsField != null) {
         const result = context.result as Record<string, any>
         result[dataItemsField] = result[dataItemsField].map((item: Redactable) => {
           if (condition != null && !condition(context, item)) return item
-          else return redactObject(item, policy)
+          else return redactObject(item, policy, rules)
         })
       } else {
         const result = context.result as any as FindResponse<Redactable>
         result.data = result.data.map(item => {
           if (condition != null && !condition(context, item)) return item
-          else return redactObject(item, policy)
+          else return redactObject(item, policy, rules)
         })
       }
     }

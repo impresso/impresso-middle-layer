@@ -1,9 +1,9 @@
 import { Hook, HookContext } from '@feathersjs/feathers'
-import { obfuscate } from '../../hooks/access-rights'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
 import { filtersToSolrQuery } from '../../hooks/search'
 import { ImpressoApplication } from '../../types'
+import { sanitizeIiifImageUrl } from '../../util/iiif'
 
 const getPrefix = (prefixes: string[], url?: string): string | undefined => {
   return url == null ? undefined : prefixes.find(prefix => url.startsWith(prefix))
@@ -19,23 +19,12 @@ const updateIiifUrls = (context: HookContext<ImpressoApplication>) => {
     throw new Error('The updateIiifUrls hook should be used as an after hook only')
   }
 
-  const proxyConfig = context.app.get('proxy')
-  const prefixes = proxyConfig?.localPrefixes
-  const host = proxyConfig?.host
+  const rewriteRules = context.app.get('images').rewriteRules
 
-  if (prefixes != null && prefixes.length > 0 && host != null) {
-    context.result?.pages?.forEach((page: Record<string, any>) => {
-      const iiifPrefix = getPrefix(prefixes, page.iiif)
-      if (iiifPrefix != null) {
-        page.iiif = page.iiif.replace(iiifPrefix, host)
-      }
-
-      const iiifThumbnailPrefix = getPrefix(prefixes, page.iiifThumbnail)
-      if (iiifThumbnailPrefix != null) {
-        page.iiif = page.iiif.replace(iiifThumbnailPrefix, host)
-      }
-    })
-  }
+  context.result?.pages?.forEach((page: Record<string, any>) => {
+    page.iiif = sanitizeIiifImageUrl(page.iiif, rewriteRules ?? [])
+    page.iiifThumbnail = sanitizeIiifImageUrl(page.iiifThumbnail, rewriteRules ?? [])
+  })
 }
 
 const hooks: { [key: string]: Hook } = {}
@@ -96,7 +85,6 @@ export default {
     find: [],
     get: [
       // change count_pages
-      obfuscate(),
       updateIiifUrls,
     ],
   },

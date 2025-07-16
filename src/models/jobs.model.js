@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import User from './users.model'
+import { logger } from '../logger'
 
 const { DataTypes } = require('sequelize')
 const Attachment = require('./attachments.model')
@@ -40,7 +41,7 @@ export default class Job {
         this.extra = JSON.parse(extra)
       } catch (e) {
         if (e.name !== 'SyntaxError') {
-          console.error(e)
+          logger.error(e)
         }
       }
     }

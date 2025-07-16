@@ -8,29 +8,23 @@ services:
     entrypoint: redis-server --appendonly yes
     ports:
       - 6379:6379
-  mysql-tunnel:
+  socks-proxy:
     image: kroniak/ssh-client
     restart: always
     volumes:
       - ./docker/config/ssh:/root/.ssh
     ports:
-      - 3306:3306
-    command: ssh -N cli-mysql-tunnel
-  new-mysql-tunnel:
-    image: kroniak/ssh-client
+      - 1080:1080
+    command: ssh -N socks-proxy
+  iml:
+    image: impresso_middle_layer
     restart: always
-    volumes:
-      - ./docker/config/ssh:/root/.ssh
+    profiles:
+      # Only active when running `docker-compose --profile iml up`
+      - iml
     ports:
-      - 3307:3307
-    command: ssh -N cli-new-mysql-tunnel
-  # uncomment to run impresso middle layer in docker
-  # iml:
-  #   image: impresso_middle_layer
-  #   restart: always
-  #   ports:
-  #     - 3030:3030
-  #   volumes:
-  #     - ./config:/impresso-middle-layer/config
-  #   environment:
-  #     - NODE_ENV=production
+      - 3030:3030
+    volumes:
+      - ./config:/impresso-middle-layer/config
+    environment:
+      - NODE_ENV=production

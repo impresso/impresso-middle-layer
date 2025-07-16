@@ -7,6 +7,8 @@ import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters 
 import { IHuman, ILocation, resolve as resolveWikidata } from '../wikidata'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { SolrNamespaces } from '../../solr'
+import { logger } from '../../logger'
+import Entity from '../../models/entities.model'
 
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:entities')
@@ -14,7 +16,6 @@ const lodash = require('lodash')
 const { Op } = require('sequelize')
 const { NotFound } = require('@feathersjs/errors')
 
-const Entity = require('../../models/entities.model')
 const { measureTime } = require('../../util/instruments')
 const { buildSearchEntitiesSolrQuery } = require('./logic')
 
@@ -110,7 +111,8 @@ class Service {
       'entities.find.solr.mentions'
     )
 
-    const entities = solrResult.response.docs.map(Entity.solrFactory())
+    const factory = Entity.solrFactory()
+    const entities = solrResult.response.docs.map(factory)
 
     debug('[find] total entities:', solrResult.response.numFound)
     // is Empty?
@@ -205,7 +207,7 @@ class Service {
         return result
       })
       .catch(err => {
-        console.error(err)
+        logger.error(err)
         return result
       })
   }

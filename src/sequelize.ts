@@ -1,8 +1,11 @@
 import { logger } from './logger'
 import Debug from 'debug'
 import { Sequelize, Options, Dialect } from 'sequelize'
-import { SequelizeConfig } from './models/generated/common'
+import { SequelizeConfig, SolrServerProxy } from './models/generated/common'
 import { ImpressoApplication } from './types'
+import { ConnectionOptions } from 'mysql2'
+import SocksConnection from './util/socks'
+import { getSocksProxyConfiguration, shouldUseSocksProxy } from './util/socksProxyConfiguration'
 
 const verbose = Debug('verbose:impresso/sequelize')
 const debug = Debug('impresso/sequelize')
@@ -15,7 +18,29 @@ const defaultPoolConfig = {
 }
 
 const getSequelizeClient = (config: SequelizeConfig) => {
-  return new Sequelize({
+  const socksProxyOptions = getSocksProxyConfiguration()
+
+  const streamGetter = shouldUseSocksProxy(config.host, socksProxyOptions)
+    ? () => {
+        logger.info(
+          `Using SOCKS proxy (${socksProxyOptions?.host}:${socksProxyOptions?.port}) for a new DB connection to ${config.host}`
+        )
+
+        return new SocksConnection(
+          {
+            host: config.host,
+            port: config.port,
+            rejectUnauthorized: false,
+          },
+          {
+            host: socksProxyOptions?.host!,
+            port: socksProxyOptions?.port!,
+          }
+        )
+      }
+    : undefined
+
+  const client = new Sequelize({
     host: config.host,
     port: config.port,
     database: config.database,
@@ -26,14 +51,14 @@ const getSequelizeClient = (config: SequelizeConfig) => {
     dialectOptions: {
       supportBigNumbers: true,
       ssl: {
-        require: true,
         // NOTE: the new DB fails this test, likely because it's
         // accessed via a SSH tunnel.
         // Since we trust the tunnel, we can disable this check.
         rejectUnauthorized: false, // Disables SSL/TLS certificate verification
       },
       connectTimeout: 300000,
-    },
+      stream: streamGetter,
+    } satisfies ConnectionOptions,
 
     pool: config.pool ?? defaultPoolConfig,
 
@@ -44,20 +69,31 @@ const getSequelizeClient = (config: SequelizeConfig) => {
     // define: {
     //   freezeTableName: true
     // }
+
+    retry: {
+      max: 5, // Maximum retry attempts
+      backoffBase: 1000, // Initial backoff in milliseconds (1 second)
+      backoffExponent: 1.5, // Exponential backoff factor
+    },
+
     logging(str) {
       verbose('cursor:', config.host, config.port, config.database)
       verbose(str)
     },
   } satisfies Options)
+
+  return { client }
 }
 
 export default function (app: ImpressoApplication) {
   const config = app.get('sequelize')
-  const sequelize = getSequelizeClient(config)
+
+  const { client } = getSequelizeClient(config)
+
   debug(`Sequelize ${config.dialect} database name: ${config.database} ..`)
   // const oldSetup = app.setup;
   // test connection
-  sequelize
+  client
     .authenticate()
     .then(() => {
       logger.info(
@@ -66,9 +102,8 @@ export default function (app: ImpressoApplication) {
     })
     .catch(err => {
       logger.error(`Unable to connect to the ${config.dialect}: ${config.database}: ${err}`)
+      throw err
     })
 
-  app.set('sequelizeClient', sequelize)
+  app.set('sequelizeClient', client)
 }
-
-export const client = getSequelizeClient

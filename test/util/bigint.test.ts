@@ -63,4 +63,9 @@ describe('bigint utils', () => {
     assert.ok(!bitmapsAlign(BigInt(0b0001), BigInt(0b1000)))
     assert.ok(!bitmapsAlign(BigInt(0b0001), BigInt(0b0100)))
   })
+
+  it('checks bitmap alignment for specific domains', () => {
+    assert.ok(bitmapsAlign(BigInt(0b1000111), BigInt(64)))
+    assert.ok(bitmapsAlign(BigInt(0b0000000000000000000000000000000000000000100000000000000000000001), BigInt(8388608)))
+  })
 })

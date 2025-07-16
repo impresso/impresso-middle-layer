@@ -1,7 +1,6 @@
 const debug = require('debug')('impresso/services:search')
 const { protobuf } = require('impresso-jscommons')
 const { NotFound, NotImplemented } = require('@feathersjs/errors')
-const sequelize = require('../../sequelize')
 const Article = require('../../models/articles.model')
 const Collection = require('../../models/collections.model')
 const Job = require('../../models/jobs.model')
@@ -23,7 +22,7 @@ class Service {
   constructor({ app, name } = {}) {
     this.app = app
     this.solr = app.service('simpleSolrClient')
-    this.sequelize = sequelize.client(app.get('sequelize'))
+    this.sequelize = app.get('sequelizeClient')
     this.name = name
   }
 

@@ -21,7 +21,7 @@ import sequelize from './sequelize'
 import services from './services'
 import rateLimiter from './services/internal/rateLimiter/redis'
 import media from './services/media'
-import proxy from './services/proxy'
+import { init as imageProxy } from './middleware/imageProxy'
 import schemas from './services/schemas'
 import { AppServices, ImpressoApplication } from './types'
 import { customJsonMiddleware } from './util/express'
@@ -56,12 +56,9 @@ app.use('/', staticMiddleware(path.join(__dirname, app.get('public') as string))
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware)
 
-// configure celery client task manage if celery config is available
-app.configure(celery)
-
 // configure express services
 app.configure(media)
-app.configure(proxy)
+app.configure(imageProxy)
 app.configure(schemas)
 
 // Enable Swagger and API validator if needed
@@ -77,6 +74,9 @@ app.configure(transport)
 // Set up our services (see `services/index.ts`)
 app.configure(authentication)
 app.configure(services)
+
+// configure celery client task manage if celery config is available
+app.configure(celery)
 
 app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startupJobs], []))
 

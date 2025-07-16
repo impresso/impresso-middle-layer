@@ -1,29 +1,30 @@
 {
   "$schema": "../src/schema/common/config.json",
-  "isPublicApi": true,
   "availablePlans": ["plan-basic", "plan-educational", "plan-researcher"],
+  "openapi": {
+    "validateRequests": true,
+    "validateResponses": true,
+    "validateSpec": true
+  },
   "allowedCorsOrigins": [
+    "http://localhost:4321",
+    "http://localhost:4173",
+    "http://localhost:5173",
     "http://localhost:8080",
     "https://impresso-project.ch/app",
     "https://dev.impresso-project.ch/app"
   ],
+  "rateLimiter": {
+    "enabled": false,
+    "capacity": 10,
+    "refillRate": 0.016
+  },
   "callbackUrls": {
     "passwordReset": "http://localhost:8080/password-reset"
   },
   "host": "localhost",
   "port": 3030,
   "public": "../public/",
-  "paginate": {
-    "default": 10,
-    "max": 50
-  },
-  "accessRights": {
-    "showExcerpt": true,
-    "enable": true,
-    "unauthorizedIIIFUrl": "unauthorized.json",
-    "unauthorizedIIIFImageUrl": "unauthorized.png",
-    "unauthorizedContent": "content not available for unauthenticated users ..."
-  },
   "features": {
     "textReuse": { "enabled": true }
   },
@@ -31,8 +32,7 @@
     "host": "localhost"
   },
   "cache": {
-    "enabled": true,
-    "override": false
+    "enabled": true
   },
   "celery": {
     "enable": false,
@@ -40,14 +40,23 @@
     "backendUrl": "redis://localhost/5"
   },
   "appHooks": {
-    "alwaysRequired": true,
-    "excludePaths": ["newspapers", "pages-timelines", "issues-timelines", "articles-timelines", "search", "images"]
+    "alwaysRequired": false,
+    "excludePaths": [
+      "search",
+      "issues",
+      "pages",
+      "articles",
+      "newspapers",
+      "pages-timelines",
+      "issues-timelines",
+      "articles-timelines"
+    ]
   },
   "authentication": {
     "entity": "user",
     "service": "users",
     "secret": "***********",
-    "authStrategies": ["jwt", "local"],
+    "authStrategies": ["local", "jwt-app", "jwt"],
     "jwtOptions": {
       "header": {
         "typ": "access"
@@ -65,7 +74,7 @@
     "cookie": {
       "enabled": true,
       "name": "feathers-jwt",
-      "httpOnly": false,
+      "httpOnly": true,
       "secure": true
     }
   },
@@ -79,35 +88,38 @@
     "dest": "/tmp/multer"
   },
   "images": {
-    "visual-signature": {
-      "endpoint": "http://localhost:8000"
-    }
-  },
-  "proxy": {
-    "host": "http://localhost:3030",
-    "iiif": {
-      "internalOnly": false,
-      "public": {
-        "endpoint": "/public-iiif"
-      },
-      "protected": {
-        "endpoint": "/protected-iiif"
-      },
-      "epfl": {
-        "endpoint": "https://...",
-        "auth": {
-          "user": "",
-          "pass": "*****"
+    "baseUrl": "http://localhost:5173/proxy/iiif",
+    "proxy": {
+      "defaultSourceId": "placeholder",
+      "sources": [
+        {
+          "id": "placeholder",
+          "endpoint": "https://example.com/iiif/",
+          "auth": {
+            "user": "user",
+            "pass": "password"
+          }
         }
+      ]
+    },
+    "rewriteRules": [
+      {
+        "pattern": "^(https://dhlabsrv17.epfl.ch/iiif_impresso)",
+        "replacement": "/proxy/iiif"
       },
-      "epflsafe": {
-        "endpoint": "https://...",
-        "auth": {
-          "user": "",
-          "pass": "*****"
-        }
+      {
+        "pattern": "^(https://impresso-project.ch/assets/images)",
+        "replacement": "/assets/images"
+      },
+      {
+        "pattern": "^(https://impresso-project.ch/api/proxy/iiif)",
+        "replacement": "/proxy/iiif"
+      },
+      {
+        "pattern": "^(https://scriptorium.bcu-lausanne.ch/api/iiif-img)",
+        "replacement": "https://www.scriptorium.ch/api/iiif-img"
       }
-    }
+    ]
   },
   "sequelize": {
     "alias": "",
@@ -138,23 +150,17 @@
       }
     ],
     "namespaces": [
-      { "namespaceId": "search", "serverId": "default", "index": "search_index" },
-      { "namespaceId": "mentions", "serverId": "default", "index": "mentions_index" },
-      { "namespaceId": "topics", "serverId": "default", "index": "topics_index" },
-      { "namespaceId": "entities", "serverId": "default", "index": "entities_index" },
-      { "namespaceId": "images", "serverId": "default", "index": "images_index" },
-      { "namespaceId": "tr_passages", "serverId": "default", "index": "tr_passages_index" },
-      { "namespaceId": "tr_clusters", "serverId": "default", "index": "tr_clusters_index" },
-      { "namespaceId": "embeddings_de", "serverId": "default", "index": "index_embeddings_de" },
-      { "namespaceId": "embeddings_fr", "serverId": "default", "index": "index_embeddings_fr" },
-      { "namespaceId": "embeddings_lb", "serverId": "default", "index": "index_embeddings_lb" },
-      { "namespaceId": "entities_mentions", "serverId": "default", "index": "mentions_entities_index" }
+      { "namespaceId": "search", "serverId": "default", "index": "impresso" },
+      { "namespaceId": "mentions", "serverId": "default", "index": "impresso_mentions_test" },
+      { "namespaceId": "topics", "serverId": "default", "index": "impresso_topics_dev" },
+      { "namespaceId": "entities", "serverId": "default", "index": "impresso_entities_dev" },
+      { "namespaceId": "images", "serverId": "default", "index": "impresso_images_dev", "schemaVersion": "v2" },
+      { "namespaceId": "tr_passages", "serverId": "default", "index": "impresso_tr_passages" },
+      { "namespaceId": "tr_clusters", "serverId": "default", "index": "impresso_tr_clusters" },
+      { "namespaceId": "word_embeddings", "serverId": "default", "index": "impresso_word_emb_dev" }
     ]
   },
   "recommender": {
-    "byTopics": {
-      "endpoint": "https://.../similar"
-    },
     "articles": {
       "endpoint": "https://.../recsys"
     }

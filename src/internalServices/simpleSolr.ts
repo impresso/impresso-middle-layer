@@ -17,6 +17,7 @@ import { serialize } from '../util/serialize'
 import { defaultCachingStrategy } from '../util/solr/cacheControl'
 import { removeNullAndUndefined } from '../util/fn'
 import { safeParseJson, safeStringifyJson } from '../util/jsonCodec'
+import { getSocksProxyConfiguration, shouldUseSocksProxy } from '../util/socksProxyConfiguration'
 
 const DefaultSuggesterDictonary = 'm_suggester_infix'
 
@@ -186,10 +187,19 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
   private _namespaces: Record<string, SolrServerNamespaceConfiguration> = {}
 
   constructor(configuration: SolrConfiguration) {
+    const socksProxyOptions = getSocksProxyConfiguration()
+
     this._pools =
       configuration?.servers?.reduce(
         (acc, server) => {
-          const socksProxy = server.proxy != null ? { host: server.proxy.host, port: server.proxy.port } : undefined
+          const socksProxy = shouldUseSocksProxy(server.baseUrl, socksProxyOptions)
+            ? { host: socksProxyOptions?.host!, port: socksProxyOptions?.port! }
+            : undefined
+          logger.info(
+            `Using ${socksProxy ? 'SOCKS proxy' : 'direct connection'} for Solr server: ${server.baseUrl}${
+              socksProxy ? ` via ${socksProxy.host}:${socksProxy.port}` : ''
+            }`
+          )
           acc[server.id] = {
             pool: initHttpPool({ socksProxy }),
             auth: server.auth,

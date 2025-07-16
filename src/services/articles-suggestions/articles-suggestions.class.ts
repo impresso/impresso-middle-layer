@@ -2,12 +2,15 @@
 import { SelectRequest, SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { SolrNamespaces } from '../../solr'
 import { asFindAll } from '../../util/solr/adapters'
+import { logger } from '../../logger'
+import { buildResolvers } from '../../internalServices/cachedResolvers'
+import { ImpressoApplication } from '../../types'
+import Article, { ARTICLE_SOLR_FL_LIST_ITEM } from '../../models/articles.model'
+
 const lodash = require('lodash')
 const { NotFound } = require('@feathersjs/errors')
 const debug = require('debug')('impresso/services:articles-suggestions')
-const Article = require('../../models/articles.model')
 const ArticleTopic = require('../../models/articles-topics.model')
-const { measureTime } = require('../../util/instruments')
 const {
   utils: { wrapAll },
 } = require('../../solr')
@@ -17,15 +20,18 @@ const SIM_BY_TOPICS_SQEDIST = 'topics_sqedist'
 
 interface Options {
   solr: SimpleSolrClient
+  app?: ImpressoApplication
 }
 
 type ArticleTopicType = typeof ArticleTopic
 
 export class ArticlesSuggestionsService {
   private readonly solr: SimpleSolrClient
+  private readonly app: ImpressoApplication | undefined
 
-  constructor({ solr }: Options) {
+  constructor({ solr, app }: Options) {
     this.solr = solr
+    this.app = app
   }
 
   async get(id: string, params: any) {
@@ -54,7 +60,7 @@ export class ArticlesSuggestionsService {
           return ArticleTopic.solrDPFsFactory(item?.topics_dpfs)
         })
         .catch(err => {
-          console.error(err)
+          logger.error(err)
           throw new NotFound()
         })
 
@@ -102,7 +108,7 @@ export class ArticlesSuggestionsService {
       const requestBody: SelectRequest['body'] = {
         query: '*:*',
         filter: `filter(topics_dpfs:*) AND NOT(id:${id})`,
-        fields: Article.ARTICLE_SOLR_FL_LIST_ITEM.concat(['dist:${topicWeight}']),
+        fields: ARTICLE_SOLR_FL_LIST_ITEM.concat(['dist:${topicWeight}']).join(','),
         offset: params.query.offset,
         limit: params.query.limit,
         sort: '${topicWeight} asc',
@@ -114,7 +120,19 @@ export class ArticlesSuggestionsService {
       })
 
       if (result.response) {
-        result.response.docs = result.response?.docs?.map(Article.solrFactory(result.response))
+        const solrFactory = Article.solrFactory(result.response)
+        const resolvers = buildResolvers(this.app!)
+
+        result.response.docs = await Promise.all(
+          result.response?.docs?.map(async doc => {
+            const article: Article = solrFactory(doc)
+
+            article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.uid)) ?? [])
+            article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])
+
+            return article as any
+          })
+        )
       }
 
       return wrapAll(result)

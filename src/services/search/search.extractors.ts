@@ -1,7 +1,7 @@
 import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
 import Article from '../../models/articles.model'
 import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'
-import { Service } from '../articles/articles.class'
+import { ContentItemService } from '../articles/articles.class'
 import { ImpressoApplication } from '../../types'
 import { buildResolvers, CachedFacetType, IResolver } from '../../internalServices/cachedResolvers'
 
@@ -43,7 +43,7 @@ function getAricleMatchesAndRegions(
  */
 export async function getItemsFromSolrResponse(
   response: any,
-  articlesService: Service,
+  articlesService: ContentItemService,
   userInfo: { user?: any; authenticated?: boolean } = {}
 ) {
   const { user, authenticated } = userInfo

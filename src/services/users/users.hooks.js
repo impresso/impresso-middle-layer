@@ -1,6 +1,5 @@
-const { protect } = require('@feathersjs/authentication-local').hooks
-const { authenticate } = require('@feathersjs/authentication').hooks
-const {
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import {
   queryWithCommonParams,
   validate,
   VALIDATE_OPTIONAL_UID,
@@ -10,9 +9,17 @@ const {
   VALIDATE_PASSWORD,
   VALIDATE_OPTIONAL_PASSWORD,
   REGEX_SLUG,
-} = require('../../hooks/params')
+} from '../../hooks/params'
+const { protect } = require('@feathersjs/authentication-local').hooks
 
 module.exports = {
+  around: {
+    get: [authenticate('jwt')],
+    find: [authenticate('jwt')],
+    update: [authenticate('jwt')],
+    patch: [authenticate('jwt')],
+    remove: [authenticate('jwt')],
+  },
   before: {
     all: [],
     find: [
@@ -22,12 +29,8 @@ module.exports = {
         ...VALIDATE_OPTIONAL_GITHUB_ID,
       }),
       queryWithCommonParams(),
-      // last not to be bothered with unvalid parameters
-      authenticate('jwt'),
     ],
-    get: [authenticate('jwt')],
     create: [
-      // authenticate('jwt'), // comment to activate public subscriptions
       validate(
         {
           username: {
@@ -53,10 +56,22 @@ module.exports = {
             choices: ['plan-basic', 'plan-educational', 'plan-researcher'],
             default: 'plan-basic',
           },
+          affiliation: {
+            required: false,
+            max_length: 255,
+            regex: /^[\p{L}\p{N}\s\-().,'&/]+$/u,
+            transform: d => d.trim(),
+          },
+          institutionalUrl: {
+            required: false,
+            max_length: 200,
+            // /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/
+            regex: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-._~:/?#[\]@!$&'()*+,;=]*)?$/,
+            transform: d => d.trim(),
+          },
           pattern: {
             required: false,
             regex: /^#[0-9a-fA-F]{2,6}(,#[0-9a-fA-F]{2,6})*$/,
-            before: d => (Array.isArray(d) ? d.join(',') : d),
           },
           ...VALIDATE_EMAIL,
           ...VALIDATE_PASSWORD,
@@ -67,12 +82,11 @@ module.exports = {
     ],
     update: [
       // hashPassword(),
-      authenticate('jwt'),
     ],
     patch: [
       // hashPassword(),
       //
-      authenticate('jwt'),
+
       validate(
         {
           ...VALIDATE_OPTIONAL_PASSWORD,
@@ -80,7 +94,6 @@ module.exports = {
         'POST'
       ),
     ],
-    remove: [authenticate('jwt')],
   },
 
   after: {

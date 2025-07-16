@@ -3,7 +3,6 @@ import { ClientService, Id, Params } from '@feathersjs/feathers'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { Filter } from '../../models'
 import { PublicFindResponse } from '../../models/common'
-import { ProxyConfig } from '../../models/generated/common'
 import { Image, MediaSource } from '../../models/generated/schemas'
 import { Image as ImageDocument } from '../../models/generated/solr'
 import { SolrNamespaces } from '../../solr'
@@ -11,9 +10,10 @@ import { sanitizeIiifImageUrl } from '../../util/iiif'
 import { filtersToSolrQueries } from '../../util/solr'
 import { MediaSources } from '../media-sources/media-sources.class'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
+import { ImageUrlRewriteRule } from '../../models/generated/common'
 
 const DefaultLimit = 10
-const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024'
+export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024'
 
 const OrderByParamToSolrFieldMap = {
   date: 'meta_date_dt asc',
@@ -31,11 +31,13 @@ export interface FindQuery {
   order_by?: OrderByParam
 }
 
-export class Images implements Pick<ClientService<Image, unknown, unknown, PublicFindResponse<Image>>, 'find' | 'get'> {
+type ImageService = Pick<ClientService<Image, unknown, unknown, PublicFindResponse<Image>>, 'find' | 'get'>
+
+export class Images implements ImageService {
   constructor(
     private readonly solrClient: SimpleSolrClient,
     private mediaSources: MediaSources,
-    private imageProxyConfig: ProxyConfig
+    private rewriteRules: ImageUrlRewriteRule[]
   ) {}
 
   async find(params?: Params<FindQuery>): Promise<PublicFindResponse<Image>> {
@@ -85,7 +87,7 @@ export class Images implements Pick<ClientService<Image, unknown, unknown, Publi
     const mediaSourceLookup = await this.mediaSources.getLookup()
 
     return {
-      data: results?.response?.docs?.map(d => toImage(d, mediaSourceLookup, this.imageProxyConfig)) ?? [],
+      data: results?.response?.docs?.map(d => toImage(d, mediaSourceLookup, this.rewriteRules)) ?? [],
       pagination: {
         limit,
         offset,
@@ -99,7 +101,7 @@ export class Images implements Pick<ClientService<Image, unknown, unknown, Publi
     if (imageDoc == null) throw new NotFound(`Image with id ${id} not found`)
     const mediaSourceLookup = await this.mediaSources.getLookup()
 
-    return toImage(imageDoc, mediaSourceLookup, this.imageProxyConfig)
+    return toImage(imageDoc, mediaSourceLookup, this.rewriteRules)
   }
 
   async getImageDocument(id: string, fields?: (keyof ImageDocument)[]): Promise<ImageDocument | undefined> {
@@ -113,13 +115,13 @@ export class Images implements Pick<ClientService<Image, unknown, unknown, Publi
 const toImage = (
   doc: ImageDocument,
   mediaSources: Record<string, MediaSource>,
-  imageProxyConfig: ProxyConfig
+  rewriteRules: ImageUrlRewriteRule[]
 ): Image => {
   return {
     uid: doc.id!,
     ...(doc.linked_ci_s != null ? { contentItemUid: doc.linked_ci_s } : {}),
     issueUid: doc.meta_issue_id_s!,
-    previewUrl: sanitizeIiifImageUrl(doc.iiif_link_s! ?? doc.iiif_url_s!, imageProxyConfig),
+    previewUrl: sanitizeIiifImageUrl(doc.iiif_link_s! ?? doc.iiif_url_s!, rewriteRules),
     date: doc.meta_date_dt!,
     ...(doc.caption_txt != null ? { caption: doc.caption_txt.join('\n') } : {}),
     ...(doc.page_nb_is != null ? { pageNumbers: doc.page_nb_is } : {}),

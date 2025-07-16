@@ -12,6 +12,7 @@ export type SolrNamespace =
   | 'embeddings_de'
   | 'embeddings_fr'
   | 'embeddings_lb'
+  | 'word_embeddings'
   | 'entities_mentions'
 
 export const SolrNamespaces = Object.freeze({
@@ -25,6 +26,7 @@ export const SolrNamespaces = Object.freeze({
   EmbeddingsDE: 'embeddings_de',
   EmbeddingsFR: 'embeddings_fr',
   EmbeddingsLB: 'embeddings_lb',
+  WordEmbeddings: 'word_embeddings',
   EntitiesMentions: 'entities_mentions',
 }) satisfies Record<string, SolrNamespace>
 
@@ -89,8 +91,10 @@ const logUnsuccessfulResponses = async (url: string, method: string, body: any, 
 }
 
 const defaultRetryOptions: FetchOptions['retryOptions'] = {
-  maxRetries: 3,
-  maxTimeout: 10000,
+  maxRetries: 2,
+  maxTimeout: 1000,
+  minTimeout: 100,
+  timeoutFactor: 3,
   // excluding 500 - it often means the query is not correct
   statusCodes: [502, 503, 504, 429],
 }
@@ -115,7 +119,7 @@ const wrapAll = (res: Record<string, any>) => {
       limit = typeof params.rows === 'number' ? params.rows : limit
       offset = typeof params.start === 'number' ? params.start : offset
     } catch (e) {
-      console.warn(e)
+      logger.warning(e)
     }
   }
   return {

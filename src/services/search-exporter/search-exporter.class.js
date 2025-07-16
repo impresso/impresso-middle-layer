@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { logger } from '../..'
 const debug = require('debug')('impresso/services:search-exporter')
 const { NotFound, NotImplemented } = require('@feathersjs/errors')
 const { protobuf } = require('impresso-jscommons')
@@ -53,7 +54,7 @@ class Service {
           // probably db is not availabe
           throw new NotImplemented()
         }
-        console.error(err)
+        logger.error(err)
         throw new NotImplemented()
       })
   }

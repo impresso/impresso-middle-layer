@@ -801,7 +801,7 @@ export interface EntityDetails {
    * Entity name
    */
   name: string;
-  type: "person" | "location";
+  type: "person" | "location" | "organisation" | "newsagency";
   /**
    * TODO
    */
@@ -2397,6 +2397,25 @@ export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
     [k: string]: unknown;
   }[];
   [k: string]: unknown;
+}
+
+
+/**
+ * Represents a word match result from word embeddings similarity search
+ */
+export interface WordMatch {
+  /**
+   * Unique identifier for the word
+   */
+  id: string;
+  /**
+   * The language code of the word
+   */
+  languageCode: string;
+  /**
+   * The word
+   */
+  word: string;
 }
 
 
