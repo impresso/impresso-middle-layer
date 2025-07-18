@@ -36,7 +36,7 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
   if (!('docs' in app))
     throw new Error('`docs` property not found in app object. Is swagger initialized? (app.use(swager))')
 
-  const spec = (app as any)['docs'] as unknown as OpenAPIV3.Document
+  const spec = (app as any)['docs'] as unknown as OpenAPIV3.DocumentV3
 
   const options: Omit<OpenApiValidatorOpts, 'apiSpec'> = {
     validateRequests:
@@ -121,7 +121,7 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
   if (!('docs' in app))
     throw new Error('`docs` property not found in app object. Is swagger initialized? (app.use(swager))')
 
-  const spec = (app as any)['docs'] as unknown as OpenAPIV3.Document
+  const spec = (app as any)['docs'] as unknown as OpenAPIV3.DocumentV3
 
   const options = app.get('openApiMiddlewareOpts')
   if (options == null)
@@ -143,7 +143,7 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
   await next()
 }
 
-const dereferenceSpec = async (spec: OpenAPIV3.Document) => {
+const dereferenceSpec = async (spec: OpenAPIV3.DocumentV3) => {
   // NOTE: mutates original spec
   // This is done on purpose because we want to serve the original spec dereferenced.
   await RefParser.bundle(spec, {
