@@ -25,7 +25,7 @@ class Service {
       app,
       name,
     })
-    this.solrFactory = require(`../../models/${this.name}.model`).solrFactory
+    this.solrFactory = require(`../../models/${this.name}.model`).default.solrFactory
   }
 
   get solr() {
