@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "An entity mention in a content item",
+  "type": "object",
+  "title": "EntityMention",
+  "additionalProperties": false,
+  "properties": {
+    "entityId": {
+      "type": "string",
+      "description": "Unique identifier of the entity"
+    },
+    "ciId": {
+      "type": "string",
+      "description": "Content item ID"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of the entity"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the entity"
+    },
+    "t": {
+      "type": "string",
+      "description": "Surface text"
+    },
+    "l": {
+      "type": "number",
+      "description": "Left offset (start)"
+    },
+    "r": {
+      "type": "number",
+      "description": "Right offset (end)"
+    },
+    "confidenceNel": {
+      "type": ["number", "null"],
+      "description": "Confidence score for Named Entity Linking"
+    },
+    "confidenceNer": {
+      "type": ["number", "null"],
+      "description": "Confidence score for Named Entity Recognition"
+    },
+    "contentItem": {
+      "$ref": "./contentItem/ContentItem.json"
+    },
+    "context": {
+      "type": "string",
+      "description": "Context of the mention in text, if available"
+    }
+  },
+  "required": ["entityId", "ciId", "type", "t", "l", "r"]
+}

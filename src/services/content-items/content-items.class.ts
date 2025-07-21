@@ -94,7 +94,7 @@ interface ServiceOptions {
   app: ImpressoApplication
 }
 
-interface FindOptions {
+export interface FindOptions {
   query: {
     filters?: any[]
 
@@ -110,7 +110,7 @@ interface FindOptions {
     collapse_fn?: string
     requestOriginalPath?: boolean
   }
-  user: SlimUser
+  user?: SlimUser
 
   // things needed by SolService.find
   fl?: string[]

@@ -5,14 +5,15 @@ import { protobuf } from 'impresso-jscommons'
 import { Sequelize } from 'sequelize'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import Collection from '../../models/collections.model'
-import { PublicFindResponse } from '../../models/common'
+import { FindResponse } from '../../models/common'
 import { ContentItem } from '../../models/generated/schemas/contentItem'
 import Job from '../../models/jobs.model'
 import { ImpressoApplication } from '../../types'
+import { FindOptions } from '../content-items/content-items.class'
 
 const debugLog = debug('impresso/services:search')
 
-type SearchService = Pick<ClientService<ContentItem, unknown, unknown, PublicFindResponse<ContentItem>>, 'find'>
+type SearchService = Pick<ClientService<ContentItem, unknown, unknown, FindResponse<ContentItem>>, 'find'>
 
 class Service implements SearchService {
   solr: SimpleSolrClient
@@ -28,7 +29,7 @@ class Service implements SearchService {
    * Proxy for `content-items.find()`.
    * Used in the public API.
    */
-  async find(params: any) {
+  async find(params: FindOptions) {
     return await this.app.service('content-items').find(params)
   }
 
