@@ -148,7 +148,7 @@ class ArticleMatch extends Fragment implements ContentItemTextMatch {
   }
 }
 
-export class BaseArticle implements Omit<ContentItem, 'labels' | 'year'> {
+export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> {
   uid: string
   type: string
   title: string
@@ -237,13 +237,15 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year'> {
 
 type ContentItemWithCorrectTypes = Omit<
   ContentItem,
-  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages'
+  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages' | 'topics' | 'id'
 > & {
+  uid: string
   issue?: Issue
   date?: Date
   bitmapExplore?: bigint
   bitmapGetTranscript?: bigint
   bitmapGetImages?: bigint
+  topics?: ArticleTopic[]
 }
 
 class Article extends BaseArticle implements ContentItemWithCorrectTypes {

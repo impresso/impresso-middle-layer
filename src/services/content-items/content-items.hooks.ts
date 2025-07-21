@@ -16,6 +16,8 @@ import { filtersToSolrQuery } from '../../hooks/search'
 import { SolrMappings } from '../../data/constants'
 import { eachFilterValidator } from '../search/search.validators'
 import { transformBaseFind } from '../../transformers/base'
+import { ApplicationHookOptions } from '@feathersjs/feathers'
+import { ImpressoApplication } from '../../types'
 
 export const contentItemRedactionPolicy = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicy.yml`
@@ -98,4 +100,4 @@ export default {
     patch: [],
     remove: [],
   },
-}
+} satisfies ApplicationHookOptions<ImpressoApplication>

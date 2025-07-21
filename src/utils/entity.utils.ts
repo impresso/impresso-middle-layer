@@ -2,12 +2,22 @@
  * Entity-related utility functions
  */
 
-export const TypeCodeToType: Record<string, string> = {
-  '50': 'person',
-  '53': 'organisation',
-  '54': 'location',
-  '55': 'newsagency',
-}
+import { EntityDetails } from '../models/generated/schemas'
+
+export const EntityCodes = {
+  50: 'person',
+  53: 'organisation',
+  54: 'location',
+  55: 'newsagency',
+} satisfies Record<number, EntityDetails['type']>
+
+export const TypeCodeToType = Object.entries(EntityCodes).reduce(
+  (acc, [key, value]) => {
+    acc[key] = value
+    return acc
+  },
+  {} as Record<string, EntityDetails['type']>
+)
 
 export const TypeShorthandToType: Record<string, string> = {
   pers: 'person',

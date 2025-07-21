@@ -19,7 +19,7 @@ export interface AppServices {
   // Services
   ['media-sources']: MediaSources
   newspapers: NewspapersService
-  ['content-item']: ContentItemService
+  ['content-items']: ContentItemService
 }
 
 export type ImpressoApplication = Application<AppServices & Record<string, any>, Configuration>

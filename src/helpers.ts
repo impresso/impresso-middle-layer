@@ -1,48 +1,58 @@
-const truncatise = require('truncatise');
-const debug = require('debug')('impresso/helpers');
-const verbose = require('debug')('verbose:impresso/helpers');
+const truncatise = require('truncatise')
+const debug = require('debug')('impresso/helpers')
+const verbose = require('debug')('verbose:impresso/helpers')
+
+interface Token {
+  uid?: string
+  l: number // left offset (start)
+  r: number // right offset (end)
+  t?: string // text content
+  ref?: Token[] // references
+  attr?: string // attribute for the reference
+  g?: Token[] // group of tokens
+}
+
 /**
  * Compare two tokens and check if they overlap
- * @param {Token} a in b
- * @param {Token} b
  */
-const hasOverlaps = (a, b) => !(a.r <= b.l || a.l >= b.r);
+const hasOverlaps = (a: Token, b: Token) => !(a.r <= b.l || a.l >= b.r)
 
-// const lodash = require('lodash');
 /**
  * create a markdown
  *
  * @param {string} uid text to cut
  *
  */
-const annotate = (tokens, uid, left, right, attr = 'ref') => {
-  debug(`annotate: ${attr}=${uid} (${left}, ${right})`);
+const annotate = (tokens: Token[], uid: string, left: number, right: number, attr = 'ref') => {
+  debug(`annotate: ${attr}=${uid} (${left}, ${right})`)
   for (let i = 0, l = tokens.length; i < l; i += 1) {
     // is included, continue on the next line
 
     if (hasOverlaps({ l: left, r: right }, tokens[i])) {
       if (!tokens[i].ref) {
-        tokens[i].ref = [];
+        tokens[i].ref = []
       }
-      tokens[i].attr = attr;
-      tokens[i].ref.push({
+      tokens[i].attr = attr
+      tokens[i].ref?.push({
         uid,
         l: left,
         r: right,
-      });
+      })
     }
   }
-};
+}
 
-const seek = (tokens, splitpoints) => {
-  let offsetIndex = 0;
-  const clusters = [];
+const seek = (tokens: Token[], splitpoints: number[]) => {
+  let offsetIndex = 0
+  const clusters = []
 
   if (!splitpoints.length) {
-    return [{
-      g: tokens,
-      r: tokens[tokens.length - 1].r,
-    }];
+    return [
+      {
+        g: tokens,
+        r: tokens[tokens.length - 1].r,
+      },
+    ]
   }
 
   for (let i = 0, l = splitpoints.length; i < l; i += 1) {
@@ -51,10 +61,10 @@ const seek = (tokens, splitpoints) => {
         clusters.push({
           g: tokens.slice(offsetIndex, j),
           r: tokens[j - 1].r,
-        });
+        })
         // console.log(tokens.slice(offsetIndex, j));
-        offsetIndex = j;
-        break;
+        offsetIndex = j
+        break
       }
       // console.log(i, tokens[j].r, splitpoints[i], offsetIndex);
     }
@@ -63,9 +73,9 @@ const seek = (tokens, splitpoints) => {
   clusters.push({
     g: tokens.slice(offsetIndex - 1),
     r: tokens[tokens.length - 1].r,
-  });
-  return clusters;
-};
+  })
+  return clusters
+}
 
 /**
  * Cut a text according to splitpoints
@@ -74,23 +84,27 @@ const seek = (tokens, splitpoints) => {
  * @param {Array} splitpoints
  * @return array of chunks objects {t:'', r:124}
  */
-const sliceAtSplitpoints = (text, splitpoints, origin = 0) => {
+const sliceAtSplitpoints = (text: string, splitpoints: number[], origin = 0) => {
   if (!Array.isArray(splitpoints) || !splitpoints.length) {
-    return [{
-      t: text,
-      r: text.length,
-      l: 0,
-    }];
+    return [
+      {
+        t: text,
+        r: text.length,
+        l: 0,
+      },
+    ]
     // throw new Error('sliceAtIndices: the list of splitpoints is empty!');
   }
-  verbose(`sliceAtIndices: text length of ${text.length} chars with ${splitpoints.length} splitpoints`);
+  verbose(`sliceAtIndices: text length of ${text.length} chars with ${splitpoints.length} splitpoints`)
 
   // initialize chunks with first splitpoint
-  const chunks = [{
-    t: text.slice(0, splitpoints[0] - origin),
-    r: splitpoints[0],
-    l: origin,
-  }];
+  const chunks = [
+    {
+      t: text.slice(0, splitpoints[0] - origin),
+      r: splitpoints[0],
+      l: origin,
+    },
+  ]
 
   // generate text splitpoints
   for (let i = 1, l = splitpoints.length; i < l; i += 1) {
@@ -98,7 +112,7 @@ const sliceAtSplitpoints = (text, splitpoints, origin = 0) => {
       t: text.slice(splitpoints[i - 1] - origin, splitpoints[i] - origin),
       r: splitpoints[i],
       l: splitpoints[i - 1],
-    });
+    })
   }
 
   // add final token
@@ -106,75 +120,80 @@ const sliceAtSplitpoints = (text, splitpoints, origin = 0) => {
     t: text.slice(splitpoints[splitpoints.length - 1] - origin),
     r: text.length + origin,
     l: splitpoints[splitpoints.length - 1],
-  });
-  return chunks;
-};
+  })
+  return chunks
+}
 
-const getSplitpointsFromRefs = (refs, leftLimit, rightLimit) => {
-  const indices = {};
+const getSplitpointsFromRefs = (refs: { l: number; r: number }[], leftLimit: number, rightLimit: number) => {
+  const indices: { [key: number]: boolean } = {}
   for (let i = 0, l = refs.length; i < l; i += 1) {
     if (refs[i].r < rightLimit) {
-      indices[refs[i].r] = true;
+      indices[refs[i].r] = true
     }
     if (refs[i].l < rightLimit && refs[i].l > leftLimit) {
-      indices[refs[i].l] = true;
+      indices[refs[i].l] = true
     }
   }
-  return Object.keys(indices).map(d => parseInt(d, 10)).sort();
-};
+  return Object.keys(indices)
+    .map(d => parseInt(d, 10))
+    .sort()
+}
 
 /**
  * @param {Array} tokens
  * @return tokens with merged annotations
  */
-const render = (tokens) => {
-  let md = [];
+const render = (tokens: Token[]) => {
+  let md: string[] = []
   // for each tockens, get all sliceAtSplitpoints
   for (let i = 0, l = tokens.length; i < l; i += 1) {
     if (tokens[i].g) {
-      md = md.concat(render(tokens[i].g));
+      md = md.concat(render(tokens[i].g ?? []))
     } else if (tokens[i].ref) {
       // get all possible splitpoints based on REFS
-      const splitpoints = getSplitpointsFromRefs(tokens[i].ref, tokens[i].l, tokens[i].r);
+      const splitpoints = getSplitpointsFromRefs(tokens[i].ref ?? [], tokens[i].l, tokens[i].r)
       // console.log('render', tokens[i].t, splitpoints, tokens[i].l);
       if (splitpoints.length) {
         // chunk text based on those splitpoints
-        const chunks = sliceAtSplitpoints(tokens[i].t, splitpoints, tokens[i].l);
+        const chunks: any[] = sliceAtSplitpoints(tokens[i].t ?? '', splitpoints, tokens[i].l)
 
         // loop chunks in REFS to check which chunk contains exactly which ref
         for (let ii = 0, ll = chunks.length; ii < ll; ii += 1) {
           // console.log('... chunk: ', `'${chunks[ii].t}'`, chunks[ii].l, chunks[ii].r);
 
-          for (let iii = 0, lll = tokens[i].ref.length; iii < lll; iii += 1) {
-            if (hasOverlaps(tokens[i].ref[iii], chunks[ii])) {
+          for (let iii = 0, lll = tokens[i].ref?.length; iii < (lll ?? 0); iii += 1) {
+            const t = tokens[i].ref?.[iii]
+            if (t && hasOverlaps(t, chunks[ii])) {
               // console.log('      => found', tokens[i].ref[iii].l, tokens[i].ref[iii].r);
-              if (!chunks[ii].ref) {
-                chunks[ii].ref = [];
+              if (!chunks[ii]?.ref) {
+                chunks[ii].ref = []
               }
-              chunks[ii].attr = tokens[i].attr;
-              chunks[ii].ref.push(tokens[i].ref[iii]);
+              chunks[ii].attr = tokens[i].attr
+              chunks[ii].ref.push(t)
             }
           }
         }
 
-        md.push(chunks
-          .map((c) => {
-            if (!c.ref) {
-              return c.t;
-            }
-            return `<span ${c.attr}="${c.ref.map(d => d.uid).join(' ')}">${c.t}</span>`;
-          })
-          .join(''));
+        md.push(
+          chunks
+            .map(c => {
+              if (!c.ref) {
+                return c.t
+              }
+              return `<span ${c.attr}="${c.ref.map((d: { uid: string }) => d.uid).join(' ')}">${c.t}</span>`
+            })
+            .join('')
+        )
       } else {
         // no splitpoints, no internal chunks.
-        md.push(`<span ${tokens[i].attr}="${tokens[i].ref.map(d => d.uid).join(' ')}">${tokens[i].t}</span>`);
+        md.push(`<span ${tokens[i].attr}="${tokens[i]?.ref?.map(d => d.uid).join(' ')}">${tokens[i].t}</span>`)
       }
     } else if (tokens[i].t) {
-      md.push(tokens[i].t);
+      md.push(tokens[i].t as string)
     }
   }
-  return md;
-};
+  return md
+}
 
 /**
  * Cut a text according to splitpoints. Return a d3
@@ -183,54 +202,53 @@ const render = (tokens) => {
  * @param {Array} thresholds list of indices
  * @param {Array} otherThresholds optional, rest
  */
-const toHierarchy = (chunks, thresholds, ...otherThresholds) => {
-  debug(`toHierarchy: from ${chunks.length} chunks, ${thresholds.length} initital threshold, ${otherThresholds.length} additional lists of nodes`);
+const toHierarchy = (chunks: any[], thresholds: number[], ...otherThresholds: number[][]) => {
+  debug(
+    `toHierarchy: from ${chunks.length} chunks, ${thresholds.length} initital threshold, ${otherThresholds.length} additional lists of nodes`
+  )
 
-  let clusters = seek(chunks, thresholds);
+  let clusters = seek(chunks, thresholds)
   // recursively with remaining nodes, if any.
-  otherThresholds.forEach((threshold) => {
-    clusters = seek(clusters, threshold);
-  });
+  otherThresholds.forEach(threshold => {
+    clusters = seek(clusters as any, threshold)
+  })
 
-  debug('toHierarchy: done.');
-  return clusters;
-};
+  debug('toHierarchy: done.')
+  return clusters
+}
 
 /**
  * Cut a text to create a very nice Excerpt.
  *
  */
-const toExcerpt = (content, {
-  TruncateBy = 'words',
-  TruncateLength = 50,
-  excludeTitle = '',
-  Suffix = '...',
-  maxLength = 120,
-} = {}) => {
-  let c = String(content);
+const toExcerpt = (
+  content: string,
+  { TruncateBy = 'words', TruncateLength = 50, excludeTitle = '', Suffix = '...', maxLength = 120 } = {}
+) => {
+  let c = String(content)
   if (excludeTitle.length && c.indexOf(excludeTitle) === 0) {
-    c = c.substr(excludeTitle.length);
+    c = c.substr(excludeTitle.length)
   }
   // clean
-  c = c.split('<').join('&lt;').split('>').join('&rt;');
+  c = c.split('<').join('&lt;').split('>').join('&rt;')
   const exc = truncatise(c, {
     TruncateBy,
     TruncateLength,
     Suffix,
-  });
+  })
   if (exc > maxLength) {
     return truncatise(c, {
       TruncateBy: 'characters',
       maxLength,
       Suffix,
-    });
+    })
   }
   // npm i truncate
-  return exc;
-};
+  return exc
+}
 
-const latinise = (t) => {
-  const mapper = {
+const latinise = (t: string) => {
+  const mapper: Record<string, string> = {
     Á: 'A',
     Ă: 'A',
     Ắ: 'A',
@@ -1055,16 +1073,16 @@ const latinise = (t) => {
     ᵤ: 'u',
     ᵥ: 'v',
     ₓ: 'x',
-  };
-  return t.replace(/[^A-Za-z0-9[\] ]/g, a => mapper[a] || a);
-};
+  }
+  return t.replace(/[^A-Za-z0-9[\] ]/g, a => mapper[a] || a)
+}
 
 /**
  * [toPlainText description]
  * @param  {String} q dirty string
  * @return {String}   cleaned string
  */
-const toPlainText = q => q.replace(/[^\s0-9A-zÀ-Ÿ ']|[[\]]/g, ' ').trim();
+const toPlainText = (q: string) => q.replace(/[^\s0-9A-zÀ-Ÿ ']|[[\]]/g, ' ').trim()
 
 /**
  * Cut a text around a left right annotation.
@@ -1072,39 +1090,46 @@ const toPlainText = q => q.replace(/[^\s0-9A-zÀ-Ÿ ']|[[\]]/g, ' ').trim();
  * @return {String}   cleaned string
  */
 const toTextWrap = ({
-  text, l, r, d = 25, minD = 10, html = true, ref = 'highlight', attr = 'class',
-} = {}) => {
-  let ll = Math.max(0, l - d);
-  let rr = Math.min(r + d, text.length);
+  text,
+  l,
+  r,
+  d = 25,
+  minD = 10,
+  html = true,
+  ref = 'highlight',
+  attr = 'class',
+}: {
+  text: string
+  l: number
+  r: number
+  d?: number
+  minD?: number
+  html?: boolean
+  ref?: string
+  attr?: string
+}) => {
+  let ll = Math.max(0, l - d)
+  let rr = Math.min(r + d, text.length)
   // first non word character, not to cut words
   if (ll > 0) {
-    const mlnw = text.substring(ll).match(/[^\w]/);
+    const mlnw = text.substring(ll).match(/[^\w]/)
     if (mlnw) {
       // add offset only if it is less than l ...
-      ll = Math.min(ll + mlnw.index, l - minD);
+      ll = Math.min(ll + (mlnw?.index ?? 0), l - minD)
     }
   }
-  const mrnw = text.substring(ll, rr).match(/([^\w])\w*$/);
+  const mrnw = text.substring(ll, rr).match(/([^\w])\w*$/)
   if (mrnw) {
     // add offset only if it is less than l ...
-    rr = Math.max(ll + mrnw.index, r + minD);
+    rr = Math.max(ll + (mrnw?.index ?? 0), r + minD)
   }
-  const wrapped = text.slice(ll, rr);
+  const wrapped = text.slice(ll, rr)
   if (!html) {
-    return wrapped;
+    return wrapped
   }
-  const lines = sliceAtSplitpoints(wrapped, []);
-  annotate(lines, ref, l - ll, r - ll, attr);
-  return render(lines).pop();
-};
+  const lines = sliceAtSplitpoints(wrapped, [])
+  annotate(lines, ref, l - ll, r - ll, attr)
+  return render(lines).pop()
+}
 
-module.exports = {
-  toHierarchy,
-  sliceAtSplitpoints,
-  annotate,
-  render,
-  toExcerpt,
-  latinise,
-  toPlainText,
-  toTextWrap,
-};
+export { toHierarchy, sliceAtSplitpoints, annotate, render, toExcerpt, latinise, toPlainText, toTextWrap }
