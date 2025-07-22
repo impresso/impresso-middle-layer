@@ -8,8 +8,6 @@ import {
   getStandardResponses,
 } from '../../util/openapi'
 
-const SupportedIndexes = Object.keys(SolrMappings)
-
 export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images'
 
 export const facetTypes: Record<IndexId, string[]> = {

@@ -15,7 +15,16 @@ import {
   Newspaper as INewspaper,
   Partner as IPartner,
 } from '../models/generated/schemas'
-export type CachedFacetType = 'newspaper' | 'topic' | 'person' | 'location' | 'collection' | 'year' | 'partner'
+export type CachedFacetType =
+  | 'newspaper'
+  | 'topic'
+  | 'person'
+  | 'location'
+  | 'collection'
+  | 'year'
+  | 'partner'
+  | 'nag'
+  | 'organisation'
 export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | INewspaper | IPartner
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
@@ -28,6 +37,8 @@ export type ICachedResolvers = {
   collection: IResolver<ICollection>
   year: IResolver<IYear>
   partner: IResolver<IPartner>
+  nag: IResolver<IEntity>
+  organisation: IResolver<IEntity>
 }
 
 // Record<CachedFacetType, IResolver<T>>
@@ -83,5 +94,7 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     year: getYearResolver(app),
     newspaper: getNewspaperResolver(app),
     partner: getPartnerResolver(app),
+    nag: (id: string) => entityResolver(id, 'nag'),
+    organisation: (id: string) => entityResolver(id, 'organisation'),
   }
 }

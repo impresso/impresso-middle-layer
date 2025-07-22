@@ -205,7 +205,7 @@ export class Service {
 
     const facets = types.reduce(
       (acc, facetType) => {
-        const facetParams = indexFacets[facetType]
+        const facetParams = indexFacets[facetType as keyof typeof indexFacets] as SolrFacetQueryParams
         if (isSolrTermsFacetQueryParams(facetParams)) {
           const combinedParams: SolrTermsFacetQueryParams = {
             ...facetParams,
@@ -259,7 +259,7 @@ export class Service {
 
     return Promise.all(
       types.map(async facetType => {
-        const facetParams = indexFacets[facetType]
+        const facetParams = indexFacets[facetType as keyof typeof indexFacets] as SolrFacetQueryParams
 
         if (isSolrTermsFacetQueryParams(facetParams)) {
           const facetDetails: ISolrResponseTermsFacetDetails | undefined = resultFacets[facetType]
