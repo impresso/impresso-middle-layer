@@ -1,4 +1,4 @@
-import { SolrMappings } from '../data/constants'
+import { Indexes, SolrMappings } from '../data/constants'
 import { SolrRangeFacetQueryParams } from '../data/types'
 import { SimpleSolrClient } from '../internalServices/simpleSolr'
 import { logger } from '../logger'
@@ -23,7 +23,7 @@ export const loadFacetRanges = async (solrClient: SimpleSolrClient): Promise<All
   const allRanges: AllFacetRanges = {}
 
   // Iterate over each configured Solr index (namespace)
-  for (const index of Object.keys(SolrMappings)) {
+  for (const index of Indexes) {
     const indexConfig = SolrMappings[index]
 
     // Identify range facets for the current index

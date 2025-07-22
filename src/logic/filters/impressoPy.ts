@@ -1,6 +1,6 @@
 import { Filter, FilterPrecision, FilterType, FilterContext, FilterOperator } from 'impresso-jscommons'
 
-const FilterTypeToPythonArgumentName: Record<FilterType, string> = {
+const FilterTypeToPythonArgumentName = {
   string: 'term',
   accessRight: '',
   collection: 'collection_id',
@@ -35,7 +35,10 @@ const FilterTypeToPythonArgumentName: Record<FilterType, string> = {
   type: '',
   uid: '',
   wikidataId: 'wikidata_id',
-}
+  sourceType: '',
+  sourceMedium: '',
+  organisation: '',
+} satisfies Record<FilterType, string>
 
 const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']
 const NumericRangeTypes: FilterType[] = [
