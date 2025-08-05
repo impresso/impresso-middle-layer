@@ -48,7 +48,7 @@ export default class ContentItemPage implements ContentItemPageAttributes {
           type: DataTypes.SMALLINT,
           field: 'has_corrupted_json',
         },
-        iiif: {
+        iiifManifest: {
           type: DataTypes.STRING(200),
           field: 'iiif_manifest',
         },
