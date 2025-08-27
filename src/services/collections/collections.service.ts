@@ -6,8 +6,6 @@ import { ServiceOptions } from '@feathersjs/feathers'
 
 // Initializes the `collections` service on path `/collections`
 const createService = require('./collections.class.js')
-// const hooks = require('./collections.hooks')
-
 const init = (app: ImpressoApplication) => {
   const paginate = app.get('paginate')
   const isPublicApi = app.get('isPublicApi') ?? false
