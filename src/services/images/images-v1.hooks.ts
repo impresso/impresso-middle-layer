@@ -2,12 +2,7 @@
  * @deprecated This file will be removed once we switch to the new Solr.
  */
 import { loadYamlFile } from '../../util/yaml'
-import {
-  RedactionPolicy,
-  redactResponse,
-  redactResponseDataItem,
-  webAppExploreRedactionCondition,
-} from '../../hooks/redaction'
+import { RedactionPolicy, redactResponse, redactResponseDataItem, unlessHasPermission } from '../../hooks/redaction'
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../../types'
 import { Image } from '../../models/generated/schemas'
@@ -15,6 +10,7 @@ import { ImageUrlRewriteRule } from '../../models/generated/common'
 import { sanitizeIiifImageUrl } from '../../util/iiif'
 import { protobuf } from 'impresso-jscommons'
 import { BadRequest } from '@feathersjs/errors'
+import { inWebAppApi } from '../../hooks/appMode'
 
 // const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
@@ -217,9 +213,12 @@ export default {
       resolveQueryComponents(),
       updateIiifUrls,
       convertItemsToNewImageFormat,
-      redactResponseDataItem(imageRedactionPolicy, webAppExploreRedactionCondition),
+      ...inWebAppApi([redactResponseDataItem(imageRedactionPolicy, unlessHasPermission('explore'))]),
     ],
-    get: [convertItemToNewImageFormat, redactResponse(imageRedactionPolicy, webAppExploreRedactionCondition)],
+    get: [
+      convertItemToNewImageFormat,
+      ...inWebAppApi([redactResponse(imageRedactionPolicy, unlessHasPermission('explore'))]),
+    ],
     create: [],
     update: [],
     patch: [],

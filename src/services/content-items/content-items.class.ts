@@ -211,9 +211,12 @@ export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHi
   }
 }
 
-export class ContentItemService
-  implements Pick<ClientService<ContentItem, unknown, unknown, FindResponse<ContentItem>>, 'find' | 'get'>
-{
+export type IContentItemService = Pick<
+  ClientService<ContentItem, unknown, unknown, FindResponse<ContentItem>>,
+  'find' | 'get'
+>
+
+export class ContentItemService implements IContentItemService {
   app: ImpressoApplication
   contentItemsDbService: SequelizeService
   _topicsCache: Topic[] | undefined = undefined
@@ -511,6 +514,6 @@ export class ContentItemService
   }
 }
 
-export default function (options: ServiceOptions) {
+export default function (options: ServiceOptions): IContentItemService {
   return new ContentItemService(options)
 }

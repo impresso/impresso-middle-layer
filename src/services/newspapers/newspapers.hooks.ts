@@ -2,9 +2,12 @@ import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { OrderByChoices } from './newspapers.schema'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
-import { inPublicApi } from '../../hooks/redaction'
 import { transformNewspaper } from '../../transformers/newspaper'
 import { transformBaseFind } from '../../transformers/base'
+import { ImpressoApplication } from '../../types'
+import { HookOptions } from '@feathersjs/feathers'
+import { inPublicApi } from '../../hooks/appMode'
+import { NewspapersService } from './newspapers.class'
 
 const { queryWithCommonParams, validate } = require('../../hooks/params')
 
@@ -12,18 +15,18 @@ const findQueryParamsRenamePolicy = {
   term: 'q',
 }
 
-module.exports = {
+export default {
   around: {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
     all: [],
     find: [
-      renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
+      ...inPublicApi([renameQueryParameters(findQueryParamsRenamePolicy)]),
       validate({
         includedOnly: {
           required: false,
-          transform: d => !!d,
+          transform: (d: string) => !!d,
         },
         q: {
           required: false,
@@ -31,7 +34,7 @@ module.exports = {
         },
         faster: {
           required: false,
-          transform: d => !!d,
+          transform: (d: string) => !!d,
         },
         order_by: {
           choices: OrderByChoices,
@@ -48,11 +51,8 @@ module.exports = {
   },
 
   after: {
-    find: [
-      transformResponse(transformBaseFind, inPublicApi),
-      transformResponseDataItem(transformNewspaper, inPublicApi),
-    ],
-    get: [transformResponse(transformNewspaper, inPublicApi)],
+    find: [...inPublicApi([transformResponse(transformBaseFind), transformResponseDataItem(transformNewspaper)])],
+    get: [...inPublicApi([transformResponse(transformNewspaper)])],
     create: [],
     update: [],
     patch: [],
@@ -68,4 +68,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-}
+} as HookOptions<ImpressoApplication, NewspapersService>

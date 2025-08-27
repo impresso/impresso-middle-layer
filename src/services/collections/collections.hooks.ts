@@ -1,9 +1,11 @@
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
-import { inPublicApi } from '../../hooks/redaction'
 import { transformCollection } from '../../transformers/collection'
 import { transformBaseFind } from '../../transformers/base'
+import { ImpressoApplication } from '../../types'
+import { ApplicationHookOptions } from '@feathersjs/feathers'
+import { inPublicApi } from '../../hooks/appMode'
 
 const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params')
 
@@ -13,29 +15,29 @@ const findQueryParamsRenamePolicy = {
   term: 'q',
 }
 
-module.exports = {
+export default {
   around: {
     all: [authenticate(), rateLimit()],
   },
   before: {
     all: [],
     find: [
-      renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
+      ...inPublicApi([renameQueryParameters(findQueryParamsRenamePolicy)]),
       validate({
         uids: {
           required: false,
           regex: REGEX_UIDS,
-          transform: d => (Array.isArray(d) ? d : d.split(',')),
+          transform: (d: string | string[]) => (Array.isArray(d) ? d : d.split(',')),
         },
         q: {
           required: false,
           max_length: 500,
-          transform: d => utils.toSequelizeLike(d),
+          transform: (d: string) => utils.toSequelizeLike(d),
         },
         order_by: {
           choices: ['-date', 'date', '-size', 'size'],
           defaultValue: '-date',
-          transform: d =>
+          transform: (d: string) =>
             utils.translate(d, {
               date: [['date_last_modified', 'ASC']],
               '-date': [['date_last_modified', 'DESC']],
@@ -106,14 +108,11 @@ module.exports = {
 
   after: {
     all: [],
-    find: [
-      transformResponse(transformBaseFind, inPublicApi),
-      transformResponseDataItem(transformCollection, inPublicApi),
-    ],
-    get: [transformResponse(transformCollection, inPublicApi)],
-    create: [transformResponse(transformCollection, inPublicApi)],
+    find: [...inPublicApi([transformResponse(transformBaseFind), transformResponseDataItem(transformCollection)])],
+    get: [...inPublicApi([transformResponse(transformCollection)])],
+    create: [...inPublicApi([transformResponse(transformCollection)])],
     update: [],
-    patch: [transformResponse(transformCollection, inPublicApi)],
+    patch: [...inPublicApi([transformResponse(transformCollection)])],
     remove: [],
   },
 
@@ -126,4 +125,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-}
+} satisfies ApplicationHookOptions<ImpressoApplication>
