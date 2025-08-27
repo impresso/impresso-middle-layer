@@ -10,8 +10,8 @@ import { getIndexMeta } from './search-facets.class'
 import { IndexId, OrderByChoices, facetTypes } from './search-facets.schema'
 import { parseFilters } from '../../util/queryParameters'
 import { transformResponse } from '../../hooks/transformation'
-import { inPublicApi } from '../../hooks/redaction'
 import { transformSearchFacet } from '../../transformers/searchFacet'
+import { inPublicApi } from '../../hooks/appMode'
 
 const getAndFindHooks = (index: IndexId) => [
   validate({
@@ -120,6 +120,6 @@ export const getHooks = (index: IndexId) => ({
 
   after: {
     find: [resolveCollections(), resolveTextReuseClusters()],
-    get: [resolveCollections(), resolveTextReuseClusters(), transformResponse(transformSearchFacet, inPublicApi)],
+    get: [resolveCollections(), resolveTextReuseClusters(), ...inPublicApi([transformResponse(transformSearchFacet)])],
   },
 })

@@ -3,8 +3,7 @@ import { getDocs } from './newspapers.schema'
 import { NewspapersService } from './newspapers.class'
 import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
-
-const hooks = require('./newspapers.hooks')
+import hooks from './newspapers.hooks'
 
 /**
  * @deprecated Use the `media-sources` service instead.

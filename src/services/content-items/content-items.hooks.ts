@@ -1,13 +1,6 @@
 import { rateLimit } from '../../hooks/rateLimiter'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import {
-  redactResponse,
-  redactResponseDataItem,
-  publicApiTranscriptRedactionCondition,
-  webAppExploreRedactionCondition,
-  inPublicApi,
-  RedactionPolicy,
-} from '../../hooks/redaction'
+import { redactResponse, redactResponseDataItem, RedactionPolicy, unlessHasPermission } from '../../hooks/redaction'
 import { loadYamlFile } from '../../util/yaml'
 import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
 import { transformContentItem } from '../../transformers/contentItem'
@@ -16,10 +9,12 @@ import { filtersToSolrQuery } from '../../hooks/search'
 import { SolrMappings } from '../../data/constants'
 import { eachFilterValidator } from '../search/search.validators'
 import { transformBaseFind } from '../../transformers/base'
-import { ApplicationHookOptions } from '@feathersjs/feathers'
+import { HookOptions } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../../types'
+import { inPublicApi, inWebAppApi } from '../../hooks/appMode'
+import { ContentItemService, IContentItemService } from './content-items.class'
 
-export const contentItemRedactionPolicy = loadYamlFile(
+export const contentItemRedactionPolicyPublicApi = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicy.yml`
 ) as RedactionPolicy
 export const contentItemRedactionPolicyWebApp = loadYamlFile(
@@ -38,7 +33,6 @@ export default {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
-    all: [],
     find: [
       validate({
         order_by: {
@@ -64,40 +58,24 @@ export default {
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
   },
 
   after: {
-    all: [],
     find: [
       displayQueryParams(['filters']),
-      transformResponse(transformBaseFind, inPublicApi),
-      transformResponseDataItem(transformContentItem, inPublicApi),
-      redactResponseDataItem(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
-      redactResponseDataItem(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
+      ...inPublicApi([
+        transformResponse(transformBaseFind),
+        transformResponseDataItem(transformContentItem),
+        redactResponseDataItem(contentItemRedactionPolicyPublicApi, unlessHasPermission('getTranscript')),
+      ]),
+      ...inWebAppApi([redactResponseDataItem(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],
     get: [
-      transformResponse(transformContentItem, inPublicApi),
-      redactResponse(contentItemRedactionPolicy, publicApiTranscriptRedactionCondition),
-      redactResponse(contentItemRedactionPolicyWebApp, webAppExploreRedactionCondition),
+      ...inPublicApi([
+        transformResponse(transformContentItem),
+        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermission('getTranscript')),
+      ]),
+      ...inWebAppApi([redactResponse(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
   },
-
-  error: {
-    all: [],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: [],
-  },
-} satisfies ApplicationHookOptions<ImpressoApplication>
+} as HookOptions<ImpressoApplication, ContentItemService>

@@ -1,14 +1,12 @@
+import { ApplicationHookOptions } from '@feathersjs/feathers'
+import { inPublicApi, inWebAppApi } from '../../hooks/appMode'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { rateLimit } from '../../hooks/rateLimiter'
 import { sanitizeFilters } from '../../hooks/parameters'
+import { rateLimit } from '../../hooks/rateLimiter'
+import { redactResponse, redactResponseDataItem, unlessHasPermission } from '../../hooks/redaction'
+import { ImpressoApplication } from '../../types'
 import { RedactionPolicy } from '../../util/redaction'
 import { loadYamlFile } from '../../util/yaml'
-import {
-  publicApiTranscriptRedactionCondition,
-  redactResponse,
-  redactResponseDataItem,
-  webAppExploreRedactionCondition,
-} from '../../hooks/redaction'
 
 export const imageRedactionPolicy: RedactionPolicy = loadYamlFile(`${__dirname}/resources/imageRedactionPolicy.yml`)
 
@@ -21,12 +19,12 @@ export default {
   },
   after: {
     find: [
-      redactResponseDataItem(imageRedactionPolicy, webAppExploreRedactionCondition),
-      redactResponseDataItem(imageRedactionPolicy, publicApiTranscriptRedactionCondition),
+      ...inPublicApi([redactResponseDataItem(imageRedactionPolicy, unlessHasPermission('getTranscript'))]),
+      ...inWebAppApi([redactResponseDataItem(imageRedactionPolicy, unlessHasPermission('explore'))]),
     ],
     get: [
-      redactResponse(imageRedactionPolicy, webAppExploreRedactionCondition),
-      redactResponse(imageRedactionPolicy, publicApiTranscriptRedactionCondition),
+      ...inPublicApi([redactResponse(imageRedactionPolicy, unlessHasPermission('getTranscript'))]),
+      ...inWebAppApi([redactResponse(imageRedactionPolicy, unlessHasPermission('explore'))]),
     ],
   },
-}
+} satisfies ApplicationHookOptions<ImpressoApplication>
