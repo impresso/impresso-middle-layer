@@ -326,11 +326,11 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
       title:
         doc[`title_txt_${doc.lg_s as LanguageCode}`] ??
         doc[`title_txt_${doc.lg_orig_s as LanguageCode}`] ??
-        doc['title_txt'],
+        doc['title_txt']?.[0],
       content:
         doc[`content_txt_${doc.lg_s as LanguageCode}`] ??
         doc[`content_txt_${doc.lg_orig_s as LanguageCode}`] ??
-        doc['content_txt'],
+        doc['content_txt']?.[0],
       contentLength: doc.content_length_i ?? 0,
       documentType: doc.doc_type_s,
       itemType: doc.item_type_s,

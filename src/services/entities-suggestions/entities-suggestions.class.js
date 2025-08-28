@@ -54,7 +54,6 @@ function buildQueryValue(names) {
  */
 function buildSolrQuery(names, offset = 0, limit = DefaultLimit) {
   const query = buildQueryValue(names)
-  console.log('qqq', query)
   return {
     query,
     sort: `${EntitySolrFields.AritcleFrequency} DESC, ${EntitySolrFields.MentionFrequency} DESC`,
@@ -178,7 +177,6 @@ class EntitiesSuggestions {
    * @param {Payload} payload
    */
   async create({ names, offset = 0, limit = DefaultLimit }) {
-    console.log('xxx', names)
     const solrQuery = buildSolrQuery(names, offset, limit)
     const solrResponse = await measureTime(
       () => this.solr.select(SolrNamespaces.Entities, { body: solrQuery }),
