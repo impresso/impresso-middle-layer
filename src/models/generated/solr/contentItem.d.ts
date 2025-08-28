@@ -433,9 +433,9 @@ export interface TextContentFields {
   /**
    * Title of the content item. This field is present when no language specific title fields are available (e.g. title_txt_f).
    */
-  title_txt?: string;
+  title_txt?: string[];
   /**
    * Full text content of the content item. This field is present when no language specific content fields are available (e.g. content_txt_f).
    */
-  content_txt?: string;
+  content_txt?: string[];
 }
