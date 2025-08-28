@@ -125,4 +125,23 @@ export default class Entity implements IEntity {
   }
 }
 
-export const SOLR_FL = ['id', 'l_s', 'article_fq_f', 'mention_fq_f', 't_s', 'entitySuggest']
+export type SuggestField = 'entitySuggest'
+export const suggestField: SuggestField = 'entitySuggest'
+
+export interface IEntitySolrHighlighting {
+  id: string
+  l_s: string
+  article_fq_f: number
+  mention_fq_f: number
+  t_s: string
+  [suggestField]: string[]
+}
+
+export const SOLR_FL: (keyof IEntitySolrHighlighting)[] = [
+  'id',
+  'l_s',
+  'article_fq_f',
+  'mention_fq_f',
+  't_s',
+  suggestField,
+]

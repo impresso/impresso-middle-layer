@@ -1,3 +1,5 @@
+import { suggestField } from '../../models/entities.model'
+
 const { Op } = require('sequelize')
 const SequelizeService = require('../sequelize.service')
 const { measureTime } = require('../../util/instruments')
@@ -17,7 +19,7 @@ const { SolrNamespaces } = require('../../solr')
  */
 
 const EntitySolrFields = Object.freeze({
-  Suggest: 'entitySuggest',
+  Suggest: suggestField,
   AritcleFrequency: 'article_fq_f',
   MentionFrequency: 'mention_fq_f',
   Id: 'id',
@@ -52,6 +54,7 @@ function buildQueryValue(names) {
  */
 function buildSolrQuery(names, offset = 0, limit = DefaultLimit) {
   const query = buildQueryValue(names)
+  console.log('qqq', query)
   return {
     query,
     sort: `${EntitySolrFields.AritcleFrequency} DESC, ${EntitySolrFields.MentionFrequency} DESC`,
@@ -175,6 +178,7 @@ class EntitiesSuggestions {
    * @param {Payload} payload
    */
   async create({ names, offset = 0, limit = DefaultLimit }) {
+    console.log('xxx', names)
     const solrQuery = buildSolrQuery(names, offset, limit)
     const solrResponse = await measureTime(
       () => this.solr.select(SolrNamespaces.Entities, { body: solrQuery }),
