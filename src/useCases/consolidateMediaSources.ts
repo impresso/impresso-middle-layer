@@ -60,7 +60,7 @@ const articlesCountSolrQuery: SelectRequestBody = {
       type: 'terms',
       field: 'meta_journal_s',
       mincount: 1,
-      limit: Number.MAX_SAFE_INTEGER, // A magic number. We expect it to never have more than this many sources.
+      limit: -1, // -1 = no limit.
       facet: {
         minDate: 'min(meta_date_dt)',
         maxDate: 'max(meta_date_dt)',
