@@ -54,7 +54,9 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
       query: {
         filters: [{ type: 'textReuseCluster', q: uids }],
         group_by: 'textReuseClusterId',
-        limit: uids.length,
+        // RK: x10 is a workaround for a Solr cluster that may return more items than IDs.
+        // See https://impresso.slack.com/archives/CAHFF9TD1/p1756911197866689
+        limit: uids.length * 10,
       },
     })
     .then(({ data }: { data: any }) => {
