@@ -43,7 +43,7 @@ function formatValidationErrors(errors = []) {
   }, {})
 }
 
-module.exports = {
+export default {
   validated,
   formatValidationErrors,
 }

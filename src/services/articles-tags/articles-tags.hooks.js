@@ -1,7 +1,7 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const { validate, REGEX_UID } = require('../../hooks/params');
 
-module.exports = {
+export default {
   before: {
     all: [authenticate('jwt')],
     find: [],

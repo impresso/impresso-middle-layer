@@ -2,7 +2,7 @@
 const createService = require('./topics.class.js');
 const hooks = require('./topics.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   const paginate = app.get('paginate');
 
   const options = {

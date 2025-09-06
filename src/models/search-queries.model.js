@@ -3,7 +3,7 @@ import User from './users.model'
 const crypto = require('crypto')
 const { DataTypes } = require('sequelize')
 
-class SearchQuery {
+export default class SearchQuery {
   constructor({
     uid = '',
     name = '',
@@ -119,5 +119,3 @@ class SearchQuery {
     return searchQuery
   }
 }
-
-module.exports = SearchQuery

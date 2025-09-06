@@ -70,6 +70,6 @@ class NgramTrends {
   }
 }
 
-module.exports = {
+export default {
   NgramTrends,
 }

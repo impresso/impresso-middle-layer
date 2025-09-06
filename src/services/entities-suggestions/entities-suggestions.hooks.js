@@ -1,6 +1,6 @@
 const { validateWithSchema } = require('../../hooks/schema');
 
-module.exports = {
+export default {
   before: {
     create: [
       validateWithSchema('services/entities-suggestions/schema/create/payload.json'),

@@ -1,7 +1,7 @@
 const { validateWithSchema } = require('../../hooks/schema');
 const { authenticate } = require('../../hooks/authenticate');
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [],

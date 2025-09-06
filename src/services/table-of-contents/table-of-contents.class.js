@@ -140,8 +140,8 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
 
-module.exports.Service = Service
+export const Service = Service

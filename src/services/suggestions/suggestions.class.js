@@ -64,7 +64,7 @@ const asTopicSuggestion = doc => {
   })
 }
 
-class Service {
+export class Service {
   constructor({ app, name }) {
     this.app = app
     this.name = name
@@ -309,8 +309,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

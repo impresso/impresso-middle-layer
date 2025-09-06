@@ -63,7 +63,7 @@ async function getNewspaperIndex() {
   }, {})
 }
 
-module.exports = {
+export default {
   getGitBranch,
   getGitRevision,
   getVersion,

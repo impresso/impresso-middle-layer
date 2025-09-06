@@ -71,6 +71,6 @@ class TextReuseConnectedClusters {
   }
 }
 
-module.exports = {
+export default {
   TextReuseConnectedClusters,
 }

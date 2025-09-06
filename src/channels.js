@@ -1,6 +1,6 @@
 const debug = require('debug')('impresso/channels')
 
-module.exports = function (app) {
+export default function (app) {
   debug('preparing channels...')
   if (typeof app.channel !== 'function') {
     // If no real-time functionality has been configured just return

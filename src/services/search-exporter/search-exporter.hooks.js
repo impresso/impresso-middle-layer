@@ -5,7 +5,7 @@ const { FilterTypes, Contexts, SolrMappings } = require('../../data/constants')
 
 const { eachFilterValidator, paramsValidator } = require('../search/search.validators')
 
-module.exports = {
+export default {
   before: {
     all: [
       authenticate('jwt'),

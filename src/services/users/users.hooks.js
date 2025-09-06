@@ -12,7 +12,7 @@ import {
 } from '../../hooks/params'
 const { protect } = require('@feathersjs/authentication-local').hooks
 
-module.exports = {
+export default {
   around: {
     get: [authenticate('jwt')],
     find: [authenticate('jwt')],

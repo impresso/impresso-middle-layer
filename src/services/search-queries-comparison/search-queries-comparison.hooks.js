@@ -2,7 +2,7 @@ const { protect } = require('@feathersjs/authentication-local').hooks;
 const { authenticate } = require('../../hooks/authenticate');
 const { validateWithSchema } = require('../../hooks/schema');
 
-module.exports = {
+export default {
   before: {
     create: [
       authenticate('jwt', {

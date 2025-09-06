@@ -2,7 +2,7 @@
 const { ArticlesRecommendations } = require('./articles-recommendations.class');
 const hooks = require('./articles-recommendations.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   const options = {
     recommenderServiceUrl: app.get('recommender').articles.endpoint,
   };

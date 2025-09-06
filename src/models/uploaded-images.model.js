@@ -96,4 +96,4 @@ class UploadedImage {
   }
 }
 
-module.exports = UploadedImage
+export default UploadedImage

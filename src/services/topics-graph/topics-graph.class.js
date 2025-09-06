@@ -281,8 +281,8 @@ class TopicsGraph {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new TopicsGraph(options)
 }
 
-module.exports.TopicsGraph = TopicsGraph
+export const TopicsGraph = TopicsGraph

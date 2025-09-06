@@ -228,6 +228,6 @@ class EntityMentionsTimeline {
   }
 }
 
-module.exports = {
+export default {
   EntityMentionsTimeline,
 }

@@ -49,7 +49,7 @@ const isIssueOpenPublic = async (issueUid, sequelizeClient) => {
   }
 }
 
-module.exports = function (app) {
+export default function (app) {
   const config = app.get('proxy')
   const proxyhost = app.get('proxy').host
   const sequelizeClient = app.get('sequelizeClient')

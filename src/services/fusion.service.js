@@ -97,8 +97,8 @@ class FusionService {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new FusionService(options)
 }
 
-module.exports.Service = FusionService
+export const Service = FusionService

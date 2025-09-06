@@ -3,7 +3,7 @@ const md5File = require('md5-file')
 const verbose = require('debug')('verbose:impresso/services:filepond')
 const createService = require('./filepond.class.js')
 
-module.exports = function (app) {
+export default function (app) {
   const upload = app.get('multerClient')
   // Initialize our service with any options it requires
   app.use(

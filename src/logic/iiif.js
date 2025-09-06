@@ -5,6 +5,6 @@ const QueryGetIIIFManifests = `
   WHERE id IN (:pageIds)
 `;
 
-module.exports = {
+export default {
   QueryGetIIIFManifests,
 };

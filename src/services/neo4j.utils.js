@@ -270,7 +270,7 @@ const neo4jToLucene = q => {
   return _q
 }
 
-module.exports = {
+export default {
   neo4jNow,
   neo4jPrepare,
   neo4jRecordMapper,

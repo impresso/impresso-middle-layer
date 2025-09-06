@@ -2,7 +2,7 @@
 const createService = require('./articles-timelines.class.js');
 const hooks = require('./articles-timelines.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   const options = {
     name: 'articles-timelines',
     app,

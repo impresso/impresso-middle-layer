@@ -31,8 +31,8 @@ class Language {
   }
 }
 
-module.exports = Language;
-// module.exports = function (app) {
+export default Language;
+// export default function (app) {
 //   const config = app.get('sequelize');
 //   const language = model(app.get('sequelizeClient'), {
 //     tableName: config.tables.languages || 'languages',
@@ -48,4 +48,4 @@ module.exports = Language;
 //   };
 // };
 //
-// module.exports.model = model;
+// export const model = model;

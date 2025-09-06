@@ -108,8 +108,8 @@ class Image {
   }
 }
 
-module.exports = Image
-module.exports.SOLR_FL = [
+export default Image
+export const SOLR_FL = [
   'id',
   'coords_is',
   'meta_ed_s',

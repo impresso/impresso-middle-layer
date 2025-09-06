@@ -53,6 +53,6 @@ const filtersToSequelizeQuery = () => async (context) => {
   context.params.sanitized.sequelizeQuery = results;
 };
 
-module.exports = {
+export default {
   filtersToSequelizeQuery,
 };

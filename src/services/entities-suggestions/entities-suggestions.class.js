@@ -193,6 +193,6 @@ class EntitiesSuggestions {
   }
 }
 
-module.exports = {
+export default {
   EntitiesSuggestions,
 }

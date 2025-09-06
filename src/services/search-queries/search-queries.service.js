@@ -2,7 +2,7 @@
 const { SearchQueries } = require('./search-queries.class');
 const hooks = require('./search-queries.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   const paginate = app.get('paginate');
 
   const options = {

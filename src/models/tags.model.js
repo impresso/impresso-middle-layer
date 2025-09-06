@@ -29,7 +29,7 @@ class Tag {
   }
 }
 
-module.exports = function () { // app) {
+export default function () { // app) {
   // const config = app.get('sequelize');
   // const issue = model(app.get('sequelizeClient'), {});
   //
@@ -38,5 +38,5 @@ module.exports = function () { // app) {
   // };
 };
 
-// module.exports.model = model;
-module.exports.Model = Tag;
+// export const model = model;
+export const Model = Tag;

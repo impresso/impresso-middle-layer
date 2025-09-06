@@ -2,7 +2,7 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const { validateWithSchema } = require('../../hooks/schema');
 const { queryWithCommonParams } = require('../../hooks/params');
 
-module.exports = {
+export default {
   before: {
     all: [
       authenticate('jwt'),

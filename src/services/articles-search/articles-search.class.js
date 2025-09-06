@@ -59,6 +59,6 @@ class ArticlesSearch {
   }
 }
 
-module.exports = {
+export default {
   ArticlesSearch,
 }

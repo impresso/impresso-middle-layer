@@ -148,4 +148,4 @@ class PasswordReset {
   }
 }
 
-module.exports = PasswordReset
+export default PasswordReset

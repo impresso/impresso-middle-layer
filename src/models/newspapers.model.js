@@ -4,7 +4,7 @@
 // for more of what you can do here.
 const Sequelize = require('sequelize')
 const Language = require('./languages.model')
-const Property = require('./properties.model')
+const Property = require('./properties.model.js')
 
 /**
  * @deprecated use `MediaSource` interface instead.
@@ -180,4 +180,4 @@ class Newspaper {
   }
 }
 
-module.exports = Newspaper
+export default Newspaper

@@ -1,7 +1,7 @@
 const { ArticlesSearch } = require('./articles-search.class');
 const hooks = require('./articles-search.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   const options = {};
 
   // Initialize our service with any options it requires

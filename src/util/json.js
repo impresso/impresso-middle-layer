@@ -79,7 +79,7 @@ function formatValidationErrors(errors) {
     .filter(e => e !== undefined)
 }
 
-module.exports = {
+export default {
   validated,
   formatValidationErrors,
 }

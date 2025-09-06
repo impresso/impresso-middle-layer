@@ -1,7 +1,7 @@
 const { validate, validateEach, queryWithCommonParams, REGEX_UID } = require('../../hooks/params')
 const { filtersToSolrQuery } = require('../../hooks/search')
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [],

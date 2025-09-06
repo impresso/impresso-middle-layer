@@ -61,7 +61,7 @@ const generateUser = async (user) => {
   return result;
 };
 
-module.exports = {
+export default {
   generateUser,
   removeGeneratedUser,
 };

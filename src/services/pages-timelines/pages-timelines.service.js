@@ -2,7 +2,7 @@
 const createService = require('./pages-timelines.class.js');
 const hooks = require('./pages-timelines.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   const options = {
     name: 'pages-timelines',
     app,

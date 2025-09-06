@@ -2,7 +2,7 @@
 const { EntitiesSuggestions } = require('./entities-suggestions.class');
 const hooks = require('./entities-suggestions.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   // Initialize our service with any options it requires
   app.use('/entities-suggestions', new EntitiesSuggestions(app));
 

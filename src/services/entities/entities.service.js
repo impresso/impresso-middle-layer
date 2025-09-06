@@ -3,9 +3,9 @@ import { getDocs } from './entities.schema'
 import hooks from './entities.hooks'
 
 // Initializes the `entities` service on path `/entities`
-const createService = require('./entities.class')
+import createService from './entities.class.js'
 
-module.exports = function (app) {
+export default function (app) {
   const options = {
     name: 'entities',
     app,

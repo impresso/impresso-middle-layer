@@ -9,7 +9,7 @@ import { VersionDetails } from '../../models/generated/schemas'
 const log = debug('impresso/services:version')
 const { getFirstAndLastDocumentDates } = require('./logic')
 
-module.exports = function (app: ImpressoApplication) {
+export default function (app: ImpressoApplication) {
   // Initialize our service with any options it requires
   app.use(
     '/version',

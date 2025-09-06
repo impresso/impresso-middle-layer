@@ -14,7 +14,7 @@ const deserializeFilters = (context) => {
   context.params.filters = getDeserializedFilters(context);
 };
 
-module.exports = {
+export default {
   before: {
     find: [
       deserializeFilters,

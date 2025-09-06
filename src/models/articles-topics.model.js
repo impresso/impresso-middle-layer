@@ -42,5 +42,5 @@ class ArticleTopic {
   }
 }
 
-module.exports = ArticleTopic
-module.exports.Model = ArticleTopic
+export default ArticleTopic
+export const Model = ArticleTopic

@@ -2,7 +2,7 @@
 import { ArticlesSuggestionsService } from './articles-suggestions.class'
 const hooks = require('./articles-suggestions.hooks')
 
-module.exports = function (app) {
+export default function (app) {
   // Initialize our service with any options it requires
   app.use('/articles-suggestions', new ArticlesSuggestionsService({ solr: app.service('simpleSolrClient'), app }))
 

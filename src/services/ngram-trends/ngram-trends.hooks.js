@@ -45,7 +45,7 @@ const ensureUnigrams = fieldPath => (context) => {
   return context;
 };
 
-module.exports = {
+export default {
   before: {
     create: [
       authenticate('jwt', {

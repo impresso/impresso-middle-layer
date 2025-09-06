@@ -580,7 +580,17 @@ const protect =
     })
   }
 
-module.exports = {
+const sanitize = _validate
+const utils = {
+  orderBy,
+  facets,
+  toOrderBy,
+  toLucene,
+  translate,
+  toSequelizeLike,
+}
+
+export {
   displayQueryParams,
 
   protect,
@@ -591,7 +601,7 @@ module.exports = {
   queryWithCommonParams,
   queryWithCurrentExecUser,
 
-  sanitize: _validate,
+  sanitize,
 
   validateRouteId,
 
@@ -612,12 +622,5 @@ module.exports = {
   REGEX_UID,
   REGEX_UIDS,
 
-  utils: {
-    orderBy,
-    facets,
-    toOrderBy,
-    toLucene,
-    translate,
-    toSequelizeLike,
-  },
+  utils,
 }

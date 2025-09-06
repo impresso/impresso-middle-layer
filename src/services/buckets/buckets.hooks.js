@@ -13,7 +13,7 @@ const ORDER_BY = {
   name: 'buc.name',
 };
 
-module.exports = {
+export default {
   before: {
     all: [
       authenticate('jwt'),

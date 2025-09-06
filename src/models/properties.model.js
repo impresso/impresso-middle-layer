@@ -1,7 +1,7 @@
-import { logger } from '../logger'
-const { DataTypes } = require('sequelize')
+import { logger } from '../logger.js'
+import { DataTypes } from 'sequelize'
 
-class Property {
+export default class Property {
   constructor({
     name = '',
     label = '',
@@ -64,9 +64,8 @@ class Property {
     return prop
   }
 }
-module.exports = Property
 //
-// module.exports = function (app) {
+// export default function (app) {
 //   const config = app.get('sequelize');
 //   const prop = model(app.get('sequelizeClient'), {
 //     tableName: config.tables.properties || 'meta_properties',
@@ -82,4 +81,4 @@ module.exports = Property
 //   };
 // };
 
-// module.exports.model = model;
+// export const model = model;

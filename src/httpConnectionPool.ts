@@ -1,4 +1,6 @@
-import { request, RequestInfo, RequestInit, Dispatcher, Agent, RetryAgent, RetryHandler, Headers } from 'undici'
+import { request, Dispatcher, Agent, RetryAgent, RetryHandler, Headers } from 'undici'
+import type { RequestInfo, RequestInit } from 'undici'
+
 import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
 import { IncomingHttpHeaders } from 'undici/types/header'

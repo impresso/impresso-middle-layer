@@ -13,19 +13,19 @@ import { BadRequest } from '@feathersjs/errors'
 import { inWebAppApi } from '../../hooks/appMode'
 
 // const { authenticate } = require('@feathersjs/authentication').hooks;
-const {
+import {
   utils,
   validate,
   validateEach,
   queryWithCommonParams,
   displayQueryParams,
   REGEX_UID,
-} = require('../../hooks/params')
-const { qToSolrFilter, filtersToSolrQuery } = require('../../hooks/search')
+} from '../../hooks/params'
+import { qToSolrFilter, filtersToSolrQuery } from '../../hooks/search'
 
-const { resolveFacets, resolveQueryComponents } = require('../../hooks/search-info')
+import { resolveFacets, resolveQueryComponents } from '../../hooks/search-info'
 
-const { eachFilterValidator } = require('../search/search.validators')
+import { eachFilterValidator } from '../search/search.validators'
 
 export const imageRedactionPolicy: RedactionPolicy = loadYamlFile(`${__dirname}/resources/imageRedactionPolicy.yml`)
 

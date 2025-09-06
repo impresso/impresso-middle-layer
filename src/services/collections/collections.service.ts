@@ -1,11 +1,11 @@
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { getDocs } from './collections.schema'
+import { getDocs } from './collections.schema.js'
 import { ImpressoApplication } from '../../types'
-import hooks from './collections.hooks'
+import hooks from './collections.hooks.js'
 import { ServiceOptions } from '@feathersjs/feathers'
+import createService from './collections.class.js'
 
 // Initializes the `collections` service on path `/collections`
-const createService = require('./collections.class.js')
 const init = (app: ImpressoApplication) => {
   const paginate = app.get('paginate')
   const isPublicApi = app.get('isPublicApi') ?? false

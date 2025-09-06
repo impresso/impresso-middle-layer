@@ -41,7 +41,7 @@ const normalizeEmptyRecords = () => async (context) => {
   }
 };
 
-module.exports = {
+export default {
   normalizeTimeline,
   normalizeEmptyRecords,
   raiseErrorIfEmpty,

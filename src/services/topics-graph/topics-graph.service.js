@@ -2,7 +2,7 @@
 const { TopicsGraph } = require('./topics-graph.class')
 const hooks = require('./topics-graph.hooks')
 
-module.exports = function (app) {
+export default function (app) {
   // Initialize our service with any options it requires
   app.use(
     '/topics-graph',

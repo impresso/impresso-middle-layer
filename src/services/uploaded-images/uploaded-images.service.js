@@ -2,7 +2,7 @@
 const createService = require('./uploaded-images.class.js');
 const hooks = require('./uploaded-images.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   // Initialize our service with any options it requires
   app.use('/uploaded-images', createService({
     name: 'uploaded-images',

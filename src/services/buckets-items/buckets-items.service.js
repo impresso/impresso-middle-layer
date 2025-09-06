@@ -2,7 +2,7 @@
 const createService = require('./buckets-items.class.js');
 const hooks = require('./buckets-items.hooks');
 
-module.exports = function (app) {
+export default function (app) {
   const paginate = app.get('paginate');
 
   const options = {

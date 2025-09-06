@@ -3,7 +3,7 @@ const csvStringify = require('csv-stringify')
 const createService = require('./search-exporter.class.js')
 const hooks = require('./search-exporter.hooks')
 
-module.exports = function (app) {
+export default function (app) {
   const paginate = app.get('paginate')
 
   const options = {

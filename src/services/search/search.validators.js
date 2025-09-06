@@ -109,7 +109,7 @@ const facetsValidator = {
   }),
 }
 
-module.exports = {
+export {
   eachFilterValidator,
   eachFacetFilterValidator,
   paramsValidator,

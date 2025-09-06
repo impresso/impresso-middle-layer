@@ -144,7 +144,7 @@ const validateId =
     }
   }
 
-module.exports = {
+export default {
   RegExpEmail,
   RegExpPassword,
   RegExpSlug,

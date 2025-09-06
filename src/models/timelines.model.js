@@ -25,4 +25,4 @@ class Timeline {
   }
 }
 
-module.exports = Timeline;
+export default Timeline;

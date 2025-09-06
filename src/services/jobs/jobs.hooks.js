@@ -3,7 +3,7 @@ const {
   queryWithCommonParams, validate, utils,
 } = require('../../hooks/params');
 
-module.exports = {
+export default {
   before: {
     all: [authenticate('jwt')],
     find: [

@@ -1,12 +1,12 @@
 import Page from '../../models/pages.model'
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:issues')
+import { NotFound } from '@feathersjs/errors'
 
-const debug = require('debug')('impresso/services:issues')
-const { NotFound } = require('@feathersjs/errors')
-
-const SequelizeService = require('../sequelize.service')
-const Issue = require('../../models/issues.model')
-const { measureTime } = require('../../util/instruments')
-const { asFind } = require('../../util/solr/adapters')
+import SequelizeService from '../sequelize.service'
+import Issue from '../../models/issues.model'
+import { measureTime } from '../../util/instruments'
+import { asFind } from '../../util/solr/adapters'
 
 const CoversQuery = `
 SELECT id as uid,
@@ -132,7 +132,7 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-module.exports.Service = Service
+export { Service }

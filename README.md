@@ -155,7 +155,7 @@ Install pm2, then [generate a template](https://pm2.io/doc/en/runtime/guide/ecos
 using the command `pm2 init` then edit the `ecosystem.config.js` file:
 
 ```
-module.exports = {
+export default {
   apps : [{
     name: 'impresso-middle-layer',
     cwd: '/path/to/impresso/impresso-middle-layer',

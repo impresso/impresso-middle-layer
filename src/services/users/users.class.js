@@ -9,9 +9,9 @@ const { Op } = require('sequelize')
 const debug = require('debug')('impresso/services:users')
 const { encrypt } = require('../../crypto')
 const sequelize = require('../../sequelize')
-const { sequelizeErrorHandler } = require('../../services/sequelize.utils')
+const { sequelizeErrorHandler } = require('../sequelize.utils.js')
 
-class Service {
+export class Service {
   constructor({ app }) {
     const client = app.get('sequelizeClient')
     if (!client) {
@@ -229,8 +229,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

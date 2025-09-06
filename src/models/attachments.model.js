@@ -57,4 +57,4 @@ class Attachment {
   }
 }
 
-module.exports = Attachment;
+export default Attachment;

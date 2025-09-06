@@ -250,8 +250,8 @@ class Service {
   }
 }
 
-module.exports = function (options: any) {
+export default function (options: any) {
   return new Service(options)
 }
 
-module.exports.Service = Service
+export { Service }

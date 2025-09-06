@@ -9,7 +9,7 @@ const findEachFilterValidator = { ...eachFilterValidator }
 findEachFilterValidator.context = { ...eachFilterValidator.context }
 findEachFilterValidator.context.choices = eachFilterValidator.context.choices.concat[['visualize']]
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [

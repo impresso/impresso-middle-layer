@@ -132,4 +132,4 @@ class CollectableItem {
   }
 }
 
-module.exports = CollectableItem;
+export default CollectableItem;

@@ -1,6 +1,6 @@
 const { queryWithCommonParams } = require('../../hooks/params');
 
-module.exports = {
+export default {
   before: {
     all: [
 

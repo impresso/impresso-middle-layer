@@ -1,6 +1,6 @@
 const { authenticate } = require('../../hooks/authenticate');
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [

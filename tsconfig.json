@@ -1,7 +1,7 @@
 {
   "include": [
     "src/**/*.ts",
-    "src/**/*.js",
+    "src/**/*.js", "src/models/jobs.model.cjs", "src/services/sequelize.utils.js", "src/models/properties.model.js",
   ],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {

@@ -337,4 +337,4 @@ const defaults = function (obj) {
   return obj
 }
 
-module.exports = SocksConnection
+export default SocksConnection

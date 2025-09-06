@@ -103,6 +103,6 @@ const obfuscate = () => context => {
   }
 }
 
-module.exports = {
+export default {
   obfuscate,
 }

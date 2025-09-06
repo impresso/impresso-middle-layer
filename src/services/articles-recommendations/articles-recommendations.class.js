@@ -25,4 +25,4 @@ class ArticlesRecommendations {
   }
 }
 
-module.exports = { ArticlesRecommendations }
+export default { ArticlesRecommendations }

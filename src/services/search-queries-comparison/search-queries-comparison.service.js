@@ -2,7 +2,7 @@
 const { SearchQueriesComparison } = require('./search-queries-comparison.class')
 const hooks = require('./search-queries-comparison.hooks')
 
-module.exports = function (app) {
+export default function (app) {
   const service = new SearchQueriesComparison()
   app.use('/search-queries-comparison', service)
   app.service('search-queries-comparison').hooks(hooks)

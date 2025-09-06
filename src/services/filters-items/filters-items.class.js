@@ -46,4 +46,4 @@ class FiltersItems {
   }
 }
 
-module.exports = { FiltersItems }
+export default { FiltersItems }

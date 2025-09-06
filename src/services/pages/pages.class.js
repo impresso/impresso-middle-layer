@@ -1,12 +1,12 @@
 import Page from '../../models/pages.model'
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:pages')
+import { NotFound } from '@feathersjs/errors'
+import SequelizeService from '../sequelize.service.js'
+import { measureTime } from '../../util/instruments.js'
+import { asFindAll } from '../../util/solr/adapters.js'
 
-const debug = require('debug')('impresso/services:pages')
-const { NotFound } = require('@feathersjs/errors')
-const SequelizeService = require('../sequelize.service')
-const { measureTime } = require('../../util/instruments')
-const { asFindAll } = require('../../util/solr/adapters')
-
-class Service {
+export class Service {
   constructor({ app, name }) {
     this.name = name
     this.solr = app.service('simpleSolrClient')
@@ -62,8 +62,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

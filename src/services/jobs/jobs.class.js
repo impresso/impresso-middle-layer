@@ -2,7 +2,7 @@
 const debug = require('debug')('impresso/services:jobs')
 const { BadGateway, NotFound, NotImplemented } = require('@feathersjs/errors')
 const SequelizeService = require('../sequelize.service')
-const { STATUS_KILLED, STATUS_DONE } = require('../../models/jobs.model')
+const { STATUS_KILLED, STATUS_DONE } = require('../../models/jobs.model.cjs')
 const { measureTime } = require('../../util/instruments')
 
 class Service {
@@ -115,8 +115,8 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
 
-module.exports.Service = Service
+export const Service = Service

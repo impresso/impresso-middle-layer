@@ -8,7 +8,7 @@ const getNeo4jClient = (config) => {
   return driver;
 };
 
-module.exports = function (app) {
+export default function (app) {
   const config = app.get('neo4j');
   if (!config || !config.host) {
     debug('Neo4j is not configured.');
@@ -31,4 +31,4 @@ module.exports = function (app) {
   });
 };
 
-module.exports.client = getNeo4jClient;
+export const client = getNeo4jClient;

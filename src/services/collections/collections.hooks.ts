@@ -1,11 +1,11 @@
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { rateLimit } from '../../hooks/rateLimiter'
-import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
-import { transformCollection } from '../../transformers/collection'
-import { transformBaseFind } from '../../transformers/base'
-import { ImpressoApplication } from '../../types'
+import { authenticateAround as authenticate } from '../../hooks/authenticate.js'
+import { rateLimit } from '../../hooks/rateLimiter.js'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation.js'
+import { transformCollection } from '../../transformers/collection.js'
+import { transformBaseFind } from '../../transformers/base.js'
+import { ImpressoApplication } from '../../types.js'
 import { ApplicationHookOptions } from '@feathersjs/feathers'
-import { inPublicApi } from '../../hooks/appMode'
+import { inPublicApi } from '../../hooks/appMode.js'
 
 const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params')
 

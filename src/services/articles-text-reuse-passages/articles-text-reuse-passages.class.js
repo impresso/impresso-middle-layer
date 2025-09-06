@@ -69,6 +69,6 @@ class ArticlesTextReusePassages {
   }
 }
 
-module.exports = {
+export default {
   ArticlesTextReusePassages,
 }

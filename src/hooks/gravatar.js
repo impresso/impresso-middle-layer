@@ -8,7 +8,7 @@ const gravatarUrl = 'https://s.gravatar.com/avatar';
 // The size query. Our chat needs 60px images
 const query = 's=60';
 
-module.exports = function (options = {}) { // eslint-disable-line no-unused-vars
+export default function (options = {}) { // eslint-disable-line no-unused-vars
   return function gravatar (hook) {
     const { email } = hook.data;
     // Gravatar uses MD5 hashes from an email address to get the image

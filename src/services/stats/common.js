@@ -24,7 +24,7 @@ const SupportedStats = Object.freeze(Object.keys(StatsToSolrFunction))
 const SupportedStatistics = Object.freeze(Object.keys(StatsToSolrStatistics))
 const DefaultStats = ['stddev', 'min', 'max', 'mean', 'p99_7']
 
-module.exports = {
+export default {
   TimeDomain,
   StatsToSolrFunction,
   StatsToSolrStatistics,

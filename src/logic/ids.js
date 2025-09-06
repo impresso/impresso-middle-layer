@@ -10,6 +10,6 @@ function toArticlePageDetails (articleId, pageNumber) {
   };
 }
 
-module.exports = {
+export default {
   toArticlePageDetails,
 };

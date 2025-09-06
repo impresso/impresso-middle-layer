@@ -34,4 +34,4 @@ class CollectableItemGroup {
   }
 }
 
-module.exports = CollectableItemGroup;
+export default CollectableItemGroup;

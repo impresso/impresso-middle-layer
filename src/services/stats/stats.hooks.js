@@ -122,7 +122,7 @@ const validateGroupByAfterIndex = context => {
   debug('[hooks.before] validateIndexAndGroupby', '- index:', index, '- groupby:', context.params.query.groupby)
 }
 
-module.exports = {
+export default {
   before: {
     get: [
       validateStats,

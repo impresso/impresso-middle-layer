@@ -89,6 +89,6 @@ class TextReuseClusterPassages {
   }
 }
 
-module.exports = {
+export default {
   TextReuseClusterPassages,
 }

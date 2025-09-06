@@ -4,7 +4,7 @@ const {
 } = require('../../hooks/params');
 const { assignIIIF } = require('../../hooks/iiif');
 
-module.exports = {
+export default {
   before: {
     all: [
       authenticate('jwt'),

@@ -1,14 +1,15 @@
 /* eslint-disable no-unused-vars */
 import Collection from '../../models/collections.model'
-const debug = require('debug')('impresso/services:collections')
-const { pick, identity } = require('lodash')
-const { Op } = require('sequelize')
-const { BadGateway } = require('@feathersjs/errors')
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:collections')
+import { pick, identity } from 'lodash'
+import { Op } from 'sequelize'
+import { BadGateway } from '@feathersjs/errors'
 
-const SequelizeService = require('../sequelize.service')
-const { measureTime } = require('../../util/instruments')
+import SequelizeService from '../sequelize.service.js'
+import { measureTime } from '../../util/instruments.js'
 
-class Service {
+export class Service {
   constructor(options) {
     this.options = options || {}
   }
@@ -183,8 +184,6 @@ class Service {
   // }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

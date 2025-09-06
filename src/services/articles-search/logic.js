@@ -183,7 +183,7 @@ function withScore(solrResponse) {
   }
 }
 
-module.exports = {
+export default {
   relevanceContextItemToSolrFormula,
   relevanceContextItemsToSolrFormula,
   buildSolrQuery,

@@ -8,7 +8,7 @@ const {
 const { filtersToSolrQuery } = require('../../hooks/search')
 const { eachFilterValidator } = require('../search/search.validators')
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [

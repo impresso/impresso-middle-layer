@@ -115,7 +115,7 @@ const resolveQueryComponents = () => async (context: HookContext<ImpressoApplica
   }
 }
 
-module.exports = {
+export {
   filtersToSolrFacetQuery,
   resolveFacets,
   resolveQueryComponents,

@@ -234,8 +234,8 @@ class Neo4jService {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Neo4jService(options)
 }
 
-module.exports.Service = Neo4jService
+export const Service = Neo4jService

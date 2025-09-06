@@ -197,7 +197,7 @@ class SearchQueriesComparison {
   }
 }
 
-module.exports = {
+export default {
   SearchQueriesComparison,
   createSolrQuery,
   normaliseFacetsInSolrResponse,

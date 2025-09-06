@@ -1,7 +1,7 @@
 import { logger } from '../../logger'
-const assert = require('assert')
-const { get, omitBy, isUndefined } = require('lodash')
-const { SolrMappings } = require('../../data/constants')
+import assert from 'assert'
+import { get, omitBy, isUndefined } from 'lodash'
+import { SolrMappings } from '../../data/constants'
 
 const PassageFields = {
   Id: 'id',
@@ -380,7 +380,7 @@ function parseConnectedClustersCountResponse(response) {
   return get(response, 'facets.connectedClusters.numBuckets', 0)
 }
 
-module.exports = {
+export {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
 
