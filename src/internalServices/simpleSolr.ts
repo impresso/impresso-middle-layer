@@ -1,7 +1,6 @@
 import { preprocessSolrError } from '../util/solr/errors'
 import { Cache } from '../cache'
 import { SolrFacetQueryParams } from '../data/types'
-import { ConnectionPool, Headers, initHttpPool, RequestInit } from '../httpConnectionPool'
 import { logger } from '../logger'
 import {
   SolrConfiguration,
@@ -18,6 +17,8 @@ import { defaultCachingStrategy } from '../util/solr/cacheControl'
 import { removeNullAndUndefined } from '../util/fn'
 import { safeParseJson, safeStringifyJson } from '../util/jsonCodec'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from '../util/socksProxyConfiguration'
+import { IFetchClient } from '../utils/http/client/base'
+import { createFetchClient } from '../utils/http/client'
 
 const DefaultSuggesterDictonary = 'm_suggester_infix'
 
@@ -163,7 +164,7 @@ export interface SimpleSolrClient {
 }
 
 interface PoolWrapper {
-  pool: ConnectionPool
+  client: IFetchClient
   baseUrl: string
   auth?: SolrServerConfiguration['auth']
 }
@@ -201,7 +202,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
             }`
           )
           acc[server.id] = {
-            pool: initHttpPool({ socksProxy }),
+            client: createFetchClient({ socksProxy }),
             auth: server.auth,
             baseUrl: server.baseUrl,
           }
@@ -228,9 +229,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
     return [this._pools[serverId], namespaceObj]
   }
 
-  protected async fetch(pool: ConnectionPool, url: string, init: RequestInit): Promise<string> {
-    const client = await pool.acquire()
-
+  protected async fetch(client: IFetchClient, url: string, init: RequestInit): Promise<string> {
     try {
       const response = await client.fetch(url, init, defaultFetchOptions)
       const successfulResponse = await checkResponseStatus(response)
@@ -238,8 +237,6 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
       return sanitizeSolrResponse(responseBodyText)
     } catch (e) {
       throw preprocessSolrError(e as Error)
-    } finally {
-      await pool.release(client).catch(e => logger.error(`Failed to release connection: ${e}`))
     }
   }
 
@@ -280,7 +277,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
     request: SelectRequest | SolrSuggestRequest,
     urlSuffix: 'select' | 'suggest'
   ): Promise<R> {
-    const [{ pool, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
+    const [{ client, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
 
     const url = `${baseUrl}/${namespace.index}/${urlSuffix}`
     const init: RequestInit = {
@@ -292,7 +289,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
       body: safeStringifyJson(removeNullAndUndefined(request.body)),
     }
 
-    const responseBody = await this.fetch(pool, url, init)
+    const responseBody = await this.fetch(client, url, init)
     return safeParseJson(responseBody)
   }
 }
@@ -316,14 +313,14 @@ class CachedDefaultSimpleSolrClient extends DefaultSimpleSolrClient {
     super(configuration)
   }
 
-  protected async fetch(pool: ConnectionPool, url: string, init: RequestInit): Promise<string> {
+  protected async fetch(client: IFetchClient, url: string, init: RequestInit): Promise<string> {
     const cacheKey = buildCacheKey(url, { method: init.method, body: init.body })
     const cachedResponse = await this.cache.get<string>(cacheKey)
     if (cachedResponse != null) {
       return cachedResponse
     }
 
-    const response = await super.fetch(pool, url, init)
+    const response = await super.fetch(client, url, init)
 
     const action = this.cachingStrategy?.(url, init.body as string, safeStringifyJson(response)) ?? 'cache'
 

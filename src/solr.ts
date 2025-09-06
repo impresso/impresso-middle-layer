@@ -1,5 +1,5 @@
-import { FetchOptions, IResponse } from './httpConnectionPool'
 import { logger } from './logger'
+import { FetchOptions } from './utils/http/client/base'
 
 export type SolrNamespace =
   | 'search'
@@ -64,24 +64,24 @@ export const isSolrError = (error: Error): error is SolrError => {
  * @returns {Promise<Response>}
  * @throws {SolrError}
  */
-export const checkResponseStatus = async (res: IResponse): Promise<IResponse> => {
+export const checkResponseStatus = async (res: Response): Promise<Response> => {
   if (res.ok) return res
 
-  const error = new Error(new String(res.statusCode).toString())
+  const error = new Error(new String(res.status).toString())
   // @ts-ignore
   error.response = {
-    statusCode: res.statusCode,
+    statusCode: res.status,
     body: await res.text(),
   }
   throw error
 }
 
-const logUnsuccessfulResponses = async (url: string, method: string, body: any, response: IResponse) => {
+const logUnsuccessfulResponses = async (url: string, method: string, body: Record<string, any>, response: Response) => {
   if (!response.ok) {
     const errorDetails = {
       method,
       url,
-      status: response.statusCode,
+      status: response.status,
       body,
       response: await response.text(),
     }
