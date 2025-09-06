@@ -1,5 +1,5 @@
-const fs = require('node:fs')
-const { compileFromFile } = require('json-schema-to-typescript')
+import fs from 'node:fs'
+import { compileFromFile } from 'json-schema-to-typescript'
 
 const banner = `
 /* eslint-disable */

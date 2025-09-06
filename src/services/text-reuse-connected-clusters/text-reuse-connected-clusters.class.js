@@ -1,5 +1,5 @@
 import { getToSelect } from '../../util/solr/adapters'
-const { mapValues, groupBy } = require('lodash')
+import { mapValues, groupBy } from 'lodash'
 const {
   buildConnectedClustersRequest,
   parseConnectedClustersResponse,
@@ -71,6 +71,4 @@ class TextReuseConnectedClusters {
   }
 }
 
-export default {
-  TextReuseConnectedClusters,
-}
+export { TextReuseConnectedClusters }

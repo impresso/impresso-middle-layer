@@ -3,13 +3,14 @@
  * historical references. Use the proxy from the middleware folder instead.
  */
 
-const logger = require('winston')
-const debug = require('debug')('verbose:impresso/proxy')
-const { createProxyMiddleware } = require('http-proxy-middleware')
-const modifyResponse = require('node-http-proxy-json')
-const nodePath = require('path')
-const { QueryTypes } = require('sequelize')
-const { ACCESS_RIGHT_OPEN_PUBLIC } = require('../models/articles.model')
+import logger from 'winston'
+import debugLib from 'debug'
+const debug = debugLib('verbose:impresso/proxy')
+import { createProxyMiddleware } from 'http-proxy-middleware'
+import modifyResponse from 'node-http-proxy-json'
+import nodePath from 'path'
+import { QueryTypes } from 'sequelize'
+import { ACCESS_RIGHT_OPEN_PUBLIC } from '../models/articles.model'
 
 /**
  * Internal redirect using X accel Redirect (NGINX) to speed up (and cache) image delivery.

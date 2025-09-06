@@ -1,4 +1,4 @@
-const { SolrNamespaces } = require('../../solr')
+import { SolrNamespaces } from '../../solr'
 const {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
@@ -42,7 +42,7 @@ function mergeResponses(responses, totalsResponse) {
   }
 }
 
-class NgramTrends {
+export class NgramTrends {
   setup(app) {
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
@@ -68,8 +68,4 @@ class NgramTrends {
 
     return mergeResponses(responses, totalsResponse)
   }
-}
-
-export default {
-  NgramTrends,
 }

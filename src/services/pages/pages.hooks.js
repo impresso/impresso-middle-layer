@@ -1,16 +1,10 @@
-const { queryWithCommonParams } = require('../../hooks/params');
+import { queryWithCommonParams } from '../../hooks/params.js'
 
 export default {
   before: {
-    all: [
-
-    ],
-    find: [
-      queryWithCommonParams(),
-    ],
-    get: [
-      queryWithCommonParams(),
-    ],
+    all: [],
+    find: [queryWithCommonParams()],
+    get: [queryWithCommonParams()],
     create: [],
     update: [],
     patch: [],
@@ -36,4 +30,4 @@ export default {
     patch: [],
     remove: [],
   },
-};
+}

@@ -11,13 +11,14 @@ import { logger } from '../../logger'
 import Entity, { IEntitySolrHighlighting, suggestField } from '../../models/entities.model'
 
 /* eslint-disable no-unused-vars */
-const debug = require('debug')('impresso/services:entities')
-const lodash = require('lodash')
-const { Op } = require('sequelize')
-const { NotFound } = require('@feathersjs/errors')
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:entities')
+import lodash from 'lodash'
+import { Op } from 'sequelize'
+import { NotFound } from '@feathersjs/errors'
 
-const { measureTime } = require('../../util/instruments')
-const { buildSearchEntitiesSolrQuery } = require('./logic')
+import { measureTime } from '../../util/instruments'
+import { buildSearchEntitiesSolrQuery } from './logic'
 
 interface Sanitized<T> {
   sanitized: T
@@ -112,11 +113,11 @@ class Service {
     )
 
     const factory = Entity.solrFactory()
-    const entities = solrResult.response.docs.map(factory)
+    const entities = solrResult.response?.docs?.map(factory)
 
-    debug('[find] total entities:', solrResult.response.numFound)
+    debug('[find] total entities:', solrResult.response?.numFound)
     // is Empty?
-    if (!solrResult.response.numFound) {
+    if (!solrResult.response?.numFound) {
       return {
         total: 0,
         data: [],
@@ -130,7 +131,7 @@ class Service {
     // generate the sequelize clause.
     const where = {
       id: {
-        [Op.in]: entities.map((d: any) => d.uid),
+        [Op.in]: entities?.map((d: any) => d.uid),
       },
     }
     // get sequelize results
@@ -139,7 +140,7 @@ class Service {
         this.sequelizeService.find({
           findAllOnly: true,
           query: {
-            limit: entities.length,
+            limit: entities?.length,
             offset: 0,
           },
           where,
@@ -150,10 +151,10 @@ class Service {
     // entities from sequelize, containing wikidata and dbpedia urls
     const sequelizeEntitiesIndex = lodash.keyBy(sequelizeResult.data, 'uid')
     const result = {
-      total: solrResult.response.numFound,
+      total: solrResult.response?.numFound,
       limit: qp.limit,
       offset: qp.offset,
-      data: entities.map((d: any) => {
+      data: entities?.map((d: any) => {
         if (sequelizeEntitiesIndex[d.uid]) {
           // enrich with wikidataID
           d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId
@@ -199,7 +200,7 @@ class Service {
     )
       .then(res => {
         debug('[find] wikidata success!')
-        result.data = result.data.map((d: any) => {
+        result.data = result?.data?.map((d: any) => {
           if (d.wikidataId) {
             d.wikidata = resolvedEntities[d.wikidataId]
           }
@@ -230,7 +231,7 @@ class Service {
       },
     }
     return await this._find(findParams).then(res => {
-      if (!res.data.length) {
+      if (!res?.data?.length) {
         throw new NotFound()
       }
       return res.data[0]

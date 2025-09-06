@@ -1,6 +1,6 @@
-const { uniq, values, groupBy, get } = require('lodash')
-const { SolrNamespaces } = require('../../solr')
-const { sameTypeFiltersToQuery } = require('../../util/solr')
+import { uniq, values, groupBy, get } from 'lodash'
+import { SolrNamespaces } from '../../solr'
+import { sameTypeFiltersToQuery } from '../../util/solr'
 
 /**
  * @typedef {import('../../models').Filter} Filter
@@ -228,6 +228,4 @@ class EntityMentionsTimeline {
   }
 }
 
-export default {
-  EntityMentionsTimeline,
-}
+export { EntityMentionsTimeline }

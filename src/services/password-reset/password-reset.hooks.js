@@ -1,4 +1,4 @@
-const { validate, REGEX_EMAIL, REGEX_PASSWORD } = require('../../hooks/params')
+import { validate, REGEX_EMAIL, REGEX_PASSWORD } from '../../hooks/params'
 
 export default {
   before: {

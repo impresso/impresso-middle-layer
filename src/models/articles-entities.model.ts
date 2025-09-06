@@ -19,5 +19,3 @@ export class ArticleEntity implements IArticleEntity {
 export default function (params: any) {
   return new ArticleEntity(params)
 }
-
-export const Model = ArticleEntity

@@ -1,13 +1,14 @@
 /* eslint-disable no-unused-vars */
-const debug = require('debug')('impresso/services:articles-tags')
-const shash = require('short-hash')
-const { NotImplemented } = require('@feathersjs/errors')
-const Neo4jService = require('../neo4j.service').Service
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:articles-tags')
+import shash from 'short-hash'
+import { NotImplemented } from '@feathersjs/errors'
+import { Neo4jService as Service } from '../neo4j.service'
 
 /**
  * @deprecated
  */
-class Service extends Neo4jService {
+export class Service extends Neo4jService {
   async create(data, params) {
     const tagUid = [params.user.uid, shash(`${data.sanitized.tag}`)].join('-')
 
@@ -42,5 +43,3 @@ class Service extends Neo4jService {
 export default function (options) {
   return new Service(options)
 }
-
-export const Service = Service

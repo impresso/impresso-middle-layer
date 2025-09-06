@@ -1,9 +1,10 @@
 /* eslint no-use-before-define: off */
-const mustache = require('mustache')
-const moment = require('moment')
-const debug = require('debug')('impresso/services:neo4j.utils')
-const verbose = require('debug')('verbose:impresso/services:neo4j.utils')
-const { Conflict, BadRequest, BadGateway, Unavailable } = require('@feathersjs/errors')
+import mustache from 'mustache'
+import moment from 'moment'
+import Debug from 'debug'
+const debug = Debug('impresso/services:neo4j.utils')
+const verbose = Debug('verbose:impresso/services:neo4j.utils')
+import { Conflict, BadRequest, BadGateway, Unavailable } from '@feathersjs/errors'
 
 const neo4jToInt = neo4jInteger => (typeof neo4jInteger === 'object' ? neo4jInteger.low : neo4jInteger)
 

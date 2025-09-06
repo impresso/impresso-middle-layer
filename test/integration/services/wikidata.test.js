@@ -1,5 +1,5 @@
-const assert = require('assert');
-const wikidata = require('../../../src/services/wikidata');
+import assert from 'assert'
+import wikidata from '../../../src/services/wikidata'
 
 /*
 
@@ -9,12 +9,12 @@ src/services/wikidata.js --fix \
 
 */
 describe('test wikidata', function () {
-  this.timeout(5000);
+  this.timeout(5000)
 
   it('get wikidata Q42', async () => {
     const entity = await wikidata.resolve({
       ids: ['Q42'],
-    });
-    assert.ok(entity);
-  });
-});
+    })
+    assert.ok(entity)
+  })
+})

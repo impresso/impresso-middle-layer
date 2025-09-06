@@ -1,5 +1,6 @@
-const axios = require('axios')
-const debug = require('debug')('impresso/services:articles-recommendations')
+import axios from 'axios'
+import debug from 'debug'
+const debugLog = debug('impresso/services:articles-recommendations')
 
 class ArticlesRecommendations {
   constructor({ recommenderServiceUrl }) {
@@ -25,4 +26,4 @@ class ArticlesRecommendations {
   }
 }
 
-export default { ArticlesRecommendations }
+export { ArticlesRecommendations }

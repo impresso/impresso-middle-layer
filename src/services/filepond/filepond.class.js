@@ -1,8 +1,9 @@
-const axios = require('axios')
-const FormData = require('form-data')
-const path = require('path')
-const sharp = require('sharp')
-const debug = require('debug')('impresso/services:filepond')
+import axios from 'axios'
+import FormData from 'form-data'
+import path from 'path'
+import sharp from 'sharp'
+import debugModule from 'debug'
+const debug = debugModule('impresso/services:filepond')
 
 async function executeImageUploadRequest(url, modelId, filename, buffer) {
   const formData = new FormData()
@@ -20,7 +21,7 @@ async function executeImageUploadRequest(url, modelId, filename, buffer) {
   return axios(url, parameters)
 }
 
-class Service {
+export class Service {
   constructor(options) {
     this.options = options || {}
   }
@@ -73,5 +74,3 @@ class Service {
 export default function (options) {
   return new Service(options)
 }
-
-export const Service = Service

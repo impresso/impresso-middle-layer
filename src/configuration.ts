@@ -1,4 +1,4 @@
-import { Ajv, getValidator } from '@feathersjs/schema'
+import { Ajv, getValidator, JSONSchemaDefinition } from '@feathersjs/schema'
 import { Cache } from './cache'
 import type { RedisClientOptions } from 'redis'
 
@@ -10,7 +10,7 @@ import { ImpressoApplication } from './types'
 import { feathersConfigurationLoader } from './util/configuration'
 
 const ajv = new Ajv()
-const configurationSchema = require('./schema/common/config.json')
+import configurationSchema from './schema/common/config.json'
 ajv.addSchema(require('./schema/common/solrConfiguration.json'), 'solrConfiguration.json')
 
 type RedisConfiguration = RedisConfig & RedisClientOptions
@@ -33,7 +33,7 @@ export interface Configuration extends Config {
   availablePlans: string[]
 }
 
-const configurationValidator = getValidator(configurationSchema, ajv)
+const configurationValidator = getValidator(configurationSchema as any as JSONSchemaDefinition, ajv)
 
 export default function configuration(app: ImpressoApplication) {
   return app.configure(feathersConfigurationLoader(configurationValidator))

@@ -2,11 +2,11 @@
  * From deprecated `socks` module, which is no longer maintained.
  */
 
-const stream = require('stream')
-const util = require('util')
-const net = require('net')
-const tls = require('tls')
-const ipaddr = require('ipaddr.js')
+import stream from 'stream'
+import util from 'util'
+import net from 'net'
+import tls from 'tls'
+import ipaddr from 'ipaddr.js'
 
 const SocksConnection = function (remoteOptions, socksOptions) {
   const that = this

@@ -1,5 +1,5 @@
-const { authenticate } = require('../../hooks/authenticate')
-// const { validateWithSchema } = require('../../hooks/schema')
+import { authenticate } from '../../hooks/authenticate'
+// import { validateWithSchema } from '../../hooks/schema'
 
 export default {
   before: {

@@ -1,10 +1,11 @@
 /* eslint-disable max-len */
 import { logger } from '../logger'
-const debug = require('debug')('impresso/hooks/validators')
-const { get, set } = require('lodash')
-const { BadRequest } = require('@feathersjs/errors')
-const Validator = require('jsonschema').Validator
-const { validated, formatValidationErrors } = require('../util/jsonschema')
+import Debug from 'debug'
+const debug = Debug('impresso/hooks/validators')
+import { get, set } from 'lodash'
+import { BadRequest } from '@feathersjs/errors'
+import { Validator } from 'jsonschema'
+import { validated, formatValidationErrors } from '../util/jsonschema'
 
 const RegExpEmail =
   /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/

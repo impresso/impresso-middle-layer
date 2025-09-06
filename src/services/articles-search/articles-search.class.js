@@ -1,7 +1,7 @@
-const { relevanceContextItemsToSolrFormula, buildSolrQuery, withScore } = require('./logic')
-const { SolrNamespaces } = require('../../solr')
-const { filtersToQueryAndVariables } = require('../../util/solr')
-const { getItemsFromSolrResponse, getTotalFromSolrResponse } = require('../search/search.extractors')
+import { relevanceContextItemsToSolrFormula, buildSolrQuery, withScore } from './logic'
+import { SolrNamespaces } from '../../solr'
+import { filtersToQueryAndVariables } from '../../util/solr'
+import { getItemsFromSolrResponse, getTotalFromSolrResponse } from '../search/search.extractors'
 
 /**
  * @typedef {import('impresso-jscommons').Filter} Filter
@@ -9,7 +9,7 @@ const { getItemsFromSolrResponse, getTotalFromSolrResponse } = require('../searc
  * @typedef {import('.').Pagination} Pagination
  */
 
-class ArticlesSearch {
+export class ArticlesSearch {
   constructor(options, app) {
     this.options = options || {}
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
@@ -57,8 +57,4 @@ class ArticlesSearch {
       },
     }
   }
-}
-
-export default {
-  ArticlesSearch,
 }

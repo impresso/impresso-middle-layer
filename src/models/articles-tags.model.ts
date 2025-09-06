@@ -37,5 +37,3 @@ export class ArticleTag implements IArticleTag {
 export default function (params: Partial<IArticleTag>) {
   return new ArticleTag(params)
 }
-
-export const Model = ArticleTag

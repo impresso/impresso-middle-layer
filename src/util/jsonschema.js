@@ -1,4 +1,4 @@
-const Ajv = require('ajv')
+import Ajv from 'ajv'
 
 const ajv = new Ajv({ allErrors: true, strict: true })
 const BaseSchemaURI = 'https://github.com/impresso/impresso-public-api/tree/master/src/schema'
@@ -43,7 +43,4 @@ function formatValidationErrors(errors = []) {
   }, {})
 }
 
-export default {
-  validated,
-  formatValidationErrors,
-}
+export { validated, formatValidationErrors }

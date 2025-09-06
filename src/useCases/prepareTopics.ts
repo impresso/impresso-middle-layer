@@ -321,31 +321,34 @@ const withRelatedTopics = async (
 const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise<Topic[]> => {
   const graph = new Graph()
 
-  graph.import({
-    attributes: {
-      name: 'the awesome topic graph',
-    },
-    nodes: Object.values(topics).map(topic => ({
-      key: topic.uid,
+  graph.import(
+    {
       attributes: {
-        x: 0,
-        y: 0,
-        weight: topic.countItems,
+        name: 'the awesome topic graph',
       },
-    })),
-    edges: Object.values(topics)
-      .map(
-        topic =>
-          topic.relatedTopics?.map(rel => ({
-            source: topic.uid,
-            target: rel.uid,
-            attributes: {
-              weight: rel.w,
-            },
-          })) ?? []
-      )
-      .reduce((acc, d) => acc.concat(d), []),
-  })
+      nodes: Object.values(topics).map(topic => ({
+        key: topic.uid,
+        attributes: {
+          x: 0,
+          y: 0,
+          weight: topic.countItems,
+        },
+      })),
+      edges: Object.values(topics)
+        .map(
+          topic =>
+            topic.relatedTopics?.map(rel => ({
+              source: topic.uid,
+              target: rel.uid,
+              attributes: {
+                weight: rel.w,
+              },
+            })) ?? []
+        )
+        .reduce((acc, d) => acc.concat(d), []),
+    },
+    true
+  )
 
   const { x, y } = graph.getNodeAttributes(graph.nodes()[1])
   if (!x && !y) {

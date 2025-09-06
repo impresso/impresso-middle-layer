@@ -1,5 +1,5 @@
-const assert = require('assert')
-const { encrypt } = require('../src/crypto')
+import assert from 'assert'
+import { encrypt } from '../src/crypto'
 
 /**
  * use with

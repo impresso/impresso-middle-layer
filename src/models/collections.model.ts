@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 import { BaseUser, Collection as ICollection } from './generated/schemas'
 import { ModelDefined, Sequelize } from 'sequelize'
 
-const { DataTypes } = require('sequelize')
+import { DataTypes } from 'sequelize'
 
 export const STATUS_PRIVATE = 'PRI'
 export const STATUS_SHARED = 'SHA'

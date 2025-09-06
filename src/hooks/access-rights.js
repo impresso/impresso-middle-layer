@@ -1,6 +1,7 @@
-const config = require('@feathersjs/configuration')()()
-const debug = require('debug')('impresso/hooks:access-rights')
-const { ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PRIVATE } = require('../models/issues.model')
+import config from '@feathersjs/configuration'
+import Debug from 'debug'
+const debug = Debug('impresso/hooks:access-rights')
+import { ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PRIVATE } from '../models/issues.model'
 
 debug('init hook config:', config.accessRights)
 

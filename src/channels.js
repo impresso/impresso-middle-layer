@@ -1,4 +1,5 @@
-const debug = require('debug')('impresso/channels')
+import Debug from 'debug'
+const debug = Debug('impresso/channels')
 
 export default function (app) {
   debug('preparing channels...')
@@ -9,13 +10,13 @@ export default function (app) {
   }
   debug('channels ready')
 
-  app.service('logs').publish((payload) => {
+  app.service('logs').publish(payload => {
     // console.log('MESSAGG', payload);
     debug('log to')
     return app.channel(`logs/${payload.to}`)
   })
 
-  app.on('connection', (connection) => {
+  app.on('connection', connection => {
     // On a new real-time connection, add it to the anonymous channel
     debug('new realtime connection!', connection)
     app.channel('anonymous').join(connection)
@@ -61,13 +62,8 @@ export default function (app) {
     if (socket.connection) {
       // When logging out, leave all channels before joining anonymous channel
       if (socket.connection.user && socket.connection.user.uid) {
-        debug(
-          '@logout (leaving private logs) for user:',
-          socket.connection.user.username
-        )
-        app
-          .channel(`logs/${socket.connection.user.uid}`)
-          .leave(socket.connection)
+        debug('@logout (leaving private logs) for user:', socket.connection.user.username)
+        app.channel(`logs/${socket.connection.user.uid}`).leave(socket.connection)
       }
       app.channel('authenticated').leave(socket.connection)
       // debug('@logout (reconnecting with anonymous channel) for anonymous user.')

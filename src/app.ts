@@ -26,8 +26,8 @@ import schemas from './services/schemas'
 import { AppServices, ImpressoApplication } from './types'
 import { customJsonMiddleware } from './util/express'
 
-const helmet = require('helmet')
-const cookieParser = require('cookie-parser')
+import helmet from 'helmet'
+import cookieParser from 'cookie-parser'
 
 const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
 

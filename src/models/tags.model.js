@@ -1,42 +1,43 @@
-class Tag {
-  constructor ({
-    uid = '',
-    name = '',
-    labels = ['bucket', 'tag'],
-    creationDate = new Date(),
-    lastModifiedDate = new Date(),
-    articles = [],
-  } = {}, complete = false) {
-    this.uid = String(uid);
-    this.labels = labels;
-    this.name = String(name);
+export class Tag {
+  constructor(
+    {
+      uid = '',
+      name = '',
+      labels = ['bucket', 'tag'],
+      creationDate = new Date(),
+      lastModifiedDate = new Date(),
+      articles = [],
+    } = {},
+    complete = false
+  ) {
+    this.uid = String(uid)
+    this.labels = labels
+    this.name = String(name)
 
     if (creationDate instanceof Date) {
-      this.creationDate = creationDate;
+      this.creationDate = creationDate
     } else {
-      this.creationDate = new Date(creationDate);
+      this.creationDate = new Date(creationDate)
     }
 
     if (lastModifiedDate instanceof Date) {
-      this.lastModifiedDate = lastModifiedDate;
+      this.lastModifiedDate = lastModifiedDate
     } else {
-      this.lastModifiedDate = new Date(lastModifiedDate);
+      this.lastModifiedDate = new Date(lastModifiedDate)
     }
 
     if (complete) {
-      this.articles = articles;
+      this.articles = articles
     }
   }
 }
 
-export default function () { // app) {
+export default function () {
+  // app) {
   // const config = app.get('sequelize');
   // const issue = model(app.get('sequelizeClient'), {});
   //
   // return {
   //   sequelize: issue,
   // };
-};
-
-// export const model = model;
-export const Model = Tag;
+}

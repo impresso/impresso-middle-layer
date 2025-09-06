@@ -9,7 +9,7 @@ import { HookOptions } from '@feathersjs/feathers'
 import { inPublicApi } from '../../hooks/appMode'
 import { NewspapersService } from './newspapers.class'
 
-const { queryWithCommonParams, validate } = require('../../hooks/params')
+import { queryWithCommonParams, validate } from '../../hooks/params'
 
 const findQueryParamsRenamePolicy = {
   term: 'q',

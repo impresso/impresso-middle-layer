@@ -43,7 +43,7 @@ const resolveTopics = () => async (context: HookContext<ImpressoApplication>) =>
       idField: 'topicUid',
       itemField: 'topic',
     })
-    context.result.topics = group.items?.sort((a, b) => (a.relevance > b.relevance ? -1 : 1))
+    context.result.topics = group.items?.sort((a, b) => ((a as any).relevance > (b as any).relevance ? -1 : 1))
   }
 }
 

@@ -1,6 +1,6 @@
 // Initializes the `articles-suggestions` service on path `/articles-suggestions`
 import { ArticlesSuggestionsService } from './articles-suggestions.class'
-const hooks = require('./articles-suggestions.hooks')
+import hooks from './articles-suggestions.hooks'
 
 export default function (app) {
   // Initialize our service with any options it requires

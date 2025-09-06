@@ -1,10 +1,13 @@
 // Initializes the `projects` service on path `/projects`
-const queries = require('decypher')(`${__dirname}/projects.queries.cyp`);
-const createService = require('./projects.class.js');
-const hooks = require('./projects.hooks');
+import Decypher from 'decypher'
+
+import createService from './projects.class.js'
+import hooks from './projects.hooks'
+
+const queries = Decypher(`${__dirname}/projects.queries.cyp`)
 
 export default function (app) {
-  const paginate = app.get('paginate');
+  const paginate = app.get('paginate')
 
   const options = {
     name: 'projects',
@@ -12,13 +15,13 @@ export default function (app) {
 
     config: app.get('neo4j'),
     queries,
-  };
+  }
 
   // Initialize our service with any options it requires
-  app.use('/projects', createService(options));
+  app.use('/projects', createService(options))
 
   // Get our initialized service so that we can register hooks and filters
-  const service = app.service('projects');
+  const service = app.service('projects')
 
-  service.hooks(hooks);
-};
+  service.hooks(hooks)
+}

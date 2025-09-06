@@ -1,5 +1,7 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
-const { validate, queryWithCommonParams, utils } = require('../../hooks/params');
+import { hooks } from '@feathersjs/authentication'
+import { validate, queryWithCommonParams, utils } from '../../hooks/params'
+
+const { authenticate } = hooks
 
 export default {
   before: {
@@ -34,9 +36,7 @@ export default {
     all: [],
     find: [],
     get: [],
-    create: [
-
-    ],
+    create: [],
     update: [],
     patch: [],
     remove: [],
@@ -51,4 +51,4 @@ export default {
     patch: [],
     remove: [],
   },
-};
+}

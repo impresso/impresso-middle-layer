@@ -1,10 +1,11 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
-const debug = require('debug')('impresso/services:SequelizeService')
-const { NotFound } = require('@feathersjs/errors')
-// const sequelize = require('../sequelize')
+import Debug from 'debug'
+const debug = Debug('impresso/services:SequelizeService')
+import { NotFound } from '@feathersjs/errors'
+// import sequelize from '../sequelize.js'
 import { sequelizeErrorHandler } from './sequelize.utils.js'
-import { getCacheKey } from '../util/serialize'
+import { getCacheKey } from '../util/serialize.js'
 
 export function getCacheKeyForReadSqlRequest(request, modelName) {
   const key = getCacheKey(request)
@@ -12,12 +13,16 @@ export function getCacheKeyForReadSqlRequest(request, modelName) {
 }
 
 const loadDynamicModule = async name => {
-  return import(name).catch(e => {
+  // Try to add .js extension if it doesn't have one
+  const modulePath = name.endsWith('.js') ? name : `${name}.js`
+  return import(modulePath).catch(e => {
+    // Fallback to CommonJS require as a last resort
+    console.warn(`Warning: Falling back to CommonJS require for ${name}. Consider updating import.`)
     return require(name)
   })
 }
 
-class SequelizeService {
+export class Service {
   constructor({ name = '', app = null, modelName = null, cacheReads = false } = {}) {
     this.name = String(name)
     this.modelName = String(modelName || name)
@@ -25,7 +30,7 @@ class SequelizeService {
     this.sequelize = app.get('sequelizeClient')
     loadDynamicModule(`../models/${this.modelName}.model`)
       .then(m => {
-        this.Model = m.Model ?? m.default?.default ?? m.default ?? m
+        this.Model = m.default?.default ?? m.default ?? m
         this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
 
         debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
@@ -205,7 +210,5 @@ class SequelizeService {
 }
 
 export default function (options) {
-  return new SequelizeService(options)
+  return new Service(options)
 }
-
-export const Service = SequelizeService

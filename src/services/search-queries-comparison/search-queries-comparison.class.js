@@ -1,11 +1,10 @@
-// const debug = require('debug')('impresso/services:search-queries-comparison');
-const { BadRequest } = require('@feathersjs/errors')
+import { BadRequest } from '@feathersjs/errors'
 const {
   logic: {
     filter: { mergeFilters },
   },
 } = require('impresso-jscommons')
-const { SolrMappings } = require('../../data/constants')
+import { SolrMappings } from '../../data/constants'
 
 /**
  * @typedef {import('./').Response} Response
@@ -15,9 +14,9 @@ const { SolrMappings } = require('../../data/constants')
  * @typedef {import('impresso-jscommons').Facet} Facet
  */
 
-const { getFacetsFromSolrResponse } = require('../search/search.extractors')
-const { filtersToQueryAndVariables } = require('../../util/solr')
-const { SolrNamespaces } = require('../../solr')
+import { getFacetsFromSolrResponse } from '../search/search.extractors'
+import { filtersToQueryAndVariables } from '../../util/solr'
+import { SolrNamespaces } from '../../solr'
 
 /**
  * Create SOLR query for getting facets.
@@ -149,7 +148,7 @@ async function getResponseFacetsFromSolrResponse(solrResponse, app) {
     }))
 }
 
-class SearchQueriesComparison {
+export class SearchQueriesComparison {
   setup(app) {
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')

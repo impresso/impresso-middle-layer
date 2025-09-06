@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
-import { logger } from '../..'
-const debug = require('debug')('impresso/services:search-exporter')
-const { NotFound, NotImplemented } = require('@feathersjs/errors')
-const { protobuf } = require('impresso-jscommons')
-const solr = require('../../solr')
-const article = require('../../models/articles.model')
+import { logger } from '../../logger.js'
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:search-exporter')
+import { NotFound, NotImplemented } from '@feathersjs/errors'
+import { protobuf } from 'impresso-jscommons'
+import article from '../../models/articles.model'
 
-class Service {
+export class Service {
   constructor(options) {
     this.name = options.name
     this.options = options || {}
@@ -63,5 +63,3 @@ class Service {
 export default function (options) {
   return new Service(options)
 }
-
-export const Service = Service

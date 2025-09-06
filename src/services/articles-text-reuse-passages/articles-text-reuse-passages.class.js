@@ -1,15 +1,13 @@
-import { getToSelect } from '../../util/solr/adapters'
-const { groupBy, mapValues, first } = require('lodash')
-const {
+import { getToSelect } from '../../util/solr/adapters.js'
+import { groupBy, mapValues, first } from 'lodash'
+import {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
-
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
-
   PassageFields,
-} = require('../../logic/textReuse/solr')
-const { SolrNamespaces } = require('../../solr')
+} from '../../logic/textReuse/solr.js'
+import { SolrNamespaces } from '../../solr.js'
 
 function buildResponse(passages, clusters) {
   const clustersById = mapValues(groupBy(clusters, 'id'), first)
@@ -69,6 +67,4 @@ class ArticlesTextReusePassages {
   }
 }
 
-export default {
-  ArticlesTextReusePassages,
-}
+export { ArticlesTextReusePassages }

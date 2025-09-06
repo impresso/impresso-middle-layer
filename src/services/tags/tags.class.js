@@ -1,12 +1,13 @@
 /* eslint-disable no-unused-vars */
-const shash = require('short-hash')
-const debug = require('debug')('impresso/services:articles-tags')
-const Neo4jService = require('../neo4j.service').Service
+import shash from 'short-hash'
+import debug from 'debug'
+const debugLog = debug('impresso/services:articles-tags')
+import { Service as Neo4jService } from '../neo4j.service'
 
 /**
  * @deprecated
  */
-class Service extends Neo4jService {
+export class Service extends Neo4jService {
   async find(params) {
     return []
   }
@@ -42,5 +43,3 @@ class Service extends Neo4jService {
 export default function (options) {
   return new Service(options)
 }
-
-export const Service = Service

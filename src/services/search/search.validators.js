@@ -1,5 +1,5 @@
-const { utils, REGEX_UID, REGEX_UIDS } = require('../../hooks/params')
-const { SolrMappings, FilterTypes, Contexts, Operators, Precision } = require('../../data/constants')
+import { utils, REGEX_UID, REGEX_UIDS } from '../../hooks/params.js'
+import { SolrMappings, FilterTypes, Contexts, Operators, Precision } from '../../data/constants.js'
 
 const eachFilterValidator = {
   context: {
@@ -109,9 +109,4 @@ const facetsValidator = {
   }),
 }
 
-export {
-  eachFilterValidator,
-  eachFacetFilterValidator,
-  paramsValidator,
-  facetsValidator,
-}
+export { eachFilterValidator, eachFacetFilterValidator, paramsValidator, facetsValidator }

@@ -1,4 +1,5 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
+import { hooks } from '@feathersjs/authentication'
+const { authenticate } = hooks
 
 export default {
   before: {
@@ -30,4 +31,4 @@ export default {
     patch: [],
     remove: [],
   },
-};
+}

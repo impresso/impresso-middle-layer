@@ -1,6 +1,8 @@
-const { protect } = require('@feathersjs/authentication-local').hooks;
-const { authenticate } = require('../../hooks/authenticate');
-const { validateWithSchema } = require('../../hooks/schema');
+import { hooks } from '@feathersjs/authentication-local'
+import { authenticate } from '../../hooks/authenticate'
+import { validateWithSchema } from '../../hooks/schema'
+
+const { protect } = hooks
 
 export default {
   before: {
@@ -13,8 +15,6 @@ export default {
   },
 
   after: {
-    create: [
-      protect('content'),
-    ],
+    create: [protect('content')],
   },
-};
+}

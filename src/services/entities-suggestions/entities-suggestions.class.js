@@ -1,9 +1,9 @@
 import { suggestField } from '../../models/entities.model'
 
-const { Op } = require('sequelize')
-const SequelizeService = require('../sequelize.service')
-const { measureTime } = require('../../util/instruments')
-const { SolrNamespaces } = require('../../solr')
+import { Op } from 'sequelize'
+import SequelizeService from '../sequelize.service'
+import { measureTime } from '../../util/instruments'
+import { SolrNamespaces } from '../../solr'
 
 /**
  * @typedef {{
@@ -120,7 +120,7 @@ function getPaginationFromSolrResponse(response, limit) {
   }
 }
 
-class EntitiesSuggestions {
+export class EntitiesSuggestions {
   constructor(app) {
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
@@ -191,8 +191,4 @@ class EntitiesSuggestions {
       pagination,
     }
   }
-}
-
-export default {
-  EntitiesSuggestions,
 }

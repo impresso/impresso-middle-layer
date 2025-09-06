@@ -1,4 +1,4 @@
-const lodash = require('lodash')
+import lodash from 'lodash'
 
 class TopicWord {
   constructor({ w = '', p = 0.0 } = {}, { checkHighlight = false } = {}) {
@@ -119,5 +119,6 @@ class Topic {
 }
 
 export const SOLR_FL = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s']
+Topic.SOLR_FL = SOLR_FL
 
 export default Topic

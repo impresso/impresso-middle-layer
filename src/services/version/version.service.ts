@@ -7,7 +7,7 @@ import { transformVersionDetails } from '../../transformers/version'
 import { VersionDetails } from '../../models/generated/schemas'
 
 const log = debug('impresso/services:version')
-const { getFirstAndLastDocumentDates } = require('./logic')
+import { getFirstAndLastDocumentDates } from './logic'
 
 export default function (app: ImpressoApplication) {
   // Initialize our service with any options it requires

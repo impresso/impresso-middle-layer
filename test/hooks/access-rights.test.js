@@ -1,6 +1,6 @@
-const assert = require('assert')
-const { obfuscate } = require('../../src/hooks/access-rights')
-const { ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PUBLIC } = require('../../src/models/issues.model')
+import assert from 'assert'
+import { obfuscate } from '../../src/hooks/access-rights'
+import { ACCESS_RIGHTS_CLOSED, ACCESS_RIGHTS_OPEN_PUBLIC } from '../../src/models/issues.model'
 
 /*
 ./node_modules/.bin/eslint \

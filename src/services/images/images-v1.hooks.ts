@@ -12,15 +12,8 @@ import { protobuf } from 'impresso-jscommons'
 import { BadRequest } from '@feathersjs/errors'
 import { inWebAppApi } from '../../hooks/appMode'
 
-// const { authenticate } = require('@feathersjs/authentication').hooks;
-import {
-  utils,
-  validate,
-  validateEach,
-  queryWithCommonParams,
-  displayQueryParams,
-  REGEX_UID,
-} from '../../hooks/params'
+// import { authenticate } from '@feathersjs/authentication'.hooks;
+import { utils, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID } from '../../hooks/params'
 import { qToSolrFilter, filtersToSolrQuery } from '../../hooks/search'
 
 import { resolveFacets, resolveQueryComponents } from '../../hooks/search-info'

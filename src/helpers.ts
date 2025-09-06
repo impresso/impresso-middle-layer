@@ -1,6 +1,8 @@
-const truncatise = require('truncatise')
-const debug = require('debug')('impresso/helpers')
-const verbose = require('debug')('verbose:impresso/helpers')
+import truncatise from 'truncatise'
+import Debug from 'debug'
+
+const debug = Debug('impresso/helpers')
+const verbose = Debug('verbose:impresso/helpers')
 
 interface Token {
   uid?: string
@@ -236,7 +238,7 @@ const toExcerpt = (
     TruncateLength,
     Suffix,
   })
-  if (exc > maxLength) {
+  if ((exc as any) > maxLength) {
     return truncatise(c, {
       TruncateBy: 'characters',
       maxLength,

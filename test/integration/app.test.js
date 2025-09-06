@@ -1,6 +1,6 @@
-const { default: fetch } = require('node-fetch');
-const assert = require('assert');
-const app = require('../../src/app');
+import { default: fetch } from 'node-fetch';
+import assert from 'assert';
+import app from '../../src/app';
 
 const rp = async url => fetch(url).then(res => res.text());
 

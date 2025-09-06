@@ -1,23 +1,25 @@
-const { protobuf } = require('impresso-jscommons');
-const { BadRequest } = require('@feathersjs/errors');
+import { protobuf } from 'impresso-jscommons'
+import { BadRequest } from '@feathersjs/errors'
 
-const getDeserializedFilters = ({ params: { query: { filters: serializedFilters } } }) => {
-  if (!serializedFilters) return [];
+const getDeserializedFilters = ({
+  params: {
+    query: { filters: serializedFilters },
+  },
+}) => {
+  if (!serializedFilters) return []
   try {
-    return protobuf.searchQuery.deserialize(serializedFilters).filters;
+    return protobuf.searchQuery.deserialize(serializedFilters).filters
   } catch (error) {
-    throw new BadRequest(`Filters deserialization error: ${error.message}`);
+    throw new BadRequest(`Filters deserialization error: ${error.message}`)
   }
-};
+}
 
-const deserializeFilters = (context) => {
-  context.params.filters = getDeserializedFilters(context);
-};
+const deserializeFilters = context => {
+  context.params.filters = getDeserializedFilters(context)
+}
 
 export default {
   before: {
-    find: [
-      deserializeFilters,
-    ],
+    find: [deserializeFilters],
   },
-};
+}

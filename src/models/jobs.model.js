@@ -1,21 +1,20 @@
 /* eslint-disable no-unused-vars */
-import User from './users.model'
-import { logger } from '../logger'
-
-const { DataTypes } = require('sequelize')
-const Attachment = require('./attachments.model')
+import User from './users.model.js'
+import { logger } from '../logger.js'
+import { DataTypes } from 'sequelize'
+import Attachment from './attachments.model.js'
 
 const TYPE_BULK_COLLECTION_FROM_QUERY = 'BCQ'
 const TYPE_DELETE_COLLECTION = 'DCO'
 const TYPE_SYNC_COLLECTION_TO_SOLR = 'IDX'
 
-const STATUS_READY = 'REA'
-const STATUS_RUN = 'RUN'
-const STATUS_DONE = 'DON'
-const STATUS_ERR = 'ERR'
-const STATUS_ARCHIVED = 'ARC'
-const STATUS_STOPPING = 'STO'
-const STATUS_KILLED = 'RIP'
+export const STATUS_READY = 'REA'
+export const STATUS_RUN = 'RUN'
+export const STATUS_DONE = 'DON'
+export const STATUS_ERR = 'ERR'
+export const STATUS_ARCHIVED = 'ARC'
+export const STATUS_STOPPING = 'STO'
+export const STATUS_KILLED = 'RIP'
 
 export default class Job {
   constructor({
@@ -159,12 +158,3 @@ export default class Job {
     return job
   }
 }
-
-Job.STATUS_DONE = STATUS_DONE
-Job.STATUS_READY = STATUS_READY
-Job.STATUS_RUN = STATUS_RUN
-Job.STATUS_DONE = STATUS_DONE
-Job.STATUS_ERR = STATUS_ERR
-Job.STATUS_ARCHIVED = STATUS_ARCHIVED
-Job.STATUS_STOPPING = STATUS_STOPPING
-Job.STATUS_KILLED = STATUS_KILLED

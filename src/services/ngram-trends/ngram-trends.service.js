@@ -1,5 +1,5 @@
-const { NgramTrends } = require('./ngram-trends.class')
-const hooks = require('./ngram-trends.hooks')
+import { NgramTrends } from './ngram-trends.class'
+import hooks from './ngram-trends.hooks'
 
 export default function (app) {
   const service = new NgramTrends()

@@ -3,7 +3,7 @@ import { ImpressoApplication } from '../../types'
 import { v4 } from 'uuid'
 import { WordMatch } from '../../models/generated/schemas'
 
-const { queryWithCommonParams, validate } = require('../../hooks/params')
+import { queryWithCommonParams, validate } from '../../hooks/params'
 
 export default {
   before: {

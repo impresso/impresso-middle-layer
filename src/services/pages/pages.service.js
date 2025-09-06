@@ -1,6 +1,6 @@
 // Initializes the `pages` service on path `/pages`
 import createService from './pages.class.js'
-import hooks from './pages.hooks'
+import hooks from './pages.hooks.js'
 
 export default function (app) {
   // Initialize our service with any options it requires

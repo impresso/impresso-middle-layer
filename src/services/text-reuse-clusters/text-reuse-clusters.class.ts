@@ -14,9 +14,9 @@ import { OpenPermissions } from '../../util/bigint'
 import { filtersToSolrQueries } from '../../util/solr'
 import { Filter } from '../../models'
 
-const { mapValues, groupBy, clone, get } = require('lodash')
-const { NotFound } = require('@feathersjs/errors')
-const { protobuf } = require('impresso-jscommons')
+import { mapValues, groupBy, clone, get } from 'lodash'
+import { NotFound } from '@feathersjs/errors'
+import { protobuf } from 'impresso-jscommons'
 const {
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
@@ -31,8 +31,8 @@ const {
   buildConnectedClustersCountRequest,
   parseConnectedClustersCountResponse,
 } = require('../../logic/textReuse/solr')
-const { parseOrderBy } = require('../../util/queryParameters')
-const { SolrNamespaces } = require('../../solr')
+import { parseOrderBy } from '../../util/queryParameters'
+import { SolrNamespaces } from '../../solr'
 
 interface ClusterIdAndTextAndPermission {
   id: any
@@ -143,7 +143,7 @@ export class TextReuseClusters {
     const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
     const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
     const filterQueryParts = filtersToSolrQueries(filters as Filter[], SolrNamespaces.TextReusePassages)
-    const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
+    const [orderByField, orderByDescending] = parseOrderBy(orderBy as string, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
       text,
       offset,

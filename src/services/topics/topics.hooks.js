@@ -5,8 +5,8 @@ const {
   // REGEX_UID,
   utils,
 } = require('../../hooks/params')
-const { filtersToSolrQuery } = require('../../hooks/search')
-const { eachFilterValidator } = require('../search/search.validators')
+import { filtersToSolrQuery } from '../../hooks/search'
+import { eachFilterValidator } from '../search/search.validators'
 
 export default {
   before: {

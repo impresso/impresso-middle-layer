@@ -46,4 +46,4 @@ class FiltersItems {
   }
 }
 
-export default { FiltersItems }
+export { FiltersItems }

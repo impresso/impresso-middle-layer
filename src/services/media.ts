@@ -6,7 +6,7 @@ import { ImpressoApplication } from '../types'
 import User from '../models/users.model'
 const debug = debugModule('impresso/media')
 
-const { BadRequest, NotFound } = require('@feathersjs/errors')
+import { BadRequest, NotFound } from '@feathersjs/errors'
 
 // TODO: generate this from schema when it's available (see attachments.model.js)
 interface Attachment {

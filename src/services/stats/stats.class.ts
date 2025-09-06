@@ -228,7 +228,7 @@ async function buildResponse(result: any, facet: any, index: any, domain: any, f
   }
 }
 
-class Stats {
+export class Stats {
   solr: SimpleSolrClient
   app: ImpressoApplication
 
@@ -302,5 +302,3 @@ class Stats {
     // return buildResponse(result, facet, index, domain, filters)
   }
 }
-
-export default { Stats }

@@ -1,4 +1,4 @@
-const util = require('util')
+import util from 'util'
 const exec = util.promisify(require('child_process').exec)
 const readFile = util.promisify(require('fs').readFile)
 
@@ -63,10 +63,4 @@ async function getNewspaperIndex() {
   }, {})
 }
 
-export default {
-  getGitBranch,
-  getGitRevision,
-  getVersion,
-  getFirstAndLastDocumentDates,
-  getNewspaperIndex,
-}
+export { getGitBranch, getGitRevision, getVersion, getFirstAndLastDocumentDates, getNewspaperIndex }

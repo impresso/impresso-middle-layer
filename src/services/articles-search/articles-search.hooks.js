@@ -1,5 +1,5 @@
-const { validateWithSchema } = require('../../hooks/schema');
-const { authenticate } = require('../../hooks/authenticate');
+import { validateWithSchema } from '../../hooks/schema'
+import { authenticate } from '../../hooks/authenticate'
 
 export default {
   before: {
@@ -36,4 +36,4 @@ export default {
     patch: [],
     remove: [],
   },
-};
+}

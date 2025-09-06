@@ -1,12 +1,13 @@
 /* eslint global-require: "off" */
 /* eslint import/no-dynamic-require: "off" */
-const debug = require('debug')('impresso/services:FusionService')
-const decypher = require('decypher')
-const { NotFound } = require('@feathersjs/errors')
-const neo4j = require('../neo4j')
-const sequelize = require('../sequelize')
+import Debug from 'debug'
+const debug = Debug('impresso/services:FusionService')
+import decypher from 'decypher'
+import { NotFound } from '@feathersjs/errors'
+import neo4j from '../neo4j'
+import sequelize from '../sequelize'
 
-const { neo4jRun, neo4jRecordMapper, neo4jSummary } = require('./neo4j.utils')
+import { neo4jRun, neo4jRecordMapper, neo4jSummary } from './neo4j.utils'
 
 class FusionService {
   constructor(options) {

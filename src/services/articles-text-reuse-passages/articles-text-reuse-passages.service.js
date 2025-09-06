@@ -1,9 +1,9 @@
-const { ArticlesTextReusePassages } = require('./articles-text-reuse-passages.class');
-const hooks = require('./articles-text-reuse-passages.hooks');
+import { ArticlesTextReusePassages } from './articles-text-reuse-passages.class'
+import hooks from './articles-text-reuse-passages.hooks'
 
 export default function (app) {
-  const options = {};
+  const options = {}
 
-  app.use('/articles/:articleId/text-reuse-passages', new ArticlesTextReusePassages(options, app));
-  app.service('articles/:articleId/text-reuse-passages').hooks(hooks);
-};
+  app.use('/articles/:articleId/text-reuse-passages', new ArticlesTextReusePassages(options, app))
+  app.service('articles/:articleId/text-reuse-passages').hooks(hooks)
+}

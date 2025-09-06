@@ -87,8 +87,13 @@ export default (app: ImpressoApplication) => {
 
   services.forEach((service: string) => {
     const path = `./${service}/${service}.service`
-    const module = require(path)
-    if (typeof module === 'function') app.configure(module)
-    else app.configure(module.default)
+    try {
+      const module = require(path)
+      if (typeof module === 'function') app.configure(module)
+      else app.configure(module.default)
+    } catch (err) {
+      console.error(`Error loading service ${service} from path ${path}: ${err}`)
+      throw err
+    }
   })
 }

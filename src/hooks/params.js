@@ -1,8 +1,9 @@
-const errors = require('@feathersjs/errors')
-const debug = require('debug')('impresso/hooks:params')
-const { Op } = require('sequelize')
-const { assignIn } = require('lodash')
-const { logger } = require('../logger')
+import * as errors from '@feathersjs/errors'
+import Debug from 'debug'
+const debug = Debug('impresso/hooks:params')
+import { Op } from 'sequelize'
+import { assignIn } from 'lodash'
+import { logger } from '../logger.js'
 
 const toSequelizeLike = query => {
   // replace all non nice characters.
@@ -592,19 +593,14 @@ const utils = {
 
 export {
   displayQueryParams,
-
   protect,
-
   verbose,
   validate,
   validateEach,
   queryWithCommonParams,
   queryWithCurrentExecUser,
-
   sanitize,
-
   validateRouteId,
-
   VALIDATE_OPTIONAL_UID,
   VALIDATE_OPTIONAL_GITHUB_ID,
   VALIDATE_OPTIONAL_EMAIL,
@@ -621,6 +617,5 @@ export {
   REGEX_SLUG,
   REGEX_UID,
   REGEX_UIDS,
-
   utils,
 }

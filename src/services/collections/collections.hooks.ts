@@ -7,9 +7,9 @@ import { ImpressoApplication } from '../../types.js'
 import { ApplicationHookOptions } from '@feathersjs/feathers'
 import { inPublicApi } from '../../hooks/appMode.js'
 
-const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params')
+import { queryWithCommonParams, validate, utils, REGEX_UIDS } from '../../hooks/params'
 
-const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model')
+import { STATUS_PRIVATE, STATUS_PUBLIC } from '../../models/collections.model'
 
 const findQueryParamsRenamePolicy = {
   term: 'q',

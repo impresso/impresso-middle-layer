@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
-const { NotFound } = require('@feathersjs/errors')
-const Timeline = require('../../models/timelines.model')
-const { sequelizeErrorHandler, whereReducer } = require('../sequelize.utils.js')
-const { measureTime } = require('../../util/instruments')
+import { NotFound } from '@feathersjs/errors'
+import Timeline from '../../models/timelines.model'
+import { sequelizeErrorHandler, whereReducer } from '../sequelize.utils.js'
+import { measureTime } from '../../util/instruments'
 
-class Service {
+export class Service {
   constructor({ name = '', app }) {
     this.name = name
     this.app = app
@@ -106,5 +106,3 @@ class Service {
 export default function (options) {
   return new Service(options)
 }
-
-export const Service = Service

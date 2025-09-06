@@ -1,7 +1,9 @@
 import { HookContext } from '@feathersjs/feathers'
 
-const { authenticate } = require('@feathersjs/authentication').hooks
-const { queryWithCommonParams, validate, validateEach, utils, REGEX_UID, REGEX_UIDS } = require('../../hooks/params')
+import { hooks } from '@feathersjs/authentication'
+import { queryWithCommonParams, validate, validateEach, utils, REGEX_UID, REGEX_UIDS } from '../../hooks/params'
+
+const { authenticate } = hooks
 
 export default {
   before: {

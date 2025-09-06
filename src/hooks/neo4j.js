@@ -1,13 +1,14 @@
-const { BadRequest } = require('@feathersjs/errors');
-const debug = require('debug')('impresso/hooks:neo4j');
-const { neo4jToInt } = require('../services/neo4j.utils');
+import { BadRequest } from '@feathersjs/errors'
+import Debug from 'debug'
+const debug = Debug('impresso/hooks:neo4j')
+import { neo4jToInt } from '../services/neo4j.utils'
 
-const normalizeTimeline = () => async (context) => {
+const normalizeTimeline = () => async context => {
   context.result = context.result.records.map(record => ({
     t: neo4jToInt(record._fields[0]),
     w: neo4jToInt(record._fields[1]),
-  }));
-};
+  }))
+}
 
 const parseJsonProperty = name => async () => {
   // context.result = context.result.records.map(record => {
@@ -16,34 +17,36 @@ const parseJsonProperty = name => async () => {
   //     w: neo4jToInt(record._fields[1]),
   //   }
   // })
-  debug(`parseJsonProperty: <${name}> parsed correctly.`);
-};
+  debug(`parseJsonProperty: <${name}> parsed correctly.`)
+}
 
-const raiseErrorIfEmpty = (explanation = {}) => async (context) => {
-  if (Array.isArray(context.result) && !context.result.length) {
-    debug('raiseErrorIfEmpty: apparently context.result is empty!', context.result);
-    throw new BadRequest('empty context.result', explanation);
-  } else {
-    debug('raiseErrorIfEmpty: context.result ok, proceed.');
+const raiseErrorIfEmpty =
+  (explanation = {}) =>
+  async context => {
+    if (Array.isArray(context.result) && !context.result.length) {
+      debug('raiseErrorIfEmpty: apparently context.result is empty!', context.result)
+      throw new BadRequest('empty context.result', explanation)
+    } else {
+      debug('raiseErrorIfEmpty: context.result ok, proceed.')
+    }
   }
-};
 
-const normalizeEmptyRecords = () => async (context) => {
+const normalizeEmptyRecords = () => async context => {
   // only when empty array are given
   if (Array.isArray(context.result) && !context.result.length) {
-    debug('normalizeEmptyRecords: apparently context.result is empty!', context.result);
+    debug('normalizeEmptyRecords: apparently context.result is empty!', context.result)
     context.result = {
       count: 0,
       records: [],
-    };
+    }
   } else {
-    debug('normalizeEmptyRecords: context.result ok, proceed.');
+    debug('normalizeEmptyRecords: context.result ok, proceed.')
   }
-};
+}
 
 export default {
   normalizeTimeline,
   normalizeEmptyRecords,
   raiseErrorIfEmpty,
   parseJsonProperty,
-};
+}

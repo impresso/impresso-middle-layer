@@ -25,7 +25,14 @@ class Service {
       app,
       name,
     })
-    this.solrFactory = require(`../../models/${this.name}.model`).default.solrFactory
+    // Use dynamic import instead of require
+    import(`../../models/${this.name}.model.js`)
+      .then(module => {
+        this.solrFactory = module.default.solrFactory
+      })
+      .catch(error => {
+        console.error(`Error importing module for ${this.name}:`, error)
+      })
   }
 
   get solr() {

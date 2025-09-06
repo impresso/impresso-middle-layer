@@ -1,4 +1,4 @@
-const { authenticate } = require('../../hooks/authenticate');
+import { authenticate } from '../../hooks/authenticate.js'
 
 export default {
   before: {
@@ -34,4 +34,4 @@ export default {
     patch: [],
     remove: [],
   },
-};
+}

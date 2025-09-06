@@ -1,8 +1,8 @@
-const assert = require('assert');
+import assert from 'assert'
 const {
   relevanceContextItemToSolrFormula,
   RelevanceContextItemTypes,
-} = require('../../src/services/articles-search/logic');
+} = require('../../src/services/articles-search/logic')
 
 /**
  * @typedef {import('../../src/services/articles-search').RelevanceContextItem} RelevanceContextItem
@@ -20,7 +20,7 @@ describe('logic', () => {
             startYear: '1850',
             endYear: '1901',
           },
-        };
+        }
         const expectedFormula = `
           mul(
             if(
@@ -32,11 +32,11 @@ describe('logic', () => {
               0.0
             ),
             2.3
-          )`.replace(/[\s\n]/g, '');
+          )`.replace(/[\s\n]/g, '')
 
-        const formula = relevanceContextItemToSolrFormula(testContext);
-        assert.equal(formula, expectedFormula);
-      });
+        const formula = relevanceContextItemToSolrFormula(testContext)
+        assert.equal(formula, expectedFormula)
+      })
       it('creates correct formula with start year', () => {
         const testContext = {
           type: RelevanceContextItemTypes.TimeRange,
@@ -44,7 +44,7 @@ describe('logic', () => {
           parameters: {
             startYear: '1850',
           },
-        };
+        }
         const expectedFormula = `
           mul(
             if(
@@ -53,34 +53,34 @@ describe('logic', () => {
               0.0
             ),
             2.3
-          )`.replace(/[\s\n]/g, '');
+          )`.replace(/[\s\n]/g, '')
 
-        const formula = relevanceContextItemToSolrFormula(testContext);
-        assert.equal(formula, expectedFormula);
-      });
+        const formula = relevanceContextItemToSolrFormula(testContext)
+        assert.equal(formula, expectedFormula)
+      })
       it('creates correct formula with no years', () => {
         const testContext = {
           type: RelevanceContextItemTypes.TimeRange,
           weight: 2.3,
           parameters: {},
-        };
+        }
         const expectedFormula = `
           mul(
             1.0,
             2.3
-          )`.replace(/[\s\n]/g, '');
+          )`.replace(/[\s\n]/g, '')
 
-        const formula = relevanceContextItemToSolrFormula(testContext);
-        assert.equal(formula, expectedFormula);
-      });
-    });
+        const formula = relevanceContextItemToSolrFormula(testContext)
+        assert.equal(formula, expectedFormula)
+      })
+    })
 
-    [
+    ;[
       [RelevanceContextItemTypes.Locations, 'loc_entities_dpfs'],
       [RelevanceContextItemTypes.Persons, 'pers_entities_dpfs'],
       [RelevanceContextItemTypes.Topics, 'topics_dpfs'],
     ].forEach(([_type, solrField]) => {
-      const type = /** @type {Type} */ (_type);
+      const type = /** @type {Type} */ (_type)
 
       describe(`"${type}" relevance context`, () => {
         it('creates correct formula with 2 items', () => {
@@ -93,7 +93,7 @@ describe('logic', () => {
                 { id: 'id-b', weight: 0.2 },
               ],
             },
-          };
+          }
           const expectedFormula = `
             mul(
               sum(
@@ -107,21 +107,19 @@ describe('logic', () => {
                 )
               ),
               1.3
-            )`.replace(/[\s\n]/g, '');
+            )`.replace(/[\s\n]/g, '')
 
-          const formula = relevanceContextItemToSolrFormula(testContext);
-          assert.equal(formula, expectedFormula);
-        });
+          const formula = relevanceContextItemToSolrFormula(testContext)
+          assert.equal(formula, expectedFormula)
+        })
         it('creates correct formula with 1 item', () => {
           const testContext = {
             type,
             weight: 1.3,
             parameters: {
-              entities: [
-                { id: 'id-a', weight: 2.5 },
-              ],
+              entities: [{ id: 'id-a', weight: 2.5 }],
             },
-          };
+          }
           const expectedFormula = `
             mul(
               mul(
@@ -129,11 +127,11 @@ describe('logic', () => {
                 2.5
               ),
               1.3
-            )`.replace(/[\s\n]/g, '');
+            )`.replace(/[\s\n]/g, '')
 
-          const formula = relevanceContextItemToSolrFormula(testContext);
-          assert.equal(formula, expectedFormula);
-        });
+          const formula = relevanceContextItemToSolrFormula(testContext)
+          assert.equal(formula, expectedFormula)
+        })
         it('creates correct formula with 0 items', () => {
           const testContext = {
             type,
@@ -141,19 +139,19 @@ describe('logic', () => {
             parameters: {
               entities: [],
             },
-          };
+          }
           const expectedFormula = `
             mul(
               1.0,
               1.3
-            )`.replace(/[\s\n]/g, '');
+            )`.replace(/[\s\n]/g, '')
 
-          const formula = relevanceContextItemToSolrFormula(testContext);
-          assert.equal(formula, expectedFormula);
-        });
-      });
-    });
-  });
+          const formula = relevanceContextItemToSolrFormula(testContext)
+          assert.equal(formula, expectedFormula)
+        })
+      })
+    })
+  })
 
   describe('"textReuseClusters" relevance context', () => {
     it('creates correct formula with 2 items', () => {
@@ -166,7 +164,7 @@ describe('logic', () => {
             { id: 'id-b', weight: 0.2 },
           ],
         },
-      };
+      }
       const expectedFormula = `
         mul(
           sum(
@@ -180,10 +178,10 @@ describe('logic', () => {
             )
           ),
           1.3
-        )`.replace(/(\s+\n)|(\n\s+)|(\n)/g, '');
+        )`.replace(/(\s+\n)|(\n\s+)|(\n)/g, '')
 
-      const formula = relevanceContextItemToSolrFormula(testContext);
-      assert.equal(formula, expectedFormula);
-    });
-  });
-});
+      const formula = relevanceContextItemToSolrFormula(testContext)
+      assert.equal(formula, expectedFormula)
+    })
+  })
+})

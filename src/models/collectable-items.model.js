@@ -1,18 +1,16 @@
-const { DataTypes } = require('sequelize');
-const Collection = require('./collections.model');
-const SearchQuery = require('./search-queries.model');
+import { DataTypes } from 'sequelize'
+import Collection from './collections.model.js'
+import SearchQuery from './search-queries.model.js'
 
 const CONTENT_TYPES = {
-
   A: 'article',
   E: 'entity',
   P: 'page',
   I: 'issue',
-
-};
+}
 
 class CollectableItem {
-  constructor ({
+  constructor({
     id = -1,
     uid = null,
     itemId = '',
@@ -21,115 +19,119 @@ class CollectableItem {
     searchQuery = null,
     dateAdded = new Date(),
   } = {}) {
-    this.id = parseInt(id, 10);
-    this.uid = String(uid || this.id);
-    this.itemId = String(itemId);
-    this.contentType = String(contentType);
+    this.id = parseInt(id, 10)
+    this.uid = String(uid || this.id)
+    this.itemId = String(itemId)
+    this.contentType = String(contentType)
 
     if (collection instanceof Collection) {
-      this.collection = collection;
+      this.collection = collection
     } else if (collection) {
       // note: this avoids sequelize error
       // ```
       // cannot destructure property `uid` of 'undefined' or 'null'.
       // ```
-      this.collection = new Collection(collection);
+      this.collection = new Collection(collection)
     }
 
     if (searchQuery instanceof SearchQuery) {
-      this.searchQuery = searchQuery;
+      this.searchQuery = searchQuery
     } else if (searchQuery) {
-      this.searchQuery = new SearchQuery(searchQuery);
+      this.searchQuery = new SearchQuery(searchQuery)
     }
     if (dateAdded instanceof Date) {
-      this.dateAdded = dateAdded;
+      this.dateAdded = dateAdded
     } else {
-      this.dateAdded = new Date(dateAdded);
+      this.dateAdded = new Date(dateAdded)
     }
   }
 
-  getContentType () {
-    return CONTENT_TYPES[this.contentType];
+  getContentType() {
+    return CONTENT_TYPES[this.contentType]
   }
 
-  static sequelize (client) {
-    const collection = Collection.sequelize(client);
-    const searchQuery = SearchQuery.sequelize(client);
+  static sequelize(client) {
+    const collection = Collection.sequelize(client)
+    const searchQuery = SearchQuery.sequelize(client)
     // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
     // for more of what you can do here.
-    const collectableItem = client.define('collectableItem', {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        unique: true,
-      },
-      itemId: {
-        type: DataTypes.STRING(50),
-        field: 'item_id',
-      },
-      contentType: {
-        type: DataTypes.STRING(1),
-        field: 'content_type',
-      },
-      addedDate: {
-        type: DataTypes.DATE,
-        field: 'date_added',
-        defaultValue: DataTypes.NOW,
-      },
-      collectionId: {
-        type: DataTypes.STRING(50),
-        field: 'collection_id',
-      },
-      indexed: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-        field: 'indexed',
-      },
-    }, {
-      tableName: 'collectable_items',
-      defaultScope: {
-        include: [
-          {
-            model: collection,
-            as: 'collection',
-          },
-        ],
-      },
-      scopes: {
-        simple: {
-          include: [],
+    const collectableItem = client.define(
+      'collectableItem',
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          unique: true,
+        },
+        itemId: {
+          type: DataTypes.STRING(50),
+          field: 'item_id',
+        },
+        contentType: {
+          type: DataTypes.STRING(1),
+          field: 'content_type',
+        },
+        addedDate: {
+          type: DataTypes.DATE,
+          field: 'date_added',
+          defaultValue: DataTypes.NOW,
+        },
+        collectionId: {
+          type: DataTypes.STRING(50),
+          field: 'collection_id',
+        },
+        indexed: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+          field: 'indexed',
         },
       },
-    });
+      {
+        tableName: 'collectable_items',
+        defaultScope: {
+          include: [
+            {
+              model: collection,
+              as: 'collection',
+            },
+          ],
+        },
+        scopes: {
+          simple: {
+            include: [],
+          },
+        },
+      }
+    )
 
     collectableItem.prototype.toJSON = function () {
       const item = new CollectableItem({
         ...this.get(),
-      });
+      })
 
       if (this.collection) {
         // obfuscate user
-        item.collection = this.collection.toJSON(true);
+        item.collection = this.collection.toJSON(true)
       }
-      return item;
-    };
+      return item
+    }
     collectableItem.belongsTo(searchQuery, {
       onDelete: 'SET NULL',
       foreignKey: {
         fieldName: 'search_query_id',
       },
-    });
+    })
 
     collectableItem.belongsTo(collection, {
       onDelete: 'CASCADE',
       foreignKey: {
         fieldName: 'collection_id',
       },
-    });
+    })
 
-    return collectableItem;
+    return collectableItem
   }
 }
 
-export default CollectableItem;
+export default CollectableItem

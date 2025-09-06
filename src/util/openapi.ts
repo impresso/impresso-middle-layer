@@ -58,11 +58,11 @@ interface GetStandardResponsesParams {
   isPublic?: boolean
 }
 
-const baseFindResponse = require('../schema/schemas/BaseFind.json')
-delete baseFindResponse['$schema']
+import baseFindResponse from '../schema/schemas/BaseFind.json'
+delete (baseFindResponse as any)['$schema']
 
-const baseFindResponsePublic = require('../schema/schemasPublic/BaseFind.json')
-delete baseFindResponsePublic['$schema']
+import baseFindResponsePublic from '../schema/schemasPublic/BaseFind.json'
+delete (baseFindResponsePublic as any)['$schema']
 
 const getBaseFindResponse = (itemRef: string, isPublic: boolean): JSONSchema => {
   const response = JSON.parse(JSON.stringify(isPublic ? baseFindResponsePublic : baseFindResponse))

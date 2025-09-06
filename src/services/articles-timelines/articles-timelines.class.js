@@ -1,11 +1,11 @@
 /* eslint-disable no-unused-vars */
-const lodash = require('lodash')
-const { NotFound } = require('@feathersjs/errors')
-const Timeline = require('../../models/timelines.model')
-const { measureTime } = require('../../util/instruments')
-const { asFindAll } = require('../../util/solr/adapters')
+import lodash from 'lodash'
+import { NotFound } from '@feathersjs/errors'
+import Timeline from '../../models/timelines.model'
+import { measureTime } from '../../util/instruments'
+import { asFindAll } from '../../util/solr/adapters'
 
-class Service {
+export class Service {
   constructor({ name = '', app }) {
     this.name = name
     this.app = app
@@ -108,5 +108,3 @@ class Service {
 export default function (options) {
   return new Service(options)
 }
-
-export const Service = Service

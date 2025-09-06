@@ -1,7 +1,7 @@
-const assert = require('assert')
-const { filtersToSolr } = require('../../src/util/solr/filterReducers')
-const { filtersToSolrQuery, queries } = require('../../src/hooks/search')
-const { SolrNamespaces } = require('../../src/solr')
+import assert from 'assert'
+import { filtersToSolr } from '../../src/util/solr/filterReducers'
+import { filtersToSolrQuery, queries } from '../../src/hooks/search'
+import { SolrNamespaces } from '../../src/solr'
 
 /*
 ./node_modules/.bin/eslint \

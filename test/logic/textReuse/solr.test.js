@@ -1,4 +1,4 @@
-const assert = require('assert')
+import assert from 'assert'
 const {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
@@ -8,7 +8,7 @@ const {
 
   DefaultClusterFields,
 } = require('../../../src/logic/textReuse/solr')
-const { validated } = require('../../../src/util/json')
+import { validated } from '../../../src/util/json'
 
 const PassageSchemaUri =
   'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json'

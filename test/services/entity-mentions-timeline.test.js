@@ -1,4 +1,3 @@
-// const assert = require('assert');
+// import assert from 'assert';
 
-describe('\'entity-mentions-timeline\' service', () => {
-});
+describe("'entity-mentions-timeline' service", () => {})

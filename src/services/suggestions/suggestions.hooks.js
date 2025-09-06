@@ -1,5 +1,5 @@
-const { authenticate } = require('../../hooks/authenticate');
-const { queryWithCommonParams, validate } = require('../../hooks/params');
+import { authenticate } from '../../hooks/authenticate'
+import { queryWithCommonParams, validate } from '../../hooks/params'
 
 export default {
   before: {
@@ -32,9 +32,7 @@ export default {
   },
 
   error: {
-    all: [
-
-    ],
+    all: [],
     find: [],
     get: [],
     create: [],
@@ -42,4 +40,4 @@ export default {
     patch: [],
     remove: [],
   },
-};
+}
