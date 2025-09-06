@@ -15,9 +15,8 @@ import Debug from 'debug'
 const debug = Debug('impresso/services:articles-suggestions')
 import ArticleTopic from '../../models/articles-topics.model'
 import { ContentItemTopic } from '../../models/generated/schemas'
-const {
-  utils: { wrapAll },
-} = require('../../solr')
+import { utils } from '../../solr'
+const { wrapAll } = utils
 
 const SIM_BY_TOPICS = 'topics'
 const SIM_BY_TOPICS_SQEDIST = 'topics_sqedist'

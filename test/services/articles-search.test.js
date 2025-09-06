@@ -1,8 +1,5 @@
 import assert from 'assert'
-const {
-  relevanceContextItemToSolrFormula,
-  RelevanceContextItemTypes,
-} = require('../../src/services/articles-search/logic')
+import { relevanceContextItemToSolrFormula, RelevanceContextItemTypes } from '../../src/services/articles-search/logic'
 
 /**
  * @typedef {import('../../src/services/articles-search').RelevanceContextItem} RelevanceContextItem
@@ -74,7 +71,6 @@ describe('logic', () => {
         assert.equal(formula, expectedFormula)
       })
     })
-
     ;[
       [RelevanceContextItemTypes.Locations, 'loc_entities_dpfs'],
       [RelevanceContextItemTypes.Persons, 'pers_entities_dpfs'],

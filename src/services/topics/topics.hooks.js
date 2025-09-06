@@ -1,10 +1,10 @@
-const {
+import {
   queryWithCommonParams, // validate, utils, REGEX_UID,
   validate,
   validateEach,
   // REGEX_UID,
   utils,
-} = require('../../hooks/params')
+} from '../../hooks/params'
 import { filtersToSolrQuery } from '../../hooks/search'
 import { eachFilterValidator } from '../search/search.validators'
 

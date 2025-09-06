@@ -17,7 +17,7 @@ import { Filter } from '../../models'
 import { mapValues, groupBy, clone, get } from 'lodash'
 import { NotFound } from '@feathersjs/errors'
 import { protobuf } from 'impresso-jscommons'
-const {
+import {
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
   getTextReuseClustersRequestForIds,
@@ -30,7 +30,7 @@ const {
   getTimelineResolution,
   buildConnectedClustersCountRequest,
   parseConnectedClustersCountResponse,
-} = require('../../logic/textReuse/solr')
+} from '../../logic/textReuse/solr'
 import { parseOrderBy } from '../../util/queryParameters'
 import { SolrNamespaces } from '../../solr'
 
@@ -145,7 +145,7 @@ export class TextReuseClusters {
     const filterQueryParts = filtersToSolrQueries(filters as Filter[], SolrNamespaces.TextReusePassages)
     const [orderByField, orderByDescending] = parseOrderBy(orderBy as string, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
-      text,
+      text as string,
       offset,
       limit,
       orderByField,
@@ -190,7 +190,7 @@ export class TextReuseClusters {
       .then(convertClustersSolrResponseToClusters)
 
     const connectedClustersCountPromise = this.solr
-      .select(this.solr.namespaces.TextReusePassages, getToSelect(buildConnectedClustersCountRequest(id)))
+      .select(this.solr.namespaces.TextReusePassages, getToSelect(buildConnectedClustersCountRequest(id) as any))
       .then(parseConnectedClustersCountResponse)
 
     const [clusterIdsAndTextAndPermissions, clusters, connectedClustersCount] = await Promise.all([
@@ -212,10 +212,10 @@ export class TextReuseClusters {
 
     // fetch cluster extra details
 
-    const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(id, cluster.cluster.timeCoverage)
+    const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(id, cluster.cluster?.timeCoverage as any)
 
     const extraClusterDetailsResponse = await this.solr.select(this.solr.namespaces.TextReusePassages, {
-      body: extraClusterDetailsRequest,
+      body: extraClusterDetailsRequest as any,
     })
     const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse)
 
@@ -223,9 +223,9 @@ export class TextReuseClusters {
 
     cluster.details.facets = facetsWithCountry(cluster.details.facets)
     cluster.details.resolution = getTimelineResolution(
-      cluster.cluster.timeCoverage?.from,
-      cluster.cluster.timeCoverage?.to
-    )
+      cluster.cluster.timeCoverage?.from as any,
+      cluster.cluster.timeCoverage?.to as any
+    ) as any
 
     return cluster
   }

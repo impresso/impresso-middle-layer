@@ -1,6 +1,6 @@
 import moment from 'moment'
-const { get, mergeWith, toPairs, fromPairs, sortBy, sum } = require('lodash')
-const { filtersToQueryAndVariables, ContentLanguages } = require('../../../util/solr')
+import { get, mergeWith, toPairs, fromPairs, sortBy, sum } from 'lodash'
+import { filtersToQueryAndVariables, ContentLanguages } from '../../../util/solr'
 import { SolrNamespaces } from '../../../solr'
 
 import { SolrMappings } from '../../../data/constants'

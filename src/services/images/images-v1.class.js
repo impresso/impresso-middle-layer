@@ -13,10 +13,8 @@ const debug = debugLib('impresso/services:images')
 import Image from '../../models/images.model'
 import { getFacetsFromSolrResponse } from '../search/search.extractors'
 import { measureTime } from '../../util/instruments'
-const {
-  utils: { wrapAll },
-  SolrNamespaces,
-} = require('../../solr')
+import { utils, SolrNamespaces } from '../../solr'
+const { wrapAll } = utils
 
 export default class Service {
   constructor({ app, name = '' }) {

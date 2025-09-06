@@ -1,11 +1,11 @@
 import assert from 'assert'
-const {
+import {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
-} = require('../../src/services/ngram-trends/logic/solrQuery')
+} from '../../src/services/ngram-trends/logic/solrQuery'
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
   it('builds expected payload', () => {

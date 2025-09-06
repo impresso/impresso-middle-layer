@@ -1,10 +1,10 @@
 import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
-const {
+import {
   getTextReuseClusterPassagesRequest,
   getPaginationInfoFromPassagesSolrResponse,
   convertPassagesSolrResponseToPassages,
   PassageFields,
-} = require('../../logic/textReuse/solr')
+} from '../../logic/textReuse/solr'
 // import sequelize from '../../sequelize'
 import { QueryGetIIIFManifests } from '../../logic/iiif'
 import { toArticlePageDetails } from '../../logic/ids'

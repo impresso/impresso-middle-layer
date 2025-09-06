@@ -1,4 +1,4 @@
-const {
+import {
   daterangeExtractor,
   newspaperExtractor,
   topicExtractor,
@@ -7,7 +7,7 @@ const {
   collectionExtractor,
   numberRangeExtractor,
   simpleValueExtractor,
-} = require('./extractors')
+} from './extractors'
 
 const ItemsExtractors = Object.freeze({
   daterange: daterangeExtractor,

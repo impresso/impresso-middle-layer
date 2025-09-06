@@ -1,6 +1,8 @@
 import util from 'util'
-const exec = util.promisify(require('child_process').exec)
-const readFile = util.promisify(require('fs').readFile)
+import { exec as execCallback } from 'child_process'
+import { readFile as readFileCallback } from 'fs'
+const exec = util.promisify(execCallback)
+const readFile = util.promisify(readFileCallback)
 
 const PackageJsonPath = `${__dirname}/../../../package.json`
 

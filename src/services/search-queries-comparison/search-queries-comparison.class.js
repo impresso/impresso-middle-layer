@@ -1,9 +1,4 @@
 import { BadRequest } from '@feathersjs/errors'
-const {
-  logic: {
-    filter: { mergeFilters },
-  },
-} = require('impresso-jscommons')
 import { SolrMappings } from '../../data/constants'
 
 /**
@@ -17,6 +12,11 @@ import { SolrMappings } from '../../data/constants'
 import { getFacetsFromSolrResponse } from '../search/search.extractors'
 import { filtersToQueryAndVariables } from '../../util/solr'
 import { SolrNamespaces } from '../../solr'
+import { logic } from 'impresso-jscommons'
+
+const {
+  filter: { mergeFilters },
+} = logic
 
 /**
  * Create SOLR query for getting facets.

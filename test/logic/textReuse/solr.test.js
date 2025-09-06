@@ -1,13 +1,11 @@
 import assert from 'assert'
-const {
+import {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
-
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
-
   DefaultClusterFields,
-} = require('../../../src/logic/textReuse/solr')
+} from '../../../src/logic/textReuse/solr'
 import { validated } from '../../../src/util/json'
 
 const PassageSchemaUri =
