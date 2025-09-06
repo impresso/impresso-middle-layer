@@ -187,7 +187,7 @@ function guessTimeIntervalFromFilters(filters = []) {
   return 'year'
 }
 
-export default {
+export {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
