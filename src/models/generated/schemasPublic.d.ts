@@ -70,9 +70,17 @@ export interface ContentItem {
    */
   uid: string;
   /**
+   * Copyright status.
+   */
+  copyrightStatus?: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
+  /**
    * The type of the content item, as present in the OLR provided by the data provider. All content items are not characterised by the same set of types.
    */
   type?: string;
+  /**
+   * Medium of the source (audio for audio radio broadcasts, print for newspapers, typescript for digitised radio bulletin typescripts).
+   */
+  sourceMedium?: "audio" | "print" | "typescript";
   /**
    * The title of the content item.
    */
@@ -82,13 +90,21 @@ export interface ContentItem {
    */
   transcript?: string;
   /**
-   * Locations mentioned in the content item.
+   * Linked location entities mentioned in the content item.
    */
-  locations?: NamedEntity[];
+  locationEntities?: NamedEntity[];
   /**
-   * Persions mentioned in the content item.
+   * Linked person entities mentioned in the content item.
    */
-  persons?: NamedEntity[];
+  personEntities?: NamedEntity[];
+  /**
+   * Linked organisation entities mentioned in the content item.
+   */
+  organisationEntities?: NamedEntity[];
+  /**
+   * Linked news agency entities mentioned in the content item.
+   */
+  newsAgenciesEntities?: NamedEntity[];
   /**
    * Topics mentioned in the content item.
    */
@@ -114,17 +130,21 @@ export interface ContentItem {
    */
   publicationDate?: string;
   /**
+   * Unique issue identifier
+   */
+  issueUid?: string;
+  /**
    * ISO 3166-1 alpha-2 country code of the content item.
    */
   countryCode?: string;
   /**
    * The code of the data provider.
    */
-  dataProviderCode?: string;
+  providerCode?: string;
   /**
-   * Code of the newspaper or the other media the content item belongs to.
+   * Media title alias. Usually a 3 letter code of the media title (newspaper, radio station, etc.).
    */
-  mediaCode?: string;
+  mediaUid?: string;
   /**
    * The type of the media the content item belongs to.
    */
