@@ -21,11 +21,20 @@ export const contentItemRedactionPolicyWebApp = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
 ) as RedactionPolicy
 
-type OrderBy = 'date' | 'relevance' | 'uid' | 'issue' | 'page' | 'newspaper' | 'hasTextContents'
+type OrderBy = 'date' | 'relevance' | 'uid' | 'issue' | 'page' | 'newspaper' | 'hasTextContents' | 'ocrQuality'
 type ReverseOrderBy = `-${OrderBy}`
 type FullOrderBy = OrderBy | ReverseOrderBy
 
-const OrderByChoices: OrderBy[] = ['date', 'relevance', 'uid', 'issue', 'page', 'newspaper', 'hasTextContents']
+const OrderByChoices: OrderBy[] = [
+  'date',
+  'relevance',
+  'uid',
+  'issue',
+  'page',
+  'newspaper',
+  'hasTextContents',
+  'ocrQuality',
+]
 const FullOrderByChoices: FullOrderBy[] = [...OrderByChoices, ...OrderByChoices.map(o => `-${o}`)] as FullOrderBy[]
 
 export default {
@@ -50,6 +59,7 @@ export default {
             }
             return d
           },
+          defaultValue: '-ocrQuality',
         },
       }),
       validateEach('filters', eachFilterValidator, {
