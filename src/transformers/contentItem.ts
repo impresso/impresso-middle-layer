@@ -36,11 +36,15 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
 
   return {
     uid: input.id,
+    copyrightStatus: input.access?.copyright,
     type: toType(input.text?.itemType),
+    sourceMedium: input.meta?.sourceMedium,
     title: input.text?.title,
     transcript: input.text?.content,
-    locations: input.semanticEnrichments?.namedEntities?.locations?.map(toNamedEntity) ?? [],
-    persons: input.semanticEnrichments?.namedEntities?.persons?.map(toNamedEntity) ?? [],
+    locationEntities: input.semanticEnrichments?.namedEntities?.locations?.map(toNamedEntity) ?? [],
+    personEntities: input.semanticEnrichments?.namedEntities?.persons?.map(toNamedEntity) ?? [],
+    organisationEntities: input.semanticEnrichments?.namedEntities?.organisations?.map(toNamedEntity) ?? [],
+    newsAgenciesEntities: input.semanticEnrichments?.namedEntities?.newsagencies?.map(toNamedEntity) ?? [],
     topics:
       input.semanticEnrichments?.topics
         ?.map(toTopicMention)
@@ -51,9 +55,10 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
     languageCode: input.text?.langCode?.toLowerCase(),
     isOnFrontPage: input.image?.isFrontPage ?? false,
     publicationDate: input.meta?.date, // This should always be present
+    issueUid: input.issueId,
     countryCode: input.meta?.countryCode?.toUpperCase(),
-    dataProviderCode: input.meta?.partnerId != null ? input.meta?.partnerId : undefined,
-    mediaCode: input.meta?.mediaId,
+    providerCode: input.meta?.partnerId != null ? input.meta?.partnerId : undefined,
+    mediaUid: input.meta?.mediaId,
     mediaType: input.meta?.sourceType,
 
     // Authorization information
