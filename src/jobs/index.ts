@@ -12,7 +12,8 @@ import updateYearsCache from './updateYears'
 export const startupJobs = async (context: HookContext<ImpressoApplication>, next: NextFunction) => {
   // run jobs asynchronously - no need to wait for them
   logger.info('Running async jobs...')
-  await Promise.all([
+  // run in parallel
+  Promise.all([
     updateMediaSourcesCache(context.app)
       .then(() => logger.info('Media sources cache updated.'))
       .catch(e => logger.error('Error updating media sources cache:', e)),
@@ -25,8 +26,7 @@ export const startupJobs = async (context: HookContext<ImpressoApplication>, nex
     updateFacetRangesCache(context.app)
       .then(() => logger.info('Facet ranges cache updated.'))
       .catch(e => logger.error('Error updating facet ranges cache:', e)),
-  ])
-  logger.info('Async jobs completed...')
+  ]).then(() => logger.info('Async jobs completed...'))
 
   await next()
 }
