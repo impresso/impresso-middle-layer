@@ -2,6 +2,7 @@ import { SolrNamespace } from '../solr'
 import { QueryTypes, type Sequelize } from 'sequelize'
 import { Bucket, SelectRequestBody, SimpleSolrClient } from '../internalServices/simpleSolr'
 import { MediaSource } from '../models/generated/schemas'
+import { logger } from '../logger'
 
 const sqlGetNewsappersDetails = `
 SELECT
@@ -89,12 +90,15 @@ export const consolidateMediaSources = async (
   solrClient: SimpleSolrClient,
   solrIndex: SolrNamespace
 ): Promise<MediaSource[]> => {
+  logger.info('Consolidating media sources from DB and Solr...')
   const [solrResponse, dbNewspapersDetails] = await Promise.all([
     solrClient.select<unknown, 'sources', FacetBucket>(solrIndex, { body: articlesCountSolrQuery }),
     dbClient.query<DBNewspaperDetails>(sqlGetNewsappersDetails, {
       type: QueryTypes.SELECT,
     }),
   ])
+  logger.info(`Found ${dbNewspapersDetails.length} newspapers in DB.`)
+  logger.info(`Found ${solrResponse.facets?.sources?.buckets?.length ?? 0} newspaper sources in Solr.`)
 
   const articlesCountsBuckets = solrResponse.facets?.sources?.buckets ?? []
   const articlesCounts = articlesCountsBuckets.reduce<Record<string, number>>((counts, bucket) => {
