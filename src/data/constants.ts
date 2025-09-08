@@ -272,6 +272,7 @@ const searchSolrMappings = {
     date: 'meta_date_dt',
     relevance: 'score',
     id: 'id',
+    ocrQuality: 'ocrqa_f',
   },
   groupBy: {
     issues: 'meta_issue_id_s',
