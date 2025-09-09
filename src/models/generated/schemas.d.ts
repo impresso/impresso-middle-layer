@@ -2879,6 +2879,14 @@ export interface VersionDetails {
       [k: string]: unknown;
     };
   };
+  partnerInstitutions?: {
+    id: string;
+    names: {
+      langCode: string;
+      name: string;
+    }[];
+    bitmapIndex: number;
+  }[];
 }
 
 
