@@ -1,0 +1,586 @@
+[
+  {
+    "partner_institution_id": "SNL",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "Swiss National Library"
+      },
+      {
+        "lang": "fr",
+        "name": "Bibliothèque nationale suisse"
+      },
+      {
+        "lang": "it",
+        "name": "Biblioteca nazionale svizzera"
+      },
+      {
+        "lang": "de",
+        "name": "Schweizerische Nationalbibliothek"
+      },
+      {
+        "lang": "rm",
+        "name": "Biblioteca naziunala svizra"
+      }
+    ],
+    "partner_bitmap_index": 5
+  },
+  {
+    "partner_institution_id": "BNL",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "National Library of Luxembourg"
+      },
+      {
+        "lang": "fr",
+        "name": "Bibliothèque nationale du Luxembourg"
+      },
+      {
+        "lang": "lu",
+        "name": "Nationalbibliothéik Lëtzebuerg"
+      },
+      {
+        "lang": "de",
+        "name": "Nationalbibliothek Luxemburg"
+      }
+    ],
+    "partner_bitmap_index": 6
+  },
+  {
+    "partner_institution_id": "BNF",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "National Library of France"
+      },
+      {
+        "lang": "fr",
+        "name": "Bibliothèque nationale de France"
+      }
+    ],
+    "partner_bitmap_index": 7
+  },
+  {
+    "partner_institution_id": "KBR",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "Royal Library of Belgium"
+      },
+      {
+        "lang": "fr",
+        "name": "Bibliothèque royale de Belgique"
+      },
+      {
+        "lang": "nl",
+        "name": "Koninklijke Bibliotheek van België"
+      },
+      {
+        "lang": "de",
+        "name": "Königliche Bibliothek Belgiens"
+      }
+    ],
+    "partner_bitmap_index": 8
+  },
+  {
+    "partner_institution_id": "KB",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "Royal Library of the Netherlands"
+      },
+      {
+        "lang": "nl",
+        "name": "Koninklijke Bibliotheek"
+      }
+    ],
+    "partner_bitmap_index": 9
+  },
+  {
+    "partner_institution_id": "BL",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "British Library"
+      }
+    ],
+    "partner_bitmap_index": 10
+  },
+  {
+    "partner_institution_id": "ONB",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "Austrian National Library"
+      },
+      {
+        "lang": "de",
+        "name": "Österreichische Nationalbibliothek"
+      }
+    ],
+    "partner_bitmap_index": 11
+  },
+  {
+    "partner_institution_id": "SBB",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "Berlin State Library"
+      },
+      {
+        "lang": "de",
+        "name": "Staatsbibliothek zu Berlin"
+      }
+    ],
+    "partner_bitmap_index": 12
+  },
+  {
+    "partner_institution_id": "SUB",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "Hamburg State and University Library"
+      },
+      {
+        "lang": "de",
+        "name": "Staats- und Universitätsbibliothek Hamburg Carl von Ossietzky"
+      }
+    ],
+    "partner_bitmap_index": 13
+  },
+  {
+    "partner_institution_id": "LeTemps",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Le Temps"
+      },
+      {
+        "lang": "en",
+        "name": "Le Temps"
+      }
+    ],
+    "partner_bitmap_index": 14
+  },
+  {
+    "partner_institution_id": "NZZ",
+    "partner_institution_names": [
+      {
+        "lang": "de",
+        "name": "Neue Zürcher Zeitung"
+      }
+    ],
+    "partner_bitmap_index": 15
+  },
+  {
+    "partner_institution_id": "INA",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Institut national de l'audiovisuel"
+      },
+      {
+        "lang": "en",
+        "name": "National Audiovisual Institute"
+      }
+    ],
+    "partner_bitmap_index": 16
+  },
+  {
+    "partner_institution_id": "RTS",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Radio télévision suisse"
+      },
+      {
+        "lang": "en",
+        "name": "Swiss Broadcasting Corporation (French)"
+      }
+    ],
+    "partner_bitmap_index": 17
+  },
+  {
+    "partner_institution_id": "BBC",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "British Broadcasting Corporation"
+      }
+    ],
+    "partner_bitmap_index": 18
+  },
+  {
+    "partner_institution_id": "ORF",
+    "partner_institution_names": [
+      {
+        "lang": "de",
+        "name": "Österreichischer Rundfunk"
+      },
+      {
+        "lang": "en",
+        "name": "Austrian Broadcasting"
+      }
+    ],
+    "partner_bitmap_index": 19
+  },
+  {
+    "partner_institution_id": "Rundfunk",
+    "partner_institution_names": [
+      {
+        "lang": "de",
+        "name": "Deutsches Rundfunkarchiv"
+      },
+      {
+        "lang": "en",
+        "name": "German Broadcasting Archive"
+      },
+      {
+        "lang": "fr",
+        "name": "Archives de la radio allemande"
+      }
+    ],
+    "partner_bitmap_index": 20
+  },
+  {
+    "partner_institution_id": "DR",
+    "partner_institution_names": [
+      {
+        "lang": "de",
+        "name": "Deutschlandradio"
+      },
+      {
+        "lang": "en",
+        "name": "Radio Germany"
+      }
+    ],
+    "partner_bitmap_index": 21
+  },
+  {
+    "partner_institution_id": "BCUL",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Bibliothèque cantonale et universitaire de Lausanne"
+      },
+      {
+        "lang": "en",
+        "name": "Cantonal and University Library of Lausanne"
+      }
+    ],
+    "partner_bitmap_index": 22
+  },
+  {
+    "partner_institution_id": "BCUF",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Bibliothèque cantonale et universitaire de Fribourg"
+      },
+      {
+        "lang": "de",
+        "name": "Kantons- und Universitätsbibliothek Freiburg"
+      },
+      {
+        "lang": "en",
+        "name": "Cantonal and University Library of Lausanne"
+      }
+    ],
+    "partner_bitmap_index": 23
+  },
+  {
+    "partner_institution_id": "Migros",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Migros"
+      },
+      {
+        "lang": "de",
+        "name": "Migros"
+      },
+      {
+        "lang": "en",
+        "name": "Migros"
+      }
+    ],
+    "partner_bitmap_index": 24
+  },
+  {
+    "partner_institution_id": "PSNE",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Parti Socialiste Neuchâtelois"
+      },
+      {
+        "lang": "en",
+        "name": "Neuchâtel Social Democratic Party"
+      }
+    ],
+    "partner_bitmap_index": 25
+  },
+  {
+    "partner_institution_id": "Gruyere",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "La Gruyère"
+      }
+    ],
+    "partner_bitmap_index": 26
+  },
+  {
+    "partner_institution_id": "LLE",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "La Liberté"
+      }
+    ],
+    "partner_bitmap_index": 27
+  },
+  {
+    "partner_institution_id": "LCE",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Le Confédéré"
+      }
+    ],
+    "partner_bitmap_index": 28
+  },
+  {
+    "partner_institution_id": "LES",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "L'Essor"
+      }
+    ],
+    "partner_bitmap_index": 29
+  },
+  {
+    "partner_institution_id": "MVS",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Médiathèque Valais"
+      },
+      {
+        "lang": "de",
+        "name": "Mediathek Wallis"
+      }
+    ],
+    "partner_bitmap_index": 30
+  },
+  {
+    "partner_institution_id": "FRN",
+    "partner_institution_names": [
+      {
+        "lang": "de",
+        "name": "Freiburger Nachrichten"
+      }
+    ],
+    "partner_bitmap_index": 31
+  },
+  {
+    "partner_institution_id": "RM",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Rhône Média"
+      },
+      {
+        "lang": "en",
+        "name": "Rhône Média"
+      }
+    ],
+    "partner_bitmap_index": 32
+  },
+  {
+    "partner_institution_id": "Syna",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Syna"
+      },
+      {
+        "lang": "de",
+        "name": "Syna"
+      },
+      {
+        "lang": "en",
+        "name": "Syna"
+      }
+    ],
+    "partner_bitmap_index": 33
+  },
+  {
+    "partner_institution_id": "Unia",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Unia (syndicat)"
+      },
+      {
+        "lang": "fr",
+        "name": "Unia (union)"
+      },
+      {
+        "lang": "de",
+        "name": "Gewerkschaft Unia"
+      },
+      {
+        "lang": "it",
+        "name": "Sindacato Unia"
+      }
+    ],
+    "partner_bitmap_index": 34
+  },
+  {
+    "partner_institution_id": "SWA",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Archives économiques suisses"
+      },
+      {
+        "lang": "de",
+        "name": "Schweizerische Wirtschaftsarchiv"
+      },
+      {
+        "lang": "it",
+        "name": "Archivio economico svizzero"
+      },
+      {
+        "lang": "en",
+        "name": "Swiss Economic Archives"
+      }
+    ],
+    "partner_bitmap_index": 35
+  },
+  {
+    "partner_institution_id": "SA",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Archives Sociales Suisse"
+      },
+      {
+        "lang": "de",
+        "name": "Schweizerisches Sozialarchiv"
+      },
+      {
+        "lang": "en",
+        "name": "Swiss Social Archives"
+      }
+    ],
+    "partner_bitmap_index": 36
+  },
+  {
+    "partner_institution_id": "BVCF",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Bibliothèque de la Ville de La Chaux-de-Fonds"
+      },
+      {
+        "lang": "en",
+        "name": "Library of La Chaux-de-Fonds"
+      }
+    ],
+    "partner_bitmap_index": 37
+  },
+  {
+    "partner_institution_id": "BVU",
+    "partner_institution_names": [
+      {
+        "lang": "de",
+        "name": "Bote vom Untersee und Rhein"
+      },
+      {
+        "lang": "en",
+        "name": "Messenger from the Untersee and Rhine"
+      }
+    ],
+    "partner_bitmap_index": 38
+  },
+  {
+    "partner_institution_id": "ArcInfo",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "ArcInfo"
+      },
+      {
+        "lang": "de",
+        "name": "ArcInfo"
+      },
+      {
+        "lang": "en",
+        "name": "ArcInfo"
+      }
+    ],
+    "partner_bitmap_index": 39
+  },
+  {
+    "partner_institution_id": "Swissinfo",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "SWI swissinfo.ch"
+      },
+      {
+        "lang": "de",
+        "name": "SWI swissinfo.ch"
+      },
+      {
+        "lang": "en",
+        "name": "SWI swissinfo.ch"
+      }
+    ],
+    "partner_bitmap_index": 40
+  },
+  {
+    "partner_institution_id": "CNA",
+    "partner_institution_names": [
+      {
+        "lang": "fr",
+        "name": "Centre national de l'audiovisuel"
+      },
+      {
+        "lang": "en",
+        "name": "National Audiovisual Centre"
+      }
+    ],
+    "partner_bitmap_index": 41
+  },
+  {
+    "partner_institution_id": "FedGaz",
+    "partner_institution_names": [
+      {
+        "lang": "en",
+        "name": "Swiss Federal Archives"
+      },
+      {
+        "lang": "fr",
+        "name": "Archives fédérales suisses"
+      },
+      {
+        "lang": "it",
+        "name": "Archivio federale svizzero"
+      },
+      {
+        "lang": "de",
+        "name": "Schweizerisches Bundesarchiv"
+      },
+      {
+        "lang": "rm",
+        "name": "Archiv federal svizzer"
+      }
+    ],
+    "partner_bitmap_index": 42
+  }
+]

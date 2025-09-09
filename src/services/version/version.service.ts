@@ -5,11 +5,45 @@ import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { transformVersionDetails } from '../../transformers/version'
 import { VersionDetails } from '../../models/generated/schemas'
+import path from 'path'
+import fs from 'fs'
 
 const log = debug('impresso/services:version')
 const { getFirstAndLastDocumentDates } = require('./logic')
 
+interface PartnerInstitutionDirectoryEntry {
+  partner_institution_id: string
+  partner_institution_names: { lang: string; name: string }[]
+  partner_bitmap_index: number
+}
+
+const toPartnerInstitutions = (entries: PartnerInstitutionDirectoryEntry[]): VersionDetails['partnerInstitutions'] => {
+  return entries.map(entry => ({
+    id: entry.partner_institution_id,
+    names: entry.partner_institution_names.map(curr => {
+      return {
+        langCode: curr.lang,
+        name: curr.name,
+      }
+    }),
+    bitmapIndex: entry.partner_bitmap_index,
+  }))
+}
+
 module.exports = function (app: ImpressoApplication) {
+  // Read partner institution directory into memory
+  const partnerInstitutionDirectoryPath = path.resolve(__dirname, 'resources', 'partner_institutions_directory.json')
+  let partnerInstitutionDirectory: PartnerInstitutionDirectoryEntry[] = []
+
+  try {
+    const fileContent = fs.readFileSync(partnerInstitutionDirectoryPath, 'utf8')
+    partnerInstitutionDirectory = JSON.parse(fileContent) as PartnerInstitutionDirectoryEntry[]
+    log(`Loaded partner institution directory with ${partnerInstitutionDirectory.length} entries`)
+  } catch (e) {
+    const error = e as Error
+    log(`Error loading partner institution directory: ${error.message}`)
+  }
+
   // Initialize our service with any options it requires
   app.use(
     '/version',
@@ -38,6 +72,7 @@ module.exports = function (app: ImpressoApplication) {
           documentsDateSpan: { firstDate, lastDate },
           newspapers: lookup as Record<string, Record<string, any>>,
           features: (app.get('features') ?? {}) as Record<string, Record<string, any>>,
+          partnerInstitutions: toPartnerInstitutions(partnerInstitutionDirectory),
         }
 
         if (isPublicApi) {
