@@ -37,5 +37,5 @@ export const inPublicApi = <S = Service>(functions: ImpressoAppHookFunction<S>[]
  * @param functions Array of hook functions to apply only in the webapp API.
  */
 export const inWebAppApi = <S = Service>(functions: ImpressoAppHookFunction<S>[]) => {
-  return hooksApplicator<S>(app => app.get('isPublicApi') == false)(functions)
+  return hooksApplicator<S>(app => app.get('isPublicApi') != true)(functions)
 }
