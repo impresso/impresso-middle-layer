@@ -35,6 +35,8 @@ import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
 import { allContentFields, plainFieldAsJson } from '../../util/solr'
+import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
+import { base64BytesToBigInt } from '../../util/bigint'
 
 const DefaultLimit = 10
 
@@ -89,6 +91,35 @@ const GetMethodFields = [...FullContentItemFieldsNames].map(withJsonExpansion)
 //     )
 //     .then(rows => keyBy(rows, 'uid'))
 // }
+
+/**
+ * Attach authorization bitmaps to the symbol key where
+ * all code that works with content items in the hooks
+ * can find it.
+ */
+const withAuthorizationBitmaps = (item: ContentItem): ContentItem => {
+  return {
+    ...item,
+    [AuthorizationBitmapsKey]: {
+      explore:
+        item.access?.accessBitmaps?.explore != null
+          ? base64BytesToBigInt(item.access?.accessBitmaps?.explore)
+          : undefined,
+      getTranscript:
+        item.access?.accessBitmaps?.getTranscript != null
+          ? base64BytesToBigInt(item.access?.accessBitmaps?.getTranscript)
+          : undefined,
+      getImages:
+        item.access?.accessBitmaps?.getImages != null
+          ? base64BytesToBigInt(item.access?.accessBitmaps?.getImages)
+          : undefined,
+      getAudio:
+        item.access?.accessBitmaps?.getAudio != null
+          ? base64BytesToBigInt(item.access?.accessBitmaps?.getAudio)
+          : undefined,
+    } satisfies AuthorizationBitmapsDTO,
+  }
+}
 
 interface ServiceOptions {
   app: ImpressoApplication
@@ -332,7 +363,7 @@ export class ContentItemService implements IContentItemService {
     )
 
     return {
-      data: enrichedContentItems,
+      data: enrichedContentItems.map(withAuthorizationBitmaps),
       offset: results.response?.start ?? 0,
       limit: request.limit ?? DefaultLimit,
       total: results.response?.numFound ?? 0,
@@ -456,7 +487,7 @@ export class ContentItemService implements IContentItemService {
       collectionsLookup
     )?.[0]
 
-    return enrichedContentItem
+    return withAuthorizationBitmaps(enrichedContentItem)
 
     //   return Promise.all([
     //     // we perform a solr request to get
