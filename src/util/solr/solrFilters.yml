@@ -72,6 +72,12 @@ indexes:
       type:
         field: item_type_s
         rule: value
+      sourceMedium:
+        field: meta_source_medium_s
+        rule: value
+      sourceType:
+        field: meta_source_type_s
+        rule: value
       country:
         field: meta_country_code_s
         rule: value
@@ -90,6 +96,9 @@ indexes:
         rule: idValue
       nag:
         field: nag_entities_dpfs
+        rule: idValue
+      organisation:
+        field: org_entities_dpfs
         rule: idValue
       topicmodel:
         field: tp_model_s

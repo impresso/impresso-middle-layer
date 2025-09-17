@@ -3,6 +3,7 @@ import { encrypt } from '../crypto'
 import UserBitmap, { BufferUserPlanGuest } from './user-bitmap.model'
 import Group from './groups.model'
 import Profile from './profiles.model'
+import { bigIntToBase64Bytes } from '../util/bigint'
 
 const CRYPTO_ITERATIONS = 180000
 
@@ -27,6 +28,9 @@ export interface UserAttributes {
   toJSON: (params?: { obfuscate?: boolean; groups?: Group[] }) => UserAttributes
 }
 
+/**
+ * Serialised version of User ready to be sent over the wire.
+ */
 export interface Me {
   firstname: string
   lastname: string
@@ -39,7 +43,7 @@ export interface Me {
   creationDate: Date
   lastLogin: Date | null
   emailAccepted: boolean
-  bitmap?: bigint
+  bitmap?: string
   groups: Group[]
   affiliation: string
   institutionalUrl: string
@@ -124,7 +128,7 @@ export default class User {
       creationDate: user.creationDate as Date,
       lastLogin: user.lastLogin as Date,
       emailAccepted: profile.emailAccepted,
-      bitmap: user.bitmap,
+      bitmap: user.bitmap != null ? bigIntToBase64Bytes(user.bitmap) : undefined,
       groups: user.groups,
       affiliation: profile.affiliation || '',
       institutionalUrl: profile.institutionalUrl || '',

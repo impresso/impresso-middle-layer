@@ -6,7 +6,6 @@ import { SlimUser } from '../authentication'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '../models/authorization'
 import { BufferUserPlanGuest } from '../models/user-bitmap.model'
 import { OpenPermissions, bitmapsAlign as bitmapsAlignCheck } from '../util/bigint'
-import { ImageUrlRewriteRule } from '../models/generated/common'
 
 export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 
@@ -63,25 +62,6 @@ export const redactResponseDataItem = <S>(
   }
 }
 
-/**
- * Below are conditions that can be used in the redactResponse hook.
- */
-export const inPublicApi: RedactCondition = (context, _) => {
-  return context.app.get('isPublicApi') == true
-}
-
-/**
- * Condition is:
- *  - user is not authenticated
- *  - OR user is authenticated and is not in the specified group
- */
-export const notInGroup =
-  (groupName: string): RedactCondition =>
-  (context, _) => {
-    const user = context.params?.user as any as SlimUser
-    return user == null || !user.groups.includes(groupName)
-  }
-
 export type BitMapsAlignContext = Pick<HookContext<ImpressoApplication>, 'params'>
 
 /**
@@ -112,7 +92,11 @@ export const bitmapsAlign = (
 
 export type { RedactionPolicy }
 
-const authBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
+/**
+ * Extractor that works with the public API objects.
+ * The public API objects use the AuthorizationBitmapsKey field.
+ */
+const publicApiAuthBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
   const authorizationBitmapDto = redactable[AuthorizationBitmapsKey]
   if (isAuthorizationBitmapsDTO(authorizationBitmapDto)) {
     return authorizationBitmapDto[kind] ?? OpenPermissions
@@ -121,49 +105,37 @@ const authBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBi
 }
 
 /**
- * Condition that instructs redactor to redact parts of the content:
- * Redact if:
- * - the request is made through the public API
- * - user bitmap does not align with the content item bitmap
+ * Extractor that works with older webapp objects.
+ * The webapp redaction policies use fields like `bitmapExplore` instead of
+ * using the AuthorizationBitmapsKey.
  */
-export const publicApiTranscriptRedactionCondition: RedactCondition = (context, redactable) => {
-  return (
-    inPublicApi(context, redactable) && !bitmapsAlign(context, redactable, x => authBitmapExtractor(x, 'getTranscript'))
-  )
-}
-
-const webappAuthBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
-  // Try to use the AuthorizationBitmapsKey first
-  if (AuthorizationBitmapsKey in redactable) {
-    return authBitmapExtractor(redactable, kind)
-  }
+const webAppAuthBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
   const actualKey = `bitmap${kind.charAt(0).toUpperCase() + kind.slice(1)}`
   const value = redactable[actualKey]
   return value != null ? BigInt(value) : OpenPermissions
 }
 
 /**
- * Condition that instructs redactor to redact parts of the content:
- * Redact if:
- * - the request is made through the app (not the public API)
- * - user bitmap does not align with the content item bitmap
+ * Extractor that works with either objects, autodetecting.
  */
-export const webAppExploreRedactionCondition: RedactCondition = (context, redactable) => {
-  return (
-    !inPublicApi(context, redactable) &&
-    !bitmapsAlign(context, redactable, x => webappAuthBitmapExtractor(x, 'explore'))
-  )
+
+const authBitmapExtractor = (redactable: Redactable, kind: keyof AuthorizationBitmapsDTO) => {
+  // Try to use the AuthorizationBitmapsKey first
+  if (AuthorizationBitmapsKey in redactable) {
+    return publicApiAuthBitmapExtractor(redactable, kind)
+  }
+  return webAppAuthBitmapExtractor(redactable, kind)
 }
 
 /**
- * Condition that instructs redactor to redact parts of the content:
- * Redact if:
- * - the request is made through the app (not the public API)
- * - user bitmap does not align with the content item bitmap
+ * Condition for redacting parts of the content which says:
+ * Redact if the user does NOT have the specified permission.
+ *
+ * @param kind the kind of permission to check
+ * @returns
  */
-export const webAppGetImagesRedactionCondition: RedactCondition = (context, redactable) => {
-  return (
-    !inPublicApi(context, redactable) &&
-    !bitmapsAlign(context, redactable, x => webappAuthBitmapExtractor(x, 'getImages'))
-  )
+export const unlessHasPermission = (kind: keyof AuthorizationBitmapsDTO): RedactCondition => {
+  return (context, redactable) => {
+    return !bitmapsAlign(context, redactable, x => authBitmapExtractor(x, kind))
+  }
 }

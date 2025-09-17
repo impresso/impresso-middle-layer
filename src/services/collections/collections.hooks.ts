@@ -1,0 +1,128 @@
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { rateLimit } from '../../hooks/rateLimiter'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
+import { transformCollection } from '../../transformers/collection'
+import { transformBaseFind } from '../../transformers/base'
+import { ImpressoApplication } from '../../types'
+import { ApplicationHookOptions } from '@feathersjs/feathers'
+import { inPublicApi } from '../../hooks/appMode'
+
+const { queryWithCommonParams, validate, utils, REGEX_UIDS } = require('../../hooks/params')
+
+const { STATUS_PRIVATE, STATUS_PUBLIC } = require('../../models/collections.model')
+
+const findQueryParamsRenamePolicy = {
+  term: 'q',
+}
+
+export default {
+  around: {
+    all: [authenticate(), rateLimit()],
+  },
+  before: {
+    all: [],
+    find: [
+      ...inPublicApi([renameQueryParameters(findQueryParamsRenamePolicy)]),
+      validate({
+        uids: {
+          required: false,
+          regex: REGEX_UIDS,
+          transform: (d: string | string[]) => (Array.isArray(d) ? d : d.split(',')),
+        },
+        q: {
+          required: false,
+          max_length: 500,
+          transform: (d: string) => utils.toSequelizeLike(d),
+        },
+        order_by: {
+          choices: ['-date', 'date', '-size', 'size'],
+          defaultValue: '-date',
+          transform: (d: string) =>
+            utils.translate(d, {
+              date: [['date_last_modified', 'ASC']],
+              '-date': [['date_last_modified', 'DESC']],
+              size: [['count_items', 'ASC']],
+              '-size': [['count_items', 'DESC']],
+            }),
+        },
+      }),
+      queryWithCommonParams(),
+    ],
+    get: [],
+    create: [
+      validate(
+        {
+          // request must contain a name - from which we will create a UID
+          name: {
+            required: true,
+            min_length: 3,
+            max_length: 50,
+          },
+          // optionally
+          description: {
+            required: false,
+            max_length: 2000,
+          },
+          // optionally
+          status: {
+            required: false,
+            choices: [STATUS_PRIVATE, STATUS_PUBLIC],
+            defaultValue: STATUS_PRIVATE,
+          },
+        },
+        'POST'
+      ),
+      // rename accessLevel (public schema) to status (private schema)
+      // TODO: make this nicer
+      context => {
+        if (context.data.accessLevel != null) {
+          if (context.data.accessLevel === 'public') {
+            context.data.status = 'PUB'
+          } else if (context.data.accessLevel === 'private') {
+            context.data.status = 'PRI'
+          }
+        }
+      },
+    ],
+    update: [],
+    patch: [
+      validate(
+        {
+          // request must contain a name - from which we will create a UID
+          name: {
+            required: false,
+            min_length: 3,
+            max_length: 50,
+          },
+          description: {
+            required: false,
+            min_length: 0,
+            max_length: 500,
+          },
+        },
+        'POST'
+      ),
+    ],
+    remove: [],
+  },
+
+  after: {
+    all: [],
+    find: [...inPublicApi([transformResponse(transformBaseFind), transformResponseDataItem(transformCollection)])],
+    get: [...inPublicApi([transformResponse(transformCollection)])],
+    create: [...inPublicApi([transformResponse(transformCollection)])],
+    update: [],
+    patch: [...inPublicApi([transformResponse(transformCollection)])],
+    remove: [],
+  },
+
+  error: {
+    all: [],
+    find: [],
+    get: [],
+    create: [],
+    update: [],
+    patch: [],
+    remove: [],
+  },
+} satisfies ApplicationHookOptions<ImpressoApplication>

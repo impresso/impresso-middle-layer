@@ -1,0 +1,188 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ArticleFields",
+  "description": "Newspaper article specific content item fields in the Impresso project",
+  "type": "object",
+  "properties": {
+    "page_nb_is": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "description": "Array of page numbers where the article appears"
+    },
+    "nb_pages_i": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Total number of pages the article spans"
+    },
+    "front_b": {
+      "type": "boolean",
+      "description": "Whether the article appears on the front page"
+    },
+    "page_regions_plains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of page region coordinates in plain text format (x,y,width,height)"
+    },
+    "content_length_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Length of the article content in characters"
+    },
+    "cc_b": {
+      "type": "boolean",
+      "description": "Whether the article has reliable coordinate information"
+    },
+    "cluster_id_s": {
+      "type": "string",
+      "description": "Text reuse cluster identifier (for text reuse analysis)"
+    },
+    "cluster_size_l": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Size of the text reuse cluster"
+    },
+    "beg_offset_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Beginning character offset for text reuse passage"
+    },
+    "end_offset_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Ending character offset for text reuse passage"
+    },
+    "ci_id_s": {
+      "type": "string",
+      "description": "Content item identifier (alternative ID format)"
+    },
+    "page_id_ss": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of page identifiers where the article appears"
+    },
+    "reading_order_i": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Reading order position of the article on the page"
+    },
+    "rc_plains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Region coordinates in plain text format with page and coordinate information"
+    },
+    "lb_plain": {
+      "type": "string",
+      "description": "Line boundaries in plain text format"
+    },
+    "pb_plain": {
+      "type": "string",
+      "description": "Paragraph boundaries in plain text format"
+    },
+    "rb_plain": {
+      "type": "string",
+      "description": "Region boundaries in plain text format"
+    },
+    "ocrqa_f": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "OCR quality assessment score (0-1)"
+    },
+    "nem_offset_plain": {
+      "type": "string",
+      "description": "Named entity mentions with character offsets in JSON format"
+    },
+    "pers_mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of person mentions found in the text"
+    },
+    "pers_mention_conf_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Person mentions with confidence scores in format 'mention|score'"
+    },
+    "loc_mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of location mentions found in the text"
+    },
+    "loc_mention_conf_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Location mentions with confidence scores in format 'mention|score'"
+    },
+    "org_mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of organization mentions found in the text"
+    },
+    "org_mention_conf_dpfs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Organization mentions with confidence scores in format 'mention|score'"
+    },
+    "gte_multi_v768": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "768-dimensional vector embeddings for the content"
+    },
+    "pp_plain": {
+      "type": "string",
+      "description": "Segment items on the page."
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "page_nb_is": [5],
+      "nb_pages_i": 1,
+      "front_b": false,
+      "page_id_ss": ["EZR-1826-01-06-a-p0005"],
+      "reading_order_i": 7,
+      "content_txt_de": "nicht vorenthalten",
+      "content_length_i": 568,
+      "title_txt_de": "Wenn man auchauf die Ernennung des H. Ri...",
+      "rc_plains": [
+        "{'pid': 'EZR-1826-01-06-a-p0005', 'c': [[1189, 91, 1014, 927], [1189, 1032, 1017, 934], [1182, 1973, 1024, 742]]}"
+      ],
+      "lb_plain": "[61, 120]",
+      "pb_plain": "[1236, 2525]",
+      "rb_plain": "[1236, 2525]",
+      "cc_b": true,
+      "ocrqa_f": 0.86,
+      "nem_offset_plain": "[{\"pers\": [[1037, 32]]}, {\"loc\": [[1647, 7], [2363, 4], [2566, 7], [2626, 20]]}, {\"org\": [[1872, 18]]}]",
+      "pers_mentions": ["H. Hauptmann Franz Auf der Mauer"],
+      "pers_mention_conf_dpfs": ["H. Hauptmann Franz Auf der Mauer|97.85"],
+      "loc_mentions": ["Simplon", "Bern", "Schweiz", "Kanton St. Gal « len"],
+      "loc_mention_conf_dpfs": ["Simplon|41.93", "Bern|94.31", "Schweiz|89.15", "Kanton St. Gal « len|90.04"],
+      "org_mentions": ["gr. Rath zu Luzern"],
+      "org_mention_conf_dpfs": ["gr. Rath zu Luzern|73.77"],
+      "gte_multi_v768": [],
+      "pp_plain": "[]",
+      "_version_": 1833530242983002112
+    }
+  ]
+}

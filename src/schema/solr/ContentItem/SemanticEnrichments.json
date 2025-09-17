@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SemanticEnrichmentsFields",
+  "description": "Semantic enrichments fields of media content items in the Impresso project.",
+  "type": "object",
+  "properties": {
+    "ocrqa_f": {
+      "type": "number",
+      "description": "OCR quality assessment score between 0,00 and 1,00."
+    },
+    "nag_mentions": {
+      "type": "array",
+      "description": "List of mentions from news agencies.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nag_offset_plain": {
+      "type": "array",
+      "description": "Offsets for news agency mentions in plain text.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nag_mention_conf_dpfs": {
+      "type": "array",
+      "description": "Confidence scores for news agency mentions.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nag_entities_dpfs": {
+      "type": "array",
+      "description": "Entities of type news agency.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pers_mentions": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pers_mention_conf_dpfs": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pers_entities_dpfs": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "loc_mentions": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "loc_mention_conf_dpfs": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "loc_entities_dpfs": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "org_mentions": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "org_mention_conf_dpfs": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "org_entities_dpfs": {
+      "type": "array",
+      "description": "",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nem_offset_plain": {
+      "type": "array",
+      "description": "Offsets for named entity mentions in plain text.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topics_dpfs": {
+      "type": "array",
+      "description": "Topics assigned to the content item.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cluster_id_ss": {
+      "type": "array",
+      "description": "TR Cluster IDs assigned to the content item.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gte_multi_v768": {
+      "type": "array",
+      "description": "Content item embedding as a vector of floats.",
+      "items": {
+        "type": "number"
+      }
+    }
+  },
+  "additionalProperties": false
+}

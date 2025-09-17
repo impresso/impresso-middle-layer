@@ -7,7 +7,7 @@ const {
   collectionExtractor,
   numberRangeExtractor,
   simpleValueExtractor,
-} = require('./extractors');
+} = require('./extractors')
 
 const ItemsExtractors = Object.freeze({
   daterange: daterangeExtractor,
@@ -16,6 +16,7 @@ const ItemsExtractors = Object.freeze({
   person: entityExtractor,
   location: entityExtractor,
   nag: entityExtractor,
+  organisation: entityExtractor,
   entity: entityExtractor,
   year: yearExtractor,
   collection: collectionExtractor,
@@ -23,24 +24,26 @@ const ItemsExtractors = Object.freeze({
   textReuseClusterLexicalOverlap: numberRangeExtractor,
   textReuseClusterDayDelta: numberRangeExtractor,
   contentLength: numberRangeExtractor,
-});
+})
 
 class FiltersItems {
-  constructor (app) {
-    this.app = app;
+  constructor(app) {
+    this.app = app
   }
 
-  async find ({ filters }) {
-    const filtersWithItems = await Promise.all(filters.map(async (filter) => {
-      const extractor = ItemsExtractors[filter.type] || simpleValueExtractor;
-      const items = await extractor(filter, this.app);
-      return { filter, items };
-    }));
+  async find({ filters }) {
+    const filtersWithItems = await Promise.all(
+      filters.map(async filter => {
+        const extractor = ItemsExtractors[filter.type] || simpleValueExtractor
+        const items = await extractor(filter, this.app)
+        return { filter, items }
+      })
+    )
 
     return {
       filtersWithItems,
-    };
+    }
   }
 }
 
-module.exports = { FiltersItems };
+module.exports = { FiltersItems }

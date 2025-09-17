@@ -17,7 +17,7 @@ import { getSocksProxyConfiguration, shouldUseSocksProxy } from '../util/socksPr
 const NotAuthorizedImageUrl = '/images/notAuthorized.jpg'
 
 const getContentItemId = (imagePath: string): string | undefined => {
-  const match = imagePath.match(/([A-Za-z]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/)
+  const match = imagePath.match(/([A-Za-z0-9]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/)
   if (match == null) return undefined
   const [contentItemId, _issueUid] = match
   return contentItemId

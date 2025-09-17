@@ -132,6 +132,7 @@
       "pass": "*****"
     },
     "tables": {
+      "content_items": "content_items",
       "articles": "content_items",
       "pages": "pages",
       "newspapers": "newspapers",

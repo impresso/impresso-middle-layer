@@ -25,7 +25,8 @@
         { "$ref": "./Collection.json" },
         { "$ref": "./Entity.json" },
         { "$ref": "./Topic.json" },
-        { "$ref": "./Year.json" }
+        { "$ref": "./Year.json" },
+        { "$ref": "./Partner.json" }
       ]
     }
   }

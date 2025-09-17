@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Partner",
+  "additionalProperties": false,
+  "required": ["id", "title"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Partner ID"
+    },
+    "title": {
+      "type": "string",
+      "description": "Partner Title"
+    },
+    "url": {
+      "type": "string",
+      "description": "URL of the partner's website"
+    }
+  }
+}

@@ -3,6 +3,7 @@ import { groupBy, includes, uniq, values } from 'lodash'
 import { Filter } from '../../models'
 import { SolrNamespace, SolrNamespaces } from '../../solr'
 import { escapeIdValue, filtersToSolr } from './filterReducers'
+import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '../../models/solr'
 
 /**
  * Languages that have content indexes in Solr.
@@ -113,15 +114,12 @@ export function filtersToQueryAndVariables(filters: Filter[], solrNamespace: Sol
   }
 }
 
-interface DocWithRegionCoordinates {
-  rc_plains?: string | string[]
-  pp_plain?: any[]
-}
+type DocWithRegionCoordinates = Pick<PrintContentItem, 'rc_plains' | 'pp_plain'>
 
 export function getRegionCoordinatesFromDocument(document: DocWithRegionCoordinates) {
   if (document.rc_plains) {
     const rcPlainsArray = typeof document.rc_plains === 'string' ? [document.rc_plains] : document.rc_plains
-    return rcPlainsArray.map(d => {
+    return rcPlainsArray.map((d: string) => {
       const page = JSON.parse(d.replace(/'/g, '"'))
       return {
         id: page.pid,
@@ -130,7 +128,38 @@ export function getRegionCoordinatesFromDocument(document: DocWithRegionCoordina
     })
   }
   if (document.pp_plain) {
-    return document.pp_plain
+    const ppPlainArray = typeof document.pp_plain === 'string' ? [document.pp_plain] : document.pp_plain
+    return ppPlainArray
   }
   return []
 }
+
+export const parsePlainsField = <T extends `${string}_plains`, O>(document: { [K in T]?: string[] }, key: T): O[] => {
+  const value = document[key]
+  if (!value) return [] as O[]
+  return value.reduce((acc, item) => {
+    const parsed = JSON.parse(item.replace(/'/g, '"'))
+    return [...acc, parsed]
+  }, [] as O[])
+}
+
+/**
+ * Wrap a Solr plain field name as a JSON field.
+ * Instructs Solr to treat the field as a JSON object and return it as such.
+ *
+ * @param fieldName The name of the field to wrap.
+ * @returns The wrapped field name.
+ */
+export const plainFieldAsJson = <T extends `${string}_plain` | `${string}_plains`>(fieldName: T): `${T}:[json]` => {
+  if (!fieldName.endsWith('_plain') && !fieldName.endsWith('_plains')) {
+    throw new Error(`Field name must end with '_plain' or '_plains': ${fieldName}`)
+  }
+
+  return `${fieldName}:[json]`
+}
+
+type ContentField = `content_txt_${LanguageCode}` | 'content_txt'
+export const allContentFields = [
+  'content_txt',
+  ...SupportedLanguageCodes.map(lang => `content_txt_${lang}` as ContentField),
+] satisfies ContentField[]

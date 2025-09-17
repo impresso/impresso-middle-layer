@@ -8,42 +8,24 @@ import {
   Entity as IEntity,
   Collection as ICollection,
   Newspaper as INewspaper,
+  Partner as IPartner,
 } from './generated/schemas'
 import { ImpressoApplication } from '../types'
 
-const Topic = require('./topics.model')
-const Year = require('./years.model')
-const Collection = require('./collections.model')
-
 type FacetType = 'newspaper' | 'language' | 'topic' | 'person' | 'location' | 'collection' | 'year'
-
-const FACET_TYPES_WITH_ITEMS: FacetType[] = [
-  'newspaper',
-  'language',
-  'topic',
-  'person',
-  'location',
-  'collection',
-  'year',
-]
-
-const FACET_TYPES_WITH_CACHED_ITEMS = {
-  topic: Topic,
-  year: Year,
-}
 
 interface SearchFacetBucketOptions {
   val: string
   count: number
   uid?: string
-  item?: ITopic | IYear | IEntity | ICollection | INewspaper
+  item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner
 }
 
 class SearchFacetBucket implements ISearchFacetBucket {
   public count: number
   public val: string
   public uid?: string
-  public item?: ITopic | IYear | IEntity | ICollection | INewspaper
+  public item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner
   public lower?: number
   public upper?: number
 

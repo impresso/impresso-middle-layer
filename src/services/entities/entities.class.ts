@@ -8,7 +8,7 @@ import { IHuman, ILocation, resolve as resolveWikidata } from '../wikidata'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { SolrNamespaces } from '../../solr'
 import { logger } from '../../logger'
-import Entity from '../../models/entities.model'
+import Entity, { IEntitySolrHighlighting, suggestField } from '../../models/entities.model'
 
 /* eslint-disable no-unused-vars */
 const debug = require('debug')('impresso/services:entities')
@@ -160,8 +160,9 @@ class Service {
         }
 
         // enrich with fragments, if any provided:
-        if (solrResult.highlighting[d.uid].entitySuggest) {
-          d.matches = solrResult.highlighting[d.uid].entitySuggest
+        const matches = (solrResult.highlighting?.[d.uid] as IEntitySolrHighlighting)?.[suggestField]
+        if (matches) {
+          d.matches = matches
         }
         return d
       }),

@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AccessRightFields",
+  "description": "Access right fields of a media content item.",
+  "type": "object",
+  "properties": {
+    "rights_data_domain_s": {
+      "type": "string",
+      "description": "Rights data domain. (e.g., 'pbl' for public, 'prt' for private)",
+      "enum": ["pbl", "prt"]
+    },
+    "rights_copyright_s": {
+      "type": "string",
+      "description": "Copyright status.",
+      "enum": ["pbl", "und", "nkn", "euo", "unk", "in_cpy"]
+    },
+    "rights_perm_use_explore_plain": {
+      "type": "string",
+      "description": "Permission for use in exploration."
+    },
+    "rights_perm_use_get_tr_plain": {
+      "type": "string",
+      "description": "Permission for use in text retrieval."
+    },
+    "rights_perm_use_get_img_plain": {
+      "type": "string",
+      "description": "Permission for use in image retrieval."
+    },
+    "rights_bm_explore_l": {
+      "type": "integer",
+      "description": "Bookmark limit for exploration."
+    },
+    "rights_bm_get_tr_l": {
+      "type": "integer",
+      "description": "Bookmark limit for text retrieval."
+    },
+    "rights_bm_get_img_l": {
+      "type": "integer",
+      "description": "Bookmark limit for image retrieval."
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "rights_data_domain_s",
+    "rights_copyright_s",
+    "rights_perm_use_explore_plain",
+    "rights_perm_use_get_tr_plain",
+    "rights_perm_use_get_img_plain",
+    "rights_bm_explore_l",
+    "rights_bm_get_tr_l",
+    "rights_bm_get_img_l"
+  ]
+}

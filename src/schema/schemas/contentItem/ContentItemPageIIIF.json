@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "description": "IIIF details for a content item page",
+  "title": "IIIF Content Item Page Details",
+  "additionalProperties": false,
+  "properties": {
+    "manifestUrl": {
+      "type": "string",
+      "description": "The URL of the IIIF manifest for the page.",
+      "format": "uri"
+    },
+    "thumnbnailUrl": {
+      "type": "string",
+      "description": "The URL of the thumbnail image for the page.",
+      "format": "uri"
+    }
+  },
+  "required": ["manifestUrl", "thumnbnailUrl"]
+}

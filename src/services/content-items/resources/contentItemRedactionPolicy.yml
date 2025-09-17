@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
+name: content-item-redaction-policy
+items:
+  - jsonPath: $.text.title
+    valueConverterName: redact
+  - jsonPath: $.text.transcript
+    valueConverterName: redact
+  # - jsonPath: $.regions
+  #   valueConverterName: emptyArray
+  # - jsonPath: $.matches
+  #   valueConverterName: emptyArray
+  # - jsonPath: $.pages[*].iiif
+  #   valueConverterName: contextNotAllowedImage
+  # - jsonPath: $.pages[*].iiifThumbnail
+  #   valueConverterName: contextNotAllowedImage

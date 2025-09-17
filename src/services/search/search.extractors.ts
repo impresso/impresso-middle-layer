@@ -1,22 +1,58 @@
 import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
-import Article from '../../models/articles.model'
+import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
 import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'
-import { ContentItemService } from '../articles/articles.class'
+import { ContentItemService } from '../content-items/content-items.class'
 import { ImpressoApplication } from '../../types'
 import { buildResolvers, CachedFacetType, IResolver } from '../../internalServices/cachedResolvers'
+import { ContentItem } from '../../models/generated/schemas/contentItem'
+
+export const getContentItemMatches = (
+  contentItem: ContentItem,
+  ppPlain: string | undefined,
+  { fragments, highlighting }: IFragmentsAndHighlights
+) => {
+  const { id, text } = contentItem
+  const langCode = text?.langCode
+
+  const contentLocators = ['content_txt', ...(langCode != null ? [`content_txt_${langCode}`] : [])]
+
+  const contentItemFragment = contentLocators.reduce((foundContent, locator) => {
+    if (foundContent.length > 0) return foundContent
+    return fragments?.[id]?.[locator] ?? []
+  }, [])
+  const contentItemHighlight = contentLocators.reduce((foundContent, locator) => {
+    if (Object.keys(foundContent).length > 0) return foundContent
+    return highlighting?.[id]?.[locator] ?? {}
+  }, {})
+
+  return Article.getMatches({
+    solrDocument: { pp_plain: ppPlain },
+    highlights: contentItemHighlight,
+    fragments: contentItemFragment,
+  })
+}
 
 function getAricleMatchesAndRegions(
-  article: Article | undefined,
+  article: ContentItem | undefined,
   documentsIndex: Record<string, any>,
   fragmentsIndex: Record<string, any>,
   highlightingIndex: Record<string, any>
 ) {
   if (article == null) return [[], []]
 
-  const { uid: id, language } = article
+  const { id, text } = article
+  const langCode = text?.langCode
 
-  const fragments = fragmentsIndex[id][`content_txt_${language}`]
-  const highlights = highlightingIndex[id][`content_txt_${language}`]
+  const contentLocators = ['content_txt', ...(langCode != null ? [`content_txt_${langCode}`] : [])]
+
+  const fragments = contentLocators.reduce((foundContent, locator) => {
+    if (foundContent) return foundContent
+    return fragmentsIndex[id]?.[locator]
+  }, undefined)
+  const highlights = contentLocators.reduce((foundContent, locator) => {
+    if (foundContent) return foundContent
+    return highlightingIndex[id]?.[locator]
+  }, undefined)
 
   const matches = Article.getMatches({
     solrDocument: documentsIndex[id],
@@ -73,7 +109,7 @@ export async function getItemsFromSolrResponse(
   return uids.map((uid: string) => {
     const article = articlesIndex[uid]
     const [matches, regions] = getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex)
-    return Article.assignIIIF(assignIn(clone(article), { matches, regions }))
+    return Article.assignIIIF(assignIn(clone(article), { matches, regions }) as any)
   })
 }
 

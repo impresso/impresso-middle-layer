@@ -5,9 +5,9 @@ import { rateLimit } from '../../hooks/rateLimiter'
 const { validate, validateEach, queryWithCommonParams, utils } = require('../../hooks/params')
 const { qToSolrFilter, filtersToSolrQuery } = require('../../hooks/search')
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
-import { inPublicApi } from '../../hooks/redaction'
 import { transformEntityDetails } from '../../transformers/entity'
 import { transformBaseFind } from '../../transformers/base'
+import { inPublicApi } from '../../hooks/appMode'
 
 const orderByMap = {
   relevance: 'score ASC',
@@ -27,7 +27,7 @@ const findQueryParamsRenamePolicy = {
 }
 
 const findAndGetParamsHooks = [
-  renameQueryParameters(findQueryParamsRenamePolicy, inPublicApi),
+  ...inPublicApi([renameQueryParameters(findQueryParamsRenamePolicy)]),
   validate({
     q: {
       required: false,
@@ -97,11 +97,8 @@ export default {
 
   after: {
     all: [],
-    find: [
-      transformResponse(transformBaseFind, inPublicApi),
-      transformResponseDataItem(transformEntityDetails, inPublicApi),
-    ],
-    get: [transformResponse(transformEntityDetails, inPublicApi)],
+    find: [...inPublicApi([transformResponse(transformBaseFind), transformResponseDataItem(transformEntityDetails)])],
+    get: [...inPublicApi([transformResponse(transformEntityDetails)])],
     create: [],
     update: [],
     patch: [],

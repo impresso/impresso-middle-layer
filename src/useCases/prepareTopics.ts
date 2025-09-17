@@ -218,7 +218,7 @@ const getTopicsPage = async (
     numBuckets: 0,
   }
   if (buckets.length !== numBuckets) {
-    throw new Error('Number of buckets does not match numBuckets')
+    throw new Error(`Number of buckets (${buckets.length}) does not match numBuckets (${numBuckets})`)
   }
 
   const topicsCounts =

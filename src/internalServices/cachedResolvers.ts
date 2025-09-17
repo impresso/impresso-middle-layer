@@ -1,41 +1,68 @@
 import Collection from '../models/collections.model'
 import Entity from '../models/entities.model'
 import Topic from '../models/topics.model'
-import { IYear } from '../models/years.model'
 import { optionalMediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
 import { ImpressoApplication } from '../types'
 import { Newspaper as NewspaperInternal } from '../models/generated/schemas'
-import { Topic as ITopic } from '../models/generated/schemas'
 import { WellKnownKeys } from '../cache'
 import { getPartnerResolver } from './facetResolvers/partnerResolver'
 import { getNameFromUid } from '../utils/entity.utils'
-
-export type CachedFacetType = 'newspaper' | 'topic' | 'person' | 'location' | 'collection' | 'year' | 'partner'
+import {
+  Topic as ITopic,
+  Year as IYear,
+  Entity as IEntity,
+  Collection as ICollection,
+  Newspaper as INewspaper,
+  Partner as IPartner,
+} from '../models/generated/schemas'
+export type CachedFacetType =
+  | 'newspaper'
+  | 'topic'
+  | 'person'
+  | 'location'
+  | 'collection'
+  | 'year'
+  | 'partner'
+  | 'nag'
+  | 'organisation'
+export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | INewspaper | IPartner
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
 
-export type ICachedResolvers = Record<CachedFacetType, IResolver<any>>
+export type ICachedResolvers = {
+  newspaper: IResolver<NewspaperInternal>
+  topic: IResolver<ITopic>
+  person: IResolver<IEntity>
+  location: IResolver<IEntity>
+  collection: IResolver<ICollection>
+  year: IResolver<IYear>
+  partner: IResolver<IPartner>
+  nag: IResolver<IEntity>
+  organisation: IResolver<IEntity>
+}
 
-const collectionResolver: IResolver<Collection> = async (id: string) =>
+// Record<CachedFacetType, IResolver<T>>
+
+const collectionResolver: IResolver<ICollection> = async (id: string) =>
   new Collection({
     uid: id,
     name: id,
-  })
+  }) as any as ICollection
 
 const entityResolver = async (id: string, type: CachedFacetType) =>
   new Entity({
     uid: id,
     type,
     name: getNameFromUid(id),
-  })
+  }) as any as IEntity
 
-const getTopicResolver = (app: ImpressoApplication): IResolver<Topic> => {
+const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
   return async (id: string) => {
     const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
     const deserialisedTopics: ITopic[] = JSON.parse(result ?? '[]')
 
     const topic = deserialisedTopics.find(t => t.uid === id)
-    return new Topic(topic as unknown as any)
+    return new Topic(topic as unknown as any) as any as ITopic
   }
 }
 
@@ -67,5 +94,7 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     year: getYearResolver(app),
     newspaper: getNewspaperResolver(app),
     partner: getPartnerResolver(app),
+    nag: (id: string) => entityResolver(id, 'nag'),
+    organisation: (id: string) => entityResolver(id, 'organisation'),
   }
 }

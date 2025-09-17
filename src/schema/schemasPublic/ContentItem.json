@@ -10,9 +10,19 @@
       "description": "The unique identifier of the content item.",
       "minLength": 1
     },
+    "copyrightStatus": {
+      "type": "string",
+      "description": "Copyright status.",
+      "enum": ["pbl", "und", "nkn", "euo", "unk", "in_cpy"]
+    },
     "type": {
       "type": "string",
       "description": "The type of the content item, as present in the OLR provided by the data provider. All content items are not characterised by the same set of types."
+    },
+    "sourceMedium": {
+      "type": "string",
+      "description": "Medium of the source (audio for audio radio broadcasts, print for newspapers, typescript for digitised radio bulletin typescripts).",
+      "enum": ["audio", "print", "typescript"]
     },
     "title": {
       "type": "string",
@@ -22,18 +32,32 @@
       "type": "string",
       "description": "Transcript of the content item."
     },
-    "locations": {
+    "locationEntities": {
       "type": "array",
-      "description": "Locations mentioned in the content item.",
+      "description": "Linked location entities mentioned in the content item.",
       "items": {
-        "$ref": "./EntityMention.json"
+        "$ref": "./NamedEntity.json"
       }
     },
-    "persons": {
+    "personEntities": {
       "type": "array",
-      "description": "Persions mentioned in the content item.",
+      "description": "Linked person entities mentioned in the content item.",
       "items": {
-        "$ref": "./EntityMention.json"
+        "$ref": "./NamedEntity.json"
+      }
+    },
+    "organisationEntities": {
+      "type": "array",
+      "description": "Linked organisation entities mentioned in the content item.",
+      "items": {
+        "$ref": "./NamedEntity.json"
+      }
+    },
+    "newsAgenciesEntities": {
+      "type": "array",
+      "description": "Linked news agency entities mentioned in the content item.",
+      "items": {
+        "$ref": "./NamedEntity.json"
       }
     },
     "topics": {
@@ -66,22 +90,26 @@
       "description": "The publication date of the content item.",
       "format": "date-time"
     },
+    "issueUid": {
+      "type": "string",
+      "description": "Unique issue identifier"
+    },
     "countryCode": {
       "type": "string",
       "description": "ISO 3166-1 alpha-2 country code of the content item."
     },
-    "dataProviderCode": {
+    "providerCode": {
       "type": "string",
       "description": "The code of the data provider."
     },
-    "mediaCode": {
+    "mediaUid": {
       "type": "string",
-      "description": "Code of the newspaper or the other media the content item belongs to."
+      "description": "Media title alias. Usually a 3 letter code of the media title (newspaper, radio station, etc.)."
     },
     "mediaType": {
       "type": "string",
       "description": "The type of the media the content item belongs to.",
-      "enum": ["newspaper"]
+      "enum": ["newspaper", "radio_broadcast", "radio_magazine", "radio_schedule", "monograph", "encyclopedia"]
     }
   },
   "required": ["uid"]
