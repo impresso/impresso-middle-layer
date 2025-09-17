@@ -2,6 +2,7 @@ import { Bucket, SelectRequestBody, SimpleSolrClient, TermsFacetDetails } from '
 import { Topic, TopicWord } from '../models/generated/schemas'
 import { SolrNamespaces } from '../solr'
 import { logger } from '../logger'
+import { uniqBy } from 'lodash'
 
 import Graph from 'graphology'
 import { circular } from 'graphology-layout'
@@ -321,11 +322,8 @@ const withRelatedTopics = async (
 const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise<Topic[]> => {
   const graph = new Graph()
 
-  graph.import({
-    attributes: {
-      name: 'the awesome topic graph',
-    },
-    nodes: Object.values(topics).map(topic => ({
+  const nodes = uniqBy(
+    Object.values(topics).map(topic => ({
       key: topic.uid,
       attributes: {
         x: 0,
@@ -333,7 +331,12 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
         weight: topic.countItems,
       },
     })),
-    edges: Object.values(topics)
+    n => n.key
+  )
+  const nodeIds = new Set(nodes.map(n => n.key))
+
+  const edges = uniqBy(
+    Object.values(topics)
       .map(
         topic =>
           topic.relatedTopics?.map(rel => ({
@@ -344,7 +347,17 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
             },
           })) ?? []
       )
-      .reduce((acc, d) => acc.concat(d), []),
+      .reduce((acc, d) => acc.concat(d), [])
+      .filter(e => nodeIds.has(e.source) && nodeIds.has(e.target)),
+    e => `${e.source}|${e.target}` // make sure pairs are unique
+  )
+
+  graph.import({
+    attributes: {
+      name: 'the awesome topic graph',
+    },
+    nodes,
+    edges,
   })
 
   const { x, y } = graph.getNodeAttributes(graph.nodes()[1])
