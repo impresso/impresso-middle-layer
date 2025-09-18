@@ -475,6 +475,14 @@ const trPassagesSolrMappings = {
       offset: 0,
       numBuckets: true,
     },
+    organisation: {
+      type: 'terms',
+      field: 'org_entities_dpfs',
+      mincount: 1,
+      limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
     language: {
       type: 'terms',
       field: 'lg_s',
