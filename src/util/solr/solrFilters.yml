@@ -205,6 +205,9 @@ indexes:
       nag:
         field: nag_entities_dpfs
         rule: idValue
+      organisation:
+        field: org_entities_dpfs
+        rule: idValue
   entities:
     filters:
       string:
