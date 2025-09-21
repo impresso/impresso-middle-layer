@@ -25,8 +25,7 @@ export const startupJobs = async (context: HookContext<ImpressoApplication>, nex
     updateFacetRangesCache(context.app)
       .then(() => logger.info('Facet ranges cache updated.'))
       .catch(e => logger.error('Error updating facet ranges cache:', e)),
-  ])
-  logger.info('Async jobs completed...')
+  ]).then(() => logger.info('Async jobs completed...'))
 
   await next()
 }

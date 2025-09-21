@@ -272,6 +272,7 @@ const searchSolrMappings = {
     date: 'meta_date_dt',
     relevance: 'score',
     id: 'id',
+    ocrQuality: 'ocrqa_f',
   },
   groupBy: {
     issues: 'meta_issue_id_s',
@@ -469,6 +470,14 @@ const trPassagesSolrMappings = {
     nag: {
       type: 'terms',
       field: 'nag_entities_dpfs',
+      mincount: 1,
+      limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
+    organisation: {
+      type: 'terms',
+      field: 'org_entities_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,

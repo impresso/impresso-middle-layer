@@ -54,6 +54,30 @@
     "features": {
       "type": "object",
       "additionalProperties": { "type": "object" }
+    },
+    "partnerInstitutions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "langCode": { "type": "string" },
+                "name": { "type": "string" }
+              },
+              "required": ["langCode", "name"],
+              "additionalProperties": false
+            }
+          },
+          "bitmapIndex": { "type": "integer" }
+        },
+        "required": ["id", "names", "bitmapIndex"],
+        "additionalProperties": false
+      }
     }
   }
 }

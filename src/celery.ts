@@ -31,6 +31,11 @@ const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
       debug('Subscribed to celery tasks')
     })
 
+    if (app.get('isPublicApi')) {
+      logger.info('Celery: not subscribing to Celery events in public API.')
+      return
+    }
+
     backend.redis.on('pmessage', (_pattern, _channel, data) => {
       const message = JSON.parse(data)
       const result = message.result

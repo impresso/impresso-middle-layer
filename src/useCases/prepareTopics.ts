@@ -2,6 +2,7 @@ import { Bucket, SelectRequestBody, SimpleSolrClient, TermsFacetDetails } from '
 import { Topic, TopicWord } from '../models/generated/schemas'
 import { SolrNamespaces } from '../solr'
 import { logger } from '../logger'
+import { uniqBy } from 'lodash'
 
 import Graph from 'graphology'
 import { circular } from 'graphology-layout'
@@ -218,7 +219,7 @@ const getTopicsPage = async (
     numBuckets: 0,
   }
   if (buckets.length !== numBuckets) {
-    throw new Error('Number of buckets does not match numBuckets')
+    throw new Error(`Number of buckets (${buckets.length}) does not match numBuckets (${numBuckets})`)
   }
 
   const topicsCounts =
@@ -321,34 +322,41 @@ const withRelatedTopics = async (
 const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise<Topic[]> => {
   const graph = new Graph()
 
-  graph.import(
-    {
+  const nodes = uniqBy(
+    Object.values(topics).map(topic => ({
+      key: topic.uid,
       attributes: {
         name: 'the awesome topic graph',
       },
-      nodes: Object.values(topics).map(topic => ({
-        key: topic.uid,
-        attributes: {
-          x: 0,
-          y: 0,
-          weight: topic.countItems,
-        },
-      })),
-      edges: Object.values(topics)
-        .map(
-          topic =>
-            topic.relatedTopics?.map(rel => ({
-              source: topic.uid,
-              target: rel.uid,
-              attributes: {
-                weight: rel.w,
-              },
-            })) ?? []
-        )
-        .reduce((acc, d) => acc.concat(d), []),
-    },
-    true
+    })),
+    n => n.key
   )
+  const nodeIds = new Set(nodes.map(n => n.key))
+
+  const edges = uniqBy(
+    Object.values(topics)
+      .map(
+        topic =>
+          topic.relatedTopics?.map(rel => ({
+            source: topic.uid,
+            target: rel.uid,
+            attributes: {
+              weight: rel.w,
+            },
+          })) ?? []
+      )
+      .reduce((acc, d) => acc.concat(d), [])
+      .filter(e => nodeIds.has(e.source) && nodeIds.has(e.target)),
+    e => `${e.source}|${e.target}` // make sure pairs are unique
+  )
+
+  graph.import({
+    attributes: {
+      name: 'the awesome topic graph',
+    },
+    nodes,
+    edges,
+  })
 
   const { x, y } = graph.getNodeAttributes(graph.nodes()[1])
   if (!x && !y) {
