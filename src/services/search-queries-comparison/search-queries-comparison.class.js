@@ -38,7 +38,7 @@ const {
  * @param {Facet[]} constraintFacets
  * @returns {any}
  */
-function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
+export function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
   const { query } = filtersToQueryAndVariables(filters)
 
   const facets = facetsRequests.reduce((acc, { type, offset, limit }) => {
@@ -97,7 +97,7 @@ const ConstrainedFacetRegex = /^constrained__(.+)__(\d+)$/
  *
  * @returns {object}
  */
-function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = []) {
+export function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = []) {
   const { facets: responseFacets } = solrResponse
   const normalisedFacets = Object.keys(responseFacets).reduce((acc, key) => {
     if (typeof responseFacets[key] !== 'object') return { ...acc, [key]: responseFacets[key] }
@@ -194,10 +194,4 @@ export class SearchQueriesComparison {
       facetsIds: request.facets.map(({ type }) => type),
     }
   }
-}
-
-export default {
-  SearchQueriesComparison,
-  createSolrQuery,
-  normaliseFacetsInSolrResponse,
 }
