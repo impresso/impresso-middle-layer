@@ -1,6 +1,5 @@
 import axios from 'axios'
 import debug from 'debug'
-const debugLog = debug('impresso/services:articles-recommendations')
 
 class ArticlesRecommendations {
   constructor({ recommenderServiceUrl }) {

@@ -5,21 +5,16 @@ export default class Property {
   constructor({
     name = '',
     label = '',
-    // eslint-disable-next-line camelcase
     newspapers_metadata = {},
   } = {}) {
     this.name = name
-    // eslint-disable-next-line camelcase
     this.value = newspapers_metadata.value
     this.label = label
     if (!this.value) {
-      // eslint-disable-next-line no-console
       logger.warning(
         'Property',
         name,
-        // eslint-disable-next-line quotes
         "doesn't have a value",
-        // eslint-disable-next-line camelcase
         newspapers_metadata.get()
       )
     }

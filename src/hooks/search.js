@@ -44,7 +44,7 @@ const filtersToSolrQuery =
   ({
     overrideOrderBy = true,
     prop = 'params',
-    solrIndexProvider = (ctx) => SolrNamespaces.Search
+    solrIndexProvider = (_ctx) => SolrNamespaces.Search // eslint-disable-line no-unused-vars
   } = {}) => async context => {
     const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`
     if (context.type !== 'before') {

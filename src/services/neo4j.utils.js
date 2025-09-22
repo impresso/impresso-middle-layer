@@ -1,4 +1,3 @@
-/* eslint no-use-before-define: off */
 import mustache from 'mustache'
 import moment from 'moment'
 import Debug from 'debug'
@@ -21,7 +20,6 @@ const neo4jPrepare = (cypherQuery, params) =>
   // use Mustache renderer to pre-prepare cypehr query.
   // This allows to use if, unless and each templates without
   // adding unwanted complexification in code.
-  // eslint-disable-next-line implicit-arrow-linebreak
   mustache.render(cypherQuery, params)
 
 const neo4jRun = (session, cypherQuery, params, queryname) => {
