@@ -37,6 +37,7 @@ import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../model
 import { allContentFields, plainFieldAsJson } from '../../util/solr'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { base64BytesToBigInt } from '../../util/bigint'
+import { QueueService } from '../../internalServices/queue'
 
 const DefaultLimit = 10
 
@@ -292,6 +293,14 @@ export class ContentItemService implements IContentItemService {
   }
 
   async find(params: FindOptions): Promise<FindResponse<ContentItem>> {
+    // test test
+    const queueService = this.app.service('queueService') as QueueService
+    await queueService.addItemsToCollection({
+      userId: 'test-user',
+      collectionId: 'test-collection',
+      itemIds: ['item1', 'item2', 'item3'],
+    })
+
     return await this._find(params)
   }
 
