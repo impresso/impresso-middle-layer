@@ -7,9 +7,21 @@ import {
   JobNameAddItemsToCollection,
 } from '../jobs/collections/addItemsToCollection'
 import {
-  createJobHandler as removeItemsToCollectionJobHandler,
+  createJobHandler as createAddQueryResultItemsToCollectionJobHandler,
+  JobNameAddQueryResultItemsToCollection,
+} from '../jobs/collections/addQueryResultItemsToCollection'
+import {
+  JobNameRemoveAllCollectionItems,
+  createJobHandler as removeAllCollectionItemsJobHandler,
+} from '../jobs/collections/removeAllCollectionItems'
+import {
   JobNameRemoveItemsFromCollection,
+  createJobHandler as removeItemsToCollectionJobHandler,
 } from '../jobs/collections/removeItemsFromCollection'
+import {
+  createJobHandler as exportSearchResultsJobHandler,
+  JobNameExportSearchResults,
+} from '../jobs/searchResults/exportSearchResults'
 import { logger } from '../logger'
 import { ImpressoApplication } from '../types'
 import { ensureServiceIsFeathersCompatible } from '../util/feathers'
@@ -195,6 +207,9 @@ export default (app: ImpressoApplication) => {
     const workerDefinitions: WorkerDefinition[] = [
       [JobNameAddItemsToCollection, createAddItemsToCollectionJobHandler(app), 1],
       [JobNameRemoveItemsFromCollection, removeItemsToCollectionJobHandler(app), 1],
+      [JobNameRemoveAllCollectionItems, removeAllCollectionItemsJobHandler(app), 1],
+      [JobNameAddQueryResultItemsToCollection, createAddQueryResultItemsToCollectionJobHandler(app), 1],
+      [JobNameExportSearchResults, exportSearchResultsJobHandler(app), 1],
     ]
 
     const workerManagerService = createWorkerManagerService(app, workerDefinitions)

@@ -8,6 +8,15 @@ import {
   JobNameRemoveItemsFromCollection,
   RemoveItemsFromCollectionJobData,
 } from '../jobs/collections/removeItemsFromCollection'
+import {
+  JobNameRemoveAllCollectionItems,
+  RemoveAllCollectionItemsJobData,
+} from '../jobs/collections/removeAllCollectionItems'
+import {
+  AddQueryResultItemsToCollectionJobData,
+  JobNameAddQueryResultItemsToCollection,
+} from '../jobs/collections/addQueryResultItemsToCollection'
+import { ExportSearchResultsJobData, JobNameExportSearchResults } from '../jobs/searchResults/exportSearchResults'
 
 export interface QueueServiceOptions {
   redisConfig: RedisConfiguration
@@ -19,6 +28,10 @@ export interface QueueServiceOptions {
 export class QueueService {
   private queueAddItemsToCollection: Queue
   private queueRemoveItemsFromCollection: Queue
+  private queueRemoveAllCollectionItems: Queue
+  private queueAddQueryResultItemsToCollection: Queue
+  private queueExportSearchResults: Queue
+
   private redisConfig: RedisConfiguration
 
   constructor(options: QueueServiceOptions) {
@@ -56,6 +69,18 @@ export class QueueService {
       connection: connectionOptions,
       defaultJobOptions,
     })
+    this.queueRemoveAllCollectionItems = new Queue(JobNameRemoveAllCollectionItems, {
+      connection: connectionOptions,
+      defaultJobOptions,
+    })
+    this.queueAddQueryResultItemsToCollection = new Queue(JobNameAddQueryResultItemsToCollection, {
+      connection: connectionOptions,
+      defaultJobOptions,
+    })
+    this.queueExportSearchResults = new Queue(JobNameExportSearchResults, {
+      connection: connectionOptions,
+      defaultJobOptions,
+    })
   }
 
   /**
@@ -65,7 +90,6 @@ export class QueueService {
     logger.info(
       `Queueing job to add ${data.itemIds.length} items to collection ${data.collectionId} for user ${data.userId}`
     )
-
     return this.queueAddItemsToCollection.add(JobNameAddItemsToCollection, data)
   }
 
@@ -78,15 +102,43 @@ export class QueueService {
     logger.info(
       `Queueing job to remove ${data.itemIds.length} items from collection ${data.collectionId} for user ${data.userId}`
     )
-
     return this.queueRemoveItemsFromCollection.add(JobNameRemoveItemsFromCollection, data)
+  }
+
+  /**
+   * Remove all collection items (delete collection contents)
+   */
+  async removeAllCollectionItems(
+    data: RemoveAllCollectionItemsJobData
+  ): Promise<BullJob<RemoveAllCollectionItemsJobData>> {
+    logger.info(`Queueing job to remove all items from collection ${data.collectionId} for user ${data.userId}`)
+    return this.queueRemoveAllCollectionItems.add(JobNameRemoveAllCollectionItems, data)
+  }
+
+  /**
+   * Add query result items to collection
+   */
+  async addQueryResultItemsToCollection(
+    data: AddQueryResultItemsToCollectionJobData
+  ): Promise<BullJob<AddQueryResultItemsToCollectionJobData>> {
+    logger.info(`Queueing job to add query result items to collection ${data.collectionId} for user ${data.userId}`)
+    return this.queueAddQueryResultItemsToCollection.add(JobNameAddQueryResultItemsToCollection, data)
+  }
+
+  async exportSearchResults(data: ExportSearchResultsJobData): Promise<BullJob<ExportSearchResultsJobData>> {
+    logger.info(`Queueing job to export search results for user ${data.userId}`)
+    return this.queueExportSearchResults.add(JobNameExportSearchResults, data)
   }
 
   /**
    * Get queue statistics
    */
   async getQueueStats() {
-    const queues = [this.queueAddItemsToCollection, this.queueRemoveItemsFromCollection]
+    const queues = [
+      this.queueAddItemsToCollection,
+      this.queueRemoveItemsFromCollection,
+      this.queueRemoveAllCollectionItems,
+    ]
 
     const stats = await Promise.all(
       queues.map(async queue => {

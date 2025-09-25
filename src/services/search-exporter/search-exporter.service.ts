@@ -1,19 +1,14 @@
 // Initializes the `exporter` service on path `/exporter`
 import csvStringify from 'csv-stringify'
-import createService from './search-exporter.class.js'
-import hooks from './search-exporter.hooks'
+import { Service } from './search-exporter.class'
+import hooks from './search-exporter.hooks.js'
+import { ImpressoApplication } from '../../types'
+import type { Application as ExpressApplication } from '@feathersjs/express'
+import type { Request, Response } from 'express'
 
-export default function (app) {
-  const paginate = app.get('paginate')
-
-  const options = {
-    name: 'search-exporter',
-    paginate,
-    app,
-  }
-
+export default function (app: ImpressoApplication & ExpressApplication) {
   // Initialize our service with any options it requires
-  app.use('/search-exporter', createService(options), (req, res) => {
+  app.use('/search-exporter', new Service(app), (req: Request, res: Response) => {
     res.type('text/plain')
 
     csvStringify(

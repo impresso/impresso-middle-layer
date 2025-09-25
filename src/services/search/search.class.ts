@@ -54,6 +54,15 @@ class Service implements SearchService {
     debugLog(
       `[create] taskname ${taskname} from solr query: ${q} from user:${params.user.uid} collection_uid: ${data.sanitized.collection_uid}`
     )
+
+    const queueService = this.app.service('queueService')
+    await queueService.addQueryResultItemsToCollection({
+      userId: params.user.id,
+      collectionId: data.sanitized.collection_uid,
+      solrNamespace: data.sanitized.index,
+      filters: data.sanitized.filters,
+    })
+
     // check if the user has jobs running
     const jobKlass = Job.sequelize(this.sequelize)
     const runningJobs = await jobKlass.count({

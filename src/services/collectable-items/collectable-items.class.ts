@@ -175,6 +175,9 @@ export class Service {
       collectionId: collection.uid,
     }))
     debug('[create] with items:', items)
+
+    const itemIds = items.map((d: any) => d.itemId)
+
     const results = await this.sequelizeService.bulkCreate(items)
     const client = this.app.get('celeryClient')
     if (client) {
@@ -185,6 +188,16 @@ export class Service {
           collection.uid,
           items.map((d: any) => d.itemId),
         ],
+      })
+    }
+
+    const queueService = this.app.service('queueService')
+
+    if (itemIds.length > 0) {
+      await queueService.addItemsToCollection({
+        userId: params.user?.id as any as string,
+        collectionId: collection.uid,
+        itemIds: itemIds,
       })
     }
 
@@ -225,6 +238,13 @@ export class Service {
         ],
       })
     }
+
+    const queueService = this.app.service('queueService')
+    await queueService.removeAllCollectionItems({
+      userId: params.user?.id as any as string,
+      collectionId: collection.uid,
+    })
+
     return {
       params: params.sanitized,
       removed: parseInt(results, 10),
