@@ -1,5 +1,4 @@
 /* eslint global-require: "off" */
-/* eslint import/no-dynamic-require: "off" */
 import Debug from 'debug'
 const debug = Debug('impresso/services:FusionService')
 import decypher from 'decypher'

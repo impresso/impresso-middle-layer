@@ -85,7 +85,7 @@ export class TextReusePassages {
       })
   }
 
-  async get(id, { query = {} }) {
+  async get(id) {
     // return the corresponding textReusePassages instance.
     const textReusePassage = await this.solr
       .selectOne(this.solr.namespaces.TextReusePassages, {

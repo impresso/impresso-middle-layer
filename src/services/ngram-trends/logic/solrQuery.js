@@ -22,10 +22,8 @@ const TokensCountField = 'content_length_i'
 const DefaultFacetLimit = -1
 
 const getFacetPivotString = (languageCode, timeIntervalField) =>
-  // eslint-disable-next-line implicit-arrow-linebreak
   `{!stats=tf_stats_${languageCode} key=${languageCode}}${timeIntervalField}`
 const getStatsFieldString = (languageCode, unigram) =>
-  // eslint-disable-next-line implicit-arrow-linebreak
   `{!tag=tf_stats_${languageCode} key=tf_stats_${languageCode} sum=true func}termfreq(content_txt_${languageCode},'${unigram}')`
 
 /**
@@ -180,7 +178,6 @@ function guessTimeIntervalFromFilters(filters = []) {
     .sort()
   const shortestTimedelta = timedeltas[0]
 
-  // eslint-disable-next-line no-restricted-globals
   if (!isFinite(shortestTimedelta)) return 'year'
   if (shortestTimedelta < 1) return 'day'
   if (shortestTimedelta < 5) return 'month'

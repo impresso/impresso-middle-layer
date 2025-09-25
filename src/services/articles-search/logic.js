@@ -112,15 +112,14 @@ function textReuseItemContextFormula(type, { entities }) {
  */
 function relevanceContextItemToSolrFormula({ type, parameters, weight }) {
   let parametersFormula = '1.0'
-  // eslint-disable-next-line no-restricted-globals
   const w = isFinite(weight) ? weight : '1.0'
 
   if (type === RelevanceContextItemTypes.TimeRange) {
-    parametersFormula = timeRangeFormula(/** @type {TimeRangeContextParameters} */ (parameters))
+    parametersFormula = timeRangeFormula(/** @type {TimeRangeContextParameters} */(parameters))
   } else if (type === RelevanceContextItemTypes.TextReuseClusters) {
-    parametersFormula = textReuseItemContextFormula(type, /** @type {ItemContextParameters} */ (parameters))
+    parametersFormula = textReuseItemContextFormula(type, /** @type {ItemContextParameters} */(parameters))
   } else {
-    parametersFormula = itemContextFormula(type, /** @type {ItemContextParameters} */ (parameters))
+    parametersFormula = itemContextFormula(type, /** @type {ItemContextParameters} */(parameters))
   }
   return `mul(${parametersFormula},${w})`.replace(/(\s+\n)|(\n\s+)|(\n)/g, '')
 }

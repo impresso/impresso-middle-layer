@@ -1,5 +1,4 @@
 /* eslint global-require: "off" */
-/* eslint import/no-dynamic-require: "off" */
 import Debug from 'debug'
 const debug = Debug('impresso/services:SequelizeService')
 import { NotFound } from '@feathersjs/errors'
@@ -17,7 +16,7 @@ const loadDynamicModule = async name => {
   const modulePath = name.endsWith('.js') ? name : `${name}.js`
   return import(modulePath).catch(e => {
     // Fallback to CommonJS require as a last resort
-    console.warn(`Warning: Falling back to CommonJS require for ${name}. Consider updating import.`)
+    console.warn(`Warning: Falling back to CommonJS require for ${name}. Consider updating import. Error: ${e}`)
     return require(name)
   })
 }

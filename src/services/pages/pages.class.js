@@ -16,7 +16,7 @@ export class Service {
     })
   }
 
-  async get(id, params) {
+  async get(id) {
     const request = {
       q: `page_id_ss:${id}`,
       fl: 'id',

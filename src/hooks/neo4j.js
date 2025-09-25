@@ -22,14 +22,14 @@ const parseJsonProperty = name => async () => {
 
 const raiseErrorIfEmpty =
   (explanation = {}) =>
-  async context => {
-    if (Array.isArray(context.result) && !context.result.length) {
-      debug('raiseErrorIfEmpty: apparently context.result is empty!', context.result)
-      throw new BadRequest('empty context.result', explanation)
-    } else {
-      debug('raiseErrorIfEmpty: context.result ok, proceed.')
+    async context => {
+      if (Array.isArray(context.result) && !context.result.length) {
+        debug('raiseErrorIfEmpty: apparently context.result is empty!', context.result)
+        throw new BadRequest('empty context.result', explanation)
+      } else {
+        debug('raiseErrorIfEmpty: context.result ok, proceed.')
+      }
     }
-  }
 
 const normalizeEmptyRecords = () => async context => {
   // only when empty array are given

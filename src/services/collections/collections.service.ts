@@ -3,7 +3,7 @@ import { getDocs } from './collections.schema.js'
 import { ImpressoApplication } from '../../types'
 import hooks from './collections.hooks.js'
 import { ServiceOptions } from '@feathersjs/feathers'
-import { Service } from './collections.class.js'
+import { Service } from './collections.class'
 
 // Initializes the `collections` service on path `/collections`
 const init = (app: ImpressoApplication) => {
