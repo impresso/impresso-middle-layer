@@ -13,7 +13,7 @@ import { ImpressoApplication } from '../types'
 import { createSha256Hash } from '../util/crypto'
 import { ensureServiceIsFeathersCompatible } from '../util/feathers'
 import { serialize } from '../util/serialize'
-import { defaultCachingStrategy } from '../util/solr/cacheControl'
+import { notCachingCollectionItemsStrategyBuilder } from '../util/solr/cacheControl'
 import { removeNullAndUndefined } from '../util/fn'
 import { safeParseJson, safeStringifyJson } from '../util/jsonCodec'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from '../util/socksProxyConfiguration'
@@ -339,8 +339,11 @@ export const init = (app: ImpressoApplication) => {
   if (solrConfiguration == null) {
     throw new Error('Solr configuration not found')
   }
+
+  const cachingStrategy = notCachingCollectionItemsStrategyBuilder(solrConfiguration)
+
   const client = isCacheEnabled
-    ? new CachedDefaultSimpleSolrClient(solrConfiguration, cache, defaultCachingStrategy)
+    ? new CachedDefaultSimpleSolrClient(solrConfiguration, cache, cachingStrategy)
     : new DefaultSimpleSolrClient(solrConfiguration)
 
   logger.info(`Using SOLR client: ${client.constructor.name}`)
