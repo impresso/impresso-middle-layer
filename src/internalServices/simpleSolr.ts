@@ -148,6 +148,28 @@ export interface SuggestResponse {
   suggest?: Record<string, Record<string, TermSuggestResponse>>
 }
 
+interface SolrBulkAddRequest<T> {
+  add: T[]
+  commit?: {}
+}
+
+interface SolrBulkDeleteRequest {
+  delete: string[]
+  commit?: {}
+}
+
+export type BulkAddRequest<T> = Omit<SolrBulkAddRequest<T>, 'commit'>
+export type BulkDeleteRequest = Omit<SolrBulkDeleteRequest, 'commit'>
+type BulkUpdateRequest<T> = BulkAddRequest<T> | BulkDeleteRequest
+
+export interface DeleteRequest {
+  query: string
+}
+
+const isAddRequest = <T>(request: BulkUpdateRequest<T>): request is BulkAddRequest<T> => {
+  return (request as SolrBulkAddRequest<T>).add !== undefined
+}
+
 /**
  * Simplified Solr client interface with strict types that follow Solr request/response schemas.
  * Aims to replace all the other varied Solr client interfaces in the codebase.
@@ -161,6 +183,16 @@ export interface SimpleSolrClient {
   ): Promise<SelectResponse<T, K, B>>
   selectOne<T = Record<string, unknown>>(namespace: SolrNamespace, request: SelectRequest): Promise<T | undefined>
   suggest(namespace: SolrNamespace, request: SuggestRequest): Promise<TermSuggestResponse>
+  sendBulkUpdateRequest<T>(
+    namespaceId: Extract<SolrNamespace, 'collection_items'>,
+    request: BulkUpdateRequest<T>,
+    commit: boolean
+  ): Promise<unknown>
+  sendDeleteRequest(
+    namespaceId: Extract<SolrNamespace, 'collection_items'>,
+    request: DeleteRequest,
+    commit: boolean
+  ): Promise<unknown>
 }
 
 interface PoolWrapper {
@@ -287,6 +319,54 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
         'Content-Type': 'application/json',
       }),
       body: safeStringifyJson(removeNullAndUndefined(request.body)),
+    }
+
+    const responseBody = await this.fetch(client, url, init)
+    return safeParseJson(responseBody)
+  }
+
+  async sendBulkUpdateRequest<T>(
+    namespaceId: Extract<SolrNamespace, 'collection_items'>,
+    request: BulkUpdateRequest<T>,
+    commit: boolean
+  ): Promise<unknown> {
+    const [{ client, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
+
+    const solrRequest = isAddRequest(request)
+      ? ({ ...request, commit: commit ? {} : undefined } satisfies SolrBulkAddRequest<T>)
+      : ({ ...request, commit: commit ? {} : undefined } satisfies SolrBulkDeleteRequest)
+
+    const url = `${baseUrl}/${namespace.index}/update/json`
+    const init: RequestInit = {
+      method: 'POST',
+      headers: new Headers({
+        ...buildAuthHeader(auth),
+        'Content-Type': 'application/json',
+      }),
+      body: safeStringifyJson(removeNullAndUndefined(solrRequest)),
+    }
+
+    const responseBody = await this.fetch(client, url, init)
+    return safeParseJson(responseBody)
+  }
+
+  async sendDeleteRequest(
+    namespaceId: Extract<SolrNamespace, 'collection_items'>,
+    request: DeleteRequest,
+    commit: boolean
+  ): Promise<unknown> {
+    const [{ client, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
+
+    const solrRequest = { ...request, commit: commit ? {} : undefined }
+
+    const url = `${baseUrl}/${namespace.index}/update/json`
+    const init: RequestInit = {
+      method: 'POST',
+      headers: new Headers({
+        ...buildAuthHeader(auth),
+        'Content-Type': 'application/json',
+      }),
+      body: safeStringifyJson(removeNullAndUndefined(solrRequest)),
     }
 
     const responseBody = await this.fetch(client, url, init)

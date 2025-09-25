@@ -32,7 +32,7 @@ export const notCachingCollectionItemsStrategyBuilder = (configuration: SolrConf
   if (!indexName)
     throw new Error(`No index configured for collection items. Namespace: ${SolrNamespaces.CollectionItems}`)
 
-  logger.info("Not caching requests to Solr where URL contains '%s'", indexName)
+  logger.info("Not caching requests to Solr where URL or request body contain '%s'", indexName)
 
   const strategy = (url: string, requestBody: string, responseBody: string): 'cache' | 'bypass' => {
     return url.includes(indexName) || requestBody.includes(indexName) ? 'bypass' : 'cache'
