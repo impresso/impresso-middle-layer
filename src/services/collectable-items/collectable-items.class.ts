@@ -244,24 +244,46 @@ export class Service {
     params: Params<PatchQuery> & WithUser
   ): Promise<CollectableItemsUpdatedResponse> {
     if (id != null) throw new Error('Patch operation is not supported on a single item')
+
+    /** Old code: to be removed */
     const jobQueue = this.app.get('celeryClient')
     if (jobQueue == null) {
       throw new Error('Celery client not available')
     }
+    /** End Old code: to be removed */
 
     const collectionId = params.query?.collection_uid
     if (collectionId == null) {
       throw new Error('Collection UID not provided')
     }
-    const userId = params.user?.id
+    const userId = params.user?.id as any as string
     if (userId == null) {
       throw new Error('User not authenticated')
     }
 
+    /** Old code: to be removed */
     jobQueue.run({
       task: 'impresso.tasks.update_collection',
       args: [collectionId, userId, data.add, data.remove],
     })
+    /** End Old code: to be removed */
+
+    const queueService = this.app.service('queueService')
+
+    if (data.add != null && data.add.length > 0) {
+      await queueService.addItemsToCollection({
+        userId: userId,
+        collectionId: collectionId,
+        itemIds: data.add,
+      })
+    }
+    if (data.remove != null && data.remove.length > 0) {
+      await queueService.removeItemsFromCollection({
+        userId: userId,
+        collectionId: collectionId,
+        itemIds: data.remove,
+      })
+    }
 
     return {
       totalAdded: data.add?.length ?? 0,

@@ -1,22 +1,24 @@
-import { Worker } from 'bullmq'
-import { logger } from '../logger'
-import { ImpressoApplication } from '../types'
+import { Application, NextFunction } from '@feathersjs/feathers'
+import { HookContext } from '@feathersjs/hooks'
+import { Processor, QueueEvents, Worker } from 'bullmq'
 import { RedisConfiguration } from '../configuration'
-import { ensureServiceIsFeathersCompatible } from '../util/feathers'
 import {
-  AddItemsToCollectionJob,
   createJobHandler as createAddItemsToCollectionJobHandler,
   JobNameAddItemsToCollection,
 } from '../jobs/collections/addItemsToCollection'
-import { CollectionManagementQueueName } from './queue'
-import { Application, NextFunction } from '@feathersjs/feathers'
-import { HookContext } from '@feathersjs/hooks'
+import {
+  createJobHandler as removeItemsToCollectionJobHandler,
+  JobNameRemoveItemsFromCollection,
+} from '../jobs/collections/removeItemsFromCollection'
+import { logger } from '../logger'
+import { ImpressoApplication } from '../types'
+import { ensureServiceIsFeathersCompatible } from '../util/feathers'
+
+type WorkerDefinition = [string /* queue name*/, Processor<any, any, any>, number /* concurrency */]
 
 export interface WorkerManagerOptions {
-  app: ImpressoApplication
   redisConfig: RedisConfiguration
-  concurrency?: number
-  workerCount?: number
+  workerDefinitions: WorkerDefinition[]
 }
 
 /**
@@ -25,16 +27,12 @@ export interface WorkerManagerOptions {
 export class WorkerManagerService {
   private workers: Worker<any, any, any>[] = []
   private redisConfig: RedisConfiguration
-  private concurrency: number
-  private workerCount: number
   private isRunning: boolean = false
-  private app: ImpressoApplication
+  private workerDefinitions: WorkerDefinition[]
 
   constructor(options: WorkerManagerOptions) {
     this.redisConfig = options.redisConfig
-    this.concurrency = options.concurrency || 1
-    this.workerCount = options.workerCount || 3
-    this.app = options.app
+    this.workerDefinitions = options.workerDefinitions
   }
 
   /**
@@ -45,8 +43,6 @@ export class WorkerManagerService {
       logger.warn('Workers are already running')
       return
     }
-
-    logger.info(`Starting ${this.workerCount} workers with concurrency ${this.concurrency}`)
 
     // Create Redis connection options for BullMQ workers
     const connectionOptions: any = {
@@ -62,18 +58,17 @@ export class WorkerManagerService {
       connectionOptions.db = (this.redisConfig as any).db
     }
 
-    const addItemsToCollectionJobHandler = createAddItemsToCollectionJobHandler(this.app)
-
-    const worker = new Worker<AddItemsToCollectionJob, undefined, typeof JobNameAddItemsToCollection>(
-      CollectionManagementQueueName,
-      addItemsToCollectionJobHandler,
-      {
+    this.workerDefinitions.forEach(([queueName, processor, concurrency]) => {
+      const worker = new Worker(queueName, processor, {
         connection: connectionOptions,
-        concurrency: this.concurrency,
-      }
-    )
+        concurrency: concurrency,
+      })
+      this.workers.push(worker)
+      logger.info(`Starting ${worker.name} on '${queueName}' queue with concurrency ${concurrency}`)
+    })
 
-    this.workers.push(worker)
+    const queues = new Set(this.workerDefinitions.map(([queueName]) => queueName))
+    queues.forEach(queueName => this.setupEventListeners(queueName))
 
     this.isRunning = true
     logger.info(`Successfully started ${this.workers.length} workers`)
@@ -112,7 +107,6 @@ export class WorkerManagerService {
   getStats() {
     return {
       workerCount: this.workers.length,
-      concurrency: this.concurrency,
       isRunning: this.isRunning,
       workers: this.workers.map((worker, index) => ({
         id: index + 1,
@@ -138,33 +132,27 @@ export class WorkerManagerService {
     return this.isRunning && this.workers.length > 0
   }
 
-  private setupWorkerEventListeners(worker: Worker, workerId: number): void {
-    worker.on('completed', job => {
-      logger.info(`Worker ${workerId}: Job ${job.id} completed successfully`)
+  private setupEventListeners(queueName: string): void {
+    const queueEvents = new QueueEvents(queueName)
+
+    queueEvents.on('completed', job => {
+      logger.info(`[JOB] Job ${job.jobId} completed successfully: ${job.returnvalue}`)
     })
 
-    worker.on('failed', (job, err) => {
-      logger.error(`Worker ${workerId}: Job ${job?.id} failed:`, err)
+    queueEvents.on('failed', (job, err) => {
+      logger.error(`[JOB] Job ${job.jobId} failed: (${job.failedReason})`, err)
     })
 
-    worker.on('active', job => {
-      logger.debug(`Worker ${workerId}: Job ${job.id} started processing`)
+    queueEvents.on('active', job => {
+      logger.debug(`[JOB] Job ${job.jobId} started processing`)
     })
 
-    worker.on('stalled', jobId => {
-      logger.warn(`Worker ${workerId}: Job ${jobId} stalled`)
+    queueEvents.on('stalled', job => {
+      logger.warn(`[JOB] Job ${job.jobId} stalled`)
     })
 
-    worker.on('error', err => {
-      logger.error(`Worker ${workerId}: Error occurred:`, err)
-    })
-
-    worker.on('ready', () => {
-      logger.debug(`Worker ${workerId}: Ready and waiting for jobs`)
-    })
-
-    worker.on('closing', () => {
-      logger.debug(`Worker ${workerId}: Closing...`)
+    queueEvents.on('error', err => {
+      logger.error(`[JOB] Error occurred:`, err)
     })
   }
 }
@@ -172,23 +160,19 @@ export class WorkerManagerService {
 /**
  * Factory function to create and configure the worker manager service
  */
-export const createWorkerManagerService = (app: ImpressoApplication): WorkerManagerService => {
+export const createWorkerManagerService = (
+  app: ImpressoApplication,
+  workerDefinitions: WorkerDefinition[]
+): WorkerManagerService => {
   const redisConfig = app.get('redis')
 
   if (!redisConfig) {
     throw new Error('Redis configuration not available. Cannot initialize worker manager service.')
   }
 
-  // Get configuration for workers (with defaults)
-  //   const workerConfig = app.get('workers') || {}
-  const concurrency = 1 //workerConfig.concurrency || 1
-  const workerCount = 3 // workerConfig.count || 3
-
   return new WorkerManagerService({
-    app,
+    workerDefinitions,
     redisConfig,
-    concurrency,
-    workerCount,
   })
 }
 
@@ -208,25 +192,17 @@ export const getWorkerManagerService = (app: ImpressoApplication): WorkerManager
  */
 export default (app: ImpressoApplication) => {
   try {
-    const workerManagerService = createWorkerManagerService(app)
+    const workerDefinitions: WorkerDefinition[] = [
+      [JobNameAddItemsToCollection, createAddItemsToCollectionJobHandler(app), 1],
+      [JobNameRemoveItemsFromCollection, removeItemsToCollectionJobHandler(app), 1],
+    ]
+
+    const workerManagerService = createWorkerManagerService(app, workerDefinitions)
 
     // Register as a service
     app.use('workerManagerService', ensureServiceIsFeathersCompatible(workerManagerService), {
       methods: [],
     })
-
-    // // Auto-start workers if configured to do so
-    // const workerConfig = app.get('workers') || {}
-    // if (workerConfig.autoStart !== false) {
-    //   // Start workers after a short delay to allow other services to initialize
-    //   setTimeout(async () => {
-    //     try {
-    //       await workerManagerService.start()
-    //     } catch (error) {
-    //       logger.error('Failed to auto-start workers:', error)
-    //     }
-    //   }, 1000)
-    // }
 
     logger.info('Worker manager service initialized successfully')
   } catch (error) {

@@ -293,14 +293,6 @@ export class ContentItemService implements IContentItemService {
   }
 
   async find(params: FindOptions): Promise<FindResponse<ContentItem>> {
-    // test test
-    const queueService = this.app.service('queueService') as QueueService
-    await queueService.addItemsToCollection({
-      userId: 'test-user',
-      collectionId: 'test-collection',
-      itemIds: ['item1', 'item2', 'item3'],
-    })
-
     return await this._find(params)
   }
 

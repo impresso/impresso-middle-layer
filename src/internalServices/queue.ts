@@ -1,12 +1,13 @@
 import { Queue, Worker, Job as BullJob } from 'bullmq'
-import { RedisClient } from '../redis'
 import { logger } from '../logger'
 import { ImpressoApplication } from '../types'
 import { RedisConfiguration } from '../configuration'
 import { ensureServiceIsFeathersCompatible } from '../util/feathers'
-import { AddItemsToCollectionJob, JobNameAddItemsToCollection } from '../jobs/collections/addItemsToCollection'
-
-export const CollectionManagementQueueName = 'collectionsManagement'
+import { AddItemsToCollectionJobData, JobNameAddItemsToCollection } from '../jobs/collections/addItemsToCollection'
+import {
+  JobNameRemoveItemsFromCollection,
+  RemoveItemsFromCollectionJobData,
+} from '../jobs/collections/removeItemsFromCollection'
 
 export interface QueueServiceOptions {
   redisConfig: RedisConfiguration
@@ -16,7 +17,8 @@ export interface QueueServiceOptions {
  * Queue service for managing collections operations using BullMQ
  */
 export class QueueService {
-  private collectionsManagementQueue: Queue
+  private queueAddItemsToCollection: Queue
+  private queueRemoveItemsFromCollection: Queue
   private redisConfig: RedisConfiguration
 
   constructor(options: QueueServiceOptions) {
@@ -36,74 +38,82 @@ export class QueueService {
       connectionOptions.db = (this.redisConfig as any).db
     }
 
-    // Initialize the collectionsManagement queue
-    this.collectionsManagementQueue = new Queue(CollectionManagementQueueName, {
-      connection: connectionOptions,
-      defaultJobOptions: {
-        removeOnComplete: 100, // Keep last 100 completed jobs
-        removeOnFail: 50, // Keep last 50 failed jobs
-        attempts: 5, // Retry failed jobs up to 5 times
-        backoff: {
-          type: 'exponential',
-          delay: 5000, // Start with 5 second delay, exponentially increase
-        },
+    const defaultJobOptions = {
+      removeOnComplete: 100, // Keep last 100 completed jobs
+      removeOnFail: 50, // Keep last 50 failed jobs
+      attempts: 5, // Retry failed jobs up to 5 times
+      backoff: {
+        type: 'exponential',
+        delay: 5000, // Start with 5 second delay, exponentially increase
       },
-    })
+    }
 
-    // Set up event listeners for monitoring
-    this.setupEventListeners()
+    this.queueAddItemsToCollection = new Queue(JobNameAddItemsToCollection, {
+      connection: connectionOptions,
+      defaultJobOptions,
+    })
+    this.queueRemoveItemsFromCollection = new Queue(JobNameRemoveItemsFromCollection, {
+      connection: connectionOptions,
+      defaultJobOptions,
+    })
   }
 
   /**
    * Add items to a user's collection
    */
-  async addItemsToCollection(data: AddItemsToCollectionJob): Promise<BullJob<AddItemsToCollectionJob>> {
+  async addItemsToCollection(data: AddItemsToCollectionJobData): Promise<BullJob<AddItemsToCollectionJobData>> {
     logger.info(
       `Queueing job to add ${data.itemIds.length} items to collection ${data.collectionId} for user ${data.userId}`
     )
 
-    return this.collectionsManagementQueue.add(JobNameAddItemsToCollection, data, {
-      //   jobId: `add-items-${data.userId}-${data.collectionId}-${Date.now()}`,
-    })
+    return this.queueAddItemsToCollection.add(JobNameAddItemsToCollection, data)
+  }
+
+  /**
+   * Remove items from a user's collection
+   */
+  async removeItemsFromCollection(
+    data: RemoveItemsFromCollectionJobData
+  ): Promise<BullJob<RemoveItemsFromCollectionJobData>> {
+    logger.info(
+      `Queueing job to remove ${data.itemIds.length} items from collection ${data.collectionId} for user ${data.userId}`
+    )
+
+    return this.queueRemoveItemsFromCollection.add(JobNameRemoveItemsFromCollection, data)
   }
 
   /**
    * Get queue statistics
    */
   async getQueueStats() {
-    const waiting = await this.collectionsManagementQueue.getWaiting()
-    const active = await this.collectionsManagementQueue.getActive()
-    const completed = await this.collectionsManagementQueue.getCompleted()
-    const failed = await this.collectionsManagementQueue.getFailed()
+    const queues = [this.queueAddItemsToCollection, this.queueRemoveItemsFromCollection]
 
-    return {
-      waiting: waiting.length,
-      active: active.length,
-      completed: completed.length,
-      failed: failed.length,
-    }
-  }
+    const stats = await Promise.all(
+      queues.map(async queue => {
+        const waiting = await queue.getWaiting()
+        const active = await queue.getActive()
+        const completed = await queue.getCompleted()
+        const failed = await queue.getFailed()
 
-  /**
-   * Get the collections management queue instance
-   */
-  getCollectionsQueue(): Queue {
-    return this.collectionsManagementQueue
+        return {
+          name: queue.name,
+          waiting: waiting.length,
+          active: active.length,
+          completed: completed.length,
+          failed: failed.length,
+        }
+      })
+    )
+    return stats
   }
 
   /**
    * Clean up resources
    */
   async close(): Promise<void> {
-    await this.collectionsManagementQueue.close()
+    await this.queueAddItemsToCollection.close()
+    await this.queueRemoveItemsFromCollection.close()
     logger.info('Queue service closed')
-  }
-
-  private setupEventListeners(): void {
-    // BullMQ events are handled through QueueEvents, not directly on Queue
-    // For now, we'll skip event listeners to avoid TypeScript issues
-    // In production, you would set up QueueEvents to monitor job progress
-    logger.debug('Queue service event listeners would be set up here')
   }
 }
 

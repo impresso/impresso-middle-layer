@@ -8,6 +8,7 @@ import { MediaSources } from './services/media-sources/media-sources.class'
 import { NewspapersService } from './services/newspapers/newspapers.class'
 import { SimpleSolrClient } from './internalServices/simpleSolr'
 import { ContentItemService } from './services/content-items/content-items.class'
+import { QueueService } from './internalServices/queue'
 
 export interface AppServices {
   redisClient?: IRedisClientContainer
@@ -15,6 +16,7 @@ export interface AppServices {
   logs: LogsService
   authentication: AuthenticationService
   simpleSolrClient: SimpleSolrClient
+  queueService: QueueService
 
   // Services
   ['media-sources']: MediaSources
