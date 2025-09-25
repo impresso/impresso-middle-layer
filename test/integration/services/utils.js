@@ -1,23 +1,24 @@
-const debug = require('debug')('impresso/test:utils');
-const app = require('../../../src/app');
-const sequelize = require('../../../src/sequelize');
+import debugModule from 'debug'
+const debug = debugModule('impresso/test:utils')
+import app from '../../../src/app'
+import sequelize from '../../../src/sequelize'
 
-const Collection = require('../../../src/models/collections.model');
-// const CollectableItem = require('../../src/models/collectable-items.model');
-const User = require('../../../src/models/users.model');
+import Collection from '../../../src/models/collections.model'
+// import CollectableItem from '../../src/models/collectable-items.model';
+import User from '../../../src/models/users.model'
 
-const removeGeneratedUser = async (user) => {
-  const client = sequelize.client(app.get('sequelize'));
-  debug(`removeGeneratedUser: '${user.username}'`);
+const removeGeneratedUser = async user => {
+  const client = sequelize.client(app.get('sequelize'))
+  debug(`removeGeneratedUser: '${user.username}'`)
 
   const userInDb = await User.sequelize(client).findOne({
     where: {
       username: user.username,
     },
-  });
+  })
 
   if (userInDb) {
-    debug(`removeGeneratedUser: user exists '${user.username}', id:${userInDb.id}`);
+    debug(`removeGeneratedUser: user exists '${user.username}', id:${userInDb.id}`)
 
     // await CollectableItem.sequelize(client).destroy({
     //   include: {
@@ -32,7 +33,7 @@ const removeGeneratedUser = async (user) => {
       where: {
         creator_id: userInDb.id,
       },
-    });
+    })
   }
 
   // remove all
@@ -40,28 +41,28 @@ const removeGeneratedUser = async (user) => {
     user: {
       is_staff: true,
     },
-  });
-};
+  })
+}
 
-const generateUser = async (user) => {
+const generateUser = async user => {
   // ensure we always have the minimum
   const userToGenerate = {
     username: 'local-user-test-only',
     password: 'Impresso2018!',
     email: 'local-user-test-only@impresso-project.ch',
     ...user,
-  };
+  }
 
-  await removeGeneratedUser(userToGenerate);
-  debug('generateUser username=', userToGenerate.username);
+  await removeGeneratedUser(userToGenerate)
+  debug('generateUser username=', userToGenerate.username)
   const result = await app.service('users').create({
     ...userToGenerate,
-  });
-  debug('generateUser: ok', result.username);
-  return result;
-};
+  })
+  debug('generateUser: ok', result.username)
+  return result
+}
 
-module.exports = {
+export default {
   generateUser,
   removeGeneratedUser,
-};
+}

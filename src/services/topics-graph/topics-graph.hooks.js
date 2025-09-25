@@ -1,6 +1,6 @@
-const { eachFilterValidator } = require('../search/search.validators')
-const { validateEach, queryWithCommonParams, validate } = require('../../hooks/params')
-const { filtersToSolrQuery } = require('../../hooks/search')
+import { eachFilterValidator } from '../search/search.validators'
+import { validateEach, queryWithCommonParams, validate } from '../../hooks/params'
+import { filtersToSolrQuery } from '../../hooks/search'
 
 /**
  * A special case context validator for the 'find' endpoint here.
@@ -9,7 +9,7 @@ const findEachFilterValidator = { ...eachFilterValidator }
 findEachFilterValidator.context = { ...eachFilterValidator.context }
 findEachFilterValidator.context.choices = eachFilterValidator.context.choices.concat[['visualize']]
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [

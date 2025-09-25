@@ -19,7 +19,8 @@ import {
 import { SelectQueryParameters, SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { SolrNamespace } from '../../solr'
 
-const debug = require('debug')('impresso/services:search-facets')
+import Debug from 'debug'
+const debug = Debug('impresso/services:search-facets')
 
 type FacetMetadata = any
 

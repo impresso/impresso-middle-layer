@@ -1,11 +1,11 @@
-import { logger } from '../logger'
+import { logger } from '../logger.js'
+import Debug from 'debug'
+import { Conflict, BadRequest, BadGateway } from '@feathersjs/errors'
+import { Op } from 'sequelize'
+import Newspapers from '../models/newspapers.model.js'
+import Collection from '../models/collections.model.js'
 
-const debug = require('debug')('verbose:impresso/services:sequelize.utils')
-const { Conflict, BadRequest, BadGateway } = require('@feathersjs/errors')
-const { Op } = require('sequelize')
-
-const Newspapers = require('../models/newspapers.model')
-const Collection = require('../models/collections.model')
+const debug = Debug('verbose:impresso/services:sequelize.utils')
 
 const models = {
   collections: Collection,
@@ -110,7 +110,7 @@ const resolveAsync = async (client, groups) => {
   return groups
 }
 
-module.exports = {
+export {
   sequelizeErrorHandler,
   resolveAsync,
   models,

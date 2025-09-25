@@ -1,4 +1,4 @@
-const { intersection } = require('lodash');
+import { intersection } from 'lodash';
 
 /*
   Not everything can be cached in Impresso. Solr and database results
@@ -52,7 +52,7 @@ function areCacheableSolrFields (solrFields) {
   return intersection(solrFields, NotCacheableSolrFields).length === 0;
 }
 
-module.exports = {
+export {
   isCacheableQuery,
   areCacheableFacets,
   areCacheableSolrFields,

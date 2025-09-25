@@ -1,8 +1,9 @@
 import User from '../../models/users.model'
 import { logger } from '../../logger'
-const jwt = require('jsonwebtoken')
-const { NotImplemented, BadRequest, NotFound } = require('@feathersjs/errors')
-const debug = require('debug')('impresso/services:password-reset')
+import jwt from 'jsonwebtoken'
+import { NotImplemented, BadRequest, NotFound } from '@feathersjs/errors'
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:password-reset')
 
 /**
  * PasswordReset class for handling password reset functionality.
@@ -148,4 +149,4 @@ class PasswordReset {
   }
 }
 
-module.exports = PasswordReset
+export default PasswordReset

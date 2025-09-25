@@ -1,16 +1,19 @@
 // Initializes the `pages` service on path `/pages`
-const createService = require('./pages.class.js');
-const hooks = require('./pages.hooks');
+import createService from './pages.class.js'
+import hooks from './pages.hooks.js'
 
-module.exports = function (app) {
+export default function (app) {
   // Initialize our service with any options it requires
-  app.use('/pages', createService({
-    name: 'pages',
-    app,
-  }));
+  app.use(
+    '/pages',
+    createService({
+      name: 'pages',
+      app,
+    })
+  )
 
   // Get our initialized service so that we can register hooks and filters
-  const service = app.service('pages');
+  const service = app.service('pages')
 
-  service.hooks(hooks);
-};
+  service.hooks(hooks)
+}

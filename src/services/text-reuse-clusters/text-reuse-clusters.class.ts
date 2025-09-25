@@ -14,10 +14,10 @@ import { OpenPermissions } from '../../util/bigint'
 import { filtersToSolrQueries } from '../../util/solr'
 import { Filter } from '../../models'
 
-const { mapValues, groupBy, clone, get } = require('lodash')
-const { NotFound } = require('@feathersjs/errors')
-const { protobuf } = require('impresso-jscommons')
-const {
+import { mapValues, groupBy, clone, get } from 'lodash'
+import { NotFound } from '@feathersjs/errors'
+import { protobuf } from 'impresso-jscommons'
+import {
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
   getTextReuseClustersRequestForIds,
@@ -30,9 +30,9 @@ const {
   getTimelineResolution,
   buildConnectedClustersCountRequest,
   parseConnectedClustersCountResponse,
-} = require('../../logic/textReuse/solr')
-const { parseOrderBy } = require('../../util/queryParameters')
-const { SolrNamespaces } = require('../../solr')
+} from '../../logic/textReuse/solr'
+import { parseOrderBy } from '../../util/queryParameters'
+import { SolrNamespaces } from '../../solr'
 
 interface ClusterIdAndTextAndPermission {
   id: any
@@ -143,9 +143,9 @@ export class TextReuseClusters {
     const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
     const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
     const filterQueryParts = filtersToSolrQueries(filters as Filter[], SolrNamespaces.TextReusePassages)
-    const [orderByField, orderByDescending] = parseOrderBy(orderBy, OrderByKeyToField)
+    const [orderByField, orderByDescending] = parseOrderBy(orderBy as string, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
-      text,
+      text as string,
       offset,
       limit,
       orderByField,
@@ -190,7 +190,7 @@ export class TextReuseClusters {
       .then(convertClustersSolrResponseToClusters)
 
     const connectedClustersCountPromise = this.solr
-      .select(this.solr.namespaces.TextReusePassages, getToSelect(buildConnectedClustersCountRequest(id)))
+      .select(this.solr.namespaces.TextReusePassages, getToSelect(buildConnectedClustersCountRequest(id) as any))
       .then(parseConnectedClustersCountResponse)
 
     const [clusterIdsAndTextAndPermissions, clusters, connectedClustersCount] = await Promise.all([
@@ -212,10 +212,10 @@ export class TextReuseClusters {
 
     // fetch cluster extra details
 
-    const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(id, cluster.cluster.timeCoverage)
+    const extraClusterDetailsRequest = buildSolrRequestForExtraClusterDetails(id, cluster.cluster?.timeCoverage as any)
 
     const extraClusterDetailsResponse = await this.solr.select(this.solr.namespaces.TextReusePassages, {
-      body: extraClusterDetailsRequest,
+      body: extraClusterDetailsRequest as any,
     })
     const facets = getFacetsFromExtraClusterDetailsResponse(extraClusterDetailsResponse)
 
@@ -223,9 +223,9 @@ export class TextReuseClusters {
 
     cluster.details.facets = facetsWithCountry(cluster.details.facets)
     cluster.details.resolution = getTimelineResolution(
-      cluster.cluster.timeCoverage?.from,
-      cluster.cluster.timeCoverage?.to
-    )
+      cluster.cluster.timeCoverage?.from as any,
+      cluster.cluster.timeCoverage?.to as any
+    ) as any
 
     return cluster
   }

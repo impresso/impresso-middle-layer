@@ -248,7 +248,7 @@ type ContentItemWithCorrectTypes = Omit<
   topics?: ArticleTopic[]
 }
 
-class Article extends BaseArticle implements ContentItemWithCorrectTypes {
+export class Article extends BaseArticle implements ContentItemWithCorrectTypes {
   language: string
   content: string
   issue?: Issue
@@ -751,4 +751,3 @@ class Article extends BaseArticle implements ContentItemWithCorrectTypes {
 
 export default Article
 export const solrFactory = Article.solrFactory
-export const Model = Article

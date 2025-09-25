@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { SearchFacet } from '../../models/search-facets.model'
 import { getNameFromUid } from '../../utils/entity.utils'
-const Newspaper = require('../../models/newspapers.model')
-const { BaseArticle } = require('../../models/articles.model')
-const { measureTime } = require('../../util/instruments')
-const { asFindAll } = require('../../util/solr/adapters')
+import Newspaper from '../../models/newspapers.model'
+import { BaseArticle } from '../../models/articles.model'
+import { measureTime } from '../../util/instruments'
+import { asFindAll } from '../../util/solr/adapters'
 
 const BaseArticleTocFields = [
   'id',
@@ -22,7 +22,7 @@ const BaseArticleTocFields = [
   'snippet_plain',
 ]
 
-class Service {
+export class Service {
   constructor({ app, name }) {
     this.app = app
     this.name = name
@@ -140,8 +140,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

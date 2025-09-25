@@ -5,11 +5,13 @@ import { ValidationError } from 'ajv'
 import { GeneralError, BadGateway, BadRequest, Unprocessable } from '@feathersjs/errors'
 import { ImpressoApplication } from './types'
 import { logger } from './logger'
-const { authenticate } = require('@feathersjs/authentication').hooks
+import { hooks } from '@feathersjs/authentication'
+
+const { authenticate } = hooks
 
 const debug = Debug('impresso/app.hooks')
-// const { validateRouteId } = require('./hooks/params')
-const { InvalidArgumentError } = require('./util/error')
+// import { validateRouteId } from './hooks/params'
+import { InvalidArgumentError } from './util/error'
 
 const basicParams = () => (context: HookContext) => {
   // do nothing with internal services

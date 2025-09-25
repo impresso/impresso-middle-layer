@@ -1,6 +1,7 @@
 import type { Params } from '@feathersjs/feathers'
-import { Agent, request } from 'undici'
 import { logger } from '../../logger'
+import { createFetchClient } from '../../utils/http/client'
+import { IFetchClient } from '../../utils/http/client/base'
 
 export interface RequestPayload {
   text: string
@@ -148,9 +149,11 @@ const MethodToUrl = { ner: 'ner', 'ner-nel': 'ner-nel', nel: 'nel' }
 
 export class ImpressoNerService {
   baseUrl: string
+  private readonly client: IFetchClient
 
   constructor(options: ImpressoNerServiceOptions) {
     this.baseUrl = options.impressoNerServiceBaseUrl
+    this.client = createFetchClient({})
   }
 
   async create(data: RequestPayload, params: Params) {
@@ -158,31 +161,27 @@ export class ImpressoNerService {
 
     const url = `${this.baseUrl}/${MethodToUrl[method]}/`
 
-    const response = await request(url, {
+    const response = await this.client.fetch(url, {
       method: 'POST',
       body: JSON.stringify({ data: text }),
       headers: { 'Content-Type': 'application/json' },
-      dispatcher: new Agent({
-        connectTimeout: 1 * 60 * 1000, // 1 minute
-        headersTimeout: 5 * 60 * 1000, // 5 minutes
-        bodyTimeout: 5 * 60 * 1000, // 5 minutes
-      }),
+      signal: AbortSignal.timeout(5 * 60 * 1000), // 5 minutes
     })
 
-    if (response.statusCode !== 200) {
+    if (response.status !== 200) {
       let bodyText = ''
       try {
-        bodyText = String(await response.body.text())
+        bodyText = String(await response.text())
       } catch {
         /* ignore */
       }
 
-      logger.error(`Failed to fetch downstream data. Error (${response.statusCode}): ${bodyText}`)
+      logger.error(`Failed to fetch downstream data. Error (${response.status}): ${bodyText}`)
       throw new Error('Failed to fetch downstream data')
     }
 
     try {
-      const responseBody = await response.body.json()
+      const responseBody = await response.json()
       return convertDownstreamResponse(responseBody as DownstreamResponse, data)
     } catch (error) {
       logger.error('Failed to parse downstream response', error)

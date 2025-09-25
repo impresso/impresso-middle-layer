@@ -1,14 +1,14 @@
-const {
+import {
   queryWithCommonParams, // validate, utils, REGEX_UID,
   validate,
   validateEach,
   // REGEX_UID,
   utils,
-} = require('../../hooks/params')
-const { filtersToSolrQuery } = require('../../hooks/search')
-const { eachFilterValidator } = require('../search/search.validators')
+} from '../../hooks/params'
+import { filtersToSolrQuery } from '../../hooks/search'
+import { eachFilterValidator } from '../search/search.validators'
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [

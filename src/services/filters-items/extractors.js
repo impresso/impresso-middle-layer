@@ -82,7 +82,7 @@ function simpleValueExtractor({ q = '' }) {
   return items.map(uid => ({ uid }))
 }
 
-module.exports = {
+export {
   daterangeExtractor,
   newspaperExtractor,
   topicExtractor,

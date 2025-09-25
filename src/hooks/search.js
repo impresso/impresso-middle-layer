@@ -1,8 +1,9 @@
-const debug = require('debug')('impresso/hooks:search')
-const lodash = require('lodash')
+import Debug from 'debug'
+const debug = Debug('impresso/hooks:search')
+import lodash from 'lodash'
 
-const { filtersToQueryAndVariables } = require('../util/solr')
-const { SolrNamespaces } = require('../solr')
+import { filtersToQueryAndVariables } from '../util/solr'
+import { SolrNamespaces } from '../solr.js'
 
 /**
  * Transform q param in a nice string filter.
@@ -43,7 +44,7 @@ const filtersToSolrQuery =
   ({
     overrideOrderBy = true,
     prop = 'params',
-    solrIndexProvider = (ctx) => SolrNamespaces.Search
+    solrIndexProvider = (_ctx) => SolrNamespaces.Search // eslint-disable-line no-unused-vars
   } = {}) => async context => {
     const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`
     if (context.type !== 'before') {
@@ -144,9 +145,6 @@ const filtersToSolrFacetQuery = () => async context => {
   })
 }
 
-module.exports = {
-  queries: { hasTextContents: 'content_length_i:[1 TO *]' },
-  filtersToSolrQuery,
-  qToSolrFilter,
-  filtersToSolrFacetQuery,
-}
+const queries = { hasTextContents: 'content_length_i:[1 TO *]' }
+
+export { queries, filtersToSolrQuery, qToSolrFilter, filtersToSolrFacetQuery }

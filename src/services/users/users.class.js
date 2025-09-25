@@ -1,17 +1,18 @@
 /* eslint-disable no-unused-vars */
 import { nanoid } from 'nanoid'
-import User from '../../models/users.model'
-import Group from '../../models/groups.model'
-import Profile from '../../models/profiles.model'
-const { BadRequest, NotFound, MethodNotAllowed } = require('@feathersjs/errors')
-const shorthash = require('short-hash')
-const { Op } = require('sequelize')
-const debug = require('debug')('impresso/services:users')
-const { encrypt } = require('../../crypto')
-const sequelize = require('../../sequelize')
-const { sequelizeErrorHandler } = require('../../services/sequelize.utils')
+import User from '../../models/users.model.js'
+import Group from '../../models/groups.model.js'
+import Profile from '../../models/profiles.model.js'
+import { BadRequest, NotFound, MethodNotAllowed } from '@feathersjs/errors'
+import shorthash from 'short-hash'
+import { Op } from 'sequelize'
+import Debug from 'debug'
+const debug = Debug('impresso/services:users')
+import { encrypt } from '../../crypto.js'
+import sequelize from '../../sequelize.js'
+import { sequelizeErrorHandler } from '../sequelize.utils.js'
 
-class Service {
+export class Service {
   constructor({ app }) {
     const client = app.get('sequelizeClient')
     if (!client) {
@@ -229,8 +230,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

@@ -1,15 +1,16 @@
 /* eslint-disable no-unused-vars */
-const debug = require('debug')('impresso/services:topics')
-const { NotFound } = require('@feathersjs/errors')
-const { escapeValue } = require('../../util/solr/filterReducers')
-const SequelizeService = require('../sequelize.service')
-const Topic = require('../../models/topics.model')
-const { measureTime } = require('../../util/instruments')
-const { asFindAll, asGet } = require('../../util/solr/adapters')
-const { buildResolvers } = require('../../internalServices/cachedResolvers')
-const { SolrNamespaces } = require('../../solr')
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:topics')
+import { NotFound } from '@feathersjs/errors'
+import { escapeValue } from '../../util/solr/filterReducers'
+import SequelizeService from '../sequelize.service'
+import Topic from '../../models/topics.model'
+import { measureTime } from '../../util/instruments'
+import { asFindAll, asGet } from '../../util/solr/adapters'
+import { buildResolvers } from '../../internalServices/cachedResolvers'
+import { SolrNamespaces } from '../../solr'
 
-class Service {
+export class Service {
   constructor({ app = null, name = '' }) {
     this.name = String(name)
     this.app = app
@@ -221,8 +222,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

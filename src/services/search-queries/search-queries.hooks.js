@@ -1,19 +1,15 @@
-const { authenticate } = require('@feathersjs/authentication').hooks;
-const { validateWithSchema } = require('../../hooks/schema');
-const { queryWithCommonParams } = require('../../hooks/params');
+import { hooks } from '@feathersjs/authentication'
+import { validateWithSchema } from '../../hooks/schema'
+import { queryWithCommonParams } from '../../hooks/params'
 
-module.exports = {
+const { authenticate } = hooks
+
+export default {
   before: {
-    all: [
-      authenticate('jwt'),
-    ],
-    find: [
-      queryWithCommonParams(),
-    ],
+    all: [authenticate('jwt')],
+    find: [queryWithCommonParams()],
     get: [],
-    create: [
-      validateWithSchema('services/search-queries/schema/post/payload.json'),
-    ],
+    create: [validateWithSchema('services/search-queries/schema/post/payload.json')],
     update: [],
     patch: [],
     remove: [],
@@ -38,4 +34,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

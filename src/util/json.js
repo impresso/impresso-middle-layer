@@ -1,5 +1,5 @@
-const Ajv = require('ajv')
-const addFormats = require('ajv-formats')
+import Ajv from 'ajv'
+import addFormats from 'ajv-formats'
 
 const ajv = new Ajv({ allErrors: true, strict: true })
 addFormats(ajv)
@@ -79,7 +79,4 @@ function formatValidationErrors(errors) {
     .filter(e => e !== undefined)
 }
 
-module.exports = {
-  validated,
-  formatValidationErrors,
-}
+export { validated, formatValidationErrors }

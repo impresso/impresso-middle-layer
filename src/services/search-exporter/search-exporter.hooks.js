@@ -1,11 +1,13 @@
-const { authenticate } = require('@feathersjs/authentication').hooks
-const { validate, validateEach, queryWithCommonParams, REGEX_UID, REGEX_UIDS, utils } = require('../../hooks/params')
-const { filtersToSolrQuery } = require('../../hooks/search')
-const { FilterTypes, Contexts, SolrMappings } = require('../../data/constants')
+import { hooks } from '@feathersjs/authentication'
+import { validate, validateEach, queryWithCommonParams, REGEX_UID, REGEX_UIDS, utils } from '../../hooks/params'
+import { filtersToSolrQuery } from '../../hooks/search'
+import { FilterTypes, Contexts, SolrMappings } from '../../data/constants'
 
-const { eachFilterValidator, paramsValidator } = require('../search/search.validators')
+import { eachFilterValidator, paramsValidator } from '../search/search.validators'
 
-module.exports = {
+const { authenticate } = hooks
+
+export default {
   before: {
     all: [
       authenticate('jwt'),

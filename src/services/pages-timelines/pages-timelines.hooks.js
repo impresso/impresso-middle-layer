@@ -1,6 +1,6 @@
-const { validate, REGEX_UID } = require('../../hooks/params')
+import { validate, REGEX_UID } from '../../hooks/params'
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [],

@@ -6,7 +6,8 @@ import { Service as SearchFacetService } from '../services/search-facets/search-
 import { ImpressoApplication } from '../types'
 import { FindResponse } from '../models/common'
 import { SearchFacet, SearchFacetBucket } from '../models/generated/schemas'
-const debug = require('debug')('impresso/hooks/resolvers')
+import debugLib from 'debug'
+const debug = debugLib('impresso/hooks/resolvers')
 
 const supportedMethods = ['get', 'find']
 

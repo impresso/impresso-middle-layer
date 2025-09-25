@@ -1,13 +1,13 @@
 import { getToSelect } from '../../util/solr/adapters'
-const { mapValues, groupBy } = require('lodash')
-const {
+import { mapValues, groupBy } from 'lodash'
+import {
   buildConnectedClustersRequest,
   parseConnectedClustersResponse,
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
   getLatestTextReusePassageForClusterIdRequest,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
-} = require('../../logic/textReuse/solr')
+} from '../../logic/textReuse/solr'
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
   const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0])
@@ -71,6 +71,4 @@ class TextReuseConnectedClusters {
   }
 }
 
-module.exports = {
-  TextReuseConnectedClusters,
-}
+export { TextReuseConnectedClusters }

@@ -1,6 +1,6 @@
-const assert = require('assert')
-const app = require('../../../src/app')
-const { toPlainText } = require('../../../src/helpers')
+import assert from 'assert'
+import app from '../../../src/app'
+import { toPlainText } from '../../../src/helpers'
 /*
 
  ./node_modules/.bin/eslint \

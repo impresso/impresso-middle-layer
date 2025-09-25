@@ -1,8 +1,8 @@
 // Initializes the `issues` service on path `/issues`
 import hooks from './issues.hooks'
-const createService = require('./issues.class')
+import createService from './issues.class'
 
-module.exports = function (app) {
+export default function (app) {
   const paginate = app.get('paginate')
 
   const options = {

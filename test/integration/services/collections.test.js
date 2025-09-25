@@ -1,6 +1,6 @@
-const assert = require('assert')
-const app = require('../../../src/app')
-const { generateUser, removeGeneratedUser } = require('./utils')
+import assert from 'assert'
+import app from '../../../src/app'
+import { generateUser, removeGeneratedUser } from './utils'
 
 /*
  ./node_modules/.bin/eslint  \

@@ -1,9 +1,11 @@
 import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
 import TextReusePassage, { SolrFields } from '../../models/text-reuse-passages.model'
-const debug = require('debug')('impresso/services/text-reuse-passages')
-const { filtersToQueryAndVariables } = require('../../util/solr')
-const { NotFound } = require('@feathersjs/errors')
-const { parseOrderBy } = require('../../util/queryParameters')
+import Debug from 'debug'
+import { filtersToQueryAndVariables } from '../../util/solr'
+import { NotFound } from '@feathersjs/errors'
+import { parseOrderBy } from '../../util/queryParameters'
+
+const debug = Debug('impresso/services/text-reuse-passages')
 
 export const OrderByKeyToField = {
   clusterSize: SolrFields.clusterSize,
@@ -83,7 +85,7 @@ export class TextReusePassages {
       })
   }
 
-  async get(id, { query = {} }) {
+  async get(id) {
     // return the corresponding textReusePassages instance.
     const textReusePassage = await this.solr
       .selectOne(this.solr.namespaces.TextReusePassages, {

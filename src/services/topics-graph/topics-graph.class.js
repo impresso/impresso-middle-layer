@@ -3,11 +3,12 @@ import { buildResolvers } from '../../internalServices/cachedResolvers'
 import { asFindAll } from '../../util/solr/adapters'
 import { WellKnownKeys } from '../../cache'
 
-const debug = require('debug')('impresso/services:topics-graph')
-const { min, max } = require('lodash')
-const { NotFound } = require('@feathersjs/errors')
-const Topic = require('../../models/topics.model')
-const { measureTime } = require('../../util/instruments')
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:topics-graph')
+import { min, max } from 'lodash'
+import { NotFound } from '@feathersjs/errors'
+import Topic from '../../models/topics.model'
+import { measureTime } from '../../util/instruments'
 
 const toNode = topic => ({
   id: topic.uid,
@@ -27,7 +28,7 @@ const toNode = topic => ({
   model: topic.model,
 })
 
-class TopicsGraph {
+export class TopicsGraph {
   constructor({ name }, app) {
     this.name = name
     this.app = app
@@ -281,8 +282,6 @@ class TopicsGraph {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new TopicsGraph(options)
 }
-
-module.exports.TopicsGraph = TopicsGraph

@@ -1,13 +1,11 @@
-const { validateWithSchema } = require('../../hooks/schema');
+import { validateWithSchema } from '../../hooks/schema'
 
-module.exports = {
+export default {
   before: {
     all: [],
     find: [],
     get: [],
-    create: [
-      validateWithSchema('services/entity-mentions-timeline/schema/create/payload.json'),
-    ],
+    create: [validateWithSchema('services/entity-mentions-timeline/schema/create/payload.json')],
     update: [],
     patch: [],
     remove: [],
@@ -17,9 +15,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [
-      validateWithSchema('services/entity-mentions-timeline/schema/create/response.json', 'result'),
-    ],
+    create: [validateWithSchema('services/entity-mentions-timeline/schema/create/response.json', 'result')],
     update: [],
     patch: [],
     remove: [],
@@ -34,4 +30,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

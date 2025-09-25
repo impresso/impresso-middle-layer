@@ -7,7 +7,7 @@ import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import Collection from '../../models/collections.model'
 import { FindResponse } from '../../models/common'
 import { ContentItem } from '../../models/generated/schemas/contentItem'
-import Job from '../../models/jobs.model'
+import Job from '../../models/jobs.model.js'
 import { ImpressoApplication } from '../../types'
 import { FindOptions } from '../content-items/content-items.class'
 

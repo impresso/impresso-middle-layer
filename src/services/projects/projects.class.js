@@ -1,12 +1,10 @@
-const Neo4jService = require('../neo4j.service').Service
+// import { Neo4jService as Service } from '../neo4j.service'
 
 /**
  * @deprecated
  */
-class Service extends Neo4jService {}
+export class Service extends Neo4jService { }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

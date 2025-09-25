@@ -1,11 +1,12 @@
 /*
   Load neo4j driver according to current configuration
 */
-const neo4j = require('neo4j-driver').v1
-const decypher = require('decypher')
-const debug = require('debug')('impresso/services:Neo4jService')
-const errors = require('@feathersjs/errors')
-const { neo4jRecordMapper, neo4jRun, neo4jToInt } = require('./neo4j.utils')
+import { v1 as neo4j } from 'neo4j-driver'
+import decypher from 'decypher'
+import Debug from 'debug'
+const debug = Debug('impresso/services:Neo4jService')
+import errors from '@feathersjs/errors'
+import { neo4jRecordMapper, neo4jRun, neo4jToInt } from './neo4j.utils'
 
 /**
  * @deprecated
@@ -234,8 +235,8 @@ class Neo4jService {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Neo4jService(options)
 }
 
-module.exports.Service = Neo4jService
+export const Service = Neo4jService

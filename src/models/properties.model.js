@@ -1,25 +1,20 @@
-import { logger } from '../logger'
-const { DataTypes } = require('sequelize')
+import { logger } from '../logger.js'
+import { DataTypes } from 'sequelize'
 
-class Property {
+export default class Property {
   constructor({
     name = '',
     label = '',
-    // eslint-disable-next-line camelcase
     newspapers_metadata = {},
   } = {}) {
     this.name = name
-    // eslint-disable-next-line camelcase
     this.value = newspapers_metadata.value
     this.label = label
     if (!this.value) {
-      // eslint-disable-next-line no-console
       logger.warning(
         'Property',
         name,
-        // eslint-disable-next-line quotes
         "doesn't have a value",
-        // eslint-disable-next-line camelcase
         newspapers_metadata.get()
       )
     }
@@ -64,9 +59,8 @@ class Property {
     return prop
   }
 }
-module.exports = Property
 //
-// module.exports = function (app) {
+// export default function (app) {
 //   const config = app.get('sequelize');
 //   const prop = model(app.get('sequelizeClient'), {
 //     tableName: config.tables.properties || 'meta_properties',
@@ -82,4 +76,4 @@ module.exports = Property
 //   };
 // };
 
-// module.exports.model = model;
+// export const model = model;

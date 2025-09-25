@@ -1,8 +1,8 @@
-const assert = require('assert')
-const {
+import assert from 'assert'
+import {
   createSolrQuery,
   normaliseFacetsInSolrResponse,
-} = require('../../src/services/search-queries-comparison/search-queries-comparison.class')
+} from '../../src/services/search-queries-comparison/search-queries-comparison.class'
 
 /**
  * @typedef {import('impresso-jscommons').Filter} Filter

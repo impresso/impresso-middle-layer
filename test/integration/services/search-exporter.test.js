@@ -1,7 +1,7 @@
-const assert = require('assert')
-const stringify = require('csv-stringify-as-promised')
-const fs = require('fs')
-const app = require('../../../src/app')
+import assert from 'assert'
+import stringify from 'csv-stringify-as-promised'
+import fs from 'fs'
+import app from '../../../src/app'
 
 /**
  * use with

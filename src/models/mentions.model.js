@@ -23,4 +23,4 @@ class Mention {
   }
 }
 
-module.exports = Mention;
+export default Mention;

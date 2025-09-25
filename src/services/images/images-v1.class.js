@@ -7,15 +7,14 @@ import { asFindAll, asGet } from '../../util/solr/adapters'
 import { logger } from '../../logger'
 import Page from '../../models/pages.model'
 
-const { NotFound, BadGateway } = require('@feathersjs/errors')
-const debug = require('debug')('impresso/services:images')
-const Image = require('../../models/images.model')
-const { getFacetsFromSolrResponse } = require('../search/search.extractors')
-const { measureTime } = require('../../util/instruments')
-const {
-  utils: { wrapAll },
-  SolrNamespaces,
-} = require('../../solr')
+import { NotFound, BadGateway } from '@feathersjs/errors'
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:images')
+import Image from '../../models/images.model'
+import { getFacetsFromSolrResponse } from '../search/search.extractors'
+import { measureTime } from '../../util/instruments'
+import { utils, SolrNamespaces } from '../../solr'
+const { wrapAll } = utils
 
 export default class Service {
   constructor({ app, name = '' }) {

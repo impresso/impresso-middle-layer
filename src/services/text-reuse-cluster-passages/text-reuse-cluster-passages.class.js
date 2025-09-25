@@ -1,17 +1,17 @@
 import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
-const {
+import {
   getTextReuseClusterPassagesRequest,
   getPaginationInfoFromPassagesSolrResponse,
   convertPassagesSolrResponseToPassages,
   PassageFields,
-} = require('../../logic/textReuse/solr')
-// const sequelize = require('../../sequelize')
-const { QueryGetIIIFManifests } = require('../../logic/iiif')
-const { toArticlePageDetails } = require('../../logic/ids')
-const { parseOrderBy } = require('../../util/queryParameters')
-const { measureTime } = require('../../util/instruments')
-const { SolrNamespaces } = require('../../solr')
-const { getToSelect } = require('../../util/solr/adapters')
+} from '../../logic/textReuse/solr'
+// import sequelize from '../../sequelize'
+import { QueryGetIIIFManifests } from '../../logic/iiif'
+import { toArticlePageDetails } from '../../logic/ids'
+import { parseOrderBy } from '../../util/queryParameters'
+import { measureTime } from '../../util/instruments'
+import { SolrNamespaces } from '../../solr'
+import { getToSelect } from '../../util/solr/adapters'
 
 const OrderByKeyToField = {
   date: PassageFields.Date,
@@ -89,6 +89,4 @@ class TextReuseClusterPassages {
   }
 }
 
-module.exports = {
-  TextReuseClusterPassages,
-}
+export { TextReuseClusterPassages }

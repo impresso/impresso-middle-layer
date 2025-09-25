@@ -1,13 +1,14 @@
 /* eslint-disable no-unused-vars */
-const debug = require('debug')('impresso/services:uploaded-images')
-const verbose = require('debug')('verbose:impresso/services:uploaded-images')
-const { Op } = require('sequelize')
-const { NotFound } = require('@feathersjs/errors')
-const UploadedImage = require('../../models/uploaded-images.model')
-const SequelizeService = require('../sequelize.service')
+import Debug from 'debug'
+const debug = Debug('impresso/services:uploaded-images')
+const verbose = Debug('verbose:impresso/services:uploaded-images')
+import { Op } from 'sequelize'
+import { NotFound } from '@feathersjs/errors'
+import UploadedImage from '../../models/uploaded-images.model.js'
+import SequelizeService from '../sequelize.service.js'
 
 /* eslint-disable no-unused-vars */
-class Service {
+export class Service {
   constructor({ name = '', app = null } = {}) {
     this.name = String(name)
     this.app = app
@@ -78,8 +79,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

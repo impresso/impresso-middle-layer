@@ -1,5 +1,5 @@
-const app = require('../../../src/app')
-const assert = require('assert')
+import app from '../../../src/app'
+import assert from 'assert'
 
 /*
 ./node_modules/.bin/eslint \

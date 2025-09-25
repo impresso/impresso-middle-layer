@@ -1,8 +1,8 @@
 // Initializes the `users` service on path `/users`
-const createService = require('./users.class.js')
-const hooks = require('./users.hooks')
+import createService from './users.class.js'
+import hooks from './users.hooks'
 
-module.exports = function (app) {
+export default function (app) {
   const paginate = app.get('paginate')
   const isPublicApi = app.get('isPublicApi')
 

@@ -9,7 +9,7 @@ import path from 'path'
 import fs from 'fs'
 
 const log = debug('impresso/services:version')
-const { getFirstAndLastDocumentDates } = require('./logic')
+import { getFirstAndLastDocumentDates } from './logic'
 
 interface PartnerInstitutionDirectoryEntry {
   partner_institution_id: string
@@ -30,7 +30,7 @@ const toPartnerInstitutions = (entries: PartnerInstitutionDirectoryEntry[]): Ver
   }))
 }
 
-module.exports = function (app: ImpressoApplication) {
+export default function (app: ImpressoApplication) {
   // Read partner institution directory into memory
   const partnerInstitutionDirectoryPath = path.resolve(__dirname, 'resources', 'partner_institutions_directory.json')
   let partnerInstitutionDirectory: PartnerInstitutionDirectoryEntry[] = []

@@ -1,15 +1,15 @@
-const assert = require('assert');
-const {
+import assert from 'assert'
+import {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
-} = require('../../src/services/ngram-trends/logic/solrQuery');
+} from '../../src/services/ngram-trends/logic/solrQuery'
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
   it('builds expected payload', () => {
-    const payload = unigramTrendsRequestToSolrQuery('Einstein', null, ['country']);
+    const payload = unigramTrendsRequestToSolrQuery('Einstein', null, ['country'])
     const expectedPayload = {
       query: '*:*',
       limit: 0,
@@ -23,9 +23,9 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
           '{!stats=tf_stats_de key=de}meta_year_i',
         ],
         'stats.field': [
-          '{!tag=tf_stats_en key=tf_stats_en sum=true func}termfreq(content_txt_en,\'Einstein\')',
-          '{!tag=tf_stats_fr key=tf_stats_fr sum=true func}termfreq(content_txt_fr,\'Einstein\')',
-          '{!tag=tf_stats_de key=tf_stats_de sum=true func}termfreq(content_txt_de,\'Einstein\')',
+          "{!tag=tf_stats_en key=tf_stats_en sum=true func}termfreq(content_txt_en,'Einstein')",
+          "{!tag=tf_stats_fr key=tf_stats_fr sum=true func}termfreq(content_txt_fr,'Einstein')",
+          "{!tag=tf_stats_de key=tf_stats_de sum=true func}termfreq(content_txt_de,'Einstein')",
         ],
         stats: true,
         'json.facet': JSON.stringify({
@@ -39,11 +39,11 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
         }),
         hl: false,
       },
-    };
+    }
 
-    assert.deepEqual(payload, expectedPayload);
-  });
-});
+    assert.deepEqual(payload, expectedPayload)
+  })
+})
 
 describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
   it('parses response', async () => {
@@ -63,12 +63,7 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
       facet_counts: {
         facet_queries: {},
         facet_fields: {
-          meta_country_code_s: [
-            'CH',
-            27425743,
-            'LU',
-            4153942,
-          ],
+          meta_country_code_s: ['CH', 27425743, 'LU', 4153942],
         },
         facet_ranges: {},
         facet_intervals: {},
@@ -138,7 +133,7 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
           },
         },
       },
-    };
+    }
     const expectedParsedResponse = {
       trends: [
         {
@@ -149,12 +144,12 @@ describe('"ngram-trends" logic -> parseUnigramTrendsResponse', () => {
       ],
       domainValues: ['1969', '1970'],
       timeInterval: 'year',
-    };
-    const parsedResponse = await parseUnigramTrendsResponse(testResponse, 'Einstein', 'year');
+    }
+    const parsedResponse = await parseUnigramTrendsResponse(testResponse, 'Einstein', 'year')
 
-    assert.deepEqual(parsedResponse, expectedParsedResponse);
-  });
-});
+    assert.deepEqual(parsedResponse, expectedParsedResponse)
+  })
+})
 
 describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
   it('guesses "month" from a time filter range less than 5 years', async () => {
@@ -164,11 +159,11 @@ describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
         q: ['1849-09-25T00:00:00Z TO 1852-12-31T23:59:59Z'],
         op: 'OR',
       },
-    ];
-    const timeInterval = guessTimeIntervalFromFilters(filters);
+    ]
+    const timeInterval = guessTimeIntervalFromFilters(filters)
 
-    assert.equal(timeInterval, 'month');
-  });
+    assert.equal(timeInterval, 'month')
+  })
   it('guesses "day" from a time filter range less than 1 year', async () => {
     const filters = [
       {
@@ -176,11 +171,11 @@ describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
         q: ['1849-09-25T00:00:00Z TO 1849-12-31T23:59:59Z'],
         op: 'OR',
       },
-    ];
-    const timeInterval = guessTimeIntervalFromFilters(filters);
+    ]
+    const timeInterval = guessTimeIntervalFromFilters(filters)
 
-    assert.equal(timeInterval, 'day');
-  });
+    assert.equal(timeInterval, 'day')
+  })
   it('guesses "year" from a time filter range more than 5 years', async () => {
     const filters = [
       {
@@ -188,11 +183,11 @@ describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
         q: ['1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z'],
         op: 'OR',
       },
-    ];
-    const timeInterval = guessTimeIntervalFromFilters(filters);
+    ]
+    const timeInterval = guessTimeIntervalFromFilters(filters)
 
-    assert.equal(timeInterval, 'year');
-  });
+    assert.equal(timeInterval, 'year')
+  })
   it('guesses "year" from a time filter with exclude context', async () => {
     const filters = [
       {
@@ -201,18 +196,18 @@ describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
         op: 'OR',
         context: 'exclude',
       },
-    ];
-    const timeInterval = guessTimeIntervalFromFilters(filters);
+    ]
+    const timeInterval = guessTimeIntervalFromFilters(filters)
 
-    assert.equal(timeInterval, 'year');
-  });
+    assert.equal(timeInterval, 'year')
+  })
   it('guesses "year" from a filters without a daterange filter', async () => {
-    const filters = [];
-    const timeInterval = guessTimeIntervalFromFilters(filters);
+    const filters = []
+    const timeInterval = guessTimeIntervalFromFilters(filters)
 
-    assert.equal(timeInterval, 'year');
-  });
-});
+    assert.equal(timeInterval, 'year')
+  })
+})
 
 describe('unigramTrendsRequestToTotalTokensSolrQuery', () => {
   it('builds expected payload', () => {
@@ -222,8 +217,8 @@ describe('unigramTrendsRequestToTotalTokensSolrQuery', () => {
         q: ['1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z'],
         op: 'OR',
       },
-    ];
-    const payload = unigramTrendsRequestToTotalTokensSolrQuery(filters, 'year');
+    ]
+    const payload = unigramTrendsRequestToTotalTokensSolrQuery(filters, 'year')
     const expectedPayload = {
       query: 'filter(meta_date_dt:[1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z])',
       limit: 0,
@@ -241,18 +236,20 @@ describe('unigramTrendsRequestToTotalTokensSolrQuery', () => {
           },
         },
       },
-    };
+    }
 
-    assert.deepEqual(payload, expectedPayload);
-  });
-});
+    assert.deepEqual(payload, expectedPayload)
+  })
+})
 
 describe('getNumbersFromTotalTokensResponse', () => {
   const response = {
     responseHeader: {
       status: 0,
       QTime: 1883,
-      params: { json: '{\n  "query": "filter(content_length_i:[2 TO *]) AND filter(meta_date_dt:[1899-06-25T00:00:00Z TO 1930-08-31T23:59:59Z])",\n  "limit": 0,\n  "params": {\n    "vars": {},\n    "hl": false\n  },\n  "facet": {\n    \t"year": {\n\t    \t"type": "terms",\n\t    \t"field": "meta_year_i",\n\t    \t"facet": {\n\t    \t\t"total_tokens_count": "sum(content_length_i)"\n\t    \t}\n    \t}\n    }\n}' },
+      params: {
+        json: '{\n  "query": "filter(content_length_i:[2 TO *]) AND filter(meta_date_dt:[1899-06-25T00:00:00Z TO 1930-08-31T23:59:59Z])",\n  "limit": 0,\n  "params": {\n    "vars": {},\n    "hl": false\n  },\n  "facet": {\n    \t"year": {\n\t    \t"type": "terms",\n\t    \t"field": "meta_year_i",\n\t    \t"facet": {\n\t    \t\t"total_tokens_count": "sum(content_length_i)"\n\t    \t}\n    \t}\n    }\n}',
+      },
     },
     response: { numFound: 6064606, start: 0, docs: [] },
     facets: {
@@ -262,31 +259,31 @@ describe('getNumbersFromTotalTokensResponse', () => {
           {
             val: 1922,
             count: 223143,
-            ttc: 8.0994937E7,
+            ttc: 8.0994937e7,
           },
           {
             val: 1913,
             count: 219872,
-            ttc: 9.0162505E7,
+            ttc: 9.0162505e7,
           },
           {
             val: 1921,
             count: 217282,
-            ttc: 8.012569E7,
+            ttc: 8.012569e7,
           },
         ],
       },
     },
-  };
+  }
 
   const expectedNumbers = [
-    { domain: '1913', value: 9.0162505E7 },
-    { domain: '1921', value: 8.012569E7 },
-    { domain: '1922', value: 8.0994937E7 },
-  ];
+    { domain: '1913', value: 9.0162505e7 },
+    { domain: '1921', value: 8.012569e7 },
+    { domain: '1922', value: 8.0994937e7 },
+  ]
 
   it('parses response', () => {
-    const numbers = getNumbersFromTotalTokensResponse(response, 'year');
-    assert.deepEqual(numbers, expectedNumbers);
-  });
-});
+    const numbers = getNumbersFromTotalTokensResponse(response, 'year')
+    assert.deepEqual(numbers, expectedNumbers)
+  })
+})

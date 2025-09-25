@@ -1,51 +1,34 @@
-import { request, RequestInfo, RequestInit, Dispatcher, Agent, RetryAgent, RetryHandler, Headers } from 'undici'
+import { request, Dispatcher, Agent, RetryAgent, RetryHandler } from 'undici'
+
 import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
 import { IncomingHttpHeaders } from 'undici/types/header'
-import { SolrServerProxy } from './configuration'
-import { logger } from './logger'
+import { SolrServerProxy } from '../../../configuration.js'
+import { logger } from '../../../logger.js'
+import { FetchOptions, IFetchClient, IFetchClientOptions } from './base'
 
-export { RequestInfo, RequestInit, Headers }
-
-export interface IResponse {
-  get ok(): boolean
-  get statusCode(): number
-  text(): Promise<string>
-  json(): Promise<any>
-}
-
-export interface FetchOptions {
-  requestTimeoutMs?: number
-  retryOptions?: RetryHandler.RetryOptions
-  onUnsuccessfulResponse?: (url: string, method: string, body: Record<string, any>, response: IResponse) => void
-}
-
-interface IConnectionWrapper {
-  fetch(url: RequestInfo, init?: RequestInit, options?: FetchOptions): Promise<IResponse>
+interface InitHttpPoolOptions extends IFetchClientOptions {
+  maxParallelConnections?: number
+  acquireTimeoutSec?: number
 }
 
 function urlSearchParamsToFormData(urlSearchParams: URLSearchParams): FormData {
   const formData = new FormData()
 
   for (const [key, value] of urlSearchParams.entries()) {
-    // Handle arrays
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        formData.append(key, item)
-      }
-    } else {
-      formData.append(key, value)
-    }
+    // URLSearchParams entries will always return strings, not arrays
+    formData.append(key, value)
   }
 
   return formData
 }
 
-export class Response implements IResponse {
+export class XResponse extends Response {
   data: Dispatcher.ResponseData
   _text?: string
 
   constructor(data: Dispatcher.ResponseData) {
+    super()
     this.data = data
   }
 
@@ -53,7 +36,7 @@ export class Response implements IResponse {
     return this.data.statusCode >= 200 && this.data.statusCode < 300
   }
 
-  get statusCode() {
+  get status() {
     return this.data.statusCode
   }
 
@@ -78,11 +61,11 @@ export class Response implements IResponse {
  * Using a class to return by pool instead of a function
  * because functions are sometimes not recognised by the pool.
  */
-class ConnectionWrapper implements IConnectionWrapper {
+class ConnectionWrapper implements IFetchClient {
   socksProxyOptions?: SolrServerProxy
 
-  constructor(socksProxyOptions?: SolrServerProxy) {
-    this.socksProxyOptions = socksProxyOptions
+  constructor(opts: IFetchClientOptions) {
+    this.socksProxyOptions = opts.socksProxy
   }
 
   _createBaseAgent(): Agent {
@@ -107,12 +90,12 @@ class ConnectionWrapper implements IConnectionWrapper {
     }
   }
 
-  async fetch(url: RequestInfo, init?: RequestInit, options?: FetchOptions): Promise<IResponse> {
+  async fetch(url: string | URL | globalThis.Request, init?: RequestInit, options?: FetchOptions): Promise<Response> {
     const body = init?.body instanceof URLSearchParams ? urlSearchParamsToFormData(init.body) : init?.body
 
     if (url instanceof Request) throw new Error('Request object not supported by undici')
 
-    const theUrl: string = url instanceof Request ? url.url : new String(url).toString()
+    const theUrl: string = url instanceof Request ? url.url : url.toString()
 
     const agent =
       options?.retryOptions != null
@@ -122,18 +105,18 @@ class ConnectionWrapper implements IConnectionWrapper {
             errorCodes: ['UND_ERR_HEADERS_TIMEOUT'],
             retry: (err, ctx, cb) => {
               const retryCount = ctx.state.counter
-              const maxRetries = ctx.opts.retryOptions?.maxRetries ?? 0
+              // Add type assertion to fix the TypeScript error
+              const opts = ctx.opts as { retryOptions?: RetryHandler.RetryOptions }
+              const maxRetries = opts.retryOptions?.maxRetries ?? 0
               const shouldRetry = retryCount <= maxRetries
 
-              const retryConfig = ctx.opts.retryOptions
+              const retryConfig = opts.retryOptions
 
               if (!shouldRetry) {
-                logger.error(
-                  `Max retries reached for ${theUrl} with ${body}. Retry config: ${JSON.stringify(retryConfig)}`
-                )
+                logger.error(`Max retries reached for ${theUrl}. Retry config: ${JSON.stringify(retryConfig)}`)
                 return cb(err)
               } else {
-                logger.debug(`Retrying request ${retryCount} of ${maxRetries} for ${theUrl} with ${body}`)
+                logger.debug(`Retrying request ${retryCount} of ${maxRetries} for ${theUrl}`)
                 cb()
               }
             },
@@ -147,11 +130,15 @@ class ConnectionWrapper implements IConnectionWrapper {
       dispatcher: agent,
       headersTimeout: options?.requestTimeoutMs ?? 30 * 1000,
     })
-    const response = new Response(result)
+    const response = new XResponse(result)
     await response.text()
     if (!response.ok) {
       try {
-        options?.onUnsuccessfulResponse?.(theUrl, init?.method as string, body as Record<string, any>, response)
+        // Only call the callback if the method and body are valid
+        if (options?.onUnsuccessfulResponse && init?.method) {
+          const bodyObj = typeof body === 'object' ? (body as Record<string, any>) : {}
+          options.onUnsuccessfulResponse(theUrl, init.method as string, bodyObj, response)
+        }
       } catch (error) {
         // do nothing
       }
@@ -161,33 +148,27 @@ class ConnectionWrapper implements IConnectionWrapper {
   }
 }
 
-class ConnectionFactory implements Factory<IConnectionWrapper> {
+class ConnectionFactory implements Factory<ConnectionWrapper> {
   socksProxyOptions?: SolrServerProxy
 
   constructor(socksProxyOptions?: SolrServerProxy) {
     this.socksProxyOptions = socksProxyOptions
   }
 
-  async create() {
-    return new ConnectionWrapper(this.socksProxyOptions)
+  async create(): Promise<ConnectionWrapper> {
+    return new ConnectionWrapper({ socksProxy: this.socksProxyOptions })
   }
 
-  async destroy() {
+  async destroy(client: ConnectionWrapper): Promise<void> {
     /* nothing to destroy */
   }
-}
-
-export interface InitHttpPoolOptions {
-  maxParallelConnections?: number
-  acquireTimeoutSec?: number
-  socksProxy?: SolrServerProxy
 }
 
 export function initHttpPool({
   maxParallelConnections = 200,
   acquireTimeoutSec = 25,
   socksProxy,
-}: InitHttpPoolOptions = {}): Pool<IConnectionWrapper> {
+}: InitHttpPoolOptions = {}): Pool<ConnectionWrapper> {
   const poolOptions = {
     min: maxParallelConnections ?? 200,
     max: maxParallelConnections ?? 200,
@@ -197,6 +178,21 @@ export function initHttpPool({
   return createPool(new ConnectionFactory(socksProxy), poolOptions)
 }
 
-type ConnectionPool = Pool<IConnectionWrapper>
+export type ConnectionPool = Pool<ConnectionWrapper>
 
-export { ConnectionPool }
+export class FetchClient implements IFetchClient {
+  private pool: ConnectionPool
+
+  constructor(options: IFetchClientOptions) {
+    this.pool = initHttpPool(options)
+  }
+
+  async fetch(input: string | URL | globalThis.Request, init?: RequestInit, options?: FetchOptions): Promise<Response> {
+    const client = await this.pool.acquire()
+    try {
+      return await client.fetch(input, init, options)
+    } finally {
+      await this.pool.release(client)
+    }
+  }
+}

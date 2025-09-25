@@ -1,11 +1,5 @@
-// const debug = require('debug')('impresso/services:search-queries-comparison');
-const { BadRequest } = require('@feathersjs/errors')
-const {
-  logic: {
-    filter: { mergeFilters },
-  },
-} = require('impresso-jscommons')
-const { SolrMappings } = require('../../data/constants')
+import { BadRequest } from '@feathersjs/errors'
+import { SolrMappings } from '../../data/constants'
 
 /**
  * @typedef {import('./').Response} Response
@@ -15,9 +9,14 @@ const { SolrMappings } = require('../../data/constants')
  * @typedef {import('impresso-jscommons').Facet} Facet
  */
 
-const { getFacetsFromSolrResponse } = require('../search/search.extractors')
-const { filtersToQueryAndVariables } = require('../../util/solr')
-const { SolrNamespaces } = require('../../solr')
+import { getFacetsFromSolrResponse } from '../search/search.extractors'
+import { filtersToQueryAndVariables } from '../../util/solr'
+import { SolrNamespaces } from '../../solr'
+import { logic } from 'impresso-jscommons'
+
+const {
+  filter: { mergeFilters },
+} = logic
 
 /**
  * Create SOLR query for getting facets.
@@ -39,7 +38,7 @@ const { SolrNamespaces } = require('../../solr')
  * @param {Facet[]} constraintFacets
  * @returns {any}
  */
-function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
+export function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
   const { query } = filtersToQueryAndVariables(filters)
 
   const facets = facetsRequests.reduce((acc, { type, offset, limit }) => {
@@ -98,7 +97,7 @@ const ConstrainedFacetRegex = /^constrained__(.+)__(\d+)$/
  *
  * @returns {object}
  */
-function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = []) {
+export function normaliseFacetsInSolrResponse(solrResponse = {}, constraintFacets = []) {
   const { facets: responseFacets } = solrResponse
   const normalisedFacets = Object.keys(responseFacets).reduce((acc, key) => {
     if (typeof responseFacets[key] !== 'object') return { ...acc, [key]: responseFacets[key] }
@@ -149,7 +148,7 @@ async function getResponseFacetsFromSolrResponse(solrResponse, app) {
     }))
 }
 
-class SearchQueriesComparison {
+export class SearchQueriesComparison {
   setup(app) {
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
@@ -195,10 +194,4 @@ class SearchQueriesComparison {
       facetsIds: request.facets.map(({ type }) => type),
     }
   }
-}
-
-module.exports = {
-  SearchQueriesComparison,
-  createSolrQuery,
-  normaliseFacetsInSolrResponse,
 }

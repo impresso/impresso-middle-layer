@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 import { BaseUser, Collection as ICollection } from './generated/schemas'
 import { ModelDefined, Sequelize } from 'sequelize'
 
-const { DataTypes } = require('sequelize')
+import { DataTypes } from 'sequelize'
 
 export const STATUS_PRIVATE = 'PRI'
 export const STATUS_SHARED = 'SHA'
@@ -183,9 +183,3 @@ export default class Collection implements IDBCollection {
     return collection
   }
 }
-
-module.exports = Collection
-module.exports.STATUS_PUBLIC = STATUS_PUBLIC
-module.exports.STATUS_PRIVATE = STATUS_PRIVATE
-module.exports.STATUS_SHARED = STATUS_SHARED
-module.exports.STATUS_DELETED = STATUS_DELETED

@@ -1,13 +1,14 @@
 /* eslint-disable no-unused-vars */
-const debug = require('debug')('impresso/services/bucket-items')
-const { NotImplemented } = require('@feathersjs/errors')
-const lodash = require('lodash')
-const Neo4jService = require('../neo4j.service').Service
+import debugLib from 'debug'
+const debug = debugLib('impresso/services/bucket-items')
+import { NotImplemented } from '@feathersjs/errors'
+import lodash from 'lodash'
+// import { Neo4jService as Service } from '../neo4j.service'
 
 /**
  * @deprecated
  */
-class Service extends Neo4jService {
+export class Service extends Neo4jService {
   /**
    * async create - add items to a specific bucket.
    *
@@ -105,8 +106,6 @@ class Service extends Neo4jService {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service
