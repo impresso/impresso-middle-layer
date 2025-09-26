@@ -81,7 +81,6 @@ export type ContentItemFacet = Extract<
   | 'sourceType'
   | 'sourceMedium'
   | 'topic'
-  | 'collection'
   | 'newspaper'
   | 'language'
   | 'person'
@@ -164,13 +163,6 @@ const searchSolrMappings = {
       mincount: 1,
       limit: 10,
       offset: 0,
-      numBuckets: true,
-    },
-    collection: {
-      type: 'terms',
-      field: 'ucoll_ss',
-      mincount: 1,
-      limit: 10,
       numBuckets: true,
     },
     newspaper: {
@@ -344,7 +336,6 @@ export type TextReusePassageFacet = Extract<
   | 'textReuseClusterLexicalOverlap'
   | 'textReuseClusterDayDelta'
   | 'textReuseCluster'
-  | 'collection'
   | 'topic'
   | 'person'
   | 'location'
@@ -436,13 +427,6 @@ const trPassagesSolrMappings = {
       limit: 10,
       numBuckets: true,
     },
-    collection: {
-      type: 'terms',
-      field: 'ucoll_ss',
-      mincount: 1,
-      limit: 10,
-      numBuckets: true,
-    },
     topic: {
       type: 'terms',
       field: 'topics_dpfs',
@@ -520,6 +504,20 @@ const imagesSolrMappings = {
   },
 } satisfies ISolrMappings<ImageFacet>
 
+export type CollectionItemFacet = Extract<FilterType, 'collection'>
+
+const collectionItemsSolrMappings = {
+  facets: {
+    collection: {
+      type: 'terms',
+      field: 'col_id_s',
+      mincount: 1,
+      limit: 10,
+      numBuckets: true,
+    },
+  },
+} satisfies ISolrMappings<CollectionItemFacet>
+
 /**
  * Various SOLR mappings per index.
  */
@@ -528,6 +526,7 @@ export const SolrMappings = Object.freeze({
   tr_clusters: trClustersSolrMappings,
   tr_passages: trPassagesSolrMappings,
   images: imagesSolrMappings,
+  collection_items: collectionItemsSolrMappings,
 })
 
 export type IndexType = keyof typeof SolrMappings

@@ -24,7 +24,7 @@ const DefaultSuggesterDictonary = 'm_suggester_infix'
 
 export interface SelectRequestBody {
   query: string | Record<string, unknown>
-  filter?: string
+  filter?: string | string[]
   limit?: number
   offset?: number
   facet?: Record<string, SolrFacetQueryParams>

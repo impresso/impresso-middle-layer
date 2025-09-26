@@ -8,13 +8,14 @@ import {
   getStandardResponses,
 } from '../../util/openapi'
 
-export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images'
+export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images' | 'collection-items'
 
 export const facetTypes: Record<IndexId, string[]> = {
   search: Object.keys(SolrMappings.search.facets),
   'tr-clusters': Object.keys(SolrMappings['tr_clusters'].facets),
   'tr-passages': Object.keys(SolrMappings['tr_passages'].facets),
   images: Object.keys(SolrMappings.images.facets),
+  'collection-items': Object.keys(SolrMappings['collection_items'].facets),
 }
 
 const facetNames: Record<IndexId, string> = {
@@ -22,6 +23,7 @@ const facetNames: Record<IndexId, string> = {
   'tr-clusters': 'text reuse clusters index',
   'tr-passages': 'text reuse passages index',
   images: 'images index',
+  'collection-items': 'collection items index',
 }
 
 export const OrderByChoices = ['-count', 'count', '-value', 'value']
