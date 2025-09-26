@@ -4,7 +4,7 @@ import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreation
 import User from './users.model'
 
 export interface IUserCollection {
-  id: number
+  id: string
   creatorId: number
   name: string
   description?: string | null
@@ -17,7 +17,7 @@ export default class UserCollection extends Model<
   InferAttributes<UserCollection>,
   InferCreationAttributes<UserCollection>
 > {
-  declare id: CreationOptional<number>
+  declare id: CreationOptional<string>
   declare creatorId: ForeignKey<User['id']>
   declare name: string
   declare description: string | null
@@ -33,9 +33,9 @@ export default class UserCollection extends Model<
     return UserCollection.init(
       {
         id: {
-          type: DataTypes.INTEGER,
+          type: DataTypes.STRING(50),
           primaryKey: true,
-          autoIncrement: true,
+          unique: true,
         },
         creatorId: {
           type: DataTypes.INTEGER,
@@ -49,13 +49,13 @@ export default class UserCollection extends Model<
           onUpdate: 'CASCADE',
         },
         name: {
-          type: DataTypes.STRING(255),
+          type: DataTypes.STRING(500),
           allowNull: false,
         },
         description: {
           type: DataTypes.TEXT,
           allowNull: true,
-          defaultValue: null,
+          defaultValue: '',
         },
         status: {
           type: DataTypes.TEXT('tiny'),
