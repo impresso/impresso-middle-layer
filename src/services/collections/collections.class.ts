@@ -10,7 +10,13 @@ import UserCollection, { IUserCollection } from '../../models/user-collection'
 import type { ImpressoApplication } from '../../types'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { SolrNamespaces } from '../../solr'
-import { CollectionIdPair, queryGetItemsCountsForCollections, toPair } from '../../solr/queries/collections'
+import {
+  CollectionIdPair,
+  CollectionsByContentItemIdBucket,
+  queryGetCollectionsByContentItems,
+  queryGetItemsCountsForCollections,
+  toPair,
+} from '../../solr/queries/collections'
 
 export type CollectionsPatch = Partial<Omit<Collection, 'uid'>>
 export type CollectionsFindResult = FindResponse<Collection>
@@ -26,10 +32,20 @@ export interface CollectionsParams<Q = CollectionsQuery> extends Params<Q> {
   user?: SlimUser
 }
 
-type ICollectionsService = Omit<
+export type ICollectionsService = Omit<
   ClientService<Collection, NewCollectionRequest, NewCollectionRequest, FindResponse<Collection>, CollectionsParams>,
   'update' | 'create' | 'remove' | 'patch'
->
+> & {
+  create(data: NewCollectionRequest, params?: CollectionsParams): Promise<Collection>
+  patch(id: Id, data: CollectionsPatch, params?: CollectionsParams): Promise<Collection>
+  remove(id: Id, params?: CollectionsParams): Promise<Collection>
+
+  findByContentItems(
+    contentItemsIds: string[],
+    includePublic?: boolean,
+    user?: SlimUser
+  ): Promise<Record<string, Collection[]>>
+}
 
 const dbToCollection = (dbModel: IUserCollection): Collection => {
   if (dbModel.status === 'DEL') throw new Error('Cannot convert deleted collection')
@@ -264,5 +280,70 @@ export class CollectionsService implements ICollectionsService {
     })
 
     return collection
+  }
+
+  async findByContentItems(
+    contentItemsIds: string[],
+    includePublic?: boolean,
+    user?: SlimUser
+  ): Promise<Record<string, Collection[]>> {
+    const body = queryGetCollectionsByContentItems(
+      contentItemsIds,
+      includePublic ?? false,
+      user?.id ? String(user.id) : undefined
+    )
+    const response = await this.solrClient.select<unknown, 'contentItemIds', CollectionsByContentItemIdBucket>(
+      SolrNamespaces.CollectionItems,
+      {
+        body,
+      }
+    )
+
+    const contentItemIdsBuckets = response.facets?.contentItemIds?.buckets ?? []
+
+    const collectionsWithCounts =
+      contentItemIdsBuckets.map(({ val, collections }) => {
+        const contentItemId = String(val)
+
+        const collectionsWithCounts =
+          collections.buckets?.map(({ val, count }) => {
+            const { userId, collectionId } = toPair(String(val))
+            return { userId, collectionId, count: count ?? 0 } satisfies CollectionIdPairWithCount
+          }) ?? []
+
+        return [contentItemId, collectionsWithCounts] as const
+      }) ?? []
+    // const collectionsByContentItemId = new Map(collectionsWithCounts)
+    const collectionIds = new Set(
+      collectionsWithCounts.map(([_, collections]) => collections.map(c => c.collectionId)).flat()
+    )
+
+    const rows = await this.userCollectionDbModel.findAll({
+      where: {
+        id: {
+          [Op.in]: [...collectionIds],
+        },
+        status: { [Op.notIn]: ['DEL'] },
+      },
+      order: [['lastModifiedDate', 'DESC']],
+    })
+
+    const collectionLookup = new Map(rows.map(row => [String(row.id), row]))
+
+    const items = collectionsWithCounts.map(([contentItemId, counts]) => {
+      const collections = counts
+        .map(({ collectionId, count }) => {
+          const dbModel = collectionLookup.get(collectionId)
+          if (!dbModel) return null
+          return {
+            ...dbToCollection(dbModel),
+            totalItems: count,
+          }
+        })
+        .filter(c => c !== null)
+      return [contentItemId, collections] as const
+    })
+
+    return Object.fromEntries(items) satisfies Record<string, Collection[]>
   }
 }

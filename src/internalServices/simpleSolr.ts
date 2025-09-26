@@ -330,11 +330,13 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
     request: BulkUpdateRequest<T>,
     commit: boolean
   ): Promise<unknown> {
-    const [{ client, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
+    const [{ client, baseUrl, auth: { write: auth } = {} }, namespace] = this.getPool(namespaceId)
 
     const solrRequest = isAddRequest(request)
       ? ({ ...request, commit: commit ? {} : undefined } satisfies SolrBulkAddRequest<T>)
       : ({ ...request, commit: commit ? {} : undefined } satisfies SolrBulkDeleteRequest)
+
+    const body = safeStringifyJson(removeNullAndUndefined(solrRequest))
 
     const url = `${baseUrl}/${namespace.index}/update/json`
     const init: RequestInit = {
@@ -343,7 +345,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
         ...buildAuthHeader(auth),
         'Content-Type': 'application/json',
       }),
-      body: safeStringifyJson(removeNullAndUndefined(solrRequest)),
+      body,
     }
 
     const responseBody = await this.fetch(client, url, init)
@@ -355,7 +357,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
     request: DeleteRequest,
     commit: boolean
   ): Promise<unknown> {
-    const [{ client, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
+    const [{ client, baseUrl, auth: { write: auth } = {} }, namespace] = this.getPool(namespaceId)
 
     const solrRequest = { ...request, commit: commit ? {} : undefined }
 

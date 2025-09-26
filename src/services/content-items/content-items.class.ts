@@ -30,7 +30,8 @@ import { ContentItemDbModel } from '../../models/content-item.model'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '../../models/content-item-page.model'
 import { mapRecordValues } from '../../util/fn'
 import { NotFound } from '@feathersjs/errors'
-import { BaseUser, Collection, Topic } from '../../models/generated/schemas'
+import { BaseUser, Topic } from '../../models/generated/schemas'
+import type { Collection } from '../../models/generated/schemasPublic'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
@@ -274,18 +275,7 @@ export class ContentItemService implements IContentItemService {
   async getCollections(contentItemIds: string[], user?: SlimUser): Promise<Dictionary<Collection[]>> {
     if (contentItemIds.length === 0 || !user) return {}
 
-    const collectables = await this.app.service('collectable-items').find({
-      authenticated: true,
-      user,
-      query: {
-        resolve: 'collection',
-        item_uids: contentItemIds,
-      },
-    })
-
-    const collectablesIndex = keyBy(collectables.data, 'itemId')
-
-    return mapRecordValues(collectablesIndex, (group, _) => group.collections ?? [])
+    return await this.app.service('collections').findByContentItems(contentItemIds, true, user)
   }
 
   get solr(): SimpleSolrClient {

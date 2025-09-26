@@ -9,6 +9,7 @@ import { NewspapersService } from './services/newspapers/newspapers.class'
 import { SimpleSolrClient } from './internalServices/simpleSolr'
 import { ContentItemService } from './services/content-items/content-items.class'
 import { QueueService } from './internalServices/queue'
+import { ICollectionsService } from './services/collections/collections.class'
 
 export interface AppServices {
   redisClient?: IRedisClientContainer
@@ -22,6 +23,7 @@ export interface AppServices {
   ['media-sources']: MediaSources
   newspapers: NewspapersService
   ['content-items']: ContentItemService
+  collections: ICollectionsService
 }
 
 export type ImpressoApplication = Application<AppServices & Record<string, any>, Configuration>

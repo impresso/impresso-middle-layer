@@ -18,8 +18,8 @@ type RemoveItemsFromCollectionJob = Job<
   typeof JobNameRemoveItemsFromCollection
 >
 
-const requestToPayload = (job: RemoveItemsFromCollectionJob): BulkDeleteRequest => {
-  const { userId, collectionId, itemIds } = job.data
+const requestToPayload = (data: RemoveItemsFromCollectionJobData): BulkDeleteRequest => {
+  const { userId, collectionId, itemIds } = data
   const col_id_s = `${userId}_${collectionId}`
 
   const items: string[] = itemIds.map(ci_id_s => {
@@ -36,12 +36,19 @@ export const createJobHandler = (app: ImpressoApplication) => {
     logger.info(
       `⬅️ 📚 Processing job ${job.id} ${job.name} to remove items from collection: ${JSON.stringify(job.data)} `
     )
-    const solrClient = app.service('simpleSolrClient')
-    await solrClient.sendBulkUpdateRequest(SolrNamespaces.CollectionItems, requestToPayload(job), true)
+    await removeItemsFromCollection(app, job.data)
     logger.info(
       `⬅️ 📚 Finished processing job ${job.id} ${job.name} to remove items from collection: ${JSON.stringify(job.data)} `
     )
 
     return undefined
   }
+}
+
+export const removeItemsFromCollection = async (
+  app: ImpressoApplication,
+  jobData: RemoveItemsFromCollectionJobData
+) => {
+  const solrClient = app.service('simpleSolrClient')
+  await solrClient.sendBulkUpdateRequest(SolrNamespaces.CollectionItems, requestToPayload(jobData), true)
 }

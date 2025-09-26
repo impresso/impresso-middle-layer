@@ -75,6 +75,9 @@ const resolveFacets = () => async (context: HookContext<ImpressoApplication, App
   }
 }
 
+/**
+ * @deprecated Not used in live code and may be broken.
+ */
 const resolveQueryComponents = () => async (context: HookContext<ImpressoApplication, AppServices>) => {
   debug('resolveQueryComponents', context.params.sanitized.queryComponents)
 
@@ -105,7 +108,8 @@ const resolveQueryComponents = () => async (context: HookContext<ImpressoApplica
         .find({
           user: context.params.user,
           query: {
-            uids: d.q,
+            // TODO: removed when collections service was upgraded.
+            // uids: d.q,
           },
         })
         .then((res: any) => res.data)

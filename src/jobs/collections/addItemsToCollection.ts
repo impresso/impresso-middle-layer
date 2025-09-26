@@ -15,8 +15,8 @@ export interface AddItemsToCollectionJobData {
 
 type AddItemsToCollectionJob = Job<AddItemsToCollectionJobData, undefined, typeof JobNameAddItemsToCollection>
 
-const requestToPayload = (job: AddItemsToCollectionJob): BulkAddRequest<CollectionItem> => {
-  const { userId, collectionId, itemIds } = job.data
+const requestToPayload = (data: AddItemsToCollectionJobData): BulkAddRequest<CollectionItem> => {
+  const { userId, collectionId, itemIds } = data
   const col_id_s = `${userId}_${collectionId}`
 
   const items: CollectionItem[] = itemIds.map(ci_id_s => {
@@ -36,13 +36,15 @@ const requestToPayload = (job: AddItemsToCollectionJob): BulkAddRequest<Collecti
 export const createJobHandler = (app: ImpressoApplication) => {
   return async (job: AddItemsToCollectionJob) => {
     logger.info(`➡️ 📚 Processing job ${job.id} ${job.name} to add items to collection: ${JSON.stringify(job.data)} `)
-    const solrClient = app.service('simpleSolrClient')
-
-    await solrClient.sendBulkUpdateRequest(SolrNamespaces.CollectionItems, requestToPayload(job), true)
+    await addItemsToCollection(app, job.data)
     logger.info(
       `➡️ 📚 Finished processing job ${job.id} ${job.name} to add items to collection: ${JSON.stringify(job.data)} `
     )
-
     return undefined
   }
+}
+
+export const addItemsToCollection = async (app: ImpressoApplication, jobData: AddItemsToCollectionJobData) => {
+  const solrClient = app.service('simpleSolrClient')
+  await solrClient.sendBulkUpdateRequest(SolrNamespaces.CollectionItems, requestToPayload(jobData), true)
 }
