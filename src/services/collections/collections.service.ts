@@ -10,14 +10,7 @@ import hooks from './collections.hooks'
 
 // Initializes the `collections` service on path `/collections`
 const init = (app: ImpressoApplication) => {
-  const paginate = app.get('paginate')
   const isPublicApi = app.get('isPublicApi') ?? false
-
-  const options = {
-    name: 'collections',
-    paginate,
-    app,
-  }
 
   // Initialize our service with any options it requires
   app.use('/collections', new Service(app), {
