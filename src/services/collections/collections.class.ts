@@ -3,11 +3,14 @@ import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import { InferAttributes, Op, Sequelize, WhereOptions } from 'sequelize'
 import { SlimUser } from '../../authentication'
 import { QueueService } from '../../internalServices/queue'
-import { FindResponse } from '../../models/common'
+import { PublicFindResponse as FindResponse } from '../../models/common'
 import type { Collection } from '../../models/generated/schemasPublic'
 import { NewCollectionRequest } from '../../models/generated/shared'
 import UserCollection, { IUserCollection } from '../../models/user-collection'
 import type { ImpressoApplication } from '../../types'
+import { SimpleSolrClient } from '../../internalServices/simpleSolr'
+import { SolrNamespaces } from '../../solr'
+import { CollectionIdPair, queryGetItemsCountsForCollections, toPair } from '../../solr/queries/collections'
 
 export type CollectionsPatch = Partial<Omit<Collection, 'uid'>>
 export type CollectionsFindResult = FindResponse<Collection>
@@ -40,17 +43,34 @@ const dbToCollection = (dbModel: IUserCollection): Collection => {
   }
 }
 
+interface CollectionIdPairWithCount extends CollectionIdPair {
+  count: number
+}
+
 export class CollectionsService implements ICollectionsService {
-  protected readonly app: ImpressoApplication
   protected readonly userCollectionDbModel: typeof UserCollection
   protected readonly queueService: QueueService
+  protected readonly solrClient: SimpleSolrClient
 
   constructor(app: ImpressoApplication) {
-    this.app = app
-
     const sequelize = app.get('sequelizeClient') as Sequelize
     this.userCollectionDbModel = UserCollection.initialize(sequelize)
     this.queueService = app.service('queueService')
+    this.solrClient = app.service('simpleSolrClient')
+  }
+
+  async _getCollectionsItemsCount(pairs: CollectionIdPair[]): Promise<CollectionIdPairWithCount[]> {
+    const body = queryGetItemsCountsForCollections(pairs)
+    const response = await this.solrClient.select<unknown, 'collections'>(SolrNamespaces.CollectionItems, {
+      body,
+    })
+
+    return (
+      response.facets?.collections?.buckets?.map(({ val, count }) => {
+        const { userId, collectionId } = toPair(String(val))
+        return { userId, collectionId, count: count ?? 0 } satisfies CollectionIdPairWithCount
+      }) ?? []
+    )
   }
 
   async find(params: CollectionsParams): Promise<CollectionsFindResult> {
@@ -58,7 +78,7 @@ export class CollectionsService implements ICollectionsService {
     const userId = params?.user?.id
 
     if (userId == null) {
-      return { data: [], limit, offset, total: 0 }
+      return { data: [], pagination: { limit, offset, total: 0 } }
     }
 
     // Get from the DB
@@ -80,15 +100,23 @@ export class CollectionsService implements ICollectionsService {
       order: [['lastModifiedDate', 'DESC']],
     })
 
-    // TODO: add counts from Solr
+    // Get collection counts from Solr
+    const collectionPairs: CollectionIdPair[] = rows.map(row => ({
+      userId: String(userId),
+      collectionId: String(row.id),
+    }))
 
-    const data = rows.map(dbToCollection)
+    const countsWithPairs = await this._getCollectionsItemsCount(collectionPairs)
+    const countsMap = new Map(countsWithPairs.map(item => [item.collectionId, item.count]))
+
+    const data = rows.map(row => ({
+      ...dbToCollection(row),
+      totalItems: countsMap.get(String(row.id)) ?? 0,
+    }))
 
     return {
       data,
-      limit,
-      offset,
-      total,
+      pagination: { limit, offset, total },
     }
   }
 
@@ -113,9 +141,18 @@ export class CollectionsService implements ICollectionsService {
 
     const collection = dbToCollection(dbModel)
 
-    // TODO: add count from Solr
+    // Get collection count from Solr
+    const collectionPairs: CollectionIdPair[] = [
+      {
+        userId: String(dbModel.creatorId),
+        collectionId: String(dbModel.id),
+      },
+    ]
 
-    return collection
+    const countsWithPairs = await this._getCollectionsItemsCount(collectionPairs)
+    const totalItems = countsWithPairs[0]?.count ?? 0
+
+    return { ...collection, totalItems }
   }
 
   async create(data: NewCollectionRequest, params?: CollectionsParams): Promise<Collection> {
@@ -175,13 +212,24 @@ export class CollectionsService implements ICollectionsService {
       updateData.status = data.accessLevel === 'public' ? 'PUB' : 'PRI'
     }
 
+    // TODO: publish a job to update all items in the collection if accessLevel changed
+
     await dbModel.update(updateData)
 
     const collection = dbToCollection(dbModel)
 
-    // TODO: add count from Solr
+    // Get collection count from Solr
+    const collectionPairs: CollectionIdPair[] = [
+      {
+        userId: String(dbModel.creatorId),
+        collectionId: String(dbModel.id),
+      },
+    ]
 
-    return collection
+    const countsWithPairs = await this._getCollectionsItemsCount(collectionPairs)
+    const totalItems = countsWithPairs[0]?.count ?? 0
+
+    return { ...collection, totalItems }
   }
 
   async remove(id: Id, params?: CollectionsParams): Promise<Collection> {

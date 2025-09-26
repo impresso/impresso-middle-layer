@@ -75,13 +75,14 @@ app.configure(transport)
 
 // Set up our services (see `services/index.ts`)
 app.configure(authentication)
-app.configure(services)
 
 // configure celery client task manage if celery config is available
 app.configure(celery)
 // queue manager (to replace celery eventually)
 app.configure(queue)
 app.configure(queueWorkerManager)
+
+app.configure(services)
 
 app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs], []))
 
