@@ -1,7 +1,8 @@
-import { HookContext } from '@feathersjs/feathers'
+import { HookContext, HookOptions } from '@feathersjs/feathers'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
-import { AppServices, ImpressoApplication } from '../../types'
+import { ImpressoApplication } from '../../types'
+import { ICollectableItemsService } from './collectable-items.class'
 
 export default {
   around: {
@@ -12,7 +13,7 @@ export default {
       /**
        * Create method returns 202 Accepted with empty body
        */
-      (context: HookContext<ImpressoApplication, AppServices>) => {
+      (context: HookContext<ImpressoApplication, ICollectableItemsService>) => {
         if (context.http) {
           context.http.status = 202
         }
@@ -20,4 +21,4 @@ export default {
       },
     ],
   },
-}
+} as HookOptions<ImpressoApplication, ICollectableItemsService>
