@@ -2,7 +2,7 @@ import { ServiceOptions } from '@feathersjs/feathers'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { optionsDisabledInPublicApi } from '../../hooks/public-api'
 import { ImpressoApplication } from '../../types'
-import { docs } from './collectable-items.schema'
+import { getDocs } from './collectable-items.schema'
 // import { Service } from './collectable-items.class.deprecated'
 // import hooks from './collectable-items.hooks.deprecated'
 import { CollectableItemsService as Service } from './collectable-items.class'
@@ -21,10 +21,10 @@ export default (app: ImpressoApplication) => {
   if (app.get('isPublicApi')) {
     app.use('/collections/:collection_id/items', service, {
       events: [],
-      methods: ['patch'],
+      methods: ['patch', 'create'],
       docs: createSwaggerServiceOptions({
         schemas: {},
-        docs,
+        docs: getDocs(true),
       }),
     } as ServiceOptions)
     app.service('/collections/:collection_id/items').hooks(hooks)
