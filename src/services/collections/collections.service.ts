@@ -1,9 +1,9 @@
 import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { getDocs } from './collections.schema.js'
 import { ImpressoApplication } from '../../types'
-import hooks from './collections.hooks.js'
+import hooks from './collections.hooks.deprecated.js'
 import { ServiceOptions } from '@feathersjs/feathers'
-import { Service } from './collections.class'
+import { Service } from './collections.class.deprecated.js'
 
 // Initializes the `collections` service on path `/collections`
 const init = (app: ImpressoApplication) => {
