@@ -39,6 +39,8 @@ export const getIndexMeta = (indexId: IndexId) => {
       return SolrMappings['tr_passages']
     case 'images':
       return SolrMappings.images
+    case 'collection-items':
+      return SolrMappings['collection_items']
     default:
       throw new Error(`Unknown index: ${indexId}`)
   }
@@ -455,7 +457,7 @@ export class Service {
     const contentItemIdField = ContentItemIdFieldInNamespace[contentItemNamespace]
 
     // original query goes into the join filter which links the actual index with collection_items
-    const joinFilter = `{!join from=${contentItemIdField} to=ci_id fromIndex=${contentItemIndex}} ${sanitizedParams.sq}`
+    const joinFilter = `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq}`
 
     const collectionsQuery = userId
       ? `col_id_s:*_${userId}* OR vis_s:pub` // user collections + public collections
@@ -474,7 +476,7 @@ export class Service {
     )
     const resultFacets = result.facets as Record<string, ISolrResponseFacetDetails>
 
-    const facets = await parseSolrFacets(types, index, facetsQueryPart, resultFacets, this.app)
+    const facets = await parseSolrFacets(types, collectionIndexId, facetsQueryPart, resultFacets, this.app)
     return facets[0]
   }
 }

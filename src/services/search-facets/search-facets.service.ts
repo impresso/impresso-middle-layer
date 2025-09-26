@@ -6,7 +6,9 @@ import { getHooks } from './search-facets.hooks'
 import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
 
-const SupportedIndexes: IndexId[] = Object.keys(SolrMappings).map(key => key.replace('_', '-')) as IndexId[]
+const SupportedIndexes: IndexId[] = Object.keys(SolrMappings)
+  .map(key => key.replace('_', '-'))
+  .filter(key => key !== 'collection-items') as IndexId[]
 
 export default (app: ImpressoApplication) => {
   // Initialize our service with any options it requires

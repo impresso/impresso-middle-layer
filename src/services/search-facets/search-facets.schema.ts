@@ -10,6 +10,10 @@ import {
 
 export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images' | 'collection-items'
 
+const hasCollectionFacet = (index: IndexId): boolean => {
+  return index === 'search' || index === 'images' || index === 'tr-passages'
+}
+
 export const facetTypes: Record<IndexId, string[]> = {
   search: Object.keys(SolrMappings.search.facets),
   'tr-clusters': Object.keys(SolrMappings['tr_clusters'].facets),
@@ -160,7 +164,7 @@ export const getDocs = (index: IndexId, isPublicApi: boolean): ServiceSwaggerOpt
           required: true,
           schema: {
             type: 'string',
-            enum: facetTypes[index],
+            enum: facetTypes[index].concat(hasCollectionFacet(index) ? ['collection'] : []),
           },
           description: 'Type of the facet',
         },
