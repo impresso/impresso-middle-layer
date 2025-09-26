@@ -6,6 +6,7 @@ import type { ImpressoApplication } from '../../types'
 import { SlimUser } from '../../authentication'
 import UserCollection, { IUserCollection } from '../../models/user-collection'
 import { InferAttributes, Op, Sequelize, WhereOptions } from 'sequelize'
+import { NotFound } from '@feathersjs/errors'
 
 export type CollectionsPatch = Partial<Omit<Collection, 'uid'>>
 export type CollectionsFindResult = FindResponse<Collection>
@@ -57,6 +58,8 @@ export class CollectionsService implements ICollectionsService {
       return { data: [], limit, offset, total: 0 }
     }
 
+    // Get from the DB
+
     const where: WhereOptions<InferAttributes<UserCollection>> = {
       creatorId: userId,
       status: { [Op.in]: includePublic ? ['PRI', 'SHA', 'PUB'] : ['PRI'] },
@@ -74,7 +77,7 @@ export class CollectionsService implements ICollectionsService {
       order: [['lastModifiedDate', 'DESC']],
     })
 
-    // TODO: add counts
+    // TODO: add counts from Solr
 
     const data = rows.map(dbToCollection)
 
@@ -86,8 +89,32 @@ export class CollectionsService implements ICollectionsService {
     }
   }
 
-  async get(id: Id, params?: CollectionsParams): Promise<Collection> {
-    throw new Error('Method not implemented.')
+  async get(id: Id, params: CollectionsParams): Promise<Collection> {
+    const userId = params.user?.id
+
+    const dbModel = await this.userCollectionDbModel.findOne({
+      where: {
+        [Op.or]: [
+          ...(userId != null
+            ? [{ id: Number(id), creatorId: userId, status: { [Op.in]: ['PRI', 'SHA', 'PUB'] } }]
+            : []),
+          {
+            id: Number(id),
+            status: { [Op.in]: ['SHA', 'PUB'] },
+          },
+        ],
+      },
+    })
+
+    if (!dbModel) {
+      throw new NotFound('Collection not found')
+    }
+
+    const collection = dbToCollection(dbModel)
+
+    // TODO: add count from Solr
+
+    return collection
   }
 
   async create(data: NewCollectionRequest, params?: CollectionsParams): Promise<Collection> {
