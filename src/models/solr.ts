@@ -11,23 +11,12 @@ import type {
 
 /**
  * IMPORTANT: This field should be kept in sync with the ingestion code.
- * If a new language is added, it should be reflected here.
+ * If a new language is added explicitly as a separate field,
+ * it should be reflected here.
+ * https://github.com/impresso/impresso-solr-config/blob/5c1ef0bd062342329e5b6d1dcbd1ea3d2d231691/impresso2-solrcloud-configsets/cfgset_01_impresso_main/solrconfig.xml#L620
  */
-export type LanguageCode = 'fr' | 'de' | 'en' | 'it' | 'es' | 'hu' | 'pl' | 'pt' | 'nl' | 'tr' | 'br' | 'sw'
-export const SupportedLanguageCodes = [
-  'fr',
-  'de',
-  'en',
-  'it',
-  'es',
-  'hu',
-  'pl',
-  'pt',
-  'nl',
-  'tr',
-  'br',
-  'sw',
-] satisfies LanguageCode[]
+export type LanguageCode = 'fr' | 'de' | 'en' | 'it' | 'es' | 'nl'
+export const SupportedLanguageCodes = ['fr', 'de', 'en', 'it', 'es', 'nl'] satisfies LanguageCode[]
 
 /**
  * JSON Schema to TS generator does not know how to generate

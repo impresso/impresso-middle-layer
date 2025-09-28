@@ -1,7 +1,6 @@
 import { Filter } from 'impresso-jscommons'
-import { uniq, values, groupBy } from 'lodash'
 import { SolrNamespaces } from '../../solr'
-import { sameTypeFiltersToQuery } from '../../util/solr'
+import { filtersToQueryAndVariables } from '../../util/solr'
 import { SelectRequestBody } from '../../internalServices/simpleSolr'
 import { TypeToTypeShorthand } from '../../utils/entity.utils'
 
@@ -33,11 +32,6 @@ const rewriteTypes = (filter: Filter) => {
   return { ...filter, q: newType }
 }
 
-function filtersToSolrQuery(filters: Filter[]) {
-  const filtersGroupsByType = values(groupBy(filters, 'type'))
-  return uniq(filtersGroupsByType.map(f => sameTypeFiltersToQuery(f, SolrNamespaces.Entities))).join(' AND ')
-}
-
 interface BuildQueryParameters {
   filters: Filter[]
   orderBy?: string
@@ -46,8 +40,9 @@ interface BuildQueryParameters {
 }
 
 export function buildSearchEntitiesSolrQuery({ filters, orderBy, limit, offset }: BuildQueryParameters) {
+  const queryBase = filtersToQueryAndVariables(filters.map(rewriteTypes), SolrNamespaces.Entities)
   const request: SelectRequestBody = {
-    query: filters.length > 0 ? filtersToSolrQuery(filters.map(rewriteTypes)) : '*:*',
+    ...queryBase,
     params: {
       hl: true,
       fl: [

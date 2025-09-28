@@ -12,6 +12,7 @@ describe('entities/logic', () => {
 
       assert.deepStrictEqual(result, {
         query: '*:*',
+        filter: [],
         params: {
           hl: true,
           fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
@@ -29,7 +30,8 @@ describe('entities/logic', () => {
         filters,
       })
 
-      assert.equal(result.query, 'filter(t_s:pers) AND entitySuggest:Einstein*')
+      assert.equal(result.query, 'entitySuggest:Einstein*')
+      assert.deepEqual(result.filter, ['t_s:pers'])
       assert.ok((result.query as string).length > 0)
       assert.deepStrictEqual(result.params, {
         hl: true,
@@ -45,6 +47,7 @@ describe('entities/logic', () => {
 
       assert.deepStrictEqual(result, {
         query: '*:*',
+        filter: [],
         params: {
           hl: true,
           fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
@@ -61,6 +64,7 @@ describe('entities/logic', () => {
 
       assert.deepStrictEqual(result, {
         query: '*:*',
+        filter: [],
         params: {
           hl: true,
           fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
@@ -77,6 +81,7 @@ describe('entities/logic', () => {
 
       assert.deepStrictEqual(result, {
         query: '*:*',
+        filter: [],
         params: {
           hl: true,
           fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
@@ -95,6 +100,7 @@ describe('entities/logic', () => {
 
       assert.deepStrictEqual(result, {
         query: '*:*',
+        filter: [],
         params: {
           hl: true,
           fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',

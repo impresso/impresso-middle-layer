@@ -6,27 +6,25 @@ import {
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
 } from '../../src/services/ngram-trends/logic/solrQuery'
+import { SupportedLanguageCodes } from '../../src/models/solr'
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
   it('builds expected payload', () => {
     const payload = unigramTrendsRequestToSolrQuery('Einstein', null, ['country'])
     const expectedPayload = {
       query: '*:*',
+      filter: [],
       limit: 0,
       params: {
         vars: {},
         facet: true,
         'facet.limit': -1,
-        'facet.pivot': [
-          '{!stats=tf_stats_en key=en}meta_year_i',
-          '{!stats=tf_stats_fr key=fr}meta_year_i',
-          '{!stats=tf_stats_de key=de}meta_year_i',
-        ],
-        'stats.field': [
-          "{!tag=tf_stats_en key=tf_stats_en sum=true func}termfreq(content_txt_en,'Einstein')",
-          "{!tag=tf_stats_fr key=tf_stats_fr sum=true func}termfreq(content_txt_fr,'Einstein')",
-          "{!tag=tf_stats_de key=tf_stats_de sum=true func}termfreq(content_txt_de,'Einstein')",
-        ],
+        'facet.pivot': SupportedLanguageCodes.map(langCode => `{!stats=tf_stats_${langCode} key=${langCode}}meta_year_i`).concat([
+          `{!stats=tf_stats_other key=other}meta_year_i`,
+        ]),
+        'stats.field': SupportedLanguageCodes.map(langCode => `{!tag=tf_stats_${langCode} key=tf_stats_${langCode} sum=true func}termfreq(content_txt_${langCode},'Einstein')`).concat([
+          `{!tag=tf_stats_other key=tf_stats_other sum=true func}termfreq(content_txt,'Einstein')`,
+        ]),
         stats: true,
         'json.facet': JSON.stringify({
           country: {
@@ -220,7 +218,8 @@ describe('unigramTrendsRequestToTotalTokensSolrQuery', () => {
     ]
     const payload = unigramTrendsRequestToTotalTokensSolrQuery(filters, 'year')
     const expectedPayload = {
-      query: 'filter(meta_date_dt:[1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z])',
+      query: '*:*',
+      filter: ["meta_date_dt:[1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z]"],
       limit: 0,
       params: {
         vars: {},

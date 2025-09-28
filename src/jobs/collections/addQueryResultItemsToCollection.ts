@@ -31,7 +31,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
 
     const { filters, solrNamespace } = job.data
 
-    const { query, variables } = filtersToQueryAndVariables(filters, solrNamespace)
+    const { query, filter, params } = filtersToQueryAndVariables(filters, solrNamespace)
 
     const solrClient = app.service('simpleSolrClient')
     const queueService = app.service('queueService')
@@ -43,11 +43,12 @@ export const createJobHandler = (app: ImpressoApplication) => {
         body: {
           fields: 'id',
           query,
+          filter,
           offset,
           limit: 10000,
           params: {
             hl: false,
-            vars: variables,
+            ...params,
           },
         },
       })

@@ -1,11 +1,12 @@
 import { readFileSync } from 'fs'
 import YAML from 'yaml'
 import { Filter, FilterPrecision } from '../../models'
-import { SolrFiltersConfiguration } from '../../models/generated/common'
+import { FilterDefinition, SolrFiltersConfiguration } from '../../models/generated/common'
 import { SolrNamespace } from '../../solr'
 import { InvalidArgumentError } from '../error'
 import capitalisedValueFilterBuilder from './filterBuilders/capitalisedValue'
 import { valueBuilder, idValueBuilder, escapeIdValue, unescapeIdValue } from './filterBuilders/value'
+import { SupportedLanguageCodes } from '../../models/solr'
 
 export { escapeIdValue, unescapeIdValue }
 
@@ -43,7 +44,7 @@ const reduceNumericRangeFilters = (filters: Filter[], field: string) => {
   return items.join(' AND ')
 }
 
-const SolrSupportedLanguages = ['en', 'fr', 'de']
+const SolrSupportedLanguages = SupportedLanguageCodes
 
 const fullyEscapeValue = (value: string) => escapeValue(value).replace(/"/g, d => `\\${d}`)
 
@@ -92,6 +93,8 @@ const getStringQueryWithFields = (value: string | null, solrFields: string[], pr
   return items.length > 1 ? `(${statement})` : statement
 }
 
+const catchAllPrefix = (prefix: string) => prefix.slice(0, -1)
+
 /**
  * String type filter handler
  * @param {import('../../models').Filter[]} filters
@@ -105,7 +108,8 @@ const reduceStringFiltersToSolr = (filters: Filter[], field: string | string[] |
 
     if (typeof field === 'string') fields = [field]
     else if (Array.isArray(field)) fields = field
-    else if (field.prefix != null) fields = languages.map(lang => `${field.prefix}${lang}`)
+    else if (field.prefix != null)
+      fields = languages.map(lang => `${field.prefix}${lang}`).concat([`${catchAllPrefix(field.prefix)}`])
     else throw new InvalidArgumentError(`Unknown type of Solr field: ${JSON.stringify(field)}`)
 
     let queryList: (string | null)[] = [null]
@@ -256,7 +260,8 @@ const reduceRegexFiltersToSolr = (filters: Filter[], field: string | string[] | 
   let fields = []
   if (typeof field === 'string') fields = [field]
   else if (Array.isArray(field)) fields = field
-  else if (field.prefix != null) fields = SolrSupportedLanguages.map(lang => `${field.prefix}${lang}`)
+  else if (field.prefix != null)
+    fields = SolrSupportedLanguages.map(lang => `${field.prefix}${lang}`).concat([`${catchAllPrefix(field.prefix)}`])
   else throw new InvalidArgumentError(`Unknown type of Solr field: ${JSON.stringify(field)}`)
 
   return filters
@@ -344,6 +349,11 @@ const FiltersHandlers = Object.freeze({
   noop: noopHandler,
 })
 
+interface FilterToSolrResult {
+  query: string
+  destination: FilterDefinition['destination']
+}
+
 /**
  * Convert a set of filters of the same type to a SOLR query string.
  * Types are defined in `solrFilters.yml` for the corresponding namespace
@@ -351,7 +361,7 @@ const FiltersHandlers = Object.freeze({
  * @param {import('../../models').Filter[]} filters list of filters of the same type.
  * @param {string} solrNamespace namespace (index) this filter type belongs to.
  *
- * @returns {string} a SOLR query string that can be wrapped into a `filter()` statement.
+ * @returns {FilterToSolrResult} a SOLR query string that can be wrapped into a `filter()` statement and the destination
  */
 export const filtersToSolr = (filters: Filter[], solrNamespace: SolrNamespace) => {
   if (filters.length < 1) throw new InvalidArgumentError('At least one filter must be provided')
@@ -370,5 +380,8 @@ export const filtersToSolr = (filters: Filter[], solrNamespace: SolrNamespace) =
   const handler = FiltersHandlers[filterRules.rule as keyof typeof FiltersHandlers]
   if (handler == null) throw new InvalidArgumentError(`Could not find handler for rule ${filterRules.rule}`)
 
-  return handler(filters, filterRules.field as any, filterRules.rule)
+  return {
+    query: handler(filters, filterRules.field as any, filterRules.rule),
+    destination: filterRules.destination ?? 'query',
+  }
 }

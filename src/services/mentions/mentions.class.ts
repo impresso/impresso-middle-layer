@@ -81,7 +81,8 @@ export class Service {
 
     const contentItems = await this.app.service('content-items').findInternal({
       query: {
-        sq: queryAndVars.query,
+        sq: queryAndVars.query as string,
+        sfq: queryAndVars.filter,
       },
     })
     const contentItemsLookup = groupBy(contentItems.data, d => d.id)

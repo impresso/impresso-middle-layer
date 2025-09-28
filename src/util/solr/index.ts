@@ -2,13 +2,9 @@ import assert from 'assert'
 import { groupBy, includes, uniq, values } from 'lodash'
 import { Filter } from '../../models'
 import { SolrNamespace, SolrNamespaces } from '../../solr'
-import { escapeIdValue, filtersToSolr } from './filterReducers'
+import { filtersToSolr } from './filterReducers'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '../../models/solr'
-
-/**
- * Languages that have content indexes in Solr.
- */
-export const ContentLanguages = ['en', 'fr', 'de']
+import { SelectRequestBody } from '../../internalServices/simpleSolr'
 
 /**
  * Fields names that should not be wrapped into `filter(...)` when
@@ -40,36 +36,43 @@ const reduceFiltersToVars = (filters: Filter[]) =>
   }, [] as string[])
 
 /**
+ * @deprecated use `filtersToQueryAndVariables`
  * Return a section of the Solr query based on the filters **of the same type**.
- * @param {import('../../models').Filter[]} filters a list of
- *        filters (`src/schema/search/filter.json`).
+ * @param {Filter[]} filters a list of filters (`src/schema/search/filter.json`).
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  *
  * @return {string} a Solr query.
  */
-export function sameTypeFiltersToQuery(filters: Filter[], solrNamespace: SolrNamespace = SolrNamespaces.Search) {
+function sameTypeFiltersToQuery(filters: Filter[], solrNamespace: SolrNamespace = SolrNamespaces.Search) {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
 
   const filtersTypes = uniq(filters.map(f => f.type))
   assert.equal(filtersTypes.length, 1, `Filters must be of the same type but they are of: ${filtersTypes.join(', ')}`)
 
   const type = filtersTypes[0]
-  const statement = filtersToSolr(filters, solrNamespace)
+  const { query: statement, destination } = filtersToSolr(filters, solrNamespace)
 
   return includes(NON_FILTERED_FIELDS, type) ? statement : `filter(${statement})`
 }
 
-export const filtersToSolrQueries = (filters: Filter[], namespace: SolrNamespace) => {
+/**
+ * @deprecated use `filtersToQueryAndVariables`
+ */
+const filtersToSolrQueries = (filters: Filter[], namespace: SolrNamespace) => {
   const filtersGroupsByType = values(groupBy(filters, 'type'))
   return uniq(filtersGroupsByType.map(f => sameTypeFiltersToQuery(f, namespace)))
 }
 
 /**
- * @typedef SolrQueryAndVariables
- * @property {string} query Solr query string (`q` field)
- * @property {Object.<string, string>} variables variables that are referenced in `query`
+ * The fields that can be constructed using filter reducers:
+ * - `query` - main query
+ * - `filter` - filter query
  */
+type SolrQueryBase = Pick<SelectRequestBody, 'query' | 'filter' | 'params'>
 
+/**
+ * TODO: explain why it's needed and why it does `substr(4)`
+ */
 const wrapAsFilter = (q: string) => {
   if (q.startsWith('NOT ')) {
     return `NOT filter(${q.substr(4)})`
@@ -81,36 +84,46 @@ const wrapAsFilter = (q: string) => {
  * Return Solr query string and referenced variables for a set of filters.
  * @param {Array<object>} filters a list of filters of type `src/schema/search/filter.json`.
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
- * @return {SolrQueryAndVariables}
  */
-export function filtersToQueryAndVariables(filters: Filter[], solrNamespace: SolrNamespace = SolrNamespaces.Search) {
+export function filtersToQueryAndVariables(
+  filters: Filter[],
+  solrNamespace: SolrNamespace = SolrNamespaces.Search
+): SolrQueryBase {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
 
   const filtersGroupedByType = groupBy(filters, 'type')
 
-  /** @type {Object.<string, string>} */
-  const variables: Record<string, string> = {}
+  const variables: Record<string, string | number | boolean> = {}
   const queries: string[] = []
+  const solrFilters: string[] = []
 
   Object.keys(filtersGroupedByType).forEach(key => {
-    if (NON_FILTERED_FIELDS.indexOf(key) !== -1) {
-      queries.push(filtersToSolr(filtersGroupedByType[key], solrNamespace))
+    const { query: baseSolrQueryFilter, destination } = filtersToSolr(filtersGroupedByType[key], solrNamespace)
+    const filterQuery = NON_FILTERED_FIELDS.includes(key) ? baseSolrQueryFilter : wrapAsFilter(baseSolrQueryFilter)
+
+    if (destination === 'query') {
+      queries.push(filterQuery)
+    } else if (destination === 'filter') {
+      solrFilters.push(baseSolrQueryFilter)
     } else {
-      queries.push(wrapAsFilter(filtersToSolr(filtersGroupedByType[key], solrNamespace)))
+      throw new Error(`Unknown filter destination: ${destination}`)
     }
-    if (SOLR_FILTER_DPF[key]) {
-      // add payload variable. E.g.: payload(topics_dpf,tmGDL_tp04_fr)
-      reduceFiltersToVars(filtersGroupedByType[key]).forEach(d => {
-        const l = Object.keys(variables).length
-        const field = SOLR_FILTER_DPF[key]
-        variables[`v${l}`] = `payload(${field},${escapeIdValue(d)})`
-      })
-    }
+
+    // NOTE: very likely not used in the code
+    // if (SOLR_FILTER_DPF[key]) {
+    //   // add payload variable. E.g.: payload(topics_dpf,tmGDL_tp04_fr)
+    //   reduceFiltersToVars(filtersGroupedByType[key]).forEach(d => {
+    //     const l = Object.keys(variables).length
+    //     const field = SOLR_FILTER_DPF[key]
+    //     variables[`v${l}`] = `payload(${field},${escapeIdValue(d)})`
+    //   })
+    // }
   })
 
   return {
     query: queries.length ? queries.join(' AND ') : '*:*',
-    variables,
+    filter: solrFilters,
+    params: variables,
   }
 }
 

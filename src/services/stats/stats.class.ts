@@ -119,12 +119,13 @@ function buildSolrRequest(facet: any, index: any, domain: any, stats: any, filte
   if (domainDetails == null) throw new Error(`Domain ${domain} not found in index ${index}`)
   if (facetType == null) throw new Error(`Facet ${facet} not found in index ${index}`)
 
-  const { query } = filtersToQueryAndVariables(filters, index)
+  const { query, filter } = filtersToQueryAndVariables(filters, index)
   // add
   const collapse = groupby ? { fq: `{!collapse field=${groupby}}` } : null
 
   return {
     query,
+    filter,
     limit: 0,
     params: { hl: false, ...collapse },
     facet: {
@@ -261,10 +262,11 @@ export class Stats {
       'statsField:',
       statsField
     )
-    const { query } = filtersToQueryAndVariables(filters, index)
+    const { query, filter } = filtersToQueryAndVariables(filters, index)
     const result = await this.solr.select(index, {
       body: {
         query,
+        filter,
         limit: 0,
         params: { hl: false, stats: true, 'stats.field': statsField },
       },

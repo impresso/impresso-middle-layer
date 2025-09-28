@@ -92,7 +92,7 @@ export async function getItemsFromSolrResponse(
   const { fragments: fragmentsIndex, highlighting: highlightingIndex } = response
 
   const filters = [{ type: 'uid', q: uids }]
-  const { query } = filtersToQueryAndVariables(filters)
+  const { query, filter } = filtersToQueryAndVariables(filters)
 
   const articlesRequest = {
     user,
@@ -100,7 +100,8 @@ export async function getItemsFromSolrResponse(
     query: {
       limit: uids.length,
       filters,
-      sq: query,
+      sq: query as string,
+      sfq: filter,
     },
   }
 

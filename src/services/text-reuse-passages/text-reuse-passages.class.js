@@ -28,7 +28,7 @@ export class TextReusePassages {
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query.filters
     const [orderByField, orderByDescending] = parseOrderBy(params.query.order_by, OrderByKeyToField)
-    const { query } = filtersToQueryAndVariables(filters, this.solr.namespaces.TextReusePassages, {
+    const { query, filter } = filtersToQueryAndVariables(filters, this.solr.namespaces.TextReusePassages, {
       q: '*:*',
     })
     const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
@@ -52,6 +52,7 @@ export class TextReusePassages {
       .select(this.solr.namespaces.TextReusePassages, {
         body: {
           query,
+          filter,
           fields: fl,
           limit: params.query.limit,
           offset: params.query.offset,

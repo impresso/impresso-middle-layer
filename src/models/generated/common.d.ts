@@ -624,6 +624,10 @@ export interface FilterDefinition {
    * The name of the rule to parse the filter value.
    */
   rule: string;
+  /**
+   * Primary application destination of the filter: main query or filters. It's 'query' by default.
+   */
+  destination?: "query" | "filter";
 }
 
 

@@ -133,7 +133,7 @@ export interface FindOptions {
 
     // things needed by SolService.find
     sq?: string
-    sfq?: string
+    sfq?: string | string[]
     limit?: number
     offset?: number
     facets?: Record<string, any>

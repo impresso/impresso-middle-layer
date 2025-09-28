@@ -91,10 +91,18 @@ export type ContentItemFacet = Extract<
   | 'partner'
   | 'dataDomain'
   | 'copyright'
+  | 'collection'
 >
 
 const searchSolrMappings = {
   facets: {
+    // collections are faceted in "collection items" index only
+    // but needed here for the system to understand that "collection"
+    // is a valid filter and facet type
+    collection: {
+      type: 'terms',
+      field: '__placeholder_for_a_virtual_field__',
+    },
     daterange: {
       type: 'range',
       field: 'meta_date_dt',
@@ -342,11 +350,19 @@ export type TextReusePassageFacet = Extract<
   | 'nag'
   | 'language'
   | 'country'
+  | 'collection'
 > &
   'connectedClusters'
 
 const trPassagesSolrMappings = {
   facets: {
+    // collections are faceted in "collection items" index only
+    // but needed here for the system to understand that "collection"
+    // is a valid filter and facet type
+    collection: {
+      type: 'terms',
+      field: '__placeholder_for_a_virtual_field__',
+    },
     newspaper: {
       type: 'terms',
       field: 'meta_journal_s',

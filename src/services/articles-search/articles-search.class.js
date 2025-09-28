@@ -29,10 +29,10 @@ export class ArticlesSearch {
   async create({ relevanceContext = [], filters = [], pagination = {} }, params) {
     const items = relevanceContext == null ? [] : relevanceContext
 
-    const { query } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+    const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
     const relevanceScoreVariable = relevanceContextItemsToSolrFormula(items)
 
-    const solrQuery = buildSolrQuery(query, relevanceScoreVariable, pagination)
+    const solrQuery = buildSolrQuery(query, filter, relevanceScoreVariable, pagination)
 
     const result = await this.solr.select(SolrNamespaces.Search, { body: solrQuery })
 

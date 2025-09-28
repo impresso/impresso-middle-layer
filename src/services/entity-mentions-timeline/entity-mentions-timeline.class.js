@@ -1,15 +1,10 @@
 import { uniq, values, groupBy, get } from 'lodash'
 import { SolrNamespaces } from '../../solr'
-import { sameTypeFiltersToQuery } from '../../util/solr'
+import { filtersToQueryAndVariables } from '../../util/solr'
 
 /**
  * @typedef {import('../../models').Filter} Filter
  */
-
-function filtersToSolrQuery(filters) {
-  const filtersGroupsByType = values(groupBy(filters, 'type'))
-  return uniq(filtersGroupsByType.map(f => sameTypeFiltersToQuery(f, SolrNamespaces.Search))).join(' AND ')
-}
 
 const Resolution = Object.freeze({
   Year: 'year',
@@ -111,7 +106,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
   })
 
   return {
-    query: filters.length > 0 ? filtersToSolrQuery(filters) : '*:*',
+    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search),
     limit: 0,
     params: {
       hl: false,
@@ -144,7 +139,7 @@ function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution
   }
 
   return {
-    query: filters.length > 0 ? filtersToSolrQuery(filters) : '*:*',
+    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search),
     limit: 0,
     params: {
       hl: false,
