@@ -3,6 +3,7 @@ import { SolrNamespaces } from '../../solr'
 import { filtersToQueryAndVariables } from '../../util/solr'
 import { SelectRequestBody } from '../../internalServices/simpleSolr'
 import { TypeToTypeShorthand } from '../../utils/entity.utils'
+import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
 
 const SolrFields = Object.freeze({
   Id: 'id',
@@ -39,8 +40,15 @@ interface BuildQueryParameters {
   offset?: number
 }
 
-export function buildSearchEntitiesSolrQuery({ filters, orderBy, limit, offset }: BuildQueryParameters) {
-  const queryBase = filtersToQueryAndVariables(filters.map(rewriteTypes), SolrNamespaces.Entities)
+export function buildSearchEntitiesSolrQuery(
+  { filters, orderBy, limit, offset }: BuildQueryParameters,
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+) {
+  const queryBase = filtersToQueryAndVariables(
+    filters.map(rewriteTypes),
+    SolrNamespaces.Entities,
+    solrNamespacesConfiguration
+  )
   const request: SelectRequestBody = {
     ...queryBase,
     params: {

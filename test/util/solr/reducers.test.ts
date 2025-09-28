@@ -3,15 +3,15 @@ import { filtersToSolr, escapeValue, escapeIdValue, unescapeIdValue } from '../.
 import { SolrNamespaces } from '../../../src/solr'
 import { filtersToQueryAndVariables } from '../../../src/util/solr/index'
 import { InvalidArgumentError } from '../../../src/util/error'
-import { Filter } from '../../../src/models'
+import { Filter, FilterContext, FilterOperator } from '../../../src/models'
 
 describe('filtersToSolr', () => {
   it('escapes parentheses', () => {
     const filter = {
       type: 'string',
       q: 'H. Allen Smith (represen',
-    }
-    const { query } = filtersToSolr([filter], SolrNamespaces.Entities)
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [])
     const expectedQuery =
       '(entitySuggest:H. AND entitySuggest:Allen AND entitySuggest:Smith AND entitySuggest:represen*)'
     assert.strictEqual(query, expectedQuery)
@@ -21,9 +21,9 @@ describe('filtersToSolr', () => {
     const filter = {
       type: 'booomooo',
       q: '',
-    }
+    } satisfies Filter
     assert.throws(
-      () => filtersToSolr([filter], SolrNamespaces.Search),
+      () => filtersToSolr([filter], SolrNamespaces.Search, []),
       new InvalidArgumentError(`Unknown filter type "${filter.type}" in namespace "${SolrNamespaces.Search}"`)
     )
   })
@@ -31,8 +31,8 @@ describe('filtersToSolr', () => {
   it('handles "minLengthOne" filter', () => {
     const filter = {
       type: 'hasTextContents',
-    }
-    const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
     assert.equal(query, 'content_length_i:[1 TO *]')
   })
 
@@ -41,8 +41,8 @@ describe('filtersToSolr', () => {
       const filter = {
         q: '1 TO 10',
         type: 'ocrQuality',
-      }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'ocrqa_f:[1 TO 10]')
     })
 
@@ -50,8 +50,8 @@ describe('filtersToSolr', () => {
       const filter = {
         q: ['2', '20'],
         type: 'ocrQuality',
-      }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'ocrqa_f:[2 TO 20]')
     })
 
@@ -61,7 +61,7 @@ describe('filtersToSolr', () => {
         type: 'ocrQuality',
       }
       assert.throws(
-        () => filtersToSolr([filter], SolrNamespaces.Search),
+        () => filtersToSolr([filter], SolrNamespaces.Search, []),
         new InvalidArgumentError(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`)
       )
     })
@@ -70,7 +70,7 @@ describe('filtersToSolr', () => {
       const filter = {
         type: 'ocrQuality',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'ocrqa_f:*')
     })
 
@@ -80,7 +80,7 @@ describe('filtersToSolr', () => {
         type: 'ocrQuality',
       }
       assert.throws(
-        () => filtersToSolr([filter], SolrNamespaces.Search),
+        () => filtersToSolr([filter], SolrNamespaces.Search, []),
         new InvalidArgumentError(`"numericRange" filter rule: unknown values encountered in "q": ${filter.q}`)
       )
     })
@@ -90,7 +90,7 @@ describe('filtersToSolr', () => {
     const filter = {
       type: 'isFront',
     }
-    const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+    const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
     assert.equal(query, 'front_b:1')
   })
 
@@ -100,7 +100,7 @@ describe('filtersToSolr', () => {
         q: 'moo',
         type: 'title',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(title_txt_fr:moo OR title_txt_de:moo OR title_txt_en:moo OR title_txt_it:moo OR title_txt_es:moo OR title_txt_nl:moo OR title_txt:moo)'
@@ -112,7 +112,7 @@ describe('filtersToSolr', () => {
         q: ['foo'],
         type: 'title',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(title_txt_fr:foo OR title_txt_de:foo OR title_txt_en:foo OR title_txt_it:foo OR title_txt_es:foo OR title_txt_nl:foo OR title_txt:foo)'
@@ -125,7 +125,7 @@ describe('filtersToSolr', () => {
         context: 'include',
         q: '"ministre portugais"',
       } satisfies Filter
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais" OR content_txt_en:"ministre portugais" OR content_txt_it:"ministre portugais" OR content_txt_es:"ministre portugais" OR content_txt_nl:"ministre portugais" OR content_txt:"ministre portugais")'
@@ -138,7 +138,7 @@ describe('filtersToSolr', () => {
         context: 'include',
         q: '"ministre "portugais"',
       } satisfies Filter
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         `(content_txt_fr:"ministre \\"portugais" OR content_txt_de:"ministre \\"portugais" OR content_txt_en:"ministre \\"portugais" OR content_txt_it:"ministre \\"portugais" OR content_txt_es:"ministre \\"portugais" OR content_txt_nl:"ministre \\"portugais" OR content_txt:"ministre \\"portugais")`
@@ -151,7 +151,7 @@ describe('filtersToSolr', () => {
         context: 'include',
         q: ['"ministre portugais"', '"ministre italien"'],
       } satisfies Filter
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         // eslint-ignore-next-line
@@ -163,7 +163,7 @@ describe('filtersToSolr', () => {
       const filter = {
         type: 'title',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(title_txt_fr:* OR title_txt_de:* OR title_txt_en:* OR title_txt_it:* OR title_txt_es:* OR title_txt_nl:* OR title_txt:*)'
@@ -175,7 +175,7 @@ describe('filtersToSolr', () => {
         type: 'title',
         q: '',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(title_txt_fr:* OR title_txt_de:* OR title_txt_en:* OR title_txt_it:* OR title_txt_es:* OR title_txt_nl:* OR title_txt:*)'
@@ -189,7 +189,7 @@ describe('filtersToSolr', () => {
         q: [],
         precision: 'exact',
       } satisfies Filter
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(title_txt_fr:* OR title_txt_de:* OR title_txt_en:* OR title_txt_it:* OR title_txt_es:* OR title_txt_nl:* OR title_txt:*)'
@@ -203,7 +203,7 @@ describe('filtersToSolr', () => {
         q: ['', ''],
         precision: 'exact',
       } satisfies Filter
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(title_txt_fr:* OR title_txt_de:* OR title_txt_en:* OR title_txt_it:* OR title_txt_es:* OR title_txt_nl:* OR title_txt:*)'
@@ -217,7 +217,7 @@ describe('filtersToSolr', () => {
         q: '1918 TO 2018',
         type: 'daterange',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'meta_date_dt:[1918-01-01T00:00:00Z TO 2018-01-01T23:59:59Z]')
     })
 
@@ -226,7 +226,7 @@ describe('filtersToSolr', () => {
         q: '1918-02 TO 2018-03',
         type: 'daterange',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'meta_date_dt:[1918-02-01T00:00:00Z TO 2018-03-01T23:59:59Z]')
     })
 
@@ -235,7 +235,7 @@ describe('filtersToSolr', () => {
         q: '1857-01-01T00:00:00Z TO 2014-12-31T23:59:59',
         type: 'daterange',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]')
     })
 
@@ -244,7 +244,7 @@ describe('filtersToSolr', () => {
         q: '1857-01-01 TO 2014-12-31',
         type: 'daterange',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59Z]')
     })
 
@@ -253,7 +253,7 @@ describe('filtersToSolr', () => {
         q: ['1857-01-01T00:00:00Z TO 2014-12-31T23:59:59'],
         type: 'daterange',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]')
     })
 
@@ -262,7 +262,7 @@ describe('filtersToSolr', () => {
         q: ['1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z', '1945-01-01T00:00:00Z TO 1946-01-01T00:00:00Z'],
         type: 'daterange',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z] OR meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T23:59:59Z])'
@@ -274,7 +274,7 @@ describe('filtersToSolr', () => {
         q: ['1918', '2018'],
         type: 'daterange',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'meta_date_dt:[1918-01-01T00:00:00Z TO 2018-01-01T23:59:59Z]')
     })
 
@@ -282,7 +282,7 @@ describe('filtersToSolr', () => {
       const filter = {
         type: 'daterange',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'meta_date_dt:*')
     })
 
@@ -292,7 +292,7 @@ describe('filtersToSolr', () => {
         type: 'daterange',
       }
       assert.throws(
-        () => filtersToSolr([filter], SolrNamespaces.Search),
+        () => filtersToSolr([filter], SolrNamespaces.Search, []),
         new InvalidArgumentError(`"dateRange" filter rule: unknown value encountered in "q": ${filter.q}`)
       )
     })
@@ -303,7 +303,7 @@ describe('filtersToSolr', () => {
         type: 'daterange',
       }
       assert.throws(
-        () => filtersToSolr([filter], SolrNamespaces.Search),
+        () => filtersToSolr([filter], SolrNamespaces.Search, []),
         new InvalidArgumentError(`"dateRange" filter rule: array "q" must have exactly 2 elements: ${filter.q}`)
       )
     })
@@ -315,7 +315,7 @@ describe('filtersToSolr', () => {
         q: 'en',
         type: 'language',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'lg_s:en')
     })
 
@@ -323,7 +323,7 @@ describe('filtersToSolr', () => {
       const filter = {
         type: 'language',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'lg_s:*')
     })
 
@@ -332,7 +332,7 @@ describe('filtersToSolr', () => {
         q: ['en', 'fr'],
         type: 'language',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, '(lg_s:en OR lg_s:fr)')
     })
 
@@ -341,7 +341,7 @@ describe('filtersToSolr', () => {
         q: ['ab', 'cd'],
         type: 'mention',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, '((pers_mentions:ab OR loc_mentions:ab) OR (pers_mentions:cd OR loc_mentions:cd))')
     })
 
@@ -350,8 +350,8 @@ describe('filtersToSolr', () => {
         q: ['e-a', 'e-b'],
         type: 'entity',
         op: 'AND',
-      }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '((pers_entities_dpfs:e-a OR loc_entities_dpfs:e-a) AND (pers_entities_dpfs:e-b OR loc_entities_dpfs:e-b))'
@@ -363,7 +363,7 @@ describe('filtersToSolr', () => {
         q: [],
         type: 'mention',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, '(pers_mentions:* OR loc_mentions:*)')
     })
 
@@ -372,7 +372,7 @@ describe('filtersToSolr', () => {
         type: 'language',
         q: '',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'lg_s:*')
     })
 
@@ -381,8 +381,8 @@ describe('filtersToSolr', () => {
         type: 'language',
         q: 'en',
         context: 'exclude',
-      }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'NOT lg_s:en')
     })
 
@@ -392,8 +392,8 @@ describe('filtersToSolr', () => {
         q: 'tm-de-all-v2.0_tp23_de',
         context: 'exclude',
         op: 'OR',
-      }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'NOT topics_dpfs:tm-de-all-v2.0_tp23_de')
     })
 
@@ -402,8 +402,8 @@ describe('filtersToSolr', () => {
         type: 'language',
         q: ['en', 'de'],
         context: 'exclude',
-      }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(query, 'NOT (lg_s:en OR lg_s:de)')
     })
   })
@@ -414,7 +414,7 @@ describe('filtersToSolr', () => {
         q: 'moo',
         type: 'regex',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(content_txt_fr:/moo/ OR content_txt_de:/moo/ OR content_txt_en:/moo/ OR content_txt_it:/moo/ OR content_txt_es:/moo/ OR content_txt_nl:/moo/ OR content_txt:/moo/)'
@@ -426,7 +426,7 @@ describe('filtersToSolr', () => {
         q: ['foo'],
         type: 'regex',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(content_txt_fr:/foo/ OR content_txt_de:/foo/ OR content_txt_en:/foo/ OR content_txt_it:/foo/ OR content_txt_es:/foo/ OR content_txt_nl:/foo/ OR content_txt:/foo/)'
@@ -437,7 +437,7 @@ describe('filtersToSolr', () => {
       const filter = {
         type: 'regex',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(content_txt_fr:/.*/ OR content_txt_de:/.*/ OR content_txt_en:/.*/ OR content_txt_it:/.*/ OR content_txt_es:/.*/ OR content_txt_nl:/.*/ OR content_txt:/.*/)'
@@ -449,7 +449,7 @@ describe('filtersToSolr', () => {
         type: 'regex',
         q: '',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(content_txt_fr:/.*/ OR content_txt_de:/.*/ OR content_txt_en:/.*/ OR content_txt_it:/.*/ OR content_txt_es:/.*/ OR content_txt_nl:/.*/ OR content_txt:/.*/)'
@@ -461,7 +461,7 @@ describe('filtersToSolr', () => {
         q: [],
         type: 'regex',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
       assert.equal(
         query,
         '(content_txt_fr:/.*/ OR content_txt_de:/.*/ OR content_txt_en:/.*/ OR content_txt_it:/.*/ OR content_txt_es:/.*/ OR content_txt_nl:/.*/ OR content_txt:/.*/)'
@@ -476,7 +476,7 @@ describe('filtersToSolr', () => {
         q: 'person',
         type: 'type',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Entities)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [])
       assert.equal(query, 't_s:Person')
     })
 
@@ -485,7 +485,7 @@ describe('filtersToSolr', () => {
         q: ['person', 'location'],
         type: 'type',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Entities)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [])
       assert.equal(query, '(t_s:Person OR t_s:Location)')
     })
 
@@ -493,7 +493,7 @@ describe('filtersToSolr', () => {
       const filter = {
         type: 'type',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Entities)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [])
       assert.equal(query, 't_s:*')
     })
 
@@ -502,7 +502,7 @@ describe('filtersToSolr', () => {
         q: [],
         type: 'type',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Entities)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [])
       assert.equal(query, 't_s:*')
     })
   })
@@ -513,7 +513,7 @@ describe('filtersToSolr', () => {
         q: 'Jacques Chira',
         type: 'string',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Entities)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [])
       assert.equal(query, '(entitySuggest:Jacques AND entitySuggest:Chira*)')
     })
     it('with unigram', () => {
@@ -521,7 +521,7 @@ describe('filtersToSolr', () => {
         q: 'Jacques ',
         type: 'string',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Entities)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [])
       assert.equal(query, 'entitySuggest:Jacques*')
     })
     it('with array', () => {
@@ -529,7 +529,7 @@ describe('filtersToSolr', () => {
         q: ['Jacques Chirac', 'Foo Bar'],
         type: 'string',
       }
-      const { query } = filtersToSolr([filter], SolrNamespaces.Entities)
+      const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [])
       assert.equal(
         query,
         '((entitySuggest:Jacques AND entitySuggest:Chirac*) OR (entitySuggest:Foo AND entitySuggest:Bar*))'
@@ -542,9 +542,154 @@ describe('filtersToSolr', () => {
       type: 'person',
       q: 'aida-0001-50-Poseidon_(film)',
     }
-    const { query } = filtersToSolr([filter], SolrNamespaces.Search)
+    const { query } = filtersToSolr([filter], SolrNamespaces.Search, [])
     const expectedQuery = 'pers_entities_dpfs:aida-0001-50-Poseidon_$28$film$29$'
     assert.strictEqual(query, expectedQuery)
+  })
+
+  describe('handles "joinCollection" filter', () => {
+    const mockSolrNamespaces = [
+      {
+        namespaceId: 'collection_items',
+        index: 'collection-items',
+        serverId: 'mock-server',
+      },
+    ]
+
+    it('with single collection ID (include)', () => {
+      const filter = {
+        type: 'collection',
+        q: 'col-123',
+        context: 'include',
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col-123')
+    })
+
+    it('with multiple collection IDs (include, OR)', () => {
+      const filter = {
+        type: 'collection',
+        q: ['col-123', 'col-456'],
+        context: 'include' as FilterContext,
+        op: 'OR',
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col-123 OR col_id_s:col-456')
+    })
+
+    it('with multiple collection IDs (include, AND)', () => {
+      const filter = {
+        type: 'collection',
+        q: ['col-123', 'col-456'],
+        context: 'include' as FilterContext,
+        op: 'AND',
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col-123 AND col_id_s:col-456')
+    })
+
+    it('with single collection ID (exclude)', () => {
+      const filter = {
+        type: 'collection',
+        q: 'col-123',
+        context: 'exclude' as FilterContext,
+      }
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}NOT col_id_s:col-123')
+    })
+
+    it('with multiple collection IDs (exclude, OR)', () => {
+      const filter = {
+        type: 'collection',
+        q: ['col-123', 'col-456'],
+        context: 'exclude' as FilterContext,
+        op: 'OR' as FilterOperator,
+      }
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(
+        query,
+        '{!join from=ci_id_s to=id fromIndex=collection-items}NOT col_id_s:col-123 OR NOT col_id_s:col-456'
+      )
+    })
+
+    it('with collection ID containing special characters', () => {
+      const filter = {
+        type: 'collection',
+        q: 'col_(special)',
+        context: 'include' as FilterContext,
+      }
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col_(special)')
+    })
+
+    it('throws error when collection-items namespace not found', () => {
+      const filter = {
+        type: 'collection',
+        q: 'col-123',
+        context: 'include' as FilterContext,
+      }
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search, []),
+        new InvalidArgumentError(
+          'Could not find Solr namespace configuration for "collection_items" required for "joinCollection" filter'
+        )
+      )
+    })
+
+    it('throws error when no collection IDs provided', () => {
+      const filter = {
+        type: 'collection',
+        context: 'include' as FilterContext,
+      }
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces),
+        new InvalidArgumentError('At least one collection ID must be provided for "joinCollection" filter')
+      )
+    })
+
+    it('with mixed include and exclude filters', () => {
+      const filters = [
+        {
+          type: 'collection',
+          q: 'col-include',
+          context: 'include' as FilterContext,
+          op: 'AND' as FilterOperator,
+        },
+        {
+          type: 'collection',
+          q: 'col-exclude',
+          context: 'exclude' as FilterContext,
+          op: 'AND' as FilterOperator,
+        },
+      ]
+      const { query } = filtersToSolr(filters, SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(
+        query,
+        '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col-include AND NOT col_id_s:col-exclude'
+      )
+    })
+
+    it('with complex mixed AND/OR operations', () => {
+      const filters = [
+        {
+          type: 'collection',
+          q: ['col-and-1', 'col-and-2'],
+          context: 'include' as FilterContext,
+          op: 'AND' as FilterOperator,
+        },
+        {
+          type: 'collection',
+          q: ['col-or-1', 'col-or-2'],
+          context: 'include' as FilterContext,
+          op: 'OR' as FilterOperator,
+        },
+      ]
+      const { query } = filtersToSolr(filters, SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(
+        query,
+        '{!join from=ci_id_s to=id fromIndex=collection-items}(col_id_s:col-and-1 AND col_id_s:col-and-2) AND (col_id_s:col-or-1 OR col_id_s:col-or-2)'
+      )
+    })
   })
 })
 
@@ -560,7 +705,7 @@ describe('filtersToQueryAndVariables', () => {
           q: 'tm-de-all-v2.0_tp23_de',
         },
       ] satisfies Filter[]
-      const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+      const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [])
       assert.strictEqual(result.query, 'NOT filter(topics_dpfs:tm-de-all-v2.0_tp23_de)')
       assert.deepEqual(result.filter, ['meta_journal_s:SGZ'])
     })

@@ -5,6 +5,7 @@ import { SolrNamespace, SolrNamespaces } from '../../solr'
 import { filtersToSolr } from './filterReducers'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '../../models/solr'
 import { SelectRequestBody } from '../../internalServices/simpleSolr'
+import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
 
 /**
  * Fields names that should not be wrapped into `filter(...)` when
@@ -36,34 +37,6 @@ const reduceFiltersToVars = (filters: Filter[]) =>
   }, [] as string[])
 
 /**
- * @deprecated use `filtersToQueryAndVariables`
- * Return a section of the Solr query based on the filters **of the same type**.
- * @param {Filter[]} filters a list of filters (`src/schema/search/filter.json`).
- * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
- *
- * @return {string} a Solr query.
- */
-function sameTypeFiltersToQuery(filters: Filter[], solrNamespace: SolrNamespace = SolrNamespaces.Search) {
-  assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
-
-  const filtersTypes = uniq(filters.map(f => f.type))
-  assert.equal(filtersTypes.length, 1, `Filters must be of the same type but they are of: ${filtersTypes.join(', ')}`)
-
-  const type = filtersTypes[0]
-  const { query: statement, destination } = filtersToSolr(filters, solrNamespace)
-
-  return includes(NON_FILTERED_FIELDS, type) ? statement : `filter(${statement})`
-}
-
-/**
- * @deprecated use `filtersToQueryAndVariables`
- */
-const filtersToSolrQueries = (filters: Filter[], namespace: SolrNamespace) => {
-  const filtersGroupsByType = values(groupBy(filters, 'type'))
-  return uniq(filtersGroupsByType.map(f => sameTypeFiltersToQuery(f, namespace)))
-}
-
-/**
  * The fields that can be constructed using filter reducers:
  * - `query` - main query
  * - `filter` - filter query
@@ -87,7 +60,8 @@ const wrapAsFilter = (q: string) => {
  */
 export function filtersToQueryAndVariables(
   filters: Filter[],
-  solrNamespace: SolrNamespace = SolrNamespaces.Search
+  solrNamespace: SolrNamespace = SolrNamespaces.Search,
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
 ): SolrQueryBase {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
 
@@ -98,7 +72,11 @@ export function filtersToQueryAndVariables(
   const solrFilters: string[] = []
 
   Object.keys(filtersGroupedByType).forEach(key => {
-    const { query: baseSolrQueryFilter, destination } = filtersToSolr(filtersGroupedByType[key], solrNamespace)
+    const { query: baseSolrQueryFilter, destination } = filtersToSolr(
+      filtersGroupedByType[key],
+      solrNamespace,
+      solrNamespacesConfiguration
+    )
     const filterQuery = NON_FILTERED_FIELDS.includes(key) ? baseSolrQueryFilter : wrapAsFilter(baseSolrQueryFilter)
 
     if (destination === 'query') {

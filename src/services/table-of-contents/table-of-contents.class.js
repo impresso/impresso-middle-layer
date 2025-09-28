@@ -18,7 +18,7 @@ const BaseArticleTocFields = [
   'title_txt_en',
   'pers_entities_dpfs',
   'loc_entities_dpfs',
-  'ucoll_ss',
+  // 'ucoll_ss',
   'snippet_plain',
 ]
 

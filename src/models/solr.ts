@@ -34,10 +34,6 @@ type LanguageSpecificFields = {
   [K in `content_txt_${LanguageCode}`]: string
 }
 
-export interface CollectionFields {
-  ucoll_ss?: string[] // collection IDs the content item belongs to
-}
-
 export type TextContentFields = TextContentFieldsGenerated & LanguageSpecificFields
 
 export type ContentItemCoreFieldsNames = keyof ContentItemCore
@@ -58,5 +54,4 @@ export type PrintContentItem = ArticleFields &
   SemanticEnrichmentsFields &
   ContentItemCore &
   AccessRightFields &
-  CollectionFields &
   ContextualMetadataFields

@@ -1,8 +1,13 @@
 import { readFileSync } from 'fs'
 import YAML from 'yaml'
 import { Filter, FilterPrecision } from '../../models'
-import { FilterDefinition, SolrFiltersConfiguration } from '../../models/generated/common'
-import { SolrNamespace } from '../../solr'
+import {
+  FilterDefinition,
+  SolrConfiguration,
+  SolrFiltersConfiguration,
+  SolrServerNamespaceConfiguration,
+} from '../../models/generated/common'
+import { SolrNamespace, SolrNamespaces } from '../../solr'
 import { InvalidArgumentError } from '../error'
 import capitalisedValueFilterBuilder from './filterBuilders/capitalisedValue'
 import { valueBuilder, idValueBuilder, escapeIdValue, unescapeIdValue } from './filterBuilders/value'
@@ -333,6 +338,71 @@ const reduceOpenEndedStringValue = (filters: Filter[], field: string) => {
   return filters.length > 1 ? `(${outerStatement})` : outerStatement
 }
 
+/**
+ *
+ * @param filters filters with this type
+ * @param field content item ID field name.
+ */
+const joinCollectionHandler = (
+  filters: Filter[],
+  field: string,
+  rule: string,
+  solrNamespaces: SolrServerNamespaceConfiguration[]
+) => {
+  const collectionNamespace = solrNamespaces.find(ns => ns.namespaceId === SolrNamespaces.CollectionItems)
+  if (collectionNamespace == null) {
+    throw new InvalidArgumentError(
+      `Could not find Solr namespace configuration for "${SolrNamespaces.CollectionItems}" required for "joinCollection" filter`
+    )
+  }
+  const collectionItemsIndex = collectionNamespace.index
+  const collectionIdField = 'col_id_s'
+
+  const includedCollectionIds: ['AND' | 'OR', string[]][] = filters
+    .filter(f => f.context !== 'exclude')
+    .filter(f => f.q != null)
+    .map(f => [f.op ?? 'OR', Array.isArray(f.q) ? f.q : [f.q!]])
+  const excludedCollectionIds: ['AND' | 'OR', string[]][] = filters
+    .filter(f => f.context === 'exclude')
+    .filter(f => f.q != null)
+    .map(f => [f.op ?? 'OR', Array.isArray(f.q) ? f.q : [f.q!]])
+
+  const andIncludedCollectionIds = includedCollectionIds
+    .filter(([op]) => op === 'AND')
+    .reduce((a, [, ids]) => a.concat(ids), [] as string[])
+  const orIncludedCollectionIds = includedCollectionIds
+    .filter(([op]) => op === 'OR')
+    .reduce((a, [, ids]) => a.concat(ids), [] as string[])
+  const andExcludedCollectionIds = excludedCollectionIds
+    .filter(([op]) => op === 'AND')
+    .reduce((a, [, ids]) => a.concat(ids), [] as string[])
+  const orExcludedCollectionIds = excludedCollectionIds
+    .filter(([op]) => op === 'OR')
+    .reduce((a, [, ids]) => a.concat(ids), [] as string[])
+
+  const andStatement = andIncludedCollectionIds
+    .map(id => `${collectionIdField}:${id}`)
+    .concat(andExcludedCollectionIds.map(id => `NOT ${collectionIdField}:${id}`))
+    .join(' AND ')
+  const orStatement = orIncludedCollectionIds
+    .map(id => `${collectionIdField}:${id}`)
+    .concat(orExcludedCollectionIds.map(id => `NOT ${collectionIdField}:${id}`))
+    .join(' OR ')
+
+  let collectionIdQuery = ''
+  if (andStatement && orStatement) {
+    collectionIdQuery = `(${andStatement}) AND (${orStatement})`
+  } else if (andStatement) {
+    collectionIdQuery = andStatement
+  } else if (orStatement) {
+    collectionIdQuery = orStatement
+  } else {
+    throw new InvalidArgumentError('At least one collection ID must be provided for "joinCollection" filter')
+  }
+
+  return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex}}${collectionIdQuery}`
+}
+
 const noopHandler = () => '*:*'
 
 const FiltersHandlers = Object.freeze({
@@ -347,6 +417,7 @@ const FiltersHandlers = Object.freeze({
   capitalisedValue: capitalisedValueFilterBuilder,
   openEndedString: reduceOpenEndedStringValue,
   noop: noopHandler,
+  joinCollection: joinCollectionHandler,
 })
 
 interface FilterToSolrResult {
@@ -363,7 +434,11 @@ interface FilterToSolrResult {
  *
  * @returns {FilterToSolrResult} a SOLR query string that can be wrapped into a `filter()` statement and the destination
  */
-export const filtersToSolr = (filters: Filter[], solrNamespace: SolrNamespace) => {
+export const filtersToSolr = (
+  filters: Filter[],
+  solrNamespace: SolrNamespace,
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+) => {
   if (filters.length < 1) throw new InvalidArgumentError('At least one filter must be provided')
   const types = [...new Set(filters.map(({ type }) => type))]
   if (types.length > 1) throw new InvalidArgumentError(`Filters must be of the same type. Found types: "${types}"`)
@@ -381,7 +456,7 @@ export const filtersToSolr = (filters: Filter[], solrNamespace: SolrNamespace) =
   if (handler == null) throw new InvalidArgumentError(`Could not find handler for rule ${filterRules.rule}`)
 
   return {
-    query: handler(filters, filterRules.field as any, filterRules.rule),
+    query: handler(filters, filterRules.field as any, filterRules.rule, solrNamespacesConfiguration),
     destination: filterRules.destination ?? 'query',
   }
 }

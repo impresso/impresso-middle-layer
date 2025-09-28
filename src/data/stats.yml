@@ -88,9 +88,9 @@ indexes:
         newspaper:
           field: meta_journal_s
           limit: 100
-        collection:
-          field: ucoll_ss
-          limit: 100
+        # collection:
+        #   field: ucoll_ss
+        #   limit: 100
         textReuseClusterNewspapers:
           field: cluster_newspapers_ss
           limit: 50

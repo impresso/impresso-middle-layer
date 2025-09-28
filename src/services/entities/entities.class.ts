@@ -99,12 +99,15 @@ class Service {
           }
         : undefined
 
-    const query = buildSearchEntitiesSolrQuery({
-      filters: uidFilter != null ? [uidFilter, ...solrFilters] : solrFilters,
-      orderBy: qp.order_by,
-      limit: qp.limit,
-      offset: qp.offset,
-    })
+    const query = buildSearchEntitiesSolrQuery(
+      {
+        filters: uidFilter != null ? [uidFilter, ...solrFilters] : solrFilters,
+        orderBy: qp.order_by,
+        limit: qp.limit,
+        offset: qp.offset,
+      },
+      this.app.get('solrConfiguration').namespaces ?? []
+    )
     debug('[find] solr query:', query)
 
     const solrResult = await measureTime(

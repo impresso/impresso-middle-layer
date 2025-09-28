@@ -144,7 +144,8 @@ export class TextReuseClusters {
     const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
     const { query: extraQuery, filter: filterQueryParts } = filtersToQueryAndVariables(
       filters as Filter[],
-      SolrNamespaces.TextReusePassages
+      SolrNamespaces.TextReusePassages,
+      this.app.get('solrConfiguration').namespaces ?? []
     )
     const [orderByField, orderByDescending] = parseOrderBy(orderBy as string, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(

@@ -11,6 +11,7 @@ import { filtersToQueryAndVariables } from '../../util/solr'
 import { MediaSources } from '../media-sources/media-sources.class'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { ImageUrlRewriteRule } from '../../models/generated/common'
+import { ImpressoApplication } from '../../types'
 
 const DefaultLimit = 10
 export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024'
@@ -35,6 +36,7 @@ type ImageService = Pick<ClientService<Image, unknown, unknown, PublicFindRespon
 
 export class Images implements ImageService {
   constructor(
+    private app: ImpressoApplication,
     private readonly solrClient: SimpleSolrClient,
     private mediaSources: MediaSources,
     private rewriteRules: ImageUrlRewriteRule[]
@@ -46,7 +48,11 @@ export class Images implements ImageService {
     const filters = params?.query?.filters ?? []
     const sort = params?.query?.order_by != null ? OrderByParamToSolrFieldMap[params?.query?.order_by] : undefined
 
-    const { query: extraQuery, filter: filterQueryParts } = filtersToQueryAndVariables(filters, SolrNamespaces.Images)
+    const { query: extraQuery, filter: filterQueryParts } = filtersToQueryAndVariables(
+      filters,
+      SolrNamespaces.Images,
+      this.app.get('solrConfiguration').namespaces ?? []
+    )
 
     const queryParts: string[] = []
 

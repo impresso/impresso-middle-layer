@@ -66,8 +66,9 @@ indexes:
         rule: value
         destination: filter
       collection:
-        field: ucoll_ss
-        rule: value
+        field: id
+        rule: joinCollection
+        destination: filter
       issue:
         field: meta_issue_id_s
         rule: value
@@ -202,8 +203,9 @@ indexes:
         rule: value
         destination: filter
       collection:
-        field: ucoll_ss
-        rule: value
+        field: ci_id_s
+        rule: joinCollection
+        destination: filter
       isFront:
         field: front_b
         rule: boolean

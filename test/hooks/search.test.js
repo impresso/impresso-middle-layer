@@ -18,7 +18,8 @@ describe('test single reducers in search hook', () => {
           q: ['fr', 'en'],
         },
       ],
-      SolrNamespaces.Search
+      SolrNamespaces.Search,
+      []
     )
     assert.deepEqual('(lg_s:fr OR lg_s:en)', sq)
   })
@@ -32,7 +33,8 @@ describe('test single reducers in search hook', () => {
           q: ['fr', 'en'],
         },
       ],
-      SolrNamespaces.Search
+      SolrNamespaces.Search,
+      []
     )
     // assert.deepEqual('*:* AND NOT ((lg_s:fr OR lg_s:en))', sq);
     assert.deepEqual('NOT (lg_s:fr OR lg_s:en)', sq)
@@ -47,7 +49,8 @@ describe('test single reducers in search hook', () => {
           q: '/go[uû]t.*parfait.*/',
         },
       ],
-      SolrNamespaces.Search
+      SolrNamespaces.Search,
+      []
     )
     assert.deepEqual(
       sq,
