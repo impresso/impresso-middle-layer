@@ -60,8 +60,16 @@ describe('test single reducers in search hook', () => {
 })
 
 describe('test filtersToSolrQuery hook', () => {
+  const mockApp = {
+    get() {
+      return [
+        { "namespaceId": "collection_items", "serverId": "cloud-dev", "index": "collections_items" }
+      ]
+    }
+  }
   it('with two filters', async () => {
     const context = {
+      app: mockApp,
       type: 'before',
       params: {
         sanitized: {
@@ -109,6 +117,7 @@ describe('test filtersToSolrQuery hook', () => {
   it('with precision', async () => {
     const context = {
       type: 'before',
+      app: mockApp,
       params: {
         sanitized: {
           filters: [
@@ -139,6 +148,7 @@ describe('test filtersToSolrQuery hook', () => {
   it('with text context', async () => {
     const context = {
       type: 'before',
+      app: mockApp,
       params: {
         sanitized: {
           filters: [
@@ -170,6 +180,7 @@ describe('test filtersToSolrQuery hook', () => {
   it('with text context exact by quotes', async () => {
     const context = {
       type: 'before',
+      app: mockApp,
       params: {
         sanitized: {
           filters: [
@@ -200,6 +211,7 @@ describe('test filtersToSolrQuery hook', () => {
   it('with text context, escaped wrong quotes', async () => {
     const context = {
       type: 'before',
+      app: mockApp,
       params: {
         sanitized: {
           filters: [
@@ -230,6 +242,7 @@ describe('test filtersToSolrQuery hook', () => {
   it('with text context, with multiple contents', async () => {
     const context = {
       type: 'before',
+      app: mockApp,
       params: {
         sanitized: {
           filters: [
@@ -260,6 +273,7 @@ describe('test filtersToSolrQuery hook', () => {
   it('with daterange filters', async () => {
     const context = {
       type: 'before',
+      app: mockApp,
       params: {
         sanitized: {
           filters: [
@@ -293,6 +307,7 @@ describe('test filtersToSolrQuery hook', () => {
   it('with all possible filters', async () => {
     const context = {
       type: 'before',
+      app: mockApp,
       params: {
         sanitized: {
           filters: [

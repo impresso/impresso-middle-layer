@@ -563,7 +563,10 @@ describe('filtersToSolr', () => {
         context: 'include',
       } satisfies Filter
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
-      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col-123')
+      assert.equal(
+        query,
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col-123'
+      )
     })
 
     it('with multiple collection IDs (include, OR)', () => {
@@ -574,7 +577,10 @@ describe('filtersToSolr', () => {
         op: 'OR',
       } satisfies Filter
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
-      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col-123 OR col_id_s:col-456')
+      assert.equal(
+        query,
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col-123 OR col_id_s:col-456'
+      )
     })
 
     it('with multiple collection IDs (include, AND)', () => {
@@ -585,7 +591,10 @@ describe('filtersToSolr', () => {
         op: 'AND',
       } satisfies Filter
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
-      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col-123 AND col_id_s:col-456')
+      assert.equal(
+        query,
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col-123 AND col_id_s:col-456'
+      )
     })
 
     it('with single collection ID (exclude)', () => {
@@ -595,7 +604,10 @@ describe('filtersToSolr', () => {
         context: 'exclude' as FilterContext,
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
-      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}NOT col_id_s:col-123')
+      assert.equal(
+        query,
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}NOT col_id_s:col-123'
+      )
     })
 
     it('with multiple collection IDs (exclude, OR)', () => {
@@ -608,7 +620,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items}NOT col_id_s:col-123 OR NOT col_id_s:col-456'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}NOT col_id_s:col-123 OR NOT col_id_s:col-456'
       )
     })
 
@@ -619,7 +631,10 @@ describe('filtersToSolr', () => {
         context: 'include' as FilterContext,
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
-      assert.equal(query, '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col_(special)')
+      assert.equal(
+        query,
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col_(special)'
+      )
     })
 
     it('throws error when collection-items namespace not found', () => {
@@ -665,7 +680,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr(filters, SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items}col_id_s:col-include AND NOT col_id_s:col-exclude'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col-include AND NOT col_id_s:col-exclude'
       )
     })
 
@@ -687,7 +702,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr(filters, SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items}(col_id_s:col-and-1 AND col_id_s:col-and-2) AND (col_id_s:col-or-1 OR col_id_s:col-or-2)'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}(col_id_s:col-and-1 AND col_id_s:col-and-2) AND (col_id_s:col-or-1 OR col_id_s:col-or-2)'
       )
     })
   })

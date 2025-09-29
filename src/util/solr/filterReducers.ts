@@ -400,7 +400,7 @@ const joinCollectionHandler = (
     throw new InvalidArgumentError('At least one collection ID must be provided for "joinCollection" filter')
   }
 
-  return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex}}${collectionIdQuery}`
+  return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex} method=crossCollection}${collectionIdQuery}`
 }
 
 const noopHandler = () => '*:*'

@@ -66,7 +66,8 @@ const filtersToSolrQuery =
 
     const { query, filter: solrFilter, params: vars } = filtersToQueryAndVariables(
       context[prop].sanitized.filters,
-      solrIndexProvider(context)
+      solrIndexProvider(context),
+      context.app.get('solrConfiguration').namespaces
     )
 
     // prepend order by if it is not relevance

@@ -1,4 +1,4 @@
-import { uniq, values, groupBy, get } from 'lodash'
+import { get } from 'lodash'
 import { SolrNamespaces } from '../../solr'
 import { filtersToQueryAndVariables } from '../../util/solr'
 

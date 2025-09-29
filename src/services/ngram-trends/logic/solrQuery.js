@@ -46,8 +46,12 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
   const { query, filter, params: variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
-  const facetPivots = SupportedLanguageCodes.map(languageCode => getFacetPivotString(languageCode, timeIntervalField)).concat(getFacetPivotStringOtherLanguages(timeIntervalField))
-  const statsFields = SupportedLanguageCodes.map(languageCode => getStatsFieldString(languageCode, unigram)).concat(getStatsFieldStringOtherLanguages(unigram))
+  const facetPivots = SupportedLanguageCodes
+    .map(languageCode => getFacetPivotString(languageCode, timeIntervalField))
+    .concat(getFacetPivotStringOtherLanguages(timeIntervalField))
+  const statsFields = SupportedLanguageCodes
+    .map(languageCode => getStatsFieldString(languageCode, unigram))
+    .concat(getStatsFieldStringOtherLanguages(unigram))
 
   return {
     query,
