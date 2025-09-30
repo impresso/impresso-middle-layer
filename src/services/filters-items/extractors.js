@@ -62,8 +62,7 @@ async function collectionExtractor({ q = '' }, app) {
   try {
     return await Promise.all(
       items.map(async item => {
-        const payload = { query: { nameOnly: true } }
-        return app.service('collections').get(item.trim(), payload)
+        return app.service('collections').getInternal(item.trim())
       })
     )
   } catch (error) {
