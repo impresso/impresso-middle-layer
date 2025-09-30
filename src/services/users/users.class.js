@@ -4,7 +4,6 @@ import User from '../../models/users.model.js'
 import Group from '../../models/groups.model.js'
 import Profile from '../../models/profiles.model.js'
 import { BadRequest, NotFound, MethodNotAllowed } from '@feathersjs/errors'
-import shorthash from 'short-hash'
 import { Op } from 'sequelize'
 import Debug from 'debug'
 const debug = Debug('impresso/services:users')

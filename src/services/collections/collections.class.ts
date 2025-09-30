@@ -17,6 +17,7 @@ import {
   queryGetItemsCountsForCollections,
   toPair,
 } from '../../solr/queries/collections'
+import { createCollectionId } from '../../models/collections.model'
 
 export type CollectionsPatch = Partial<Omit<Collection, 'uid'>>
 export type CollectionsFindResult = FindResponse<Collection>
@@ -140,7 +141,7 @@ export class CollectionsService implements ICollectionsService {
 
   /**
    * Internal method to get any non-deleted collection by ID.
-   * Does not check for ownership or access level.
+   * Does not check ownership or access level.
    * Does not return totalItems count.
    */
   async getInternal(id: Id, userId?: Id): Promise<IUserCollection | undefined> {
@@ -200,6 +201,7 @@ export class CollectionsService implements ICollectionsService {
     const status = data.accessLevel === 'public' ? 'PUB' : 'PRI'
 
     const dbModel = await this.userCollectionDbModel.create({
+      id: createCollectionId(params?.user?.uid!),
       name: data.name,
       description: data.description || '',
       creatorId: userId,

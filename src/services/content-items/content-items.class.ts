@@ -25,7 +25,11 @@ import {
 } from '../../models/content-item'
 import { ClientService } from '@feathersjs/feathers'
 import { FindResponse } from '../../models/common'
-import { ContentItem, ContentItemPage } from '../../models/generated/schemas/contentItem'
+import {
+  ContentItem,
+  ContentItemPage,
+  Collection as ContentItemCollection,
+} from '../../models/generated/schemas/contentItem'
 import { ContentItemDbModel } from '../../models/content-item.model'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '../../models/content-item-page.model'
 import { mapRecordValues } from '../../util/fn'
@@ -222,7 +226,25 @@ const withCollections = (contentItems: ContentItem[], collectionsLookup: Diction
     if (collections.length > 0) {
       return {
         ...item,
-        collections,
+        semanticEnrichments: {
+          ...item.semanticEnrichments,
+          collections: collections.map(
+            c =>
+              ({
+                uid: c.uid,
+                name: c.title ?? '',
+                description: c.description ?? '',
+                status: c.accessLevel ?? 'private',
+                countItems: c.totalItems ?? 0,
+                creator: {
+                  uid: c.creatorId != null ? String(c.creatorId) : '',
+                  username: '', // we don't have username here
+                },
+                creationDate: c.createdAt != null ? c.createdAt : '',
+                lastModifiedDate: c.updatedAt != null ? c.updatedAt : '',
+              }) satisfies ContentItemCollection
+          ),
+        },
       }
     }
     return item

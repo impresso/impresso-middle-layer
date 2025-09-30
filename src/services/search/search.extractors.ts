@@ -1,3 +1,6 @@
+/**
+ * @deprecated - remove when articles-search is removed but check that this file is not used elsewhere.
+ */
 import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
 import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
 import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'

@@ -311,7 +311,7 @@ const hasContentItemField = (namespace: SolrNamespace): namespace is SolrNamespa
 
 const ContentItemIdFieldInNamespace: Record<SolrNamespaceWithContentItemField, string> = {
   search: 'id',
-  tr_passages: 'id',
+  tr_passages: 'ci_id_s',
   collection_items: 'ci_id_s',
   images: 'linked_ci_s',
 }

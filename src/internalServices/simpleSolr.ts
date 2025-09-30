@@ -163,7 +163,9 @@ export type BulkDeleteRequest = Omit<SolrBulkDeleteRequest, 'commit'>
 type BulkUpdateRequest<T> = BulkAddRequest<T> | BulkDeleteRequest
 
 export interface DeleteRequest {
-  query: string
+  delete: {
+    query: string
+  }
 }
 
 const isAddRequest = <T>(request: BulkUpdateRequest<T>): request is BulkAddRequest<T> => {

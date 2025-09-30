@@ -4,6 +4,7 @@ import { filtersToQueryAndVariables } from '../../util/solr'
 import { getItemsFromSolrResponse, getTotalFromSolrResponse } from '../search/search.extractors'
 
 /**
+ * @deprecated - only used for article recommendations in the web app. Remove once replaced.
  * @typedef {import('impresso-jscommons').Filter} Filter
  * @typedef {import('.').RelevanceContextItem} RelevanceContextItem
  * @typedef {import('.').Pagination} Pagination

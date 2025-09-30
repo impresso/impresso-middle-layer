@@ -22,7 +22,9 @@ const requestToPayload = (job: RemoveAllCollectionItemsJob): DeleteRequest => {
   const col_id_s = `${userId}_${collectionId}`
 
   return {
-    query: `col_id_s:${col_id_s}`,
+    delete: {
+      query: `col_id_s:${col_id_s}`,
+    },
   }
 }
 
