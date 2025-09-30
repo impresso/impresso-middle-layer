@@ -11,22 +11,19 @@ import hooks from './collectable-items.hooks'
 export default (app: ImpressoApplication) => {
   const service = new Service(app)
 
-  // enable service on the top level endpoint for internal use
-  app.use('/collectable-items', service, {
-    ...optionsDisabledInPublicApi(app),
-  })
-  app.service('collectable-items').hooks(hooks)
+  const options = app.get('isPublicApi')
+    ? ({
+        events: [],
+        methods: ['patch', 'create'],
+        docs: createSwaggerServiceOptions({
+          schemas: {},
+          docs: getDocs(true),
+        }),
+      } as ServiceOptions)
+    : {
+        ...optionsDisabledInPublicApi(app),
+      }
 
-  // enable the service on the nested endpoint for Public API
-  if (app.get('isPublicApi')) {
-    app.use('/collections/:collection_id/items', service, {
-      events: [],
-      methods: ['patch', 'create'],
-      docs: createSwaggerServiceOptions({
-        schemas: {},
-        docs: getDocs(true),
-      }),
-    } as ServiceOptions)
-    app.service('/collections/:collection_id/items').hooks(hooks)
-  }
+  app.use('/collections/:collection_id/items', service, options)
+  app.service('/collections/:collection_id/items').hooks(hooks)
 }

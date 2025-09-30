@@ -45,6 +45,8 @@ export type ICollectionsService = Omit<
     includePublic?: boolean,
     user?: SlimUser
   ): Promise<Record<string, Collection[]>>
+
+  getInternal(id: Id, userId?: Id): Promise<IUserCollection | undefined>
 }
 
 const dbToCollection = (dbModel: IUserCollection): Collection => {
@@ -134,6 +136,22 @@ export class CollectionsService implements ICollectionsService {
       data,
       pagination: { limit, offset, total },
     }
+  }
+
+  /**
+   * Internal method to get any non-deleted collection by ID.
+   * Does not check for ownership or access level.
+   * Does not return totalItems count.
+   */
+  async getInternal(id: Id, userId?: Id): Promise<IUserCollection | undefined> {
+    const dbModel = await this.userCollectionDbModel.findOne({
+      where: {
+        id,
+        status: { [Op.ne]: 'DEL' },
+        ...(userId != null ? { creatorId: userId } : {}),
+      },
+    })
+    return dbModel ?? undefined
   }
 
   async get(id: Id, params: CollectionsParams): Promise<Collection> {

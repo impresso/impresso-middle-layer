@@ -71,7 +71,7 @@ export class CollectableItemsService implements ICollectableItemsService {
   async patch(id: Id | NullableId, data: UpdateCollectableItemsRequest, params: Params) {
     if (id != null) throw new BadRequest('Not a single item update endpoint')
 
-    const userId = params.user?.uid
+    const userId = String(params.user?.id)
     if (userId == null) throw new NotAuthenticated('User authentication required')
 
     const collectionId = params.route?.collection_id
@@ -96,7 +96,7 @@ export class CollectableItemsService implements ICollectableItemsService {
 
     return {
       totalAdded: data.add?.length ?? 0,
-      totalRemoved: data.add?.length ?? 0,
+      totalRemoved: data.remove?.length ?? 0,
     }
   }
 }

@@ -58,6 +58,10 @@ export interface Collection {
    * Total number of items in the collection.
    */
   totalItems?: number;
+  /**
+   * Identifier of the user who created the collection.
+   */
+  creatorId?: string;
 }
 
 

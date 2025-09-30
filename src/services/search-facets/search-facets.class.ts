@@ -25,6 +25,7 @@ import {
 import { SolrNamespace, SolrNamespaces } from '../../solr'
 
 import Debug from 'debug'
+import { toPair } from '../../solr/queries/collections'
 const debug = Debug('impresso/services:search-facets')
 
 type FacetMetadata = any
@@ -80,6 +81,7 @@ interface SanitizedGetParams {
   group_by?: string
   sq?: string
   sv?: string[]
+  sfq?: string[] | string
   facets?: string[]
 }
 
@@ -184,7 +186,7 @@ const buildFacetsRequest = (
     params: {
       hl: false,
     },
-    filter: [],
+    filter: sanitizedParams.sfq,
   }
   const vars = sanitizedParams.sv as SelectQueryParameters
 
@@ -345,7 +347,7 @@ export class Service {
       this.index,
       facetsq,
       params.authenticated ?? false,
-      (params as any)?.user?.uid,
+      (params as any)?.user?.id,
       sanitizedParams
     )
 
@@ -366,7 +368,7 @@ export class Service {
       this.index,
       facetsq,
       params.authenticated ?? false,
-      (params as any)?.user?.uid,
+      (params as any)?.user?.id,
       sanitizedParams
     )
 
@@ -457,15 +459,21 @@ export class Service {
     const contentItemIdField = ContentItemIdFieldInNamespace[contentItemNamespace]
 
     // original query goes into the join filter which links the actual index with collection_items
-    const joinFilter = `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq}`
+    const filtersPart = Array.isArray(sanitizedParams.sfq)
+      ? sanitizedParams.sfq?.map(f => `filter(${f})`).join(' AND ')
+      : sanitizedParams.sfq != null
+        ? `filter(${sanitizedParams.sfq})`
+        : '*:*'
+    const joinFilter = `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq} AND ${filtersPart}`
 
     const collectionsQuery = userId
-      ? `col_id_s:*_${userId}* OR vis_s:pub` // user collections + public collections
+      ? `col_id_s:${userId}_* OR vis_s:pub` // user collections + public collections
       : 'vis_s:pub' // public collections only
 
     const updatedParams = {
       ...sanitizedParamsWithoutGroupBy,
       sq: collectionsQuery,
+      sfq: [], // we already applied the original filters in the join
     }
 
     const query = buildFacetsRequest(types, collectionIndexId, facetsQueryPart, updatedParams, [joinFilter])
@@ -475,6 +483,16 @@ export class Service {
       'search-facets.get.solr.facets'
     )
     const resultFacets = result.facets as Record<string, ISolrResponseFacetDetails>
+    const updatedBuckets = resultFacets.collection?.buckets?.map(b => {
+      const { collectionId } = toPair(b.val as string)
+      return {
+        ...b,
+        val: collectionId,
+      }
+    })
+    if (resultFacets.collection) {
+      resultFacets.collection.buckets = updatedBuckets
+    }
 
     const facets = await parseSolrFacets(types, collectionIndexId, facetsQueryPart, resultFacets, this.app)
     return facets[0]

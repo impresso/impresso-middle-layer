@@ -381,12 +381,12 @@ const joinCollectionHandler = (
     .reduce((a, [, ids]) => a.concat(ids), [] as string[])
 
   const andStatement = andIncludedCollectionIds
-    .map(id => `${collectionIdField}:${id}`)
-    .concat(andExcludedCollectionIds.map(id => `NOT ${collectionIdField}:${id}`))
+    .map(id => `${collectionIdField}:*_${id}`)
+    .concat(andExcludedCollectionIds.map(id => `NOT ${collectionIdField}:*_${id}`))
     .join(' AND ')
   const orStatement = orIncludedCollectionIds
-    .map(id => `${collectionIdField}:${id}`)
-    .concat(orExcludedCollectionIds.map(id => `NOT ${collectionIdField}:${id}`))
+    .map(id => `${collectionIdField}:*_${id}`)
+    .concat(orExcludedCollectionIds.map(id => `NOT ${collectionIdField}:*_${id}`))
     .join(' OR ')
 
   let collectionIdQuery = ''

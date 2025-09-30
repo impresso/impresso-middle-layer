@@ -43,11 +43,22 @@ export type ICachedResolvers = {
 
 // Record<CachedFacetType, IResolver<T>>
 
-const collectionResolver: IResolver<ICollection> = async (id: string) =>
-  new Collection({
-    uid: id,
-    name: id,
-  }) as any as ICollection
+const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection> => {
+  const collectionsService = app.service('collections')
+  return async (id: string) => {
+    const collection = await collectionsService.getInternal(id)
+    return {
+      uid: id,
+      name: collection?.name ?? '',
+      description: collection?.description ?? '',
+      status: collection?.status == 'PRI' ? 'private' : 'public',
+      creator: { uid: String(collection?.creatorId), username: '' },
+      creationDate: collection?.creationDate?.toISOString() ?? '',
+      lastModifiedDate: collection?.lastModifiedDate?.toISOString() ?? '',
+      countItems: 0,
+    } satisfies ICollection
+  }
+}
 
 const entityResolver = async (id: string, type: CachedFacetType) =>
   new Entity({
@@ -87,7 +98,7 @@ const getNewspaperResolver = (app: ImpressoApplication): IResolver<NewspaperInte
 
 export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
   return {
-    collection: collectionResolver,
+    collection: getCollectionResolver(app),
     location: (id: string) => entityResolver(id, 'location'),
     person: (id: string) => entityResolver(id, 'person'),
     topic: getTopicResolver(app),
