@@ -565,7 +565,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col-123'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:*_col-123'
       )
     })
 
@@ -579,7 +579,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col-123 OR col_id_s:col-456'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:*_col-123 OR col_id_s:*_col-456'
       )
     })
 
@@ -593,7 +593,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col-123 AND col_id_s:col-456'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:*_col-123 AND col_id_s:*_col-456'
       )
     })
 
@@ -606,7 +606,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}NOT col_id_s:col-123'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}NOT col_id_s:*_col-123'
       )
     })
 
@@ -620,7 +620,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}NOT col_id_s:col-123 OR NOT col_id_s:col-456'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}NOT col_id_s:*_col-123 OR NOT col_id_s:*_col-456'
       )
     })
 
@@ -633,7 +633,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col_(special)'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:*_col_(special)'
       )
     })
 
@@ -680,7 +680,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr(filters, SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:col-include AND NOT col_id_s:col-exclude'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}col_id_s:*_col-include AND NOT col_id_s:*_col-exclude'
       )
     })
 
@@ -702,7 +702,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr(filters, SolrNamespaces.Search, mockSolrNamespaces)
       assert.equal(
         query,
-        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}(col_id_s:col-and-1 AND col_id_s:col-and-2) AND (col_id_s:col-or-1 OR col_id_s:col-or-2)'
+        '{!join from=ci_id_s to=id fromIndex=collection-items method=crossCollection}(col_id_s:*_col-and-1 AND col_id_s:*_col-and-2) AND (col_id_s:*_col-or-1 OR col_id_s:*_col-or-2)'
       )
     })
   })
