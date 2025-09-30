@@ -3,8 +3,6 @@ import { createSwaggerServiceOptions } from 'feathers-swagger'
 import { optionsDisabledInPublicApi } from '../../hooks/public-api'
 import { ImpressoApplication } from '../../types'
 import { getDocs } from './collectable-items.schema'
-// import { Service } from './collectable-items.class.deprecated'
-// import hooks from './collectable-items.hooks.deprecated'
 import { CollectableItemsService as Service } from './collectable-items.class'
 import hooks from './collectable-items.hooks'
 
