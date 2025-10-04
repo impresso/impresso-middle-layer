@@ -12,6 +12,7 @@ export interface AddQueryResultItemsToCollectionJobData {
   collectionId: string
   solrNamespace: Extract<SolrNamespace, 'search' | 'tr_passages'>
   filters: Filter[]
+  queryLimit?: number
 }
 
 type AddQueryResultItemsToCollectionJob = Job<
@@ -20,7 +21,7 @@ type AddQueryResultItemsToCollectionJob = Job<
   typeof JobNameAddQueryResultItemsToCollection
 >
 
-const QueryHardLimit = 100000
+const DefaultQueryHardLimit = 100000
 const PageSize = 1000
 
 export const createJobHandler = (app: ImpressoApplication) => {
@@ -40,16 +41,17 @@ export const createJobHandler = (app: ImpressoApplication) => {
     const solrClient = app.service('simpleSolrClient')
     const queueService = app.service('queueService')
 
+    const queryLimit = job.data.queryLimit ?? DefaultQueryHardLimit
+
     let totalSubjobs = 0
-    let offset = 0
-    for (let start = 0; start < QueryHardLimit; start += PageSize) {
+    for (let offset = 0; offset < queryLimit; offset += PageSize) {
       const result = await solrClient.select(solrNamespace, {
         body: {
           fields: 'id',
           query,
           filter,
           offset,
-          limit: 10000,
+          limit: PageSize,
           params: {
             hl: false,
             ...params,
@@ -57,11 +59,11 @@ export const createJobHandler = (app: ImpressoApplication) => {
         },
       })
       const numFound = result.response?.numFound ?? 0
-      if (numFound > QueryHardLimit) {
+      if (numFound > queryLimit) {
         logger.error(
           `❌ ➡️ 📚 Aborting job ${job.id} ${job.name} to add query result items to collection: ${JSON.stringify(
             job.data
-          )} because the number of matching items (${numFound}) exceeds the hard limit (${QueryHardLimit})`
+          )} because the number of matching items (${numFound}) exceeds the limit (${queryLimit})`
         )
         break
       }

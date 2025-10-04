@@ -17,6 +17,7 @@ import {
   JobNameAddQueryResultItemsToCollection,
 } from '../jobs/collections/addQueryResultItemsToCollection'
 import { ExportSearchResultsJobData, JobNameExportSearchResults } from '../jobs/searchResults/exportSearchResults'
+import { JobNameMigrateOldCollections } from '../jobs/collections/migrateOldCollections'
 
 export interface QueueServiceOptions {
   redisConfig: RedisConfiguration
@@ -31,6 +32,7 @@ export class QueueService {
   private queueRemoveAllCollectionItems: Queue
   private queueAddQueryResultItemsToCollection: Queue
   private queueExportSearchResults: Queue
+  private queueMigrateOldCollections: Queue
 
   private redisConfig: RedisConfiguration
 
@@ -78,6 +80,10 @@ export class QueueService {
       defaultJobOptions,
     })
     this.queueExportSearchResults = new Queue(JobNameExportSearchResults, {
+      connection: connectionOptions,
+      defaultJobOptions,
+    })
+    this.queueMigrateOldCollections = new Queue(JobNameMigrateOldCollections, {
       connection: connectionOptions,
       defaultJobOptions,
     })
@@ -130,6 +136,11 @@ export class QueueService {
     return this.queueExportSearchResults.add(JobNameExportSearchResults, data)
   }
 
+  async migrateOldCollections(): Promise<BullJob<{}>> {
+    logger.info(`Queueing job to migrate old collections`)
+    return this.queueMigrateOldCollections.add(JobNameMigrateOldCollections, {})
+  }
+
   /**
    * Get queue statistics
    */
@@ -138,6 +149,9 @@ export class QueueService {
       this.queueAddItemsToCollection,
       this.queueRemoveItemsFromCollection,
       this.queueRemoveAllCollectionItems,
+      this.queueAddQueryResultItemsToCollection,
+      this.queueExportSearchResults,
+      this.queueMigrateOldCollections,
     ]
 
     const stats = await Promise.all(
@@ -165,6 +179,10 @@ export class QueueService {
   async close(): Promise<void> {
     await this.queueAddItemsToCollection.close()
     await this.queueRemoveItemsFromCollection.close()
+    await this.queueRemoveAllCollectionItems.close()
+    await this.queueAddQueryResultItemsToCollection.close()
+    await this.queueExportSearchResults.close()
+    await this.queueMigrateOldCollections.close()
     logger.info('Queue service closed')
   }
 }
