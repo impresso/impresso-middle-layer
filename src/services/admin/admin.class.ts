@@ -19,7 +19,7 @@ export class Service implements IService {
   constructor(private readonly app: ImpressoApplication) {}
 
   async find(params?: Params<FindParams>): Promise<FindResponse> {
-    // await this.app.service('queueService').migrateOldCollections()
+    // await this.app.service('queueService').migrateOldCollections({})
     const [contentItemsPermissionsDetails, imagesPermissionsDetails] = await Promise.all([
       getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Search'),
       getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Images'),

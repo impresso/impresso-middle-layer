@@ -17,7 +17,7 @@ import {
   JobNameAddQueryResultItemsToCollection,
 } from '../jobs/collections/addQueryResultItemsToCollection'
 import { ExportSearchResultsJobData, JobNameExportSearchResults } from '../jobs/searchResults/exportSearchResults'
-import { JobNameMigrateOldCollections } from '../jobs/collections/migrateOldCollections'
+import { JobNameMigrateOldCollections, MigrateOldCollectionsJobData } from '../jobs/collections/migrateOldCollections'
 
 export interface QueueServiceOptions {
   redisConfig: RedisConfiguration
@@ -136,9 +136,9 @@ export class QueueService {
     return this.queueExportSearchResults.add(JobNameExportSearchResults, data)
   }
 
-  async migrateOldCollections(): Promise<BullJob<{}>> {
+  async migrateOldCollections(data: MigrateOldCollectionsJobData): Promise<BullJob<{}>> {
     logger.info(`Queueing job to migrate old collections`)
-    return this.queueMigrateOldCollections.add(JobNameMigrateOldCollections, {})
+    return this.queueMigrateOldCollections.add(JobNameMigrateOldCollections, data)
   }
 
   /**
