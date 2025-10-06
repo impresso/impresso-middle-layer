@@ -1,11 +1,24 @@
-version: "3.7"
 services:
   redis:
     image: redis:alpine
     restart: always
     volumes:
       - ./docker/redis:/data
-    entrypoint: redis-server --appendonly yes
+    command: 
+      # Enable AOF persistence (--appendonly yes) 
+      # and configure RDB snapshotting (e.g., save after 60 seconds if 10000 changes, etc.)
+      # RDB is enabled by default, but explicitly setting save points is good practice.
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --save
+      - "900 1" # Save after 900 seconds (15 min) if at least 1 change
+      - --save
+      - "300 10" # Save after 300 seconds (5 min) if at least 10 changes
+      - --save
+      - "60 10000" # Save after 60 seconds (1 min) if at least 10000 changes
+      - --appendfsync
+      - "everysec" # Recommended AOF flush policy
     ports:
       - 6379:6379
   socks-proxy:

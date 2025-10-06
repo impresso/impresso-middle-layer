@@ -54,8 +54,8 @@ export class QueueService {
     }
 
     const defaultJobOptions = {
-      removeOnComplete: 100, // Keep last 100 completed jobs
-      removeOnFail: 50, // Keep last 50 failed jobs
+      removeOnComplete: 10, // Keep last 10 completed jobs
+      removeOnFail: 5, // Keep last 5 failed jobs
       attempts: 5, // Retry failed jobs up to 5 times
       backoff: {
         type: 'exponential',
