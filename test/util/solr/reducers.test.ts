@@ -706,6 +706,178 @@ describe('filtersToSolr', () => {
       )
     })
   })
+
+  describe('handles "embeddingKnnSimilarity" filter', () => {
+    // Helper function to create a base64 encoded float32 vector
+    const createTestVector = (values: number[]): string => {
+      const floatArray = new Float32Array(values)
+      const buffer = Buffer.from(floatArray.buffer)
+      return buffer.toString('base64')
+    }
+
+    const mockSolrNamespaces = [
+      {
+        namespaceId: 'search',
+        index: 'search-index',
+        serverId: 'mock-server',
+      },
+      {
+        namespaceId: 'images',
+        index: 'images-index',
+        serverId: 'mock-server',
+      },
+    ]
+
+    it('with single embedding vector for search index', () => {
+      const testVector = createTestVector([0.1, 0.2, 0.3, 0.4])
+      const filter = {
+        type: 'embedding',
+        q: `gte-768:${testVector}`,
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(
+        query,
+        `{!knn f=gte_multi_v768 topK=10}[0.10000000149011612,0.20000000298023224,0.30000001192092896,0.4000000059604645]`
+      )
+    })
+
+    it('with single embedding vector for images index', () => {
+      const testVector = createTestVector([0.5, 0.6, 0.7, 0.8])
+      const filter = {
+        type: 'embedding',
+        q: `openclip-768:${testVector}`,
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Images, mockSolrNamespaces)
+      assert.equal(
+        query,
+        `{!knn f=openclip_emb_v768 topK=10}[0.5,0.6000000238418579,0.699999988079071,0.800000011920929]`
+      )
+    })
+
+    it('with multiple embedding vectors from different models', () => {
+      const testVector1 = createTestVector([0.1, 0.2])
+      const testVector2 = createTestVector([0.9, 0.8])
+      const filters = [
+        {
+          type: 'embedding',
+          q: `openclip-768:${testVector1}`,
+        },
+        {
+          type: 'embedding',
+          q: `dinov2-1024:${testVector2}`,
+        },
+      ] satisfies Filter[]
+      const { query } = filtersToSolr(filters, SolrNamespaces.Images, mockSolrNamespaces)
+      assert.equal(
+        query,
+        `{!knn f=openclip_emb_v768 topK=10}[0.10000000149011612,0.20000000298023224] AND {!knn f=dinov2_emb_v1024 topK=10}[0.8999999761581421,0.800000011920929]`
+      )
+    })
+
+    it('with embedding vector in array format', () => {
+      const testVector = createTestVector([1.0, 2.0, 3.0])
+      const filter = {
+        type: 'embedding',
+        q: [`gte-768:${testVector}`],
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(query, `{!knn f=gte_multi_v768 topK=10}[1,2,3]`)
+    })
+
+    it('throws error when q is not a string', () => {
+      const filter = {
+        type: 'embedding',
+        q: 123,
+      } as any // Intentionally invalid type for testing
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces),
+        new InvalidArgumentError(
+          '"embeddingKnnSimilarity" filter rule requires "q" to be a string in the format "model:base64_encoded_vector", e.g. "openclip-768:BASE64_ENCODED_VECTOR". Received: 123'
+        )
+      )
+    })
+
+    it('throws error when q does not contain colon separator', () => {
+      const filter = {
+        type: 'embedding',
+        q: 'invalid-format',
+      } satisfies Filter
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces),
+        new InvalidArgumentError(
+          '"embeddingKnnSimilarity" filter rule requires "q" to be a string in the format "model:base64_encoded_vector", e.g. "openclip-768:BASE64_ENCODED_VECTOR". Received: "invalid-format"'
+        )
+      )
+    })
+
+    it('throws error when model is not supported', () => {
+      const testVector = createTestVector([0.1, 0.2])
+      const filter = {
+        type: 'embedding',
+        q: `unsupported-model:${testVector}`,
+      } satisfies Filter
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces),
+        new InvalidArgumentError(
+          '"embeddingKnnSimilarity" filter rule: unknown model "unsupported-model". Supported models: gte-768'
+        )
+      )
+    })
+
+    it('throws error when model is not supported in images index', () => {
+      const testVector = createTestVector([0.1, 0.2])
+      const filter = {
+        type: 'embedding',
+        q: `gte-768:${testVector}`,
+      } satisfies Filter
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Images, mockSolrNamespaces),
+        new InvalidArgumentError(
+          '"embeddingKnnSimilarity" filter rule: unknown model "gte-768". Supported models: openclip-768, dinov2-1024'
+        )
+      )
+    })
+
+    it('with empty vector (single float)', () => {
+      const testVector = createTestVector([0.0])
+      const filter = {
+        type: 'embedding',
+        q: `gte-768:${testVector}`,
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(query, `{!knn f=gte_multi_v768 topK=10}[0]`)
+    })
+
+    it('with large vector', () => {
+      // Create a vector with 10 dimensions for testing
+      const largeVector = Array.from({ length: 10 }, (_, i) => i * 0.1)
+      const testVector = createTestVector(largeVector)
+      const filter = {
+        type: 'embedding',
+        q: `gte-768:${testVector}`,
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      const expectedVector = largeVector.map(v => {
+        // Account for float32 precision
+        const float32 = new Float32Array([v])[0]
+        return float32
+      })
+      assert.equal(query, `{!knn f=gte_multi_v768 topK=10}${JSON.stringify(expectedVector)}`)
+    })
+
+    it('with negative values in vector', () => {
+      const testVector = createTestVector([-0.5, -0.3, 0.2, 0.4])
+      const filter = {
+        type: 'embedding',
+        q: `gte-768:${testVector}`,
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces)
+      assert.equal(
+        query,
+        `{!knn f=gte_multi_v768 topK=10}[-0.5,-0.30000001192092896,0.20000000298023224,0.4000000059604645]`
+      )
+    })
+  })
 })
 
 describe('filtersToQueryAndVariables', () => {

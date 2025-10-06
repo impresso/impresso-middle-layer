@@ -403,6 +403,72 @@ const joinCollectionHandler = (
   return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex} method=crossCollection}${collectionIdQuery}`
 }
 
+const _base64ToNumberVector = (base64: string): number[] => {
+  const buffer = Buffer.from(base64, 'base64')
+  const floatArray = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.length / Float32Array.BYTES_PER_ELEMENT)
+  return Array.from(floatArray)
+}
+
+/**
+ * Returns a KNN query for embedding similarity search.
+ * @see https://solr.apache.org/guide/solr/latest/query-guide/dense-vector-search.html#knn-query-parser
+ *
+ * @todo: set `topK` dynamically based on the `limit` parameter of the search request.
+ *
+ * Filter constraints:
+ *  - `q` - a string containing the base64-encoded embedding vector and the model as the prefix, e.g. "openclip-768:BASE64_ENCODED_VECTOR"
+ *          or an array with a single such string.
+ *  - `precision` - not used
+ *  - `op` - not used
+ *  - `context` - not used
+ * @param filters filters with this type.
+ * @param field array of strings in the format "model:solr_field_name", e.g. ["openclip-768:openclip_emb_v768", "dinov2-1024:dinov2_emb_v1024"]
+ */
+const embeddingKnnSimilarityHandler = (filters: Filter[], field: string[], rule: string): string => {
+  const modelToFieldMap: Record<string, string> = field.reduce(
+    (map, entry) => {
+      const [model, fieldName] = entry.split(':')
+      map[model] = fieldName
+      return map
+    },
+    {} as Record<string, string>
+  )
+  const items = filters.map(({ q }) => {
+    const modelAndVector = Array.isArray(q) ? q[0] : q
+    if (Array.isArray(q) && q.length > 1) {
+      throw new InvalidArgumentError(
+        `"embeddingKnnSimilarity" filter rule supports only single element arrays in "q": ${JSON.stringify(q)}`
+      )
+    }
+    if (typeof modelAndVector !== 'string' || !modelAndVector.includes(':')) {
+      throw new InvalidArgumentError(
+        `"embeddingKnnSimilarity" filter rule requires "q" to be a string in the format "model:base64_encoded_vector", e.g. "openclip-768:BASE64_ENCODED_VECTOR". Received: ${JSON.stringify(
+          q
+        )}`
+      )
+    }
+
+    const [model, vector] = modelAndVector.split(':')
+    const fieldName = modelToFieldMap[model]
+    if (fieldName == null) {
+      throw new InvalidArgumentError(
+        `"embeddingKnnSimilarity" filter rule: unknown model "${model}". Supported models: ${Object.keys(
+          modelToFieldMap
+        ).join(', ')}`
+      )
+    }
+
+    return { fieldName, vector }
+  })
+
+  return items
+    .map(({ fieldName, vector }) => {
+      const numberVector = _base64ToNumberVector(vector)
+      return `{!knn f=${fieldName} topK=10}${JSON.stringify(numberVector)}`
+    })
+    .join(' AND ')
+}
+
 const noopHandler = () => '*:*'
 
 const FiltersHandlers = Object.freeze({
@@ -418,6 +484,7 @@ const FiltersHandlers = Object.freeze({
   openEndedString: reduceOpenEndedStringValue,
   noop: noopHandler,
   joinCollection: joinCollectionHandler,
+  embeddingKnnSimilarity: embeddingKnnSimilarityHandler,
 })
 
 interface FilterToSolrResult {

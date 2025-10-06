@@ -139,6 +139,10 @@ indexes:
         field: cluster_id_ss
         rule: value
         destination: filter
+      embedding:
+        field:
+          - "gte-768:gte_multi_v768"
+        rule: embeddingKnnSimilarity
   tr_clusters:
     filters:
       textReuseCluster:
@@ -278,3 +282,8 @@ indexes:
       title:
         field: caption_txt
         rule: string
+      embedding:
+        field:
+          - "openclip-768:openclip_emb_v768"
+          - "dinov2-1024:dinov2_emb_v1024"
+        rule: embeddingKnnSimilarity
