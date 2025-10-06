@@ -18,6 +18,7 @@ const publicApiServices = [
   'search-facets',
   'entities',
   'impresso-ner',
+  'impresso-embedder',
   'media-sources',
   'images',
 ]
