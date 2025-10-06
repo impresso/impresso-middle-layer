@@ -164,7 +164,7 @@ export const getDocs = (index: IndexId, isPublicApi: boolean): ServiceSwaggerOpt
           required: true,
           schema: {
             type: 'string',
-            enum: facetTypes[index].concat(hasCollectionFacet(index) ? ['collection'] : []),
+            enum: [...new Set(facetTypes[index].concat(hasCollectionFacet(index) ? ['collection'] : []))],
           },
           description: 'Type of the facet',
         },
