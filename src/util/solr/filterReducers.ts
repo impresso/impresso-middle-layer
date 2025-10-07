@@ -464,7 +464,7 @@ const embeddingKnnSimilarityHandler = (filters: Filter[], field: string[], rule:
   return items
     .map(({ fieldName, vector }) => {
       const numberVector = _base64ToNumberVector(vector)
-      return `{!knn f=${fieldName} topK=10}${JSON.stringify(numberVector)}`
+      return `{!knn f=${fieldName} topK=3}${JSON.stringify(numberVector)}`
     })
     .join(' AND ')
 }

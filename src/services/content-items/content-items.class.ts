@@ -43,6 +43,7 @@ import { allContentFields, plainFieldAsJson } from '../../util/solr'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { base64BytesToBigInt } from '../../util/bigint'
 import { QueueService } from '../../internalServices/queue'
+import { Filter } from 'impresso-jscommons'
 
 const DefaultLimit = 10
 
@@ -133,7 +134,7 @@ interface ServiceOptions {
 
 export interface FindOptions {
   query: {
-    filters?: any[]
+    filters?: Filter[]
 
     // things needed by SolService.find
     sq?: string
@@ -338,17 +339,25 @@ export class ContentItemService implements IContentItemService {
   async _find(params: FindOptions): Promise<FindResponse<ContentItem>> {
     const fields = FindMethodFields
 
+    // With embeddings search we cannot do highlighting: Solr returns an error.
+    const hasEmbeddingFilter = params?.query?.filters?.find(f => f.type === 'embedding') != null
+    const highlightBLock = hasEmbeddingFilter
+      ? { hl: false }
+      : {
+          highlight_by: allContentFields.join(','),
+          highlightProps: {
+            'hl.snippets': 10,
+            'hl.fragsize': 100,
+          },
+        }
+
     const request = findRequestAdapter(params)
     const requestBody = {
       ...request,
       fields: fields.join(','),
       params: {
         ...request.params,
-        highlight_by: allContentFields.join(','),
-        highlightProps: {
-          'hl.snippets': 10,
-          'hl.fragsize': 100,
-        },
+        ...highlightBLock,
         // add variables if there are any
         ...((params.query as any)?.['sv'] ?? {}),
       },

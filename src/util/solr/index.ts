@@ -13,7 +13,7 @@ import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
  *
  * TODO: Explain why.
  */
-const NON_FILTERED_FIELDS = ['uid', 'string', 'entity-string', 'topic-string']
+const NON_FILTERED_FIELDS = ['uid', 'string', 'entity-string', 'topic-string', 'embedding']
 
 /**
  * Translate DPF filter to appropriate field names
