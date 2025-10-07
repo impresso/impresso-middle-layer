@@ -25,18 +25,24 @@ import {
 } from '../../models/content-item'
 import { ClientService } from '@feathersjs/feathers'
 import { FindResponse } from '../../models/common'
-import { ContentItem, ContentItemPage } from '../../models/generated/schemas/contentItem'
+import {
+  ContentItem,
+  ContentItemPage,
+  Collection as ContentItemCollection,
+} from '../../models/generated/schemas/contentItem'
 import { ContentItemDbModel } from '../../models/content-item.model'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '../../models/content-item-page.model'
 import { mapRecordValues } from '../../util/fn'
 import { NotFound } from '@feathersjs/errors'
-import { BaseUser, Collection, Topic } from '../../models/generated/schemas'
+import { BaseUser, Topic } from '../../models/generated/schemas'
+import type { Collection } from '../../models/generated/schemasPublic'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
 import { allContentFields, plainFieldAsJson } from '../../util/solr'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { base64BytesToBigInt } from '../../util/bigint'
+import { QueueService } from '../../internalServices/queue'
 
 const DefaultLimit = 10
 
@@ -131,7 +137,7 @@ export interface FindOptions {
 
     // things needed by SolService.find
     sq?: string
-    sfq?: string
+    sfq?: string | string[]
     limit?: number
     offset?: number
     facets?: Record<string, any>
@@ -220,7 +226,25 @@ const withCollections = (contentItems: ContentItem[], collectionsLookup: Diction
     if (collections.length > 0) {
       return {
         ...item,
-        collections,
+        semanticEnrichments: {
+          ...item.semanticEnrichments,
+          collections: collections.map(
+            c =>
+              ({
+                uid: c.uid,
+                name: c.title ?? '',
+                description: c.description ?? '',
+                status: c.accessLevel ?? 'private',
+                countItems: c.totalItems ?? 0,
+                creator: {
+                  uid: c.creatorId != null ? String(c.creatorId) : '',
+                  username: '', // we don't have username here
+                },
+                creationDate: c.createdAt != null ? c.createdAt : '',
+                lastModifiedDate: c.updatedAt != null ? c.updatedAt : '',
+              }) satisfies ContentItemCollection
+          ),
+        },
       }
     }
     return item
@@ -273,18 +297,7 @@ export class ContentItemService implements IContentItemService {
   async getCollections(contentItemIds: string[], user?: SlimUser): Promise<Dictionary<Collection[]>> {
     if (contentItemIds.length === 0 || !user) return {}
 
-    const collectables = await this.app.service('collectable-items').find({
-      authenticated: true,
-      user,
-      query: {
-        resolve: 'collection',
-        item_uids: contentItemIds,
-      },
-    })
-
-    const collectablesIndex = keyBy(collectables.data, 'itemId')
-
-    return mapRecordValues(collectablesIndex, (group, _) => group.collections ?? [])
+    return await this.app.service('collections').findByContentItems(contentItemIds, true, user)
   }
 
   get solr(): SimpleSolrClient {

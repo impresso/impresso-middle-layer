@@ -1,4 +1,4 @@
-import { ClientService, Params } from '@feathersjs/feathers'
+import { ClientService, Params, Query } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../../types'
 import {
   ContentItemPermissionsDetails,
@@ -13,12 +13,13 @@ interface FindResponse {
 }
 interface FindParams {}
 
-type IService = Pick<ClientService<unknown, unknown, unknown, FindResponse>, 'find'>
+type IService = Pick<ClientService<unknown, {}, unknown, FindResponse>, 'find'>
 
 export class Service implements IService {
   constructor(private readonly app: ImpressoApplication) {}
 
   async find(params?: Params<FindParams>): Promise<FindResponse> {
+    // await this.app.service('queueService').migrateOldCollections({})
     const [contentItemsPermissionsDetails, imagesPermissionsDetails] = await Promise.all([
       getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Search'),
       getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Images'),

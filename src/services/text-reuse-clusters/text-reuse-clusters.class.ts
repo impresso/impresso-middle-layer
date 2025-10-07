@@ -11,7 +11,7 @@ import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { getToSelect } from '../../util/solr/adapters'
 import { MediaSources } from '../media-sources/media-sources.class'
 import { OpenPermissions } from '../../util/bigint'
-import { filtersToSolrQueries } from '../../util/solr'
+import { filtersToQueryAndVariables } from '../../util/solr'
 import { Filter } from '../../models'
 
 import { mapValues, groupBy, clone, get } from 'lodash'
@@ -142,7 +142,11 @@ export class TextReuseClusters {
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
     const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
     const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
-    const filterQueryParts = filtersToSolrQueries(filters as Filter[], SolrNamespaces.TextReusePassages)
+    const { query: extraQuery, filter: filterQueryParts } = filtersToQueryAndVariables(
+      filters as Filter[],
+      SolrNamespaces.TextReusePassages,
+      this.app.get('solrConfiguration').namespaces ?? []
+    )
     const [orderByField, orderByDescending] = parseOrderBy(orderBy as string, OrderByKeyToField)
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
       text as string,
@@ -152,8 +156,22 @@ export class TextReuseClusters {
       orderByDescending
     )
 
+    const fullQuery = (extraQuery as string).length > 0 ? `(${query.q}) AND (${extraQuery})` : query.q
+
     const [clusterIdsAndTextAndPermissions, info] = await this.solr
-      .select(SolrNamespaces.TextReusePassages, getToSelect(withExtraQueryParts(query, filterQueryParts)))
+      .select(SolrNamespaces.TextReusePassages, {
+        body: {
+          query: fullQuery,
+          filter: (filterQueryParts as string[])?.concat(query.fl != null ? [query.fl] : []),
+          limit: query.rows,
+          offset: query.start,
+          sort: query.sort,
+          fields: query.fl,
+          params: {
+            hl: query.hl ?? false,
+          },
+        },
+      })
       .then(response => [
         getClusterIdsTextAndPermissionsFromPassagesSolrResponse(response),
         getPaginationInfoFromPassagesSolrResponse(response),

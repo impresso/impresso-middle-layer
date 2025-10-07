@@ -39,7 +39,7 @@ const {
  * @returns {any}
  */
 export function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
-  const { query } = filtersToQueryAndVariables(filters)
+  const { query, filter } = filtersToQueryAndVariables(filters)
 
   const facets = facetsRequests.reduce((acc, { type, offset, limit }) => {
     const facet = SolrMappings.search.facets[type]
@@ -78,6 +78,7 @@ export function createSolrQuery(filters, facetsRequests, constraintFacets = []) 
 
   return {
     query,
+    filter,
     limit: 0,
     params: { hl: false },
     facet: facets,

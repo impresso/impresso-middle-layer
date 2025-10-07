@@ -142,13 +142,15 @@ const CustomScoringField = 'customScore'
 /**
  * Build Solr POST search request payload.
  * @param {string} query
+ * @param {string} filter - solr filter query
  * @param {string} scroingVariable
  * @param {{ offset?: number, limit?: number }} options
  * @returns {import('../../internalServices/simpleSolr').SelectRequestBody}
  */
-function buildSolrQuery(query, scroingVariable, options = {}) {
+function buildSolrQuery(query, filter, scroingVariable, options = {}) {
   return {
     query,
+    filter,
     fields: DefaultArticleFields.concat([`$${CustomScoringField}`]),
     sort: `$${CustomScoringField} desc`,
     offset: options.offset,

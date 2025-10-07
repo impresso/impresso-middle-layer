@@ -64,9 +64,10 @@ const filtersToSolrQuery =
       return
     }
 
-    const { query, variables: vars } = filtersToQueryAndVariables(
+    const { query, filter: solrFilter, params: vars } = filtersToQueryAndVariables(
       context[prop].sanitized.filters,
-      solrIndexProvider(context)
+      solrIndexProvider(context),
+      context.app.get('solrConfiguration').namespaces
     )
 
     // prepend order by if it is not relevance
@@ -94,6 +95,7 @@ const filtersToSolrQuery =
     context[prop].sanitized.sq = query
     // context[prop].sanitized.sfq = filterQueries.join(' AND ');
     context[prop].sanitized.sv = vars
+    context[prop].sanitized.sfq = solrFilter
     // NOTE: `queryComponents` should be deprecated
     const filters = lodash.groupBy(context[prop].sanitized.filters, 'type')
     context[prop].sanitized.queryComponents = []

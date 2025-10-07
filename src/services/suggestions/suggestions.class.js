@@ -6,7 +6,7 @@ import { getNameFromUid } from '../../utils/entity.utils'
 
 import Debug from 'debug'
 const debug = Debug('impresso/services:suggestions')
-import chrono from 'chrono-node'
+import { parse as chronoParse } from 'chrono-node'
 import moment from 'moment'
 import lodash from 'lodash'
 
@@ -205,7 +205,7 @@ export class Service {
       return []
     }
 
-    const articletitles = async () => {}
+    const articletitles = async () => { }
 
     const dateranges = async () => {
       const myears = params.query.q.match(MULTI_YEAR_RANGE)
@@ -226,7 +226,7 @@ export class Service {
         ]
       }
       // if a date hasnt been recognized by our basic regex.
-      const asdate = chrono.parse(params.query.q)
+      const asdate = chronoParse(params.query.q)
 
       if (asdate.length) {
         return asdate

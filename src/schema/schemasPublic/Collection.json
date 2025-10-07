@@ -35,6 +35,10 @@
     "totalItems": {
       "type": "integer",
       "description": "Total number of items in the collection."
+    },
+    "creatorId": {
+      "type": "string",
+      "description": "Identifier of the user who created the collection."
     }
   },
   "required": ["uid"]

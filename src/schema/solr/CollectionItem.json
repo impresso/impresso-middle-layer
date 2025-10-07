@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "CollectionItem",
+  "description": "A single item in a user collection. Maps collection to content item.",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "The unique identifier for the collection item. Format: <col_id_s>|<ci_id_s>"
+    },
+    "ci_id_s": {
+      "type": "string",
+      "description": "The unique identifier for the content item. Located in the main or text reuse passages index."
+    },
+    "col_id_s": {
+      "type": "string",
+      "description": "The unique identifier for the collection. Format: <user_id>_<collection_id>"
+    },
+    "vis_s": {
+      "type": "string",
+      "description": "The visibility status of the collection item. `pub` for public, `pri` for private",
+      "enum": ["pub", "pri"]
+    },
+    "_version_": { "type": "number" }
+  },
+  "additionalProperties": false
+}

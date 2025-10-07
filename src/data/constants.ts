@@ -81,7 +81,6 @@ export type ContentItemFacet = Extract<
   | 'sourceType'
   | 'sourceMedium'
   | 'topic'
-  | 'collection'
   | 'newspaper'
   | 'language'
   | 'person'
@@ -92,10 +91,18 @@ export type ContentItemFacet = Extract<
   | 'partner'
   | 'dataDomain'
   | 'copyright'
+  | 'collection'
 >
 
 const searchSolrMappings = {
   facets: {
+    // collections are faceted in "collection items" index only
+    // but needed here for the system to understand that "collection"
+    // is a valid filter and facet type
+    collection: {
+      type: 'terms',
+      field: '__placeholder_for_a_virtual_field__',
+    },
     daterange: {
       type: 'range',
       field: 'meta_date_dt',
@@ -164,13 +171,6 @@ const searchSolrMappings = {
       mincount: 1,
       limit: 10,
       offset: 0,
-      numBuckets: true,
-    },
-    collection: {
-      type: 'terms',
-      field: 'ucoll_ss',
-      mincount: 1,
-      limit: 10,
       numBuckets: true,
     },
     newspaper: {
@@ -344,18 +344,25 @@ export type TextReusePassageFacet = Extract<
   | 'textReuseClusterLexicalOverlap'
   | 'textReuseClusterDayDelta'
   | 'textReuseCluster'
-  | 'collection'
   | 'topic'
   | 'person'
   | 'location'
   | 'nag'
   | 'language'
   | 'country'
+  | 'collection'
 > &
   'connectedClusters'
 
 const trPassagesSolrMappings = {
   facets: {
+    // collections are faceted in "collection items" index only
+    // but needed here for the system to understand that "collection"
+    // is a valid filter and facet type
+    collection: {
+      type: 'terms',
+      field: '__placeholder_for_a_virtual_field__',
+    },
     newspaper: {
       type: 'terms',
       field: 'meta_journal_s',
@@ -432,13 +439,6 @@ const trPassagesSolrMappings = {
     textReuseCluster: {
       type: 'terms',
       field: 'cluster_id_s',
-      mincount: 1,
-      limit: 10,
-      numBuckets: true,
-    },
-    collection: {
-      type: 'terms',
-      field: 'ucoll_ss',
       mincount: 1,
       limit: 10,
       numBuckets: true,
@@ -520,6 +520,20 @@ const imagesSolrMappings = {
   },
 } satisfies ISolrMappings<ImageFacet>
 
+export type CollectionItemFacet = Extract<FilterType, 'collection'>
+
+const collectionItemsSolrMappings = {
+  facets: {
+    collection: {
+      type: 'terms',
+      field: 'col_id_s',
+      mincount: 1,
+      limit: 10,
+      numBuckets: true,
+    },
+  },
+} satisfies ISolrMappings<CollectionItemFacet>
+
 /**
  * Various SOLR mappings per index.
  */
@@ -528,6 +542,7 @@ export const SolrMappings = Object.freeze({
   tr_clusters: trClustersSolrMappings,
   tr_passages: trPassagesSolrMappings,
   images: imagesSolrMappings,
+  collection_items: collectionItemsSolrMappings,
 })
 
 export type IndexType = keyof typeof SolrMappings

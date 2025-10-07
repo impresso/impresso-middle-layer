@@ -10,7 +10,7 @@ const publicApiServices = [
   'search', // search items
   'content-items', // get content items
   'users', // required for authentication
-  'collectable-items', // required by 'search'
+  'collectable-items',
   'collections', // CRUD collections
   'text-reuse-passages',
   'text-reuse-clusters',

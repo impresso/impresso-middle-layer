@@ -1,7 +1,8 @@
 import moment from 'moment'
 import { get, mergeWith, toPairs, fromPairs, sortBy, sum } from 'lodash'
-import { filtersToQueryAndVariables, ContentLanguages } from '../../../util/solr'
+import { filtersToQueryAndVariables } from '../../../util/solr'
 import { SolrNamespaces } from '../../../solr'
+import { SupportedLanguageCodes } from '../../../models/solr'
 
 import { SolrMappings } from '../../../data/constants'
 
@@ -26,6 +27,11 @@ const getFacetPivotString = (languageCode, timeIntervalField) =>
 const getStatsFieldString = (languageCode, unigram) =>
   `{!tag=tf_stats_${languageCode} key=tf_stats_${languageCode} sum=true func}termfreq(content_txt_${languageCode},'${unigram}')`
 
+const getFacetPivotStringOtherLanguages = (timeIntervalField) =>
+  `{!stats=tf_stats_other key=other}${timeIntervalField}`
+const getStatsFieldStringOtherLanguages = (unigram) =>
+  `{!tag=tf_stats_other key=tf_stats_other sum=true func}termfreq(content_txt,'${unigram}')`
+
 /**
  * Construct a SOLR query to get unigram trends.
  * The query is a JSON payload to be send as a POST request.
@@ -37,14 +43,19 @@ const getStatsFieldString = (languageCode, unigram) =>
  * @return {object} a POST JSON payload for SOLR search endpoint.
  */
 function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInterval = 'year') {
-  const { query, variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+  const { query, filter, params: variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
-  const facetPivots = ContentLanguages.map(languageCode => getFacetPivotString(languageCode, timeIntervalField))
-  const statsFields = ContentLanguages.map(languageCode => getStatsFieldString(languageCode, unigram))
+  const facetPivots = SupportedLanguageCodes
+    .map(languageCode => getFacetPivotString(languageCode, timeIntervalField))
+    .concat(getFacetPivotStringOtherLanguages(timeIntervalField))
+  const statsFields = SupportedLanguageCodes
+    .map(languageCode => getStatsFieldString(languageCode, unigram))
+    .concat(getStatsFieldStringOtherLanguages(unigram))
 
   return {
     query,
+    filter,
     limit: 0,
     params: {
       vars: variables,
@@ -70,11 +81,12 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
  * @returns {any}
  */
 function unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval = 'year') {
-  const { query, variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+  const { query, filter, params: variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
   return {
     query,
+    filter,
     limit: 0,
     params: {
       vars: variables,

@@ -5,7 +5,7 @@ import { SolrFacetQueryParams } from '../../data/types'
 import { buildResolvers } from '../../internalServices/cachedResolvers'
 import { SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { getWidestInclusiveTimeInterval } from '../../logic/filters/timeInterval'
-import { FacetTypeGroup } from '../../models/generated/common'
+import { FacetTypeGroup, SolrServerNamespaceConfiguration } from '../../models/generated/common'
 import { ImpressoApplication } from '../../types'
 import { filtersToQueryAndVariables } from '../../util/solr'
 import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from './common'
@@ -113,18 +113,28 @@ const getDomainDetails = (index: string, domain: string, filters: any) => {
   return statsConfiguration.indexes[index].facets.term?.[domain]
 }
 
-function buildSolrRequest(facet: any, index: any, domain: any, stats: any, filters: any, sort: any, groupby: any) {
+function buildSolrRequest(
+  facet: any,
+  index: any,
+  domain: any,
+  stats: any,
+  filters: any,
+  sort: any,
+  groupby: any,
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+) {
   const facetType = getFacetType(index, facet)
   const domainDetails = getDomainDetails(index, domain, filters)
   if (domainDetails == null) throw new Error(`Domain ${domain} not found in index ${index}`)
   if (facetType == null) throw new Error(`Facet ${facet} not found in index ${index}`)
 
-  const { query } = filtersToQueryAndVariables(filters, index)
+  const { query, filter } = filtersToQueryAndVariables(filters, index, solrNamespacesConfiguration)
   // add
   const collapse = groupby ? { fq: `{!collapse field=${groupby}}` } : null
 
   return {
     query,
+    filter,
     limit: 0,
     params: { hl: false, ...collapse },
     facet: {
@@ -261,10 +271,15 @@ export class Stats {
       'statsField:',
       statsField
     )
-    const { query } = filtersToQueryAndVariables(filters, index)
+    const { query, filter } = filtersToQueryAndVariables(
+      filters,
+      index,
+      this.app.get('solrConfiguration').namespaces ?? []
+    )
     const result = await this.solr.select(index, {
       body: {
         query,
+        filter,
         limit: 0,
         params: { hl: false, stats: true, 'stats.field': statsField },
       },
@@ -277,7 +292,16 @@ export class Stats {
   }
 
   async find({ request: { facet, index, domain, stats, filters, sort, groupby } }: Params<any> & { request: any }) {
-    const request = buildSolrRequest(facet, index, domain, stats, filters, sort, groupby)
+    const request = buildSolrRequest(
+      facet,
+      index,
+      domain,
+      stats,
+      filters,
+      sort,
+      groupby,
+      this.app.get('solrConfiguration').namespaces ?? []
+    )
     debug(
       '[find] index:',
       index,

@@ -2,7 +2,7 @@ import lodash from 'lodash'
 import { protobuf } from 'impresso-jscommons'
 import { Filter } from '../models'
 
-export const parseOrderBy = (orderBy: string, keyFieldMap: Record<string, string> = {}) => {
+export const parseOrderBy = (orderBy: string | undefined, keyFieldMap: Record<string, string> = {}) => {
   if (orderBy == null) return []
   const isDescending = orderBy?.startsWith('-')
   const orderKey = orderBy.replace(/^-/, '')

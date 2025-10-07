@@ -18,6 +18,13 @@ type IDBCollection = Omit<ICollection, 'creationDate' | 'lastModifiedDate' | 'cr
 
 export type CollectionDbModel = ModelDefined<IDBCollection, Omit<IDBCollection, 'uid'>>
 
+/**
+ * New ID of a collection. Format: "local-useruid-7hy8hvrX"
+ * @param userId - user UID (not numeric ID)
+ * @returns new collection ID
+ */
+export const createCollectionId = (userId: string) => `${userId}-${nanoid(8)}`
+
 export default class Collection implements IDBCollection {
   uid: string
   name: string
@@ -64,7 +71,7 @@ export default class Collection implements IDBCollection {
     }
 
     if (!this.uid.length) {
-      this.uid = `${this.creator?.uid}-${nanoid(8)}` //= > "local-useruid-7hy8hvrX"
+      this.uid = createCollectionId(this.creator?.uid!)
     }
 
     if (complete) {

@@ -1,3 +1,6 @@
+/**
+ * @deprecated - remove when articles-search is removed but check that this file is not used elsewhere.
+ */
 import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
 import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
 import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'
@@ -5,6 +8,8 @@ import { ContentItemService } from '../content-items/content-items.class'
 import { ImpressoApplication } from '../../types'
 import { buildResolvers, CachedFacetType, IResolver } from '../../internalServices/cachedResolvers'
 import { ContentItem } from '../../models/generated/schemas/contentItem'
+import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
+import { SolrNamespaces } from '../../solr'
 
 export const getContentItemMatches = (
   contentItem: ContentItem,
@@ -80,7 +85,8 @@ function getAricleMatchesAndRegions(
 export async function getItemsFromSolrResponse(
   response: any,
   articlesService: ContentItemService,
-  userInfo: { user?: any; authenticated?: boolean } = {}
+  userInfo: { user?: any; authenticated?: boolean } = {},
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
 ) {
   const { user, authenticated } = userInfo
 
@@ -92,7 +98,7 @@ export async function getItemsFromSolrResponse(
   const { fragments: fragmentsIndex, highlighting: highlightingIndex } = response
 
   const filters = [{ type: 'uid', q: uids }]
-  const { query } = filtersToQueryAndVariables(filters)
+  const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, solrNamespacesConfiguration)
 
   const articlesRequest = {
     user,
@@ -100,7 +106,8 @@ export async function getItemsFromSolrResponse(
     query: {
       limit: uids.length,
       filters,
-      sq: query,
+      sq: query as string,
+      sfq: filter,
     },
   }
 

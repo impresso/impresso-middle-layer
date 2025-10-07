@@ -8,6 +8,37 @@
 
 
 /**
+ * Request to add content items to a collection from content items that match given filters
+ */
+export interface AddCollectableItemsFromFilters {
+  /**
+   * Filters to apply when selecting items to add to the collection
+   */
+  filters: Filter[];
+  /**
+   * Namespace to use when selecting items to add to the collection
+   */
+  namespace: "search" | "tr_passages";
+}
+/**
+ * A single filter criteria
+ */
+export interface Filter {
+  context?: "include" | "exclude";
+  op?: "AND" | "OR";
+  /**
+   * Possible values are in 'search.validators:eachFilterValidator.type.choices'
+   */
+  type: string;
+  precision?: "fuzzy" | "soft" | "exact" | "partial";
+  q?: string | string[];
+  daterange?: string;
+  uids?: string;
+  uid?: string;
+}
+
+
+/**
  * Request body for the authentication endpoint
  */
 export interface AuthenticationCreateRequest {

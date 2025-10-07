@@ -25,6 +25,8 @@ import { init as imageProxy } from './middleware/imageProxy'
 import schemas from './services/schemas'
 import { AppServices, ImpressoApplication } from './types'
 import { customJsonMiddleware } from './util/express'
+import queue from './internalServices/queue'
+import queueWorkerManager, { start as startQueueWorkerManager } from './internalServices/workerManager'
 
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
@@ -73,12 +75,16 @@ app.configure(transport)
 
 // Set up our services (see `services/index.ts`)
 app.configure(authentication)
-app.configure(services)
 
 // configure celery client task manage if celery config is available
 app.configure(celery)
+// queue manager (to replace celery eventually)
+app.configure(queue)
+app.configure(queueWorkerManager)
 
-app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startupJobs], []))
+app.configure(services)
+
+app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs], []))
 
 // part of sockets.io (see transport), but must go after services are defined
 // because one of the services is used in the channels.

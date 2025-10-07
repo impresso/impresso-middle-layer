@@ -8,6 +8,30 @@
 
 
 /**
+ * A single item in a user collection. Maps collection to content item.
+ */
+export interface CollectionItem {
+  /**
+   * The unique identifier for the collection item. Format: <col_id_s>|<ci_id_s>
+   */
+  id?: string;
+  /**
+   * The unique identifier for the content item. Located in the main or text reuse passages index.
+   */
+  ci_id_s?: string;
+  /**
+   * The unique identifier for the collection. Format: <user_id>_<collection_id>
+   */
+  col_id_s?: string;
+  /**
+   * The visibility status of the collection item. `pub` for public, `pri` for private
+   */
+  vis_s?: "pub" | "pri";
+  _version_?: number;
+}
+
+
+/**
  * Image Solr document in Impresso v2
  */
 export interface Image {

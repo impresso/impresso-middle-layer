@@ -1,20 +1,36 @@
-/* eslint-disable no-unused-vars */
 import { logger } from '../../logger.js'
 import debugLib from 'debug'
-const debug = debugLib('impresso/services:search-exporter')
 import { NotFound, NotImplemented } from '@feathersjs/errors'
-import { protobuf } from 'impresso-jscommons'
-import article from '../../models/articles.model'
+import { Filter, protobuf } from 'impresso-jscommons'
+import { ImpressoApplication } from '../../types.js'
+import { Params } from '@feathersjs/feathers'
+import User from '../../models/users.model.js'
+
+const debug = debugLib('impresso/services:search-exporter')
+
+interface CreateData {
+  taskname: string
+  description?: string
+
+  sanitized: CreateData
+}
+interface WithUser {
+  user?: User
+}
+
+interface CreateQuery {
+  sq?: string
+  filters?: Filter[]
+}
 
 export class Service {
-  constructor(options) {
-    this.name = options.name
-    this.options = options || {}
-    this.app = options.app
-    debug('Service created')
+  app: ImpressoApplication
+
+  constructor(app: ImpressoApplication) {
+    this.app = app
   }
 
-  async create(data, params) {
+  async create(data: CreateData, params: Params<CreateQuery> & WithUser & { sanitized: CreateQuery }) {
     const client = this.app.get('celeryClient')
     if (!client) {
       return {}
@@ -24,17 +40,25 @@ export class Service {
     debug('[create] from solr query:', q, 'filters:', params.sanitized.filters)
 
     const pq = protobuf.searchQuery.serialize({
-      filters: params.sanitized.filters,
+      filters: params.sanitized.filters ?? [],
     })
     const task = `impresso.tasks.${data.sanitized.taskname}`
     debug('[create] - task:', task, '- protobuffered:', pq)
+
+    const queueService = this.app.service('queueService')
+
+    await queueService.exportSearchResults({
+      userId: params.user?.id! as any as string,
+      solrNamespace: 'search',
+      filters: params.sanitized.filters ?? [],
+    })
 
     return client
       .run({
         task,
         args: [
           // user id
-          params.user.id,
+          params.user?.id,
           // query
           q,
           // description
@@ -58,8 +82,4 @@ export class Service {
         throw new NotImplemented()
       })
   }
-}
-
-export default function (options) {
-  return new Service(options)
 }

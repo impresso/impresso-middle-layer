@@ -158,7 +158,8 @@
       { "namespaceId": "images", "serverId": "default", "index": "impresso_images_dev", "schemaVersion": "v2" },
       { "namespaceId": "tr_passages", "serverId": "default", "index": "impresso_tr_passages" },
       { "namespaceId": "tr_clusters", "serverId": "default", "index": "impresso_tr_clusters" },
-      { "namespaceId": "word_embeddings", "serverId": "default", "index": "impresso_word_emb_dev" }
+      { "namespaceId": "word_embeddings", "serverId": "default", "index": "impresso_word_emb_dev" },
+      { "namespaceId": "collection_items", "serverId": "default", "index": "impresso_collection_items" }
     ]
   },
   "recommender": {

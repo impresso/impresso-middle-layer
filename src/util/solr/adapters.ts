@@ -29,7 +29,7 @@ interface FindAllParams {
   q?: string
   limit?: number
   offset?: number
-  fq?: string
+  fq?: string | string[]
   highlight_by?: string
   highlightProps?: Record<string, string>
   vars?: Record<string, string>
@@ -167,7 +167,7 @@ interface FindParams {
   fq?: string
   query?: {
     sq?: string
-    sfq?: string
+    sfq?: string | string[]
     facets?: Record<string, SolrFacetQueryParams>
     order_by?: string
     highlight_by?: string

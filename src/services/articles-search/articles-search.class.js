@@ -4,6 +4,7 @@ import { filtersToQueryAndVariables } from '../../util/solr'
 import { getItemsFromSolrResponse, getTotalFromSolrResponse } from '../search/search.extractors'
 
 /**
+ * @deprecated - only used for article recommendations in the web app. Remove once replaced.
  * @typedef {import('impresso-jscommons').Filter} Filter
  * @typedef {import('.').RelevanceContextItem} RelevanceContextItem
  * @typedef {import('.').Pagination} Pagination
@@ -29,10 +30,10 @@ export class ArticlesSearch {
   async create({ relevanceContext = [], filters = [], pagination = {} }, params) {
     const items = relevanceContext == null ? [] : relevanceContext
 
-    const { query } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+    const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
     const relevanceScoreVariable = relevanceContextItemsToSolrFormula(items)
 
-    const solrQuery = buildSolrQuery(query, relevanceScoreVariable, pagination)
+    const solrQuery = buildSolrQuery(query, filter, relevanceScoreVariable, pagination)
 
     const result = await this.solr.select(SolrNamespaces.Search, { body: solrQuery })
 
