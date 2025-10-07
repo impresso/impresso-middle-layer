@@ -2,7 +2,7 @@
 import Debug from 'debug'
 import { ApplicationHookFunction, ApplicationHookOptions, HookContext } from '@feathersjs/feathers'
 import { ValidationError } from 'ajv'
-import { GeneralError, BadGateway, BadRequest, Unprocessable } from '@feathersjs/errors'
+import { GeneralError, BadGateway, BadRequest, Unprocessable, Conflict } from '@feathersjs/errors'
 import { ImpressoApplication } from './types'
 import { logger } from './logger'
 import { hooks } from '@feathersjs/authentication'
@@ -64,13 +64,14 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
         error
       )
     }
-
     if (error instanceof ValidationError) {
       ctx.error = new Unprocessable(error.message, error.errors)
     } else if (error.name === 'SequelizeConnectionRefusedError') {
       ctx.error = new BadGateway('SequelizeConnectionRefusedError')
     } else if (error.name === 'SequelizeConnectionError') {
       ctx.error = new BadGateway('SequelizeConnectionError')
+    } else if (error.name === 'SequelizeUniqueConstraintError') {
+      ctx.error = new Conflict(error.message, error.errors)
     } else if (error instanceof InvalidArgumentError) {
       ctx.error = new BadRequest(error)
     } else if (!error.code) {

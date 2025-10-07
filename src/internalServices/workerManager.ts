@@ -1,6 +1,7 @@
 import { Application, NextFunction } from '@feathersjs/feathers'
 import { HookContext } from '@feathersjs/hooks'
 import { Processor, QueueEvents, Worker } from 'bullmq'
+import IORedis from 'ioredis'
 import { RedisConfiguration } from '../configuration'
 import {
   createJobHandler as createAddItemsToCollectionJobHandler,
@@ -10,6 +11,10 @@ import {
   createJobHandler as createAddQueryResultItemsToCollectionJobHandler,
   JobNameAddQueryResultItemsToCollection,
 } from '../jobs/collections/addQueryResultItemsToCollection'
+import {
+  createJobHandler as createMigrateOldCollectionsJobHandler,
+  JobNameMigrateOldCollections,
+} from '../jobs/collections/migrateOldCollections'
 import {
   JobNameRemoveAllCollectionItems,
   createJobHandler as removeAllCollectionItemsJobHandler,
@@ -22,10 +27,6 @@ import {
   createJobHandler as exportSearchResultsJobHandler,
   JobNameExportSearchResults,
 } from '../jobs/searchResults/exportSearchResults'
-import {
-  createJobHandler as createMigrateOldCollectionsJobHandler,
-  JobNameMigrateOldCollections,
-} from '../jobs/collections/migrateOldCollections'
 import { logger } from '../logger'
 import { ImpressoApplication } from '../types'
 import { ensureServiceIsFeathersCompatible } from '../util/feathers'
@@ -65,6 +66,7 @@ export class WorkerManagerService {
       host: this.redisConfig.host || 'localhost',
       port: this.redisConfig.port || 6379,
     }
+    logger.info('Starting worker manager with redis:', this.redisConfig)
 
     if (this.redisConfig.password) {
       connectionOptions.password = this.redisConfig.password
@@ -74,17 +76,23 @@ export class WorkerManagerService {
       connectionOptions.db = (this.redisConfig as any).db
     }
 
+    const connection = new IORedis({
+      ...connectionOptions,
+      maxRetriesPerRequest: null,
+      enableReadyCheck: true,
+    })
+
     this.workerDefinitions.forEach(([queueName, processor, concurrency]) => {
       const worker = new Worker(queueName, processor, {
-        connection: connectionOptions,
-        concurrency: concurrency,
+        connection,
+        concurrency,
       })
       this.workers.push(worker)
       logger.info(`Starting ${worker.name} on '${queueName}' queue with concurrency ${concurrency}`)
     })
 
     const queues = new Set(this.workerDefinitions.map(([queueName]) => queueName))
-    queues.forEach(queueName => this.setupEventListeners(queueName))
+    queues.forEach(queueName => this.setupEventListeners(queueName, connection))
 
     this.isRunning = true
     logger.info(`Successfully started ${this.workers.length} workers`)
@@ -148,8 +156,10 @@ export class WorkerManagerService {
     return this.isRunning && this.workers.length > 0
   }
 
-  private setupEventListeners(queueName: string): void {
-    const queueEvents = new QueueEvents(queueName)
+  private setupEventListeners(queueName: string, connection: IORedis): void {
+    const queueEvents = new QueueEvents(queueName, {
+      connection,
+    })
 
     queueEvents.on('completed', job => {
       logger.info(`[JOB] Job ${job.jobId} completed successfully: ${job.returnvalue}`)
@@ -168,7 +178,7 @@ export class WorkerManagerService {
     })
 
     queueEvents.on('error', err => {
-      logger.error(`[JOB] Error occurred:`, err)
+      logger.error(`[JOB] Error occurred: ${err.stack}`)
     })
   }
 }
