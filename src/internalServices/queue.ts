@@ -1,23 +1,24 @@
-import { Queue, Worker, Job as BullJob } from 'bullmq'
-import { logger } from '../logger'
-import { ImpressoApplication } from '../types'
+import { Job as BullJob, Queue } from 'bullmq'
+import IORedis from 'ioredis'
 import { RedisConfiguration } from '../configuration'
-import { ensureServiceIsFeathersCompatible } from '../util/feathers'
 import { AddItemsToCollectionJobData, JobNameAddItemsToCollection } from '../jobs/collections/addItemsToCollection'
 import {
-  JobNameRemoveItemsFromCollection,
-  RemoveItemsFromCollectionJobData,
-} from '../jobs/collections/removeItemsFromCollection'
+  AddQueryResultItemsToCollectionJobData,
+  JobNameAddQueryResultItemsToCollection,
+} from '../jobs/collections/addQueryResultItemsToCollection'
+import { JobNameMigrateOldCollections, MigrateOldCollectionsJobData } from '../jobs/collections/migrateOldCollections'
 import {
   JobNameRemoveAllCollectionItems,
   RemoveAllCollectionItemsJobData,
 } from '../jobs/collections/removeAllCollectionItems'
 import {
-  AddQueryResultItemsToCollectionJobData,
-  JobNameAddQueryResultItemsToCollection,
-} from '../jobs/collections/addQueryResultItemsToCollection'
+  JobNameRemoveItemsFromCollection,
+  RemoveItemsFromCollectionJobData,
+} from '../jobs/collections/removeItemsFromCollection'
 import { ExportSearchResultsJobData, JobNameExportSearchResults } from '../jobs/searchResults/exportSearchResults'
-import { JobNameMigrateOldCollections, MigrateOldCollectionsJobData } from '../jobs/collections/migrateOldCollections'
+import { logger } from '../logger'
+import { ImpressoApplication } from '../types'
+import { ensureServiceIsFeathersCompatible } from '../util/feathers'
 
 export interface QueueServiceOptions {
   redisConfig: RedisConfiguration
@@ -44,6 +45,7 @@ export class QueueService {
       host: this.redisConfig.host || 'localhost',
       port: this.redisConfig.port || 6379,
     }
+    logger.info('Starting queue service with redis:', this.redisConfig)
 
     if (this.redisConfig.password) {
       connectionOptions.password = this.redisConfig.password
@@ -63,28 +65,34 @@ export class QueueService {
       },
     }
 
+    const connection = new IORedis({
+      ...connectionOptions,
+      maxRetriesPerRequest: null,
+      enableReadyCheck: true,
+    })
+
     this.queueAddItemsToCollection = new Queue(JobNameAddItemsToCollection, {
-      connection: connectionOptions,
       defaultJobOptions,
+      connection,
     })
     this.queueRemoveItemsFromCollection = new Queue(JobNameRemoveItemsFromCollection, {
-      connection: connectionOptions,
+      connection,
       defaultJobOptions,
     })
     this.queueRemoveAllCollectionItems = new Queue(JobNameRemoveAllCollectionItems, {
-      connection: connectionOptions,
+      connection,
       defaultJobOptions,
     })
     this.queueAddQueryResultItemsToCollection = new Queue(JobNameAddQueryResultItemsToCollection, {
-      connection: connectionOptions,
+      connection,
       defaultJobOptions,
     })
     this.queueExportSearchResults = new Queue(JobNameExportSearchResults, {
-      connection: connectionOptions,
+      connection,
       defaultJobOptions,
     })
     this.queueMigrateOldCollections = new Queue(JobNameMigrateOldCollections, {
-      connection: connectionOptions,
+      connection,
       defaultJobOptions,
     })
   }
