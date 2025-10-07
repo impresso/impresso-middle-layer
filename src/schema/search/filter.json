@@ -29,14 +29,14 @@
         {
           "type": "string",
           "minLength": 2,
-          "maxLength": 500
+          "maxLength": 1200
         },
         {
           "type": "array",
           "items": {
             "type": "string",
             "minLength": 2,
-            "maxLength": 500  
+            "maxLength": 1200
           }
         }
       ]
@@ -52,7 +52,5 @@
       "type": "string"
     }
   },
-  "required": [
-    "type"
-  ]
+  "required": ["type"]
 }

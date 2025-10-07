@@ -143,6 +143,7 @@ indexes:
         field:
           - "gte-768:gte_multi_v768"
         rule: embeddingKnnSimilarity
+        destination: query
   tr_clusters:
     filters:
       textReuseCluster:
@@ -287,3 +288,4 @@ indexes:
           - "openclip-768:openclip_emb_v768"
           - "dinov2-1024:dinov2_emb_v1024"
         rule: embeddingKnnSimilarity
+        destination: query

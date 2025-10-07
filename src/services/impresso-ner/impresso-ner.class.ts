@@ -198,8 +198,8 @@ const convertDownstreamResponse = (response: DownstreamResponse, request: Reques
 })
 
 const convertDownstreamEntity = (entity: DownstreamNes): ImpressoNerEntity => ({
-  id: typeof entity.id === 'string' ? entity.id : entity.id.join(','),
-  type: sanitizeType(entity.type),
+  id: typeof entity.id === 'string' ? entity.id : entity.id?.join(',') ?? '',
+  type: sanitizeType(entity.type) ?? 'unk',
   ...(entity.surface != null ? { surfaceForm: entity.surface } : {}),
   ...(entity.lOffset != null && entity.rOffset != null
     ? { offset: { start: entity.lOffset, end: entity.rOffset } }
