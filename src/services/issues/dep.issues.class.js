@@ -90,8 +90,7 @@ class Service {
       q: `meta_issue_id_s:${id}`,
       fl: Issue.ISSUE_SOLR_FL_MINIMAL,
       collapse_by: 'meta_issue_id_s',
-      // get first ARTICLE result
-      collapse_fn: "sort='id ASC'",
+      fq: `{!collapse field=meta_issue_id_s sort='id ASC'}`,
     }
 
     return Promise.all([
