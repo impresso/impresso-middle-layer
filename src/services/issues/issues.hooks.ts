@@ -1,9 +1,10 @@
 import { Hook, HookContext } from '@feathersjs/feathers'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
+import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
 import { filtersToSolrQuery } from '../../hooks/search'
 import { ImpressoApplication } from '../../types'
 import { sanitizeIiifImageUrl } from '../../util/iiif'
+import { eachFilterValidator } from '../search/search.validators'
 
 const getPrefix = (prefixes: string[], url?: string): string | undefined => {
   return url == null ? undefined : prefixes.find(prefix => url.startsWith(prefix))
@@ -54,35 +55,16 @@ export default {
           defaultValue: 'name',
         }),
       }),
-      validateEach(
-        'filters',
-        {
-          context: {
-            choices: ['include', 'exclude'],
-            defaultValue: 'include',
-          },
-          type: {
-            choices: ['newspaper'],
-            required: true,
-          },
-          q: {
-            required: false,
-            min_length: 2,
-            max_length: 500,
-          },
-        },
-        {
-          required: false,
-        }
-      ),
-
+      validateEach('filters', eachFilterValidator, {
+        required: false,
+      }),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
   },
 
   after: {
-    find: [],
+    find: [displayQueryParams(['filters'])],
     get: [
       // change count_pages
       updateIiifUrls,
