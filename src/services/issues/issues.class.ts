@@ -1,5 +1,3 @@
-import { Params } from '@feathersjs/feathers'
-
 import { ClientService } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../../types'
 import { NewspaperIssue } from '../../models/generated/schemas'
