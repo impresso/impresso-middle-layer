@@ -1,6 +1,5 @@
 import lodash from 'lodash'
 import { logger } from '../logger'
-import Collection from '../models/collections.model'
 import { HookContext } from '@feathersjs/feathers'
 import { Service as SearchFacetService } from '../services/search-facets/search-facets.class'
 import { ImpressoApplication } from '../types'

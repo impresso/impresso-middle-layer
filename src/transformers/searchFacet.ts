@@ -2,12 +2,12 @@ import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../types'
 
 import {
+  Collection,
   SearchFacet,
   SearchFacetBucket as SearchFacetBucketInternal,
   SearchFacetRangeBucket,
 } from '../models/generated/schemas'
 import { SearchFacetBucket, BaseFindResponse } from '../models/generated/schemasPublic'
-import Collection from '../models/collections.model'
 import Newspaper from '../models/newspapers.model'
 import Entity from '../models/entities.model'
 import Topic from '../models/topics.model'
@@ -52,7 +52,7 @@ const transformBucket = (
       return {
         count: input.count,
         value: String(input.val),
-        label: collectionItem != null ? collectionItem.name : undefined,
+        label: collectionItem != null ? collectionItem.title : undefined,
       }
     case 'newspaper':
       const newspaperItem = (input as any)?.item as Newspaper

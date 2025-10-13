@@ -148,6 +148,9 @@ class ArticleMatch extends Fragment implements ContentItemTextMatch {
   }
 }
 
+/**
+ * @deprecated use `content-item` instead.
+ */
 export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> {
   uid: string
   type: string
@@ -248,6 +251,9 @@ type ContentItemWithCorrectTypes = Omit<
   topics?: ArticleTopic[]
 }
 
+/**
+ * @deprecated use `content-item` instead.
+ */
 export class Article extends BaseArticle implements ContentItemWithCorrectTypes {
   language: string
   content: string

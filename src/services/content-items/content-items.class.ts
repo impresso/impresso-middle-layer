@@ -34,8 +34,7 @@ import { ContentItemDbModel } from '../../models/content-item.model'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '../../models/content-item-page.model'
 import { mapRecordValues } from '../../util/fn'
 import { NotFound } from '@feathersjs/errors'
-import { BaseUser, Topic } from '../../models/generated/schemas'
-import type { Collection } from '../../models/generated/schemasPublic'
+import { Collection, Topic } from '../../models/generated/schemas'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
@@ -229,22 +228,7 @@ const withCollections = (contentItems: ContentItem[], collectionsLookup: Diction
         ...item,
         semanticEnrichments: {
           ...item.semanticEnrichments,
-          collections: collections.map(
-            c =>
-              ({
-                uid: c.uid,
-                name: c.title ?? '',
-                description: c.description ?? '',
-                status: c.accessLevel ?? 'private',
-                countItems: c.totalItems ?? 0,
-                creator: {
-                  uid: c.creatorId != null ? String(c.creatorId) : '',
-                  username: '', // we don't have username here
-                },
-                creationDate: c.createdAt != null ? c.createdAt : '',
-                lastModifiedDate: c.updatedAt != null ? c.updatedAt : '',
-              }) satisfies ContentItemCollection
-          ),
+          collections,
         },
       }
     }

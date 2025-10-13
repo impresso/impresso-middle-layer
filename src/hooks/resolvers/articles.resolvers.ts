@@ -1,6 +1,5 @@
 import { buildResolvers } from '../../internalServices/cachedResolvers'
 import { resolveAsync } from '../../util/solr/adapters'
-import * as lodash from 'lodash'
 import debug from 'debug'
 import Topic from '../../models/topics.model'
 import { HookContext } from '@feathersjs/feathers'

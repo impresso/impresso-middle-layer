@@ -3,7 +3,7 @@ import Debug from 'debug'
 import { Conflict, BadRequest, BadGateway } from '@feathersjs/errors'
 import { Op } from 'sequelize'
 import Newspapers from '../models/newspapers.model.js'
-import Collection from '../models/collections.model.js'
+import Collection from '../models/user-collection.js'
 
 const debug = Debug('verbose:impresso/services:sequelize.utils')
 

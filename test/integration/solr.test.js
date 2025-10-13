@@ -1,5 +1,5 @@
 import assert from 'assert'
-import config from '@feathersjs/configuration')()(
+import config from '@feathersjs/configuration'
 import solr from '../../src/solr'
 import Article from '../../src/models/articles.model'
 import Issue from '../../src/models/issues.model'

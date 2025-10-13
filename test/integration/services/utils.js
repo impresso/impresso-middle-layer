@@ -3,8 +3,7 @@ const debug = debugModule('impresso/test:utils')
 import app from '../../../src/app'
 import sequelize from '../../../src/sequelize'
 
-import Collection from '../../../src/models/collections.model'
-// import CollectableItem from '../../src/models/collectable-items.model';
+import Collection from '../../../src/models/user-collection'
 import User from '../../../src/models/users.model'
 
 const removeGeneratedUser = async user => {
