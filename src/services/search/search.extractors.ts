@@ -10,6 +10,7 @@ import { buildResolvers, CachedFacetType, IResolver } from '../../internalServic
 import { ContentItem } from '../../models/generated/schemas/contentItem'
 import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
 import { SolrNamespaces } from '../../solr'
+import { Filter } from 'impresso-jscommons'
 
 export const getContentItemMatches = (
   contentItem: ContentItem,
@@ -97,7 +98,7 @@ export async function getItemsFromSolrResponse(
 
   const { fragments: fragmentsIndex, highlighting: highlightingIndex } = response
 
-  const filters = [{ type: 'uid', q: uids }]
+  const filters: Filter[] = [{ type: 'uid', q: uids }]
   const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, solrNamespacesConfiguration)
 
   const articlesRequest = {
