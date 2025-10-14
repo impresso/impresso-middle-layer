@@ -26,6 +26,18 @@ const findParameters: MethodParameter[] = [
   ...getStandardParameters({ method: 'find' }),
 ]
 
+const getParameters: MethodParameter[] = [
+  {
+    in: 'query',
+    name: 'include_embeddings',
+    required: false,
+    schema: {
+      type: 'boolean',
+    },
+    description: 'Whether to include embeddings in the response (default: `false`)',
+  },
+]
+
 /**
  * NOTE: Keep this in sync with validators in search.hooks.ts
  */
@@ -56,6 +68,7 @@ export const docs: ServiceSwaggerOptions = {
           },
           description: 'UID of the content item',
         },
+        ...getParameters,
       ],
       responses: getStandardResponses({
         method: 'get',

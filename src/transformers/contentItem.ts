@@ -50,6 +50,7 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
         ?.map(toTopicMention)
         ?.filter(v => v != null)
         .map(v => v as TopicMention) ?? [],
+    embeddings: input.semanticEnrichments?.embeddings,
     transcriptLength: input.text?.contentLength ?? 0,
     totalPages: input.image?.pagesCount ?? 0,
     languageCode: input.text?.langCode?.toLowerCase(),

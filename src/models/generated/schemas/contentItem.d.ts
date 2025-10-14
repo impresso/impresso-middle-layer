@@ -163,7 +163,10 @@ export interface ContentItemSemanticEnrichments {
    * List of user collections the content item belongs to.
    */
   collections?: Collection[];
-  [k: string]: unknown;
+  /**
+   * Precomputed embeddings for the content item in the format: <model_type>:<base64_embedding_vector>.
+   */
+  embeddings?: string[];
 }
 /**
  * Content item named entity
@@ -832,7 +835,10 @@ export interface ContentItemSemanticEnrichments {
    * List of user collections the content item belongs to.
    */
   collections?: Collection[];
-  [k: string]: unknown;
+  /**
+   * Precomputed embeddings for the content item in the format: <model_type>:<base64_embedding_vector>.
+   */
+  embeddings?: string[];
 }
 /**
  * Content item named entity

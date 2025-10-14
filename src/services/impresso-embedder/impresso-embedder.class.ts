@@ -37,10 +37,14 @@ const numberVectorToBase64 = (vector: number[]): string => {
   return Buffer.from(floatArray.buffer).toString('base64')
 }
 
+export const vectorToCanonicalEmbedding = (vector: number[], modelTag: string): string => {
+  return `${modelTag}:${numberVectorToBase64(vector)}`
+}
+
 const downstreamResponseToEmbeddingResponseBuilder =
   (model: string) =>
   (data: DownstreamResponse): ImpressoEmbeddingResponse => ({
-    embedding: `${model}:${numberVectorToBase64(data.embedding)}`,
+    embedding: vectorToCanonicalEmbedding(data.embedding, model),
   })
 
 export class ImpressoImageEmbeddingService {

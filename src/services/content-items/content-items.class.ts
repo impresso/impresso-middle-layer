@@ -22,8 +22,9 @@ import {
   AllDocumentFields,
   IFullContentItemFieldsNames,
   withMatches,
+  EmbeddingsFields,
 } from '../../models/content-item'
-import { ClientService } from '@feathersjs/feathers'
+import { ClientService, Params } from '@feathersjs/feathers'
 import { FindResponse } from '../../models/common'
 import {
   ContentItem,
@@ -82,7 +83,10 @@ export const FindMethodFields = [...SlimContentItemFieldsNames].map(withJsonExpa
  * Fields needed to fetch a single content item.
  * All fields are included here.
  */
-const GetMethodFields = [...FullContentItemFieldsNames].map(withJsonExpansion)
+const GetMethodFields = [...FullContentItemFieldsNames.filter(f => !EmbeddingsFields.includes(f as any))].map(
+  withJsonExpansion
+)
+const GetMethodFieldsWithEmbeddings = [...FullContentItemFieldsNames].map(withJsonExpansion)
 
 // async function getIssues(request: Record<string, any>, app: ImpressoApplication) {
 //   const sequelize = app.get('sequelizeClient')
@@ -152,6 +156,15 @@ export interface FindOptions {
   // things needed by SolService.find
   fl?: string[]
 }
+
+interface WithUser {
+  user?: SlimUser
+}
+
+interface GetQueryParams {
+  include_embeddings?: boolean
+}
+export type GetParams = Params<GetQueryParams> & WithUser
 
 const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: ImpressoApplication): ContentItemPage => {
   return {
@@ -457,14 +470,14 @@ export class ContentItemService implements IContentItemService {
     // return results
   }
 
-  async get(id: string, params: any): Promise<ContentItem> {
+  async get(id: string, params: GetParams): Promise<ContentItem> {
     // debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found')
 
     const request = findAllRequestAdapter({
       q: `id:${id}`,
       limit: 1,
       offset: 0,
-      fl: GetMethodFields,
+      fl: params.query?.include_embeddings ? GetMethodFieldsWithEmbeddings : GetMethodFields,
     })
 
     const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {

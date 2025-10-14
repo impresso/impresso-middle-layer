@@ -110,6 +110,10 @@ export interface ContentItem {
    */
   topics?: TopicMention[];
   /**
+   * Precomputed embeddings for the content item in the format: <model_type>:<base64_embedding_vector>.
+   */
+  embeddings?: string[];
+  /**
    * The length of the transcript in characters.
    */
   transcriptLength?: number;

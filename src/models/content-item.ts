@@ -27,6 +27,7 @@ import { getNameFromUid } from '../utils/entity.utils'
 import { IFragmentsAndHighlights } from './articles.model'
 import { getContentItemMatches } from '../services/search/search.extractors'
 import { parsePlainsField } from '../util/solr'
+import { vectorToCanonicalEmbedding } from '../services/impresso-embedder/impresso-embedder.class'
 
 const ContentItemCoreFields = [
   'id',
@@ -95,6 +96,7 @@ const ContentSemanticEnrichmentsFields = [
   'nag_mention_conf_dpfs',
   'nem_offset_plain',
   'nag_offset_plain',
+  'gte_multi_v768',
 ] satisfies (keyof SemanticEnrichmentsFields)[]
 
 const AudioContentFields = [
@@ -125,7 +127,9 @@ export type FullContentOnlyFieldsType =
   | 'rreb_plain'
   | 'ub_plain'
 
-export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType>
+export type EmbeddingsFieldType = 'gte_multi_v768'
+
+export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType | EmbeddingsFieldType>
 
 export type IFullContentItemFieldsNames = keyof (AllDocumentFields & IWildcardTextFields)
 
@@ -138,6 +142,13 @@ const FullContentOnlyFields = [
   'rreb_plain',
   'ub_plain',
 ] satisfies FullContentOnlyFieldsType[]
+
+/**
+ * Fields that contain embeddings vectors.
+ * This is one level above "full content only" fields
+ * and only should be fetched when embeddings are needed.
+ */
+export const EmbeddingsFields = ['gte_multi_v768'] satisfies EmbeddingsFieldType[]
 
 type ISlimContentItemFieldsNames = Exclude<IFullContentItemFieldsNames, FullContentOnlyFieldsType>
 
@@ -154,7 +165,7 @@ export const FullContentItemFieldsNames = [
 ] satisfies IFullContentItemFieldsNames[]
 
 export const SlimContentItemFieldsNames = [
-  ...setDifference(FullContentItemFieldsNames, FullContentOnlyFields),
+  ...setDifference(setDifference(FullContentItemFieldsNames, FullContentOnlyFields), EmbeddingsFields),
 ] satisfies ISlimContentItemFieldsNames[]
 
 type XYWH = [number, number, number, number] // x, y, width, height
@@ -372,6 +383,9 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
         ),
       },
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),
+      ...(doc.gte_multi_v768 != null
+        ? { embeddings: [vectorToCanonicalEmbedding(doc.gte_multi_v768, 'gte-768')] }
+        : {}),
     },
     audio: {
       duration: doc.meta_duration_s,
