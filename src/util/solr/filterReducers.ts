@@ -416,8 +416,9 @@ const _base64ToNumberVector = (base64: string): number[] => {
  * @todo: set `topK` dynamically based on the `limit` parameter of the search request.
  *
  * Filter constraints:
- *  - `q` - a string containing the base64-encoded embedding vector and the model as the prefix, e.g. "openclip-768:BASE64_ENCODED_VECTOR"
- *          or an array with a single such string.
+ *  - `q` - a string containing the base64-encoded embedding vector, the model as the prefix and an optional limit (topK)
+ *          as the suffix, e.g. "openclip-768:BASE64_ENCODED_VECTOR" or "openclip-768:BASE64_ENCODED_VECTOR:100" or an
+ *          array with a single such string. When no limit is provided, topK=50 is used.
  *  - `precision` - not used
  *  - `op` - not used
  *  - `context` - not used
@@ -448,7 +449,8 @@ const embeddingKnnSimilarityHandler = (filters: Filter[], field: string[], rule:
       )
     }
 
-    const [model, vector] = modelAndVector.split(':')
+    const [model, vector, ...rest] = modelAndVector.split(':')
+    const topK = rest.length > 0 && Number.isFinite(parseInt(rest[0], 10)) ? parseInt(rest[0], 10) : 50
     const fieldName = modelToFieldMap[model]
     if (fieldName == null) {
       throw new InvalidArgumentError(
@@ -458,13 +460,13 @@ const embeddingKnnSimilarityHandler = (filters: Filter[], field: string[], rule:
       )
     }
 
-    return { fieldName, vector }
+    return { fieldName, vector, topK }
   })
 
   return items
-    .map(({ fieldName, vector }) => {
+    .map(({ fieldName, vector, topK }) => {
       const numberVector = _base64ToNumberVector(vector)
-      return `{!knn f=${fieldName} topK=3}${JSON.stringify(numberVector)}`
+      return `{!knn f=${fieldName} topK=${topK}}${JSON.stringify(numberVector)}`
     })
     .join(' AND ')
 }
@@ -496,7 +498,7 @@ interface FilterToSolrResult {
  * Convert a set of filters of the same type to a SOLR query string.
  * Types are defined in `solrFilters.yml` for the corresponding namespace
  *
- * @param {import('../../models').Filter[]} filters list of filters of the same type.
+ * @param {Filter[]} filters list of filters of the same type.
  * @param {string} solrNamespace namespace (index) this filter type belongs to.
  *
  * @returns {FilterToSolrResult} a SOLR query string that can be wrapped into a `filter()` statement and the destination
@@ -505,7 +507,7 @@ export const filtersToSolr = (
   filters: Filter[],
   solrNamespace: SolrNamespace,
   solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
-) => {
+): FilterToSolrResult => {
   if (filters.length < 1) throw new InvalidArgumentError('At least one filter must be provided')
   const types = [...new Set(filters.map(({ type }) => type))]
   if (types.length > 1) throw new InvalidArgumentError(`Filters must be of the same type. Found types: "${types}"`)
