@@ -418,7 +418,7 @@ const _base64ToNumberVector = (base64: string): number[] => {
  * Filter constraints:
  *  - `q` - a string containing the base64-encoded embedding vector, the model as the prefix and an optional limit (topK)
  *          as the suffix, e.g. "openclip-768:BASE64_ENCODED_VECTOR" or "openclip-768:BASE64_ENCODED_VECTOR:100" or an
- *          array with a single such string. When no limit is provided, topK=50 is used.
+ *          array with a single such string. When no limit is provided, topK=10 is used.
  *  - `precision` - not used
  *  - `op` - not used
  *  - `context` - not used
@@ -450,7 +450,7 @@ const embeddingKnnSimilarityHandler = (filters: Filter[], field: string[], rule:
     }
 
     const [model, vector, ...rest] = modelAndVector.split(':')
-    const topK = rest.length > 0 && Number.isFinite(parseInt(rest[0], 10)) ? parseInt(rest[0], 10) : 50
+    const topK = rest.length > 0 && Number.isFinite(parseInt(rest[0], 10)) ? parseInt(rest[0], 10) : 10
     const fieldName = modelToFieldMap[model]
     if (fieldName == null) {
       throw new InvalidArgumentError(
