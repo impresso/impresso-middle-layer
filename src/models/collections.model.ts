@@ -1,6 +1,6 @@
 import User from './users.model'
 import { nanoid } from 'nanoid'
-import { BaseUser, Collection as ICollection } from './generated/schemas'
+import { Collection as ICollection } from './generated/schemas'
 import { ModelDefined, Sequelize } from 'sequelize'
 
 import { DataTypes } from 'sequelize'
@@ -25,6 +25,9 @@ export type CollectionDbModel = ModelDefined<IDBCollection, Omit<IDBCollection, 
  */
 export const createCollectionId = (userId: string) => `${userId}-${nanoid(8)}`
 
+/**
+ * @deprecated use `user-collection.ts` instead.
+ */
 export default class Collection implements IDBCollection {
   uid: string
   name: string
@@ -79,21 +82,15 @@ export default class Collection implements IDBCollection {
     }
   }
 
-  toJSON(): Omit<ICollection, 'creator'> & Partial<Pick<ICollection, 'creator'>> {
+  toJSON(): Omit<ICollection, 'creator'> & Partial<Pick<ICollection, 'creatorId'>> {
     return {
-      countItems: this.countItems,
-      creator: this.creator
-        ? {
-            uid: this.creator.uid,
-            username: this.creator.username,
-          }
-        : undefined,
+      totalItems: this.countItems,
+      creatorId: this.creator?.uid ?? '',
       description: this.description,
-      lastModifiedDate: this.lastModifiedDate.toISOString(),
-      creationDate: this.creationDate.toISOString(),
-      labels: this.labels,
-      name: this.name,
-      status: this.status,
+      updatedAt: this.lastModifiedDate.toISOString(),
+      createdAt: this.creationDate.toISOString(),
+      title: this.name,
+      accessLevel: this.status === STATUS_PRIVATE ? 'private' : 'public',
       uid: this.uid,
     }
   }

@@ -58,6 +58,13 @@
       "type": "string",
       "format": "date",
       "description": "The date of the image or the date of the issue that the image belongs to."
+    },
+    "embeddings": {
+      "type": "array",
+      "description": "Precomputed embeddings for the image in the format: <model_type>:<base64_embedding_vector>.",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": ["uid", "issueUid", "previewUrl", "mediaSourceRef", "date"]

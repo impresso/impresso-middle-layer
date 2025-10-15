@@ -22,8 +22,9 @@ import {
   AllDocumentFields,
   IFullContentItemFieldsNames,
   withMatches,
+  EmbeddingsFields,
 } from '../../models/content-item'
-import { ClientService } from '@feathersjs/feathers'
+import { ClientService, Params } from '@feathersjs/feathers'
 import { FindResponse } from '../../models/common'
 import {
   ContentItem,
@@ -34,8 +35,7 @@ import { ContentItemDbModel } from '../../models/content-item.model'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '../../models/content-item-page.model'
 import { mapRecordValues } from '../../util/fn'
 import { NotFound } from '@feathersjs/errors'
-import { BaseUser, Topic } from '../../models/generated/schemas'
-import type { Collection } from '../../models/generated/schemasPublic'
+import { Collection, Topic } from '../../models/generated/schemas'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
@@ -43,6 +43,7 @@ import { allContentFields, plainFieldAsJson } from '../../util/solr'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { base64BytesToBigInt } from '../../util/bigint'
 import { QueueService } from '../../internalServices/queue'
+import { Filter } from 'impresso-jscommons'
 
 const DefaultLimit = 10
 
@@ -82,7 +83,10 @@ export const FindMethodFields = [...SlimContentItemFieldsNames].map(withJsonExpa
  * Fields needed to fetch a single content item.
  * All fields are included here.
  */
-const GetMethodFields = [...FullContentItemFieldsNames].map(withJsonExpansion)
+const GetMethodFields = [...FullContentItemFieldsNames.filter(f => !EmbeddingsFields.includes(f as any))].map(
+  withJsonExpansion
+)
+const GetMethodFieldsWithEmbeddings = [...FullContentItemFieldsNames].map(withJsonExpansion)
 
 // async function getIssues(request: Record<string, any>, app: ImpressoApplication) {
 //   const sequelize = app.get('sequelizeClient')
@@ -133,7 +137,7 @@ interface ServiceOptions {
 
 export interface FindOptions {
   query: {
-    filters?: any[]
+    filters?: Filter[]
 
     // things needed by SolService.find
     sq?: string
@@ -152,6 +156,15 @@ export interface FindOptions {
   // things needed by SolService.find
   fl?: string[]
 }
+
+interface WithUser {
+  user?: SlimUser
+}
+
+interface GetQueryParams {
+  include_embeddings?: boolean
+}
+export type GetParams = Params<GetQueryParams> & WithUser
 
 const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: ImpressoApplication): ContentItemPage => {
   return {
@@ -228,22 +241,7 @@ const withCollections = (contentItems: ContentItem[], collectionsLookup: Diction
         ...item,
         semanticEnrichments: {
           ...item.semanticEnrichments,
-          collections: collections.map(
-            c =>
-              ({
-                uid: c.uid,
-                name: c.title ?? '',
-                description: c.description ?? '',
-                status: c.accessLevel ?? 'private',
-                countItems: c.totalItems ?? 0,
-                creator: {
-                  uid: c.creatorId != null ? String(c.creatorId) : '',
-                  username: '', // we don't have username here
-                },
-                creationDate: c.createdAt != null ? c.createdAt : '',
-                lastModifiedDate: c.updatedAt != null ? c.updatedAt : '',
-              }) satisfies ContentItemCollection
-          ),
+          collections,
         },
       }
     }
@@ -338,17 +336,25 @@ export class ContentItemService implements IContentItemService {
   async _find(params: FindOptions): Promise<FindResponse<ContentItem>> {
     const fields = FindMethodFields
 
+    // With embeddings search we cannot do highlighting: Solr returns an error.
+    const hasEmbeddingFilter = params?.query?.filters?.find(f => f.type === 'embedding') != null
+    const highlightBLock = hasEmbeddingFilter
+      ? { hl: false }
+      : {
+          highlight_by: allContentFields.join(','),
+          highlightProps: {
+            'hl.snippets': 10,
+            'hl.fragsize': 100,
+          },
+        }
+
     const request = findRequestAdapter(params)
     const requestBody = {
       ...request,
       fields: fields.join(','),
       params: {
         ...request.params,
-        highlight_by: allContentFields.join(','),
-        highlightProps: {
-          'hl.snippets': 10,
-          'hl.fragsize': 100,
-        },
+        ...highlightBLock,
         // add variables if there are any
         ...((params.query as any)?.['sv'] ?? {}),
       },
@@ -464,14 +470,14 @@ export class ContentItemService implements IContentItemService {
     // return results
   }
 
-  async get(id: string, params: any): Promise<ContentItem> {
+  async get(id: string, params: GetParams): Promise<ContentItem> {
     // debug(`[get:${id}] with auth params:`, params.user ? params.user.uid : 'no user found')
 
     const request = findAllRequestAdapter({
       q: `id:${id}`,
       limit: 1,
       offset: 0,
-      fl: GetMethodFields,
+      fl: params.query?.include_embeddings ? GetMethodFieldsWithEmbeddings : GetMethodFields,
     })
 
     const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {

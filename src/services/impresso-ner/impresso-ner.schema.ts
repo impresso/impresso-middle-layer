@@ -2,7 +2,8 @@ import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import { getRequestBodyContent, getStandardResponses } from '../../util/openapi'
 
 export const docs: ServiceSwaggerOptions = {
-  description: 'Various tools',
+  tags: ['Tools'],
+  description: 'Name entity recognition and linking',
   securities: ['create'],
   operations: {
     create: {

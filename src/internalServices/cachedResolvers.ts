@@ -1,4 +1,3 @@
-import Collection from '../models/collections.model'
 import Entity from '../models/entities.model'
 import Topic from '../models/topics.model'
 import { optionalMediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
@@ -49,13 +48,13 @@ const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection>
     const collection = await collectionsService.getInternal(id)
     return {
       uid: id,
-      name: collection?.name ?? '',
+      title: collection?.name ?? '',
       description: collection?.description ?? '',
-      status: collection?.status == 'PRI' ? 'private' : 'public',
-      creator: { uid: String(collection?.creatorId), username: '' },
-      creationDate: collection?.creationDate?.toISOString() ?? '',
-      lastModifiedDate: collection?.lastModifiedDate?.toISOString() ?? '',
-      countItems: 0,
+      accessLevel: collection?.status == 'PRI' ? 'private' : 'public',
+      creatorId: String(collection?.creatorId),
+      createdAt: collection?.creationDate?.toISOString() ?? '',
+      updatedAt: collection?.lastModifiedDate?.toISOString() ?? '',
+      totalItems: 0,
     } satisfies ICollection
   }
 }

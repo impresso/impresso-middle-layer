@@ -83,6 +83,14 @@
       "items": {
         "$ref": "../Collection.json"
       }
+    },
+    "embeddings": {
+      "type": "array",
+      "description": "Precomputed embeddings for the content item in the format: <model_type>:<base64_embedding_vector>.",
+      "items": {
+        "type": "string"
+      }
     }
-  }
+  },
+  "additionalProperties": false
 }

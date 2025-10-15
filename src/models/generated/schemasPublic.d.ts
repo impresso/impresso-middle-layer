@@ -58,10 +58,6 @@ export interface Collection {
    * Total number of items in the collection.
    */
   totalItems?: number;
-  /**
-   * Identifier of the user who created the collection.
-   */
-  creatorId?: string;
 }
 
 
@@ -113,6 +109,10 @@ export interface ContentItem {
    * Topics mentioned in the content item.
    */
   topics?: TopicMention[];
+  /**
+   * Precomputed embeddings for the content item in the format: <model_type>:<base64_embedding_vector>.
+   */
+  embeddings?: string[];
   /**
    * The length of the transcript in characters.
    */
@@ -447,6 +447,10 @@ export interface Image {
    * The date of the image or the date of the issue that the image belongs to.
    */
   date: string;
+  /**
+   * Precomputed embeddings for the image in the format: <model_type>:<base64_embedding_vector>.
+   */
+  embeddings?: string[];
 }
 
 

@@ -168,6 +168,32 @@ export interface Filter {
 
 
 /**
+ * Body of a response from the Impresso Embedding endpoint
+ */
+export interface ImpressoEmbeddingResponse {
+  /**
+   * Embedding vector, base64-encoded with the model prefix. E.g. <model>:<base64-encoded vector>
+   */
+  embedding: string;
+}
+
+
+/**
+ * Body of a request to the Impresso Image Embedding endpoint
+ */
+export interface ImpressoImageEmbeddingRequest {
+  /**
+   * Where the embedding is going to be used
+   */
+  searchTarget: "image";
+  /**
+   * Base64-encoded image bytes. JPG and PNG formats are supported.
+   */
+  bytes: string;
+}
+
+
+/**
  * Impresso NER entity
  */
 export interface ImpressoNamedEntityRecognitionEntity {
@@ -441,6 +467,21 @@ export interface ImpressoNamedEntityRecognitionEntity {
    * Name of the entity
    */
   name?: string;
+}
+
+
+/**
+ * Body of a request to the Impresso Text Embedding endpoint
+ */
+export interface ImpressoTextEmbeddingRequest {
+  /**
+   * Where the embedding is going to be used
+   */
+  searchTarget: "image" | "text";
+  /**
+   * Text to be embedded
+   */
+  text: string;
 }
 
 

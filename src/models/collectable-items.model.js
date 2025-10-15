@@ -9,6 +9,9 @@ const CONTENT_TYPES = {
   I: 'issue',
 }
 
+/**
+ * @deprecated not used anymore. see `user-collection`.
+ */
 class CollectableItem {
   constructor({
     id = -1,

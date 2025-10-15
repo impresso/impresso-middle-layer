@@ -38,6 +38,7 @@ const FilterTypeToPythonArgumentName = {
   sourceType: '',
   sourceMedium: '',
   organisation: '',
+  embedding: 'embedding',
 } satisfies Record<FilterType, string>
 
 const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']

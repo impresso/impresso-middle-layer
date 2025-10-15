@@ -1,55 +1,45 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Collection",
-  "description": "Description of the collection object (Collection class)",
+  "description": "Collection details.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["uid", "name", "description", "status", "creationDate", "lastModifiedDate", "countItems", "creator"],
   "properties": {
     "uid": {
       "type": "string",
-      "minLength": 2,
-      "maxLength": 50
+      "description": "Unique identifier of the collection."
     },
-    "name": {
+    "title": {
       "type": "string",
-      "minLength": 2,
-      "maxLength": 50
+      "description": "Title of the collection."
     },
     "description": {
       "type": "string",
-      "maxLength": 500
+      "description": "Description of the collection."
     },
-    "status": {
+    "accessLevel": {
       "type": "string",
-      "minLength": 2,
-      "maxLength": 3,
-      "title": "Status of the collection",
-      "examples": ["PRI", "PUB"]
+      "description": "Access level of the collection.",
+      "enum": ["public", "private"]
     },
-    "creationDate": {
+    "createdAt": {
       "type": "string",
+      "description": "Creation date of the collection.",
       "format": "date-time"
     },
-    "lastModifiedDate": {
+    "updatedAt": {
       "type": "string",
+      "description": "Last update date of the collection.",
       "format": "date-time"
     },
-    "countItems": {
-      "anyOf": [
-        { "type": "integer", "default": 0, "examples": [3245] },
-        { "type": "string", "default": "0" }
-      ],
-      "title": "Number of items in the collection"
+    "totalItems": {
+      "type": "integer",
+      "description": "Total number of items in the collection."
     },
-    "creator": {
-      "$ref": "./BaseUser.json"
-    },
-    "labels": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+    "creatorId": {
+      "type": "string",
+      "description": "Identifier of the user who created the collection."
     }
-  }
+  },
+  "required": ["uid"]
 }
