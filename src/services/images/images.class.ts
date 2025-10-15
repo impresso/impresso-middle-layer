@@ -12,6 +12,8 @@ import { MediaSources } from '../media-sources/media-sources.class'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { ImageUrlRewriteRule } from '../../models/generated/common'
 import { ImpressoApplication } from '../../types'
+import { vectorToCanonicalEmbedding } from '../impresso-embedder/impresso-embedder.class'
+import { SlimUser } from '../../authentication'
 
 const DefaultLimit = 10
 export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024'
@@ -31,6 +33,15 @@ export interface FindQuery {
   filters?: Filter[]
   order_by?: OrderByParam
 }
+
+interface WithUser {
+  user?: SlimUser
+}
+
+interface GetQueryParams {
+  include_embeddings?: boolean
+}
+export type GetParams = Params<GetQueryParams> & WithUser
 
 type ImageService = Pick<ClientService<Image, unknown, unknown, PublicFindResponse<Image>>, 'find' | 'get'>
 
@@ -93,7 +104,7 @@ export class Images implements ImageService {
     const mediaSourceLookup = await this.mediaSources.getLookup()
 
     return {
-      data: results?.response?.docs?.map(d => toImage(d, mediaSourceLookup, this.rewriteRules)) ?? [],
+      data: results?.response?.docs?.map(d => toImage(d, mediaSourceLookup, this.rewriteRules, false)) ?? [],
       pagination: {
         limit,
         offset,
@@ -102,12 +113,12 @@ export class Images implements ImageService {
     }
   }
 
-  async get(id: Id, params?: Params): Promise<Image> {
+  async get(id: Id, params?: GetParams): Promise<Image> {
     const imageDoc = await this.getImageDocument(String(id))
     if (imageDoc == null) throw new NotFound(`Image with id ${id} not found`)
     const mediaSourceLookup = await this.mediaSources.getLookup()
 
-    return toImage(imageDoc, mediaSourceLookup, this.rewriteRules)
+    return toImage(imageDoc, mediaSourceLookup, this.rewriteRules, params?.query?.include_embeddings === true)
   }
 
   async getImageDocument(id: string, fields?: (keyof ImageDocument)[]): Promise<ImageDocument | undefined> {
@@ -118,11 +129,27 @@ export class Images implements ImageService {
   }
 }
 
+type EmbeddingField = keyof Pick<ImageDocument, 'openclip_emb_v768' | 'dinov2_emb_v1024'>
+
+const EmbeddingsFieldsWithModelTag: [EmbeddingField, string][] = [
+  ['openclip_emb_v768', 'openclip-768'],
+  ['dinov2_emb_v1024', 'dinov2-1024'],
+]
+
 const toImage = (
   doc: ImageDocument,
   mediaSources: Record<string, MediaSource>,
-  rewriteRules: ImageUrlRewriteRule[]
+  rewriteRules: ImageUrlRewriteRule[],
+  includeEmbeddings: boolean
 ): Image => {
+  const embeddings = includeEmbeddings
+    ? EmbeddingsFieldsWithModelTag.map(([field, modelTag]) => {
+        const value = doc[field]
+        if (value == null) return undefined
+        return vectorToCanonicalEmbedding(value, modelTag)
+      }).filter(v => v != null)
+    : undefined
+
   return {
     uid: doc.id!,
     ...(doc.linked_ci_s != null ? { contentItemUid: doc.linked_ci_s } : {}),
@@ -136,7 +163,7 @@ const toImage = (
       name: mediaSources[doc.meta_journal_s!]?.name,
       type: 'newspaper',
     },
-
+    ...(embeddings != null && embeddings.length > 0 ? { embeddings } : {}),
     // Authorization information
     [AuthorizationBitmapsKey]: {
       explore: BigInt(doc.rights_bm_explore_l ?? 0),

@@ -447,6 +447,10 @@ export interface Image {
    * The date of the image or the date of the issue that the image belongs to.
    */
   date: string;
+  /**
+   * Precomputed embeddings for the image in the format: <model_type>:<base64_embedding_vector>.
+   */
+  embeddings?: string[];
 }
 
 
