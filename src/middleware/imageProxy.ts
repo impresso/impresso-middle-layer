@@ -14,7 +14,7 @@ import { bufferToBigInt, OpenPermissions } from '../util/bigint'
 import { getV3CompatibleIIIFUrlWithoutDomain } from '../util/iiif'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from '../util/socksProxyConfiguration'
 
-const NotAuthorizedImageUrl = '/images/notAuthorized.jpg'
+const NotAuthorizedImageUrl = '/img/notAuthorized.jpg'
 
 const getContentItemId = (imagePath: string): string | undefined => {
   const match = imagePath.match(/([A-Za-z0-9]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/)
