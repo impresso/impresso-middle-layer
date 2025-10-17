@@ -29,14 +29,14 @@
         {
           "type": "string",
           "minLength": 2,
-          "maxLength": 5000
+          "maxLength": 6000
         },
         {
           "type": "array",
           "items": {
             "type": "string",
             "minLength": 2,
-            "maxLength": 5000
+            "maxLength": 6000
           }
         }
       ]

@@ -179,7 +179,7 @@ export default function (app) {
       onProxyRes: (proxyRes, req, res) => {
         debug('proxy: @onProxyRes <res.statusCode>:', proxyRes.statusCode, proxyRes.headers['content-type'])
         if (proxyRes.statusCode === 401) {
-          res.redirect('/images/notAuthorized.jpg')
+          res.redirect('/img/notAuthorized.jpg')
         } else if (proxyRes.statusCode === 200 && proxyRes.headers['content-type'] === 'application/json') {
           // modify HOST in every IIIF fields, when needed.
           modifyResponse(res, proxyRes, iiif => {
