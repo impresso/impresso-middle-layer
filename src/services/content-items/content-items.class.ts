@@ -44,6 +44,7 @@ import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/a
 import { base64BytesToBigInt } from '../../util/bigint'
 import { QueueService } from '../../internalServices/queue'
 import { Filter } from 'impresso-jscommons'
+import { isTrue } from '../../util/queryParameters'
 
 const DefaultLimit = 10
 
@@ -477,7 +478,7 @@ export class ContentItemService implements IContentItemService {
       q: `id:${id}`,
       limit: 1,
       offset: 0,
-      fl: params.query?.include_embeddings ? GetMethodFieldsWithEmbeddings : GetMethodFields,
+      fl: isTrue(params.query?.include_embeddings) ? GetMethodFieldsWithEmbeddings : GetMethodFields,
     })
 
     const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {

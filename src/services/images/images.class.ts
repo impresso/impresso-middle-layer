@@ -1,19 +1,20 @@
 import { NotFound } from '@feathersjs/errors'
 import { ClientService, Id, Params } from '@feathersjs/feathers'
+import { SlimUser } from '../../authentication'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { Filter } from '../../models'
+import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { PublicFindResponse } from '../../models/common'
+import { ImageUrlRewriteRule } from '../../models/generated/common'
 import { Image, MediaSource } from '../../models/generated/schemas'
 import { Image as ImageDocument } from '../../models/generated/solr'
 import { SolrNamespaces } from '../../solr'
-import { sanitizeIiifImageUrl } from '../../util/iiif'
-import { filtersToQueryAndVariables } from '../../util/solr'
-import { MediaSources } from '../media-sources/media-sources.class'
-import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
-import { ImageUrlRewriteRule } from '../../models/generated/common'
 import { ImpressoApplication } from '../../types'
+import { sanitizeIiifImageUrl } from '../../util/iiif'
+import { isTrue } from '../../util/queryParameters'
+import { filtersToQueryAndVariables } from '../../util/solr'
 import { vectorToCanonicalEmbedding } from '../impresso-embedder/impresso-embedder.class'
-import { SlimUser } from '../../authentication'
+import { MediaSources } from '../media-sources/media-sources.class'
 
 const DefaultLimit = 10
 export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024'
@@ -118,7 +119,7 @@ export class Images implements ImageService {
     if (imageDoc == null) throw new NotFound(`Image with id ${id} not found`)
     const mediaSourceLookup = await this.mediaSources.getLookup()
 
-    return toImage(imageDoc, mediaSourceLookup, this.rewriteRules, params?.query?.include_embeddings === true)
+    return toImage(imageDoc, mediaSourceLookup, this.rewriteRules, isTrue(params?.query?.include_embeddings))
   }
 
   async getImageDocument(id: string, fields?: (keyof ImageDocument)[]): Promise<ImageDocument | undefined> {

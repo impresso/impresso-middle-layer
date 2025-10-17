@@ -40,3 +40,20 @@ export const parseFilters = (value?: string | string[] | object | object[]): Fil
 
   return value as Filter[]
 }
+
+/**
+ * A comprehensive check to determine if a value represents a boolean true.
+ * @param value The value to check.
+ * @returns True if the value is considered true, false otherwise.
+ */
+export const isTrue = (value?: any): boolean => {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase()
+    return lower === 'true' || lower === '1'
+  }
+  if (typeof value === 'number') {
+    return value === 1
+  }
+  return false
+}
