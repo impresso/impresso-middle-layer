@@ -105,7 +105,7 @@
     "rewriteRules": [
       {
         "pattern": "^(https://dhlabsrv17.epfl.ch/iiif_impresso)",
-        "replacement": "/proxy/iiif"
+        "replacement": "https://impresso-project.ch/proxy/iiif"
       },
       {
         "pattern": "^(https://impresso-project.ch/assets/images)",
@@ -113,7 +113,7 @@
       },
       {
         "pattern": "^(https://impresso-project.ch/api/proxy/iiif)",
-        "replacement": "/proxy/iiif"
+        "replacement": "https://impresso-project.ch/proxy/iiif"
       },
       {
         "pattern": "^(https://scriptorium.bcu-lausanne.ch/api/iiif-img)",

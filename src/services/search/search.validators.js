@@ -21,7 +21,7 @@ const eachFilterValidator = {
   q: {
     required: false,
     min_length: 1,
-    max_length: 5000,
+    max_length: 6000,
   },
   // langs: {
   //   before: (d) => {
