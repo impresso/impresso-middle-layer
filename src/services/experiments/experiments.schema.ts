@@ -1,6 +1,5 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getStandardParameters, getStandardResponses, MethodParameter } from '../../util/openapi'
-import { ValidExperimentIds } from './experiments.class'
+import { getStandardResponses, MethodParameter } from '../../util/openapi'
 
 const updateParameters: MethodParameter[] = [
   {
@@ -9,7 +8,6 @@ const updateParameters: MethodParameter[] = [
     required: true,
     schema: {
       type: 'string',
-      enum: [...ValidExperimentIds],
     },
     description: 'The experiment ID to work with',
   },

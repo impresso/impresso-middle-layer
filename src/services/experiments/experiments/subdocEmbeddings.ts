@@ -1,3 +1,4 @@
+import { SolrNamespaces } from '../../../solr'
 import { ImpressoApplication } from '../../../types'
 import { ExperimentBase } from './base'
 
@@ -19,7 +20,10 @@ export class SubdocEmbeddingsExperiment implements ExperimentBase<RequestBody, R
   `
 
   async execute(body: RequestBody, app: ImpressoApplication): Promise<ResponseBody> {
-    const solrResponse = await app.service('simpleSolrClient').select('subdoc_embeddings_experiment', {
+    if (body.solrPayload == null) {
+      throw new Error("Request body must contain a 'solrPayload' field with a Solr JSON API query.")
+    }
+    const solrResponse = await app.service('simpleSolrClient').select(SolrNamespaces.SubdocEmbeddingsExperiment, {
       body: body.solrPayload as any,
     })
     return {
