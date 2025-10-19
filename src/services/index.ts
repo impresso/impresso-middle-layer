@@ -21,6 +21,7 @@ const publicApiServices = [
   'impresso-embedder',
   'media-sources',
   'images',
+  'experiments',
 ]
 
 const adminServices = ['admin']

@@ -15,6 +15,7 @@ export type SolrNamespace =
   | 'word_embeddings'
   | 'entities_mentions'
   | 'collection_items'
+  | 'subdoc_embeddings_experiment'
 
 export const SolrNamespaces = Object.freeze({
   Search: 'search',
@@ -30,6 +31,7 @@ export const SolrNamespaces = Object.freeze({
   WordEmbeddings: 'word_embeddings',
   EntitiesMentions: 'entities_mentions',
   CollectionItems: 'collection_items',
+  SubdocEmbeddingsExperiment: 'subdoc_embeddings_experiment',
 }) satisfies Record<string, SolrNamespace>
 
 /**
