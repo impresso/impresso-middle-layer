@@ -155,7 +155,7 @@ describe('filtersToSolr', () => {
       assert.equal(
         query,
         // eslint-ignore-next-line
-        '((content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais" OR content_txt_en:"ministre portugais" OR content_txt_it:"ministre portugais" OR content_txt_es:"ministre portugais" OR content_txt_nl:"ministre portugais" OR content_txt:"ministre portugais") OR (content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien" OR content_txt_en:"ministre italien" OR content_txt_it:"ministre italien" OR content_txt_es:"ministre italien" OR content_txt_nl:"ministre italien" OR content_txt:"ministre italien"))'
+        '(content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais" OR content_txt_en:"ministre portugais" OR content_txt_it:"ministre portugais" OR content_txt_es:"ministre portugais" OR content_txt_nl:"ministre portugais" OR content_txt:"ministre portugais") OR (content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien" OR content_txt_en:"ministre italien" OR content_txt_it:"ministre italien" OR content_txt_es:"ministre italien" OR content_txt_nl:"ministre italien" OR content_txt:"ministre italien")'
       )
     })
 
@@ -896,6 +896,31 @@ describe('filtersToQueryAndVariables', () => {
       assert.strictEqual(result.query, 'NOT filter(topics_dpfs:tm-de-all-v2.0_tp23_de)')
       assert.deepEqual(result.filter, ['meta_journal_s:SGZ'])
     })
+  })
+  it('handles negations correctly', () => {
+    const filters = [
+      {
+        type: 'string',
+        op: 'OR',
+        q: ['chat'],
+        precision: 'exact',
+      },
+      {
+        type: 'string',
+        op: 'OR',
+        q: ['pet', 'pets'],
+        precision: 'exact',
+        context: 'exclude',
+      },
+      {
+        type: 'hasTextContents',
+      },
+    ] satisfies Filter[]
+    const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [])
+    assert.strictEqual(
+      result.query,
+      '(content_txt_fr:"chat" OR content_txt_de:"chat" OR content_txt_en:"chat" OR content_txt_it:"chat" OR content_txt_es:"chat" OR content_txt_nl:"chat" OR content_txt:"chat") AND NOT (content_txt_fr:"pet" OR content_txt_de:"pet" OR content_txt_en:"pet" OR content_txt_it:"pet" OR content_txt_es:"pet" OR content_txt_nl:"pet" OR content_txt:"pet") OR (content_txt_fr:"pets" OR content_txt_de:"pets" OR content_txt_en:"pets" OR content_txt_it:"pets" OR content_txt_es:"pets" OR content_txt_nl:"pets" OR content_txt:"pets")'
+    )
   })
 })
 

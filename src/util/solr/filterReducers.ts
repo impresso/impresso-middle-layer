@@ -131,10 +131,21 @@ const reduceStringFiltersToSolr = (filters: Filter[], field: string | string[] |
       .join(` ${op} `)
 
     if (context === 'exclude') {
-      transformedQuery = index > 0 ? `NOT (${transformedQuery})` : `*:* AND NOT (${transformedQuery})`
+      if (transformedQuery.startsWith('(') && transformedQuery.endsWith(')')) {
+        transformedQuery = index > 0 ? `NOT ${transformedQuery}` : `*:* AND NOT ${transformedQuery}`
+      } else {
+        transformedQuery = index > 0 ? `NOT (${transformedQuery})` : `*:* AND NOT (${transformedQuery})`
+      }
     }
 
-    return queryList.length > 1 ? `(${transformedQuery})` : transformedQuery
+    if (typeof queryList === 'string') {
+      const ql: string = queryList
+      if (!ql.startsWith('NOT ') && !(ql.startsWith('(') && ql.endsWith(')'))) {
+        return `(${transformedQuery})`
+      }
+    }
+
+    return transformedQuery
   })
 
   // @ts-ignore

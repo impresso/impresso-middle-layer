@@ -265,7 +265,7 @@ describe('test filtersToSolrQuery hook', () => {
     await filtersToSolrQuery()(context)
     assert.deepEqual(
       context.params.sanitized.sq,
-      `((content_txt_fr:\"ministre portugais\" OR content_txt_de:\"ministre portugais\" OR content_txt_en:\"ministre portugais\" OR content_txt_it:\"ministre portugais\" OR content_txt_es:\"ministre portugais\" OR content_txt_nl:\"ministre portugais\" OR content_txt:\"ministre portugais\") OR (content_txt_fr:\"ministre italien\" OR content_txt_de:\"ministre italien\" OR content_txt_en:\"ministre italien\" OR content_txt_it:\"ministre italien\" OR content_txt_es:\"ministre italien\" OR content_txt_nl:\"ministre italien\" OR content_txt:\"ministre italien\"))`
+      `(content_txt_fr:\"ministre portugais\" OR content_txt_de:\"ministre portugais\" OR content_txt_en:\"ministre portugais\" OR content_txt_it:\"ministre portugais\" OR content_txt_es:\"ministre portugais\" OR content_txt_nl:\"ministre portugais\" OR content_txt:\"ministre portugais\") OR (content_txt_fr:\"ministre italien\" OR content_txt_de:\"ministre italien\" OR content_txt_en:\"ministre italien\" OR content_txt_it:\"ministre italien\" OR content_txt_es:\"ministre italien\" OR content_txt_nl:\"ministre italien\" OR content_txt:\"ministre italien\")`
     )
     assert.deepEqual(context.params.sanitized.sfq, [queries.hasTextContents, 'front_b:1'])
   })
