@@ -1,0 +1,28 @@
+{
+  "responseHeader": {
+    "status": 0,
+    "QTime": 1,
+    "params": {
+      "q": "*:*",
+      "indent": "true",
+      "fl": "id",
+      "q.op": "OR",
+      "rows": "1",
+      "useParams": "",
+      "_": "1761145712120"
+    }
+  },
+  "response": {
+    "numFound": 45014608,
+    "start": 0,
+    "numFoundExact": true,
+    "docs": [
+      {
+        "id": "xxx-123"
+      }
+    ]
+  },
+  "highlighting": {
+    "xxx-123": {}
+  }
+}

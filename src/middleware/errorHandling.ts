@@ -84,6 +84,14 @@ export default (app: ImpressoApplication & ExpressApplication) => {
             detail: `${err.name}: ${err.message}`,
           } satisfies Problem)
         },
+        418: (err: GeneralError, req: Request, res: Response) => {
+          res.json({
+            type: `${problemUriBase}/unauthorized`,
+            title: 'Downstream error',
+            status: 418,
+            detail: `${err.name}: ${err.message}`,
+          } satisfies Problem)
+        },
         // bad request
         400: (err: GeneralError, req: Request, res: Response) => {
           if (isProduction) {

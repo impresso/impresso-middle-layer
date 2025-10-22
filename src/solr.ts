@@ -47,22 +47,6 @@ export const sanitizeSolrResponse = (text: string): string => {
   return replacedText
 }
 
-export interface SolrError extends Error {
-  response: {
-    statusCode: number
-    body: string | Record<string, any>
-  }
-}
-
-export const isSolrError = (error: Error): error is SolrError => {
-  const maybeSolrError = error as SolrError
-  return (
-    maybeSolrError?.response != null &&
-    typeof maybeSolrError?.response?.statusCode == 'number' &&
-    typeof maybeSolrError?.response?.statusCode == 'string'
-  )
-}
-
 /**
  * @param {Response} res response
  * @returns {Promise<Response>}
@@ -80,20 +64,6 @@ export const checkResponseStatus = async (res: Response): Promise<Response> => {
   throw error
 }
 
-const logUnsuccessfulResponses = async (url: string, method: string, body: Record<string, any>, response: Response) => {
-  if (!response.ok) {
-    const errorDetails = {
-      method,
-      url,
-      status: response.status,
-      body,
-      response: await response.text(),
-    }
-    const message = `Solr returned an error: ${JSON.stringify(errorDetails, null, 2)}`
-    logger.error(message)
-  }
-}
-
 const defaultRetryOptions: FetchOptions['retryOptions'] = {
   maxRetries: 2,
   maxTimeout: 1000,
@@ -104,7 +74,6 @@ const defaultRetryOptions: FetchOptions['retryOptions'] = {
 }
 
 export const defaultFetchOptions: FetchOptions = {
-  onUnsuccessfulResponse: logUnsuccessfulResponses,
   retryOptions: defaultRetryOptions,
 }
 

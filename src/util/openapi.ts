@@ -96,6 +96,11 @@ export const getStandardResponses = ({
       content: asApplicationProblemJson(defaultErrorSchema),
       headers: { ...defaultHeaders },
     },
+    418: {
+      description: 'Downstream error (usually a 5xx error)',
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders },
+    },
     500: {
       description: 'general error',
       content: asApplicationProblemJson(defaultErrorSchema),
