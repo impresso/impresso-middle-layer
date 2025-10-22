@@ -2,7 +2,7 @@
 import Debug from 'debug'
 import { ApplicationHookFunction, ApplicationHookOptions, HookContext } from '@feathersjs/feathers'
 import { ValidationError } from 'ajv'
-import { GeneralError, BadGateway, BadRequest, Unprocessable, Conflict } from '@feathersjs/errors'
+import { GeneralError, BadGateway, BadRequest, Unprocessable, Conflict, FeathersError } from '@feathersjs/errors'
 import { ImpressoApplication } from './types'
 import { logger } from './logger'
 import { hooks } from '@feathersjs/authentication'
@@ -12,6 +12,8 @@ const { authenticate } = hooks
 const debug = Debug('impresso/app.hooks')
 // import { validateRouteId } from './hooks/params'
 import { InvalidArgumentError } from './util/error'
+import { SlimUser } from './authentication'
+import { SolrError } from './util/solr/errors'
 
 const basicParams = () => (context: HookContext) => {
   // do nothing with internal services
@@ -47,8 +49,8 @@ const requireAuthentication =
     return context
   }
 
-const LoggingExcludedStatusCodesInternalApi = [401, 403, 404]
-const LoggingExcludedStatusCodesPublicApi = [400, 401, 403, 404, 422]
+const LoggingExcludedStatusCodesInternalApi = [401, 403, 404, 418, 429]
+const LoggingExcludedStatusCodesPublicApi = [400, 401, 403, 404, 422, 418, 429]
 
 const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
   const excludedStatusCodes = ctx.app.get('isPublicApi')
@@ -56,7 +58,18 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
     : LoggingExcludedStatusCodesInternalApi
 
   if (ctx.error) {
-    const error = ctx.error
+    let error = ctx.error
+    const user = ctx.params?.user as SlimUser
+
+    if (error instanceof SolrError) {
+      // convert Solr error to a 418 error
+      // to avoid sending it as a 5xx error which
+      // may be intercepted by a firewall and modified.
+      const data = { ...error.details, userId: user?.uid }
+      ctx.error = new FeathersError(error.message, 'SolrError', 418, 'solr-error', data)
+      logger.error(`SOLR error (userId:${user?.uid}) query params:${error.details.params} - message:"${error.message}"`)
+      error = ctx.error
+    }
 
     if (!excludedStatusCodes.includes(error.code) || !error.code) {
       logger.error(

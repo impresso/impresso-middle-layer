@@ -1,0 +1,23 @@
+{
+  "responseHeader": {
+    "status": 400,
+    "QTime": 0,
+    "params": {
+      "q": "123:asdf",
+      "indent": "true",
+      "q.op": "OR",
+      "useParams": "",
+      "_": "1761145712120"
+    }
+  },
+  "error": {
+    "metadata": [
+      "error-class",
+      "org.apache.solr.common.SolrException",
+      "root-error-class",
+      "org.apache.solr.common.SolrException"
+    ],
+    "msg": "undefined field 123",
+    "code": 400
+  }
+}
