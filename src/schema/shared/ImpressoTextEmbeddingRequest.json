@@ -12,7 +12,8 @@
     },
     "text": {
       "type": "string",
-      "description": "Text to be embedded"
+      "description": "Text to be embedded",
+      "maxLength": 8000
     }
   },
   "required": ["searchTarget", "text"]

@@ -69,8 +69,8 @@ const defaultRetryOptions: FetchOptions['retryOptions'] = {
   maxTimeout: 1000,
   minTimeout: 100,
   timeoutFactor: 3,
-  // excluding 500 - it often means the query is not correct
-  statusCodes: [502, 503, 504, 429],
+  throwOnError: false, // preserve original response
+  statusCodes: [502, 503, 504, 429, 500],
 }
 
 export const defaultFetchOptions: FetchOptions = {
