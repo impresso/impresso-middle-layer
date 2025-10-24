@@ -39,7 +39,7 @@ export class Service {
       return {}
     }
 
-    const q = params.query.sfq.join(' AND ')
+    const q = params.query.sfq.map(term => `(${term})`).join(' AND ')
     debug('[create] from solr query:', q, 'filters:', params.sanitized.filters)
 
     const pq = protobuf.searchQuery.serialize({
