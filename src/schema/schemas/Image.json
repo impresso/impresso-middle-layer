@@ -54,6 +54,28 @@
       "description": "The media source of the image",
       "additionalProperties": false
     },
+    "imageTypes": {
+      "type": "object",
+      "properties": {
+        "visualContent": {
+          "type": "string",
+          "description": "Whether the content is an image or not."
+        },
+        "technique": {
+          "type": "string",
+          "description": "Determines if the image is a photograph."
+        },
+        "communicationGoal": {
+          "type": "string",
+          "description": "Purpose or communicative function of the image."
+        },
+        "visualContentType": {
+          "type": "string",
+          "description": "Classification of the visual content."
+        }
+      },
+      "additionalProperties": false
+    },
     "date": {
       "type": "string",
       "format": "date",

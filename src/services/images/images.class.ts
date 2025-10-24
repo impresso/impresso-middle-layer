@@ -137,6 +137,69 @@ const EmbeddingsFieldsWithModelTag: [EmbeddingField, string][] = [
   ['dinov2_emb_v1024', 'dinov2-1024'],
 ]
 
+/**
+ * Mapping of image type field to a mapping of their Solr values to their labels.
+ * Keep in sync with this: https://github.com/impresso/impresso-pyindexing/blob/61f4504ca71c7d856e52885415b43e9863a77f6f/impresso_solr/solr_importers/enum.py#L55
+ */
+export const ImageTypeValueLookup: Record<
+  keyof Pick<ImageDocument, 'type_l0_tp' | 'type_l1_tp' | 'type_l2_tp' | 'type_l3_tp'>,
+  Record<string, string>
+> = {
+  type_l0_tp: {
+    image: 'Image',
+    not_image: 'Not an Image',
+  },
+  type_l1_tp: {
+    photograph: 'Photograph',
+    not_photograph: 'Not a Photograph',
+  },
+  type_l2_tp: {
+    decorative: 'Decorative',
+    informative_or_illustrative: 'Informative or Illustrative',
+    advertising: 'Advertising',
+    entertainment: 'Entertainment',
+  },
+  type_l3_tp: {
+    caricature_humoristic_drawing: 'Caricature or Humoristic Drawing',
+    comic_strip: 'Comic Strip',
+    illustrated_story: 'Illustrated Story',
+    game: 'Game',
+    graph: 'Graph',
+    technical_drawing: 'Technical Drawing',
+    human_rep_fashion_visual: 'Human Representation - Fashion Visual',
+    human_rep_portrait: 'Human Representation - Portrait',
+    human_rep_scene: 'Human Representation - Scene',
+    scenery_landscape: 'Scenery or Landscape',
+    map_geological: 'Map - Geological',
+    map_geopolitical: 'Map - Geopolitical',
+    map_physical_or_roadmap: 'Map - Physical or Roadmap',
+    map_plan: 'Map - Plan',
+    map_weather: 'Map - Weather',
+    weather_infographic: 'Weather Infographic',
+    non_figurative_visual_content: 'Non-Figurative Visual Content',
+    object: 'Object',
+    ornament_illustrated_title: 'Ornament or Illustrated Title',
+    other: 'Other',
+  },
+}
+
+const toTypes = (doc: ImageDocument): Image['imageTypes'] => {
+  const types: Image['imageTypes'] = {}
+  if (doc['type_l0_tp'] != null) {
+    types['visualContent'] = ImageTypeValueLookup['type_l0_tp'][doc['type_l0_tp']] ?? doc['type_l0_tp']
+  }
+  if (doc['type_l1_tp'] != null) {
+    types['technique'] = ImageTypeValueLookup['type_l1_tp'][doc['type_l1_tp']] ?? doc['type_l1_tp']
+  }
+  if (doc['type_l2_tp'] != null) {
+    types['communicationGoal'] = ImageTypeValueLookup['type_l2_tp'][doc['type_l2_tp']] ?? doc['type_l2_tp']
+  }
+  if (doc['type_l3_tp'] != null) {
+    types['visualContentType'] = ImageTypeValueLookup['type_l3_tp'][doc['type_l3_tp']] ?? doc['type_l3_tp']
+  }
+  return Object.keys(types).length > 0 ? types : undefined
+}
+
 const toImage = (
   doc: ImageDocument,
   mediaSources: Record<string, MediaSource>,
@@ -151,6 +214,8 @@ const toImage = (
       }).filter(v => v != null)
     : undefined
 
+  const imageTypes = toTypes(doc)
+
   return {
     uid: doc.id!,
     ...(doc.linked_ci_s != null ? { contentItemUid: doc.linked_ci_s } : {}),
@@ -164,6 +229,7 @@ const toImage = (
       name: mediaSources[doc.meta_journal_s!]?.name,
       type: 'newspaper',
     },
+    ...(imageTypes != null && Object.keys(imageTypes).length > 0 ? { imageTypes } : {}),
     ...(embeddings != null && embeddings.length > 0 ? { embeddings } : {}),
     // Authorization information
     [AuthorizationBitmapsKey]: {
