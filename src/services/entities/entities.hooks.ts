@@ -83,7 +83,7 @@ const findAndGetParamsHooks = [
 
 export default {
   around: {
-    all: [authenticate(), rateLimit()],
+    all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
     all: [],
