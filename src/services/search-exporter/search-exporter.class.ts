@@ -30,13 +30,16 @@ export class Service {
     this.app = app
   }
 
-  async create(data: CreateData, params: Params<CreateQuery> & WithUser & { sanitized: CreateQuery }) {
+  async create(
+    data: CreateData,
+    params: Params<CreateQuery> & WithUser & { sanitized: CreateQuery } & { query: { sfq: string[] } }
+  ) {
     const client = this.app.get('celeryClient')
     if (!client) {
       return {}
     }
 
-    const q = params.sanitized.sq
+    const q = params.query.sfq.map(term => `(${term})`).join(' AND ')
     debug('[create] from solr query:', q, 'filters:', params.sanitized.filters)
 
     const pq = protobuf.searchQuery.serialize({
