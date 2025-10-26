@@ -1864,7 +1864,7 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year | Partner;
+  item?: Newspaper | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
 /**
  * A newspaper
@@ -2181,6 +2181,19 @@ export interface Partner {
    * URL of the partner's website
    */
   url?: string;
+}
+/**
+ * An facet that has a value and a label
+ */
+export interface FacetWithLabel {
+  /**
+   * Unique identifier of the facet
+   */
+  id: string;
+  /**
+   * Label of the facet
+   */
+  label: string;
 }
 /**
  * Facet bucket
@@ -2224,7 +2237,7 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year | Partner;
+  item?: Newspaper | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
 /**
  * A newspaper
@@ -2541,6 +2554,19 @@ export interface Partner {
    * URL of the partner's website
    */
   url?: string;
+}
+/**
+ * An facet that has a value and a label
+ */
+export interface FacetWithLabel {
+  /**
+   * Unique identifier of the facet
+   */
+  id: string;
+  /**
+   * Label of the facet
+   */
+  label: string;
 }
 
 

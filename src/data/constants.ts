@@ -499,7 +499,10 @@ const trPassagesSolrMappings = {
   },
 } satisfies ISolrMappings<TextReusePassageFacet>
 
-export type ImageFacet = Extract<FilterType, 'newspaper' | 'year'>
+export type ImageFacet = Extract<
+  FilterType,
+  'newspaper' | 'year' | 'imageVisualContent' | 'imageTechnique' | 'imageCommunicationGoal' | 'imageContentType'
+>
 
 const imagesSolrMappings = {
   facets: {
@@ -515,6 +518,34 @@ const imagesSolrMappings = {
       field: 'meta_year_i',
       mincount: 1,
       limit: 400, // 400 years
+      numBuckets: true,
+    },
+    imageVisualContent: {
+      type: 'terms',
+      field: 'type_l0_tp',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    imageTechnique: {
+      type: 'terms',
+      field: 'type_l1_tp',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    imageCommunicationGoal: {
+      type: 'terms',
+      field: 'type_l2_tp',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    imageContentType: {
+      type: 'terms',
+      field: 'type_l3_tp',
+      mincount: 1,
+      limit: 20,
       numBuckets: true,
     },
   },

@@ -26,7 +26,8 @@
         { "$ref": "./Entity.json" },
         { "$ref": "./Topic.json" },
         { "$ref": "./Year.json" },
-        { "$ref": "./Partner.json" }
+        { "$ref": "./Partner.json" },
+        { "$ref": "../shared/FacetWithLabel.json" }
       ]
     }
   }

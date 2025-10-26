@@ -150,6 +150,21 @@ export interface Error {
 
 
 /**
+ * An facet that has a value and a label
+ */
+export interface FacetWithLabel {
+  /**
+   * Unique identifier of the facet
+   */
+  id: string;
+  /**
+   * Label of the facet
+   */
+  label: string;
+}
+
+
+/**
  * A single filter criteria
  */
 export interface Filter {
