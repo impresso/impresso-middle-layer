@@ -1481,6 +1481,24 @@ export interface Image {
      */
     type?: "newspaper";
   };
+  imageTypes?: {
+    /**
+     * Whether the content is an image or not.
+     */
+    visualContent?: string;
+    /**
+     * Determines if the image is a photograph.
+     */
+    technique?: string;
+    /**
+     * Purpose or communicative function of the image.
+     */
+    communicationGoal?: string;
+    /**
+     * Classification of the visual content.
+     */
+    visualContentType?: string;
+  };
   /**
    * The date of the image or the date of the issue that the image belongs to.
    */
@@ -1846,7 +1864,7 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year | Partner;
+  item?: Newspaper | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
 /**
  * A newspaper
@@ -2163,6 +2181,19 @@ export interface Partner {
    * URL of the partner's website
    */
   url?: string;
+}
+/**
+ * An facet that has a value and a label
+ */
+export interface FacetWithLabel {
+  /**
+   * Unique identifier of the facet
+   */
+  id: string;
+  /**
+   * Label of the facet
+   */
+  label: string;
 }
 /**
  * Facet bucket
@@ -2206,7 +2237,7 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year | Partner;
+  item?: Newspaper | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
 /**
  * A newspaper
@@ -2523,6 +2554,19 @@ export interface Partner {
    * URL of the partner's website
    */
   url?: string;
+}
+/**
+ * An facet that has a value and a label
+ */
+export interface FacetWithLabel {
+  /**
+   * Unique identifier of the facet
+   */
+  id: string;
+  /**
+   * Label of the facet
+   */
+  label: string;
 }
 
 

@@ -11,6 +11,7 @@ import {
   Partner as IPartner,
 } from './generated/schemas'
 import { ImpressoApplication } from '../types'
+import { FacetWithLabel } from './generated/shared'
 
 type FacetType = 'newspaper' | 'language' | 'topic' | 'person' | 'location' | 'collection' | 'year'
 
@@ -18,14 +19,14 @@ interface SearchFacetBucketOptions {
   val: string
   count: number
   uid?: string
-  item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner
+  item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
 }
 
 class SearchFacetBucket implements ISearchFacetBucket {
   public count: number
   public val: string
   public uid?: string
-  public item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner
+  public item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
   public lower?: number
   public upper?: number
 

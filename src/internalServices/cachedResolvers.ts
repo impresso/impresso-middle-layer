@@ -14,6 +14,8 @@ import {
   Newspaper as INewspaper,
   Partner as IPartner,
 } from '../models/generated/schemas'
+import { FacetWithLabel } from '../models/generated/shared'
+import { ImageTypeValueLookup } from '../services/images/images.class'
 export type CachedFacetType =
   | 'newspaper'
   | 'topic'
@@ -24,7 +26,11 @@ export type CachedFacetType =
   | 'partner'
   | 'nag'
   | 'organisation'
-export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | INewspaper | IPartner
+  | 'imageVisualContent'
+  | 'imageTechnique'
+  | 'imageCommunicationGoal'
+  | 'imageContentType'
+export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
 
@@ -38,6 +44,10 @@ export type ICachedResolvers = {
   partner: IResolver<IPartner>
   nag: IResolver<IEntity>
   organisation: IResolver<IEntity>
+  imageVisualContent: IResolver<FacetWithLabel>
+  imageTechnique: IResolver<FacetWithLabel>
+  imageCommunicationGoal: IResolver<FacetWithLabel>
+  imageContentType: IResolver<FacetWithLabel>
 }
 
 // Record<CachedFacetType, IResolver<T>>
@@ -95,6 +105,14 @@ const getNewspaperResolver = (app: ImpressoApplication): IResolver<NewspaperInte
   }
 }
 
+const imageTypeResolver = async (id: string, field: keyof typeof ImageTypeValueLookup) => {
+  const lookup = ImageTypeValueLookup[field]
+  return {
+    id,
+    label: lookup[id] ?? id,
+  } satisfies FacetWithLabel
+}
+
 export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
   return {
     collection: getCollectionResolver(app),
@@ -106,5 +124,9 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     partner: getPartnerResolver(app),
     nag: (id: string) => entityResolver(id, 'nag'),
     organisation: (id: string) => entityResolver(id, 'organisation'),
+    imageVisualContent: (id: string) => imageTypeResolver(id, 'type_l0_tp'),
+    imageTechnique: (id: string) => imageTypeResolver(id, 'type_l1_tp'),
+    imageCommunicationGoal: (id: string) => imageTypeResolver(id, 'type_l2_tp'),
+    imageContentType: (id: string) => imageTypeResolver(id, 'type_l3_tp'),
   }
 }

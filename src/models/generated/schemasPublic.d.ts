@@ -391,6 +391,25 @@ export interface EntityMention {
 
 
 /**
+ * Information about an available experiment including its identifier, name, and description.
+ */
+export interface ExperimentInfo {
+  /**
+   * The unique identifier of the experiment.
+   */
+  id: string;
+  /**
+   * The display name of the experiment.
+   */
+  name: string;
+  /**
+   * A description of what the experiment does.
+   */
+  description?: string;
+}
+
+
+/**
  * Freeform schema - a schema that allows any property to be added to the object.
  */
 export interface Freeform {
@@ -426,6 +445,24 @@ export interface Image {
    * The page numbers of the issue that the image belongs to.
    */
   pageNumbers?: number[];
+  imageTypes?: {
+    /**
+     * Whether the content is an image or not.
+     */
+    visualContent?: string;
+    /**
+     * Determines if the image is a photograph.
+     */
+    technique?: string;
+    /**
+     * Purpose or communicative function of the image.
+     */
+    communicationGoal?: string;
+    /**
+     * Classification of the visual content.
+     */
+    visualContentType?: string;
+  };
   /**
    * The media source of the image
    */

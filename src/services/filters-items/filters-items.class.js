@@ -7,6 +7,7 @@ import {
   collectionExtractor,
   numberRangeExtractor,
   simpleValueExtractor,
+  getImageTypeExtractor,
 } from './extractors'
 
 const ItemsExtractors = Object.freeze({
@@ -24,6 +25,10 @@ const ItemsExtractors = Object.freeze({
   textReuseClusterLexicalOverlap: numberRangeExtractor,
   textReuseClusterDayDelta: numberRangeExtractor,
   contentLength: numberRangeExtractor,
+  imageVisualContent: getImageTypeExtractor('imageVisualContent'),
+  imageTechnique: getImageTypeExtractor('imageTechnique'),
+  imageCommunicationGoal: getImageTypeExtractor('imageCommunicationGoal'),
+  imageContentType: getImageTypeExtractor('imageContentType'),
 })
 
 class FiltersItems {

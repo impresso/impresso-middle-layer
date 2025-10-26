@@ -52,6 +52,22 @@ export interface Image {
   iiif_url_s?: string;
   iiif_link_s?: string;
   cc_b?: boolean;
+  /**
+   * Whether the content is an image or not.
+   */
+  type_l0_tp?: string;
+  /**
+   * Determines if the image is a photograph.
+   */
+  type_l1_tp?: string;
+  /**
+   * Purpose or communicative function of the image.
+   */
+  type_l2_tp?: string;
+  /**
+   * Classification of the visual content.
+   */
+  type_l3_tp?: string;
   rights_data_domain_s?: string;
   rights_copyright_s?: string;
   rights_perm_use_explore_plain?: string[];

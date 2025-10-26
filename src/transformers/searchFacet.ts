@@ -11,6 +11,7 @@ import { SearchFacetBucket, BaseFindResponse } from '../models/generated/schemas
 import Newspaper from '../models/newspapers.model'
 import Entity from '../models/entities.model'
 import Topic from '../models/topics.model'
+import { FacetWithLabel } from '../models/generated/shared'
 
 interface FacetContainer extends BaseFindResponse {
   data: SearchFacetBucket[]
@@ -63,11 +64,23 @@ const transformBucket = (
       }
     case 'person':
     case 'location':
+    case 'nag':
+    case 'organisation':
       const entityItem = (input as any)?.item as Entity
       return {
         count: input.count,
         value: String(input.val),
         label: entityItem.name,
+      }
+    case 'imageVisualContent':
+    case 'imageTechnique':
+    case 'imageCommunicationGoal':
+    case 'imageContentType':
+      const facetItem = (input as any)?.item as FacetWithLabel
+      return {
+        count: input.count,
+        value: String(input.val),
+        label: facetItem?.label,
       }
     default:
       return {

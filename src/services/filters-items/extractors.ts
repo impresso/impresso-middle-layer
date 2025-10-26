@@ -1,8 +1,9 @@
 import { buildResolvers } from '../../internalServices/cachedResolvers'
+import { ImpressoApplication } from '../../types'
 import { getTypeFromUid } from '../../utils/entity.utils'
 
-const isDateRangeString = v => v.match(/.+ TO .+/) != null
-const getDateStrings = v => v.match(/(.+) TO (.+)/).slice(1, 3)
+const isDateRangeString = (v: string) => v.match(/.+ TO .+/) != null
+const getDateStrings = (v: string) => v.match(/(.+) TO (.+)/)?.slice(1, 3) ?? [undefined, undefined]
 
 function daterangeExtractor({ q = '' }) {
   const values = Array.isArray(q) ? q : [q]
@@ -21,21 +22,21 @@ function daterangeExtractor({ q = '' }) {
   })
 }
 
-async function newspaperExtractor({ q = '' }, app) {
+async function newspaperExtractor({ q = '' }, app: ImpressoApplication) {
   const resolvers = buildResolvers(app)
 
   const codes = Array.isArray(q) ? q : [q]
   return await Promise.all(codes.map(async code => resolvers.newspaper(code.trim())))
 }
 
-async function topicExtractor({ q = '' }, app) {
+async function topicExtractor({ q = '' }, app: ImpressoApplication) {
   const resolvers = buildResolvers(app)
   const items = Array.isArray(q) ? q : [q]
   const mappedItems = await Promise.all(items.map(async item => await resolvers.topic(item.trim())))
   return mappedItems.filter(item => item != null)
 }
 
-async function entityExtractor({ q = '' }, app) {
+async function entityExtractor({ q = '' }, app: ImpressoApplication) {
   const resolvers = buildResolvers(app)
   const items = Array.isArray(q) ? q : [q]
   const mappedItems = await Promise.all(
@@ -48,7 +49,7 @@ async function entityExtractor({ q = '' }, app) {
   return mappedItems.filter(item => item != null)
 }
 
-async function yearExtractor({ q = '' }, app) {
+async function yearExtractor({ q = '' }, app: ImpressoApplication) {
   const resolvers = buildResolvers(app)
 
   const items = Array.isArray(q) ? q : [q]
@@ -56,7 +57,7 @@ async function yearExtractor({ q = '' }, app) {
   return mappedItems.filter(item => item != null)
 }
 
-async function collectionExtractor({ q = '' }, app) {
+async function collectionExtractor({ q = '' }, app: ImpressoApplication) {
   const items = Array.isArray(q) ? q : [q]
 
   try {
@@ -65,7 +66,7 @@ async function collectionExtractor({ q = '' }, app) {
         return app.service('collections').getInternal(item.trim())
       })
     )
-  } catch (error) {
+  } catch (error: Error | any) {
     if (error.name === 'NotFound') return []
     throw error
   }
@@ -81,6 +82,20 @@ function simpleValueExtractor({ q = '' }) {
   return items.map(uid => ({ uid }))
 }
 
+const getImageTypeExtractor = (
+  type: 'imageVisualContent' | 'imageTechnique' | 'imageCommunicationGoal' | 'imageContentType'
+) => {
+  const extractor = async ({ q = '' }, app: ImpressoApplication) => {
+    const items = Array.isArray(q) ? q : [q.trim()]
+    const resolvers = buildResolvers(app)
+
+    const mappedItems = await Promise.all(items.map(async item => resolvers[type](item.trim())))
+    return mappedItems.filter(item => item != null)
+  }
+
+  return extractor
+}
+
 export {
   daterangeExtractor,
   newspaperExtractor,
@@ -90,4 +105,5 @@ export {
   collectionExtractor,
   numberRangeExtractor,
   simpleValueExtractor,
+  getImageTypeExtractor,
 }

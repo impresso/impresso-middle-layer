@@ -30,6 +30,22 @@
     "iiif_url_s": { "type": "string", "format": "uri" },
     "iiif_link_s": { "type": "string", "format": "uri" },
     "cc_b": { "type": "boolean" },
+    "type_l0_tp": {
+      "type": "string",
+      "description": "Whether the content is an image or not."
+    },
+    "type_l1_tp": {
+      "type": "string",
+      "description": "Determines if the image is a photograph."
+    },
+    "type_l2_tp": {
+      "type": "string",
+      "description": "Purpose or communicative function of the image."
+    },
+    "type_l3_tp": {
+      "type": "string",
+      "description": "Classification of the visual content."
+    },
     "rights_data_domain_s": { "type": "string" },
     "rights_copyright_s": { "type": "string" },
     "rights_perm_use_explore_plain": {
