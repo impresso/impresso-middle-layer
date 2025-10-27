@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { filtersToSolr, escapeValue, escapeIdValue, unescapeIdValue } from '../../../src/util/solr/filterReducers'
+import { filtersToSolr, escapeIdValue, unescapeIdValue } from '../../../src/util/solr/filterReducers'
 import { SolrNamespaces } from '../../../src/solr'
 import { filtersToQueryAndVariables } from '../../../src/util/solr/index'
 import { InvalidArgumentError } from '../../../src/util/error'
@@ -937,5 +937,80 @@ describe('escapeIdValue/unescapeIdValue', () => {
       assert.strictEqual(escapeIdValue(original), escaped)
       assert.strictEqual(unescapeIdValue(escaped), original)
     })
+  })
+})
+
+describe('handles "imageTypeValueOrLabel" filter', () => {
+  it('with label value (human-readable)', () => {
+    const filter = {
+      type: 'imageVisualContent',
+      q: 'Image',
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
+    assert.equal(query, 'type_l0_tp:image')
+  })
+
+  it('with Solr value (raw)', () => {
+    const filter = {
+      type: 'imageVisualContent',
+      q: 'image',
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
+    assert.equal(query, 'type_l0_tp:image')
+  })
+
+  it('with array of labels', () => {
+    const filter = {
+      type: 'imageVisualContent',
+      q: ['Image', 'Not an Image'],
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
+    assert.equal(query, '(type_l0_tp:image OR type_l0_tp:not_image)')
+  })
+
+  it('with mixed labels and Solr values', () => {
+    const filter = {
+      type: 'imageVisualContent',
+      q: ['Image', 'not_image'],
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
+    assert.equal(query, '(type_l0_tp:image OR type_l0_tp:not_image)')
+  })
+
+  it('with AND operator', () => {
+    const filter = {
+      type: 'imageVisualContent',
+      q: ['Image', 'Not an Image'],
+      op: 'AND',
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
+    assert.equal(query, '(type_l0_tp:image AND type_l0_tp:not_image)')
+  })
+
+  it('with exclude context', () => {
+    const filter = {
+      type: 'imageVisualContent',
+      q: 'Image',
+      context: 'exclude',
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
+    assert.equal(query, 'NOT type_l0_tp:image')
+  })
+
+  it('with no value', () => {
+    const filter = {
+      type: 'imageVisualContent',
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
+    assert.equal(query, 'type_l0_tp:*')
+  })
+
+  it('with empty array', () => {
+    const filter = {
+      type: 'imageVisualContent',
+      q: [],
+    } satisfies Filter
+    const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
+    assert.equal(query, 'type_l0_tp:*')
   })
 })

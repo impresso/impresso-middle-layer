@@ -291,13 +291,13 @@ indexes:
         destination: query
       imageVisualContent:
         field: type_l0_tp
-        rule: value
+        rule: imageTypeValueOrLabel
       imageTechnique:
         field: type_l1_tp
-        rule: value
+        rule: imageTypeValueOrLabel
       imageCommunicationGoal:
         field: type_l2_tp
-        rule: value
+        rule: imageTypeValueOrLabel
       imageContentType:
         field: type_l3_tp
-        rule: value 
+        rule: imageTypeValueOrLabel

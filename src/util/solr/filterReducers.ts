@@ -12,6 +12,8 @@ import { InvalidArgumentError } from '../error'
 import capitalisedValueFilterBuilder from './filterBuilders/capitalisedValue'
 import { valueBuilder, idValueBuilder, escapeIdValue, unescapeIdValue } from './filterBuilders/value'
 import { SupportedLanguageCodes } from '../../models/solr'
+import { ImageTypeValueLookup } from '../../services/images/images.class'
+import { invertRecord } from '../fn'
 
 export { escapeIdValue, unescapeIdValue }
 
@@ -482,6 +484,29 @@ const embeddingKnnSimilarityHandler = (filters: Filter[], field: string[], rule:
     .join(' AND ')
 }
 
+/**
+ * Same as `valueBuilder`, but handles both value and label for image type filters.
+ * @param filters
+ * @param field
+ */
+const imageTypeValueOrLabelHandler = (
+  filters: Filter[],
+  field: keyof typeof ImageTypeValueLookup,
+  ruleName: string
+) => {
+  const lookup = invertRecord(ImageTypeValueLookup[field] ?? {})
+  const filtersWithValues = filters.map(f => {
+    if (Array.isArray(f.q)) {
+      return { ...f, q: f.q.map(v => lookup[v] ?? v) }
+    } else if (f.q != null) {
+      return { ...f, q: lookup[f.q] ?? f.q }
+    } else {
+      return f
+    }
+  })
+  return valueBuilder(filtersWithValues, field, ruleName)
+}
+
 const noopHandler = () => '*:*'
 
 const FiltersHandlers = Object.freeze({
@@ -498,6 +523,7 @@ const FiltersHandlers = Object.freeze({
   noop: noopHandler,
   joinCollection: joinCollectionHandler,
   embeddingKnnSimilarity: embeddingKnnSimilarityHandler,
+  imageTypeValueOrLabel: imageTypeValueOrLabelHandler,
 })
 
 interface FilterToSolrResult {

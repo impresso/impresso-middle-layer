@@ -63,3 +63,12 @@ export const mapRecordValues = <K extends string | number | symbol, V, R>(
     R
   >
 }
+
+/**
+ * Inverts the keys and values of a record.
+ * @param original The original record
+ * @returns A new record with inverted keys and values
+ */
+export const invertRecord = <T extends string>(original: Record<string, T>): Record<T, string> => {
+  return Object.fromEntries(Object.entries(original).map(([key, value]) => [value, key])) as Record<T, string>
+}
