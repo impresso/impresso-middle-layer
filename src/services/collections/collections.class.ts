@@ -101,15 +101,27 @@ export class CollectionsService implements ICollectionsService {
     }
 
     // Get from the DB
+    const whereContainTerms: WhereOptions<InferAttributes<UserCollection>> | null =
+      term && term.length > 0
+        ? {
+            [Op.or]: [{ name: { [Op.like]: `%${term.trim()}%` } }, { description: { [Op.like]: `%${term.trim()}%` } }],
+          }
+        : null
 
-    const where: WhereOptions<InferAttributes<UserCollection>> = {
-      creatorId: userId,
-      status: { [Op.in]: includePublic ? ['PRI', 'SHA', 'PUB'] : ['PRI'] },
+    const whereIsCreator: WhereOptions<InferAttributes<UserCollection>> = {
+      [Op.and]: [
+        {
+          creatorId: userId,
+        },
+        {
+          status: { [Op.in]: includePublic ? ['PRI', 'SHA', 'PUB'] : ['PRI'] },
+        },
+      ],
     }
 
-    if (term && term.length > 0) {
-      where.name = { [Op.like]: `%${term.trim()}%` }
-      where.description = { [Op.like]: `%${term.trim()}%` }
+    const where = {
+      ...(whereContainTerms ? whereContainTerms : {}),
+      ...whereIsCreator,
     }
 
     const { rows, count: total } = await this.userCollectionDbModel.findAndCountAll({
