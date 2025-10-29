@@ -3,6 +3,9 @@ import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreation
 
 import User from './users.model'
 
+/**
+ * Database model interface for user collections.
+ */
 export interface IUserCollection {
   id: string
   creatorId: number
