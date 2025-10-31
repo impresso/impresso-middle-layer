@@ -8,7 +8,7 @@
     "searchTarget": {
       "type": "string",
       "description": "Where the embedding is going to be used",
-      "enum": ["image"]
+      "enum": ["image", "multimodal"]
     },
     "bytes": {
       "type": "string",

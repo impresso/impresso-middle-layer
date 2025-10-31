@@ -59,6 +59,10 @@ export class ImpressoImageEmbeddingService {
       const url = `${this.options.baseUrl}/dinov2/`
       const body = imageToDownstreamImageRequest(data)
       return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder('dinov2-1024'))
+    } else if (data.searchTarget === 'multimodal') {
+      const url = `${this.options.baseUrl}/openclip-image/`
+      const body = imageToDownstreamImageRequest(data)
+      return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder('openclip-768'))
     } else {
       throw new Error(`Unknown search target: ${data.searchTarget}`)
     }

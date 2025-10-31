@@ -200,7 +200,7 @@ export interface ImpressoImageEmbeddingRequest {
   /**
    * Where the embedding is going to be used
    */
-  searchTarget: "image";
+  searchTarget: "image" | "multimodal";
   /**
    * Base64-encoded image bytes. JPG and PNG formats are supported.
    */
