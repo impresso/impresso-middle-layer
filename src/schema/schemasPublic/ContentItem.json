@@ -117,6 +117,30 @@
       "type": "string",
       "description": "The type of the media the content item belongs to.",
       "enum": ["newspaper", "radio_broadcast", "radio_magazine", "radio_schedule", "monograph", "encyclopedia"]
+    },
+    "hasOLR": {
+      "type": "boolean",
+      "description": "Whether the content item has OCR/OLR data available."
+    },
+    "ocrQualityScore": {
+      "type": "number",
+      "description": "OCR quality score of the content item (0 - 1).",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "relevanceScore": {
+      "type": "number",
+      "description": "Relevance score of the content item (0 - 1).",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "pageNumbers": {
+      "type": "array",
+      "description": "Page numbers the content item appears on.",
+      "items": {
+        "type": "number",
+        "minimum": 1
+      }
     }
   },
   "required": ["uid"]
