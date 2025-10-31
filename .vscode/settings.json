@@ -23,5 +23,10 @@
     "editor.formatOnSave": true
   },
   "mochaExplorer.require": "tsx",
-  "mochaExplorer.files": "test/**/*.{ts,js}"
+  "mochaExplorer.files": "test/**/*.{ts,js}",
+  "chat.tools.terminal.terminalProfile.osx": {
+    "path": "/bin/bash",
+    "env": {"COPILOT": "1"}
+  },
+  "testing.followRunningTest": false
 }

@@ -302,6 +302,11 @@ const toUtteranceLocator = (
   }
 }
 
+export const asObjectOrUndefined = (value: Record<string, unknown>): Record<string, unknown> | undefined => {
+  const entries = Object.entries(value).filter(([k, v]) => v !== undefined && (Array.isArray(v) ? v.length > 0 : true))
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined
+}
+
 const buildAudioFileUrl = (recordId: string, partnerId: string): string => {
   const idParts = recordId.split('-')
   const idPrefix = idParts.slice(0, idParts.length - 1).join('/')
@@ -311,6 +316,19 @@ const buildAudioFileUrl = (recordId: string, partnerId: string): string => {
 export const toContentItem = (doc: AllDocumentFields): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
+
+  const namedEntities = asObjectOrUndefined({
+    persons: parseContentItemEntityDPFS(doc.pers_entities_dpfs),
+    locations: parseContentItemEntityDPFS(doc.loc_entities_dpfs),
+    newsagencies: parseContentItemEntityDPFS(doc.nag_entities_dpfs),
+    organisations: parseContentItemEntityDPFS(doc.org_entities_dpfs),
+  })
+  const mentions = asObjectOrUndefined({
+    persons: parseContentItemMentionDPFS(doc.pers_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.pers)),
+    locations: parseContentItemMentionDPFS(doc.loc_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.loc)),
+    organisations: parseContentItemMentionDPFS(doc.org_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.org)),
+    newsagencies: parseContentItemMentionDPFS(doc.nag_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.nag)),
+  })
 
   return {
     id: doc.id,
@@ -366,22 +384,8 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
     },
     semanticEnrichments: {
       ocrQuality: doc.ocrqa_f,
-      namedEntities: {
-        persons: parseContentItemEntityDPFS(doc.pers_entities_dpfs),
-        locations: parseContentItemEntityDPFS(doc.loc_entities_dpfs),
-        newsagencies: parseContentItemEntityDPFS(doc.nag_entities_dpfs),
-        organisations: parseContentItemEntityDPFS(doc.org_entities_dpfs),
-      },
-      mentions: {
-        persons: parseContentItemMentionDPFS(doc.pers_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.pers)),
-        locations: parseContentItemMentionDPFS(doc.loc_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.loc)),
-        organisations: parseContentItemMentionDPFS(doc.org_mention_conf_dpfs).map(
-          mentionWithOffset(mentionsOffsets.org)
-        ),
-        newsagencies: parseContentItemMentionDPFS(doc.nag_mention_conf_dpfs).map(
-          mentionWithOffset(mentionsOffsets.nag)
-        ),
-      },
+      ...(namedEntities != null ? { namedEntities } : {}),
+      ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),
       ...(doc.gte_multi_v768 != null
         ? { embeddings: [vectorToCanonicalEmbedding(doc.gte_multi_v768, 'gte-768')] }

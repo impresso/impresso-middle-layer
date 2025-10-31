@@ -89,22 +89,8 @@ export interface ContentItem {
    * Transcript of the content item.
    */
   transcript?: string;
-  /**
-   * Linked location entities mentioned in the content item.
-   */
-  locationEntities?: NamedEntity[];
-  /**
-   * Linked person entities mentioned in the content item.
-   */
-  personEntities?: NamedEntity[];
-  /**
-   * Linked organisation entities mentioned in the content item.
-   */
-  organisationEntities?: NamedEntity[];
-  /**
-   * Linked news agency entities mentioned in the content item.
-   */
-  newsAgenciesEntities?: NamedEntity[];
+  entities?: ContentItemNamedEntitiesInformation;
+  mentions?: ContentItemEntitiesMentionsInformation;
   /**
    * Topics mentioned in the content item.
    */
@@ -153,6 +139,43 @@ export interface ContentItem {
    * The type of the media the content item belongs to.
    */
   mediaType?: "newspaper" | "radio_broadcast" | "radio_magazine" | "radio_schedule" | "monograph" | "encyclopedia";
+  /**
+   * Whether the content item has OCR/OLR data available.
+   */
+  hasOLR?: boolean;
+  /**
+   * OCR quality score of the content item (0 - 1).
+   */
+  ocrQualityScore?: number;
+  /**
+   * Relevance score of the content item (0 - 1).
+   */
+  relevanceScore?: number;
+  /**
+   * Page numbers the content item appears on.
+   */
+  pageNumbers?: number[];
+}
+/**
+ * A collection of linked named entities (location, person, etc.) present in text.
+ */
+export interface ContentItemNamedEntitiesInformation {
+  /**
+   * Linked location entities mentioned in the content item.
+   */
+  locations?: NamedEntity[];
+  /**
+   * Linked person entities mentioned in the content item.
+   */
+  persons?: NamedEntity[];
+  /**
+   * Linked organisation entities mentioned in the content item.
+   */
+  organisations?: NamedEntity[];
+  /**
+   * Linked news agency entities mentioned in the content item.
+   */
+  newsAgencies?: NamedEntity[];
 }
 /**
  * An named entity (location, persion, etc) present in text.
@@ -166,6 +189,48 @@ export interface NamedEntity {
    * How many times it is mentioned in the text
    */
   count?: number;
+}
+/**
+ * A collection of entity mentions (location, person, etc.) present in text.
+ */
+export interface ContentItemEntitiesMentionsInformation {
+  /**
+   * Locations mentioned in the content item.
+   */
+  locations?: EntityMention[];
+  /**
+   * Persons mentioned in the content item.
+   */
+  persons?: EntityMention[];
+  /**
+   * Organisations mentioned in the content item.
+   */
+  organisations?: EntityMention[];
+  /**
+   * News agencies mentioned in the content item.
+   */
+  newsAgencies?: EntityMention[];
+}
+/**
+ * An entity (location, person, etc.) mentioned in the content item.
+ */
+export interface EntityMention {
+  /**
+   * The surface form (label) of the entity mention
+   */
+  surfaceForm: string;
+  /**
+   * Confidence score of the entity mention
+   */
+  mentionConfidence: number;
+  /**
+   * Start offset of the entity mention in the content item
+   */
+  startOffset?: number;
+  /**
+   * End offset of the entity mention in the content item
+   */
+  endOffset?: number;
 }
 /**
  * Topic presence in a content item.
@@ -376,17 +441,69 @@ export interface WikidataLocation2 {
 
 
 /**
- * An entity (location, persion) mention.
+ * An entity (location, person, etc.) mentioned in the content item.
  */
 export interface EntityMention {
   /**
-   * Unique identifier of the entity
+   * The surface form (label) of the entity mention
    */
-  uid: string;
+  surfaceForm: string;
   /**
-   * Relevance of the entity in the document
+   * Confidence score of the entity mention
    */
-  relevance?: number;
+  mentionConfidence: number;
+  /**
+   * Start offset of the entity mention in the content item
+   */
+  startOffset?: number;
+  /**
+   * End offset of the entity mention in the content item
+   */
+  endOffset?: number;
+}
+
+
+/**
+ * A collection of entity mentions (location, person, etc.) present in text.
+ */
+export interface ContentItemEntitiesMentionsInformation {
+  /**
+   * Locations mentioned in the content item.
+   */
+  locations?: EntityMention[];
+  /**
+   * Persons mentioned in the content item.
+   */
+  persons?: EntityMention[];
+  /**
+   * Organisations mentioned in the content item.
+   */
+  organisations?: EntityMention[];
+  /**
+   * News agencies mentioned in the content item.
+   */
+  newsAgencies?: EntityMention[];
+}
+/**
+ * An entity (location, person, etc.) mentioned in the content item.
+ */
+export interface EntityMention {
+  /**
+   * The surface form (label) of the entity mention
+   */
+  surfaceForm: string;
+  /**
+   * Confidence score of the entity mention
+   */
+  mentionConfidence: number;
+  /**
+   * Start offset of the entity mention in the content item
+   */
+  startOffset?: number;
+  /**
+   * End offset of the entity mention in the content item
+   */
+  endOffset?: number;
 }
 
 
@@ -553,6 +670,42 @@ export interface MediaSource {
      */
     value: string;
   }[];
+}
+
+
+/**
+ * A collection of linked named entities (location, person, etc.) present in text.
+ */
+export interface ContentItemNamedEntitiesInformation {
+  /**
+   * Linked location entities mentioned in the content item.
+   */
+  locations?: NamedEntity[];
+  /**
+   * Linked person entities mentioned in the content item.
+   */
+  persons?: NamedEntity[];
+  /**
+   * Linked organisation entities mentioned in the content item.
+   */
+  organisations?: NamedEntity[];
+  /**
+   * Linked news agency entities mentioned in the content item.
+   */
+  newsAgencies?: NamedEntity[];
+}
+/**
+ * An named entity (location, persion, etc) present in text.
+ */
+export interface NamedEntity {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * How many times it is mentioned in the text
+   */
+  count?: number;
 }
 
 

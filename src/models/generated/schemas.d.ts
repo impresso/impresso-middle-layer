@@ -949,6 +949,10 @@ export interface ContentItem {
    * Unique issue identifier
    */
   issueId?: string;
+  /**
+   * Relevance score for this content item relative to the search query
+   */
+  relevanceScore?: number;
   meta?: ContentItemMeta;
   text?: ContentItemText;
   semanticEnrichments?: ContentItemSemanticEnrichments;

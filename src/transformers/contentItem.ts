@@ -1,11 +1,18 @@
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../models/authorization'
+import { asObjectOrUndefined } from '../models/content-item'
 import {
+  ContentItemMention,
   ContentItemNamedEntity,
   ContentItem as ContentItemPrivate,
   ContentItemText,
   ContentItemTopic,
 } from '../models/generated/schemas/contentItem'
-import { ContentItem as ContentItemPublic, NamedEntity, TopicMention } from '../models/generated/schemasPublic'
+import {
+  ContentItem as ContentItemPublic,
+  EntityMention,
+  NamedEntity,
+  TopicMention,
+} from '../models/generated/schemasPublic'
 import { base64BytesToBigInt, OpenPermissions } from '../util/bigint'
 
 const toType = (input: ContentItemText['itemType']): ContentItemPublic['type'] => {
@@ -17,6 +24,16 @@ const toNamedEntity = (entity: ContentItemNamedEntity): NamedEntity => ({
   uid: entity.id!,
   count: entity.count ?? 0,
 })
+
+const toMention = (mention: ContentItemMention): EntityMention | undefined => {
+  if (mention.surfaceForm != null && mention.mentionConfidence != null)
+    return {
+      ...mention,
+      surfaceForm: mention.surfaceForm,
+      mentionConfidence: mention.mentionConfidence,
+    }
+  return undefined
+}
 
 const toTopicMention = (topic: ContentItemTopic): TopicMention | undefined => {
   if (topic.id == null) return undefined
@@ -34,6 +51,19 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
     getAudio: bmGetAudio,
   } = input.access?.accessBitmaps ?? {}
 
+  const entities = asObjectOrUndefined({
+    locations: input.semanticEnrichments?.namedEntities?.locations?.map(toNamedEntity) ?? [],
+    persons: input.semanticEnrichments?.namedEntities?.persons?.map(toNamedEntity) ?? [],
+    organisations: input.semanticEnrichments?.namedEntities?.organisations?.map(toNamedEntity) ?? [],
+    newsAgencies: input.semanticEnrichments?.namedEntities?.newsagencies?.map(toNamedEntity) ?? [],
+  })
+  const mentions = asObjectOrUndefined({
+    locations: input.semanticEnrichments?.mentions?.locations?.map(toMention)?.filter(v => v != null) ?? [],
+    persons: input.semanticEnrichments?.mentions?.persons?.map(toMention)?.filter(v => v != null) ?? [],
+    organisations: input.semanticEnrichments?.mentions?.organisations?.map(toMention)?.filter(v => v != null) ?? [],
+    newsAgencies: input.semanticEnrichments?.mentions?.newsagencies?.map(toMention)?.filter(v => v != null) ?? [],
+  })
+
   return {
     uid: input.id,
     copyrightStatus: input.access?.copyright,
@@ -41,10 +71,8 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
     sourceMedium: input.meta?.sourceMedium,
     title: input.text?.title,
     transcript: input.text?.content,
-    locationEntities: input.semanticEnrichments?.namedEntities?.locations?.map(toNamedEntity) ?? [],
-    personEntities: input.semanticEnrichments?.namedEntities?.persons?.map(toNamedEntity) ?? [],
-    organisationEntities: input.semanticEnrichments?.namedEntities?.organisations?.map(toNamedEntity) ?? [],
-    newsAgenciesEntities: input.semanticEnrichments?.namedEntities?.newsagencies?.map(toNamedEntity) ?? [],
+    ...(entities != null ? { entities } : {}),
+    ...(mentions != null ? { mentions } : {}),
     topics:
       input.semanticEnrichments?.topics
         ?.map(toTopicMention)
@@ -61,6 +89,10 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
     providerCode: input.meta?.partnerId != null ? input.meta?.partnerId : undefined,
     mediaUid: input.meta?.mediaId,
     mediaType: input.meta?.sourceType,
+    hasOLR: input.semanticEnrichments?.ocrQuality != null,
+    ocrQualityScore: input.semanticEnrichments?.ocrQuality,
+    pageNumbers: input.image?.pages?.map(p => p.number).filter(n => n != null) ?? [],
+    relevanceScore: input.relevanceScore,
 
     // Authorization information
     [AuthorizationBitmapsKey]: {

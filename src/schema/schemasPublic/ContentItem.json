@@ -32,33 +32,11 @@
       "type": "string",
       "description": "Transcript of the content item."
     },
-    "locationEntities": {
-      "type": "array",
-      "description": "Linked location entities mentioned in the content item.",
-      "items": {
-        "$ref": "./NamedEntity.json"
-      }
+    "entities": {
+      "$ref": "./NamedEntities.json"
     },
-    "personEntities": {
-      "type": "array",
-      "description": "Linked person entities mentioned in the content item.",
-      "items": {
-        "$ref": "./NamedEntity.json"
-      }
-    },
-    "organisationEntities": {
-      "type": "array",
-      "description": "Linked organisation entities mentioned in the content item.",
-      "items": {
-        "$ref": "./NamedEntity.json"
-      }
-    },
-    "newsAgenciesEntities": {
-      "type": "array",
-      "description": "Linked news agency entities mentioned in the content item.",
-      "items": {
-        "$ref": "./NamedEntity.json"
-      }
+    "mentions": {
+      "$ref": "./EntityMentions.json"
     },
     "topics": {
       "type": "array",
