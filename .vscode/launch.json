@@ -2,6 +2,19 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Bun run: API",
+      "type": "bun",
+      "request": "launch",
+      "runtimeArgs": ["--inspect=9229"],
+      "program": "${workspaceFolder}/src/index.ts",
+      "args": [
+        "--env-file=.env",
+      ],
+      "env": {
+        "HOST": "api"
+      }
+    },
+    {
       "name": "Nodemon: Start",
       "type": "node",
       "request": "launch",
