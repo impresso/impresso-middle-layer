@@ -155,6 +155,10 @@ export interface ContentItem {
    * Page numbers the content item appears on.
    */
   pageNumbers?: number[];
+  /**
+   * Unique identifiers of collections the content item belongs to.
+   */
+  collectionUids?: string[];
 }
 /**
  * A collection of linked named entities (location, person, etc.) present in text.

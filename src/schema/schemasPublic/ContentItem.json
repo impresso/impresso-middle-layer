@@ -119,6 +119,13 @@
         "type": "number",
         "minimum": 1
       }
+    },
+    "collectionUids": {
+      "type": "array",
+      "description": "Unique identifiers of collections the content item belongs to.",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": ["uid"]

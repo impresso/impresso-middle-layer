@@ -93,6 +93,7 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
     ocrQualityScore: input.semanticEnrichments?.ocrQuality,
     pageNumbers: input.image?.pages?.map(p => p.number).filter(n => n != null) ?? [],
     relevanceScore: input.relevanceScore,
+    collectionUids: input.semanticEnrichments?.collections?.map(c => c.uid) ?? [],
 
     // Authorization information
     [AuthorizationBitmapsKey]: {

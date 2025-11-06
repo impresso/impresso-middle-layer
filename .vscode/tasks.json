@@ -19,6 +19,14 @@
       "group": {
         "isDefault": false
       }
+    },
+    {
+      "label": "Generated types",
+      "type": "npm",
+      "script": "generate-types",
+      "group": {
+        "isDefault": false
+      }
     }
   ]
 }
