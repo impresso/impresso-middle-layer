@@ -252,6 +252,30 @@ export interface TopicMention {
 
 
 /**
+ * A data provider is a partner institution that provides content to Impresso (e.g., libraries, archives, media organizations).
+ */
+export interface DataProvider {
+  /**
+   * The unique identifier of the data provider.
+   */
+  id: string;
+  /**
+   * Names of the data provider in different languages.
+   */
+  names: {
+    /**
+     * ISO 639-1 language code.
+     */
+    langCode: string;
+    /**
+     * Name of the data provider in this language.
+     */
+    name: string;
+  }[];
+}
+
+
+/**
  * An entity: location or person.
  */
 export interface EntityDetails {
