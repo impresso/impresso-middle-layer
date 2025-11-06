@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Topic",
+  "description": "Topic model in Solr",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the topic."
+    },
+    "lg_s": {
+      "type": "string",
+      "description": "Language code (ISO lowercase)",
+      "minLength": 2,
+      "maxLength": 2
+    },
+    "tp_model_s": {
+      "type": "string",
+      "description": "Topic model identifier"
+    },
+    "tp_nb_i": {
+      "type": "integer",
+      "description": "Topic number (integer field)",
+      "minimum": 0
+    },
+    "word_probs_dpf": {
+      "type": "string",
+      "description": "Word probabilities in DPFS format (space-separated pairs of 'word|probability')"
+    },
+    "topic_suggest": {
+      "type": "string",
+      "description": "Field for topic suggestions"
+    },
+    "tp_desc_s": {
+      "type": "string",
+      "description": "Optional topic description"
+    },
+    "tp_meta_s": {
+      "type": "string",
+      "description": "Optional topic metadata"
+    }
+  },
+  "required": ["id", "lg_s", "word_probs_dpf", "tp_model_s", "tp_nb_i"],
+  "additionalProperties": false
+}

@@ -856,6 +856,50 @@ export interface TextReusePassage {
 
 
 /**
+ * A topic
+ */
+export interface Topic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+  /**
+   * Number of content items with this topic
+   */
+  contentItemsCount?: number;
+  /**
+   * Top N words associated with the topic
+   */
+  words?: TopicWord[];
+  /**
+   * ID of the model used to generate the topic
+   */
+  model?: string;
+}
+/**
+ * A word included in a topic
+ */
+export interface TopicWord {
+  /**
+   * Word surface form
+   */
+  w: string;
+  /**
+   * Probability of the word in topic
+   */
+  p: number;
+  /**
+   * If word is highlighted
+   */
+  h?: boolean;
+}
+
+
+/**
  * Topic presence in a content item.
  */
 export interface TopicMention {
@@ -867,6 +911,25 @@ export interface TopicMention {
    * Relevance of the topic in the content item.
    */
   relevance?: number;
+}
+
+
+/**
+ * A word included in a topic
+ */
+export interface TopicWord {
+  /**
+   * Word surface form
+   */
+  w: string;
+  /**
+   * Probability of the word in topic
+   */
+  p: number;
+  /**
+   * If word is highlighted
+   */
+  h?: boolean;
 }
 
 
