@@ -1,9 +1,4 @@
 {
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    // "vue"
-  ],
   "editor.formatOnSave": false,
   "json.validate.enable": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -22,8 +17,7 @@
   "[json]": {
     "editor.formatOnSave": true
   },
-  "mochaExplorer.require": "tsx",
-  "mochaExplorer.files": "test/**/*.{ts,js}",
+  "bun.test.filePattern": "test/unit/**/*{.test.,.spec.,_test_,_spec_}{js,ts,tsx,jsx,mts,cts,cjs,mjs}",
   "chat.tools.terminal.terminalProfile.osx": {
     "path": "/bin/bash",
     "env": {"COPILOT": "1"}
