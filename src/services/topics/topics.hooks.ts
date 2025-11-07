@@ -9,6 +9,7 @@ import { transformTopic } from '../../transformers/topic'
 import { ImpressoApplication } from '../../types'
 import { eachFilterValidator } from '../search/search.validators'
 import { transformBaseFind } from '../../transformers/base'
+import { sanitizeFilters } from '../../hooks/parameters'
 
 export default {
   around: {
@@ -16,6 +17,7 @@ export default {
   },
   before: {
     find: [
+      sanitizeFilters('filters'),
       validate({
         q: {
           required: false,

@@ -1,5 +1,5 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { MethodParameter, QueryParameter } from '../../util/openapi'
+import { MethodParameter, QueryParameter, filtersQueryParameter } from '../../util/openapi'
 import { getStandardParameters, getStandardResponses } from '../../util/openapi'
 
 const parameterQ: QueryParameter = {
@@ -26,23 +26,10 @@ const parameterOrderBy: QueryParameter = {
   description: 'Sort order',
 }
 
-const parameterFilters: QueryParameter = {
-  in: 'query',
-  name: 'filters',
-  required: false,
-  schema: {
-    type: 'array',
-    items: {
-      type: 'object',
-    },
-  },
-  description: 'Filters to apply to the search',
-}
-
 const findParameters: MethodParameter[] = [
   parameterQ,
   parameterOrderBy,
-  parameterFilters,
+  filtersQueryParameter,
   ...getStandardParameters({ method: 'find' }),
 ]
 

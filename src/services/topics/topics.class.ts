@@ -82,19 +82,17 @@ export class Service {
       if (!params.sanitized.filters.length) {
         const resolvers = buildResolvers(this.app)
         const collectedTopics = await Promise.all(
-          solrSuggestResponse.response.docs
-            .slice(params.query.offset, params.query.offset + params.query.limit)
-            .map(async d => {
-              const doc = d as SolrTopic
-              const t = await resolvers.topic(doc.id)
-              if (!t) return undefined
+          solrSuggestResponse.response.docs.map(async d => {
+            const doc = d as SolrTopic
+            const t = await resolvers.topic(doc.id)
+            if (!t) return undefined
 
-              const topicResult = { ...t, uid: t?.uid ?? '' } satisfies Topic
-              if (t?.uid && solrSuggestResponse.highlighting?.[t.uid]?.topic_suggest) {
-                topicResult.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
-              }
-              return topicResult
-            })
+            const topicResult = { ...t, uid: t?.uid ?? '' } satisfies Topic
+            if (t?.uid && solrSuggestResponse.highlighting?.[t.uid]?.topic_suggest) {
+              topicResult.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
+            }
+            return topicResult
+          })
         )
 
         return {
