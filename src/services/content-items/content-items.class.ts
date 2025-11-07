@@ -364,7 +364,9 @@ export class ContentItemService implements IContentItemService {
       body: requestBody,
     })
 
-    const contentItems = (results.response?.docs?.map(toContentItem) ?? []).map(item => withMatches(item, results))
+    const contentItems = (
+      results.response?.docs?.map(d => toContentItem(d, { maxScore: results.response?.maxScore })) ?? []
+    ).map(item => withMatches(item, results))
 
     // get data enrichment items
     const topicIds = contentItems.flatMap(d => d.semanticEnrichments?.topics?.map(t => t.id) ?? [])
