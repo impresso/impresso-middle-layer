@@ -173,6 +173,10 @@ indexes:
         field: id
         rule: value
         destination: filter
+      contentItemId:
+        field: ci_id_s
+        rule: value
+        destination: filter
       textReusePassage:
         field: id
         rule: value
