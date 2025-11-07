@@ -25,6 +25,8 @@ class TopicWord implements ITopicWord {
 }
 
 class Topic implements ITopic {
+  static readonly SOLR_FL: (keyof ISolrTopic)[] = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s']
+
   uid: string
   language: string
   community?: number | undefined
@@ -163,6 +165,6 @@ interface ISuggestion {
   payload: string
 }
 
-export const SOLR_FL: (keyof ISolrTopic)[] = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s']
+export const SOLR_FL = Topic.SOLR_FL
 
 export default Topic

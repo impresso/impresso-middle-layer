@@ -56,8 +56,8 @@ export class Service {
         highlight_by: 'topic_suggest',
         order_by: params.query.order_by,
         namespace: 'topics',
-        limit: 300,
-        offset: 0,
+        limit: params.query.limit,
+        offset: params.query.offset,
       }
       // const solrSuggestResponse = await measureTime(
       //   () => this.app.get('solrClient').findAll(request),
@@ -140,8 +140,8 @@ export class Service {
           type: 'terms',
           field: 'topics_dpfs',
           mincount: 1,
-          limit: 300,
-          offset: 0,
+          limit: params.query.limit,
+          offset: params.query.offset,
           numBuckets: true,
         },
       }),

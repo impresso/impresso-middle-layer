@@ -8,6 +8,7 @@ import { transformResponse, transformResponseDataItem } from '../../hooks/transf
 import { transformTopic } from '../../transformers/topic'
 import { ImpressoApplication } from '../../types'
 import { eachFilterValidator } from '../search/search.validators'
+import { transformBaseFind } from '../../transformers/base'
 
 export default {
   around: {
@@ -40,7 +41,7 @@ export default {
   },
 
   after: {
-    find: [...inPublicApi([transformResponseDataItem(transformTopic)])],
+    find: [...inPublicApi([transformResponse(transformBaseFind), transformResponseDataItem(transformTopic)])],
     get: [...inPublicApi([transformResponse(transformTopic)])],
   },
 } as HookOptions<ImpressoApplication, any>
