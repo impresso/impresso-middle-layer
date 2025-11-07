@@ -33,6 +33,7 @@
     "lint-api-spec": "spectral lint http://localhost:3030/swagger.json ",
     "start": "node dist/",
     "dev": "nodemon --exec 'node --env-file=.env' --enable-source-maps --inspect dist/ --ignore 'data/*' --env-file ./.env",
+    "bun-run": "bun run --watch src/index.ts",
     "cli": "node src/admin/cli.js",
     "generate-types": "node src/scripts/generate-types.js"
   },
