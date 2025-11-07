@@ -39,7 +39,7 @@ import { Collection, Topic } from '../../models/generated/schemas'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
-import { allContentFields, plainFieldAsJson } from '../../util/solr'
+import { allContentFields, plainFieldAsJson, ScoreField } from '../../util/solr'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { base64BytesToBigInt } from '../../util/bigint'
 import { QueueService } from '../../internalServices/queue'
@@ -335,7 +335,7 @@ export class ContentItemService implements IContentItemService {
   }
 
   async _find(params: FindOptions): Promise<FindResponse<ContentItem>> {
-    const fields = FindMethodFields
+    const fields = [...FindMethodFields, ScoreField]
 
     // With embeddings search we cannot do highlighting: Solr returns an error.
     const hasEmbeddingFilter = params?.query?.filters?.find(f => f.type === 'embedding') != null

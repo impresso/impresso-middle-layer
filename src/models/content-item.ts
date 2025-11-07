@@ -26,7 +26,7 @@ import { setDifference } from '../util/fn'
 import { getNameFromUid } from '../utils/entity.utils'
 import { IFragmentsAndHighlights } from './articles.model'
 import { getContentItemMatches } from '../services/search/search.extractors'
-import { parsePlainsField } from '../util/solr'
+import { parsePlainsField, WithScore } from '../util/solr'
 import { vectorToCanonicalEmbedding } from '../services/impresso-embedder/impresso-embedder.class'
 
 const ContentItemCoreFields = [
@@ -313,7 +313,7 @@ const buildAudioFileUrl = (recordId: string, partnerId: string): string => {
   return `https://dev.impresso-project.ch/media/audio/${partnerId}/${idPrefix}/${recordId}.mp3`
 }
 
-export const toContentItem = (doc: AllDocumentFields): ContentItem => {
+export const toContentItem = (doc: WithScore<AllDocumentFields>): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
 
@@ -333,6 +333,7 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
   return {
     id: doc.id,
     issueId: doc.meta_issue_id_s,
+    ...(doc.score != undefined ? { relevanceScore: doc.score } : {}),
     meta: {
       sourceType: doc.meta_source_type_s,
       date: doc.meta_date_dt,

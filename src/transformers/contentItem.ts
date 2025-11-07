@@ -66,6 +66,7 @@ export const transformContentItem = (input: ContentItemPrivate): ContentItemPubl
 
   return {
     uid: input.id,
+    ...(input.relevanceScore != null ? { relevanceScore: input.relevanceScore } : {}),
     copyrightStatus: input.access?.copyright,
     type: toType(input.text?.itemType),
     sourceMedium: input.meta?.sourceMedium,
