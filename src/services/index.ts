@@ -68,7 +68,6 @@ const internalApiServices = [
   'user-requests',
   'user-requests-reviews',
   'newspapers',
-  'data-providers',
   'feedback-collector',
   'datalab-support',
 ]
