@@ -162,7 +162,7 @@ export class TextReuseClusters {
       .select(SolrNamespaces.TextReusePassages, {
         body: {
           query: fullQuery,
-          filter: (filterQueryParts as string[])?.concat(query.fl != null ? [query.fl] : []),
+          filter: filterQueryParts as string[],
           limit: query.rows,
           offset: query.start,
           sort: query.sort,

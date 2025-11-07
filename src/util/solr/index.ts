@@ -8,6 +8,19 @@ import { SelectRequestBody } from '../../internalServices/simpleSolr'
 import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
 
 /**
+ * Type representing the `score` field in Solr documents.
+ * This field is typically used to represent the relevance score of a document.
+ */
+export const ScoreField = 'score'
+
+/**
+ * Type representing an object of type T with an additional `score` field.
+ */
+export type WithScore<T> = T & {
+  score?: number
+}
+
+/**
  * Fields names that should not be wrapped into `filter(...)` when
  * used in `q` Solr parameter.
  *

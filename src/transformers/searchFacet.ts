@@ -46,7 +46,7 @@ const transformBucket = (
       return {
         count: input.count,
         value: String(input.val),
-        label: topicItem.words.map(({ w, p }) => `${w} (${p})`).join(', '),
+        label: topicItem?.words?.map(({ w, p }) => `${w} (${p})`).join(', '),
       }
     case 'collection':
       const collectionItem = (input as any)?.item as Collection

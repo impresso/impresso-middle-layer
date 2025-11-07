@@ -80,3 +80,42 @@ export interface Image {
   openclip_emb_v768?: number[];
   _version_?: number;
 }
+
+
+/**
+ * Topic model in Solr
+ */
+export interface Topic {
+  /**
+   * Unique identifier for the topic.
+   */
+  id: string;
+  /**
+   * Language code (ISO lowercase)
+   */
+  lg_s: string;
+  /**
+   * Topic model identifier
+   */
+  tp_model_s: string;
+  /**
+   * Topic number (integer field)
+   */
+  tp_nb_i: number;
+  /**
+   * Word probabilities in DPFS format (space-separated pairs of 'word|probability')
+   */
+  word_probs_dpf: string;
+  /**
+   * Field for topic suggestions
+   */
+  topic_suggest?: string;
+  /**
+   * Optional topic description
+   */
+  tp_desc_s?: string;
+  /**
+   * Optional topic metadata
+   */
+  tp_meta_s?: string;
+}

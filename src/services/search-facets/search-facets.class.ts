@@ -458,13 +458,14 @@ export class Service {
 
     const contentItemIdField = ContentItemIdFieldInNamespace[contentItemNamespace]
 
+    const isEmpty = (str: string) => str == null || str.trim() === ''
     // original query goes into the join filter which links the actual index with collection_items
     const filtersPart = Array.isArray(sanitizedParams.sfq)
       ? sanitizedParams.sfq?.map(f => `filter(${f})`).join(' AND ')
       : sanitizedParams.sfq != null
         ? `filter(${sanitizedParams.sfq})`
         : '*:*'
-    const joinFilter = `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq} AND ${filtersPart}`
+    const joinFilter = `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq}${isEmpty(filtersPart) ? '' : ` AND ${filtersPart}`}`
 
     const collectionsQuery = userId
       ? `col_id_s:${userId}_* OR vis_s:pub` // user collections + public collections

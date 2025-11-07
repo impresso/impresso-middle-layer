@@ -20,6 +20,8 @@ const publicApiServices = [
   'impresso-ner',
   'impresso-embedder',
   'media-sources',
+  'data-providers',
+  'topics',
   'images',
   'experiments',
 ]
@@ -31,7 +33,6 @@ const internalApiServices = [
   'suggestions',
   'pages',
   'search-exporter',
-  'topics',
   'init',
   'pages-timelines',
   'issues-timelines',

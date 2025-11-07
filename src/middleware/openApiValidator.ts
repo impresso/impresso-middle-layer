@@ -155,7 +155,7 @@ const dereferenceSpec = async (spec: OpenAPIV3.DocumentV3) => {
          */
         read: async (file: FileInfo) => {
           const cwd = process.cwd()
-          const filePath = file.url.replace(cwd, `${cwd}/dist`)
+          const filePath = file.url.replace(cwd, `${cwd}/src`)
           const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
           return await convertSchema(content)
         },

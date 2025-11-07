@@ -12,6 +12,11 @@
       "type": "string",
       "description": "Unique issue identifier"
     },
+    "relevanceScore": {
+      "type": "number",
+      "description": "Relevance score for this content item relative to the search query",
+      "minimum": 0
+    },
     "meta": {
       "$ref": "./ContentItemMeta.json"
     },

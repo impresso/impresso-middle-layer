@@ -74,6 +74,7 @@ interface ResponseHeaders {
 export interface ResponseContainer<T> {
   numFound: number
   start: number
+  maxScore?: number
   docs: T[]
 }
 

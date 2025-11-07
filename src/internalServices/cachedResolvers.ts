@@ -82,6 +82,7 @@ const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
     const deserialisedTopics: ITopic[] = JSON.parse(result ?? '[]')
 
     const topic = deserialisedTopics.find(t => t.uid === id)
+    if (!topic) return undefined
     return new Topic(topic as unknown as any) as any as ITopic
   }
 }

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "Topic",
-  "description": "A topic (TODO)",
+  "description": "A topic",
   "additionalProperties": false,
   "required": ["uid", "language"],
   "properties": {
@@ -69,20 +69,16 @@
       "additionalProperties": false,
       "properties": {
         "MinArticlesIncommon": {
-          "type": "number",
-          "description": "TODO"
+          "type": "number"
         },
         "MaxRelatedTopicsToKeep": {
-          "type": "number",
-          "description": "TODO"
+          "type": "number"
         },
         "RelatedThreshold": {
-          "type": "number",
-          "description": "TODO"
+          "type": "number"
         },
         "Threshold": {
-          "type": "number",
-          "description": "TODO"
+          "type": "number"
         }
       }
     },
@@ -92,8 +88,7 @@
     },
     "excerpt": {
       "type": "array",
-      "items": { "$ref": "./TopicWord.json" },
-      "description": "TODO"
+      "items": { "$ref": "./TopicWord.json" }
     },
     "words": {
       "type": "array",
@@ -103,6 +98,11 @@
     "model": {
       "type": "string",
       "description": "ID of the model used to generate the topic"
+    },
+    "matches": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of matched topic suggestions (if any)"
     }
   }
 }

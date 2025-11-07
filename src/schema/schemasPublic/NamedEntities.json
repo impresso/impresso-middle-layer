@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "A collection of linked named entities (location, person, etc.) present in text.",
+  "type": "object",
+  "title": "Content Item Named Entities Information",
+  "additionalProperties": false,
+  "properties": {
+    "locations": {
+      "type": "array",
+      "description": "Linked location entities mentioned in the content item.",
+      "items": {
+        "$ref": "./NamedEntity.json"
+      }
+    },
+    "persons": {
+      "type": "array",
+      "description": "Linked person entities mentioned in the content item.",
+      "items": {
+        "$ref": "./NamedEntity.json"
+      }
+    },
+    "organisations": {
+      "type": "array",
+      "description": "Linked organisation entities mentioned in the content item.",
+      "items": {
+        "$ref": "./NamedEntity.json"
+      }
+    },
+    "newsAgencies": {
+      "type": "array",
+      "description": "Linked news agency entities mentioned in the content item.",
+      "items": {
+        "$ref": "./NamedEntity.json"
+      }
+    }
+  }
+}

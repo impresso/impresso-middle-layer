@@ -39,7 +39,7 @@ import { Collection, Topic } from '../../models/generated/schemas'
 import { WellKnownKeys } from '../../cache'
 import { getContentItemMatches } from '../search/search.extractors'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
-import { allContentFields, plainFieldAsJson } from '../../util/solr'
+import { allContentFields, plainFieldAsJson, ScoreField } from '../../util/solr'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
 import { base64BytesToBigInt } from '../../util/bigint'
 import { QueueService } from '../../internalServices/queue'
@@ -250,9 +250,9 @@ const withCollections = (contentItems: ContentItem[], collectionsLookup: Diction
   })
 }
 
-export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights) => {
+export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights, maxScore?: number) => {
   return (doc: AllDocumentFields): ContentItem => {
-    const contentItem = toContentItem(doc)
+    const contentItem = toContentItem(doc, { maxScore })
     const matches = getContentItemMatches(contentItem, doc.pp_plain, fragmentsAndHighlights)
 
     return {
@@ -335,7 +335,7 @@ export class ContentItemService implements IContentItemService {
   }
 
   async _find(params: FindOptions): Promise<FindResponse<ContentItem>> {
-    const fields = FindMethodFields
+    const fields = [...FindMethodFields, ScoreField]
 
     // With embeddings search we cannot do highlighting: Solr returns an error.
     const hasEmbeddingFilter = params?.query?.filters?.find(f => f.type === 'embedding') != null
@@ -364,7 +364,9 @@ export class ContentItemService implements IContentItemService {
       body: requestBody,
     })
 
-    const contentItems = (results.response?.docs?.map(toContentItem) ?? []).map(item => withMatches(item, results))
+    const contentItems = (
+      results.response?.docs?.map(d => toContentItem(d, { maxScore: results.response?.maxScore })) ?? []
+    ).map(item => withMatches(item, results))
 
     // get data enrichment items
     const topicIds = contentItems.flatMap(d => d.semanticEnrichments?.topics?.map(t => t.id) ?? [])
@@ -494,7 +496,7 @@ export class ContentItemService implements IContentItemService {
     ])
 
     const contentItem = (result.response?.docs?.map(
-      toContentItemWithMatches(result.response as IFragmentsAndHighlights)
+      toContentItemWithMatches(result.response as IFragmentsAndHighlights, result?.response?.maxScore)
     ) ?? [])?.[0]
 
     if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)

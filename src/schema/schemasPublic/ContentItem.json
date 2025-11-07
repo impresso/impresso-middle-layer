@@ -32,33 +32,11 @@
       "type": "string",
       "description": "Transcript of the content item."
     },
-    "locationEntities": {
-      "type": "array",
-      "description": "Linked location entities mentioned in the content item.",
-      "items": {
-        "$ref": "./NamedEntity.json"
-      }
+    "entities": {
+      "$ref": "./NamedEntities.json"
     },
-    "personEntities": {
-      "type": "array",
-      "description": "Linked person entities mentioned in the content item.",
-      "items": {
-        "$ref": "./NamedEntity.json"
-      }
-    },
-    "organisationEntities": {
-      "type": "array",
-      "description": "Linked organisation entities mentioned in the content item.",
-      "items": {
-        "$ref": "./NamedEntity.json"
-      }
-    },
-    "newsAgenciesEntities": {
-      "type": "array",
-      "description": "Linked news agency entities mentioned in the content item.",
-      "items": {
-        "$ref": "./NamedEntity.json"
-      }
+    "mentions": {
+      "$ref": "./EntityMentions.json"
     },
     "topics": {
       "type": "array",
@@ -117,6 +95,37 @@
       "type": "string",
       "description": "The type of the media the content item belongs to.",
       "enum": ["newspaper", "radio_broadcast", "radio_magazine", "radio_schedule", "monograph", "encyclopedia"]
+    },
+    "hasOLR": {
+      "type": "boolean",
+      "description": "Whether the content item has OCR/OLR data available."
+    },
+    "ocrQualityScore": {
+      "type": "number",
+      "description": "OCR quality score of the content item (0 - 1).",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "relevanceScore": {
+      "type": "number",
+      "description": "Relevance score of the content item (0 - 1).",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "pageNumbers": {
+      "type": "array",
+      "description": "Page numbers the content item appears on.",
+      "items": {
+        "type": "number",
+        "minimum": 1
+      }
+    },
+    "collectionUids": {
+      "type": "array",
+      "description": "Unique identifiers of collections the content item belongs to.",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": ["uid"]
