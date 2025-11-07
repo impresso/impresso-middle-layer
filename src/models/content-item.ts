@@ -313,7 +313,16 @@ const buildAudioFileUrl = (recordId: string, partnerId: string): string => {
   return `https://dev.impresso-project.ch/media/audio/${partnerId}/${idPrefix}/${recordId}.mp3`
 }
 
-export const toContentItem = (doc: WithScore<AllDocumentFields>): ContentItem => {
+/**
+ * Converts a Solr document to a ContentItem.
+ * @param doc The Solr document to convert.
+ * @param opts An optional parameter with optional `maxScore` that should be used as score denominator.
+ * @returns The converted ContentItem.
+ */
+export const toContentItem = (
+  doc: WithScore<AllDocumentFields>,
+  { maxScore }: { maxScore?: number } = {}
+): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
 
@@ -333,7 +342,7 @@ export const toContentItem = (doc: WithScore<AllDocumentFields>): ContentItem =>
   return {
     id: doc.id,
     issueId: doc.meta_issue_id_s,
-    ...(doc.score != undefined ? { relevanceScore: doc.score } : {}),
+    ...(doc.score != undefined ? { relevanceScore: doc.score / (maxScore ?? 1) } : {}),
     meta: {
       sourceType: doc.meta_source_type_s,
       date: doc.meta_date_dt,

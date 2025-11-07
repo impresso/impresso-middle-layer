@@ -250,9 +250,9 @@ const withCollections = (contentItems: ContentItem[], collectionsLookup: Diction
   })
 }
 
-export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights) => {
+export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights, maxScore?: number) => {
   return (doc: AllDocumentFields): ContentItem => {
-    const contentItem = toContentItem(doc)
+    const contentItem = toContentItem(doc, { maxScore })
     const matches = getContentItemMatches(contentItem, doc.pp_plain, fragmentsAndHighlights)
 
     return {
@@ -494,7 +494,7 @@ export class ContentItemService implements IContentItemService {
     ])
 
     const contentItem = (result.response?.docs?.map(
-      toContentItemWithMatches(result.response as IFragmentsAndHighlights)
+      toContentItemWithMatches(result.response as IFragmentsAndHighlights, result?.response?.maxScore)
     ) ?? [])?.[0]
 
     if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)
