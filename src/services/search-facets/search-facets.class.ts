@@ -465,7 +465,7 @@ export class Service {
       : sanitizedParams.sfq != null
         ? `filter(${sanitizedParams.sfq})`
         : '*:*'
-    const joinFilter = `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq}${isEmpty(filtersPart) ? '' : `AND ${filtersPart}`}`
+    const joinFilter = `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq}${isEmpty(filtersPart) ? '' : ` AND ${filtersPart}`}`
 
     const collectionsQuery = userId
       ? `col_id_s:${userId}_* OR vis_s:pub` // user collections + public collections

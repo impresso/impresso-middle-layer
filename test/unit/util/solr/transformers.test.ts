@@ -138,6 +138,13 @@ describe('parseDPFS', () => {
       { id: 'another entity', count: 10.09 },
     ])
   })
+
+  it('parses topic dpfs', () => {
+    const builder = (pair: [string, string]) => ({ id: pair[0], count: parseFloat(pair[1]) })
+    const dpfs = ['tm-de-all-v2.0_tp23_de|15']
+    const result = parseDPFS(builder, dpfs)
+    assert.deepEqual(result, [{ id: 'tm-de-all-v2.0_tp23_de', count: 15 }])
+  })
 })
 
 describe('asList', () => {

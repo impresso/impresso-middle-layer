@@ -15,6 +15,16 @@
       }
     },
     {
+      "name": "Bun run: Internal API",
+      "type": "bun",
+      "request": "launch",
+      "runtimeArgs": ["--inspect=9229", "--watch"],
+      "program": "${workspaceFolder}/src/index.ts",
+      "args": [
+        "--env-file=.env"
+      ]
+    },
+    {
       "name": "Nodemon: Start",
       "type": "node",
       "request": "launch",
