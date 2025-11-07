@@ -9,6 +9,10 @@
       "type": "string",
       "description": "The unique identifier of the data provider."
     },
+    "name": {
+      "type": "string",
+      "description": "The default name of the data provider."
+    },
     "names": {
       "type": "array",
       "description": "Names of the data provider in different languages.",
@@ -29,5 +33,5 @@
       }
     }
   },
-  "required": ["id", "names"]
+  "required": ["id", "name", "names"]
 }

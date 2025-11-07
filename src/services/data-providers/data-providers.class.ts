@@ -63,6 +63,7 @@ export class DataProviders
 
       this.dataProviders = rawData.map(entry => ({
         id: entry.partner_institution_id,
+        name: entry.partner_institution_names?.[0]?.name ?? '',
         names: entry.partner_institution_names.map(nameEntry => ({
           langCode: nameEntry.lang,
           name: nameEntry.name,

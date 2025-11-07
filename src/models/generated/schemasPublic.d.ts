@@ -260,6 +260,10 @@ export interface DataProvider {
    */
   id: string;
   /**
+   * The default name of the data provider.
+   */
+  name: string;
+  /**
    * Names of the data provider in different languages.
    */
   names: {
