@@ -10,7 +10,7 @@ import { Image, MediaSource } from '../../models/generated/schemas'
 import { Image as ImageDocument } from '../../models/generated/solr'
 import { SolrNamespaces } from '../../solr'
 import { ImpressoApplication } from '../../types'
-import { sanitizeIiifImageUrl } from '../../util/iiif'
+import { getV3CompatibleIIIFUrl, sanitizeIiifImageUrl } from '../../util/iiif'
 import { isTrue } from '../../util/queryParameters'
 import { filtersToQueryAndVariables } from '../../util/solr'
 import { vectorToCanonicalEmbedding } from '../impresso-embedder/impresso-embedder.class'
@@ -220,7 +220,7 @@ const toImage = (
     uid: doc.id!,
     ...(doc.linked_ci_s != null ? { contentItemUid: doc.linked_ci_s } : {}),
     issueUid: doc.meta_issue_id_s!,
-    previewUrl: sanitizeIiifImageUrl(doc.iiif_link_s! ?? doc.iiif_url_s!, rewriteRules),
+    previewUrl: getV3CompatibleIIIFUrl(sanitizeIiifImageUrl(doc.iiif_link_s! ?? doc.iiif_url_s!, rewriteRules))!,
     date: doc.meta_date_dt!,
     ...(doc.caption_txt != null ? { caption: doc.caption_txt.join('\n') } : {}),
     ...(doc.page_nb_is != null ? { pageNumbers: doc.page_nb_is } : {}),
