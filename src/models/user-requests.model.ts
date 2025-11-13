@@ -176,7 +176,7 @@ export default class UserRequest {
         },
       },
       {
-        tableName: 'impresso_userrequest',
+        tableName: 'impresso_userspecialmembershiprequest',
       }
     )
     userRequest.belongsTo(SubscriptionDataset.sequelize(client), {

@@ -50,7 +50,7 @@ export default class UserBitmap {
         },
         subscriptionDatasetId: {
           type: DataTypes.INTEGER,
-          field: 'datasetbitmapposition_id',
+          field: 'specialmembershipdataset_id',
         },
       },
       {
