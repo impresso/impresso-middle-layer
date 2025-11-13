@@ -4,10 +4,9 @@ import User from '../../models/users.model'
 import { Params } from '@feathersjs/feathers'
 import { Filter } from 'impresso-jscommons'
 import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters } from './util'
-import { IHuman, ILocation, resolve as resolveWikidata } from '../wikidata'
+import { EntityId, resolve as resolveWikidata } from '../wikidata'
 import { SimpleSolrClient } from '../../internalServices/simpleSolr'
 import { SolrNamespaces } from '../../solr'
-import { logger } from '../../logger'
 import Entity, { IEntitySolrHighlighting, suggestField } from '../../models/entities.model'
 
 /* eslint-disable no-unused-vars */
@@ -182,39 +181,21 @@ class Service {
     }
 
     // get wikidata ids
-    const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value()
+    const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value() as EntityId[]
 
     debug('[find] wikidata loading:', wkdIds.length)
-    const resolvedEntities: Record<string, IHuman | ILocation> = {}
+    const resolvedEntities = await resolveWikidata({
+      ids: wkdIds,
+      cache: this.app.service('redisClient').client,
+    })
 
-    return Promise.all(
-      wkdIds.map((wkdId: string) =>
-        measureTime(
-          () =>
-            resolveWikidata({
-              ids: [wkdId],
-              cache: this.app.service('redisClient').client,
-            }).then(resolved => {
-              resolvedEntities[wkdId] = resolved[wkdId]
-            }),
-          'entities.find.wikidata.get'
-        )
-      )
-    )
-      .then(res => {
-        debug('[find] wikidata success!')
-        result.data = result?.data?.map((d: any) => {
-          if (d.wikidataId) {
-            d.wikidata = resolvedEntities[d.wikidataId]
-          }
-          return d
-        })
-        return result
-      })
-      .catch(err => {
-        logger.error(err)
-        return result
-      })
+    result.data = result?.data?.map((d: any) => {
+      if (d.wikidataId) {
+        d.wikidata = resolvedEntities[d.wikidataId]
+      }
+      return d
+    })
+    return result
   }
 
   async get(id: string, params: any) {

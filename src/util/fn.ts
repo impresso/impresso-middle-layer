@@ -72,3 +72,39 @@ export const mapRecordValues = <K extends string | number | symbol, V, R>(
 export const invertRecord = <T extends string>(original: Record<string, T>): Record<T, string> => {
   return Object.fromEntries(Object.entries(original).map(([key, value]) => [value, key])) as Record<T, string>
 }
+
+/**
+ * Executes async functions in parallel with a concurrency limit.
+ * @param inputs Array of inputs to process
+ * @param asyncFn Async function that processes each input
+ * @param concurrencyLimit Maximum number of parallel executions (default: 1)
+ * @returns Promise resolving to array of results in original order
+ */
+export async function parallelLimit<T, R>(
+  inputs: T[],
+  asyncFn: (input: T) => Promise<R>,
+  concurrencyLimit: number = 1
+): Promise<R[]> {
+  if (concurrencyLimit < 1) {
+    throw new Error('concurrencyLimit must be at least 1')
+  }
+
+  const results: R[] = new Array(inputs.length)
+  const executing: Promise<void>[] = []
+
+  for (let index = 0; index < inputs.length; index++) {
+    const promise = Promise.resolve().then(async () => {
+      results[index] = await asyncFn(inputs[index])
+    })
+
+    executing.push(promise)
+
+    if (executing.length >= concurrencyLimit) {
+      await Promise.race(executing)
+      executing.splice(executing.findIndex(p => p === promise || p === promise.then()), 1)
+    }
+  }
+
+  await Promise.all(executing)
+  return results
+}
