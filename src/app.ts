@@ -20,6 +20,7 @@ import redis, { init as initRedis } from './redis'
 import sequelize from './sequelize'
 import services from './services'
 import rateLimiter from './services/internal/rateLimiter/redis'
+import quotaChecker from './services/internal/quotaChecker/redis'
 import media from './services/media'
 import { init as imageProxy } from './middleware/imageProxy'
 import schemas from './services/schemas'
@@ -40,6 +41,7 @@ app.configure(configuration)
 app.configure(sequelize)
 app.configure(redis)
 app.configure(rateLimiter)
+app.configure(quotaChecker)
 app.configure(cache)
 app.configure(simpleSolrClient)
 

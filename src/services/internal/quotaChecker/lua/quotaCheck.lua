@@ -41,19 +41,19 @@ local fp_rate = 0.0001
 -- Helper function to initialize a new quota window
 local function init_quota_window(start_time)
     redis.call('SET', first_access_key, start_time)
-    redis.call('EXPIRE', first_access_key, window_seconds)
+    redis.call('EXPIRE', first_access_key, math.ceil(window_seconds))
     
     -- Create bloom filter with predefined error rate and capacity for quota_limit items
     redis.call('DEL', bloom_key)  -- Clean up old bloom filter before recreating
     redis.call('BF.RESERVE', bloom_key, fp_rate, quota_limit)
-    redis.call('EXPIRE', bloom_key, window_seconds)
+    redis.call('EXPIRE', bloom_key, math.ceil(window_seconds))
     
     -- Add the first document to the bloom filter and initialize counter
     redis.call('BF.ADD', bloom_key, doc_id)
     redis.call('SET', count_key, 1)
-    redis.call('EXPIRE', count_key, window_seconds)
+    redis.call('EXPIRE', count_key, math.ceil(window_seconds))
     
-    return {1, 1, 1, start_time, window_seconds}  -- allowed, count=1, is_new=1, window_start, seconds_until_reset
+    return {1, 1, 1, start_time, window_seconds}  -- allowed, count=1, was_counted=1, window_start, seconds_until_reset
 end
 
 -- Check if this is the user's first access ever, or if the window has expired (key was deleted by TTL)
@@ -86,7 +86,7 @@ if exists == 1 then
     -- Allow access without incrementing counter (even if at quota)
     -- Note: FP rate means some truly new docs will be treated as "seen" (rate depends on fp_rate setting)
     return {1, count, 0, first_access_timestamp, remaining_window}  
-    -- allowed=1, count, is_new=0, window_start, seconds_until_reset
+    -- allowed=1, count, was_counted=0, window_start, seconds_until_reset
 end
 
 ----------------------------------------------------------------------
@@ -95,9 +95,9 @@ end
 ----------------------------------------------------------------------
 
 -- User has reached quota limit - deny access to this new document
-if count >= quota_limit then
+if at_quota then
     return {0, count, 0, first_access_timestamp, remaining_window}  
-    -- allowed=0 (denied), count, is_new=0 (not added), window_start, seconds_until_reset
+    -- allowed=0 (denied), count, was_counted=0, window_start, seconds_until_reset
 end
 
 -- User is under quota - allow access and track this new document
@@ -110,8 +110,8 @@ local new_count = redis.call('INCR', count_key)
 -- Ensure counter has TTL set (defensive: should already have TTL from initialization)
 local ttl = redis.call('TTL', count_key)
 if ttl == -1 then  -- -1 means no expiration set
-    redis.call('EXPIRE', count_key, remaining_window)
+    redis.call('EXPIRE', count_key, math.ceil(remaining_window))
 end
 
 return {1, new_count, 1, first_access_timestamp, remaining_window}  
--- allowed=1, new_count, is_new=1 (was added), window_start, seconds_until_reset
+-- allowed=1, new_count, was_counted=1, window_start, seconds_until_reset

@@ -26,6 +26,7 @@ export interface Config {
   allowedCorsOrigins?: string[];
   redis?: RedisConfig;
   rateLimiter?: RateLimiterConfig;
+  quotaChecker?: QuotaCheckerConfig;
   /**
    * Prefix for the public API
    */
@@ -92,6 +93,23 @@ export interface RateLimiterConfig {
    * Refill rate of the rate limiter
    */
   refillRate: number;
+}
+/**
+ * Quota checker configuration
+ */
+export interface QuotaCheckerConfig {
+  /**
+   * Enable quota checker
+   */
+  enabled?: boolean;
+  /**
+   * Maximum unique documents per user
+   */
+  quotaLimit: number;
+  /**
+   * Time window for quota in days
+   */
+  windowDays: number;
 }
 /**
  * Sequelize configuration
