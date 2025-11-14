@@ -4,10 +4,28 @@
  */
 
 import Debug from 'debug'
-import axios from 'axios'
-import wdk from 'wikidata-sdk'
 import lodash from 'lodash'
+import type { Entities, Entity, EntityId } from 'wikibase-sdk' with { 'resolution-mode': 'import' }
+// import { WBK } from 'wikibase-sdk'
 import { RedisClient } from '../redis'
+import { createFetchClient } from '../utils/http/client'
+import type { IFetchClient } from '../utils/http/client/base'
+import { WikidataEntityDetails } from '@/models/generated/schemas'
+import { parallelLimit } from '../util/fn'
+
+export type ICache = Pick<RedisClient, 'get' | 'set'>
+
+export type { EntityId }
+
+const importWBK = async () => {
+  const { WBK } = await import('wikibase-sdk')
+
+  const wbk = WBK({
+    instance: 'https://www.wikidata.org',
+    sparqlEndpoint: 'https://query.wikidata.org/sparql',
+  })
+  return wbk
+}
 
 const debug = Debug('impresso/services:wikidata')
 
@@ -18,24 +36,14 @@ const PLACE_COUNTRY = 'P17'
 const PLACE_COORDINATES = 'P625'
 // const PLACE_ADMIN_AREA = 'P131';
 
-interface INamedEntityImage {
-  value: string
-  rank: string
-  datatype: string
-}
+type INamedEntityImage = WikidataEntityDetails['images'][0]
 
 /**
  * E.g.: {"en": "House", "fr": "Maison", "de": "Haus"}
  */
-type LangLables = Record<string, string>
+type LangLables = { [k: string]: string }
 
-interface INamedEntity {
-  id: string
-  type: string
-  labels: LangLables
-  descriptions: LangLables
-  images: INamedEntityImage[]
-}
+type INamedEntity = WikidataEntityDetails
 
 interface IClaims {
   P18?: any[]
@@ -54,7 +62,7 @@ class NamedEntity implements INamedEntity {
   type: string
   labels: LangLables
   descriptions: LangLables
-  _pendings: Record<string, string[]>
+  _pendings: Record<string, (keyof this)[]>
   images: INamedEntityImage[]
 
   constructor({ id = '', type = '', labels = {}, descriptions = {}, claims = {} }: Partial<INamedEntityOptions> = {}) {
@@ -75,7 +83,7 @@ class NamedEntity implements INamedEntity {
     }
   }
 
-  addPending(property: any, id: any) {
+  addPending<K extends keyof this>(property: K, id: string) {
     if (!this._pendings[id]) {
       this._pendings[id] = []
     }
@@ -86,13 +94,13 @@ class NamedEntity implements INamedEntity {
     return Object.keys(this._pendings)
   }
 
-  resolvePendings(entities: any) {
+  resolvePendings(entities: Record<string, Entity>) {
     // console.log('RESOLVE', entities, this.getPendings());
     debug(`resolvePendings for ${this.id}`)
     this.getPendings().forEach(id => {
       if (entities[id]) {
         this._pendings[id].forEach(property => {
-          ;(this as unknown as any)[property] = entities[id]
+          this[property] = entities[id] as this[typeof property]
         })
       }
     })
@@ -229,98 +237,133 @@ const getNamedEntityClass = (entity: { claims: any }) => {
  * @param  {NamedEntity} entity [description]
  * @return {any}        [description]
  */
-const createEntity = (entity: any) => {
+const createEntity = (entity: any, wbk: any) => {
   // parse with wikidata sdk
-  const simplified = wdk.simplify.entity(entity)
+  const simplified = wbk.simplify.entity(entity)
   const Klass = getNamedEntityClass(entity)
   // should be done with Proxy objects indeed
   return new Klass({
-    ...simplified,
+    id: simplified.id,
+    type: simplified.type,
+    descriptions: simplified.descriptions ?? {},
+    labels: simplified.labels ?? {},
     claims: entity.claims,
   })
 }
 
 interface ResolveOptions {
-  ids?: string[]
+  ids?: EntityId[]
   languages?: string[]
   depth?: number
   maxDepth?: number
-  cache?: RedisClient | null
+  cache?: ICache
 }
 
-// const getCached()
+export const WikidataCacheKeyPrefix = 'cache:wikidata:'
+
+/**
+ * Resolves entities from cache or API, with per-ID caching.
+ * Looks up each entity ID in cache first. IDs not in cache are fetched from the API.
+ * All results (cached + fetched) are stored in cache by individual ID and returned.
+ * @param entityIds Array of entity IDs to resolve
+ * @param languages Languages to fetch labels and descriptions in
+ * @param cache Optional cache instance for storing individual entities
+ * @param fetchClient Optional fetch client (defaults to createFetchClient)
+ * @returns Promise resolving to all requested entities
+ */
+export const resolveWithCache = async (
+  entityIds: EntityId[],
+  languages: string[] = ['en', 'fr', 'de', 'it'],
+  cache?: ICache,
+  fetchClient?: IFetchClient
+): Promise<Entities> => {
+  const wbk = await importWBK()
+  const result: Entities = {}
+  const idsToFetch: EntityId[] = []
+
+  // Check cache for each ID in parallel
+  const cacheCheckResults = await parallelLimit(
+    entityIds,
+    async id => {
+      const cacheKey = `${WikidataCacheKeyPrefix}${id}`
+      if (cache) {
+        const cached = await cache.get(cacheKey)
+        if (cached) {
+          debug(`resolveWithCache: cache hit for ${id}`)
+          return { id, cached: JSON.parse(cached), found: true }
+        }
+      }
+      return { id, cached: null, found: false }
+    },
+    5 // concurrency limit of 5
+  )
+
+  // Process cache check results
+  for (const { id, cached, found } of cacheCheckResults) {
+    if (found) {
+      result[id] = cached
+    } else {
+      idsToFetch.push(id)
+    }
+  }
+
+  // Fetch missing IDs from API
+  if (idsToFetch.length > 0) {
+    debug(`resolveWithCache: fetching ${idsToFetch.length} entities from API`)
+    const url = wbk.getEntities({ ids: idsToFetch, languages })
+
+    const client = fetchClient || createFetchClient({})
+    const response = await client.fetch(url, {
+      headers: {
+        'User-Agent': 'Impresso/1.0 (https://impresso-project.ch/app)',
+      },
+    })
+
+    const data = await response.json()
+
+    // Store fetched entities in cache and result
+    for (const id of idsToFetch) {
+      if (data.entities[id]) {
+        const entityData = data.entities[id]
+        result[id] = entityData
+
+        if (cache) {
+          const cacheKey = `${WikidataCacheKeyPrefix}${id}`
+          await cache.set(cacheKey, JSON.stringify(entityData))
+          debug(`resolveWithCache: stored ${id} in cache`)
+        }
+      }
+    }
+  }
+
+  return result
+}
+
+type AnyNamedEntity = NamedEntity | Location | Human
 
 export const resolve = async ({
   ids = [],
   languages = ['en', 'fr', 'de', 'it'], // platform languages
-  depth = 0,
-  maxDepth = 1,
-  cache = null,
-}: ResolveOptions = {}): Promise<Record<string, IHuman | ILocation>> => {
-  // check wikidata in redis cache
-  let cached
-  const cacheKey = `wkd:${ids.join(',')}`
+  cache,
+}: ResolveOptions = {}): Promise<Record<string, AnyNamedEntity>> => {
+  const entities: Record<string, AnyNamedEntity> = {}
 
-  if (cache) {
-    cached = await cache.get(cacheKey)
-    if (cached) {
-      debug('cache found for cacheKey:', cacheKey)
-      return JSON.parse(cached)
-    }
-    debug('no cache found for cacheKey:', cacheKey)
-    // check cacheKey
-  }
-  // get wikidata api url for the given ids and the given languages
-  const url = wdk.getEntities(ids, languages as unknown as any)
-  debug(`resolve: url '${url}', depth: ${depth}`)
+  const fetchClient = createFetchClient({})
 
-  const result = await axios(url)
-    .then(res => {
-      if (res.status === 200) return res.data
-      throw new Error(res.statusText)
-    })
-    .then(res => {
-      const entities: Record<string, NamedEntity> = {}
-      let pendings: any[] = []
+  const firstLevelEntities = await resolveWithCache(ids ?? [], languages, cache, fetchClient)
 
-      Object.keys(res.entities).forEach(id => {
-        entities[id] = createEntity(res.entities[id])
-        pendings = pendings.concat(entities[id].getPendings())
-      })
+  const wbk = await importWBK()
+  Object.entries(firstLevelEntities).forEach(([id, entity]) => {
+    entities[id] = createEntity(entity, wbk)
+  })
+  const secondLevelIds = Object.values(entities)
+    .map(e => e.getPendings())
+    .reduce((acc, val) => acc.concat(val), []) as EntityId[]
 
-      return {
-        entities,
-        pendings,
-      }
-    })
+  const secondLevelEntities = await resolveWithCache(lodash.uniq(secondLevelIds), languages, cache, fetchClient)
+  Object.values(entities).forEach(e => {
+    e.resolvePendings(secondLevelEntities)
+  })
 
-  let index: Record<string, IHuman | ILocation> = {}
-
-  if (result.pendings.length && depth < maxDepth) {
-    // enrich current entities with resolved pendings
-    const resolvedPendings = await resolve({
-      ids: lodash.uniq(result.pendings),
-      depth: depth + 1,
-      maxDepth,
-      languages,
-      cache,
-    })
-    debug(`resolve: with ${Object.keys(resolvedPendings).length} pending entities`)
-
-    // console.log(resolvedPendings);
-    index = lodash.mapValues(result.entities, d => {
-      d.resolvePendings(resolvedPendings)
-      return d.toJSON()
-    }) as any as Record<string, IHuman | ILocation>
-  } else {
-    index = lodash.mapValues(result.entities, d => d.toJSON()) as any as Record<string, IHuman | ILocation>
-  }
-
-  if (cache) {
-    // save
-    debug('saving results in cache')
-    await cache.set(cacheKey, JSON.stringify(index))
-  }
-
-  return index
+  return entities
 }
