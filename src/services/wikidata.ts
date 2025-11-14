@@ -11,6 +11,7 @@ import { RedisClient } from '../redis'
 import { createFetchClient } from '../utils/http/client'
 import type { IFetchClient } from '../utils/http/client/base'
 import { WikidataEntityDetails } from '@/models/generated/schemas'
+import { parallelLimit } from '../util/fn'
 
 export type ICache = Pick<RedisClient, 'get' | 'set'>
 
@@ -280,18 +281,30 @@ export const resolveWithCache = async (
   const result: Entities = {}
   const idsToFetch: EntityId[] = []
 
-  // Check cache for each ID
-  for (const id of entityIds) {
-    const cacheKey = `${WikidataCacheKeyPrefix}${id}`
-    if (cache) {
-      const cached = await cache.get(cacheKey)
-      if (cached) {
-        debug(`resolveWithCache: cache hit for ${id}`)
-        result[id] = JSON.parse(cached)
-        continue
+  // Check cache for each ID in parallel
+  const cacheCheckResults = await parallelLimit(
+    entityIds,
+    async id => {
+      const cacheKey = `${WikidataCacheKeyPrefix}${id}`
+      if (cache) {
+        const cached = await cache.get(cacheKey)
+        if (cached) {
+          debug(`resolveWithCache: cache hit for ${id}`)
+          return { id, cached: JSON.parse(cached), found: true }
+        }
       }
+      return { id, cached: null, found: false }
+    },
+    5 // concurrency limit of 5
+  )
+
+  // Process cache check results
+  for (const { id, cached, found } of cacheCheckResults) {
+    if (found) {
+      result[id] = cached
+    } else {
+      idsToFetch.push(id)
     }
-    idsToFetch.push(id)
   }
 
   // Fetch missing IDs from API
