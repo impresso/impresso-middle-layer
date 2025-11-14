@@ -871,12 +871,12 @@ export interface EntityDetails {
    * ID of the entity in wikidata
    */
   wikidataId?: string;
-  wikidata?: WikidataEntityDetailsTODOAddPersonLocationSpecificFields;
+  wikidata?: WikidataEntityDetails;
 }
 /**
- * Details of a wikidata entity
+ * Details of a wikidata entity  (TODO: add person/location specific fields)
  */
-export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
+export interface WikidataEntityDetails {
   id: string;
   type: string;
   /**
@@ -897,7 +897,6 @@ export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
     datatype: string;
     [k: string]: unknown;
   }[];
-  [k: string]: unknown;
 }
 
 
@@ -3001,9 +3000,9 @@ export interface VersionDetails {
 
 
 /**
- * Details of a wikidata entity
+ * Details of a wikidata entity  (TODO: add person/location specific fields)
  */
-export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
+export interface WikidataEntityDetails {
   id: string;
   type: string;
   /**
@@ -3024,7 +3023,6 @@ export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
     datatype: string;
     [k: string]: unknown;
   }[];
-  [k: string]: unknown;
 }
 
 

@@ -5,16 +5,12 @@
 
 import Debug from 'debug'
 import lodash from 'lodash'
-import type {
-  Entities,
-  EntityId,
-  LanguageRecord,
-  SimplifiedTerm,
-} from 'wikibase-sdk' with { 'resolution-mode': 'import' }
+import type { Entities, Entity, EntityId } from 'wikibase-sdk' with { 'resolution-mode': 'import' }
 // import { WBK } from 'wikibase-sdk'
 import { RedisClient } from '../redis'
 import { createFetchClient } from '../utils/http/client'
 import type { IFetchClient } from '../utils/http/client/base'
+import { WikidataEntityDetails } from '@/models/generated/schemas'
 
 export type ICache = Pick<RedisClient, 'get' | 'set'>
 
@@ -39,24 +35,14 @@ const PLACE_COUNTRY = 'P17'
 const PLACE_COORDINATES = 'P625'
 // const PLACE_ADMIN_AREA = 'P131';
 
-interface INamedEntityImage {
-  value: string
-  rank: string
-  datatype: string
-}
+type INamedEntityImage = WikidataEntityDetails['images'][0]
 
 /**
  * E.g.: {"en": "House", "fr": "Maison", "de": "Haus"}
  */
-type LangLables = LanguageRecord<SimplifiedTerm>
+type LangLables = { [k: string]: string }
 
-export interface INamedEntity {
-  id: string
-  type: string
-  labels: LangLables
-  descriptions: LangLables
-  images: INamedEntityImage[]
-}
+type INamedEntity = WikidataEntityDetails
 
 interface IClaims {
   P18?: any[]
@@ -75,7 +61,7 @@ class NamedEntity implements INamedEntity {
   type: string
   labels: LangLables
   descriptions: LangLables
-  _pendings: Record<string, string[]>
+  _pendings: Record<string, (keyof this)[]>
   images: INamedEntityImage[]
 
   constructor({ id = '', type = '', labels = {}, descriptions = {}, claims = {} }: Partial<INamedEntityOptions> = {}) {
@@ -96,7 +82,7 @@ class NamedEntity implements INamedEntity {
     }
   }
 
-  addPending(property: any, id: any) {
+  addPending<K extends keyof this>(property: K, id: string) {
     if (!this._pendings[id]) {
       this._pendings[id] = []
     }
@@ -107,13 +93,13 @@ class NamedEntity implements INamedEntity {
     return Object.keys(this._pendings)
   }
 
-  resolvePendings(entities: any) {
+  resolvePendings(entities: Record<string, Entity>) {
     // console.log('RESOLVE', entities, this.getPendings());
     debug(`resolvePendings for ${this.id}`)
     this.getPendings().forEach(id => {
       if (entities[id]) {
         this._pendings[id].forEach(property => {
-          ;(this as unknown as any)[property] = entities[id]
+          this[property] = entities[id] as this[typeof property]
         })
       }
     })
@@ -340,12 +326,14 @@ export const resolveWithCache = async (
   return result
 }
 
+type AnyNamedEntity = NamedEntity | Location | Human
+
 export const resolve = async ({
   ids = [],
   languages = ['en', 'fr', 'de', 'it'], // platform languages
   cache,
-}: ResolveOptions = {}): Promise<Record<string, NamedEntity>> => {
-  const entities: Record<string, NamedEntity> = {}
+}: ResolveOptions = {}): Promise<Record<string, AnyNamedEntity>> => {
+  const entities: Record<string, AnyNamedEntity> = {}
 
   const fetchClient = createFetchClient({})
 

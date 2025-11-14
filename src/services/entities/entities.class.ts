@@ -191,7 +191,7 @@ class Service {
 
     result.data = result?.data?.map((d: any) => {
       if (d.wikidataId) {
-        d.wikidata = resolvedEntities[d.wikidataId]
+        d.wikidata = resolvedEntities[d.wikidataId]?.toJSON()
       }
       return d
     })
