@@ -42,6 +42,37 @@
         },
         "required": ["value", "rank", "datatype"]
       }
+    },
+    "coordinates": {
+      "type": "object",
+      "description": "Coordinates for a location entity.",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        }
+      },
+      "required": ["latitude", "longitude"]
+    },
+    "birthDate": {
+      "type": "string",
+      "description": "Birth date for a person entity.",
+      "format": "date-time"
+    },
+    "deathDate": {
+      "type": "string",
+      "description": "Death date for a person entity.",
+      "format": "date-time"
+    },
+    "birthPlace": {
+      "description": "Birth place entity ID for a person entity.",
+      "$ref": "../schemasPublic/WikidataLocation.json"
+    },
+    "deathPlace": {
+      "description": "Death place entity ID for a person entity.",
+      "$ref": "../schemasPublic/WikidataLocation.json"
     }
   },
   "required": ["id", "type", "labels", "descriptions", "images"]

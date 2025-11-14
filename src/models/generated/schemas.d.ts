@@ -897,6 +897,106 @@ export interface WikidataEntityDetails {
     datatype: string;
     [k: string]: unknown;
   }[];
+  /**
+   * Coordinates for a location entity.
+   */
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+    [k: string]: unknown;
+  };
+  /**
+   * Birth date for a person entity.
+   */
+  birthDate?: string;
+  /**
+   * Death date for a person entity.
+   */
+  deathDate?: string;
+  birthPlace?: WikidataLocation;
+  deathPlace?: WikidataLocation1;
+}
+/**
+ * Birth place entity ID for a person entity.
+ */
+export interface WikidataLocation {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
+}
+/**
+ * Death place entity ID for a person entity.
+ */
+export interface WikidataLocation1 {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
 }
 
 
@@ -3023,6 +3123,106 @@ export interface WikidataEntityDetails {
     datatype: string;
     [k: string]: unknown;
   }[];
+  /**
+   * Coordinates for a location entity.
+   */
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+    [k: string]: unknown;
+  };
+  /**
+   * Birth date for a person entity.
+   */
+  birthDate?: string;
+  /**
+   * Death date for a person entity.
+   */
+  deathDate?: string;
+  birthPlace?: WikidataLocation;
+  deathPlace?: WikidataLocation1;
+}
+/**
+ * Birth place entity ID for a person entity.
+ */
+export interface WikidataLocation {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
+}
+/**
+ * Death place entity ID for a person entity.
+ */
+export interface WikidataLocation1 {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
 }
 
 
