@@ -220,6 +220,9 @@ export default (app: ImpressoApplication) => {
         windowSeconds: quotaCheckerConfig.windowDays * 24 * 60 * 60,
       }
       quotaChecker = new QuotaChecker(redisClient, configuration)
+      logger.info(
+        `Quota checker is enabled with a limit of ${configuration.quotaLimit} requests per ${quotaCheckerConfig.windowDays} days.`
+      )
     }
   } else {
     logger.info('Quota checker is disabled.')

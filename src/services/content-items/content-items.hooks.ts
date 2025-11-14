@@ -1,18 +1,24 @@
-import { rateLimit } from '../../hooks/rateLimiter'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { redactResponse, redactResponseDataItem, RedactionPolicy, unlessHasPermission } from '../../hooks/redaction'
-import { loadYamlFile } from '../../util/yaml'
-import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
-import { transformContentItem } from '../../transformers/contentItem'
-import { utils, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID } from '../../hooks/params'
-import { filtersToSolrQuery } from '../../hooks/search'
-import { SolrMappings } from '../../data/constants'
-import { eachFilterValidator } from '../search/search.validators'
-import { transformBaseFind } from '../../transformers/base'
 import { HookOptions } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../../types'
+import { SolrMappings } from '../../data/constants'
 import { inPublicApi, inWebAppApi } from '../../hooks/appMode'
-import { ContentItemService, IContentItemService } from './content-items.class'
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
+import { rateLimit } from '../../hooks/rateLimiter'
+import {
+  RedactionPolicy,
+  redactResponse,
+  redactResponseDataItem,
+  unlessHasPermission,
+  unlessHasPermissionAndWithinQuota,
+} from '../../hooks/redaction'
+import { filtersToSolrQuery } from '../../hooks/search'
+import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
+import { transformBaseFind } from '../../transformers/base'
+import { transformContentItem } from '../../transformers/contentItem'
+import { ImpressoApplication } from '../../types'
+import { loadYamlFile } from '../../util/yaml'
+import { eachFilterValidator } from '../search/search.validators'
+import { ContentItemService } from './content-items.class'
 
 export const contentItemRedactionPolicyPublicApi = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicy.yml`
@@ -76,6 +82,7 @@ export default {
       ...inPublicApi([
         transformResponse(transformBaseFind),
         transformResponseDataItem(transformContentItem),
+        // NOTE: Do not check quota in find - transcript is not included
         redactResponseDataItem(contentItemRedactionPolicyPublicApi, unlessHasPermission('getTranscript')),
       ]),
       ...inWebAppApi([redactResponseDataItem(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
@@ -83,7 +90,7 @@ export default {
     get: [
       ...inPublicApi([
         transformResponse(transformContentItem),
-        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermission('getTranscript')),
+        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermissionAndWithinQuota('getTranscript', 'uid')),
       ]),
       ...inWebAppApi([redactResponse(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],
