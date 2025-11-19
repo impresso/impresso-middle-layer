@@ -132,7 +132,7 @@ class ConnectionWrapper implements IFetchClient {
       headers: init?.headers as IncomingHttpHeaders,
       body: body as any,
       dispatcher: agent,
-      headersTimeout: options?.requestTimeoutMs ?? 30 * 1000,
+      headersTimeout: options?.requestTimeoutMs ?? 300 * 1000,
     })
     const response = new XResponse(result)
     await response.text()
