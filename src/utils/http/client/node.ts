@@ -87,9 +87,9 @@ class ConnectionWrapper implements IFetchClient {
       return socksAgent
     } else {
       return new Agent({
-        headersTimeout: 60 * 1000,
+        headersTimeout: 300 * 1000,
         connectTimeout: 30 * 1000,
-        bodyTimeout: 120 * 1000,
+        bodyTimeout: 300 * 1000,
       })
     }
   }
