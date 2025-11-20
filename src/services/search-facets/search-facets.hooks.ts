@@ -12,15 +12,23 @@ import { parseFilters } from '../../util/queryParameters'
 import { transformResponse } from '../../hooks/transformation'
 import { transformSearchFacet } from '../../transformers/searchFacet'
 import { inPublicApi } from '../../hooks/appMode'
+import { Filter } from 'impresso-jscommons'
+
+interface Params {
+  order_by?: { count?: 'asc' | 'desc'; index?: 'asc' | 'desc' }
+  group_by?: string
+  filters?: Filter[]
+}
 
 const getAndFindHooks = (index: IndexId) => [
-  validate({
+  validate<Params>({
     order_by: {
       before: (d: any) => (Array.isArray(d) ? d.pop() : d),
       defaultValue: '-count',
       choices: OrderByChoices,
-      transform: (d: any) =>
-        utils.translate(d, {
+      transform: d => {
+        if (typeof d === 'undefined') return
+        return utils.translate(Array.isArray(d) ? d[0] : d, {
           '-count': {
             count: 'desc',
           },
@@ -33,11 +41,12 @@ const getAndFindHooks = (index: IndexId) => [
           value: {
             index: 'asc',
           },
-        }),
+        })
+      },
     },
     group_by: {
       required: false,
-      fn: (value?: string) => {
+      fn: value => {
         if (typeof value === 'string' && value.length > 0) {
           const theFacetTypes = facetTypes[index]
           if (!theFacetTypes.includes(value)) {
@@ -47,10 +56,10 @@ const getAndFindHooks = (index: IndexId) => [
         return true
       },
       message: `Invalid group_by parameter for index ${index}`,
-      transform(value: string) {
+      transform: value => {
         const meta = getIndexMeta(index)
         const facets: Record<string, any> = meta.facets
-        return facets[value].field
+        return facets[value as string].field
       },
     },
     filters: {

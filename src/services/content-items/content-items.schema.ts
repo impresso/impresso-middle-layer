@@ -2,6 +2,16 @@ import { ServiceSwaggerOptions } from 'feathers-swagger'
 import type { MethodParameter } from '../../util/openapi'
 import { getStandardParameters, getStandardResponses } from '../../util/openapi'
 
+export const includeEmbeddingsParameter = {
+  in: 'query',
+  name: 'include_embeddings',
+  required: false,
+  schema: {
+    type: 'boolean',
+  },
+  description: 'Whether to include embeddings in the response (default: `false`)',
+} satisfies MethodParameter
+
 const findParameters: MethodParameter[] = [
   {
     in: 'query',
@@ -23,20 +33,11 @@ const findParameters: MethodParameter[] = [
     },
     description: 'Order by term',
   },
+  includeEmbeddingsParameter,
   ...getStandardParameters({ method: 'find' }),
 ]
 
-const getParameters: MethodParameter[] = [
-  {
-    in: 'query',
-    name: 'include_embeddings',
-    required: false,
-    schema: {
-      type: 'boolean',
-    },
-    description: 'Whether to include embeddings in the response (default: `false`)',
-  },
-]
+const getParameters: MethodParameter[] = [includeEmbeddingsParameter]
 
 /**
  * NOTE: Keep this in sync with validators in search.hooks.ts

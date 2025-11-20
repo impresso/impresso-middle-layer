@@ -3,7 +3,7 @@ import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 
 import { validate, validateEach, queryWithCommonParams, utils } from '../../hooks/params'
-import { qToSolrFilter, filtersToSolrQuery } from '../../hooks/search'
+import { termToSolrFilter, filtersToSolrQuery } from '../../hooks/search'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { transformEntityDetails } from '../../transformers/entity'
 import { transformBaseFind } from '../../transformers/base'
@@ -74,7 +74,7 @@ const findAndGetParamsHooks = [
       required: false,
     }
   ),
-  qToSolrFilter('string'),
+  termToSolrFilter(),
   filtersToSolrQuery({
     solrIndexProvider: () => SolrNamespaces.Entities as any,
   }),

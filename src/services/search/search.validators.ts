@@ -1,7 +1,8 @@
-import { utils, REGEX_UID, REGEX_UIDS } from '../../hooks/params.js'
+import { utils, REGEX_UID, REGEX_UIDS, ValidationRules } from '../../hooks/params'
 import { SolrMappings, FilterTypes, Contexts, Operators, Precision } from '../../data/constants.js'
+import { Filter } from 'impresso-jscommons'
 
-const eachFilterValidator = {
+const eachFilterValidator: ValidationRules<Filter & { daterange: string; uid: string }> = {
   context: {
     choices: Contexts,
     defaultValue: 'include',
@@ -16,7 +17,7 @@ const eachFilterValidator = {
   },
   precision: {
     choices: Precision,
-    default: 'exact',
+    defaultValue: 'exact',
   },
   q: {
     required: false,
@@ -83,18 +84,18 @@ const paramsValidator = {
     required: true,
     choices: ['articles', 'raw'],
     defaultValue: 'articles',
-    transform: d => utils.translate(d, SolrMappings.search.groupBy),
+    transform: (d: string) => utils.translate(d, SolrMappings.search.groupBy),
   },
   order_by: {
-    before: d => {
+    before: (d: string) => {
       if (typeof d === 'string') {
         return d.split(',')
       }
       return d
     },
     choices: ['-date', 'date', '-relevance', 'relevance', 'id', '-id'],
-    transform: d => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
-    after: d => {
+    transform: (d: string) => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
+    after: (d: string | string[]) => {
       if (Array.isArray(d)) {
         return d.join(',')
       }
@@ -103,10 +104,4 @@ const paramsValidator = {
   },
 }
 
-const facetsValidator = {
-  facets: utils.facets({
-    values: SolrMappings.search.facets,
-  }),
-}
-
-export { eachFilterValidator, eachFacetFilterValidator, paramsValidator, facetsValidator }
+export { eachFilterValidator, eachFacetFilterValidator, paramsValidator }

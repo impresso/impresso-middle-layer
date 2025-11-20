@@ -5,11 +5,16 @@ import { WordMatch } from '../../models/generated/schemas'
 
 import { queryWithCommonParams, validate } from '../../hooks/params'
 
+interface Params {
+  language_code?: 'fr' | 'de' | 'lb'
+  term?: string
+}
+
 export default {
   before: {
     all: [],
     find: [
-      validate(
+      validate<Params>(
         {
           language_code: {
             choices: ['fr', 'de', 'lb'],
@@ -18,13 +23,16 @@ export default {
             required: true,
             regex: /^[A-zÀ-ÿ'()\s]+$/,
             max_length: 500,
-            transform: (d: string) =>
-              d
+            transform: d => {
+              const v = Array.isArray(d) ? d.pop() : d
+              if (typeof v !== 'string') return v
+              return v
                 .replace(/[^A-zÀ-ÿ]/g, ' ')
                 .toLowerCase()
                 .split(/\s+/)
                 .sort((a: string, b: string) => a.length - b.length)
-                .pop(),
+                .pop()
+            },
           },
         },
         'GET'
