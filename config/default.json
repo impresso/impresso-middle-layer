@@ -19,6 +19,11 @@
     "capacity": 10,
     "refillRate": 0.016
   },
+  "quotaChecker": {
+    "enabled": true,
+    "quotaLimit": 200000,
+    "windowDays": 30
+  },
   "callbackUrls": {
     "passwordReset": "http://localhost:8080/password-reset"
   },
