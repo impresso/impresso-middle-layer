@@ -70,6 +70,7 @@ const internalApiServices = [
   'newspapers',
   'feedback-collector',
   'datalab-support',
+  'special-membership-access',
 ]
 
 const baristaServices = ['barista-proxy']
