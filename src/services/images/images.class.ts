@@ -33,6 +33,7 @@ export interface FindQuery {
   offset?: number
   filters?: Filter[]
   order_by?: OrderByParam
+  include_embeddings?: boolean
 }
 
 interface WithUser {
@@ -105,7 +106,10 @@ export class Images implements ImageService {
     const mediaSourceLookup = await this.mediaSources.getLookup()
 
     return {
-      data: results?.response?.docs?.map(d => toImage(d, mediaSourceLookup, this.rewriteRules, false)) ?? [],
+      data:
+        results?.response?.docs?.map(d =>
+          toImage(d, mediaSourceLookup, this.rewriteRules, isTrue(params?.query?.include_embeddings))
+        ) ?? [],
       pagination: {
         limit,
         offset,
