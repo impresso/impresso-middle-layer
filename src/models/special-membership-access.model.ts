@@ -38,7 +38,6 @@ export default class SpecialMembershipAccess extends Model<
         title: {
           type: DataTypes.STRING,
           allowNull: false,
-          field: 'title',
         },
         bitmapPosition: {
           type: DataTypes.INTEGER,
