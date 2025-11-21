@@ -200,6 +200,7 @@ const searchSolrMappings = {
       limit: 10,
       offset: 0,
       numBuckets: true,
+      refine: true,
     },
     location: {
       type: 'terms',
@@ -208,6 +209,7 @@ const searchSolrMappings = {
       limit: 10,
       offset: 0,
       numBuckets: true,
+      refine: true,
     },
     nag: {
       type: 'terms',
@@ -216,6 +218,7 @@ const searchSolrMappings = {
       limit: 10,
       offset: 0,
       numBuckets: true,
+      refine: true,
     },
     organisation: {
       type: 'terms',
@@ -224,6 +227,7 @@ const searchSolrMappings = {
       limit: 10,
       offset: 0,
       numBuckets: true,
+      refine: true,
     },
     /**
      * @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
