@@ -81,6 +81,11 @@ const withJsonExpansion = (field: IFullContentItemFieldsNames) => {
 export const FindMethodFields = [...SlimContentItemFieldsNames].map(withJsonExpansion)
 
 /**
+ * Fields needed to fetch a list of content items including embeddings.
+ */
+const FindMethodFieldsWithEmbeddings = [...SlimContentItemFieldsNames, ...EmbeddingsFields].map(withJsonExpansion)
+
+/**
  * Fields needed to fetch a single content item.
  * All fields are included here.
  */
@@ -151,6 +156,8 @@ export interface FindOptions {
     collapse_by?: string
     collapse_fn?: string
     requestOriginalPath?: boolean
+    include_embeddings?: boolean
+    term?: string
   }
   user?: SlimUser
 
@@ -335,7 +342,9 @@ export class ContentItemService implements IContentItemService {
   }
 
   async _find(params: FindOptions): Promise<FindResponse<ContentItem>> {
-    const fields = [...FindMethodFields, ScoreField]
+    const fields = isTrue(params.query?.include_embeddings)
+      ? [...FindMethodFieldsWithEmbeddings, ScoreField]
+      : [...FindMethodFields, ScoreField]
 
     // With embeddings search we cannot do highlighting: Solr returns an error.
     const hasEmbeddingFilter = params?.query?.filters?.find(f => f.type === 'embedding') != null

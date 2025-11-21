@@ -76,7 +76,7 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
   // Move this somewhere where it's more explicit
   app.use((req, res, next) => {
     if (req.query.filters != null) {
-      req.query.filters = parseFilters(req.query.filters) as any as string[]
+      req.query.filters = parseFilters(req.query.filters as any) as any as string[]
     }
     next()
   })

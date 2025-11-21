@@ -1,28 +1,8 @@
-import { queryWithCommonParams, validate, validateEach, utils } from '../../hooks/params'
+import { Filter } from 'impresso-jscommons'
+import { queryWithCommonParams, validate, validateEach, utils, ValidationRules } from '../../hooks/params'
 import { filtersToSequelizeQuery } from '../../hooks/sequelize'
 
-interface FiltersValidator {
-  context?: {
-    choices: string[]
-    defaultValue: string
-  }
-  op?: {
-    choices: string[]
-    defaultValue: string
-  }
-  type: {
-    choices: string[]
-    required: boolean
-  }
-  q?: {
-    required: boolean
-    regex: RegExp
-    max_length: number
-  }
-  [key: string]: any
-}
-
-const filtersValidator: FiltersValidator = {
+const filtersValidator: ValidationRules<Filter> = {
   context: {
     choices: ['include', 'exclude'],
     defaultValue: 'include',
@@ -40,6 +20,12 @@ const filtersValidator: FiltersValidator = {
     regex: /^[A-zÀ-Ÿ0-9_.–,"'$)(-]+[A-zÀ-Ÿ0-9_.,"'$)(-]+$/,
     max_length: 500,
   },
+  precision: {
+    required: false,
+  },
+  uids: {
+    required: false,
+  },
 }
 
 export default {
@@ -55,13 +41,15 @@ export default {
           order_by: {
             choices: ['-name', 'name', '-id', 'id'],
             defaultValue: 'id',
-            transform: (d: string) =>
-              utils.translate(d, {
+            transform: d => {
+              if (typeof d !== 'string') return d
+              return utils.translate(d, {
                 // name: [['entity_id', 'ASC'], ['name', 'ASC']],
                 // '-name': [['entity_id', 'ASC'], ['name', 'DESC']],
                 id: [['id', 'ASC']],
                 '-id': [['id', 'DESC']],
-              }),
+              })
+            },
           },
         },
         'GET'

@@ -56,6 +56,7 @@ const findParameters: MethodParameter[] = [
   similarToImageId,
   parameterOrderBy,
   filtersQueryParameter,
+  parameterIncludeEmbeddings,
   ...getStandardParameters({ method: 'find', maxPageSize: 100 }),
 ]
 const getParameters: MethodParameter[] = [...getStandardParameters({ method: 'get' }), parameterIncludeEmbeddings]

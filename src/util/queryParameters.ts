@@ -1,6 +1,5 @@
-import lodash from 'lodash'
-import { protobuf } from 'impresso-jscommons'
-import { Filter } from '../models'
+import { Filter, protobuf } from 'impresso-jscommons'
+import { isFilters } from './models'
 
 export const parseOrderBy = (orderBy: string | undefined, keyFieldMap: Record<string, string> = {}) => {
   if (orderBy == null) return []
@@ -10,35 +9,41 @@ export const parseOrderBy = (orderBy: string | undefined, keyFieldMap: Record<st
   return field != null ? [field, isDescending] : []
 }
 
+const parseFilterString = (filterStr: string): Filter[] => {
+  try {
+    return [JSON.parse(filterStr)]
+  } catch (error) {
+    const decoded = protobuf.searchQuery.deserialize(filterStr)
+    const filters = decoded.filters as Filter[]
+    return filters
+  }
+}
+
 /**
  * Parse `filters` query parameter from different formats:
- *  - a list of objects
  *  - a list of stringifed objects
- *  - a single object
  *  - a single stringifed object
  *  - a protobuf serialized list of objects
  *
  * @return {object[]} List of filters as objects
  */
-export const parseFilters = (value?: string | string[] | object | object[]): Filter[] => {
+export const parseFilters = (value?: string | string[] | Filter[] | undefined): Filter[] => {
   if (value == null) return []
-  if (Array.isArray(value) && value.every(item => lodash.isObjectLike(item))) return value as Filter[]
-  if (lodash.isObjectLike(value) && !Array.isArray(value)) return [value] as Filter[]
 
-  if (lodash.isString(value)) {
-    try {
-      return [JSON.parse(value)]
-    } catch (error) {
-      const decoded = protobuf.searchQuery.deserialize(value)
-      return decoded.filters as Filter[]
-    }
+  if (typeof value === 'string') {
+    return parseFilterString(value)
+  } else if (Array.isArray(value) && value.every(item => typeof item === 'string')) {
+    return value.map(parseFilterString).flat()
   }
 
-  if (Array.isArray(value) && value.every(item => lodash.isString(item))) {
-    return value.map(item => JSON.parse(item as unknown as string))
-  }
+  if (isFilters(value)) return value
 
-  return value as Filter[]
+  throw new Error(`Invalid filters parameter: ${JSON.stringify(value)}`)
+}
+
+export const parseFilter = (value?: string | string[] | undefined): Filter | undefined => {
+  const filters = parseFilters(value)
+  return filters.length > 0 ? filters[0] : undefined
 }
 
 /**

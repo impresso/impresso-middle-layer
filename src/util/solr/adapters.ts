@@ -167,6 +167,7 @@ interface FindParams {
   fq?: string
   query?: {
     sq?: string
+    term?: string
     sfq?: string | string[]
     facets?: Record<string, SolrFacetQueryParams>
     order_by?: string
