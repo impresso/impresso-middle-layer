@@ -17,15 +17,16 @@ export type ISpecialMembershipAccessService = Omit<
 
 export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {
   protected readonly sequelizeClient: Sequelize
+  protected readonly model: ReturnType<typeof SpecialMembershipAccess.initialize>
 
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
+    this.model = SpecialMembershipAccess.initialize(this.sequelizeClient)
   }
 
   async find(params?: { query?: FindQuery }): Promise<FindResult> {
     const { limit = 10, offset = 0 } = params?.query ?? {}
-    const model = SpecialMembershipAccess.initialize(this.sequelizeClient)
-    const { rows, count: total } = await model.findAndCountAll({
+    const { rows, count: total } = await this.model.findAndCountAll({
       limit,
       offset,
     })
@@ -36,8 +37,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
     }
   }
   async get(id: Id, _params?: Params): Promise<SpecialMembershipAccess> {
-    const model = SpecialMembershipAccess.initialize(this.sequelizeClient)
-    const record = await model.findByPk(id)
+    const record = await this.model.findByPk(id)
     if (!record) {
       throw new NotFound(`SpecialMembershipAccess with id ${id} not found`)
     }

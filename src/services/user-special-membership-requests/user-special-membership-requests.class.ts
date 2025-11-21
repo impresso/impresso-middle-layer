@@ -24,9 +24,11 @@ export type IUserSpecialMembershipRequestService = Omit<
 
 export class UserSpecialMembershipRequestService implements IUserSpecialMembershipRequestService {
   protected readonly sequelizeClient: Sequelize
+  protected readonly model: ReturnType<typeof UserSpecialMembershipRequest.initialize>
 
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
+    this.model = UserSpecialMembershipRequest.initialize(this.sequelizeClient)
   }
 
   async find(params?: UserSpecialMembershipRequestParams): Promise<FindResult> {
@@ -37,8 +39,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       return { data: [], pagination: { limit, offset, total: 0 } }
     }
 
-    const model = UserSpecialMembershipRequest.initialize(this.sequelizeClient)
-    const { rows, count: total } = await model.findAndCountAll({
+    const { rows, count: total } = await this.model.findAndCountAll({
       limit,
       offset,
       where: { userId },
@@ -55,8 +56,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     if (userId == null) {
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
     }
-    const model = UserSpecialMembershipRequest.initialize(this.sequelizeClient)
-    const record = await model.findOne({
+    const record = await this.model.findOne({
       where: {
         [Op.and]: [{ id }, { userId }],
       },
