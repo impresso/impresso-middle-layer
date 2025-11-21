@@ -198,7 +198,7 @@ export interface ImpressoEmbeddingResponse {
  */
 export interface ImpressoImageEmbeddingRequest {
   /**
-   * Where the embedding is going to be used
+   * Which embedding space the embedding is going to be used in
    */
   searchTarget: "image" | "multimodal";
   /**
@@ -490,9 +490,9 @@ export interface ImpressoNamedEntityRecognitionEntity {
  */
 export interface ImpressoTextEmbeddingRequest {
   /**
-   * Where the embedding is going to be used
+   * Which embedding space the embedding is going to be used in
    */
-  searchTarget: "image" | "text";
+  searchTarget: "multimodal" | "text";
   /**
    * Text to be embedded
    */
