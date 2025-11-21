@@ -75,7 +75,6 @@ describe('UserSpecialMembershipRequestService', () => {
 
     // Insert related mock data
     await UserModel.bulkCreate(mockUsers as any)
-    await SubscriptionModel.bulkCreate([])
   })
 
   after(async () => {
