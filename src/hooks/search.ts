@@ -1,34 +1,35 @@
 import Debug from 'debug'
-const debug = Debug('impresso/hooks:search')
 import lodash from 'lodash'
 
 import { filtersToQueryAndVariables } from '../util/solr'
-import { SolrNamespaces } from '../solr.js'
+import { SolrNamespaces } from '../solr'
+import { HookContext } from '@feathersjs/feathers'
+
+const debug = Debug('impresso/hooks:search')
 
 /**
- * Transform q param in a nice string filter.
- * @param  {String} type filter type, gets transkated to actual solr fields.
- * @return {null}      [description]
+ * Transform a term parameter to a string filter.
+ * @param  {string} term query parameter
  */
-// prettier-ignore
-const qToSolrFilter = (type = 'string') =>
-  context => {
+export const termToSolrFilter =
+  (field = 'q') =>
+  (context: HookContext) => {
     if (context.type !== 'before') {
-      throw new Error("[qToSolrFilter] hook should only be used as a 'before' hook.")
+      throw new Error("[termToSolrFilter] hook should only be used as a 'before' hook.")
     }
     if (typeof context.params.sanitized !== 'object') {
-      throw new Error("[qToSolrFilter] hook should be used after a 'validate' hook.")
+      throw new Error("[termToSolrFilter] hook should be used after a 'validate' hook.")
     }
     if (!Array.isArray(context.params.sanitized.filters)) {
       context.params.sanitized.filters = []
     }
-    if (context.params.sanitized.q) {
+    if (context.params.sanitized[field]) {
       context.params.sanitized.filters.unshift({
         context: 'include',
-        type,
+        type: 'string',
         fuzzy: false,
         standalone: false,
-        q: context.params.sanitized.q,
+        q: context.params.sanitized[field],
       })
     }
   }
@@ -40,12 +41,12 @@ const qToSolrFilter = (type = 'string') =>
  * and returns the Solr index filters should be validated against.
  */
 // prettier-ignore
-const filtersToSolrQuery =
+export const filtersToSolrQuery =
   ({
     overrideOrderBy = true,
     prop = 'params',
-    solrIndexProvider = (_ctx) => SolrNamespaces.Search // eslint-disable-line no-unused-vars
-  } = {}) => async context => {
+    solrIndexProvider = (_ctx: any) => SolrNamespaces.Search // eslint-disable-line no-unused-vars
+  } = {}) => async (context: HookContext) => {
     const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`
     if (context.type !== 'before') {
       throw new Error(`${prefix} hook should only be used as a 'before' hook.`)
@@ -71,13 +72,13 @@ const filtersToSolrQuery =
     )
 
     // prepend order by if it is not relevance
-    if (overrideOrderBy && Object.keys(vars).length) {
+    if (overrideOrderBy && Object.keys(vars ?? {}).length) {
       // relevance direction
       let direction = 'desc'
       if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {
         direction = 'asc'
       }
-      const varsOrderBy = Object.keys(vars).map(v => `\${${v}} ${direction}`)
+      const varsOrderBy = Object.keys(vars ?? {}).map(v => `\${${v}} ${direction}`)
       // if order by is by relevance:
       if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
         context[prop].sanitized.order_by = varsOrderBy.concat(context[prop].sanitized.order_by.split(',')).join(',')
@@ -98,7 +99,7 @@ const filtersToSolrQuery =
     context[prop].sanitized.sfq = solrFilter
     // NOTE: `queryComponents` should be deprecated
     const filters = lodash.groupBy(context[prop].sanitized.filters, 'type')
-    context[prop].sanitized.queryComponents = []
+    context[prop].sanitized.queryComponents = ([] as any[])
       .concat(
         filters.isFront,
         filters.years,
@@ -124,7 +125,7 @@ const filtersToSolrQuery =
  * check if there are any params to be added to our beloved facets. should follow facets validation
  * @return {[type]}        [description]
  */
-const filtersToSolrFacetQuery = () => async context => {
+export const filtersToSolrFacetQuery = () => async (context: HookContext) => {
   if (!context.params.sanitized.facets) {
     debug('[filtersToSolrFacetQuery] WARN no facets requested.')
     return
@@ -140,13 +141,11 @@ const filtersToSolrFacetQuery = () => async context => {
   }
   // apply facets recursively based on facet name
   Object.keys(facets).forEach(key => {
-    const filter = context.params.sanitized.facetfilters.find(d => d.name === key)
+    const filter = context.params.sanitized.facetfilters.find((d: any) => d.name === key)
     if (filter) {
       debug(`[filtersToSolrFacetQuery] on facet ${key}:`, filter)
     }
   })
 }
 
-const queries = { hasTextContents: 'content_length_i:[1 TO *]' }
-
-export { queries, filtersToSolrQuery, qToSolrFilter, filtersToSolrFacetQuery }
+export const queries = { hasTextContents: 'content_length_i:[1 TO *]' }

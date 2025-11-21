@@ -7,8 +7,8 @@
   "properties": {
     "searchTarget": {
       "type": "string",
-      "description": "Where the embedding is going to be used",
-      "enum": ["image", "text"]
+      "description": "Which embedding space the embedding is going to be used in",
+      "enum": ["multimodal", "text"]
     },
     "text": {
       "type": "string",

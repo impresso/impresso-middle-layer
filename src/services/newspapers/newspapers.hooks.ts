@@ -15,6 +15,13 @@ const findQueryParamsRenamePolicy = {
   term: 'q',
 }
 
+interface Params {
+  includedOnly?: boolean
+  q?: string
+  faster?: boolean
+  order_by?: string
+}
+
 export default {
   around: {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
@@ -23,10 +30,10 @@ export default {
     all: [],
     find: [
       ...inPublicApi([renameQueryParameters(findQueryParamsRenamePolicy)]),
-      validate({
+      validate<Params>({
         includedOnly: {
           required: false,
-          transform: (d: string) => !!d,
+          transform: d => !!d,
         },
         q: {
           required: false,
@@ -34,7 +41,7 @@ export default {
         },
         faster: {
           required: false,
-          transform: (d: string) => !!d,
+          transform: d => !!d,
         },
         order_by: {
           choices: OrderByChoices,

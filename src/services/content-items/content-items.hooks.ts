@@ -11,7 +11,7 @@ import {
   unlessHasPermission,
   unlessHasPermissionAndWithinQuota,
 } from '../../hooks/redaction'
-import { filtersToSolrQuery } from '../../hooks/search'
+import { filtersToSolrQuery, termToSolrFilter } from '../../hooks/search'
 import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
 import { transformBaseFind } from '../../transformers/base'
 import { transformContentItem } from '../../transformers/contentItem'
@@ -43,23 +43,32 @@ const OrderByChoices: OrderBy[] = [
 ]
 const FullOrderByChoices: FullOrderBy[] = [...OrderByChoices, ...OrderByChoices.map(o => `-${o}`)] as FullOrderBy[]
 
+interface Params {
+  order_by?: string | string[]
+  include_embeddings?: boolean
+  term?: string
+}
+
 export default {
   around: {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
     find: [
-      validate({
+      validate<Params>({
         order_by: {
-          before: (d: string | string[]) => {
+          before: d => {
             if (typeof d === 'string') {
               return d.split(',')
             }
             return d
           },
           choices: FullOrderByChoices,
-          transform: (d: string[]) => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
-          after: (d: string | string[]) => {
+          transform: d => {
+            if (d == null) return d
+            return utils.toOrderBy(Array.isArray(d) ? d[0] : d, SolrMappings.search.orderBy, true)
+          },
+          after: d => {
             if (Array.isArray(d)) {
               return d.join(',')
             }
@@ -67,10 +76,21 @@ export default {
           },
           defaultValue: '-ocrQuality',
         },
+        include_embeddings: {
+          required: false,
+          defaultValue: 'false',
+          transform: d => String(d) === 'true',
+        },
+        term: {
+          required: false,
+          min_length: 1,
+          max_length: 200,
+        },
       }),
       validateEach('filters', eachFilterValidator, {
         required: false,
       }),
+      termToSolrFilter('term'),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
