@@ -11,7 +11,8 @@ export default (app: ImpressoApplication) => {
   const service = app.service('special-membership-access')
   service.hooks({
     before: {
-      all: [authenticate('jwt'), queryWithCommonParams()],
+      all: [authenticate('jwt')],
+      find: [queryWithCommonParams()],
     },
   })
 }
