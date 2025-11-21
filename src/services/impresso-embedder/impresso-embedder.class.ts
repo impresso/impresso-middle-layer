@@ -20,10 +20,6 @@ interface DownstreamResponse {
   embedding: number[]
 }
 
-const textToDownstreamImageRequest = (data: ImpressoTextEmbeddingRequest): TextDownstreamRequest => ({
-  data: data.text,
-})
-
 const imageToDownstreamImageRequest = (data: ImpressoImageEmbeddingRequest): ImageDownstreamRequest => ({
   bytes: data.bytes,
 })
@@ -77,9 +73,9 @@ export class ImpressoTextEmbeddingService {
   }
 
   async create(data: ImpressoTextEmbeddingRequest): Promise<ImpressoEmbeddingResponse> {
-    if (data.searchTarget === 'image') {
+    if (data.searchTarget === 'multimodal') {
       const url = `${this.options.baseUrl}/openclip-text/`
-      const body = textToDownstreamImageRequest(data)
+      const body = textToDownstreamTextRequest(data)
       return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder('openclip-768'))
     } else if (data.searchTarget === 'text') {
       const url = `${this.options.baseUrl}/text-embedder/`
