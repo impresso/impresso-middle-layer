@@ -2,7 +2,7 @@ import { UserSpecialMembershipRequestService as Service } from './user-special-m
 import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { authenticate } from '@feathersjs/authentication'
-import { queryWithCommonParams } from '@/hooks/params'
+import { queryWithCommonParams } from '../../hooks/params'
 
 export default (app: ImpressoApplication) => {
   app.use('/user-special-membership-requests', new Service(app), {

@@ -20,7 +20,7 @@ export interface IUserSpecialMembershipRequestAttributes {
   id: number
   reviewerId: number | null
   userId: number
-  subscriptionId: number | null
+  specialMembershipAccessId: number | null
   dateCreated: Date
   dateLastModified: Date
   status: (typeof AvailableStatuses)[number]
@@ -34,7 +34,7 @@ export default class UserSpecialMembershipRequest extends Model<
   declare id: CreationOptional<number>
   declare reviewerId: ForeignKey<User['id']> | null
   declare userId: ForeignKey<User['id']>
-  declare subscriptionId: ForeignKey<SpecialMembershipAccess['id']> | null
+  declare specialMembershipAccessId: ForeignKey<SpecialMembershipAccess['id']> | null
   declare dateCreated: CreationOptional<Date>
   declare dateLastModified: CreationOptional<Date>
   declare status: (typeof AvailableStatuses)[number]
@@ -59,7 +59,7 @@ export default class UserSpecialMembershipRequest extends Model<
           allowNull: false,
           field: 'user_id',
         },
-        subscriptionId: {
+        specialMembershipAccessId: {
           type: DataTypes.INTEGER,
           allowNull: true,
           field: 'subscription_id',
@@ -92,8 +92,8 @@ export default class UserSpecialMembershipRequest extends Model<
 
     // Associations
     model.belongsTo(SpecialMembershipAccess, {
-      foreignKey: 'subscriptionId',
-      as: 'subscription',
+      foreignKey: 'specialMembershipAccessId',
+      as: 'specialMembershipAccess',
     })
 
     model.belongsTo(User.sequelize(sequelize), {

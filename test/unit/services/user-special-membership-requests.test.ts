@@ -4,7 +4,7 @@ import { NotFound } from '@feathersjs/errors'
 import { UserSpecialMembershipRequestService } from '../../../src/services/user-special-membership-requests/user-special-membership-requests.class'
 import UserSpecialMembershipRequest, {
   IUserSpecialMembershipRequestAttributes,
-} from '../../../src/models/user-special-membership-request.model'
+} from '../../../src/models/user-special-membership-requests.model'
 
 import User from '../../../src/models/users.model'
 import type { ImpressoApplication } from '../../../src/types'
@@ -27,17 +27,27 @@ const mockUsers = Array.from({ length: 42 }, (_, i) => ({
 const mockSubscriptions = [
   { id: 1, title: 'gold', bitmapPosition: 1 },
   { id: 2, title: 'silver', bitmapPosition: 2 },
+  { id: 3, title: 'bronze', bitmapPosition: 3 },
+  { id: 4, title: 'platinum', bitmapPosition: 4 },
+  { id: 5, title: 'diamond', bitmapPosition: 5 },
 ] as ISpecialMembershipAccessAttributes[]
 
 const mockRequests: IUserSpecialMembershipRequestAttributes[] = Array.from({ length: mockUsers.length }, (_, i) => ({
   id: i + 1,
   reviewerId: null,
   userId: i + 1, // must exist in User
-  subscriptionId: null, // or set 1/2 if testing relations
+  specialMembershipAccessId: (i % mockSubscriptions.length) + 1, // or set 1/2 if testing relations
   dateCreated: new Date(),
   dateLastModified: new Date(),
   status: 'pending',
-  changelog: [],
+  changelog: [
+    {
+      status: 'pending',
+      subscription: mockSubscriptions[i % mockSubscriptions.length].title,
+      date: new Date().toISOString(),
+      reviewer: '',
+    },
+  ],
 }))
 
 // ---------------------------------------------------------
@@ -55,6 +65,9 @@ describe('UserSpecialMembershipRequestService', () => {
       dialect: 'sqlite',
       storage: ':memory:',
       logging: false,
+      define: {
+        timestamps: false,
+      },
     })
 
     // Initialize related models FIRST
@@ -74,6 +87,7 @@ describe('UserSpecialMembershipRequestService', () => {
     service = new UserSpecialMembershipRequestService(app)
 
     // Insert related mock data
+    await SubscriptionModel.bulkCreate(mockSubscriptions)
     await UserModel.bulkCreate(mockUsers as any)
   })
 
@@ -100,6 +114,7 @@ describe('UserSpecialMembershipRequestService', () => {
     it('should return paginated results, only for the specified user', async () => {
       await RequestModel.bulkCreate(mockRequests)
       const result = await service.find({ query: { limit: 5, offset: 0 }, user: { id: 15 } })
+      console.log(result.data[0])
       assert.strictEqual(result.data.length, 1)
       assert.strictEqual(result.pagination.total, 1)
     })

@@ -2,7 +2,7 @@ import { Op, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '../../models/common'
 import type { ImpressoApplication } from '../../types'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import UserSpecialMembershipRequest from '../../models/user-special-membership-request.model'
+import UserSpecialMembershipRequest from '../../models/user-special-membership-requests.model'
 import { NotFound } from '@feathersjs/errors'
 import { SlimUser } from '../../authentication'
 
@@ -44,6 +44,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       offset,
       where: { userId },
       order: [['dateLastModified', 'DESC']],
+      include: ['specialMembershipAccess'],
     })
 
     return {
@@ -60,6 +61,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       where: {
         [Op.and]: [{ id }, { userId }],
       },
+      include: ['specialMembershipAccess'],
     })
     if (!record) {
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
