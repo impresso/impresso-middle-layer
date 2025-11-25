@@ -29,6 +29,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.model = UserSpecialMembershipRequest.initialize(this.sequelizeClient)
+    UserSpecialMembershipRequest.associate()
   }
 
   async find(params?: UserSpecialMembershipRequestParams): Promise<FindResult> {

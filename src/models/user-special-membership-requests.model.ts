@@ -1,4 +1,4 @@
-import type { Sequelize } from 'sequelize'
+import type { ModelStatic, Sequelize } from 'sequelize'
 import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize'
 
 import SpecialMembershipAccess from './special-membership-access.model'
@@ -39,6 +39,15 @@ export default class UserSpecialMembershipRequest extends Model<
   declare dateLastModified: CreationOptional<Date>
   declare status: (typeof AvailableStatuses)[number]
   declare changelog: ChangelogEntry[]
+  declare specialMembershipAccess?: SpecialMembershipAccess
+
+  private static get userModel(): ModelStatic<Model> {
+    return User as unknown as ModelStatic<Model>
+  }
+
+  private static get specialMembershipAccessModel(): ModelStatic<Model> {
+    return SpecialMembershipAccess as unknown as ModelStatic<Model>
+  }
 
   static initialize(sequelize: Sequelize) {
     const model = UserSpecialMembershipRequest.init(
@@ -90,12 +99,7 @@ export default class UserSpecialMembershipRequest extends Model<
       }
     )
 
-    // Associations
-    model.belongsTo(SpecialMembershipAccess, {
-      foreignKey: 'specialMembershipAccessId',
-      as: 'specialMembershipAccess',
-    })
-
+    // Associations here because User is not yet defined ad Sequelize 6 Model
     model.belongsTo(User.sequelize(sequelize), {
       foreignKey: 'reviewerId',
       as: 'reviewer',
@@ -105,7 +109,13 @@ export default class UserSpecialMembershipRequest extends Model<
       foreignKey: 'userId',
       as: 'subscriber',
     })
-
     return model
+  }
+
+  static associate() {
+    UserSpecialMembershipRequest.belongsTo(this.specialMembershipAccessModel, {
+      foreignKey: 'specialMembershipAccessId',
+      as: 'specialMembershipAccess',
+    })
   }
 }

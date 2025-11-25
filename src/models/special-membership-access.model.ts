@@ -1,7 +1,8 @@
-import type { Sequelize } from 'sequelize'
+import type { ModelStatic, Sequelize } from 'sequelize'
 import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize'
 
 import User from './users.model'
+import UserSpecialMembershipRequest from './user-special-membership-requests.model'
 
 export interface ISpecialMembershipAccessAttributes {
   id: number
@@ -20,9 +21,19 @@ export default class SpecialMembershipAccess extends Model<
   declare title: string
   declare bitmapPosition: number
   declare metadata: object | null
+  // Add this to help TypeScript with associations
+  declare requests?: UserSpecialMembershipRequest[]
+
+  // private static get userModel(): ModelStatic<Model> {
+  //   return User as unknown as ModelStatic<Model>
+  // }
+
+  private static get userSpecialMembershipRequestModel(): ModelStatic<Model> {
+    return UserSpecialMembershipRequest as unknown as ModelStatic<Model>
+  }
 
   static initialize(sequelize: Sequelize) {
-    return SpecialMembershipAccess.init(
+    const model = SpecialMembershipAccess.init(
       {
         id: {
           type: DataTypes.INTEGER,
@@ -55,5 +66,15 @@ export default class SpecialMembershipAccess extends Model<
         timestamps: false,
       }
     )
+
+    return model
+  }
+
+  static associate() {
+    // define association here
+    SpecialMembershipAccess.hasMany(this.userSpecialMembershipRequestModel, {
+      foreignKey: 'specialMembershipAccessId',
+      as: 'requests',
+    })
   }
 }

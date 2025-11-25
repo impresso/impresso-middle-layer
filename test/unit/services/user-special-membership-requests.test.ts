@@ -114,9 +114,13 @@ describe('UserSpecialMembershipRequestService', () => {
     it('should return paginated results, only for the specified user', async () => {
       await RequestModel.bulkCreate(mockRequests)
       const result = await service.find({ query: { limit: 5, offset: 0 }, user: { id: 15 } })
-      console.log(result.data[0])
+      // console.log(result.data[0])
       assert.strictEqual(result.data.length, 1)
       assert.strictEqual(result.pagination.total, 1)
+      // should have the specialMembershipAccess included
+      assert.ok(result.data[0].specialMembershipAccess)
+      assert.strictEqual(result.data[0].userId, 15)
+      assert.strictEqual(result.data[0].specialMembershipAccess?.id, 5) // subscription id for user 15
     })
   })
 
