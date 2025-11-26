@@ -3,8 +3,9 @@ import { PublicFindResponse as FindResponse } from '../../models/common'
 import type { ImpressoApplication } from '../../types'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import UserSpecialMembershipRequest from '../../models/user-special-membership-requests.model'
-import { NotFound } from '@feathersjs/errors'
+import { BadRequest, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '../../authentication'
+import SpecialMembershipAccess from '@/models/special-membership-access.model'
 
 export interface FindQuery {
   limit?: number
@@ -53,6 +54,39 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       data: rows.map(row => row.toJSON() as UserSpecialMembershipRequest),
     }
   }
+
+  async create(
+    data: Partial<UserSpecialMembershipRequest> & { notes: string },
+    params: { user: Partial<SlimUser> }
+  ): Promise<UserSpecialMembershipRequest> {
+    if (!data.specialMembershipAccessId) {
+      throw new BadRequest('specialMembershipAccessId is required')
+    }
+    const now = new Date()
+    const specialMembershipAccess = await SpecialMembershipAccess.findByPk(data.specialMembershipAccessId!)
+    if (!specialMembershipAccess) {
+      throw new NotFound(`SpecialMembershipAccess with id ${data.specialMembershipAccessId} not found`)
+    }
+    const userRequest = await this.model.create({
+      userId: params.user.id!,
+      reviewerId: null,
+      status: 'pending',
+      dateCreated: now,
+      dateLastModified: now,
+      changelog: [
+        {
+          status: 'pending',
+          subscription: specialMembershipAccess.title,
+          date: now.toISOString(),
+          reviewer: '',
+          notes: data.notes,
+        },
+      ],
+      specialMembershipAccessId: specialMembershipAccess.id,
+    })
+    return userRequest
+  }
+
   async get(id: Id, params?: UserSpecialMembershipRequestParams): Promise<UserSpecialMembershipRequest> {
     const userId = params?.user?.id
     if (userId == null) {

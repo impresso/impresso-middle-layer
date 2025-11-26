@@ -14,6 +14,7 @@ interface ChangelogEntry {
   subscription: string
   date: string
   reviewer: string
+  notes: string
 }
 
 export interface IUserSpecialMembershipRequestAttributes {

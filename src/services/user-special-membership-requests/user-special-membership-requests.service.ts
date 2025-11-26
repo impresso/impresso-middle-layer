@@ -1,7 +1,7 @@
 import { UserSpecialMembershipRequestService as Service } from './user-special-membership-requests.class'
 import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
-import { authenticate } from '@feathersjs/authentication'
+import { authenticateAround as authenticate } from '@/hooks/authenticate'
 import { queryWithCommonParams } from '../../hooks/params'
 
 export default (app: ImpressoApplication) => {
@@ -10,8 +10,10 @@ export default (app: ImpressoApplication) => {
   } as ServiceOptions)
   const service = app.service('user-special-membership-requests')
   service.hooks({
+    around: {
+      all: [authenticate({ allowUnauthenticated: false })],
+    },
     before: {
-      all: [authenticate('jwt')],
       find: [queryWithCommonParams()],
     },
   })

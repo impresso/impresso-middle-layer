@@ -1,6 +1,6 @@
 import { strict as assert } from 'assert'
 import { Sequelize } from 'sequelize'
-import { NotFound } from '@feathersjs/errors'
+import { BadRequest, NotFound } from '@feathersjs/errors'
 import { UserSpecialMembershipRequestService } from '../../../src/services/user-special-membership-requests/user-special-membership-requests.class'
 import UserSpecialMembershipRequest, {
   IUserSpecialMembershipRequestAttributes,
@@ -46,6 +46,7 @@ const mockRequests: IUserSpecialMembershipRequestAttributes[] = Array.from({ len
       subscription: mockSubscriptions[i % mockSubscriptions.length].title,
       date: new Date().toISOString(),
       reviewer: '',
+      notes: 'Initial request',
     },
   ],
 }))
@@ -148,6 +149,65 @@ describe('UserSpecialMembershipRequestService', () => {
         async () => service.get(999, { user: { id: 1 } }),
         (error: any) => {
           assert.ok(error instanceof NotFound)
+          return true
+        }
+      )
+    })
+  })
+
+  describe('create', () => {
+    it('should create a new request', async () => {
+      const now = new Date()
+      const result = await service.create(
+        {
+          specialMembershipAccessId: 2,
+          notes: 'Please approve my request.',
+        },
+        { user: { id: 3 } }
+      )
+
+      assert.strictEqual(result.userId, 3)
+      assert.strictEqual(result.specialMembershipAccessId, 2)
+      assert.strictEqual(result.status, 'pending')
+      assert.ok(result.dateCreated >= now)
+      assert.ok(result.dateLastModified >= now)
+      assert.ok(Array.isArray(result.changelog))
+      assert.strictEqual(result.changelog.length, 1)
+      assert.strictEqual(result.changelog[0].status, 'pending')
+      assert.strictEqual(result.changelog[0].subscription, 'silver')
+      assert.strictEqual(result.changelog[0].notes, 'Please approve my request.')
+    })
+
+    it('should throw BadRequest when specialMembershipAccessId is missing', async () => {
+      await assert.rejects(
+        async () =>
+          service.create(
+            {
+              notes: 'Missing subscription id',
+            } as any,
+            { user: { id: 3 } }
+          ),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, 'specialMembershipAccessId is required')
+          return true
+        }
+      )
+    })
+
+    it('should throw NotFound when specialMembershipAccessId does not exist', async () => {
+      await assert.rejects(
+        async () =>
+          service.create(
+            {
+              specialMembershipAccessId: 999,
+              notes: 'Non-existing subscription id',
+            },
+            { user: { id: 3 } }
+          ),
+        (error: any) => {
+          assert.ok(error instanceof NotFound)
+          assert.strictEqual(error.message, 'SpecialMembershipAccess with id 999 not found')
           return true
         }
       )
