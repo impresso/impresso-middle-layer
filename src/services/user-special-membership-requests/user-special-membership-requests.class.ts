@@ -5,7 +5,7 @@ import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import UserSpecialMembershipRequest from '../../models/user-special-membership-requests.model'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '../../authentication'
-import SpecialMembershipAccess from '@/models/special-membership-access.model'
+import SpecialMembershipAccess from '../../models/special-membership-access.model'
 
 export interface FindQuery {
   limit?: number
@@ -26,11 +26,12 @@ export type IUserSpecialMembershipRequestService = Omit<
 export class UserSpecialMembershipRequestService implements IUserSpecialMembershipRequestService {
   protected readonly sequelizeClient: Sequelize
   protected readonly model: ReturnType<typeof UserSpecialMembershipRequest.initialize>
-
+  public readonly name: string
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.model = UserSpecialMembershipRequest.initialize(this.sequelizeClient)
     UserSpecialMembershipRequest.associate()
+    this.name = 'user-special-membership-requests'
   }
 
   async find(params?: UserSpecialMembershipRequestParams): Promise<FindResult> {

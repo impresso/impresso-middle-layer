@@ -4,7 +4,7 @@ import type { ImpressoApplication } from '../../types'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import SpecialMembershipAccess from '../../models/special-membership-access.model'
 import { NotFound } from '@feathersjs/errors'
-import UserSpecialMembershipRequest from '@/models/user-special-membership-requests.model'
+import UserSpecialMembershipRequest from '../../models/user-special-membership-requests.model'
 import { SlimUser } from '@/authentication'
 
 export interface FindQuery {
@@ -24,7 +24,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.model = SpecialMembershipAccess.initialize(this.sequelizeClient)
-    // UserSpecialMembershipRequest.initialize(this.sequelizeClient)
+    UserSpecialMembershipRequest.initialize(this.sequelizeClient)
     SpecialMembershipAccess.associate()
     UserSpecialMembershipRequest.associate()
   }

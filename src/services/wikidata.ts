@@ -10,7 +10,7 @@ import type { Entities, Entity, EntityId } from 'wikibase-sdk' with { 'resolutio
 import { RedisClient } from '../redis'
 import { createFetchClient } from '../utils/http/client'
 import type { IFetchClient } from '../utils/http/client/base'
-import { WikidataEntityDetails } from '@/models/generated/schemas'
+import { WikidataEntityDetails } from '../models/generated/schemas'
 import { parallelLimit } from '../util/fn'
 
 export type ICache = Pick<RedisClient, 'get' | 'set'>
