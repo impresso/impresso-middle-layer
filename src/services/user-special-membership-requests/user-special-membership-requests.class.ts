@@ -6,6 +6,7 @@ import UserSpecialMembershipRequest from '../../models/user-special-membership-r
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '../../authentication'
 import SpecialMembershipAccess from '../../models/special-membership-access.model'
+import { CeleryClient } from '../../celery'
 
 export interface FindQuery {
   limit?: number
@@ -25,10 +26,12 @@ export type IUserSpecialMembershipRequestService = Omit<
 
 export class UserSpecialMembershipRequestService implements IUserSpecialMembershipRequestService {
   protected readonly sequelizeClient: Sequelize
+  protected readonly celeryClient: CeleryClient
   protected readonly model: ReturnType<typeof UserSpecialMembershipRequest.initialize>
   public readonly name: string
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
+    this.celeryClient = app.get('celeryClient') as CeleryClient
     this.model = UserSpecialMembershipRequest.initialize(this.sequelizeClient)
     UserSpecialMembershipRequest.associate()
     this.name = 'user-special-membership-requests'
@@ -85,6 +88,14 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       ],
       specialMembershipAccessId: specialMembershipAccess.id,
     })
+    this.celeryClient
+      .run({
+        task: 'impresso.tasks.after_special_membership_request_created',
+        args: [userRequest.id],
+      })
+      .catch(err => {
+        console.error('Error sending password reset email:', err)
+      })
     return userRequest
   }
 
