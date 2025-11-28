@@ -25,7 +25,7 @@ export class Service {
       creatorId: params.user.id,
     }
 
-    return measureTime(
+    const jobs = await measureTime(
       () =>
         this.sequelizeService.find({
           query: {
@@ -35,6 +35,7 @@ export class Service {
         }),
       'jobs.find.db.find'
     )
+    return jobs
   }
 
   async get(id, params) {

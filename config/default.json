@@ -87,6 +87,7 @@
     "host": "http://localhost:3030",
     "path": "/media",
     "protectedPath": "/protected-media",
+    "exportFolder": "/tmp/impresso-exports",
     "services": ["jobs"]
   },
   "multer": {

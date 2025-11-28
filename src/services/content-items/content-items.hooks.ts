@@ -1,6 +1,12 @@
 import { HookOptions } from '@feathersjs/feathers'
 import { SolrMappings } from '../../data/constants'
-import { inPublicApi, inWebAppApi } from '../../hooks/appMode'
+import {
+  ContextCondtition,
+  ImpressoAppHookContext,
+  inPublicApi,
+  inPublicApiOrWhen,
+  inWebAppApi,
+} from '../../hooks/appMode'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
 import { rateLimit } from '../../hooks/rateLimiter'
@@ -46,7 +52,18 @@ const FullOrderByChoices: FullOrderBy[] = [...OrderByChoices, ...OrderByChoices.
 interface Params {
   order_by?: string | string[]
   include_embeddings?: boolean
+  include_transcript?: boolean
   term?: string
+}
+
+/**
+ * Condition that checks if the request orgiginated from another internal service
+ * that wants the public API behavior.
+ */
+const whenCalledInternallyAsPublicApi: ContextCondtition<ContentItemService> = (
+  context: ImpressoAppHookContext<ContentItemService>
+) => {
+  return context.params.asPublicApi === true
 }
 
 export default {
@@ -81,6 +98,11 @@ export default {
           defaultValue: 'false',
           transform: d => String(d) === 'true',
         },
+        include_transcript: {
+          required: false,
+          defaultValue: 'false',
+          transform: d => String(d) === 'true',
+        },
         term: {
           required: false,
           min_length: 1,
@@ -99,12 +121,18 @@ export default {
   after: {
     find: [
       displayQueryParams(['filters']),
-      ...inPublicApi([
-        transformResponse(transformBaseFind),
-        transformResponseDataItem(transformContentItem),
-        // NOTE: Do not check quota in find - transcript is not included
-        redactResponseDataItem(contentItemRedactionPolicyPublicApi, unlessHasPermission('getTranscript')),
-      ]),
+      ...inPublicApiOrWhen(
+        [
+          transformResponse(transformBaseFind),
+          transformResponseDataItem(transformContentItem),
+          // NOTE: Do not check quota in find - transcript is not included
+          redactResponseDataItem(
+            contentItemRedactionPolicyPublicApi,
+            unlessHasPermissionAndWithinQuota('getTranscript')
+          ),
+        ],
+        whenCalledInternallyAsPublicApi
+      ),
       ...inWebAppApi([redactResponseDataItem(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],
     get: [

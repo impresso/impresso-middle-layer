@@ -58,6 +58,7 @@ const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
               id: result.job.id,
               type: result.job.type,
               status: result.job.status,
+              description: result.job.description,
               creationDate: result.job.date_created,
               lastModifiedDate: result.job.date_last_modified,
             }),

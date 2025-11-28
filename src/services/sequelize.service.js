@@ -1,5 +1,6 @@
 /* eslint global-require: "off" */
 import Debug from 'debug'
+import { Model } from 'sequelize'
 const debug = Debug('impresso/services:SequelizeService')
 import { NotFound } from '@feathersjs/errors'
 // import sequelize from '../sequelize.js'
@@ -29,8 +30,13 @@ export class Service {
     this.sequelize = app.get('sequelizeClient')
     loadDynamicModule(`../models/${this.modelName}.model`)
       .then(m => {
-        this.Model = m.default?.default ?? m.default ?? m
-        this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
+        this.Model = m.default ?? m
+
+        if (this.Model.prototype instanceof Model) {
+          this.sequelizeKlass = this.Model.initialize(this.sequelize)
+        } else {
+          this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
+        }
 
         debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
       })

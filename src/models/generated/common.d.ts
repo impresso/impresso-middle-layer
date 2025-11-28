@@ -337,6 +337,14 @@ export interface MediaConfig {
    */
   path?: string;
   /**
+   * Path to the protected media on Nginx
+   */
+  protectedPath?: string;
+  /**
+   * Folder to store exported media files
+   */
+  exportFolder?: string;
+  /**
    * List of media services
    */
   services?: string[];

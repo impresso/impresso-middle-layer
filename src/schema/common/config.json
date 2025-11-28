@@ -285,6 +285,8 @@
       "properties": {
         "host": { "type": "string", "description": "Host of the media server" },
         "path": { "type": "string", "description": "Path to the media server" },
+        "protectedPath": { "type": "string", "description": "Path to the protected media on Nginx" },
+        "exportFolder": { "type": "string", "description": "Folder to store exported media files" },
         "services": { "type": "array", "items": { "type": "string" }, "description": "List of media services" }
       }
     },
