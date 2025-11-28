@@ -92,7 +92,7 @@ describe('UserSpecialMembershipRequestService', () => {
     it('should return paginated results, only for the specified user', async () => {
       await UserSpecialMembershipRequest.bulkCreate(mockRequests)
       const result = await service.find({ query: { limit: 5, offset: 0 }, user: { id: 15 } })
-      // console.log(result.data[0])
+
       assert.strictEqual(result.data.length, 1)
       assert.strictEqual(result.pagination.total, 1)
       // should have the specialMembershipAccess included

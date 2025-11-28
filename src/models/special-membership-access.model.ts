@@ -24,6 +24,7 @@ export default class SpecialMembershipAccess extends Model<
   // Add this to help TypeScript with associations
   declare requests?: UserSpecialMembershipRequest[]
 
+  // Add the static getter for userModel if needed in future
   // private static get userModel(): ModelStatic<Model> {
   //   return User as unknown as ModelStatic<Model>
   // }

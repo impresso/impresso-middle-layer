@@ -15,7 +15,7 @@ export function initializeModels(sequelize: Sequelize): void {
     if (model.initialize) {
       model.initialize(sequelize)
     } else {
-      throw new Error(`Model ${model} does not have an initialize method`)
+      throw new Error(`Model does not have an initialize method`)
     }
   })
   console.log('Registered models:', Object.keys(sequelize.models))
@@ -27,7 +27,7 @@ export function associateModels(sequelize: Sequelize): void {
     if (model.associate) {
       model.associate()
     } else {
-      throw new Error(`Model ${model} does not have an associate method`)
+      throw new Error(`Model does not have an associate method`)
     }
   })
 }

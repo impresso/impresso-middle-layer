@@ -1,5 +1,4 @@
 import { strict as assert } from 'assert'
-import { Sequelize } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
 import { SpecialMembershipAccessService } from '../../../src/services/special-membership-access/special-membership-access.class'
 import type { ISpecialMembershipAccessAttributes } from '../../../src/models/special-membership-access.model'

@@ -5,7 +5,7 @@ import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import SpecialMembershipAccess from '../../models/special-membership-access.model'
 import { NotFound } from '@feathersjs/errors'
 import UserSpecialMembershipRequest from '../../models/user-special-membership-requests.model'
-import { SlimUser } from '@/authentication'
+import { SlimUser } from '../../authentication'
 
 export interface FindQuery {
   limit?: number

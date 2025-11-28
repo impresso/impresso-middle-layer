@@ -94,7 +94,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
           args: [userRequest.id],
         })
         .catch(err => {
-          console.error('Error sending password reset email:', err)
+          console.error('Error sending after_special_membership_request_created task:', err)
         })
     return userRequest
   }
