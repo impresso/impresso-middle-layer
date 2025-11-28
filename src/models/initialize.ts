@@ -2,19 +2,6 @@ import { Sequelize } from 'sequelize'
 import SpecialMembershipAccess from './special-membership-access.model'
 import UserSpecialMembershipRequest from './user-special-membership-requests.model'
 
-export type FilterContext = 'include' | 'exclude'
-export type FilterOperator = 'AND' | 'OR'
-export type FilterType = string
-export type FilterPrecision = 'exact' | 'partial' | 'fuzzy' | 'soft'
-
-export interface Filter {
-  context?: FilterContext
-  op?: FilterOperator
-  type: FilterType
-  precision?: FilterPrecision
-  q?: string | string[]
-}
-
 export interface IModel {
   initialize: (sequelize: Sequelize) => void
   associate?: () => void

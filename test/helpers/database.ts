@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize'
-import { initializeModels, associateModels } from '../../src/models'
+import { initializeModels, associateModels } from '../../src/models/initialize'
 import { ImpressoApplication } from '../../src/types'
 
 export interface TestDatabase {

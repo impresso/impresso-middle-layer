@@ -6,7 +6,7 @@ import { ImpressoApplication } from './types'
 import { ConnectionOptions } from 'mysql2'
 import SocksConnection from './util/socks'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from './util/socksProxyConfiguration'
-import { associateModels, initializeModels } from './models'
+import { associateModels, initializeModels } from './models/initialize'
 
 const verbose = Debug('verbose:impresso/sequelize')
 const debug = Debug('impresso/sequelize')
