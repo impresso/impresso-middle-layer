@@ -2,14 +2,12 @@ import { strict as assert } from 'assert'
 import { Sequelize } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
 import { SpecialMembershipAccessService } from '../../../src/services/special-membership-access/special-membership-access.class'
-import SpecialMembershipAccess, {
-  ISpecialMembershipAccessAttributes,
-} from '../../../src/models/special-membership-access.model'
-import UserSpecialMembershipRequest, {
-  IUserSpecialMembershipRequestAttributes,
-} from '../../../src/models/user-special-membership-requests.model'
-import type { ImpressoApplication } from '../../../src/types'
+import type { ISpecialMembershipAccessAttributes } from '../../../src/models/special-membership-access.model'
+
 import User from '../../../src/models/users.model'
+import { setupTestDatabase, teardownTestDatabase, TestDatabase } from '../../helpers/database'
+import UserSpecialMembershipRequest from '../../../src/models/user-special-membership-requests.model'
+import SpecialMembershipAccess from '../../../src/models/special-membership-access.model'
 
 const mockUsers = Array.from({ length: 2 }, (_, i) => ({
   uid: `user${i + 1}`,
@@ -27,68 +25,27 @@ const mockData: ISpecialMembershipAccessAttributes[] = Array.from({ length: 32 }
   bitmapPosition: i + 1,
 }))
 
-const mockUserSpecialMembershipRequestsData: IUserSpecialMembershipRequestAttributes[] = [
-  {
-    id: 1,
-    reviewerId: null,
-    userId: 1,
-    specialMembershipAccessId: mockData[0].id,
-    dateCreated: new Date(),
-    dateLastModified: new Date(),
-    status: 'pending',
-    changelog: [],
-  },
-  {
-    id: 2,
-    reviewerId: null,
-    userId: 2,
-    specialMembershipAccessId: mockData[0].id,
-    dateCreated: new Date(),
-    dateLastModified: new Date(),
-    status: 'pending',
-    changelog: [],
-  },
-]
-
 describe('SpecialMembershipAccessService', () => {
+  let db: TestDatabase
   let service: SpecialMembershipAccessService
-  let sequelize: Sequelize
-  let model: ReturnType<typeof SpecialMembershipAccess.initialize>
   let userModel: ReturnType<typeof User.sequelize>
-  let userSpecialMembershipRequestModel: ReturnType<typeof UserSpecialMembershipRequest.initialize>
 
   before(async () => {
-    // Create an in-memory SQLite database for testing
-    sequelize = new Sequelize({
-      dialect: 'sqlite',
-      storage: ':memory:',
-      logging: false,
-    })
-    userModel = User.sequelize(sequelize)
-    model = SpecialMembershipAccess.initialize(sequelize)
-    userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(sequelize)
-
-    // Create a mock application
-    const app = {
-      get: (key: string) => {
-        if (key === 'sequelizeClient') return sequelize
-        return undefined
-      },
-    } as ImpressoApplication
-
-    service = new SpecialMembershipAccessService(app)
-    await sequelize.sync({ force: true })
+    // Setup database once for all tests
+    db = await setupTestDatabase()
+    service = new SpecialMembershipAccessService(db.app)
+    userModel = User.sequelize(db.sequelize)
   })
 
   after(async () => {
-    await sequelize.close()
+    await teardownTestDatabase(db)
   })
 
   beforeEach(async () => {
     // Clear the table before each test
-    await userSpecialMembershipRequestModel.destroy({ where: {}, truncate: true })
+    await UserSpecialMembershipRequest.destroy({ where: {}, truncate: true })
     await userModel.destroy({ where: {}, truncate: true })
-    await model.destroy({ where: {}, truncate: true })
+    await SpecialMembershipAccess.destroy({ where: {}, truncate: true })
   })
 
   describe('find', () => {
@@ -103,7 +60,7 @@ describe('SpecialMembershipAccessService', () => {
     })
     it('should return correctly paginated results for all users', async () => {
       // Insert mock data
-      await model.bulkCreate(mockData)
+      await SpecialMembershipAccess.bulkCreate(mockData)
 
       const limit = 5
       const result = await service.find({ query: { limit, offset: 10 } })
@@ -114,7 +71,6 @@ describe('SpecialMembershipAccessService', () => {
       assert.strictEqual(result.pagination.limit, limit)
       assert.strictEqual(result.pagination.offset, 10)
       // the requests array should be empty
-      console.log('Result data:', result.data)
       result.data.forEach(record => {
         assert.strictEqual(record.requests?.length, undefined)
       })
@@ -122,11 +78,11 @@ describe('SpecialMembershipAccessService', () => {
 
     it('should return the request connected for the given user', async () => {
       // Insert mock data
-      await model.bulkCreate(mockData) // all access records
+      await SpecialMembershipAccess.bulkCreate(mockData) // all access records
       await userModel.create(mockUsers[0] as any) // as ID = 1
       // add a request related to already existing user (foreignKey!)
       // for the very first access record
-      await userSpecialMembershipRequestModel.create({
+      await UserSpecialMembershipRequest.create({
         id: 1,
         reviewerId: null,
         userId: 1,
@@ -153,7 +109,7 @@ describe('SpecialMembershipAccessService', () => {
   describe('get', () => {
     it('should retrieve a record by id', async () => {
       // Create test data
-      const created = await model.create(mockData[0])
+      const created = await SpecialMembershipAccess.create(mockData[0])
 
       const result = await service.get(1)
 
@@ -176,7 +132,7 @@ describe('SpecialMembershipAccessService', () => {
 
     it('should handle string ids', async () => {
       // Create test data
-      await model.create({ id: 42, title: 'Access 42', bitmapPosition: 42 })
+      await SpecialMembershipAccess.create({ id: 42, title: 'Access 42', bitmapPosition: 42 })
       const result = await service.get('42')
       assert.ok(typeof result === 'object')
       assert.strictEqual(result.id, 42)

@@ -19,23 +19,17 @@ export type ISpecialMembershipAccessService = Omit<
 
 export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {
   protected readonly sequelizeClient: Sequelize
-  protected readonly model: ReturnType<typeof SpecialMembershipAccess.initialize>
 
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
-    this.model = SpecialMembershipAccess.initialize(this.sequelizeClient)
-    UserSpecialMembershipRequest.initialize(this.sequelizeClient)
-    SpecialMembershipAccess.associate()
-    UserSpecialMembershipRequest.associate()
   }
 
   async find(params?: { query?: FindQuery; user?: SlimUser }): Promise<FindResult> {
     const { limit = 10, offset = 0 } = params?.query ?? {}
     const userId = params?.user?.id
-    console.log('SpecialMembershipAccessService.find called by userId=', userId)
 
     if (!userId || isNaN(userId)) {
-      const { rows, count: total } = await this.model.findAndCountAll({
+      const { rows, count: total } = await SpecialMembershipAccess.findAndCountAll({
         limit,
         offset,
         // include: ['requests'],
@@ -46,7 +40,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
       }
     }
 
-    const { rows, count: total } = await this.model.findAndCountAll({
+    const { rows, count: total } = await SpecialMembershipAccess.findAndCountAll({
       limit,
       offset,
       include: {
@@ -64,7 +58,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
     }
   }
   async get(id: Id, _params?: Params): Promise<SpecialMembershipAccess> {
-    const record = await this.model.findByPk(id)
+    const record = await SpecialMembershipAccess.findByPk(id)
     if (!record) {
       throw new NotFound(`SpecialMembershipAccess with id ${id} not found`)
     }

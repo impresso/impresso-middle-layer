@@ -1,5 +1,4 @@
 import { strict as assert } from 'assert'
-import { Sequelize } from 'sequelize'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import { UserSpecialMembershipRequestService } from '../../../src/services/user-special-membership-requests/user-special-membership-requests.class'
 import UserSpecialMembershipRequest, {
@@ -7,10 +6,11 @@ import UserSpecialMembershipRequest, {
 } from '../../../src/models/user-special-membership-requests.model'
 
 import User from '../../../src/models/users.model'
-import type { ImpressoApplication } from '../../../src/types'
 import SpecialMembershipAccess, {
   ISpecialMembershipAccessAttributes,
 } from '../../../src/models/special-membership-access.model'
+import type { TestDatabase } from '../../helpers/database'
+import { setupTestDatabase, teardownTestDatabase } from '../../helpers/database'
 
 // --- Mock Test Data -------------------------------------
 
@@ -54,50 +54,27 @@ const mockRequests: IUserSpecialMembershipRequestAttributes[] = Array.from({ len
 // ---------------------------------------------------------
 
 describe('UserSpecialMembershipRequestService', () => {
+  let db: TestDatabase
   let service: UserSpecialMembershipRequestService
-  let sequelize: Sequelize
-
-  let RequestModel: ReturnType<typeof UserSpecialMembershipRequest.initialize>
-  let UserModel: ReturnType<typeof User.sequelize>
-  let SubscriptionModel: ReturnType<typeof SpecialMembershipAccess.initialize>
+  let userModel: ReturnType<typeof User.sequelize>
 
   before(async () => {
-    sequelize = new Sequelize({
-      dialect: 'sqlite',
-      storage: ':memory:',
-      logging: false,
-      define: {
-        timestamps: false,
-      },
-    })
-
-    // Initialize related models FIRST
-    UserModel = User.sequelize(sequelize)
-    SubscriptionModel = SpecialMembershipAccess.initialize(sequelize)
-
-    // Initialize request model LAST (it depends on the others)
-    RequestModel = UserSpecialMembershipRequest.initialize(sequelize)
-
-    await sequelize.sync({ force: true })
-
-    // Mock Feathers app
-    const app = {
-      get: (key: string) => (key === 'sequelizeClient' ? sequelize : undefined),
-    } as ImpressoApplication
-
-    service = new UserSpecialMembershipRequestService(app)
-
+    // Setup database once for all tests
+    db = await setupTestDatabase()
+    service = new UserSpecialMembershipRequestService(db.app)
+    userModel = User.sequelize(db.sequelize)
     // Insert related mock data
-    await SubscriptionModel.bulkCreate(mockSubscriptions)
-    await UserModel.bulkCreate(mockUsers as any)
+    await SpecialMembershipAccess.bulkCreate(mockSubscriptions)
+    await userModel.bulkCreate(mockUsers as any)
+    await UserSpecialMembershipRequest.bulkCreate(mockRequests)
   })
 
   after(async () => {
-    await sequelize.close()
+    await teardownTestDatabase(db)
   })
 
   beforeEach(async () => {
-    await RequestModel.destroy({ where: {}, truncate: true })
+    await UserSpecialMembershipRequest.destroy({ where: {}, truncate: true })
   })
 
   // ---------------------------------------------------------
@@ -113,7 +90,7 @@ describe('UserSpecialMembershipRequestService', () => {
     })
 
     it('should return paginated results, only for the specified user', async () => {
-      await RequestModel.bulkCreate(mockRequests)
+      await UserSpecialMembershipRequest.bulkCreate(mockRequests)
       const result = await service.find({ query: { limit: 5, offset: 0 }, user: { id: 15 } })
       // console.log(result.data[0])
       assert.strictEqual(result.data.length, 1)
@@ -130,7 +107,7 @@ describe('UserSpecialMembershipRequestService', () => {
   // ---------------------------------------------------------
   describe('get', () => {
     it('should retrieve a record by id', async () => {
-      await RequestModel.create(mockRequests[0])
+      await UserSpecialMembershipRequest.create(mockRequests[0])
 
       const result = await service.get(1, { user: { id: 1 } })
       assert.strictEqual(result.id, 1)

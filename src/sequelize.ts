@@ -6,6 +6,7 @@ import { ImpressoApplication } from './types'
 import { ConnectionOptions } from 'mysql2'
 import SocksConnection from './util/socks'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from './util/socksProxyConfiguration'
+import { associateModels, initializeModels } from './models'
 
 const verbose = Debug('verbose:impresso/sequelize')
 const debug = Debug('impresso/sequelize')
@@ -85,7 +86,7 @@ const getSequelizeClient = (config: SequelizeConfig) => {
   return { client }
 }
 
-export default function (app: ImpressoApplication) {
+export default async function (app: ImpressoApplication) {
   const config = app.get('sequelize')
 
   const { client } = getSequelizeClient(config)
@@ -93,7 +94,7 @@ export default function (app: ImpressoApplication) {
   debug(`Sequelize ${config.dialect} database name: ${config.database} ..`)
   // const oldSetup = app.setup;
   // test connection
-  client
+  await client
     .authenticate()
     .then(() => {
       logger.info(
@@ -104,6 +105,16 @@ export default function (app: ImpressoApplication) {
       logger.error(`Unable to connect to the ${config.dialect}: ${config.database}: ${err}`)
       throw err
     })
+
+  // Initialize all models
+  initializeModels(client)
+  logger.info('All models initialized successfully')
+
+  // Set up associations
+  associateModels(client)
+  logger.info('All model associations set up successfully')
+  // # initialize models here, only when initialize does not contain any association
+  // to be improved later
 
   app.set('sequelizeClient', client)
 }

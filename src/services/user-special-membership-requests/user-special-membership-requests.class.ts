@@ -32,8 +32,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.celeryClient = app.get('celeryClient') as CeleryClient
-    this.model = UserSpecialMembershipRequest.initialize(this.sequelizeClient)
-    UserSpecialMembershipRequest.associate()
+    this.model = UserSpecialMembershipRequest
     this.name = 'user-special-membership-requests'
   }
 
@@ -88,14 +87,15 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       ],
       specialMembershipAccessId: specialMembershipAccess.id,
     })
-    this.celeryClient
-      .run({
-        task: 'impresso.tasks.after_special_membership_request_created',
-        args: [userRequest.id],
-      })
-      .catch(err => {
-        console.error('Error sending password reset email:', err)
-      })
+    if (this.celeryClient)
+      this.celeryClient
+        .run({
+          task: 'impresso.tasks.after_special_membership_request_created',
+          args: [userRequest.id],
+        })
+        .catch(err => {
+          console.error('Error sending password reset email:', err)
+        })
     return userRequest
   }
 
