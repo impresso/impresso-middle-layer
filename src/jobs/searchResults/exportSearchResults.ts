@@ -339,9 +339,11 @@ export const createJobHandler = (app: ImpressoApplication) => {
 
       // otherwise, mark the job as done and report
       logger.info(`✅ Export job ${job.id} ${job.name} completed for export ${exportId} for user ${userId}`)
+
+      const AttachmentDbModel = Attachment.initialize(sequelize)
       await jobRecord.update({
         status: 'DON',
-        attachment: new Attachment({
+        attachment: new AttachmentDbModel({
           path: zipFileName,
         }),
       })
