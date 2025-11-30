@@ -73,7 +73,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
         .then((item: Job) => {
           res.locals.item = item
           debug(`[${req.params.service}:${req.params.id}]  ${req.params.service}.get success, check attachments...`)
-          if (!item.attachment) {
+          if (!item?.attachment) {
             throw new NotFound()
           }
           next()
