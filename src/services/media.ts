@@ -3,8 +3,8 @@ import type { Application as ExpressApplication } from '@feathersjs/express'
 import debugModule from 'debug'
 import { NextFunction, Request, Response } from 'express'
 
-import Job from '@/models/jobs.model'
-import User from '@/models/users.model'
+import Job from '../models/jobs.model'
+import User from '../models/users.model'
 
 import { ImpressoApplication } from '../types'
 

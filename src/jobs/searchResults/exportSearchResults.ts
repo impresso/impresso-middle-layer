@@ -1,5 +1,5 @@
-import Attachment from '@/models/attachments.model'
-import { PublicFindResponse } from '@/models/common'
+import Attachment from '../../models/attachments.model'
+import { PublicFindResponse } from '../../models/common'
 import { Job } from 'bullmq'
 import { createHash } from 'crypto'
 import { stringify } from 'csv-stringify/sync'

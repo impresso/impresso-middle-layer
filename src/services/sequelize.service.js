@@ -30,15 +30,26 @@ export class Service {
     this.sequelize = app.get('sequelizeClient')
     loadDynamicModule(`../models/${this.modelName}.model`)
       .then(m => {
-        this.Model = m.default ?? m
+        let isConfigured = false
+        for (const modelCandidate of [m.default?.default, m.default, m]) {
+          if (isConfigured) break
+          if (!modelCandidate) continue
 
-        if (this.Model.prototype instanceof Model) {
-          this.sequelizeKlass = this.Model.initialize(this.sequelize)
-        } else {
-          this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
+          this.Model = modelCandidate
+
+          if (this.Model.prototype instanceof Model) {
+            this.sequelizeKlass = this.Model.initialize(this.sequelize)
+            debug(`Configuring new style Sequelize service: ${this.name} (model:${this.modelName}) success!`)
+            isConfigured = true
+          } else if (typeof this.Model.sequelize === 'function') {
+            this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
+            debug(`Configuring old style Sequelize service: ${this.name} (model:${this.modelName}) success!`)
+            isConfigured = true
+          }
         }
-
-        debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
+        if (!isConfigured) {
+          throw new Error(`Sequelize Model not found in import: ${this.modelName}`)
+        }
       })
       .catch(err => {
         throw new Error(`Sequelize Model not found in import: ${this.modelName}: ${err.message}`, err)
