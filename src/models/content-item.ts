@@ -58,6 +58,11 @@ interface IWildcardTextFields {
 }
 
 const WildcardTextFields = ['title_txt_*', 'content_txt_*'] satisfies (keyof IWildcardTextFields)[]
+const NonWildcardTextFields = ['title_txt', 'content_txt'] satisfies (keyof Pick<
+  TextContentFields,
+  'content_txt' | 'title_txt'
+>)[]
+export const ContentTextFields = [...NonWildcardTextFields, ...WildcardTextFields]
 
 const ContentItemTextFields = [
   'lg_s',

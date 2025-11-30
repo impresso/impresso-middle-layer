@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize'
 // import SearchQuery from './searchQueries.model';
 
-class Attachment {
+export class Attachment {
   constructor({ id = 0, path = '', createdDate = new Date(), lastModifiedDate = new Date() } = {}) {
     this.id = parseInt(id, 10)
     this.path = path
