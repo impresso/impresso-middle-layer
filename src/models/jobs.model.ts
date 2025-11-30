@@ -1,8 +1,8 @@
 import type { ModelStatic, Sequelize } from 'sequelize'
 import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize'
 
-import User from './users.model.js'
-import Attachment from './attachments.model.js'
+import User from './users.model'
+import Attachment from './attachments.model'
 
 export type JobType = 'BCQ' | 'DCO' | 'IDX' | 'EXP' | 'EXC'
 
