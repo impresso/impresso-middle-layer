@@ -48,13 +48,9 @@ export class Service {
     // } else {
     //   where.creatorId = params.user.id
     // }
-    return measureTime(() => this.sequelizeService
+    this.sequelizeService
       .get(id, { where })
-      .then(job => {
-        return job.toJSON()
-      }),
-      'jobs.get.db.get'
-    )
+      .then(job => job.toJSON())
   }
 
   async create(data, params) {
