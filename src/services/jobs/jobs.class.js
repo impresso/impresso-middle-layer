@@ -48,7 +48,7 @@ export class Service {
     // } else {
     //   where.creatorId = params.user.id
     // }
-    this.sequelizeService
+    return this.sequelizeService
       .get(id, { where })
       .then(job => job.toJSON())
   }
