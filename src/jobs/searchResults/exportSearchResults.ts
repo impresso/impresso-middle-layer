@@ -343,9 +343,10 @@ export const createJobHandler = (app: ImpressoApplication) => {
       const AttachmentDbModel = Attachment.initialize(sequelize)
       await jobRecord.update({
         status: 'DON',
-        attachment: new AttachmentDbModel({
-          path: zipFileName,
-        }),
+      })
+      await AttachmentDbModel.create({
+        id: jobRecord.id,
+        path: zipFileName,
       })
       await publishProgressUpdate(app.service('logs'), userUid, exportId, progressInPercent, jobRecord)
     }

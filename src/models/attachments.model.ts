@@ -36,17 +36,14 @@ export default class Attachment extends Model<InferAttributes<Attachment>, Infer
     }
   }
 
-  private static get jobModel(): ModelStatic<Model> {
-    return Job as unknown as ModelStatic<Model>
-  }
-
   static initialize(sequelize: Sequelize) {
-    return Attachment.init(
+    const initializedModel = Attachment.init(
       {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
+          field: 'job_id',
           unique: true,
         },
         path: {
@@ -63,16 +60,6 @@ export default class Attachment extends Model<InferAttributes<Attachment>, Infer
           field: 'date_last_modified',
           defaultValue: DataTypes.NOW,
         },
-        jobId: {
-          type: DataTypes.INTEGER,
-          field: 'job_id',
-          references: {
-            model: this.jobModel,
-            key: 'id',
-          },
-          onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
-        },
       },
       {
         sequelize,
@@ -82,15 +69,7 @@ export default class Attachment extends Model<InferAttributes<Attachment>, Infer
         timestamps: false,
       }
     )
-  }
 
-  static associate() {
-    Attachment.belongsTo(this.jobModel, {
-      as: 'job',
-      foreignKey: 'job_id',
-      targetKey: 'id',
-      onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
-    })
+    return initializedModel
   }
 }

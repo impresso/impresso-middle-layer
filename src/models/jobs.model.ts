@@ -65,16 +65,11 @@ export default class Job extends Model<InferAttributes<Job>, InferCreationAttrib
     }
   }
 
-  private static get userModel(): ModelStatic<Model> {
-    return User as unknown as ModelStatic<Model>
-  }
-
-  private static get attachmentModel(): ModelStatic<Model> {
-    return Attachment as unknown as ModelStatic<Model>
-  }
-
   static initialize(sequelize: Sequelize) {
-    return Job.init(
+    const userModel = User.sequelize(sequelize)
+    const attachmentModel = Attachment.initialize(sequelize)
+
+    const initializedJobModel = Job.init(
       {
         id: {
           type: DataTypes.INTEGER,
@@ -124,7 +119,7 @@ export default class Job extends Model<InferAttributes<Job>, InferCreationAttrib
           allowNull: false,
           field: 'creator_id',
           references: {
-            model: this.userModel,
+            model: userModel,
             key: 'id',
           },
           onDelete: 'CASCADE',
@@ -137,12 +132,22 @@ export default class Job extends Model<InferAttributes<Job>, InferCreationAttrib
         modelName: 'Job',
         underscored: true,
         timestamps: false,
+        defaultScope: {
+          include: [
+            {
+              model: userModel,
+              as: 'creator',
+            },
+            {
+              model: attachmentModel,
+              as: 'attachment',
+            },
+          ],
+        },
       }
     )
-  }
 
-  static associate() {
-    Job.belongsTo(this.userModel, {
+    initializedJobModel.belongsTo(userModel, {
       as: 'creator',
       foreignKey: 'creator_id',
       targetKey: 'id',
@@ -150,10 +155,13 @@ export default class Job extends Model<InferAttributes<Job>, InferCreationAttrib
       onUpdate: 'CASCADE',
     })
 
-    Job.hasOne(this.attachmentModel, {
+    initializedJobModel.hasOne(attachmentModel, {
       as: 'attachment',
       foreignKey: 'job_id',
       onDelete: 'CASCADE',
+      constraints: false,
     })
+
+    return initializedJobModel
   }
 }
