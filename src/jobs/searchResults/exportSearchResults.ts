@@ -1,4 +1,4 @@
-import Attachment from '@/models/attachments.model'
+import Attachment from '@/models/attachments.model.js'
 import { PublicFindResponse } from '@/models/common'
 import { Job } from 'bullmq'
 import { createHash } from 'crypto'
