@@ -1,4 +1,4 @@
-import { createApp } from './app'
+import app from './app'
 import { logger } from './logger'
 
 process.on('unhandledRejection', (error: Error) => {
@@ -10,7 +10,6 @@ process.on('uncaughtException', (err: Error) => {
 
 const start = async () => {
   // Wait for app to be fully configured
-  const app = await createApp()
   const [host = 'localhost', port = 8080] = [app.get('host'), app.get('port')]
 
   const server = await app

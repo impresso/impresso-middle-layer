@@ -17,7 +17,7 @@ import swagger from './middleware/swagger'
 import transport from './middleware/transport'
 import multer from './multer'
 import redis, { init as initRedis } from './redis'
-import sequelize from './sequelize'
+import sequelize, { init as initSequelize } from './sequelize'
 import services from './services'
 import rateLimiter from './services/internal/rateLimiter/redis'
 import quotaChecker from './services/internal/quotaChecker/redis'
@@ -34,70 +34,70 @@ import cookieParser from 'cookie-parser'
 
 const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
 
-export const createApp = async () => {
-  // Load app configuration
-  app.configure(configuration)
+// Load app configuration
+app.configure(configuration)
 
-  await sequelize(app)
-  // configure internal services
-  app.configure(redis)
-  app.configure(rateLimiter)
-  app.configure(quotaChecker)
-  app.configure(cache)
-  app.configure(simpleSolrClient)
+app.configure(sequelize)
 
-  // Enable security, compression, favicon and body parsing
-  app.use(helmet())
-  app.use(compress())
-  app.use(cookieParser())
-  app.use(customJsonMiddleware()) // JSON body parser / serializer
+// configure internal services
+app.configure(redis)
+app.configure(rateLimiter)
+app.configure(quotaChecker)
+app.configure(cache)
+app.configure(simpleSolrClient)
 
-  // configure local multer service.
-  app.configure(multer)
+// Enable security, compression, favicon and body parsing
+app.use(helmet())
+app.use(compress())
+app.use(cookieParser())
+app.use(customJsonMiddleware()) // JSON body parser / serializer
 
-  // Host the public folder
-  app.use('/', staticMiddleware(path.join(__dirname, app.get('public') as string)))
+// configure local multer service.
+app.configure(multer)
 
-  // Configure other middleware (see `middleware/index.js`)
-  app.configure(middleware)
+// Host the public folder
+app.use('/', staticMiddleware(path.join(__dirname, app.get('public') as string)))
 
-  // configure express services
-  app.configure(media)
-  app.configure(imageProxy)
-  app.configure(schemas)
+// Configure other middleware (see `middleware/index.js`)
+app.configure(middleware)
 
-  // Enable Swagger and API validator if needed
-  app.configure(swagger)
-  app.configure(openApiValidator)
+// configure express services
+app.configure(media)
+app.configure(imageProxy)
+app.configure(schemas)
 
-  // Configure transport (Rest, socket.io)
-  // NOTE: This must be done **before** registering feathers services
-  // but **after** all express middleware is configured.
-  // Registering an express middleware after this point will have no effect.
-  app.configure(transport)
+// Enable Swagger and API validator if needed
+app.configure(swagger)
+app.configure(openApiValidator)
 
-  // Set up our services (see `services/index.ts`)
-  app.configure(authentication)
+// Configure transport (Rest, socket.io)
+// NOTE: This must be done **before** registering feathers services
+// but **after** all express middleware is configured.
+// Registering an express middleware after this point will have no effect.
+app.configure(transport)
 
-  // configure celery client task manage if celery config is available
-  app.configure(celery)
-  // queue manager (to replace celery eventually)
-  app.configure(queue)
-  app.configure(queueWorkerManager)
+// Set up our services (see `services/index.ts`)
+app.configure(authentication)
 
-  app.configure(services)
+// configure celery client task manage if celery config is available
+app.configure(celery)
+// queue manager (to replace celery eventually)
+app.configure(queue)
+app.configure(queueWorkerManager)
 
-  app.configure(
-    appHooksFactory([initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs], [])
+app.configure(services)
+
+app.configure(
+  appHooksFactory(
+    [initSequelize, initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs],
+    []
   )
+)
 
-  // part of sockets.io (see transport), but must go after services are defined
-  // because one of the services is used in the channels.
-  app.configure(channels)
+// part of sockets.io (see transport), but must go after services are defined
+// because one of the services is used in the channels.
+app.configure(channels)
 
-  app.configure(errorHandling)
-
-  return app
-}
+app.configure(errorHandling)
 
 export default app

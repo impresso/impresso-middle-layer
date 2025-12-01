@@ -2,7 +2,7 @@ import { Op, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '../../models/common'
 import type { ImpressoApplication } from '../../types'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import UserSpecialMembershipRequest from '../../models/user-special-membership-requests.model'
+import UserSpecialMembershipRequestModel from '../../models/user-special-membership-requests.model'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '../../authentication'
 import SpecialMembershipAccess from '../../models/special-membership-access.model'
@@ -18,21 +18,24 @@ export interface UserSpecialMembershipRequestParams<Q = FindQuery> extends Param
   }
 }
 
-export type FindResult = FindResponse<UserSpecialMembershipRequest>
+export type FindResult = FindResponse<UserSpecialMembershipRequestModel>
 export type IUserSpecialMembershipRequestService = Omit<
-  ClientService<UserSpecialMembershipRequest, any, any, FindResponse<UserSpecialMembershipRequest>>,
+  ClientService<UserSpecialMembershipRequestModel, any, any, FindResponse<UserSpecialMembershipRequestModel>>,
   'create' | 'patch' | 'remove' | 'update'
 >
 
 export class UserSpecialMembershipRequestService implements IUserSpecialMembershipRequestService {
   protected readonly sequelizeClient: Sequelize
   protected readonly celeryClient: CeleryClient
-  protected readonly model: ReturnType<typeof UserSpecialMembershipRequest.initialize>
+  protected readonly requestModel: ReturnType<typeof UserSpecialMembershipRequestModel.initialize>
+  protected readonly accessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
   public readonly name: string
+
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.celeryClient = app.get('celeryClient') as CeleryClient
-    this.model = UserSpecialMembershipRequest
+    this.requestModel = UserSpecialMembershipRequestModel.initialize(this.sequelizeClient)
+    this.accessModel = SpecialMembershipAccess.initialize(this.sequelizeClient)
     this.name = 'user-special-membership-requests'
   }
 
@@ -44,7 +47,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       return { data: [], pagination: { limit, offset, total: 0 } }
     }
 
-    const { rows, count: total } = await this.model.findAndCountAll({
+    const { rows, count: total } = await this.requestModel.findAndCountAll({
       limit,
       offset,
       where: { userId },
@@ -54,23 +57,23 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
 
     return {
       pagination: { limit, offset, total },
-      data: rows.map(row => row.toJSON() as UserSpecialMembershipRequest),
+      data: rows.map(row => row.toJSON() as UserSpecialMembershipRequestModel),
     }
   }
 
   async create(
-    data: Partial<UserSpecialMembershipRequest> & { notes: string },
+    data: Partial<UserSpecialMembershipRequestModel> & { notes: string },
     params: { user: Partial<SlimUser> }
-  ): Promise<UserSpecialMembershipRequest> {
+  ): Promise<UserSpecialMembershipRequestModel> {
     if (!data.specialMembershipAccessId) {
       throw new BadRequest('specialMembershipAccessId is required')
     }
     const now = new Date()
-    const specialMembershipAccess = await SpecialMembershipAccess.findByPk(data.specialMembershipAccessId!)
+    const specialMembershipAccess = await this.accessModel.findByPk(data.specialMembershipAccessId!)
     if (!specialMembershipAccess) {
       throw new NotFound(`SpecialMembershipAccess with id ${data.specialMembershipAccessId} not found`)
     }
-    const userRequest = await this.model.create({
+    const userRequest = await this.requestModel.create({
       userId: params.user.id!,
       reviewerId: null,
       status: 'pending',
@@ -99,12 +102,12 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     return userRequest
   }
 
-  async get(id: Id, params?: UserSpecialMembershipRequestParams): Promise<UserSpecialMembershipRequest> {
+  async get(id: Id, params?: UserSpecialMembershipRequestParams): Promise<UserSpecialMembershipRequestModel> {
     const userId = params?.user?.id
     if (userId == null) {
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
     }
-    const record = await this.model.findOne({
+    const record = await this.requestModel.findOne({
       where: {
         [Op.and]: [{ id }, { userId }],
       },

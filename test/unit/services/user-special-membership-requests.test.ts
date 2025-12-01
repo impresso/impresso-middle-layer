@@ -57,16 +57,18 @@ describe('UserSpecialMembershipRequestService', () => {
   let db: TestDatabase
   let service: UserSpecialMembershipRequestService
   let userModel: ReturnType<typeof User.sequelize>
+  let specialMembershipAccessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
+  let userSpecialMembershipRequestModel: ReturnType<typeof UserSpecialMembershipRequest.initialize>
 
   before(async () => {
     // Setup database once for all tests
-    db = await setupTestDatabase()
-    service = new UserSpecialMembershipRequestService(db.app)
+    db = setupTestDatabase()
     userModel = User.sequelize(db.sequelize)
-    // Insert related mock data
-    await SpecialMembershipAccess.bulkCreate(mockSubscriptions)
-    await userModel.bulkCreate(mockUsers as any)
-    await UserSpecialMembershipRequest.bulkCreate(mockRequests)
+    specialMembershipAccessModel = SpecialMembershipAccess.initialize(db.sequelize)
+    userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(db.sequelize)
+    await db.sequelize.sync({ force: true })
+
+    service = new UserSpecialMembershipRequestService(db.app)
   })
 
   after(async () => {
@@ -74,7 +76,12 @@ describe('UserSpecialMembershipRequestService', () => {
   })
 
   beforeEach(async () => {
-    await UserSpecialMembershipRequest.destroy({ where: {}, truncate: true })
+    // Clear the tables before each test
+    await db.sequelize.truncate({ cascade: true })
+    // Insert related mock data
+    await userModel.bulkCreate(mockUsers as any)
+    await specialMembershipAccessModel.bulkCreate(mockSubscriptions)
+    await userSpecialMembershipRequestModel.bulkCreate(mockRequests)
   })
 
   // ---------------------------------------------------------
@@ -90,7 +97,6 @@ describe('UserSpecialMembershipRequestService', () => {
     })
 
     it('should return paginated results, only for the specified user', async () => {
-      await UserSpecialMembershipRequest.bulkCreate(mockRequests)
       const result = await service.find({ query: { limit: 5, offset: 0 }, user: { id: 15 } })
 
       assert.strictEqual(result.data.length, 1)
@@ -107,8 +113,6 @@ describe('UserSpecialMembershipRequestService', () => {
   // ---------------------------------------------------------
   describe('get', () => {
     it('should retrieve a record by id', async () => {
-      await UserSpecialMembershipRequest.create(mockRequests[0])
-
       const result = await service.get(1, { user: { id: 1 } })
       assert.strictEqual(result.id, 1)
     })

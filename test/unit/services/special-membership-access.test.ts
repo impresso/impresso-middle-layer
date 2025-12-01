@@ -28,12 +28,17 @@ describe('SpecialMembershipAccessService', () => {
   let db: TestDatabase
   let service: SpecialMembershipAccessService
   let userModel: ReturnType<typeof User.sequelize>
+  let specialMembershipAccessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
+  let userSpecialMembershipRequestModel: ReturnType<typeof UserSpecialMembershipRequest.initialize>
 
   before(async () => {
     // Setup database once for all tests
-    db = await setupTestDatabase()
-    service = new SpecialMembershipAccessService(db.app)
+    db = setupTestDatabase()
     userModel = User.sequelize(db.sequelize)
+    specialMembershipAccessModel = SpecialMembershipAccess.initialize(db.sequelize)
+    userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(db.sequelize)
+    await db.sequelize.sync({ force: true })
+    service = new SpecialMembershipAccessService(db.app)
   })
 
   after(async () => {
@@ -41,10 +46,8 @@ describe('SpecialMembershipAccessService', () => {
   })
 
   beforeEach(async () => {
-    // Clear the table before each test
-    await UserSpecialMembershipRequest.destroy({ where: {}, truncate: true })
-    await userModel.destroy({ where: {}, truncate: true })
-    await SpecialMembershipAccess.destroy({ where: {}, truncate: true })
+    // Clear the tables before each test
+    await db.sequelize.truncate({ cascade: true })
   })
 
   describe('find', () => {

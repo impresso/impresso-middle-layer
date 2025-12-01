@@ -6,7 +6,8 @@ import { ImpressoApplication } from './types'
 import { ConnectionOptions } from 'mysql2'
 import SocksConnection from './util/socks'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from './util/socksProxyConfiguration'
-import { associateModels, initializeModels } from './models/initialize'
+import { HookContext, NextFunction } from '@feathersjs/hooks'
+import { Application } from '@feathersjs/feathers'
 
 const verbose = Debug('verbose:impresso/sequelize')
 const debug = Debug('impresso/sequelize')
@@ -92,6 +93,14 @@ export default async function (app: ImpressoApplication) {
   const { client } = getSequelizeClient(config)
 
   debug(`Sequelize ${config.dialect} database name: ${config.database} ..`)
+
+  app.set('sequelizeClient', client)
+}
+
+export const init = async (context: HookContext<ImpressoApplication & Application>, next: NextFunction) => {
+  const client = context.app.get('sequelizeClient')!
+  const config = context.app.get('sequelize')
+
   // const oldSetup = app.setup;
   // test connection
   await client
@@ -101,20 +110,10 @@ export default async function (app: ImpressoApplication) {
         `DB connection has been established successfully to a "${config.dialect}" database: ${config.database} on ${config.host}:${config.port}`
       )
     })
-    .catch(err => {
+    .catch((err: Error) => {
       logger.error(`Unable to connect to the ${config.dialect}: ${config.database}: ${err}`)
       throw err
     })
 
-  // Initialize all models
-  initializeModels(client)
-  logger.info('All models initialized successfully')
-
-  // Set up associations
-  associateModels(client)
-  logger.info('All model associations set up successfully')
-  // # initialize models here, only when initialize does not contain any association
-  // to be improved later
-
-  app.set('sequelizeClient', client)
+  await next()
 }

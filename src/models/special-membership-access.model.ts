@@ -1,4 +1,4 @@
-import type { ModelStatic, Sequelize } from 'sequelize'
+import type { Sequelize } from 'sequelize'
 import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize'
 
 import User from './users.model'
@@ -23,15 +23,6 @@ export default class SpecialMembershipAccess extends Model<
   declare metadata: object | null
   // Add this to help TypeScript with associations
   declare requests?: UserSpecialMembershipRequest[]
-
-  // Add the static getter for userModel if needed in future
-  // private static get userModel(): ModelStatic<Model> {
-  //   return User as unknown as ModelStatic<Model>
-  // }
-
-  private static get userSpecialMembershipRequestModel(): ModelStatic<Model> {
-    return UserSpecialMembershipRequest as unknown as ModelStatic<Model>
-  }
 
   static initialize(sequelize: Sequelize) {
     const model = SpecialMembershipAccess.init(
@@ -68,14 +59,13 @@ export default class SpecialMembershipAccess extends Model<
       }
     )
 
-    return model
-  }
+    const userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(sequelize)
 
-  static associate() {
-    // define association here
-    SpecialMembershipAccess.hasMany(this.userSpecialMembershipRequestModel, {
+    model.hasMany(userSpecialMembershipRequestModel, {
       foreignKey: 'specialMembershipAccessId',
       as: 'requests',
     })
+
+    return model
   }
 }

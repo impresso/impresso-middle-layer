@@ -28,9 +28,9 @@ export interface IUserSpecialMembershipRequestAttributes {
   changelog: ChangelogEntry[]
 }
 
-export default class UserSpecialMembershipRequest extends Model<
-  InferAttributes<UserSpecialMembershipRequest>,
-  InferCreationAttributes<UserSpecialMembershipRequest>
+export default class userSpecialMembershipRequestModel extends Model<
+  InferAttributes<userSpecialMembershipRequestModel>,
+  InferCreationAttributes<userSpecialMembershipRequestModel>
 > {
   declare id: CreationOptional<number>
   declare reviewerId: ForeignKey<User['id']> | null
@@ -42,16 +42,8 @@ export default class UserSpecialMembershipRequest extends Model<
   declare changelog: ChangelogEntry[]
   declare specialMembershipAccess?: SpecialMembershipAccess
 
-  private static get userModel(): ModelStatic<Model> {
-    return User as unknown as ModelStatic<Model>
-  }
-
-  private static get specialMembershipAccessModel(): ModelStatic<Model> {
-    return SpecialMembershipAccess as unknown as ModelStatic<Model>
-  }
-
   static initialize(sequelize: Sequelize) {
-    const model = UserSpecialMembershipRequest.init(
+    const model = userSpecialMembershipRequestModel.init(
       {
         id: {
           type: DataTypes.INTEGER,
@@ -100,23 +92,24 @@ export default class UserSpecialMembershipRequest extends Model<
       }
     )
 
+    const userModel = User.sequelize(sequelize)
+
     // Associations here because User is not yet defined ad Sequelize 6 Model
-    model.belongsTo(User.sequelize(sequelize), {
+    model.belongsTo(userModel, {
       foreignKey: 'reviewerId',
       as: 'reviewer',
     })
 
-    model.belongsTo(User.sequelize(sequelize), {
+    model.belongsTo(userModel, {
       foreignKey: 'userId',
       as: 'subscriber',
     })
-    return model
-  }
 
-  static associate() {
-    UserSpecialMembershipRequest.belongsTo(this.specialMembershipAccessModel, {
+    userSpecialMembershipRequestModel.belongsTo(SpecialMembershipAccess, {
       foreignKey: 'specialMembershipAccessId',
       as: 'specialMembershipAccess',
     })
+
+    return model
   }
 }

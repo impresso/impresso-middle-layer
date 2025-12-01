@@ -4,7 +4,7 @@ import type { ImpressoApplication } from '../../types'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import SpecialMembershipAccess from '../../models/special-membership-access.model'
 import { NotFound } from '@feathersjs/errors'
-import UserSpecialMembershipRequest from '../../models/user-special-membership-requests.model'
+import UserSpecialMembershipRequestModel from '../../models/user-special-membership-requests.model'
 import { SlimUser } from '../../authentication'
 
 export interface FindQuery {
@@ -19,9 +19,11 @@ export type ISpecialMembershipAccessService = Omit<
 
 export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {
   protected readonly sequelizeClient: Sequelize
+  protected readonly accessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
 
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
+    this.accessModel = SpecialMembershipAccess.initialize(this.sequelizeClient)
   }
 
   async find(params?: { query?: FindQuery; user?: SlimUser }): Promise<FindResult> {
@@ -29,7 +31,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
     const userId = params?.user?.id
 
     if (!userId || isNaN(userId)) {
-      const { rows, count: total } = await SpecialMembershipAccess.findAndCountAll({
+      const { rows, count: total } = await this.accessModel.findAndCountAll({
         limit,
         offset,
         // include: ['requests'],
@@ -40,11 +42,11 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
       }
     }
 
-    const { rows, count: total } = await SpecialMembershipAccess.findAndCountAll({
+    const { rows, count: total } = await this.accessModel.findAndCountAll({
       limit,
       offset,
       include: {
-        model: UserSpecialMembershipRequest,
+        model: UserSpecialMembershipRequestModel,
         as: 'requests',
         required: false,
         where: {
@@ -58,7 +60,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
     }
   }
   async get(id: Id, _params?: Params): Promise<SpecialMembershipAccess> {
-    const record = await SpecialMembershipAccess.findByPk(id)
+    const record = await this.accessModel.findByPk(id)
     if (!record) {
       throw new NotFound(`SpecialMembershipAccess with id ${id} not found`)
     }

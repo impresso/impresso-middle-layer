@@ -1,19 +1,15 @@
 import { Sequelize } from 'sequelize'
-import { initializeModels, associateModels } from '../../src/models/initialize'
 import { ImpressoApplication } from '../../src/types'
 
 export interface TestDatabase {
   sequelize: Sequelize
   app: ImpressoApplication
-  models: typeof Sequelize.prototype.models
 }
 
 /**
  * Creates an in-memory SQLite database for testing
  */
-export async function setupTestDatabase(options?: {
-  logging?: boolean | ((sql: string) => void)
-}): Promise<TestDatabase> {
+export function setupTestDatabase(options?: { logging?: boolean | ((sql: string) => void) }): TestDatabase {
   const sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: ':memory:',
@@ -22,12 +18,6 @@ export async function setupTestDatabase(options?: {
       timestamps: false,
     },
   })
-  // Initialize models
-  initializeModels(sequelize)
-  // Create tables
-  await sequelize.sync({ force: true })
-  // Set up associations
-  associateModels(sequelize)
   // Mock Feathers app
   const app = {
     get: (key: string) => (key === 'sequelizeClient' ? sequelize : undefined),
@@ -36,7 +26,6 @@ export async function setupTestDatabase(options?: {
   return {
     sequelize,
     app,
-    models: sequelize.models,
   }
 }
 
