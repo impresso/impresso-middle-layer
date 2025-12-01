@@ -28,12 +28,10 @@ export default class UserCollection extends Model<
   declare creationDate: CreationOptional<Date>
   declare lastModifiedDate: CreationOptional<Date>
 
-  private static get userModel(): ModelStatic<Model> {
-    return User as unknown as ModelStatic<Model>
-  }
-
   static initialize(sequelize: Sequelize) {
-    return UserCollection.init(
+    const userModel = User.sequelize(sequelize)
+
+    const userCollectionModel = UserCollection.init(
       {
         id: {
           type: DataTypes.STRING(50),
@@ -45,7 +43,7 @@ export default class UserCollection extends Model<
           allowNull: false,
           field: 'creator_id',
           references: {
-            model: this.userModel,
+            model: userModel,
             key: 'id',
           },
           onDelete: 'CASCADE',
@@ -83,15 +81,15 @@ export default class UserCollection extends Model<
         timestamps: false,
       }
     )
-  }
 
-  static associate() {
-    UserCollection.belongsTo(this.userModel, {
+    userCollectionModel.belongsTo(userModel, {
       as: 'creator',
       foreignKey: 'creator_id',
       targetKey: 'id',
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
     })
+
+    return userCollectionModel
   }
 }

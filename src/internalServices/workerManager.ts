@@ -224,7 +224,6 @@ export default (app: ImpressoApplication) => {
       [JobNameRemoveAllCollectionItems, removeAllCollectionItemsJobHandler(app), 1],
       [JobNameAddQueryResultItemsToCollection, createAddQueryResultItemsToCollectionJobHandler(app), 1],
       [JobNameExportSearchResults, exportSearchResultsJobHandler(app), 1],
-      [JobNameMigrateOldCollections, createMigrateOldCollectionsJobHandler(app), 1],
     ]
 
     const workerManagerService = createWorkerManagerService(app, workerDefinitions)

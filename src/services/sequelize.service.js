@@ -1,5 +1,6 @@
 /* eslint global-require: "off" */
 import Debug from 'debug'
+import { Model } from 'sequelize'
 const debug = Debug('impresso/services:SequelizeService')
 import { NotFound } from '@feathersjs/errors'
 // import sequelize from '../sequelize.js'
@@ -29,10 +30,26 @@ export class Service {
     this.sequelize = app.get('sequelizeClient')
     loadDynamicModule(`../models/${this.modelName}.model`)
       .then(m => {
-        this.Model = m.default?.default ?? m.default ?? m
-        this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
+        let isConfigured = false
+        for (const modelCandidate of [m.default?.default, m.default, m]) {
+          if (isConfigured) break
+          if (!modelCandidate) continue
 
-        debug(`Configuring service: ${this.name} (model:${this.modelName}) success!`)
+          this.Model = modelCandidate
+
+          if (this.Model.prototype instanceof Model) {
+            this.sequelizeKlass = this.Model.initialize(this.sequelize)
+            debug(`Configuring new style Sequelize service: ${this.name} (model:${this.modelName}) success!`)
+            isConfigured = true
+          } else if (typeof this.Model.sequelize === 'function') {
+            this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
+            debug(`Configuring old style Sequelize service: ${this.name} (model:${this.modelName}) success!`)
+            isConfigured = true
+          }
+        }
+        if (!isConfigured) {
+          throw new Error(`Sequelize Model not found in import: ${this.modelName}`)
+        }
       })
       .catch(err => {
         throw new Error(`Sequelize Model not found in import: ${this.modelName}: ${err.message}`, err)

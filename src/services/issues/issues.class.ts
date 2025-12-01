@@ -9,7 +9,7 @@ import { findAllRequestAdapter, findRequestAdapter } from '../../util/solr/adapt
 import { NotFound } from '@feathersjs/errors'
 import Page from '../../models/pages.model'
 import { measureTime } from '../../util/instruments'
-import { FindOptions } from '../content-items/content-items.class'
+import { FindParams } from '../content-items/content-items.class'
 
 const CoversQuery = `
 SELECT id as uid,
@@ -85,7 +85,7 @@ export class IssueService implements IIssueService {
     )
   }
 
-  async find(params: FindOptions): Promise<FindResponse<NewspaperIssue>> {
+  async find(params: FindParams): Promise<FindResponse<NewspaperIssue>> {
     // load covers using content items and matching issues  ids
     const request = findRequestAdapter({
       ...params,

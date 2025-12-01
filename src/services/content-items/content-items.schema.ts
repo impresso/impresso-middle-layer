@@ -12,6 +12,16 @@ export const includeEmbeddingsParameter = {
   description: 'Whether to include embeddings in the response (default: `false`)',
 } satisfies MethodParameter
 
+export const includeTranscriptParameter = {
+  in: 'query',
+  name: 'include_transcript',
+  required: false,
+  schema: {
+    type: 'boolean',
+  },
+  description: 'Whether to include transcript in the response (default: `false`)',
+} satisfies MethodParameter
+
 const findParameters: MethodParameter[] = [
   {
     in: 'query',
@@ -34,6 +44,7 @@ const findParameters: MethodParameter[] = [
     description: 'Order by term',
   },
   includeEmbeddingsParameter,
+  includeTranscriptParameter,
   ...getStandardParameters({ method: 'find' }),
 ]
 

@@ -25,7 +25,7 @@ export class Service {
       creatorId: params.user.id,
     }
 
-    return measureTime(
+    const jobs = await measureTime(
       () =>
         this.sequelizeService.find({
           query: {
@@ -35,18 +35,22 @@ export class Service {
         }),
       'jobs.find.db.find'
     )
+    return jobs
   }
 
   async get(id, params) {
     const where = {
       id,
+      creatorId: params.user.id,
     }
-    if (params.user.uid) {
-      where['$creator.profile.uid$'] = params.user.uid
-    } else {
-      where.creatorId = params.user.id
-    }
-    return measureTime(() => this.sequelizeService.get(id, { where }).then(job => job.toJSON()), 'jobs.get.db.get')
+    // if (params.user.uid) {
+    //   where['$creator.profile.uid$'] = params.user.uid
+    // } else {
+    //   where.creatorId = params.user.id
+    // }
+    return this.sequelizeService
+      .get(id, { where })
+      .then(job => job.toJSON())
   }
 
   async create(data, params) {

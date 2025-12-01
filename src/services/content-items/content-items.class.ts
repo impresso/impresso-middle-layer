@@ -23,6 +23,7 @@ import {
   IFullContentItemFieldsNames,
   withMatches,
   EmbeddingsFields,
+  ContentTextFields,
 } from '../../models/content-item'
 import { ClientService, Params } from '@feathersjs/feathers'
 import { FindResponse } from '../../models/common'
@@ -141,26 +142,30 @@ interface ServiceOptions {
   app: ImpressoApplication
 }
 
-export interface FindOptions {
-  query: {
-    filters?: Filter[]
+interface FindQuery {
+  filters?: Filter[]
 
-    // things needed by SolService.find
-    sq?: string
-    sfq?: string | string[]
-    limit?: number
-    offset?: number
-    facets?: Record<string, any>
-    order_by?: string
-    highlight_by?: string
-    collapse_by?: string
-    collapse_fn?: string
-    requestOriginalPath?: boolean
-    include_embeddings?: boolean
-    term?: string
-  }
-  user?: SlimUser
+  // things needed by SolService.find
+  sq?: string
+  sfq?: string | string[]
+  limit?: number
+  offset?: number
+  facets?: Record<string, any>
+  order_by?: string
+  highlight_by?: string
+  collapse_by?: string
+  collapse_fn?: string
+  requestOriginalPath?: boolean
+  include_embeddings?: boolean
+  include_transcript?: boolean
+  term?: string
+}
 
+interface AsPublicApiMixin {
+  asPublicApi?: boolean
+}
+
+interface FindFlExtra {
   // things needed by SolService.find
   fl?: string[]
 }
@@ -172,7 +177,8 @@ interface WithUser {
 interface GetQueryParams {
   include_embeddings?: boolean
 }
-export type GetParams = Params<GetQueryParams> & WithUser
+export type GetParams = Params<GetQueryParams> & WithUser & AsPublicApiMixin
+export type FindParams = Params<FindQuery> & WithUser & FindFlExtra & AsPublicApiMixin
 
 const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: ImpressoApplication): ContentItemPage => {
   return {
@@ -310,11 +316,11 @@ export class ContentItemService implements IContentItemService {
     return this.app?.service('simpleSolrClient')!
   }
 
-  async find(params: FindOptions): Promise<FindResponse<ContentItem>> {
+  async find(params: FindParams): Promise<FindResponse<ContentItem>> {
     return await this._find(params)
   }
 
-  async findInternal(params: FindOptions): Promise<FindResponse<ContentItem>> {
+  async findInternal(params: FindParams): Promise<FindResponse<ContentItem>> {
     return await this._find(params)
   }
 
@@ -341,10 +347,14 @@ export class ContentItemService implements IContentItemService {
     return pagesByIds
   }
 
-  async _find(params: FindOptions): Promise<FindResponse<ContentItem>> {
-    const fields = isTrue(params.query?.include_embeddings)
-      ? [...FindMethodFieldsWithEmbeddings, ScoreField]
-      : [...FindMethodFields, ScoreField]
+  async _find(params: FindParams): Promise<FindResponse<ContentItem>> {
+    const fields = [
+      ...ScoreField,
+      // if include embeddings is requested, add those fields
+      ...(isTrue(params.query?.include_embeddings) ? FindMethodFieldsWithEmbeddings : FindMethodFields),
+      // if include transcript is requested, add those fields
+      ...(isTrue(params.query?.include_transcript) ? ContentTextFields : []),
+    ]
 
     // With embeddings search we cannot do highlighting: Solr returns an error.
     const hasEmbeddingFilter = params?.query?.filters?.find(f => f.type === 'embedding') != null

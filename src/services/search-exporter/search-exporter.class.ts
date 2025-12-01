@@ -1,10 +1,8 @@
-import { logger } from '../../logger.js'
-import debugLib from 'debug'
-import { NotFound, NotImplemented } from '@feathersjs/errors'
-import { Filter, protobuf } from 'impresso-jscommons'
-import { ImpressoApplication } from '../../types.js'
 import { Params } from '@feathersjs/feathers'
+import debugLib from 'debug'
+import { Filter } from 'impresso-jscommons'
 import User from '../../models/users.model.js'
+import { ImpressoApplication } from '../../types.js'
 
 const debug = debugLib('impresso/services:search-exporter')
 
@@ -42,47 +40,17 @@ export class Service {
     const q = params.query.sfq.map(term => `(${term})`).join(' AND ')
     debug('[create] from solr query:', q, 'filters:', params.sanitized.filters)
 
-    const pq = protobuf.searchQuery.serialize({
-      filters: params.sanitized.filters ?? [],
-    })
     const task = `impresso.tasks.${data.sanitized.taskname}`
-    debug('[create] - task:', task, '- protobuffered:', pq)
+    debug('[create] - task:', task)
 
     const queueService = this.app.service('queueService')
 
     await queueService.exportSearchResults({
-      userId: params.user?.id! as any as string,
+      userId: String(params.user?.id!),
+      userUid: params.user?.uid!,
       solrNamespace: 'search',
       filters: params.sanitized.filters ?? [],
+      description: data.sanitized.description,
     })
-
-    return client
-      .run({
-        task,
-        args: [
-          // user id
-          params.user?.id,
-          // query
-          q,
-          // description
-          data.sanitized.description || '',
-          // query_hash
-          pq,
-        ],
-      })
-      .then(result => {
-        debug('[create] result:', result)
-        return { taskId: result.taskId }
-      })
-      .catch(err => {
-        if (err.result.exc_type === 'DoesNotExist') {
-          throw new NotFound(err.result.exc_message)
-        } else if (err.result.exc_type === 'OperationalError') {
-          // probably db is not availabe
-          throw new NotImplemented()
-        }
-        logger.error(err)
-        throw new NotImplemented()
-      })
   }
 }
