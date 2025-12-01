@@ -15,7 +15,7 @@ export class Service {
   constructor({ app }) {
     const client = app.get('sequelizeClient')
     if (!client) {
-      throw new Error(`Sequelize client not available in ${name}`)
+      throw new Error('Sequelize client not available in Users service')
     }
     this.sequelizeClient = client
     this.sequelizeKlass = User.sequelize(this.sequelizeClient)

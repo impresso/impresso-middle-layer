@@ -9,6 +9,7 @@ process.on('uncaughtException', (err: Error) => {
 })
 
 const start = async () => {
+  // Wait for app to be fully configured
   const [host = 'localhost', port = 8080] = [app.get('host'), app.get('port')]
 
   const server = await app

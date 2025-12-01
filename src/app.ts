@@ -17,7 +17,7 @@ import swagger from './middleware/swagger'
 import transport from './middleware/transport'
 import multer from './multer'
 import redis, { init as initRedis } from './redis'
-import sequelize from './sequelize'
+import sequelize, { init as initSequelize } from './sequelize'
 import services from './services'
 import rateLimiter from './services/internal/rateLimiter/redis'
 import quotaChecker from './services/internal/quotaChecker/redis'
@@ -37,8 +37,9 @@ const app: ImpressoApplication & Application<AppServices, Configuration> = expre
 // Load app configuration
 app.configure(configuration)
 
-// configure internal services
 app.configure(sequelize)
+
+// configure internal services
 app.configure(redis)
 app.configure(rateLimiter)
 app.configure(quotaChecker)
@@ -86,7 +87,12 @@ app.configure(queueWorkerManager)
 
 app.configure(services)
 
-app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs], []))
+app.configure(
+  appHooksFactory(
+    [initSequelize, initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs],
+    []
+  )
+)
 
 // part of sockets.io (see transport), but must go after services are defined
 // because one of the services is used in the channels.

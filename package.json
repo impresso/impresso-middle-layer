@@ -132,6 +132,7 @@
   },
   "devDependencies": {
     "@openapi-contrib/json-schema-to-openapi-schema": "3.0.1",
+    "@sequelize/sqlite3": "^7.0.0-alpha.47",
     "@stoplight/spectral-cli": "6.11.1",
     "@stoplight/spectral-owasp-ruleset": "2.0.1",
     "@types/cache-manager": "^2.10.3",
