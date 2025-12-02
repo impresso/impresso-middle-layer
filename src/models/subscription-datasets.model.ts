@@ -45,7 +45,7 @@ export default class SubscriptionDataset {
           name: {
             type: DataTypes.STRING,
             allowNull: false,
-            field: 'title',
+            field: 'name',
           },
           bitmapPosition: {
             type: DataTypes.INTEGER,
@@ -58,7 +58,7 @@ export default class SubscriptionDataset {
           },
         },
         {
-          tableName: 'impresso_specialmembershipdataset',
+          tableName: 'impresso_datasetbitmapposition',
         }
       )
 

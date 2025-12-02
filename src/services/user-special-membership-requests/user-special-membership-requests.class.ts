@@ -93,7 +93,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     if (this.celeryClient)
       this.celeryClient
         .run({
-          task: 'impresso.tasks.after_special_membership_request_created',
+          task: 'impresso.tasks.userSpecialMembershipRequest_tasks.after_special_membership_request_created',
           args: [userRequest.id],
         })
         .catch(err => {
