@@ -41,6 +41,7 @@ export default class SpecialMembershipAccess extends Model<
         title: {
           type: DataTypes.STRING,
           allowNull: false,
+          field: 'name',
         },
         bitmapPosition: {
           type: DataTypes.INTEGER,
@@ -54,7 +55,7 @@ export default class SpecialMembershipAccess extends Model<
       },
       {
         sequelize,
-        tableName: 'impresso_specialmembershipdataset',
+        tableName: 'impresso_datasetbitmapposition',
         timestamps: false,
       }
     )

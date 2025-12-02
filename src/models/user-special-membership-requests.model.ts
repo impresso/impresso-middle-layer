@@ -87,7 +87,7 @@ export default class userSpecialMembershipRequestModel extends Model<
       },
       {
         sequelize,
-        tableName: 'impresso_userspecialmembershiprequest',
+        tableName: 'impresso_userrequest',
         timestamps: false,
       }
     )
