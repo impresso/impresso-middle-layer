@@ -19,7 +19,7 @@ const defaultPoolConfig = {
   evict: 30000,
 }
 
-const getSequelizeClient = (config: SequelizeConfig) => {
+export const getSequelizeClient = (config: SequelizeConfig) => {
   const socksProxyOptions = getSocksProxyConfiguration()
 
   const streamGetter = shouldUseSocksProxy(config.host, socksProxyOptions)

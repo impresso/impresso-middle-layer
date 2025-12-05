@@ -34,8 +34,8 @@
     "start": "node dist/",
     "dev": "nodemon --exec 'node --env-file=.env' --enable-source-maps --inspect dist/ --ignore 'data/*' --env-file ./.env",
     "bun-run": "bun run --watch src/index.ts",
-    "cli": "node src/admin/cli.js",
-    "generate-types": "node src/scripts/generate-types.js"
+    "generate-types": "node src/scripts/generate-types.js",
+    "generate-jwt": "bun run src/scripts/generate-jwt.ts"
   },
   "dependencies": {
     "@feathersjs/authentication": "5.0.31",
@@ -59,6 +59,7 @@
     "bullmq": "^5.61.0",
     "cache-manager": "^6.3.1",
     "celery-node": "^0.5.9",
+    "chalk": "^5.6.2",
     "child-process-async": "^1.0.1",
     "chrono-node": "^2.3.2",
     "cli-color": "^1.4.0",
@@ -94,6 +95,7 @@
     "json2csv": "^4.3.3",
     "jsonpath-plus": "^10.3.0",
     "jsonschema": "^1.4.1",
+    "jsonwebtoken": "^9.0.3",
     "lodash": "^4.17.21",
     "lodash.first": "^3.0.0",
     "lodash.groupby": "^4.6.0",
@@ -128,6 +130,7 @@
     "winston": "3.13.0",
     "xml2js": "^0.6.2",
     "yaml": "^2.6.0",
+    "yargs": "^18.0.0",
     "zip-stream": "^7.0.0"
   },
   "devDependencies": {
@@ -136,6 +139,7 @@
     "@stoplight/spectral-cli": "6.11.1",
     "@stoplight/spectral-owasp-ruleset": "2.0.1",
     "@types/cache-manager": "^2.10.3",
+    "@types/chalk": "^0.4.31",
     "@types/cookie-parser": "^1.4.9",
     "@types/generic-pool": "^3.1.9",
     "@types/helmet": "^0.0.48",
@@ -144,6 +148,7 @@
     "@types/node": "^22.19.1",
     "@types/node-fetch": "^2.5.6",
     "@types/sinon": "^17.0.3",
+    "@types/yargs": "^17.0.35",
     "@types/zip-stream": "^7.0.0",
     "eslint": "^9.36.0",
     "json-schema-to-typescript": "15.0.4",
