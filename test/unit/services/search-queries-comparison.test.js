@@ -13,8 +13,8 @@ import {
 
 describe('createSolrQuery', () => {
   it('creates a query without constraints', () => {
-    const filters = /** @type {Filter[]} */[{ type: 'person', q: 'person-a-id' }]
-    const facetRequests = /** @type {FacetRequest[]} */[{ type: 'person', limit: 3, offset: 5 }]
+    const filters = /** @type {Filter[]} */ [{ type: 'person', q: 'person-a-id' }]
+    const facetRequests = /** @type {FacetRequest[]} */ [{ type: 'person', limit: 3, offset: 5 }]
     const expectedRequest = {
       limit: 0,
       params: {
@@ -29,6 +29,7 @@ describe('createSolrQuery', () => {
           offset: 5,
           type: 'terms',
           mincount: 1,
+          refine: true,
           numBuckets: true,
         },
       },
@@ -39,9 +40,9 @@ describe('createSolrQuery', () => {
   })
 
   it('creates a query with constraints', () => {
-    const filters = /** @type {Filter[]} */[{ type: 'person', q: 'person-a-id' }]
-    const facetRequests = /** @type {FacetRequest[]} */[{ type: 'person', limit: 3, offset: 5 }]
-    const facetConstraints = /** @type {Facet[]} */[
+    const filters = /** @type {Filter[]} */ [{ type: 'person', q: 'person-a-id' }]
+    const facetRequests = /** @type {FacetRequest[]} */ [{ type: 'person', limit: 3, offset: 5 }]
+    const facetConstraints = /** @type {Facet[]} */ [
       {
         type: 'person',
         buckets: [
@@ -110,7 +111,7 @@ describe('normaliseFacetsInSolrResponse', () => {
     },
   }
 
-  const testConstraintFacets = /** @type {Facet[]} */[
+  const testConstraintFacets = /** @type {Facet[]} */ [
     {
       type: 'person',
       buckets: [

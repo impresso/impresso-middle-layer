@@ -29,7 +29,7 @@ export interface SolrTermsFacetQueryParams {
   numBuckets?: boolean
 
   prefix?: string
-
+  refine?: boolean
   // subfacets
   facet?: Record<string, SolrFacetQueryParams>
 }
