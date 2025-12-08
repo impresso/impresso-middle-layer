@@ -24,6 +24,7 @@ const publicApiServices = [
   'topics',
   'images',
   'experiments',
+  'logs', // used internally
 ]
 
 const adminServices = ['admin']
@@ -38,7 +39,6 @@ const internalApiServices = [
   'issues-timelines',
   'articles-timelines',
   'jobs',
-  'logs',
   'articles-suggestions',
   'uploaded-images',
   'mentions',
