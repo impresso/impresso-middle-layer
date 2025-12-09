@@ -37,9 +37,9 @@ export interface SolrTermsFacetQueryParams {
 export type SolrFacetQueryParams = SolrRangeFacetQueryParams | SolrTermsFacetQueryParams | string
 
 export const isSolrRangeFacetQueryParams = (params: SolrFacetQueryParams): params is SolrRangeFacetQueryParams => {
-  return (params as SolrRangeFacetQueryParams).type === 'range'
+  return (params as SolrRangeFacetQueryParams)?.type === 'range'
 }
 
 export const isSolrTermsFacetQueryParams = (params: SolrFacetQueryParams): params is SolrTermsFacetQueryParams => {
-  return (params as SolrTermsFacetQueryParams).type === 'terms'
+  return (params as SolrTermsFacetQueryParams)?.type === 'terms'
 }

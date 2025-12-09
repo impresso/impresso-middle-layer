@@ -148,6 +148,9 @@ class ArticleMatch extends Fragment implements ContentItemTextMatch {
   }
 }
 
+/**
+ * @deprecated use `content-item` instead.
+ */
 export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> {
   uid: string
   type: string
@@ -229,7 +232,7 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
         title: Article.getUncertainField(doc, 'title'),
         persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs ?? []),
         locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs ?? []),
-        collections: doc.ucoll_ss,
+        // collections: doc.ucoll_ss,
         excerpt: doc.snippet_plain || lodash.get(fragments[doc.id], 'nd[0]', ''),
       })
   }
@@ -248,7 +251,10 @@ type ContentItemWithCorrectTypes = Omit<
   topics?: ArticleTopic[]
 }
 
-class Article extends BaseArticle implements ContentItemWithCorrectTypes {
+/**
+ * @deprecated use `content-item` instead.
+ */
+export class Article extends BaseArticle implements ContentItemWithCorrectTypes {
   language: string
   content: string
   issue?: Issue
@@ -712,7 +718,7 @@ class Article extends BaseArticle implements ContentItemWithCorrectTypes {
         topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs ?? []),
         persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs ?? []),
         locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs ?? []),
-        collections: doc.ucoll_ss ?? [],
+        // collections: doc.ucoll_ss ?? [],
         // permissions bitmaps
         // if it's not defined, set max permissions for compatibility
         // with old Solr version
@@ -751,4 +757,3 @@ class Article extends BaseArticle implements ContentItemWithCorrectTypes {
 
 export default Article
 export const solrFactory = Article.solrFactory
-export const Model = Article

@@ -5,7 +5,7 @@ import { getDocs } from './text-reuse-passages.schema'
 import { ImpressoApplication } from '../../types'
 import { ServiceOptions } from '@feathersjs/feathers'
 
-module.exports = function (app: ImpressoApplication) {
+export default function (app: ImpressoApplication) {
   const isPublicApi = app.get('isPublicApi') ?? false
 
   app.use('/text-reuse-passages', new TextReusePassagesService(app), {

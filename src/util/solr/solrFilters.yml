@@ -10,15 +10,18 @@ indexes:
         # rule to parse filter value (q)
         # rules handlers are in `filterReducers.js`
         rule: minLengthOne
+        destination: filter
       ocrQuality:
         field: ocrqa_f
         rule: numericRange
       contentLength:
         field: content_length_i
         rule: numericRange
+        destination: filter
       isFront:
         field: front_b
         rule: boolean
+        destination: filter
       string:
         # field prefix, will be expanded to supported languages
         field: { prefix: content_txt_ }
@@ -29,58 +32,74 @@ indexes:
       daterange:
         field: meta_date_dt
         rule: dateRange
+        destination: filter
       uid:
         field: id
         rule: value
+        destination: filter
       # @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
       # https://github.com/impresso/impresso-middle-layer/issues/462
       accessRight:
         field: access_right_s
         rule: value
+        destination: filter
       # Impresso 2.0 only
       dataDomain:
         field: rights_data_domain_s
         rule: value
+        destination: filter
       # Impresso 2.0 only
       copyright:
         field: rights_copyright_s
         rule: value
+        destination: filter
       partner:
         field: meta_partnerid_s
         rule: value
+        destination: filter
       language:
         field: lg_s
         rule: value
+        destination: filter
       page:
         field: page_id_ss
         rule: value
+        destination: filter
       collection:
-        field: ucoll_ss
-        rule: value
+        field: id
+        rule: joinCollection
+        destination: filter
       issue:
         field: meta_issue_id_s
         rule: value
+        destination: filter
       newspaper:
         field: meta_journal_s
         rule: value
+        destination: filter
       topic:
         field: topics_dpfs
         rule: idValue
       year:
         field: meta_year_i
         rule: value
+        destination: filter
       type:
         field: item_type_s
         rule: value
+        destination: filter
       sourceMedium:
         field: meta_source_medium_s
         rule: value
+        destination: filter
       sourceType:
         field: meta_source_type_s
         rule: value
+        destination: filter
       country:
         field: meta_country_code_s
         rule: value
+        destination: filter
       mention:
         # multiple fields per one filter
         field: [pers_mentions, loc_mentions]
@@ -103,6 +122,7 @@ indexes:
       topicmodel:
         field: tp_model_s
         rule: value
+        destination: filter
       topic-string:
         field: topic_suggest
         rule: string
@@ -118,6 +138,12 @@ indexes:
       textReuseCluster:
         field: cluster_id_ss
         rule: value
+        destination: filter
+      embedding:
+        field:
+          - "gte-768:gte_multi_v768"
+        rule: embeddingKnnSimilarity
+        destination: query
   tr_clusters:
     filters:
       textReuseCluster:
@@ -126,29 +152,39 @@ indexes:
       textReuseClusterSize:
         field: cluster_size_l
         rule: numericRange
+        destination: filter
       daterange:
         field: min_date_dt
         rule: dateRange
       newspaper:
         field: newspapers_ss
         rule: value
+        destination: filter
       textReuseClusterLexicalOverlap:
         field: lex_overlap_d
         rule: numericRange
       textReuseClusterDayDelta:
         field: day_delta_i
         rule: numericRange
+        destination: filter
   tr_passages:
     filters:
       id:
         field: id
         rule: value
+        destination: filter
+      contentItemId:
+        field: ci_id_s
+        rule: value
+        destination: filter
       textReusePassage:
         field: id
         rule: value
+        destination: filter
       textReuseCluster:
         field: cluster_id_s
         rule: value
+        destination: filter
       title:
         field: { prefix: title_txt_ }
         rule: string
@@ -159,36 +195,44 @@ indexes:
       textReuseClusterSize:
         field: cluster_size_l
         rule: numericRange
+        destination: filter
       textReuseClusterLexicalOverlap:
         field: cluster_lex_overlap_d
         rule: numericRange
+        destination: filter
       textReuseClusterDayDelta:
         field: cluster_day_delta_i
         rule: numericRange
+        destination: filter
       daterange:
         field: meta_date_dt
         rule: dateRange
       newspaper:
         field: meta_journal_s
         rule: value
+        destination: filter
       collection:
-        field: ucoll_ss
-        rule: value
+        field: ci_id_s
+        rule: joinCollection
+        destination: filter
       isFront:
         field: front_b
         rule: boolean
+        destination: filter
       topic:
         field: topics_dpfs
         rule: idValue
       language:
         field: lg_s
         rule: value
+        destination: filter
       type:
         field: item_type_s
         rule: value
       country:
         field: meta_country_code_s
         rule: value
+        destination: filter
       mention:
         # multiple fields per one filter
         field: [pers_mentions, loc_mentions, nag_mentions]
@@ -216,6 +260,7 @@ indexes:
       type:
         field: t_s
         rule: value
+        destination: filter
       uid:
         field: id
         rule: idValue
@@ -227,15 +272,36 @@ indexes:
       newspaper:
         field: meta_journal_s
         rule: value
+        destination: filter
       issue:
         field: meta_issue_id_s
         rule: value
+        destination: filter
       isFront:
         field: front_b
         rule: boolean
+        destination: filter
       daterange:
         field: meta_date_dt
         rule: dateRange
       title:
         field: caption_txt
         rule: string
+      embedding:
+        field:
+          - "openclip-768:openclip_emb_v768"
+          - "dinov2-1024:dinov2_emb_v1024"
+        rule: embeddingKnnSimilarity
+        destination: query
+      imageVisualContent:
+        field: type_l0_tp
+        rule: imageTypeValueOrLabel
+      imageTechnique:
+        field: type_l1_tp
+        rule: imageTypeValueOrLabel
+      imageCommunicationGoal:
+        field: type_l2_tp
+        rule: imageTypeValueOrLabel
+      imageContentType:
+        field: type_l3_tp
+        rule: imageTypeValueOrLabel

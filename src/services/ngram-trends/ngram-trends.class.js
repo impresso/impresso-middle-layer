@@ -1,11 +1,11 @@
-const { SolrNamespaces } = require('../../solr')
-const {
+import { SolrNamespaces } from '../../solr'
+import {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
-} = require('./logic/solrQuery')
+} from './logic/solrQuery'
 
 function mergeResponses(responses, totalsResponse) {
   const timeIntervals = [...new Set(responses.map(({ timeInterval }) => timeInterval))]
@@ -42,7 +42,7 @@ function mergeResponses(responses, totalsResponse) {
   }
 }
 
-class NgramTrends {
+export class NgramTrends {
   setup(app) {
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
@@ -68,8 +68,4 @@ class NgramTrends {
 
     return mergeResponses(responses, totalsResponse)
   }
-}
-
-module.exports = {
-  NgramTrends,
 }

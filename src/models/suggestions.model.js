@@ -26,4 +26,4 @@ class Suggestion {
   }
 }
 
-module.exports = Suggestion;
+export default Suggestion;

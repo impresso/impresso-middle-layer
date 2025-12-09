@@ -76,7 +76,7 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
   // Move this somewhere where it's more explicit
   app.use((req, res, next) => {
     if (req.query.filters != null) {
-      req.query.filters = parseFilters(req.query.filters) as any as string[]
+      req.query.filters = parseFilters(req.query.filters as any) as any as string[]
     }
     next()
   })
@@ -155,7 +155,7 @@ const dereferenceSpec = async (spec: OpenAPIV3.DocumentV3) => {
          */
         read: async (file: FileInfo) => {
           const cwd = process.cwd()
-          const filePath = file.url.replace(cwd, `${cwd}/dist`)
+          const filePath = file.url.replace(cwd, `${cwd}/src`)
           const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
           return await convertSchema(content)
         },

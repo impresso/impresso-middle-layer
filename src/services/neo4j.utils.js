@@ -1,9 +1,9 @@
-/* eslint no-use-before-define: off */
-const mustache = require('mustache')
-const moment = require('moment')
-const debug = require('debug')('impresso/services:neo4j.utils')
-const verbose = require('debug')('verbose:impresso/services:neo4j.utils')
-const { Conflict, BadRequest, BadGateway, Unavailable } = require('@feathersjs/errors')
+import mustache from 'mustache'
+import moment from 'moment'
+import Debug from 'debug'
+const debug = Debug('impresso/services:neo4j.utils')
+const verbose = Debug('verbose:impresso/services:neo4j.utils')
+import { Conflict, BadRequest, BadGateway, Unavailable } from '@feathersjs/errors'
 
 const neo4jToInt = neo4jInteger => (typeof neo4jInteger === 'object' ? neo4jInteger.low : neo4jInteger)
 
@@ -20,7 +20,6 @@ const neo4jPrepare = (cypherQuery, params) =>
   // use Mustache renderer to pre-prepare cypehr query.
   // This allows to use if, unless and each templates without
   // adding unwanted complexification in code.
-  // eslint-disable-next-line implicit-arrow-linebreak
   mustache.render(cypherQuery, params)
 
 const neo4jRun = (session, cypherQuery, params, queryname) => {
@@ -270,7 +269,7 @@ const neo4jToLucene = q => {
   return _q
 }
 
-module.exports = {
+export default {
   neo4jNow,
   neo4jPrepare,
   neo4jRecordMapper,

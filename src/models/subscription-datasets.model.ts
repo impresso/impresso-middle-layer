@@ -45,6 +45,7 @@ export default class SubscriptionDataset {
           name: {
             type: DataTypes.STRING,
             allowNull: false,
+            field: 'name',
           },
           bitmapPosition: {
             type: DataTypes.INTEGER,

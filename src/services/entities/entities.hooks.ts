@@ -2,8 +2,8 @@ import { SolrNamespaces } from '../../solr'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 import { rateLimit } from '../../hooks/rateLimiter'
 
-const { validate, validateEach, queryWithCommonParams, utils } = require('../../hooks/params')
-const { qToSolrFilter, filtersToSolrQuery } = require('../../hooks/search')
+import { validate, validateEach, queryWithCommonParams, utils } from '../../hooks/params'
+import { termToSolrFilter, filtersToSolrQuery } from '../../hooks/search'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
 import { transformEntityDetails } from '../../transformers/entity'
 import { transformBaseFind } from '../../transformers/base'
@@ -74,16 +74,16 @@ const findAndGetParamsHooks = [
       required: false,
     }
   ),
-  qToSolrFilter('string'),
+  termToSolrFilter(),
   filtersToSolrQuery({
-    solrIndexProvider: () => SolrNamespaces.Entities,
+    solrIndexProvider: () => SolrNamespaces.Entities as any,
   }),
   queryWithCommonParams(),
 ]
 
 export default {
   around: {
-    all: [authenticate(), rateLimit()],
+    all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
     all: [],

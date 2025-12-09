@@ -31,8 +31,8 @@ const transformWikidataLocation = (input?: EntityDetails['wikidata']): WikidataL
       labels: input.labels,
       descriptions: input.descriptions,
       coordinates: {
-        latitude: transformNumber((input.coordinates as any).latitude),
-        longitude: transformNumber((input.coordinates as any).longitude),
+        latitude: transformNumber(input.coordinates?.latitude),
+        longitude: transformNumber(input.coordinates?.longitude),
       },
     } satisfies WikidataLocation
   }

@@ -1,12 +1,18 @@
 import { ImpressoApplication } from '../types'
 import { loadFacetRanges } from '../useCases/loadFacetRanges'
-import { writeFile, access, constants } from 'node:fs/promises'
+import { writeFile, access, constants, stat } from 'node:fs/promises'
+import { resolve } from 'node:path'
 
-const CacheFileName = './data/facetRanges.json'
+const CacheFileName = resolve(__dirname, '../../data/facetRanges.json')
 
 const cacheExists = async () => {
   try {
     await access(CacheFileName, constants.R_OK)
+    const stats = await stat(CacheFileName)
+    const oneHourAgo = Date.now() - 60 * 60 * 1000
+    if (stats.mtimeMs < oneHourAgo) {
+      return false
+    }
     return true
   } catch {
     return false
@@ -23,7 +29,7 @@ const writeCache = async (data: any) => {
  * IML depends on it. Cache can be moved to Redis later
  * when the static code is refactored.
  */
-const run = async (app: ImpressoApplication, reload: boolean = true) => {
+const run = async (app: ImpressoApplication, reload: boolean = false) => {
   const solrClient = app.service('simpleSolrClient')
 
   // Check cache first

@@ -1,0 +1,3 @@
+[test]
+root = "test/unit"  # Only scan for tests in the unit tests directory
+smol = true  # Reduce memory usage during test runs

@@ -9,13 +9,14 @@ import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
 import { FindMethodFields } from '../content-items/content-items.class'
 import { PrintContentItem } from '../../models/solr'
 
-const lodash = require('lodash')
-const { NotFound } = require('@feathersjs/errors')
-const debug = require('debug')('impresso/services:articles-suggestions')
-const ArticleTopic = require('../../models/articles-topics.model')
-const {
-  utils: { wrapAll },
-} = require('../../solr')
+import lodash from 'lodash'
+import { NotFound } from '@feathersjs/errors'
+import Debug from 'debug'
+const debug = Debug('impresso/services:articles-suggestions')
+import ArticleTopic from '../../models/articles-topics.model'
+import { ContentItemTopic } from '../../models/generated/schemas'
+import { utils } from '../../solr'
+const { wrapAll } = utils
 
 const SIM_BY_TOPICS = 'topics'
 const SIM_BY_TOPICS_SQEDIST = 'topics_sqedist'
@@ -79,8 +80,8 @@ export class ArticlesSuggestionsService {
       }
 
       let topicWeight: string = '1'
-      const topicsChoosen: ArticleTopicType[] = lodash.take(
-        topics.sort((a: ArticleTopicType, b: ArticleTopicType) => b.relevance - a.relevance),
+      const topicsChoosen: ContentItemTopic[] = lodash.take(
+        topics.sort((a: ContentItemTopic, b: ContentItemTopic) => b.relevance - a.relevance),
         params.query.amount
       )
 

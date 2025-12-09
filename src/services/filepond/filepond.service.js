@@ -1,9 +1,10 @@
 // Initializes the `filepond` service on path `/filepond`
-const md5File = require('md5-file')
-const verbose = require('debug')('verbose:impresso/services:filepond')
-const createService = require('./filepond.class.js')
+import md5File from 'md5-file'
+import Debug from 'debug'
+const verbose = Debug('verbose:impresso/services:filepond')
+import createService from './filepond.class.js'
 
-module.exports = function (app) {
+export default function (app) {
   const upload = app.get('multerClient')
   // Initialize our service with any options it requires
   app.use(

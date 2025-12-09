@@ -27,6 +27,7 @@
     },
     "redis": { "$ref": "#/definitions/RedisConfig" },
     "rateLimiter": { "$ref": "#/definitions/RateLimiterConfig" },
+    "quotaChecker": { "$ref": "#/definitions/QuotaCheckerConfig" },
     "publicApiPrefix": { "type": "string", "description": "Prefix for the public API" },
     "problemUriBase": {
       "type": "string",
@@ -284,6 +285,8 @@
       "properties": {
         "host": { "type": "string", "description": "Host of the media server" },
         "path": { "type": "string", "description": "Path to the media server" },
+        "protectedPath": { "type": "string", "description": "Path to the protected media on Nginx" },
+        "exportFolder": { "type": "string", "description": "Folder to store exported media files" },
         "services": { "type": "array", "items": { "type": "string" }, "description": "List of media services" }
       }
     },
@@ -306,6 +309,17 @@
       },
       "description": "Rate limiter configuration",
       "required": ["capacity", "refillRate"]
+    },
+    "QuotaCheckerConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "description": "Enable quota checker" },
+        "quotaLimit": { "type": "number", "description": "Maximum unique documents per user" },
+        "windowDays": { "type": "number", "description": "Time window for quota in days" }
+      },
+      "description": "Quota checker configuration",
+      "required": ["quotaLimit", "windowDays"]
     }
   }
 }

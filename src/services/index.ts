@@ -10,7 +10,7 @@ const publicApiServices = [
   'search', // search items
   'content-items', // get content items
   'users', // required for authentication
-  'collectable-items', // required by 'search'
+  'collectable-items',
   'collections', // CRUD collections
   'text-reuse-passages',
   'text-reuse-clusters',
@@ -18,8 +18,13 @@ const publicApiServices = [
   'search-facets',
   'entities',
   'impresso-ner',
+  'impresso-embedder',
   'media-sources',
+  'data-providers',
+  'topics',
   'images',
+  'experiments',
+  'logs', // used internally
 ]
 
 const adminServices = ['admin']
@@ -29,13 +34,11 @@ const internalApiServices = [
   'suggestions',
   'pages',
   'search-exporter',
-  'topics',
   'init',
   'pages-timelines',
   'issues-timelines',
   'articles-timelines',
   'jobs',
-  'logs',
   'articles-suggestions',
   'uploaded-images',
   'mentions',
@@ -67,6 +70,8 @@ const internalApiServices = [
   'newspapers',
   'feedback-collector',
   'datalab-support',
+  'special-membership-access',
+  'user-special-membership-requests',
 ]
 
 const baristaServices = ['barista-proxy']
@@ -87,8 +92,13 @@ export default (app: ImpressoApplication) => {
 
   services.forEach((service: string) => {
     const path = `./${service}/${service}.service`
-    const module = require(path)
-    if (typeof module === 'function') app.configure(module)
-    else app.configure(module.default)
+    try {
+      const module = require(path)
+      if (typeof module === 'function') app.configure(module)
+      else app.configure(module.default)
+    } catch (err) {
+      console.error(`Error loading service ${service} from path ${path}: ${err}`)
+      throw err
+    }
   })
 }

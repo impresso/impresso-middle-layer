@@ -1,20 +1,14 @@
-import debugModule from 'debug'
-import { Request, Response, NextFunction } from 'express'
+import { NotFound } from '@feathersjs/errors'
 import type { Application as ExpressApplication } from '@feathersjs/express'
+import debugModule from 'debug'
+import { NextFunction, Request, Response } from 'express'
+
+import Job from '../models/jobs.model'
+import User from '../models/users.model'
 
 import { ImpressoApplication } from '../types'
-import User from '../models/users.model'
+
 const debug = debugModule('impresso/media')
-
-const { BadRequest, NotFound } = require('@feathersjs/errors')
-
-// TODO: generate this from schema when it's available (see attachments.model.js)
-interface Attachment {
-  path: string
-}
-interface Job {
-  attachment?: Attachment
-}
 
 interface ResponseLocals {
   user?: User
@@ -79,7 +73,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
         .then((item: Job) => {
           res.locals.item = item
           debug(`[${req.params.service}:${req.params.id}]  ${req.params.service}.get success, check attachments...`)
-          if (!item.attachment) {
+          if (!item?.attachment) {
             throw new NotFound()
           }
           next()

@@ -2,15 +2,16 @@ import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '../types'
 
 import {
+  Collection,
   SearchFacet,
   SearchFacetBucket as SearchFacetBucketInternal,
   SearchFacetRangeBucket,
 } from '../models/generated/schemas'
 import { SearchFacetBucket, BaseFindResponse } from '../models/generated/schemasPublic'
-import Collection from '../models/collections.model'
 import Newspaper from '../models/newspapers.model'
 import Entity from '../models/entities.model'
 import Topic from '../models/topics.model'
+import { FacetWithLabel } from '../models/generated/shared'
 
 interface FacetContainer extends BaseFindResponse {
   data: SearchFacetBucket[]
@@ -45,14 +46,14 @@ const transformBucket = (
       return {
         count: input.count,
         value: String(input.val),
-        label: topicItem.words.map(({ w, p }) => `${w} (${p})`).join(', '),
+        label: topicItem?.words?.map(({ w, p }) => `${w} (${p})`).join(', '),
       }
     case 'collection':
       const collectionItem = (input as any)?.item as Collection
       return {
         count: input.count,
         value: String(input.val),
-        label: collectionItem != null ? collectionItem.name : undefined,
+        label: collectionItem != null ? collectionItem.title : undefined,
       }
     case 'newspaper':
       const newspaperItem = (input as any)?.item as Newspaper
@@ -63,11 +64,23 @@ const transformBucket = (
       }
     case 'person':
     case 'location':
+    case 'nag':
+    case 'organisation':
       const entityItem = (input as any)?.item as Entity
       return {
         count: input.count,
         value: String(input.val),
         label: entityItem.name,
+      }
+    case 'imageVisualContent':
+    case 'imageTechnique':
+    case 'imageCommunicationGoal':
+    case 'imageContentType':
+      const facetItem = (input as any)?.item as FacetWithLabel
+      return {
+        count: input.count,
+        value: String(input.val),
+        label: facetItem?.label,
       }
     default:
       return {

@@ -1,4 +1,4 @@
-class ArticleTopic {
+export class ArticleTopic {
   constructor({ topic = null, topicUid = '', article = null, articleUid = '', relevance = 0.0 } = {}) {
     if (topic) {
       this.topic = topic
@@ -42,5 +42,4 @@ class ArticleTopic {
   }
 }
 
-module.exports = ArticleTopic
-module.exports.Model = ArticleTopic
+export default ArticleTopic

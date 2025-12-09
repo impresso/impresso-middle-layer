@@ -1,10 +1,11 @@
-const debug = require('debug')('impresso/services:stats.hooks')
-const assert = require('assert')
-const { BadRequest } = require('@feathersjs/errors')
-const { protobuf } = require('impresso-jscommons')
+import Debug from 'debug'
+const debug = Debug('impresso/services:stats.hooks')
+import assert from 'assert'
+import { BadRequest } from '@feathersjs/errors'
+import { protobuf } from 'impresso-jscommons'
 
-const { statsConfiguration } = require('../../data')
-const { TimeDomain, SupportedStats, DefaultStats } = require('./common')
+import { statsConfiguration } from '../../data'
+import { TimeDomain, SupportedStats, DefaultStats } from './common'
 
 const SupportedIndexes = Object.freeze(Object.keys(statsConfiguration.indexes))
 const SupportedFacetsByIndex = SupportedIndexes.reduce((acc, index) => {
@@ -122,7 +123,7 @@ const validateGroupByAfterIndex = context => {
   debug('[hooks.before] validateIndexAndGroupby', '- index:', index, '- groupby:', context.params.query.groupby)
 }
 
-module.exports = {
+export default {
   before: {
     get: [
       validateStats,

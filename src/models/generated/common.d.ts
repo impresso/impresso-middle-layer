@@ -26,6 +26,7 @@ export interface Config {
   allowedCorsOrigins?: string[];
   redis?: RedisConfig;
   rateLimiter?: RateLimiterConfig;
+  quotaChecker?: QuotaCheckerConfig;
   /**
    * Prefix for the public API
    */
@@ -92,6 +93,23 @@ export interface RateLimiterConfig {
    * Refill rate of the rate limiter
    */
   refillRate: number;
+}
+/**
+ * Quota checker configuration
+ */
+export interface QuotaCheckerConfig {
+  /**
+   * Enable quota checker
+   */
+  enabled?: boolean;
+  /**
+   * Maximum unique documents per user
+   */
+  quotaLimit: number;
+  /**
+   * Time window for quota in days
+   */
+  windowDays: number;
 }
 /**
  * Sequelize configuration
@@ -318,6 +336,14 @@ export interface MediaConfig {
    * Path to the media server
    */
   path?: string;
+  /**
+   * Path to the protected media on Nginx
+   */
+  protectedPath?: string;
+  /**
+   * Folder to store exported media files
+   */
+  exportFolder?: string;
   /**
    * List of media services
    */
@@ -624,6 +650,10 @@ export interface FilterDefinition {
    * The name of the rule to parse the filter value.
    */
   rule: string;
+  /**
+   * Primary application destination of the filter: main query or filters. It's 'query' by default.
+   */
+  destination?: "query" | "filter";
 }
 
 

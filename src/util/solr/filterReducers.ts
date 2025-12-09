@@ -1,11 +1,19 @@
 import { readFileSync } from 'fs'
 import YAML from 'yaml'
 import { Filter, FilterPrecision } from '../../models'
-import { SolrFiltersConfiguration } from '../../models/generated/common'
-import { SolrNamespace } from '../../solr'
+import {
+  FilterDefinition,
+  SolrConfiguration,
+  SolrFiltersConfiguration,
+  SolrServerNamespaceConfiguration,
+} from '../../models/generated/common'
+import { SolrNamespace, SolrNamespaces } from '../../solr'
 import { InvalidArgumentError } from '../error'
 import capitalisedValueFilterBuilder from './filterBuilders/capitalisedValue'
 import { valueBuilder, idValueBuilder, escapeIdValue, unescapeIdValue } from './filterBuilders/value'
+import { SupportedLanguageCodes } from '../../models/solr'
+import { ImageTypeValueLookup } from '../../services/images/images.class'
+import { invertRecord } from '../fn'
 
 export { escapeIdValue, unescapeIdValue }
 
@@ -43,7 +51,7 @@ const reduceNumericRangeFilters = (filters: Filter[], field: string) => {
   return items.join(' AND ')
 }
 
-const SolrSupportedLanguages = ['en', 'fr', 'de']
+const SolrSupportedLanguages = SupportedLanguageCodes
 
 const fullyEscapeValue = (value: string) => escapeValue(value).replace(/"/g, d => `\\${d}`)
 
@@ -92,6 +100,8 @@ const getStringQueryWithFields = (value: string | null, solrFields: string[], pr
   return items.length > 1 ? `(${statement})` : statement
 }
 
+const catchAllPrefix = (prefix: string) => prefix.slice(0, -1)
+
 /**
  * String type filter handler
  * @param {import('../../models').Filter[]} filters
@@ -105,7 +115,8 @@ const reduceStringFiltersToSolr = (filters: Filter[], field: string | string[] |
 
     if (typeof field === 'string') fields = [field]
     else if (Array.isArray(field)) fields = field
-    else if (field.prefix != null) fields = languages.map(lang => `${field.prefix}${lang}`)
+    else if (field.prefix != null)
+      fields = languages.map(lang => `${field.prefix}${lang}`).concat([`${catchAllPrefix(field.prefix)}`])
     else throw new InvalidArgumentError(`Unknown type of Solr field: ${JSON.stringify(field)}`)
 
     let queryList: (string | null)[] = [null]
@@ -122,10 +133,21 @@ const reduceStringFiltersToSolr = (filters: Filter[], field: string | string[] |
       .join(` ${op} `)
 
     if (context === 'exclude') {
-      transformedQuery = index > 0 ? `NOT (${transformedQuery})` : `*:* AND NOT (${transformedQuery})`
+      if (transformedQuery.startsWith('(') && transformedQuery.endsWith(')')) {
+        transformedQuery = index > 0 ? `NOT ${transformedQuery}` : `*:* AND NOT ${transformedQuery}`
+      } else {
+        transformedQuery = index > 0 ? `NOT (${transformedQuery})` : `*:* AND NOT (${transformedQuery})`
+      }
     }
 
-    return queryList.length > 1 ? `(${transformedQuery})` : transformedQuery
+    if (typeof queryList === 'string') {
+      const ql: string = queryList
+      if (!ql.startsWith('NOT ') && !(ql.startsWith('(') && ql.endsWith(')'))) {
+        return `(${transformedQuery})`
+      }
+    }
+
+    return transformedQuery
   })
 
   // @ts-ignore
@@ -256,7 +278,8 @@ const reduceRegexFiltersToSolr = (filters: Filter[], field: string | string[] | 
   let fields = []
   if (typeof field === 'string') fields = [field]
   else if (Array.isArray(field)) fields = field
-  else if (field.prefix != null) fields = SolrSupportedLanguages.map(lang => `${field.prefix}${lang}`)
+  else if (field.prefix != null)
+    fields = SolrSupportedLanguages.map(lang => `${field.prefix}${lang}`).concat([`${catchAllPrefix(field.prefix)}`])
   else throw new InvalidArgumentError(`Unknown type of Solr field: ${JSON.stringify(field)}`)
 
   return filters
@@ -328,6 +351,162 @@ const reduceOpenEndedStringValue = (filters: Filter[], field: string) => {
   return filters.length > 1 ? `(${outerStatement})` : outerStatement
 }
 
+/**
+ *
+ * @param filters filters with this type
+ * @param field content item ID field name.
+ */
+const joinCollectionHandler = (
+  filters: Filter[],
+  field: string,
+  rule: string,
+  solrNamespaces: SolrServerNamespaceConfiguration[]
+) => {
+  const collectionNamespace = solrNamespaces.find(ns => ns.namespaceId === SolrNamespaces.CollectionItems)
+  if (collectionNamespace == null) {
+    throw new InvalidArgumentError(
+      `Could not find Solr namespace configuration for "${SolrNamespaces.CollectionItems}" required for "joinCollection" filter`
+    )
+  }
+  const collectionItemsIndex = collectionNamespace.index
+  const collectionIdField = 'col_id_s'
+
+  const includedCollectionIds: ['AND' | 'OR', string[]][] = filters
+    .filter(f => f.context !== 'exclude')
+    .filter(f => f.q != null)
+    .map(f => [f.op ?? 'OR', Array.isArray(f.q) ? f.q : [f.q!]])
+  const excludedCollectionIds: ['AND' | 'OR', string[]][] = filters
+    .filter(f => f.context === 'exclude')
+    .filter(f => f.q != null)
+    .map(f => [f.op ?? 'OR', Array.isArray(f.q) ? f.q : [f.q!]])
+
+  const andIncludedCollectionIds = includedCollectionIds
+    .filter(([op]) => op === 'AND')
+    .reduce((a, [, ids]) => a.concat(ids), [] as string[])
+  const orIncludedCollectionIds = includedCollectionIds
+    .filter(([op]) => op === 'OR')
+    .reduce((a, [, ids]) => a.concat(ids), [] as string[])
+  const andExcludedCollectionIds = excludedCollectionIds
+    .filter(([op]) => op === 'AND')
+    .reduce((a, [, ids]) => a.concat(ids), [] as string[])
+  const orExcludedCollectionIds = excludedCollectionIds
+    .filter(([op]) => op === 'OR')
+    .reduce((a, [, ids]) => a.concat(ids), [] as string[])
+
+  const andStatement = andIncludedCollectionIds
+    .map(id => `${collectionIdField}:*_${id}`)
+    .concat(andExcludedCollectionIds.map(id => `NOT ${collectionIdField}:*_${id}`))
+    .join(' AND ')
+  const orStatement = orIncludedCollectionIds
+    .map(id => `${collectionIdField}:*_${id}`)
+    .concat(orExcludedCollectionIds.map(id => `NOT ${collectionIdField}:*_${id}`))
+    .join(' OR ')
+
+  let collectionIdQuery = ''
+  if (andStatement && orStatement) {
+    collectionIdQuery = `(${andStatement}) AND (${orStatement})`
+  } else if (andStatement) {
+    collectionIdQuery = andStatement
+  } else if (orStatement) {
+    collectionIdQuery = orStatement
+  } else {
+    throw new InvalidArgumentError('At least one collection ID must be provided for "joinCollection" filter')
+  }
+
+  return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex} method=crossCollection}${collectionIdQuery}`
+}
+
+const _base64ToNumberVector = (base64: string): number[] => {
+  const buffer = Buffer.from(base64, 'base64')
+  const floatArray = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.length / Float32Array.BYTES_PER_ELEMENT)
+  return Array.from(floatArray)
+}
+
+/**
+ * Returns a KNN query for embedding similarity search.
+ * @see https://solr.apache.org/guide/solr/latest/query-guide/dense-vector-search.html#knn-query-parser
+ *
+ * @todo: set `topK` dynamically based on the `limit` parameter of the search request.
+ *
+ * Filter constraints:
+ *  - `q` - a string containing the base64-encoded embedding vector, the model as the prefix and an optional limit (topK)
+ *          as the suffix, e.g. "openclip-768:BASE64_ENCODED_VECTOR" or "openclip-768:BASE64_ENCODED_VECTOR:100" or an
+ *          array with a single such string. When no limit is provided, topK=10 is used.
+ *  - `precision` - not used
+ *  - `op` - not used
+ *  - `context` - not used
+ * @param filters filters with this type.
+ * @param field array of strings in the format "model:solr_field_name", e.g. ["openclip-768:openclip_emb_v768", "dinov2-1024:dinov2_emb_v1024"]
+ */
+const embeddingKnnSimilarityHandler = (filters: Filter[], field: string[], rule: string): string => {
+  const modelToFieldMap: Record<string, string> = field.reduce(
+    (map, entry) => {
+      const [model, fieldName] = entry.split(':')
+      map[model] = fieldName
+      return map
+    },
+    {} as Record<string, string>
+  )
+  const items = filters.map(({ q }) => {
+    const modelAndVector = Array.isArray(q) ? q[0] : q
+    if (Array.isArray(q) && q.length > 1) {
+      throw new InvalidArgumentError(
+        `"embeddingKnnSimilarity" filter rule supports only single element arrays in "q": ${JSON.stringify(q)}`
+      )
+    }
+    if (typeof modelAndVector !== 'string' || !modelAndVector.includes(':')) {
+      throw new InvalidArgumentError(
+        `"embeddingKnnSimilarity" filter rule requires "q" to be a string in the format "model:base64_encoded_vector", e.g. "openclip-768:BASE64_ENCODED_VECTOR". Received: ${JSON.stringify(
+          q
+        )}`
+      )
+    }
+
+    const [model, vector, ...rest] = modelAndVector.split(':')
+    const topK = rest.length > 0 && Number.isFinite(parseInt(rest[0], 10)) ? parseInt(rest[0], 10) : 10
+    const fieldName = modelToFieldMap[model]
+    if (fieldName == null) {
+      throw new InvalidArgumentError(
+        `"embeddingKnnSimilarity" filter rule: unknown model "${model}". Supported models: ${Object.keys(
+          modelToFieldMap
+        ).join(', ')}`
+      )
+    }
+
+    return { fieldName, vector, topK }
+  })
+
+  return items
+    .map(({ fieldName, vector, topK }) => {
+      const numberVector = _base64ToNumberVector(vector)
+      return `{!knn f=${fieldName} topK=${topK}}${JSON.stringify(numberVector)}`
+    })
+    .join(' AND ')
+}
+
+/**
+ * Same as `valueBuilder`, but handles both value and label for image type filters.
+ * @param filters
+ * @param field
+ */
+const imageTypeValueOrLabelHandler = (
+  filters: Filter[],
+  field: keyof typeof ImageTypeValueLookup,
+  ruleName: string
+) => {
+  const lookup = invertRecord(ImageTypeValueLookup[field] ?? {})
+  const filtersWithValues = filters.map(f => {
+    if (Array.isArray(f.q)) {
+      return { ...f, q: f.q.map(v => lookup[v] ?? v) }
+    } else if (f.q != null) {
+      return { ...f, q: lookup[f.q] ?? f.q }
+    } else {
+      return f
+    }
+  })
+  return valueBuilder(filtersWithValues, field, ruleName)
+}
+
 const noopHandler = () => '*:*'
 
 const FiltersHandlers = Object.freeze({
@@ -342,18 +521,30 @@ const FiltersHandlers = Object.freeze({
   capitalisedValue: capitalisedValueFilterBuilder,
   openEndedString: reduceOpenEndedStringValue,
   noop: noopHandler,
+  joinCollection: joinCollectionHandler,
+  embeddingKnnSimilarity: embeddingKnnSimilarityHandler,
+  imageTypeValueOrLabel: imageTypeValueOrLabelHandler,
 })
+
+interface FilterToSolrResult {
+  query: string
+  destination: FilterDefinition['destination']
+}
 
 /**
  * Convert a set of filters of the same type to a SOLR query string.
  * Types are defined in `solrFilters.yml` for the corresponding namespace
  *
- * @param {import('../../models').Filter[]} filters list of filters of the same type.
+ * @param {Filter[]} filters list of filters of the same type.
  * @param {string} solrNamespace namespace (index) this filter type belongs to.
  *
- * @returns {string} a SOLR query string that can be wrapped into a `filter()` statement.
+ * @returns {FilterToSolrResult} a SOLR query string that can be wrapped into a `filter()` statement and the destination
  */
-export const filtersToSolr = (filters: Filter[], solrNamespace: SolrNamespace) => {
+export const filtersToSolr = (
+  filters: Filter[],
+  solrNamespace: SolrNamespace,
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+): FilterToSolrResult => {
   if (filters.length < 1) throw new InvalidArgumentError('At least one filter must be provided')
   const types = [...new Set(filters.map(({ type }) => type))]
   if (types.length > 1) throw new InvalidArgumentError(`Filters must be of the same type. Found types: "${types}"`)
@@ -370,5 +561,8 @@ export const filtersToSolr = (filters: Filter[], solrNamespace: SolrNamespace) =
   const handler = FiltersHandlers[filterRules.rule as keyof typeof FiltersHandlers]
   if (handler == null) throw new InvalidArgumentError(`Could not find handler for rule ${filterRules.rule}`)
 
-  return handler(filters, filterRules.field as any, filterRules.rule)
+  return {
+    query: handler(filters, filterRules.field as any, filterRules.rule, solrNamespacesConfiguration),
+    destination: filterRules.destination ?? 'query',
+  }
 }

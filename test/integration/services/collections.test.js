@@ -1,11 +1,11 @@
-const assert = require('assert')
-const app = require('../../../src/app')
-const { generateUser, removeGeneratedUser } = require('./utils')
+import assert from 'assert'
+import app from '../../../src/app'
+import { generateUser, removeGeneratedUser } from './utils'
 
 /*
  ./node_modules/.bin/eslint  \
  test/services/collections.test.js \
- src/services/collection src/models/collections.model.js \
+ src/services/collection src/models/user-collection.js \
  --config .eslintrc.json --fix \
  && NODE_ENV=test DEBUG=impresso* mocha test/services/collections.test.js
 */

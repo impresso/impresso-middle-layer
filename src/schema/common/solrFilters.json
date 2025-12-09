@@ -63,6 +63,11 @@
         "rule": {
           "type": "string",
           "description": "The name of the rule to parse the filter value."
+        },
+        "destination": {
+          "type": "string",
+          "enum": ["query", "filter"],
+          "description": "Primary application destination of the filter: main query or filters. It's 'query' by default."
         }
       },
       "required": ["field", "rule"],

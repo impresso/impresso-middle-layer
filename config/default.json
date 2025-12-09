@@ -19,6 +19,11 @@
     "capacity": 10,
     "refillRate": 0.016
   },
+  "quotaChecker": {
+    "enabled": true,
+    "quotaLimit": 200000,
+    "windowDays": 30
+  },
   "callbackUrls": {
     "passwordReset": "http://localhost:8080/password-reset"
   },
@@ -82,6 +87,7 @@
     "host": "http://localhost:3030",
     "path": "/media",
     "protectedPath": "/protected-media",
+    "exportFolder": "/tmp/impresso-exports",
     "services": ["jobs"]
   },
   "multer": {
@@ -105,7 +111,7 @@
     "rewriteRules": [
       {
         "pattern": "^(https://dhlabsrv17.epfl.ch/iiif_impresso)",
-        "replacement": "/proxy/iiif"
+        "replacement": "https://impresso-project.ch/proxy/iiif"
       },
       {
         "pattern": "^(https://impresso-project.ch/assets/images)",
@@ -113,7 +119,7 @@
       },
       {
         "pattern": "^(https://impresso-project.ch/api/proxy/iiif)",
-        "replacement": "/proxy/iiif"
+        "replacement": "https://impresso-project.ch/proxy/iiif"
       },
       {
         "pattern": "^(https://scriptorium.bcu-lausanne.ch/api/iiif-img)",
@@ -158,7 +164,8 @@
       { "namespaceId": "images", "serverId": "default", "index": "impresso_images_dev", "schemaVersion": "v2" },
       { "namespaceId": "tr_passages", "serverId": "default", "index": "impresso_tr_passages" },
       { "namespaceId": "tr_clusters", "serverId": "default", "index": "impresso_tr_clusters" },
-      { "namespaceId": "word_embeddings", "serverId": "default", "index": "impresso_word_emb_dev" }
+      { "namespaceId": "word_embeddings", "serverId": "default", "index": "impresso_word_emb_dev" },
+      { "namespaceId": "collection_items", "serverId": "default", "index": "impresso_collection_items" }
     ]
   },
   "recommender": {

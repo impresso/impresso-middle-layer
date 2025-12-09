@@ -3,6 +3,14 @@ import { REGEX_PASSWORD, validate } from '../../hooks/params'
 import { validateWithSchema } from '../../hooks/schema'
 import { authenticateAround as authenticate } from '../../hooks/authenticate'
 
+interface UserUpdatePayload {
+  pattern?: string
+  firstname?: string
+  lastname?: string
+  email?: string
+  displayName?: string
+}
+
 export default {
   around: {
     all: [authenticate()],
@@ -13,23 +21,23 @@ export default {
     create: [],
     update: [
       validateWithSchema('services/me/schema/post/payload.json'),
-      validate(
+      validate<UserUpdatePayload>(
         {
           pattern: {
             regex: /^#[a-f0-9]{2,6}$/,
-            after: (d: string | string[]) => (Array.isArray(d) ? d.join(',') : d),
+            after: d => (Array.isArray(d) ? d.join(',') : d),
           },
           firstname: {
-            after: (d: string) => d.trim(),
+            after: d => d?.trim(),
           },
           lastname: {
-            after: (d: string) => d.trim(),
+            after: d => d?.trim(),
           },
           email: {
-            after: (d: string) => d.trim(),
+            after: d => d?.trim(),
           },
           displayName: {
-            after: (d: string) => d.trim(),
+            after: d => d?.trim(),
           },
         },
         'POST'

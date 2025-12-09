@@ -1,8 +1,8 @@
 // Initializes the `topics-graph` service on path `/topics-graph`
-const { TopicsGraph } = require('./topics-graph.class')
-const hooks = require('./topics-graph.hooks')
+import { TopicsGraph } from './topics-graph.class'
+import hooks from './topics-graph.hooks'
 
-module.exports = function (app) {
+export default function (app) {
   // Initialize our service with any options it requires
   app.use(
     '/topics-graph',

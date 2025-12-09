@@ -9,10 +9,17 @@ import { HookOptions } from '@feathersjs/feathers'
 import { inPublicApi } from '../../hooks/appMode'
 import { NewspapersService } from './newspapers.class'
 
-const { queryWithCommonParams, validate } = require('../../hooks/params')
+import { queryWithCommonParams, validate } from '../../hooks/params'
 
 const findQueryParamsRenamePolicy = {
   term: 'q',
+}
+
+interface Params {
+  includedOnly?: boolean
+  q?: string
+  faster?: boolean
+  order_by?: string
 }
 
 export default {
@@ -23,10 +30,10 @@ export default {
     all: [],
     find: [
       ...inPublicApi([renameQueryParameters(findQueryParamsRenamePolicy)]),
-      validate({
+      validate<Params>({
         includedOnly: {
           required: false,
-          transform: (d: string) => !!d,
+          transform: d => !!d,
         },
         q: {
           required: false,
@@ -34,7 +41,7 @@ export default {
         },
         faster: {
           required: false,
-          transform: (d: string) => !!d,
+          transform: d => !!d,
         },
         order_by: {
           choices: OrderByChoices,

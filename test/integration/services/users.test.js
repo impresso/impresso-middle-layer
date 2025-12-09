@@ -1,6 +1,6 @@
-const assert = require('assert')
-const app = require('../../../src/app')
-const User = require('../../../src/models/users.model')
+import assert from 'assert'
+import app from '../../../src/app'
+import User from '../../../src/models/users.model'
 /**
  * use with
   ./node_modules/.bin/eslint test/integration/services/users.test.js  \

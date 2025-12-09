@@ -1,6 +1,6 @@
-const { authenticate } = require('../../hooks/authenticate');
+import { authenticate } from '../../hooks/authenticate.js'
 
-module.exports = {
+export default {
   before: {
     all: [
       authenticate('jwt', {
@@ -34,4 +34,4 @@ module.exports = {
     patch: [],
     remove: [],
   },
-};
+}

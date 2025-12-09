@@ -1,9 +1,9 @@
 import User from './users.model'
 import { nanoid } from 'nanoid'
-import { BaseUser, Collection as ICollection } from './generated/schemas'
+import { Collection as ICollection } from './generated/schemas'
 import { ModelDefined, Sequelize } from 'sequelize'
 
-const { DataTypes } = require('sequelize')
+import { DataTypes } from 'sequelize'
 
 export const STATUS_PRIVATE = 'PRI'
 export const STATUS_SHARED = 'SHA'
@@ -18,6 +18,16 @@ type IDBCollection = Omit<ICollection, 'creationDate' | 'lastModifiedDate' | 'cr
 
 export type CollectionDbModel = ModelDefined<IDBCollection, Omit<IDBCollection, 'uid'>>
 
+/**
+ * New ID of a collection. Format: "local-useruid-7hy8hvrX"
+ * @param userId - user UID (not numeric ID)
+ * @returns new collection ID
+ */
+export const createCollectionId = (userId: string) => `${userId}-${nanoid(8)}`
+
+/**
+ * @deprecated use `user-collection.ts` instead.
+ */
 export default class Collection implements IDBCollection {
   uid: string
   name: string
@@ -64,7 +74,7 @@ export default class Collection implements IDBCollection {
     }
 
     if (!this.uid.length) {
-      this.uid = `${this.creator?.uid}-${nanoid(8)}` //= > "local-useruid-7hy8hvrX"
+      this.uid = createCollectionId(this.creator?.uid!)
     }
 
     if (complete) {
@@ -72,21 +82,15 @@ export default class Collection implements IDBCollection {
     }
   }
 
-  toJSON(): Omit<ICollection, 'creator'> & Partial<Pick<ICollection, 'creator'>> {
+  toJSON(): Omit<ICollection, 'creator'> & Partial<Pick<ICollection, 'creatorId'>> {
     return {
-      countItems: this.countItems,
-      creator: this.creator
-        ? {
-            uid: this.creator.uid,
-            username: this.creator.username,
-          }
-        : undefined,
+      totalItems: this.countItems,
+      creatorId: this.creator?.uid ?? '',
       description: this.description,
-      lastModifiedDate: this.lastModifiedDate.toISOString(),
-      creationDate: this.creationDate.toISOString(),
-      labels: this.labels,
-      name: this.name,
-      status: this.status,
+      updatedAt: this.lastModifiedDate.toISOString(),
+      createdAt: this.creationDate.toISOString(),
+      title: this.name,
+      accessLevel: this.status === STATUS_PRIVATE ? 'private' : 'public',
       uid: this.uid,
     }
   }
@@ -183,9 +187,3 @@ export default class Collection implements IDBCollection {
     return collection
   }
 }
-
-module.exports = Collection
-module.exports.STATUS_PUBLIC = STATUS_PUBLIC
-module.exports.STATUS_PRIVATE = STATUS_PRIVATE
-module.exports.STATUS_SHARED = STATUS_SHARED
-module.exports.STATUS_DELETED = STATUS_DELETED

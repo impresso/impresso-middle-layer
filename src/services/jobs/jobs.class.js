@@ -1,11 +1,12 @@
 /* eslint-disable no-unused-vars */
-const debug = require('debug')('impresso/services:jobs')
-const { BadGateway, NotFound, NotImplemented } = require('@feathersjs/errors')
-const SequelizeService = require('../sequelize.service')
-const { STATUS_KILLED, STATUS_DONE } = require('../../models/jobs.model')
-const { measureTime } = require('../../util/instruments')
+import debugLib from 'debug'
+const debug = debugLib('impresso/services:jobs')
+import { BadGateway, NotFound, NotImplemented } from '@feathersjs/errors'
+import SequelizeService from '../sequelize.service'
+import { STATUS_KILLED, STATUS_DONE } from '../../models/jobs.model.js'
+import { measureTime } from '../../util/instruments'
 
-class Service {
+export class Service {
   constructor(options) {
     this.options = options
   }
@@ -24,7 +25,7 @@ class Service {
       creatorId: params.user.id,
     }
 
-    return measureTime(
+    const jobs = await measureTime(
       () =>
         this.sequelizeService.find({
           query: {
@@ -34,18 +35,22 @@ class Service {
         }),
       'jobs.find.db.find'
     )
+    return jobs
   }
 
   async get(id, params) {
     const where = {
       id,
+      creatorId: params.user.id,
     }
-    if (params.user.uid) {
-      where['$creator.profile.uid$'] = params.user.uid
-    } else {
-      where.creatorId = params.user.id
-    }
-    return measureTime(() => this.sequelizeService.get(id, { where }).then(job => job.toJSON()), 'jobs.get.db.get')
+    // if (params.user.uid) {
+    //   where['$creator.profile.uid$'] = params.user.uid
+    // } else {
+    //   where.creatorId = params.user.id
+    // }
+    return this.sequelizeService
+      .get(id, { where })
+      .then(job => job.toJSON())
   }
 
   async create(data, params) {
@@ -115,8 +120,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

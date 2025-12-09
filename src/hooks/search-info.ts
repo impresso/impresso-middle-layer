@@ -3,7 +3,8 @@ import { AppServices, ImpressoApplication } from '../types'
 import { mediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
 import { buildResolvers } from '../internalServices/cachedResolvers'
 
-const debug = require('debug')('impresso/hooks:search-info')
+import debugLib from 'debug'
+const debug = debugLib('impresso/hooks:search-info')
 
 /**
  * check if there are any params to be added to our beloved facets.
@@ -74,6 +75,9 @@ const resolveFacets = () => async (context: HookContext<ImpressoApplication, App
   }
 }
 
+/**
+ * @deprecated Not used in live code and may be broken.
+ */
 const resolveQueryComponents = () => async (context: HookContext<ImpressoApplication, AppServices>) => {
   debug('resolveQueryComponents', context.params.sanitized.queryComponents)
 
@@ -104,7 +108,8 @@ const resolveQueryComponents = () => async (context: HookContext<ImpressoApplica
         .find({
           user: context.params.user,
           query: {
-            uids: d.q,
+            // TODO: removed when collections service was upgraded.
+            // uids: d.q,
           },
         })
         .then((res: any) => res.data)
@@ -115,8 +120,4 @@ const resolveQueryComponents = () => async (context: HookContext<ImpressoApplica
   }
 }
 
-module.exports = {
-  filtersToSolrFacetQuery,
-  resolveFacets,
-  resolveQueryComponents,
-}
+export { filtersToSolrFacetQuery, resolveFacets, resolveQueryComponents }

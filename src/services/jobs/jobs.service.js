@@ -1,8 +1,8 @@
 // Initializes the `jobs` service on path `/jobs`
-const createService = require('./jobs.class.js')
-const hooks = require('./jobs.hooks.js')
+import createService from './jobs.class.js'
+import hooks from './jobs.hooks.js'
 
-module.exports = function (app) {
+export default function (app) {
   // Initialize our service with any options it requires
   app.use(
     '/jobs',

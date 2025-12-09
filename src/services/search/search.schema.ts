@@ -3,6 +3,7 @@ import { SolrMappings } from '../../data/constants'
 import type { MethodParameter } from '../../util/openapi'
 import { filtersQueryParameter, getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
 import { paramsValidator } from './search.validators'
+import { includeEmbeddingsParameter } from '../content-items/content-items.schema'
 
 const parameterQ: MethodParameter = {
   in: 'query',
@@ -72,6 +73,7 @@ const findParametersPublicApi: MethodParameter[] = [
   parameterTerm,
   parameterOrderBy,
   filtersQueryParameter,
+  includeEmbeddingsParameter,
   ...getStandardParameters({ method: 'find' }),
 ]
 

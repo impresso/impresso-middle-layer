@@ -10,9 +10,11 @@ import {
   VALIDATE_OPTIONAL_PASSWORD,
   REGEX_SLUG,
 } from '../../hooks/params'
-const { protect } = require('@feathersjs/authentication-local').hooks
+import { hooks } from '@feathersjs/authentication-local'
 
-module.exports = {
+const { protect } = hooks
+
+export default {
   around: {
     get: [authenticate('jwt')],
     find: [authenticate('jwt')],

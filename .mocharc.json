@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/mocharc.json",
-  "require": "tsx",
+  "import": "tsx",
   "diff": true,
   "package": "./package.json",
   "reporter": "spec",

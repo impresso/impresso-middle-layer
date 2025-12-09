@@ -66,7 +66,7 @@ class Service {
     }
   }
 
-  async get(id, params) {
+  async get(id) {
     return {
       id,
       text: `A new message with ID: ${id}!`,
@@ -81,15 +81,15 @@ class Service {
     return data
   }
 
-  async update(id, data, params) {
+  async update(id, data) {
     return data
   }
 
-  async patch(id, data, params) {
+  async patch(id, data) {
     return data
   }
 
-  async remove(id, params) {
+  async remove(id) {
     return { id }
   }
 }

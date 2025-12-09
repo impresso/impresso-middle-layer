@@ -1,8 +1,8 @@
-const assert = require('assert')
-const config = require('@feathersjs/configuration')()()
-const solr = require('../../src/solr')
-const Article = require('../../src/models/articles.model')
-const Issue = require('../../src/models/issues.model')
+import assert from 'assert'
+import config from '@feathersjs/configuration'
+import solr from '../../src/solr'
+import Article from '../../src/models/articles.model'
+import Issue from '../../src/models/issues.model'
 
 const solrClient = solr.client(config.solr, config.solrConnectionPool)
 

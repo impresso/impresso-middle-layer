@@ -1,10 +1,10 @@
 // solr schema here.
-// const Solr = require('feathers-solr')
+// import Solr from 'feathers-solr'
 // See http://docs.sequelizejs.com/en/latest/docs/models-definition/
 // for more of what you can do here.
-const Sequelize = require('sequelize')
-const Language = require('./languages.model')
-const Property = require('./properties.model')
+import Sequelize from 'sequelize'
+import Language from './languages.model.js'
+import Property from './properties.model.js'
 
 /**
  * @deprecated use `MediaSource` interface instead.
@@ -180,4 +180,4 @@ class Newspaper {
   }
 }
 
-module.exports = Newspaper
+export default Newspaper

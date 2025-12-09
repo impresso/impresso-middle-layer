@@ -8,6 +8,7 @@ import { ContentItem, EntityMention } from '../../models/generated/schemas'
 import { toTextWrap } from '../../helpers'
 import { groupBy } from '../../util/fn'
 import { filtersToQueryAndVariables } from '../../util/solr'
+import { SolrNamespaces } from '../../solr'
 
 const debug = Debug('impresso/services:mentions')
 
@@ -72,16 +73,21 @@ export class Service {
   async _enrichEntityMentions(mentions: EntityMention[]): Promise<EntityMention[]> {
     const contentItemsIds = new Set(mentions.map(d => d.ciId))
 
-    const queryAndVars = filtersToQueryAndVariables([
-      {
-        type: 'uid',
-        q: [...contentItemsIds],
-      },
-    ])
+    const queryAndVars = filtersToQueryAndVariables(
+      [
+        {
+          type: 'uid',
+          q: [...contentItemsIds],
+        },
+      ],
+      SolrNamespaces.Search,
+      this.app.get('solrConfiguration').namespaces ?? []
+    )
 
     const contentItems = await this.app.service('content-items').findInternal({
       query: {
-        sq: queryAndVars.query,
+        sq: queryAndVars.query as string,
+        sfq: queryAndVars.filter,
       },
     })
     const contentItemsLookup = groupBy(contentItems.data, d => d.id)

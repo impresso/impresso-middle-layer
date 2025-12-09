@@ -34,7 +34,7 @@ export default {
       validate({
         filters: {
           required: false,
-          transform: (f: string) => parseFilters(f)[0], // parse a single filter
+          transform: parseFilters,
         },
       }),
     ],

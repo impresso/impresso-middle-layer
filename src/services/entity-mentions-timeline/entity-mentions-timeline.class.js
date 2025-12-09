@@ -1,15 +1,10 @@
-const { uniq, values, groupBy, get } = require('lodash')
-const { SolrNamespaces } = require('../../solr')
-const { sameTypeFiltersToQuery } = require('../../util/solr')
+import { get } from 'lodash'
+import { SolrNamespaces } from '../../solr'
+import { filtersToQueryAndVariables } from '../../util/solr'
 
 /**
  * @typedef {import('../../models').Filter} Filter
  */
-
-function filtersToSolrQuery(filters) {
-  const filtersGroupsByType = values(groupBy(filters, 'type'))
-  return uniq(filtersGroupsByType.map(f => sameTypeFiltersToQuery(f, SolrNamespaces.Search))).join(' AND ')
-}
 
 const Resolution = Object.freeze({
   Year: 'year',
@@ -111,7 +106,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
   })
 
   return {
-    query: filters.length > 0 ? filtersToSolrQuery(filters) : '*:*',
+    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search),
     limit: 0,
     params: {
       hl: false,
@@ -144,7 +139,7 @@ function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution
   }
 
   return {
-    query: filters.length > 0 ? filtersToSolrQuery(filters) : '*:*',
+    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search),
     limit: 0,
     params: {
       hl: false,
@@ -228,6 +223,4 @@ class EntityMentionsTimeline {
   }
 }
 
-module.exports = {
-  EntityMentionsTimeline,
-}
+export { EntityMentionsTimeline }

@@ -8,6 +8,30 @@
 
 
 /**
+ * A single item in a user collection. Maps collection to content item.
+ */
+export interface CollectionItem {
+  /**
+   * The unique identifier for the collection item. Format: <col_id_s>|<ci_id_s>
+   */
+  id?: string;
+  /**
+   * The unique identifier for the content item. Located in the main or text reuse passages index.
+   */
+  ci_id_s?: string;
+  /**
+   * The unique identifier for the collection. Format: <user_id>_<collection_id>
+   */
+  col_id_s?: string;
+  /**
+   * The visibility status of the collection item. `pub` for public, `pri` for private
+   */
+  vis_s?: "pub" | "pri";
+  _version_?: number;
+}
+
+
+/**
  * Image Solr document in Impresso v2
  */
 export interface Image {
@@ -28,6 +52,22 @@ export interface Image {
   iiif_url_s?: string;
   iiif_link_s?: string;
   cc_b?: boolean;
+  /**
+   * Whether the content is an image or not.
+   */
+  type_l0_tp?: string;
+  /**
+   * Determines if the image is a photograph.
+   */
+  type_l1_tp?: string;
+  /**
+   * Purpose or communicative function of the image.
+   */
+  type_l2_tp?: string;
+  /**
+   * Classification of the visual content.
+   */
+  type_l3_tp?: string;
   rights_data_domain_s?: string;
   rights_copyright_s?: string;
   rights_perm_use_explore_plain?: string[];
@@ -39,4 +79,43 @@ export interface Image {
   dinov2_emb_v1024?: number[];
   openclip_emb_v768?: number[];
   _version_?: number;
+}
+
+
+/**
+ * Topic model in Solr
+ */
+export interface Topic {
+  /**
+   * Unique identifier for the topic.
+   */
+  id: string;
+  /**
+   * Language code (ISO lowercase)
+   */
+  lg_s: string;
+  /**
+   * Topic model identifier
+   */
+  tp_model_s: string;
+  /**
+   * Topic number (integer field)
+   */
+  tp_nb_i: number;
+  /**
+   * Word probabilities in DPFS format (space-separated pairs of 'word|probability')
+   */
+  word_probs_dpf: string;
+  /**
+   * Field for topic suggestions
+   */
+  topic_suggest?: string;
+  /**
+   * Optional topic description
+   */
+  tp_desc_s?: string;
+  /**
+   * Optional topic metadata
+   */
+  tp_meta_s?: string;
 }

@@ -1,6 +1,8 @@
-const util = require('util')
-const exec = util.promisify(require('child_process').exec)
-const readFile = util.promisify(require('fs').readFile)
+import util from 'util'
+import { exec as execCallback } from 'child_process'
+import { readFile as readFileCallback } from 'fs'
+const exec = util.promisify(execCallback)
+const readFile = util.promisify(readFileCallback)
 
 const PackageJsonPath = `${__dirname}/../../../package.json`
 
@@ -63,10 +65,4 @@ async function getNewspaperIndex() {
   }, {})
 }
 
-module.exports = {
-  getGitBranch,
-  getGitRevision,
-  getVersion,
-  getFirstAndLastDocumentDates,
-  getNewspaperIndex,
-}
+export { getGitBranch, getGitRevision, getVersion, getFirstAndLastDocumentDates, getNewspaperIndex }

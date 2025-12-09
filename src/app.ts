@@ -17,27 +17,32 @@ import swagger from './middleware/swagger'
 import transport from './middleware/transport'
 import multer from './multer'
 import redis, { init as initRedis } from './redis'
-import sequelize from './sequelize'
+import sequelize, { init as initSequelize } from './sequelize'
 import services from './services'
 import rateLimiter from './services/internal/rateLimiter/redis'
+import quotaChecker from './services/internal/quotaChecker/redis'
 import media from './services/media'
 import { init as imageProxy } from './middleware/imageProxy'
 import schemas from './services/schemas'
 import { AppServices, ImpressoApplication } from './types'
 import { customJsonMiddleware } from './util/express'
+import queue from './internalServices/queue'
+import queueWorkerManager, { start as startQueueWorkerManager } from './internalServices/workerManager'
 
-const helmet = require('helmet')
-const cookieParser = require('cookie-parser')
+import helmet from 'helmet'
+import cookieParser from 'cookie-parser'
 
 const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
 
 // Load app configuration
 app.configure(configuration)
 
-// configure internal services
 app.configure(sequelize)
+
+// configure internal services
 app.configure(redis)
 app.configure(rateLimiter)
+app.configure(quotaChecker)
 app.configure(cache)
 app.configure(simpleSolrClient)
 
@@ -73,12 +78,21 @@ app.configure(transport)
 
 // Set up our services (see `services/index.ts`)
 app.configure(authentication)
-app.configure(services)
 
 // configure celery client task manage if celery config is available
 app.configure(celery)
+// queue manager (to replace celery eventually)
+app.configure(queue)
+app.configure(queueWorkerManager)
 
-app.configure(appHooksFactory([initRedis, initCelery, initOpenApiValidator, startupJobs], []))
+app.configure(services)
+
+app.configure(
+  appHooksFactory(
+    [initSequelize, initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs],
+    []
+  )
+)
 
 // part of sockets.io (see transport), but must go after services are defined
 // because one of the services is used in the channels.

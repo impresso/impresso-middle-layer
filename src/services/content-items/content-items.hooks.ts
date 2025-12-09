@@ -1,18 +1,30 @@
-import { rateLimit } from '../../hooks/rateLimiter'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { redactResponse, redactResponseDataItem, RedactionPolicy, unlessHasPermission } from '../../hooks/redaction'
-import { loadYamlFile } from '../../util/yaml'
-import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
-import { transformContentItem } from '../../transformers/contentItem'
-import { utils, validate, validateEach, queryWithCommonParams, displayQueryParams, REGEX_UID } from '../../hooks/params'
-import { filtersToSolrQuery } from '../../hooks/search'
-import { SolrMappings } from '../../data/constants'
-import { eachFilterValidator } from '../search/search.validators'
-import { transformBaseFind } from '../../transformers/base'
 import { HookOptions } from '@feathersjs/feathers'
+import { SolrMappings } from '../../data/constants'
+import {
+  ContextCondtition,
+  ImpressoAppHookContext,
+  inPublicApi,
+  inPublicApiOrWhen,
+  inWebAppApi,
+} from '../../hooks/appMode'
+import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
+import { rateLimit } from '../../hooks/rateLimiter'
+import {
+  RedactionPolicy,
+  redactResponse,
+  redactResponseDataItem,
+  unlessHasPermission,
+  unlessHasPermissionAndWithinQuota,
+} from '../../hooks/redaction'
+import { filtersToSolrQuery, termToSolrFilter } from '../../hooks/search'
+import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
+import { transformBaseFind } from '../../transformers/base'
+import { transformContentItem } from '../../transformers/contentItem'
 import { ImpressoApplication } from '../../types'
-import { inPublicApi, inWebAppApi } from '../../hooks/appMode'
-import { ContentItemService, IContentItemService } from './content-items.class'
+import { loadYamlFile } from '../../util/yaml'
+import { eachFilterValidator } from '../search/search.validators'
+import { ContentItemService } from './content-items.class'
 
 export const contentItemRedactionPolicyPublicApi = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicy.yml`
@@ -37,23 +49,43 @@ const OrderByChoices: OrderBy[] = [
 ]
 const FullOrderByChoices: FullOrderBy[] = [...OrderByChoices, ...OrderByChoices.map(o => `-${o}`)] as FullOrderBy[]
 
+interface Params {
+  order_by?: string | string[]
+  include_embeddings?: boolean
+  include_transcript?: boolean
+  term?: string
+}
+
+/**
+ * Condition that checks if the request orgiginated from another internal service
+ * that wants the public API behavior.
+ */
+const whenCalledInternallyAsPublicApi: ContextCondtition<ContentItemService> = (
+  context: ImpressoAppHookContext<ContentItemService>
+) => {
+  return context.params.asPublicApi === true
+}
+
 export default {
   around: {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
   },
   before: {
     find: [
-      validate({
+      validate<Params>({
         order_by: {
-          before: (d: string | string[]) => {
+          before: d => {
             if (typeof d === 'string') {
               return d.split(',')
             }
             return d
           },
           choices: FullOrderByChoices,
-          transform: (d: string[]) => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
-          after: (d: string | string[]) => {
+          transform: d => {
+            if (d == null) return d
+            return utils.toOrderBy(Array.isArray(d) ? d[0] : d, SolrMappings.search.orderBy, true)
+          },
+          after: d => {
             if (Array.isArray(d)) {
               return d.join(',')
             }
@@ -61,10 +93,26 @@ export default {
           },
           defaultValue: '-ocrQuality',
         },
+        include_embeddings: {
+          required: false,
+          defaultValue: 'false',
+          transform: d => String(d) === 'true',
+        },
+        include_transcript: {
+          required: false,
+          defaultValue: 'false',
+          transform: d => String(d) === 'true',
+        },
+        term: {
+          required: false,
+          min_length: 1,
+          max_length: 200,
+        },
       }),
       validateEach('filters', eachFilterValidator, {
         required: false,
       }),
+      termToSolrFilter('term'),
       filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
@@ -73,17 +121,24 @@ export default {
   after: {
     find: [
       displayQueryParams(['filters']),
-      ...inPublicApi([
-        transformResponse(transformBaseFind),
-        transformResponseDataItem(transformContentItem),
-        redactResponseDataItem(contentItemRedactionPolicyPublicApi, unlessHasPermission('getTranscript')),
-      ]),
+      ...inPublicApiOrWhen(
+        [
+          transformResponse(transformBaseFind),
+          transformResponseDataItem(transformContentItem),
+          // NOTE: Do not check quota in find - transcript is not included
+          redactResponseDataItem(
+            contentItemRedactionPolicyPublicApi,
+            unlessHasPermissionAndWithinQuota('getTranscript')
+          ),
+        ],
+        whenCalledInternallyAsPublicApi
+      ),
       ...inWebAppApi([redactResponseDataItem(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],
     get: [
       ...inPublicApi([
         transformResponse(transformContentItem),
-        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermission('getTranscript')),
+        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermissionAndWithinQuota('getTranscript', 'uid')),
       ]),
       ...inWebAppApi([redactResponse(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],

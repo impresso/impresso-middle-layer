@@ -2,11 +2,11 @@
  * From deprecated `socks` module, which is no longer maintained.
  */
 
-const stream = require('stream')
-const util = require('util')
-const net = require('net')
-const tls = require('tls')
-const ipaddr = require('ipaddr.js')
+import stream from 'stream'
+import util from 'util'
+import net from 'net'
+import tls from 'tls'
+import ipaddr from 'ipaddr.js'
 
 const SocksConnection = function (remoteOptions, socksOptions) {
   const that = this
@@ -78,7 +78,6 @@ SocksConnection.prototype._write = function (chunk, encoding, callback) {
   if (this._socksSetup) {
     this.outSocket.write(chunk, 'utf8', callback)
   } else {
-    // eslint-disable-next-line n/no-callback-literal
     callback('Not connected')
   }
 }
@@ -146,7 +145,7 @@ const socksAuth = function (auth) {
   })
 }
 
-const socksAuthStatus = function (data) {
+const socksAuthStatus = function () {
   const that = this
   getData(this.socksSocket, 2, function (data) {
     if (data.readUInt8(1) === 0) {
@@ -179,7 +178,7 @@ const socksRequest = function (host, port) {
   socksReply.call(this)
 }
 
-const socksReply = function (data) {
+const socksReply = function () {
   const that = this
   getData(this.socksSocket, 4, function (data) {
     let err
@@ -337,4 +336,4 @@ const defaults = function (obj) {
   return obj
 }
 
-module.exports = SocksConnection
+export default SocksConnection

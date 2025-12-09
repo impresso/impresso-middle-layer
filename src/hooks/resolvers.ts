@@ -1,12 +1,12 @@
 import lodash from 'lodash'
 import { logger } from '../logger'
-import Collection from '../models/collections.model'
 import { HookContext } from '@feathersjs/feathers'
 import { Service as SearchFacetService } from '../services/search-facets/search-facets.class'
 import { ImpressoApplication } from '../types'
 import { FindResponse } from '../models/common'
 import { SearchFacet, SearchFacetBucket } from '../models/generated/schemas'
-const debug = require('debug')('impresso/hooks/resolvers')
+import debugLib from 'debug'
+const debug = debugLib('impresso/hooks/resolvers')
 
 const supportedMethods = ['get', 'find']
 
@@ -76,48 +76,6 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
       if (isSearchFacetBucket(b)) {
         b.item = index[b.val]
       }
-    })
-  })
-}
-
-export const resolveCollections = () => async (context: HookContext<ImpressoApplication, SearchFacetService>) => {
-  assertCorrectServiceAndMethods(resolveTextReuseClusters.name, context)
-
-  const items = resultAsList(context.result)
-
-  const uids = items
-    .filter(d => d.type === 'collection')
-    .reduce((acc, d) => acc.concat(d.buckets.filter(isSearchFacetBucket).map(di => di.val)), [] as string[])
-
-  if (!uids.length) return
-
-  // get collections as dictionary
-  const client = context.app.get('sequelizeClient')
-  if (!client) {
-    throw new Error('Sequelize client not available')
-  }
-  const index = (await Collection.sequelize(client)
-    .findAll({
-      where: {
-        uid: uids,
-      },
-    })
-    .then((rows: any[]) =>
-      lodash.keyBy(
-        rows.map(r => r.toJSON()),
-        'uid'
-      )
-    )
-    .catch((err: Error) => {
-      logger.error('hook resolveCollections ERROR')
-      logger.error(err)
-      return {}
-    })) as lodash.Dictionary<any>
-
-  items.forEach(d => {
-    if (d.type !== 'collection') return
-    d.buckets.filter(isSearchFacetBucket).forEach(b => {
-      b.item = index[b.val]
     })
   })
 }

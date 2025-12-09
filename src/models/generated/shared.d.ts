@@ -8,6 +8,37 @@
 
 
 /**
+ * Request to add content items to a collection from content items that match given filters
+ */
+export interface AddCollectableItemsFromFilters {
+  /**
+   * Filters to apply when selecting items to add to the collection
+   */
+  filters: Filter[];
+  /**
+   * Namespace to use when selecting items to add to the collection
+   */
+  namespace: "search" | "tr_passages";
+}
+/**
+ * A single filter criteria
+ */
+export interface Filter {
+  context?: "include" | "exclude";
+  op?: "AND" | "OR";
+  /**
+   * Possible values are in 'search.validators:eachFilterValidator.type.choices'
+   */
+  type: string;
+  precision?: "fuzzy" | "soft" | "exact" | "partial";
+  q?: string | string[];
+  daterange?: string;
+  uids?: string;
+  uid?: string;
+}
+
+
+/**
  * Request body for the authentication endpoint
  */
 export interface AuthenticationCreateRequest {
@@ -119,6 +150,21 @@ export interface Error {
 
 
 /**
+ * An facet that has a value and a label
+ */
+export interface FacetWithLabel {
+  /**
+   * Unique identifier of the facet
+   */
+  id: string;
+  /**
+   * Label of the facet
+   */
+  label: string;
+}
+
+
+/**
  * A single filter criteria
  */
 export interface Filter {
@@ -133,6 +179,32 @@ export interface Filter {
   daterange?: string;
   uids?: string;
   uid?: string;
+}
+
+
+/**
+ * Body of a response from the Impresso Embedding endpoint
+ */
+export interface ImpressoEmbeddingResponse {
+  /**
+   * Embedding vector, base64-encoded with the model prefix. E.g. <model>:<base64-encoded vector>
+   */
+  embedding: string;
+}
+
+
+/**
+ * Body of a request to the Impresso Image Embedding endpoint
+ */
+export interface ImpressoImageEmbeddingRequest {
+  /**
+   * Which embedding space the embedding is going to be used in
+   */
+  searchTarget: "image" | "multimodal";
+  /**
+   * Base64-encoded image bytes. JPG and PNG formats are supported.
+   */
+  bytes: string;
 }
 
 
@@ -410,6 +482,21 @@ export interface ImpressoNamedEntityRecognitionEntity {
    * Name of the entity
    */
   name?: string;
+}
+
+
+/**
+ * Body of a request to the Impresso Text Embedding endpoint
+ */
+export interface ImpressoTextEmbeddingRequest {
+  /**
+   * Which embedding space the embedding is going to be used in
+   */
+  searchTarget: "multimodal" | "text";
+  /**
+   * Text to be embedded
+   */
+  text: string;
 }
 
 

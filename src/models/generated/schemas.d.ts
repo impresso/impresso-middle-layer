@@ -40,11 +40,6 @@ export interface BaseUser {
 }
 
 
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
 /**
  * Collectable item group object
  */
@@ -76,56 +71,82 @@ export interface CollectableItemGroup {
   [k: string]: unknown;
 }
 /**
- * Description of the collection object (Collection class)
+ * Collection details.
  */
 export interface Collection {
+  /**
+   * Unique identifier of the collection.
+   */
   uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
+  /**
+   * Title of the collection.
+   */
+  title?: string;
+  /**
+   * Description of the collection.
+   */
+  description?: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
+  /**
+   * Creation date of the collection.
+   */
+  createdAt?: string;
+  /**
+   * Last update date of the collection.
+   */
+  updatedAt?: string;
+  /**
+   * Total number of items in the collection.
+   */
+  totalItems?: number;
+  /**
+   * Identifier of the user who created the collection.
+   */
+  creatorId?: string;
 }
 
-
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
 
 /**
- * Description of the collection object (Collection class)
+ * Collection details.
  */
 export interface Collection {
+  /**
+   * Unique identifier of the collection.
+   */
   uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
+  /**
+   * Title of the collection.
+   */
+  title?: string;
+  /**
+   * Description of the collection.
+   */
+  description?: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
+  /**
+   * Creation date of the collection.
+   */
+  createdAt?: string;
+  /**
+   * Last update date of the collection.
+   */
+  updatedAt?: string;
+  /**
+   * Total number of items in the collection.
+   */
+  totalItems?: number;
+  /**
+   * Identifier of the user who created the collection.
+   */
+  creatorId?: string;
 }
 
-
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
 
 /**
  * A journal/magazine content item (article, advertisement, etc.)
@@ -377,23 +398,41 @@ export interface ContentItemRegion {
   g?: string[];
 }
 /**
- * Description of the collection object (Collection class)
+ * Collection details.
  */
 export interface Collection {
+  /**
+   * Unique identifier of the collection.
+   */
   uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
+  /**
+   * Title of the collection.
+   */
+  title?: string;
+  /**
+   * Description of the collection.
+   */
+  description?: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
+  /**
+   * Creation date of the collection.
+   */
+  createdAt?: string;
+  /**
+   * Last update date of the collection.
+   */
+  updatedAt?: string;
+  /**
+   * Total number of items in the collection.
+   */
+  totalItems?: number;
+  /**
+   * Identifier of the user who created the collection.
+   */
+  creatorId?: string;
 }
 /**
  * A newspaper
@@ -486,7 +525,7 @@ export interface ContentItemTopic {
   topicUid?: string;
 }
 /**
- * A topic (TODO)
+ * A topic
  */
 export interface Topic {
   /**
@@ -540,30 +579,15 @@ export interface Topic {
     avg?: number;
   }[];
   relatedTopicsStats?: {
-    /**
-     * TODO
-     */
     MinArticlesIncommon?: number;
-    /**
-     * TODO
-     */
     MaxRelatedTopicsToKeep?: number;
-    /**
-     * TODO
-     */
     RelatedThreshold?: number;
-    /**
-     * TODO
-     */
     Threshold?: number;
   };
   /**
    * Number of content items with this topic
    */
   countItems?: number;
-  /**
-   * TODO
-   */
   excerpt?: TopicWord[];
   /**
    * Top N words associated with the topic
@@ -573,23 +597,27 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
+  /**
+   * List of matched topic suggestions (if any)
+   */
+  matches?: string[];
 }
 /**
- * TODO
+ * A word included in a topic
  */
 export interface TopicWord {
   /**
-   * Word
+   * Word surface form
    */
   w: string;
   /**
-   * TODO
+   * Probability of the word in topic
    */
   p: number;
   /**
-   * TODO
+   * If word is highlighted
    */
-  h?: string[];
+  h?: boolean;
 }
 
 
@@ -652,7 +680,7 @@ export interface ContentItemTopic {
   topicUid?: string;
 }
 /**
- * A topic (TODO)
+ * A topic
  */
 export interface Topic {
   /**
@@ -706,30 +734,15 @@ export interface Topic {
     avg?: number;
   }[];
   relatedTopicsStats?: {
-    /**
-     * TODO
-     */
     MinArticlesIncommon?: number;
-    /**
-     * TODO
-     */
     MaxRelatedTopicsToKeep?: number;
-    /**
-     * TODO
-     */
     RelatedThreshold?: number;
-    /**
-     * TODO
-     */
     Threshold?: number;
   };
   /**
    * Number of content items with this topic
    */
   countItems?: number;
-  /**
-   * TODO
-   */
   excerpt?: TopicWord[];
   /**
    * Top N words associated with the topic
@@ -739,23 +752,27 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
+  /**
+   * List of matched topic suggestions (if any)
+   */
+  matches?: string[];
 }
 /**
- * TODO
+ * A word included in a topic
  */
 export interface TopicWord {
   /**
-   * Word
+   * Word surface form
    */
   w: string;
   /**
-   * TODO
+   * Probability of the word in topic
    */
   p: number;
   /**
-   * TODO
+   * If word is highlighted
    */
-  h?: string[];
+  h?: boolean;
 }
 
 
@@ -775,6 +792,38 @@ export interface ContentPermissions {
    * Bitmap representing the 'get images' permissions of the content item
    */
   getImagesBitmap?: number;
+}
+
+
+/**
+ * A data provider is a partner institution that provides content to Impresso (e.g., libraries, archives, media organizations).
+ */
+export interface DataProvider {
+  /**
+   * The unique identifier of the data provider.
+   */
+  id: string;
+  /**
+   * The default name of the data provider.
+   */
+  name: string;
+  /**
+   * Names of the data provider in different languages.
+   */
+  names: {
+    /**
+     * ISO 639-1 language code.
+     */
+    langCode: string;
+    /**
+     * Name of the data provider in this language.
+     */
+    name: string;
+  }[];
+  /**
+   * Bitmap index used for efficient data provider filtering.
+   */
+  bitmapIndex?: number;
 }
 
 
@@ -822,12 +871,12 @@ export interface EntityDetails {
    * ID of the entity in wikidata
    */
   wikidataId?: string;
-  wikidata?: WikidataEntityDetailsTODOAddPersonLocationSpecificFields;
+  wikidata?: WikidataEntityDetails;
 }
 /**
- * Details of a wikidata entity
+ * Details of a wikidata entity  (TODO: add person/location specific fields)
  */
-export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
+export interface WikidataEntityDetails {
   id: string;
   type: string;
   /**
@@ -848,14 +897,108 @@ export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
     datatype: string;
     [k: string]: unknown;
   }[];
-  [k: string]: unknown;
+  /**
+   * Coordinates for a location entity.
+   */
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+    [k: string]: unknown;
+  };
+  /**
+   * Birth date for a person entity.
+   */
+  birthDate?: string;
+  /**
+   * Death date for a person entity.
+   */
+  deathDate?: string;
+  birthPlace?: WikidataLocation;
+  deathPlace?: WikidataLocation1;
+}
+/**
+ * Birth place entity ID for a person entity.
+ */
+export interface WikidataLocation {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
+}
+/**
+ * Death place entity ID for a person entity.
+ */
+export interface WikidataLocation1 {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
 }
 
-
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
 
 /**
  * An entity mention in a content item
@@ -915,6 +1058,10 @@ export interface ContentItem {
    * Unique issue identifier
    */
   issueId?: string;
+  /**
+   * Relevance score for this content item relative to the search query
+   */
+  relevanceScore?: number;
   meta?: ContentItemMeta;
   text?: ContentItemText;
   semanticEnrichments?: ContentItemSemanticEnrichments;
@@ -1059,7 +1206,10 @@ export interface ContentItemSemanticEnrichments {
    * List of user collections the content item belongs to.
    */
   collections?: Collection[];
-  [k: string]: unknown;
+  /**
+   * Precomputed embeddings for the content item in the format: <model_type>:<base64_embedding_vector>.
+   */
+  embeddings?: string[];
 }
 /**
  * Content item named entity
@@ -1121,23 +1271,41 @@ export interface ContentItemTopic {
   languageCode?: string;
 }
 /**
- * Description of the collection object (Collection class)
+ * Collection details.
  */
 export interface Collection {
+  /**
+   * Unique identifier of the collection.
+   */
   uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
+  /**
+   * Title of the collection.
+   */
+  title?: string;
+  /**
+   * Description of the collection.
+   */
+  description?: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
+  /**
+   * Creation date of the collection.
+   */
+  createdAt?: string;
+  /**
+   * Last update date of the collection.
+   */
+  updatedAt?: string;
+  /**
+   * Total number of items in the collection.
+   */
+  totalItems?: number;
+  /**
+   * Identifier of the user who created the collection.
+   */
+  creatorId?: string;
 }
 /**
  * Image-related information for digitized content
@@ -1426,10 +1594,32 @@ export interface Image {
      */
     type?: "newspaper";
   };
+  imageTypes?: {
+    /**
+     * Whether the content is an image or not.
+     */
+    visualContent?: string;
+    /**
+     * Determines if the image is a photograph.
+     */
+    technique?: string;
+    /**
+     * Purpose or communicative function of the image.
+     */
+    communicationGoal?: string;
+    /**
+     * Classification of the visual content.
+     */
+    visualContentType?: string;
+  };
   /**
    * The date of the image or the date of the issue that the image belongs to.
    */
   date: string;
+  /**
+   * Precomputed embeddings for the image in the format: <model_type>:<base64_embedding_vector>.
+   */
+  embeddings?: string[];
 }
 
 
@@ -1736,11 +1926,6 @@ export interface Partner {
 }
 
 
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
 /**
  * An object containing search results for a facet
  */
@@ -1792,7 +1977,7 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year | Partner;
+  item?: Newspaper | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
 /**
  * A newspaper
@@ -1901,23 +2086,41 @@ export interface NewspaperIssue {
   year?: string;
 }
 /**
- * Description of the collection object (Collection class)
+ * Collection details.
  */
 export interface Collection {
+  /**
+   * Unique identifier of the collection.
+   */
   uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
+  /**
+   * Title of the collection.
+   */
+  title?: string;
+  /**
+   * Description of the collection.
+   */
+  description?: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
+  /**
+   * Creation date of the collection.
+   */
+  createdAt?: string;
+  /**
+   * Last update date of the collection.
+   */
+  updatedAt?: string;
+  /**
+   * Total number of items in the collection.
+   */
+  totalItems?: number;
+  /**
+   * Identifier of the user who created the collection.
+   */
+  creatorId?: string;
 }
 /**
  * An entity like location, person, etc
@@ -1937,7 +2140,7 @@ export interface Entity {
   name?: string;
 }
 /**
- * A topic (TODO)
+ * A topic
  */
 export interface Topic {
   /**
@@ -1991,30 +2194,15 @@ export interface Topic {
     avg?: number;
   }[];
   relatedTopicsStats?: {
-    /**
-     * TODO
-     */
     MinArticlesIncommon?: number;
-    /**
-     * TODO
-     */
     MaxRelatedTopicsToKeep?: number;
-    /**
-     * TODO
-     */
     RelatedThreshold?: number;
-    /**
-     * TODO
-     */
     Threshold?: number;
   };
   /**
    * Number of content items with this topic
    */
   countItems?: number;
-  /**
-   * TODO
-   */
   excerpt?: TopicWord[];
   /**
    * Top N words associated with the topic
@@ -2024,23 +2212,27 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
+  /**
+   * List of matched topic suggestions (if any)
+   */
+  matches?: string[];
 }
 /**
- * TODO
+ * A word included in a topic
  */
 export interface TopicWord {
   /**
-   * Word
+   * Word surface form
    */
   w: string;
   /**
-   * TODO
+   * Probability of the word in topic
    */
   p: number;
   /**
-   * TODO
+   * If word is highlighted
    */
-  h?: string[];
+  h?: boolean;
 }
 /**
  * A year (TODO)
@@ -2091,6 +2283,19 @@ export interface Partner {
    * URL of the partner's website
    */
   url?: string;
+}
+/**
+ * An facet that has a value and a label
+ */
+export interface FacetWithLabel {
+  /**
+   * Unique identifier of the facet
+   */
+  id: string;
+  /**
+   * Label of the facet
+   */
+  label: string;
 }
 /**
  * Facet bucket
@@ -2115,11 +2320,6 @@ export interface SearchFacetRangeBucket {
 }
 
 
-export type StatusOfTheCollection = string;
-export type NumberOfItemsInTheCollection = number | string;
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
 /**
  * Facet bucket
  */
@@ -2139,7 +2339,7 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year | Partner;
+  item?: Newspaper | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
 /**
  * A newspaper
@@ -2248,23 +2448,41 @@ export interface NewspaperIssue {
   year?: string;
 }
 /**
- * Description of the collection object (Collection class)
+ * Collection details.
  */
 export interface Collection {
+  /**
+   * Unique identifier of the collection.
+   */
   uid: string;
-  name: string;
-  description: string;
-  status: StatusOfTheCollection;
-  creationDate: string;
-  lastModifiedDate: string;
-  countItems: NumberOfItemsInTheCollection;
-  creator: BaseUser;
-  labels?: string[];
-}
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
+  /**
+   * Title of the collection.
+   */
+  title?: string;
+  /**
+   * Description of the collection.
+   */
+  description?: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
+  /**
+   * Creation date of the collection.
+   */
+  createdAt?: string;
+  /**
+   * Last update date of the collection.
+   */
+  updatedAt?: string;
+  /**
+   * Total number of items in the collection.
+   */
+  totalItems?: number;
+  /**
+   * Identifier of the user who created the collection.
+   */
+  creatorId?: string;
 }
 /**
  * An entity like location, person, etc
@@ -2284,7 +2502,7 @@ export interface Entity {
   name?: string;
 }
 /**
- * A topic (TODO)
+ * A topic
  */
 export interface Topic {
   /**
@@ -2338,30 +2556,15 @@ export interface Topic {
     avg?: number;
   }[];
   relatedTopicsStats?: {
-    /**
-     * TODO
-     */
     MinArticlesIncommon?: number;
-    /**
-     * TODO
-     */
     MaxRelatedTopicsToKeep?: number;
-    /**
-     * TODO
-     */
     RelatedThreshold?: number;
-    /**
-     * TODO
-     */
     Threshold?: number;
   };
   /**
    * Number of content items with this topic
    */
   countItems?: number;
-  /**
-   * TODO
-   */
   excerpt?: TopicWord[];
   /**
    * Top N words associated with the topic
@@ -2371,23 +2574,27 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
+  /**
+   * List of matched topic suggestions (if any)
+   */
+  matches?: string[];
 }
 /**
- * TODO
+ * A word included in a topic
  */
 export interface TopicWord {
   /**
-   * Word
+   * Word surface form
    */
   w: string;
   /**
-   * TODO
+   * Probability of the word in topic
    */
   p: number;
   /**
-   * TODO
+   * If word is highlighted
    */
-  h?: string[];
+  h?: boolean;
 }
 /**
  * A year (TODO)
@@ -2438,6 +2645,19 @@ export interface Partner {
    * URL of the partner's website
    */
   url?: string;
+}
+/**
+ * An facet that has a value and a label
+ */
+export interface FacetWithLabel {
+  /**
+   * Unique identifier of the facet
+   */
+  id: string;
+  /**
+   * Label of the facet
+   */
+  label: string;
 }
 
 
@@ -2701,7 +2921,7 @@ export interface ClusterDetails {
 
 
 /**
- * A topic (TODO)
+ * A topic
  */
 export interface Topic {
   /**
@@ -2755,30 +2975,15 @@ export interface Topic {
     avg?: number;
   }[];
   relatedTopicsStats?: {
-    /**
-     * TODO
-     */
     MinArticlesIncommon?: number;
-    /**
-     * TODO
-     */
     MaxRelatedTopicsToKeep?: number;
-    /**
-     * TODO
-     */
     RelatedThreshold?: number;
-    /**
-     * TODO
-     */
     Threshold?: number;
   };
   /**
    * Number of content items with this topic
    */
   countItems?: number;
-  /**
-   * TODO
-   */
   excerpt?: TopicWord[];
   /**
    * Top N words associated with the topic
@@ -2788,42 +2993,46 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
+  /**
+   * List of matched topic suggestions (if any)
+   */
+  matches?: string[];
 }
 /**
- * TODO
+ * A word included in a topic
  */
 export interface TopicWord {
   /**
-   * Word
+   * Word surface form
    */
   w: string;
   /**
-   * TODO
+   * Probability of the word in topic
    */
   p: number;
   /**
-   * TODO
+   * If word is highlighted
    */
-  h?: string[];
+  h?: boolean;
 }
 
 
 /**
- * TODO
+ * A word included in a topic
  */
 export interface TopicWord {
   /**
-   * Word
+   * Word surface form
    */
   w: string;
   /**
-   * TODO
+   * Probability of the word in topic
    */
   p: number;
   /**
-   * TODO
+   * If word is highlighted
    */
-  h?: string[];
+  h?: boolean;
 }
 
 
@@ -2891,9 +3100,9 @@ export interface VersionDetails {
 
 
 /**
- * Details of a wikidata entity
+ * Details of a wikidata entity  (TODO: add person/location specific fields)
  */
-export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
+export interface WikidataEntityDetails {
   id: string;
   type: string;
   /**
@@ -2914,7 +3123,106 @@ export interface WikidataEntityDetailsTODOAddPersonLocationSpecificFields {
     datatype: string;
     [k: string]: unknown;
   }[];
-  [k: string]: unknown;
+  /**
+   * Coordinates for a location entity.
+   */
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+    [k: string]: unknown;
+  };
+  /**
+   * Birth date for a person entity.
+   */
+  birthDate?: string;
+  /**
+   * Death date for a person entity.
+   */
+  deathDate?: string;
+  birthPlace?: WikidataLocation;
+  deathPlace?: WikidataLocation1;
+}
+/**
+ * Birth place entity ID for a person entity.
+ */
+export interface WikidataLocation {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
+}
+/**
+ * Death place entity ID for a person entity.
+ */
+export interface WikidataLocation1 {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
 }
 
 

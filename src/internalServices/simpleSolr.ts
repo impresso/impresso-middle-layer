@@ -1,7 +1,6 @@
-import { preprocessSolrError } from '../util/solr/errors'
+import { getSolrErrorDetails, SolrError } from '../util/solr/errors'
 import { Cache } from '../cache'
 import { SolrFacetQueryParams } from '../data/types'
-import { ConnectionPool, Headers, initHttpPool, RequestInit } from '../httpConnectionPool'
 import { logger } from '../logger'
 import {
   SolrConfiguration,
@@ -14,16 +13,18 @@ import { ImpressoApplication } from '../types'
 import { createSha256Hash } from '../util/crypto'
 import { ensureServiceIsFeathersCompatible } from '../util/feathers'
 import { serialize } from '../util/serialize'
-import { defaultCachingStrategy } from '../util/solr/cacheControl'
+import { notCachingCollectionItemsStrategyBuilder } from '../util/solr/cacheControl'
 import { removeNullAndUndefined } from '../util/fn'
 import { safeParseJson, safeStringifyJson } from '../util/jsonCodec'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from '../util/socksProxyConfiguration'
+import { IFetchClient } from '../utils/http/client/base'
+import { createFetchClient } from '../utils/http/client'
 
 const DefaultSuggesterDictonary = 'm_suggester_infix'
 
 export interface SelectRequestBody {
   query: string | Record<string, unknown>
-  filter?: string
+  filter?: string | string[]
   limit?: number
   offset?: number
   facet?: Record<string, SolrFacetQueryParams>
@@ -73,6 +74,7 @@ interface ResponseHeaders {
 export interface ResponseContainer<T> {
   numFound: number
   start: number
+  maxScore?: number
   docs: T[]
 }
 
@@ -147,6 +149,30 @@ export interface SuggestResponse {
   suggest?: Record<string, Record<string, TermSuggestResponse>>
 }
 
+interface SolrBulkAddRequest<T> {
+  add: T[]
+  commit?: {}
+}
+
+interface SolrBulkDeleteRequest {
+  delete: string[]
+  commit?: {}
+}
+
+export type BulkAddRequest<T> = Omit<SolrBulkAddRequest<T>, 'commit'>
+export type BulkDeleteRequest = Omit<SolrBulkDeleteRequest, 'commit'>
+type BulkUpdateRequest<T> = BulkAddRequest<T> | BulkDeleteRequest
+
+export interface DeleteRequest {
+  delete: {
+    query: string
+  }
+}
+
+const isAddRequest = <T>(request: BulkUpdateRequest<T>): request is BulkAddRequest<T> => {
+  return (request as SolrBulkAddRequest<T>).add !== undefined
+}
+
 /**
  * Simplified Solr client interface with strict types that follow Solr request/response schemas.
  * Aims to replace all the other varied Solr client interfaces in the codebase.
@@ -160,10 +186,20 @@ export interface SimpleSolrClient {
   ): Promise<SelectResponse<T, K, B>>
   selectOne<T = Record<string, unknown>>(namespace: SolrNamespace, request: SelectRequest): Promise<T | undefined>
   suggest(namespace: SolrNamespace, request: SuggestRequest): Promise<TermSuggestResponse>
+  sendBulkUpdateRequest<T>(
+    namespaceId: Extract<SolrNamespace, 'collection_items'>,
+    request: BulkUpdateRequest<T>,
+    commit: boolean
+  ): Promise<unknown>
+  sendDeleteRequest(
+    namespaceId: Extract<SolrNamespace, 'collection_items'>,
+    request: DeleteRequest,
+    commit: boolean
+  ): Promise<unknown>
 }
 
 interface PoolWrapper {
-  pool: ConnectionPool
+  client: IFetchClient
   baseUrl: string
   auth?: SolrServerConfiguration['auth']
 }
@@ -201,7 +237,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
             }`
           )
           acc[server.id] = {
-            pool: initHttpPool({ socksProxy }),
+            client: createFetchClient({ socksProxy }),
             auth: server.auth,
             baseUrl: server.baseUrl,
           }
@@ -228,18 +264,34 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
     return [this._pools[serverId], namespaceObj]
   }
 
-  protected async fetch(pool: ConnectionPool, url: string, init: RequestInit): Promise<string> {
-    const client = await pool.acquire()
-
+  protected async fetch(client: IFetchClient, url: string, init: RequestInit): Promise<string> {
     try {
       const response = await client.fetch(url, init, defaultFetchOptions)
       const successfulResponse = await checkResponseStatus(response)
       const responseBodyText = await successfulResponse.text()
       return sanitizeSolrResponse(responseBodyText)
     } catch (e) {
-      throw preprocessSolrError(e as Error)
-    } finally {
-      await pool.release(client).catch(e => logger.error(`Failed to release connection: ${e}`))
+      try {
+        const jsonString = (e as any)?.response?.body
+        const resposneBody = JSON.parse(jsonString) as Record<string, any>
+        const solrErrorDetails = getSolrErrorDetails(resposneBody)
+        if (solrErrorDetails) {
+          throw new SolrError(solrErrorDetails)
+        } else {
+          throw new SolrError({
+            code: 500,
+            message: `Unknown Solr error: ${(e as Error).message}`,
+          })
+        }
+      } catch (err) {
+        if (err instanceof SolrError) {
+          throw err
+        }
+        throw new SolrError({
+          code: 500,
+          message: `Unknown Solr error: ${(e as Error).message}`,
+        })
+      }
     }
   }
 
@@ -280,7 +332,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
     request: SelectRequest | SolrSuggestRequest,
     urlSuffix: 'select' | 'suggest'
   ): Promise<R> {
-    const [{ pool, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
+    const [{ client, baseUrl, auth: { read: auth } = {} }, namespace] = this.getPool(namespaceId)
 
     const url = `${baseUrl}/${namespace.index}/${urlSuffix}`
     const init: RequestInit = {
@@ -292,7 +344,57 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
       body: safeStringifyJson(removeNullAndUndefined(request.body)),
     }
 
-    const responseBody = await this.fetch(pool, url, init)
+    const responseBody = await this.fetch(client, url, init)
+    return safeParseJson(responseBody)
+  }
+
+  async sendBulkUpdateRequest<T>(
+    namespaceId: Extract<SolrNamespace, 'collection_items'>,
+    request: BulkUpdateRequest<T>,
+    commit: boolean
+  ): Promise<unknown> {
+    const [{ client, baseUrl, auth: { write: auth } = {} }, namespace] = this.getPool(namespaceId)
+
+    const solrRequest = isAddRequest(request)
+      ? ({ ...request, commit: commit ? {} : undefined } satisfies SolrBulkAddRequest<T>)
+      : ({ ...request, commit: commit ? {} : undefined } satisfies SolrBulkDeleteRequest)
+
+    const body = safeStringifyJson(removeNullAndUndefined(solrRequest))
+
+    const url = `${baseUrl}/${namespace.index}/update/json`
+    const init: RequestInit = {
+      method: 'POST',
+      headers: new Headers({
+        ...buildAuthHeader(auth),
+        'Content-Type': 'application/json',
+      }),
+      body,
+    }
+
+    const responseBody = await this.fetch(client, url, init)
+    return safeParseJson(responseBody)
+  }
+
+  async sendDeleteRequest(
+    namespaceId: Extract<SolrNamespace, 'collection_items'>,
+    request: DeleteRequest,
+    commit: boolean
+  ): Promise<unknown> {
+    const [{ client, baseUrl, auth: { write: auth } = {} }, namespace] = this.getPool(namespaceId)
+
+    const solrRequest = { ...request, commit: commit ? {} : undefined }
+
+    const url = `${baseUrl}/${namespace.index}/update/json`
+    const init: RequestInit = {
+      method: 'POST',
+      headers: new Headers({
+        ...buildAuthHeader(auth),
+        'Content-Type': 'application/json',
+      }),
+      body: safeStringifyJson(removeNullAndUndefined(solrRequest)),
+    }
+
+    const responseBody = await this.fetch(client, url, init)
     return safeParseJson(responseBody)
   }
 }
@@ -316,14 +418,14 @@ class CachedDefaultSimpleSolrClient extends DefaultSimpleSolrClient {
     super(configuration)
   }
 
-  protected async fetch(pool: ConnectionPool, url: string, init: RequestInit): Promise<string> {
+  protected async fetch(client: IFetchClient, url: string, init: RequestInit): Promise<string> {
     const cacheKey = buildCacheKey(url, { method: init.method, body: init.body })
     const cachedResponse = await this.cache.get<string>(cacheKey)
     if (cachedResponse != null) {
       return cachedResponse
     }
 
-    const response = await super.fetch(pool, url, init)
+    const response = await super.fetch(client, url, init)
 
     const action = this.cachingStrategy?.(url, init.body as string, safeStringifyJson(response)) ?? 'cache'
 
@@ -342,8 +444,11 @@ export const init = (app: ImpressoApplication) => {
   if (solrConfiguration == null) {
     throw new Error('Solr configuration not found')
   }
+
+  const cachingStrategy = notCachingCollectionItemsStrategyBuilder(solrConfiguration)
+
   const client = isCacheEnabled
-    ? new CachedDefaultSimpleSolrClient(solrConfiguration, cache, defaultCachingStrategy)
+    ? new CachedDefaultSimpleSolrClient(solrConfiguration, cache, cachingStrategy)
     : new DefaultSimpleSolrClient(solrConfiguration)
 
   logger.info(`Using SOLR client: ${client.constructor.name}`)

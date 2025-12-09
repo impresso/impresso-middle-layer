@@ -8,13 +8,18 @@ import {
   getStandardResponses,
 } from '../../util/openapi'
 
-export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images'
+export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images' | 'collection-items'
+
+const hasCollectionFacet = (index: IndexId): boolean => {
+  return index === 'search' || index === 'images' || index === 'tr-passages'
+}
 
 export const facetTypes: Record<IndexId, string[]> = {
   search: Object.keys(SolrMappings.search.facets),
   'tr-clusters': Object.keys(SolrMappings['tr_clusters'].facets),
   'tr-passages': Object.keys(SolrMappings['tr_passages'].facets),
   images: Object.keys(SolrMappings.images.facets),
+  'collection-items': Object.keys(SolrMappings['collection_items'].facets),
 }
 
 const facetNames: Record<IndexId, string> = {
@@ -22,6 +27,7 @@ const facetNames: Record<IndexId, string> = {
   'tr-clusters': 'text reuse clusters index',
   'tr-passages': 'text reuse passages index',
   images: 'images index',
+  'collection-items': 'collection items index',
 }
 
 export const OrderByChoices = ['-count', 'count', '-value', 'value']
@@ -158,7 +164,7 @@ export const getDocs = (index: IndexId, isPublicApi: boolean): ServiceSwaggerOpt
           required: true,
           schema: {
             type: 'string',
-            enum: facetTypes[index],
+            enum: [...new Set(facetTypes[index].concat(hasCollectionFacet(index) ? ['collection'] : []))],
           },
           description: 'Type of the facet',
         },

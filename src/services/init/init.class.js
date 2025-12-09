@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-class Service {
+export class Service {
   constructor({ app } = {}) {
     this.app = app
   }
@@ -17,8 +17,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

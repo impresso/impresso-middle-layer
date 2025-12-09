@@ -63,3 +63,53 @@ export const mapRecordValues = <K extends string | number | symbol, V, R>(
     R
   >
 }
+
+/**
+ * Inverts the keys and values of a record.
+ * @param original The original record
+ * @returns A new record with inverted keys and values
+ */
+export const invertRecord = <T extends string>(original: Record<string, T>): Record<T, string> => {
+  return Object.fromEntries(Object.entries(original).map(([key, value]) => [value, key])) as Record<T, string>
+}
+
+/**
+ * Executes async functions in parallel with a concurrency limit.
+ * @param inputs Array of inputs to process
+ * @param asyncFn Async function that processes each input
+ * @param concurrencyLimit Maximum number of parallel executions (default: 1)
+ * @returns Promise resolving to array of results in original order
+ */
+export async function parallelLimit<T, R>(
+  inputs: T[],
+  asyncFn: (input: T) => Promise<R>,
+  concurrencyLimit: number = 1
+): Promise<R[]> {
+  if (concurrencyLimit < 1) {
+    throw new Error('concurrencyLimit must be at least 1')
+  }
+
+  const results: R[] = new Array(inputs.length)
+  const executing: Array<{ promise: Promise<void>; index: number }> = []
+
+  for (let index = 0; index < inputs.length; index++) {
+    const promise = Promise.resolve().then(async () => {
+      results[index] = await asyncFn(inputs[index])
+    })
+
+    executing.push({ promise, index })
+
+    if (executing.length >= concurrencyLimit) {
+      // Wait for the first promise to complete by racing wrapped promises that return their index
+      const completedIndex = await Promise.race(
+        executing.map((item, idx) => item.promise.then(() => idx))
+      )
+      // Remove the completed promise from the executing array
+      executing.splice(completedIndex, 1)
+    }
+  }
+
+  // Wait for all remaining promises to complete
+  await Promise.all(executing.map((p) => p.promise))
+  return results
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "A collection of entity mentions (location, person, etc.) present in text.",
+  "type": "object",
+  "title": "Content Item Entities Mentions Information",
+  "additionalProperties": false,
+  "properties": {
+    "locations": {
+      "type": "array",
+      "description": "Locations mentioned in the content item.",
+      "items": {
+        "$ref": "./EntityMention.json"
+      }
+    },
+    "persons": {
+      "type": "array",
+      "description": "Persons mentioned in the content item.",
+      "items": {
+        "$ref": "./EntityMention.json"
+      }
+    },
+    "organisations": {
+      "type": "array",
+      "description": "Organisations mentioned in the content item.",
+      "items": {
+        "$ref": "./EntityMention.json"
+      }
+    },
+    "newsAgencies": {
+      "type": "array",
+      "description": "News agencies mentioned in the content item.",
+      "items": {
+        "$ref": "./EntityMention.json"
+      }
+    }
+  }
+}

@@ -326,9 +326,7 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
     Object.values(topics).map(topic => ({
       key: topic.uid,
       attributes: {
-        x: 0,
-        y: 0,
-        weight: topic.countItems,
+        name: 'the awesome topic graph',
       },
     })),
     n => n.key

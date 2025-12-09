@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "description": "Details of a wikidata entity",
+  "description": "Details of a wikidata entity  (TODO: add person/location specific fields)",
   "type": "object",
-  "title": "WikidataEntityDetails (TODO: add person/location specific fields)",
-  "additionalProperties": true,
+  "title": "WikidataEntityDetails",
+  "additionalProperties": false,
   "properties": {
     "id": {
       "type": "string"
@@ -42,6 +42,37 @@
         },
         "required": ["value", "rank", "datatype"]
       }
+    },
+    "coordinates": {
+      "type": "object",
+      "description": "Coordinates for a location entity.",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        }
+      },
+      "required": ["latitude", "longitude"]
+    },
+    "birthDate": {
+      "type": "string",
+      "description": "Birth date for a person entity.",
+      "format": "date-time"
+    },
+    "deathDate": {
+      "type": "string",
+      "description": "Death date for a person entity.",
+      "format": "date-time"
+    },
+    "birthPlace": {
+      "description": "Birth place entity ID for a person entity.",
+      "$ref": "../schemasPublic/WikidataLocation.json"
+    },
+    "deathPlace": {
+      "description": "Death place entity ID for a person entity.",
+      "$ref": "../schemasPublic/WikidataLocation.json"
     }
   },
   "required": ["id", "type", "labels", "descriptions", "images"]

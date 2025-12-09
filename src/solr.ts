@@ -1,5 +1,5 @@
-import { FetchOptions, IResponse } from './httpConnectionPool'
 import { logger } from './logger'
+import { FetchOptions } from './utils/http/client/base'
 
 export type SolrNamespace =
   | 'search'
@@ -14,6 +14,9 @@ export type SolrNamespace =
   | 'embeddings_lb'
   | 'word_embeddings'
   | 'entities_mentions'
+  | 'collection_items'
+  | 'subdoc_embeddings_experiment'
+  | 'entity_profiles'
 
 export const SolrNamespaces = Object.freeze({
   Search: 'search',
@@ -28,6 +31,9 @@ export const SolrNamespaces = Object.freeze({
   EmbeddingsLB: 'embeddings_lb',
   WordEmbeddings: 'word_embeddings',
   EntitiesMentions: 'entities_mentions',
+  CollectionItems: 'collection_items',
+  SubdocEmbeddingsExperiment: 'subdoc_embeddings_experiment',
+  EntityProfiles: 'entity_profiles',
 }) satisfies Record<string, SolrNamespace>
 
 /**
@@ -43,51 +49,21 @@ export const sanitizeSolrResponse = (text: string): string => {
   return replacedText
 }
 
-export interface SolrError extends Error {
-  response: {
-    statusCode: number
-    body: string | Record<string, any>
-  }
-}
-
-export const isSolrError = (error: Error): error is SolrError => {
-  const maybeSolrError = error as SolrError
-  return (
-    maybeSolrError?.response != null &&
-    typeof maybeSolrError?.response?.statusCode == 'number' &&
-    typeof maybeSolrError?.response?.statusCode == 'string'
-  )
-}
-
 /**
  * @param {Response} res response
  * @returns {Promise<Response>}
  * @throws {SolrError}
  */
-export const checkResponseStatus = async (res: IResponse): Promise<IResponse> => {
+export const checkResponseStatus = async (res: Response): Promise<Response> => {
   if (res.ok) return res
 
-  const error = new Error(new String(res.statusCode).toString())
+  const error = new Error(new String(res.status).toString())
   // @ts-ignore
   error.response = {
-    statusCode: res.statusCode,
+    statusCode: res.status,
     body: await res.text(),
   }
   throw error
-}
-
-const logUnsuccessfulResponses = async (url: string, method: string, body: any, response: IResponse) => {
-  if (!response.ok) {
-    const errorDetails = {
-      method,
-      url,
-      status: response.statusCode,
-      body,
-      response: await response.text(),
-    }
-    const message = `Solr returned an error: ${JSON.stringify(errorDetails, null, 2)}`
-    logger.error(message)
-  }
 }
 
 const defaultRetryOptions: FetchOptions['retryOptions'] = {
@@ -95,12 +71,11 @@ const defaultRetryOptions: FetchOptions['retryOptions'] = {
   maxTimeout: 1000,
   minTimeout: 100,
   timeoutFactor: 3,
-  // excluding 500 - it often means the query is not correct
-  statusCodes: [502, 503, 504, 429],
+  throwOnError: false, // preserve original response
+  statusCodes: [502, 503, 504, 429, 500],
 }
 
 export const defaultFetchOptions: FetchOptions = {
-  onUnsuccessfulResponse: logUnsuccessfulResponses,
   retryOptions: defaultRetryOptions,
 }
 

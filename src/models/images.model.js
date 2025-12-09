@@ -3,8 +3,8 @@ import { getExternalFragmentUrl } from '../util/iiif'
 import Article from './articles.model'
 import Page from './pages.model'
 
-const Issue = require('./issues.model')
-const Newspaper = require('./newspapers.model')
+import Issue from './issues.model'
+import Newspaper from './newspapers.model'
 
 class Image {
   constructor({
@@ -108,8 +108,8 @@ class Image {
   }
 }
 
-module.exports = Image
-module.exports.SOLR_FL = [
+export default Image
+export const SOLR_FL = [
   'id',
   'coords_is',
   'meta_ed_s',

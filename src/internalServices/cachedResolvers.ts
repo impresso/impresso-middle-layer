@@ -1,4 +1,3 @@
-import Collection from '../models/collections.model'
 import Entity from '../models/entities.model'
 import Topic from '../models/topics.model'
 import { optionalMediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
@@ -15,6 +14,8 @@ import {
   Newspaper as INewspaper,
   Partner as IPartner,
 } from '../models/generated/schemas'
+import { FacetWithLabel } from '../models/generated/shared'
+import { ImageTypeValueLookup } from '../services/images/images.class'
 export type CachedFacetType =
   | 'newspaper'
   | 'topic'
@@ -25,7 +26,11 @@ export type CachedFacetType =
   | 'partner'
   | 'nag'
   | 'organisation'
-export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | INewspaper | IPartner
+  | 'imageVisualContent'
+  | 'imageTechnique'
+  | 'imageCommunicationGoal'
+  | 'imageContentType'
+export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
 
@@ -39,15 +44,30 @@ export type ICachedResolvers = {
   partner: IResolver<IPartner>
   nag: IResolver<IEntity>
   organisation: IResolver<IEntity>
+  imageVisualContent: IResolver<FacetWithLabel>
+  imageTechnique: IResolver<FacetWithLabel>
+  imageCommunicationGoal: IResolver<FacetWithLabel>
+  imageContentType: IResolver<FacetWithLabel>
 }
 
 // Record<CachedFacetType, IResolver<T>>
 
-const collectionResolver: IResolver<ICollection> = async (id: string) =>
-  new Collection({
-    uid: id,
-    name: id,
-  }) as any as ICollection
+const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection> => {
+  const collectionsService = app.service('collections')
+  return async (id: string) => {
+    const collection = await collectionsService.getInternal(id)
+    return {
+      uid: id,
+      title: collection?.name ?? '',
+      description: collection?.description ?? '',
+      accessLevel: collection?.status == 'PRI' ? 'private' : 'public',
+      creatorId: String(collection?.creatorId),
+      createdAt: collection?.creationDate?.toISOString() ?? '',
+      updatedAt: collection?.lastModifiedDate?.toISOString() ?? '',
+      totalItems: 0,
+    } satisfies ICollection
+  }
+}
 
 const entityResolver = async (id: string, type: CachedFacetType) =>
   new Entity({
@@ -62,6 +82,7 @@ const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
     const deserialisedTopics: ITopic[] = JSON.parse(result ?? '[]')
 
     const topic = deserialisedTopics.find(t => t.uid === id)
+    if (!topic) return undefined
     return new Topic(topic as unknown as any) as any as ITopic
   }
 }
@@ -85,9 +106,17 @@ const getNewspaperResolver = (app: ImpressoApplication): IResolver<NewspaperInte
   }
 }
 
+const imageTypeResolver = async (id: string, field: keyof typeof ImageTypeValueLookup) => {
+  const lookup = ImageTypeValueLookup[field]
+  return {
+    id,
+    label: lookup[id] ?? id,
+  } satisfies FacetWithLabel
+}
+
 export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
   return {
-    collection: collectionResolver,
+    collection: getCollectionResolver(app),
     location: (id: string) => entityResolver(id, 'location'),
     person: (id: string) => entityResolver(id, 'person'),
     topic: getTopicResolver(app),
@@ -96,5 +125,9 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     partner: getPartnerResolver(app),
     nag: (id: string) => entityResolver(id, 'nag'),
     organisation: (id: string) => entityResolver(id, 'organisation'),
+    imageVisualContent: (id: string) => imageTypeResolver(id, 'type_l0_tp'),
+    imageTechnique: (id: string) => imageTypeResolver(id, 'type_l1_tp'),
+    imageCommunicationGoal: (id: string) => imageTypeResolver(id, 'type_l2_tp'),
+    imageContentType: (id: string) => imageTypeResolver(id, 'type_l3_tp'),
   }
 }

@@ -38,6 +38,11 @@ const FilterTypeToPythonArgumentName = {
   sourceType: '',
   sourceMedium: '',
   organisation: '',
+  embedding: 'embedding',
+  imageVisualContent: 'visual_content',
+  imageTechnique: 'technique',
+  imageCommunicationGoal: 'communication_goal',
+  imageContentType: 'content_type',
 } satisfies Record<FilterType, string>
 
 const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']

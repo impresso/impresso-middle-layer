@@ -1,4 +1,4 @@
-const {
+import {
   daterangeExtractor,
   newspaperExtractor,
   topicExtractor,
@@ -7,7 +7,8 @@ const {
   collectionExtractor,
   numberRangeExtractor,
   simpleValueExtractor,
-} = require('./extractors')
+  getImageTypeExtractor,
+} from './extractors'
 
 const ItemsExtractors = Object.freeze({
   daterange: daterangeExtractor,
@@ -24,6 +25,10 @@ const ItemsExtractors = Object.freeze({
   textReuseClusterLexicalOverlap: numberRangeExtractor,
   textReuseClusterDayDelta: numberRangeExtractor,
   contentLength: numberRangeExtractor,
+  imageVisualContent: getImageTypeExtractor('imageVisualContent'),
+  imageTechnique: getImageTypeExtractor('imageTechnique'),
+  imageCommunicationGoal: getImageTypeExtractor('imageCommunicationGoal'),
+  imageContentType: getImageTypeExtractor('imageContentType'),
 })
 
 class FiltersItems {
@@ -46,4 +51,4 @@ class FiltersItems {
   }
 }
 
-module.exports = { FiltersItems }
+export { FiltersItems }

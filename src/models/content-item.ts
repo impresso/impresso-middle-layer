@@ -26,7 +26,8 @@ import { setDifference } from '../util/fn'
 import { getNameFromUid } from '../utils/entity.utils'
 import { IFragmentsAndHighlights } from './articles.model'
 import { getContentItemMatches } from '../services/search/search.extractors'
-import { parsePlainsField } from '../util/solr'
+import { parsePlainsField, WithScore } from '../util/solr'
+import { vectorToCanonicalEmbedding } from '../services/impresso-embedder/impresso-embedder.class'
 
 const ContentItemCoreFields = [
   'id',
@@ -57,6 +58,11 @@ interface IWildcardTextFields {
 }
 
 const WildcardTextFields = ['title_txt_*', 'content_txt_*'] satisfies (keyof IWildcardTextFields)[]
+const NonWildcardTextFields = ['title_txt', 'content_txt'] satisfies (keyof Pick<
+  TextContentFields,
+  'content_txt' | 'title_txt'
+>)[]
+export const ContentTextFields = [...NonWildcardTextFields, ...WildcardTextFields]
 
 const ContentItemTextFields = [
   'lg_s',
@@ -95,6 +101,7 @@ const ContentSemanticEnrichmentsFields = [
   'nag_mention_conf_dpfs',
   'nem_offset_plain',
   'nag_offset_plain',
+  'gte_multi_v768',
 ] satisfies (keyof SemanticEnrichmentsFields)[]
 
 const AudioContentFields = [
@@ -125,7 +132,9 @@ export type FullContentOnlyFieldsType =
   | 'rreb_plain'
   | 'ub_plain'
 
-export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType>
+export type EmbeddingsFieldType = 'gte_multi_v768'
+
+export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType | EmbeddingsFieldType>
 
 export type IFullContentItemFieldsNames = keyof (AllDocumentFields & IWildcardTextFields)
 
@@ -138,6 +147,13 @@ const FullContentOnlyFields = [
   'rreb_plain',
   'ub_plain',
 ] satisfies FullContentOnlyFieldsType[]
+
+/**
+ * Fields that contain embeddings vectors.
+ * This is one level above "full content only" fields
+ * and only should be fetched when embeddings are needed.
+ */
+export const EmbeddingsFields = ['gte_multi_v768'] satisfies EmbeddingsFieldType[]
 
 type ISlimContentItemFieldsNames = Exclude<IFullContentItemFieldsNames, FullContentOnlyFieldsType>
 
@@ -154,7 +170,7 @@ export const FullContentItemFieldsNames = [
 ] satisfies IFullContentItemFieldsNames[]
 
 export const SlimContentItemFieldsNames = [
-  ...setDifference(FullContentItemFieldsNames, FullContentOnlyFields),
+  ...setDifference(setDifference(FullContentItemFieldsNames, FullContentOnlyFields), EmbeddingsFields),
 ] satisfies ISlimContentItemFieldsNames[]
 
 type XYWH = [number, number, number, number] // x, y, width, height
@@ -291,19 +307,47 @@ const toUtteranceLocator = (
   }
 }
 
+export const asObjectOrUndefined = (value: Record<string, unknown>): Record<string, unknown> | undefined => {
+  const entries = Object.entries(value).filter(([k, v]) => v !== undefined && (Array.isArray(v) ? v.length > 0 : true))
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined
+}
+
 const buildAudioFileUrl = (recordId: string, partnerId: string): string => {
   const idParts = recordId.split('-')
   const idPrefix = idParts.slice(0, idParts.length - 1).join('/')
   return `https://dev.impresso-project.ch/media/audio/${partnerId}/${idPrefix}/${recordId}.mp3`
 }
 
-export const toContentItem = (doc: AllDocumentFields): ContentItem => {
+/**
+ * Converts a Solr document to a ContentItem.
+ * @param doc The Solr document to convert.
+ * @param opts An optional parameter with optional `maxScore` that should be used as score denominator.
+ * @returns The converted ContentItem.
+ */
+export const toContentItem = (
+  doc: WithScore<AllDocumentFields>,
+  { maxScore }: { maxScore?: number } = {}
+): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
+
+  const namedEntities = asObjectOrUndefined({
+    persons: parseContentItemEntityDPFS(doc.pers_entities_dpfs),
+    locations: parseContentItemEntityDPFS(doc.loc_entities_dpfs),
+    newsagencies: parseContentItemEntityDPFS(doc.nag_entities_dpfs),
+    organisations: parseContentItemEntityDPFS(doc.org_entities_dpfs),
+  })
+  const mentions = asObjectOrUndefined({
+    persons: parseContentItemMentionDPFS(doc.pers_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.pers)),
+    locations: parseContentItemMentionDPFS(doc.loc_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.loc)),
+    organisations: parseContentItemMentionDPFS(doc.org_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.org)),
+    newsagencies: parseContentItemMentionDPFS(doc.nag_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.nag)),
+  })
 
   return {
     id: doc.id,
     issueId: doc.meta_issue_id_s,
+    ...(doc.score != undefined ? { relevanceScore: doc.score / (maxScore ?? 1) } : {}),
     meta: {
       sourceType: doc.meta_source_type_s,
       date: doc.meta_date_dt,
@@ -355,23 +399,12 @@ export const toContentItem = (doc: AllDocumentFields): ContentItem => {
     },
     semanticEnrichments: {
       ocrQuality: doc.ocrqa_f,
-      namedEntities: {
-        persons: parseContentItemEntityDPFS(doc.pers_entities_dpfs),
-        locations: parseContentItemEntityDPFS(doc.loc_entities_dpfs),
-        newsagencies: parseContentItemEntityDPFS(doc.nag_entities_dpfs),
-        organisations: parseContentItemEntityDPFS(doc.org_entities_dpfs),
-      },
-      mentions: {
-        persons: parseContentItemMentionDPFS(doc.pers_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.pers)),
-        locations: parseContentItemMentionDPFS(doc.loc_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.loc)),
-        organisations: parseContentItemMentionDPFS(doc.org_mention_conf_dpfs).map(
-          mentionWithOffset(mentionsOffsets.org)
-        ),
-        newsagencies: parseContentItemMentionDPFS(doc.nag_mention_conf_dpfs).map(
-          mentionWithOffset(mentionsOffsets.nag)
-        ),
-      },
+      ...(namedEntities != null ? { namedEntities } : {}),
+      ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),
+      ...(doc.gte_multi_v768 != null
+        ? { embeddings: [vectorToCanonicalEmbedding(doc.gte_multi_v768, 'gte-768')] }
+        : {}),
     },
     audio: {
       duration: doc.meta_duration_s,

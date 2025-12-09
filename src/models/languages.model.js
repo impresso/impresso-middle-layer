@@ -1,17 +1,13 @@
-const { DataTypes } = require('sequelize');
+import { DataTypes } from 'sequelize'
 
 class Language {
-  constructor ({
-    uid = '',
-    code = '',
-    uri = '',
-  } = {}) {
-    this.uid = String(uid);
-    this.code = String(code);
-    this.uri = String(uri);
+  constructor({ uid = '', code = '', uri = '' } = {}) {
+    this.uid = String(uid)
+    this.code = String(code)
+    this.uri = String(uri)
   }
 
-  static sequelize (client) {
+  static sequelize(client) {
     return client.define('language', {
       id: {
         type: DataTypes.INTEGER,
@@ -27,12 +23,12 @@ class Language {
         type: DataTypes.STRING,
         field: 'lexvo_uri',
       },
-    });
+    })
   }
 }
 
-module.exports = Language;
-// module.exports = function (app) {
+export default Language
+// export default function (app) {
 //   const config = app.get('sequelize');
 //   const language = model(app.get('sequelizeClient'), {
 //     tableName: config.tables.languages || 'languages',
@@ -48,4 +44,4 @@ module.exports = Language;
 //   };
 // };
 //
-// module.exports.model = model;
+// export const model = model;

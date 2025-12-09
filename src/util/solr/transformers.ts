@@ -2,13 +2,15 @@ export const parseDPFS = <T>(builder: (pair: [string, string]) => T, dpfs?: stri
   if (!dpfs || !dpfs.length) {
     return []
   }
-  return dpfs[0]
-    .trim()
-    .split(' ')
-    .map(d => {
-      const [id, count] = d.split('|') as [string, string]
-      return builder([id, count])
-    })
+  const trimmed = dpfs.filter(d => d.trim().length > 0)
+  if (trimmed.length === 0) {
+    return []
+  }
+
+  return trimmed[0].split(/(?<=\|\d+)\s|(?<=\|\d+\.)\s|(?<=\|\d+\.\d+)\s/).map(d => {
+    const [id, count] = d.split('|') as [string, string]
+    return builder([id, count])
+  })
 }
 
 export const asList = <T>(value?: string | T[]): T[] => {

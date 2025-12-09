@@ -41,14 +41,25 @@ const parameterOrderBy: QueryParameter = {
   description: 'Order by',
 }
 
+const parameterIncludeEmbeddings: QueryParameter = {
+  in: 'query',
+  name: 'include_embeddings',
+  required: false,
+  schema: {
+    type: 'boolean',
+  },
+  description: 'Whether to include embeddings in the response (default: `false`)',
+}
+
 const findParameters: MethodParameter[] = [
   parameterTerm,
   similarToImageId,
   parameterOrderBy,
   filtersQueryParameter,
+  parameterIncludeEmbeddings,
   ...getStandardParameters({ method: 'find', maxPageSize: 100 }),
 ]
-const getParameters: MethodParameter[] = [...getStandardParameters({ method: 'get' })]
+const getParameters: MethodParameter[] = [...getStandardParameters({ method: 'get' }), parameterIncludeEmbeddings]
 
 export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
   description: 'Images',

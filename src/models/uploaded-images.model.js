@@ -1,5 +1,5 @@
 import User from './users.model'
-const { DataTypes } = require('sequelize')
+import { DataTypes } from 'sequelize'
 
 class UploadedImage {
   constructor({ uid = '', name = '', checksum = '', signature = '', thumbnail = '', creationDate = new Date() } = {}) {
@@ -96,4 +96,4 @@ class UploadedImage {
   }
 }
 
-module.exports = UploadedImage
+export default UploadedImage

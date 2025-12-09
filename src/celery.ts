@@ -5,7 +5,7 @@ import RedisBackend from 'celery-node/dist/backends/redis'
 import debugModule from 'debug'
 import { CeleryConfig } from './configuration'
 import { logger } from './logger'
-import Job from './models/jobs.model'
+import Job from './models/jobs.model.js'
 import type { LogData } from './services/logs/logs.class'
 import { ImpressoApplication } from './types'
 import { AsyncResult } from 'celery-node/dist/app/result'
@@ -58,6 +58,7 @@ const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
               id: result.job.id,
               type: result.job.type,
               status: result.job.status,
+              description: result.job.description,
               creationDate: result.job.date_created,
               lastModifiedDate: result.job.date_last_modified,
             }),

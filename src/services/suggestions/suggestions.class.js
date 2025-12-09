@@ -4,18 +4,19 @@ import { SolrNamespaces } from '../../solr'
 import Entity from '../../models/entities.model'
 import { getNameFromUid } from '../../utils/entity.utils'
 
-const debug = require('debug')('impresso/services:suggestions')
-const chrono = require('chrono-node')
-const moment = require('moment')
-const lodash = require('lodash')
+import Debug from 'debug'
+const debug = Debug('impresso/services:suggestions')
+import { parse as chronoParse } from 'chrono-node'
+import moment from 'moment'
+import lodash from 'lodash'
 
-const { NotFound, NotImplemented } = require('@feathersjs/errors')
-const { latinise, toPlainText } = require('../../helpers')
+import { NotFound, NotImplemented } from '@feathersjs/errors'
+import { latinise, toPlainText } from '../../helpers.js'
 
-const Mention = require('../../models/mentions.model')
-const Topic = require('../../models/topics.model')
-const Suggestion = require('../../models/suggestions.model')
-const { measureTime } = require('../../util/instruments')
+import Mention from '../../models/mentions.model.js'
+import Topic from '../../models/topics.model.js'
+import Suggestion from '../../models/suggestions.model.js'
+import { measureTime } from '../../util/instruments.js'
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 
@@ -64,7 +65,7 @@ const asTopicSuggestion = doc => {
   })
 }
 
-class Service {
+export class Service {
   constructor({ app, name }) {
     this.app = app
     this.name = name
@@ -204,7 +205,7 @@ class Service {
       return []
     }
 
-    const articletitles = async () => {}
+    const articletitles = async () => { }
 
     const dateranges = async () => {
       const myears = params.query.q.match(MULTI_YEAR_RANGE)
@@ -225,7 +226,7 @@ class Service {
         ]
       }
       // if a date hasnt been recognized by our basic regex.
-      const asdate = chrono.parse(params.query.q)
+      const asdate = chronoParse(params.query.q)
 
       if (asdate.length) {
         return asdate
@@ -309,8 +310,6 @@ class Service {
   }
 }
 
-module.exports = function (options) {
+export default function (options) {
   return new Service(options)
 }
-
-module.exports.Service = Service

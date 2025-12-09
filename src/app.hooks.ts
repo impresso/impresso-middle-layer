@@ -2,14 +2,18 @@
 import Debug from 'debug'
 import { ApplicationHookFunction, ApplicationHookOptions, HookContext } from '@feathersjs/feathers'
 import { ValidationError } from 'ajv'
-import { GeneralError, BadGateway, BadRequest, Unprocessable } from '@feathersjs/errors'
+import { GeneralError, BadGateway, BadRequest, Unprocessable, Conflict, FeathersError } from '@feathersjs/errors'
 import { ImpressoApplication } from './types'
 import { logger } from './logger'
-const { authenticate } = require('@feathersjs/authentication').hooks
+import { hooks } from '@feathersjs/authentication'
+
+const { authenticate } = hooks
 
 const debug = Debug('impresso/app.hooks')
-// const { validateRouteId } = require('./hooks/params')
-const { InvalidArgumentError } = require('./util/error')
+// import { validateRouteId } from './hooks/params'
+import { InvalidArgumentError } from './util/error'
+import { SlimUser } from './authentication'
+import { SolrError } from './util/solr/errors'
 
 const basicParams = () => (context: HookContext) => {
   // do nothing with internal services
@@ -45,8 +49,8 @@ const requireAuthentication =
     return context
   }
 
-const LoggingExcludedStatusCodesInternalApi = [401, 403, 404]
-const LoggingExcludedStatusCodesPublicApi = [400, 401, 403, 404, 422]
+const LoggingExcludedStatusCodesInternalApi = [401, 403, 404, 418, 429]
+const LoggingExcludedStatusCodesPublicApi = [400, 401, 403, 404, 422, 418, 429]
 
 const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
   const excludedStatusCodes = ctx.app.get('isPublicApi')
@@ -54,7 +58,20 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
     : LoggingExcludedStatusCodesInternalApi
 
   if (ctx.error) {
-    const error = ctx.error
+    let error = ctx.error
+    const user = ctx.params?.user as SlimUser
+
+    if (error instanceof SolrError) {
+      // convert Solr error to a 418 error
+      // to avoid sending it as a 5xx error which
+      // may be intercepted by a firewall and modified.
+      const data = { ...error.details, userId: user?.uid }
+      ctx.error = new FeathersError(error.message, 'SolrError', 418, 'solr-error', data)
+      logger.error(
+        `SOLR error (userId:${user?.uid}) query params:${error.details.params?.slice(0, 1000)} - message:"${error.message}"`
+      )
+      error = ctx.error
+    }
 
     if (!excludedStatusCodes.includes(error.code) || !error.code) {
       logger.error(
@@ -62,13 +79,14 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
         error
       )
     }
-
     if (error instanceof ValidationError) {
       ctx.error = new Unprocessable(error.message, error.errors)
     } else if (error.name === 'SequelizeConnectionRefusedError') {
       ctx.error = new BadGateway('SequelizeConnectionRefusedError')
     } else if (error.name === 'SequelizeConnectionError') {
       ctx.error = new BadGateway('SequelizeConnectionError')
+    } else if (error.name === 'SequelizeUniqueConstraintError') {
+      ctx.error = new Conflict(error.message, error.errors)
     } else if (error instanceof InvalidArgumentError) {
       ctx.error = new BadRequest(error)
     } else if (!error.code) {
