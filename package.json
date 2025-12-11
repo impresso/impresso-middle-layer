@@ -1,7 +1,7 @@
 {
   "name": "impresso-middle-layer",
   "description": "",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "homepage": "",
   "main": "src",
   "keywords": [
@@ -88,7 +88,7 @@
     "graphology-metrics": "^2.3.1",
     "helmet": "^3.21.1",
     "http-proxy-middleware": "^3.0.5",
-    "impresso-jscommons": "github:impresso/impresso-jscommons#master",
+    "impresso-jscommons": "github:impresso/impresso-jscommons#v1.11.0",
     "ioredis": "5.8.1",
     "json-bigint": "github:sidorares/json-bigint#8208aa1352eba252b60756672ab7c17f300d6ccd",
     "json2csv": "^4.3.3",
