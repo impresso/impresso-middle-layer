@@ -57,7 +57,7 @@ const publishProgressUpdate = async (
   })
 }
 
-const PageSize = 1000
+const PageSize = 250
 
 export const JobNameExportSearchResults = 'exportSearchResults'
 
