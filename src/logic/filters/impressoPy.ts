@@ -43,8 +43,7 @@ const FilterTypeToPythonArgumentName = {
   imageTechnique: 'technique',
   imageCommunicationGoal: 'communication_goal',
   imageContentType: 'content_type',
-  contentItemId: 'content_item_id',
-} satisfies Record<FilterType, string>
+} satisfies Record<Exclude<FilterType, 'contentItemId'>, string>
 
 const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']
 const NumericRangeTypes: FilterType[] = [
