@@ -314,7 +314,11 @@ export const createJobHandler = (app: ImpressoApplication) => {
     const exportFilePath = getExportFilePath(exportFolder!, exportId, 'csv')
     const headerNames = app.get('exportedFieldsForContentItems') as readonly (keyof ContentItemPublic)[]
     logger.info(`Using exported fields for content items: ${headerNames.join(', ')}`)
-    await appendItemsToCSV(exportFilePath, headerNames, data.map(flattenContentItem))
+    await appendItemsToCSV(
+      exportFilePath,
+      headerNames,
+      data.map(item => flattenContentItem(item, headerNames))
+    )
 
     const progressInPercent = Math.min(100, Math.round(((offset + data.length) / total) * 100))
     logger.info(`📊 Job ${job.id} ${job.name} is ${progressInPercent}% complete`)
@@ -371,37 +375,14 @@ export const createJobHandler = (app: ImpressoApplication) => {
  * - `object` or `array` → converted to JSON string
  *
  * @param item - The `ContentItemPublic` object to flatten.
+ * @param columns - The list of keys to include in the flattened output.
  * @returns A flat record where each key corresponds to a property of the content item
  *          and values are either `string`, `number`, or `boolean`.
  */
-function flattenContentItem(item: ContentItemPublic): Record<string, string | number | boolean> {
-  const columns: readonly (keyof ContentItemPublic)[] = [
-    'uid',
-    'copyrightStatus',
-    'type',
-    'sourceMedium',
-    'title',
-    'transcript',
-    'transcriptLength',
-    'totalPages',
-    'languageCode',
-    'isOnFrontPage',
-    'publicationDate',
-    'issueUid',
-    'countryCode',
-    'providerCode',
-    'mediaUid',
-    'mediaType',
-    'hasOLR',
-    'ocrQualityScore',
-    'relevanceScore',
-    'pageNumbers',
-    'collectionUids',
-    'entities',
-    'mentions',
-    'topics',
-  ] as const
-
+function flattenContentItem(
+  item: ContentItemPublic,
+  columns: readonly (keyof ContentItemPublic)[]
+): Record<string, string | number | boolean> {
   return columns.reduce(
     (acc, key) => {
       const value = (item as any)[key]
