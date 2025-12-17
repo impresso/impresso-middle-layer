@@ -361,29 +361,18 @@ export const createJobHandler = (app: ImpressoApplication) => {
 /**
  * Flattens a ContentItemPublic into a simple key/value record suitable for CSV export.
  *
- * The function:
- * - Preserves scalar values (strings/numbers/booleans) and substitutes empty strings for missing scalars.
- * - Converts arrays of primitives into a single pipe-separated string ("|").
- * - Serializes nested objects/arrays into JSON strings.
- * - Computes derived values (e.g. embeddingsCount is the length of the embeddings array).
+ * This ensures that all keys are represented consistently, preventing CSV column
+ * misalignment when exporting arrays of content items.
  *
- * The returned record contains the following keys (with their handling):
- * - uid: original uid (string)
- * - copyrightStatus, type, sourceMedium, title, transcript, transcriptLength, totalPages,
- *   languageCode, publicationDate, issueUid, countryCode, providerCode, mediaUid, mediaType,
- *   hasOLR, ocrQualityScore, relevanceScore: scalar values or empty string when missing
- * - isOnFrontPage: boolean (false when missing)
- * - pageNumbers, collectionUids: arrays joined with '|' or empty string if missing
- * - entities, mentions, topics: nested objects/arrays serialized via JSON.stringify or empty string if missing
- * - embeddingsCount: number (length of embeddings array, 0 when missing)
+ * ### Rules applied by the flattener:
+ * - `string` or `number` → preserved as-is
+ * - `boolean` → preserved as `true`/`false`
+ * - `null` or `undefined` → converted to `''` (empty string)
+ * - `object` or `array` → converted to JSON string
  *
- * @param item - The content item from the public API to be flattened.
- * @returns A Record<string, string | number | boolean> where each key is a flattened representation
- *          of the input content item, ready for serialization (e.g. to CSV).
- *
- * @example
- * // Given a content item with pageNumbers: [1,2] and entities: [{...}],
- * // the result will contain pageNumbers: "1|2" and entities: "[{...}]".
+ * @param item - The `ContentItemPublic` object to flatten.
+ * @returns A flat record where each key corresponds to a property of the content item
+ *          and values are either `string`, `number`, or `boolean`.
  */
 function flattenContentItem(item: ContentItemPublic): Record<string, string | number | boolean> {
   return Object.keys(item)?.reduce(
