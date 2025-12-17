@@ -165,6 +165,8 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
 
   const csvContent = stringify(items, {
     header: includeHeaders,
+    columns: Object.keys(items[0]),
+    quoted: true,
   })
 
   if (fileExists) {
@@ -309,7 +311,10 @@ export const createJobHandler = (app: ImpressoApplication) => {
     logger.info(`📝 Writing ${data.length} documents to export ${exportId} for user ${userId} (offset: ${offset})`)
 
     const exportFilePath = getExportFilePath(exportFolder!, exportId, 'csv')
-    await appendItemsToCSV(exportFilePath, data)
+
+    await appendItemsToCSV(exportFilePath, data.map(flattenContentItem), {
+      headers: true,
+    })
 
     const progressInPercent = Math.min(100, Math.round(((offset + data.length) / total) * 100))
     logger.info(`📊 Job ${job.id} ${job.name} is ${progressInPercent}% complete`)
@@ -351,4 +356,48 @@ export const createJobHandler = (app: ImpressoApplication) => {
       await publishProgressUpdate(app.service('logs'), userUid, exportId, progressInPercent, jobRecord)
     }
   }
+}
+
+/**
+ * Flattens a ContentItemPublic into a simple key/value record suitable for CSV export.
+ *
+ * The function:
+ * - Preserves scalar values (strings/numbers/booleans) and substitutes empty strings for missing scalars.
+ * - Converts arrays of primitives into a single pipe-separated string ("|").
+ * - Serializes nested objects/arrays into JSON strings.
+ * - Computes derived values (e.g. embeddingsCount is the length of the embeddings array).
+ *
+ * The returned record contains the following keys (with their handling):
+ * - uid: original uid (string)
+ * - copyrightStatus, type, sourceMedium, title, transcript, transcriptLength, totalPages,
+ *   languageCode, publicationDate, issueUid, countryCode, providerCode, mediaUid, mediaType,
+ *   hasOLR, ocrQualityScore, relevanceScore: scalar values or empty string when missing
+ * - isOnFrontPage: boolean (false when missing)
+ * - pageNumbers, collectionUids: arrays joined with '|' or empty string if missing
+ * - entities, mentions, topics: nested objects/arrays serialized via JSON.stringify or empty string if missing
+ * - embeddingsCount: number (length of embeddings array, 0 when missing)
+ *
+ * @param item - The content item from the public API to be flattened.
+ * @returns A Record<string, string | number | boolean> where each key is a flattened representation
+ *          of the input content item, ready for serialization (e.g. to CSV).
+ *
+ * @example
+ * // Given a content item with pageNumbers: [1,2] and entities: [{...}],
+ * // the result will contain pageNumbers: "1|2" and entities: "[{...}]".
+ */
+function flattenContentItem(item: ContentItemPublic): Record<string, string | number | boolean> {
+  return Object.keys(item)?.reduce(
+    (acc, key) => {
+      const value = (item as any)[key]
+      if (typeof value === 'string' || typeof value === 'number' || value === null || value === undefined) {
+        acc[key] = value ?? ''
+      } else if (typeof value === 'boolean') {
+        acc[key] = Boolean(value)
+      } else {
+        acc[key] = JSON.stringify(value)
+      }
+      return acc
+    },
+    {} as Record<string, string | number | boolean>
+  )
 }
