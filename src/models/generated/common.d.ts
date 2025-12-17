@@ -66,6 +66,10 @@ export interface Config {
    */
   public?: string;
   multer?: MulterConfig;
+  /**
+   * List of fields to be exported for content items in export jobs
+   */
+  exportedFieldsForContentItems?: string[];
 }
 /**
  * Redis configuration

@@ -146,6 +146,7 @@ const assertWritableFolder = (exportFolder?: string) => {
  */
 export const appendItemsToCSV = async <T extends Record<string, any>>(
   filePath: string,
+  headerNames: readonly (keyof T)[],
   items: T[],
   options?: { headers?: boolean }
 ): Promise<void> => {
@@ -165,7 +166,7 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
 
   const csvContent = stringify(items, {
     header: includeHeaders,
-    columns: Object.keys(items[0]),
+    columns: headerNames as string[],
     quoted: true,
   })
 
@@ -311,10 +312,9 @@ export const createJobHandler = (app: ImpressoApplication) => {
     logger.info(`📝 Writing ${data.length} documents to export ${exportId} for user ${userId} (offset: ${offset})`)
 
     const exportFilePath = getExportFilePath(exportFolder!, exportId, 'csv')
-
-    await appendItemsToCSV(exportFilePath, data.map(flattenContentItem), {
-      headers: true,
-    })
+    const headerNames = app.get('exportedFieldsForContentItems') as readonly (keyof ContentItemPublic)[]
+    logger.info(`Using exported fields for content items: ${headerNames.join(', ')}`)
+    await appendItemsToCSV(exportFilePath, headerNames, data.map(flattenContentItem))
 
     const progressInPercent = Math.min(100, Math.round(((offset + data.length) / total) * 100))
     logger.info(`📊 Job ${job.id} ${job.name} is ${progressInPercent}% complete`)
@@ -375,13 +375,40 @@ export const createJobHandler = (app: ImpressoApplication) => {
  *          and values are either `string`, `number`, or `boolean`.
  */
 function flattenContentItem(item: ContentItemPublic): Record<string, string | number | boolean> {
-  return Object.keys(item)?.reduce(
+  const columns: readonly (keyof ContentItemPublic)[] = [
+    'uid',
+    'copyrightStatus',
+    'type',
+    'sourceMedium',
+    'title',
+    'transcript',
+    'transcriptLength',
+    'totalPages',
+    'languageCode',
+    'isOnFrontPage',
+    'publicationDate',
+    'issueUid',
+    'countryCode',
+    'providerCode',
+    'mediaUid',
+    'mediaType',
+    'hasOLR',
+    'ocrQualityScore',
+    'relevanceScore',
+    'pageNumbers',
+    'collectionUids',
+    'entities',
+    'mentions',
+    'topics',
+  ] as const
+
+  return columns.reduce(
     (acc, key) => {
       const value = (item as any)[key]
       if (typeof value === 'string' || typeof value === 'number' || value === null || value === undefined) {
         acc[key] = value ?? ''
       } else if (typeof value === 'boolean') {
-        acc[key] = Boolean(value)
+        acc[key] = value
       } else {
         acc[key] = JSON.stringify(value)
       }
