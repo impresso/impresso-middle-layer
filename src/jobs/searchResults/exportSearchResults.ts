@@ -313,7 +313,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
 
     const exportFilePath = getExportFilePath(exportFolder!, exportId, 'csv')
     const headerNames = app.get('exportedFieldsForContentItems') as readonly (keyof ContentItemPublic)[]
-    logger.info(`Using exported fields for content items: ${headerNames.join(', ')}`)
+
     await appendItemsToCSV(
       exportFilePath,
       headerNames,
