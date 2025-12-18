@@ -1,7 +1,6 @@
 import { Ajv, getValidator, JSONSchemaDefinition } from '@feathersjs/schema'
 import { Cache } from './cache'
 import type { RedisClientOptions } from 'redis'
-import type { ContentItem as ContentItemPublic } from './models/generated/schemasPublic'
 import { AuthenticationConfiguration } from '@feathersjs/authentication'
 import { Sequelize } from 'sequelize'
 import { CeleryClient } from './celery'
@@ -30,7 +29,6 @@ export interface Configuration extends Config {
   cacheManager: Cache
   openApiValidatorMiddlewares: any[]
   availablePlans: string[]
-  exportedFieldsForContentItems: (keyof ContentItemPublic)[]
 }
 
 const configurationValidator = getValidator(configurationSchema as any as JSONSchemaDefinition, ajv)

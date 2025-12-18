@@ -61,12 +61,7 @@
     "host": { "type": "string", "description": "Host of the server" },
     "port": { "type": "number", "description": "Port of the server" },
     "public": { "type": "string", "description": "Path to the public folder" },
-    "multer": { "$ref": "#/definitions/MulterConfig" },
-    "exportedFieldsForContentItems": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "List of fields to be exported for content items in export jobs"
-    }
+    "multer": { "$ref": "#/definitions/MulterConfig" }
   },
   "required": ["solrConfiguration", "sequelize", "authentication", "images"],
   "definitions": {

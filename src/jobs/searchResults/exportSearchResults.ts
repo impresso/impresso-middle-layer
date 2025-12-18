@@ -17,6 +17,38 @@ import { AppServices, ImpressoApplication } from '../../types'
 // until the app is fully ESM, we need to import this way
 const { default: ZipStream } = require('zip-stream')
 
+const ExportedFields = [
+  'uid',
+  'copyrightStatus',
+  'type',
+  'sourceMedium',
+  'title',
+  'transcript',
+  'entities',
+  'mentions',
+  'topics',
+  'embeddings',
+  'transcriptLength',
+  'totalPages',
+  'languageCode',
+  'isOnFrontPage',
+  'publicationDate',
+  'issueUid',
+  'countryCode',
+  'providerCode',
+  'mediaUid',
+  'mediaType',
+  'hasOLR',
+  'ocrQualityScore',
+  'relevanceScore',
+  'pageNumbers',
+  'collectionUids',
+] as const satisfies readonly (keyof ContentItemPublic)[]
+
+// Type check to ensure all fields in ContentItemPublic are included in ExportedFields
+type MissingKeys = Exclude<keyof ContentItemPublic, (typeof ExportedFields)[number]>
+const _ensureComplete: MissingKeys extends never ? true : MissingKeys = true
+
 /**
  * Creates a unique export ID with date prefix, user hash, and UUID.
  * @param userId - The ID of the user creating the export
@@ -166,8 +198,16 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
 
   const csvContent = stringify(items, {
     header: includeHeaders,
-    columns: headerNames as string[],
+    columns: Array.from(headerNames) as string[],
     quoted: true,
+    cast: {
+      object: (value: any) => {
+        if (value === null) {
+          return ''
+        }
+        return JSON.stringify(value)
+      },
+    },
   })
 
   if (fileExists) {
@@ -312,13 +352,8 @@ export const createJobHandler = (app: ImpressoApplication) => {
     logger.info(`📝 Writing ${data.length} documents to export ${exportId} for user ${userId} (offset: ${offset})`)
 
     const exportFilePath = getExportFilePath(exportFolder!, exportId, 'csv')
-    const headerNames = app.get('exportedFieldsForContentItems') as readonly (keyof ContentItemPublic)[]
 
-    await appendItemsToCSV(
-      exportFilePath,
-      headerNames,
-      data.map(item => flattenContentItem(item, headerNames))
-    )
+    await appendItemsToCSV(exportFilePath, [...ExportedFields], data)
 
     const progressInPercent = Math.min(100, Math.round(((offset + data.length) / total) * 100))
     logger.info(`📊 Job ${job.id} ${job.name} is ${progressInPercent}% complete`)
@@ -360,41 +395,4 @@ export const createJobHandler = (app: ImpressoApplication) => {
       await publishProgressUpdate(app.service('logs'), userUid, exportId, progressInPercent, jobRecord)
     }
   }
-}
-
-/**
- * Flattens a ContentItemPublic into a simple key/value record suitable for CSV export.
- *
- * This ensures that all keys are represented consistently, preventing CSV column
- * misalignment when exporting arrays of content items.
- *
- * ### Rules applied by the flattener:
- * - `string` or `number` → preserved as-is
- * - `boolean` → preserved as `true`/`false`
- * - `null` or `undefined` → converted to `''` (empty string)
- * - `object` or `array` → converted to JSON string
- *
- * @param item - The `ContentItemPublic` object to flatten.
- * @param columns - The list of keys to include in the flattened output.
- * @returns A flat record where each key corresponds to a property of the content item
- *          and values are either `string`, `number`, or `boolean`.
- */
-function flattenContentItem(
-  item: ContentItemPublic,
-  columns: readonly (keyof ContentItemPublic)[]
-): Record<string, string | number | boolean> {
-  return columns.reduce(
-    (acc, key) => {
-      const value = (item as any)[key]
-      if (typeof value === 'string' || typeof value === 'number' || value === null || value === undefined) {
-        acc[key] = value ?? ''
-      } else if (typeof value === 'boolean') {
-        acc[key] = value
-      } else {
-        acc[key] = JSON.stringify(value)
-      }
-      return acc
-    },
-    {} as Record<string, string | number | boolean>
-  )
 }
