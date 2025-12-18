@@ -1,7 +1,6 @@
 import { Ajv, getValidator, JSONSchemaDefinition } from '@feathersjs/schema'
 import { Cache } from './cache'
 import type { RedisClientOptions } from 'redis'
-
 import { AuthenticationConfiguration } from '@feathersjs/authentication'
 import { Sequelize } from 'sequelize'
 import { CeleryClient } from './celery'
@@ -23,7 +22,6 @@ export interface LocalAuthenticationConfiguration extends AuthenticationConfigur
     audience: string
   }
 }
-
 export interface Configuration extends Config {
   // TODO: move to services:
   sequelizeClient?: Sequelize

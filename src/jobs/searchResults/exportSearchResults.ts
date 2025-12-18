@@ -17,6 +17,38 @@ import { AppServices, ImpressoApplication } from '../../types'
 // until the app is fully ESM, we need to import this way
 const { default: ZipStream } = require('zip-stream')
 
+const ExportedFields = [
+  'uid',
+  'copyrightStatus',
+  'type',
+  'sourceMedium',
+  'title',
+  'transcript',
+  'entities',
+  'mentions',
+  'topics',
+  'embeddings',
+  'transcriptLength',
+  'totalPages',
+  'languageCode',
+  'isOnFrontPage',
+  'publicationDate',
+  'issueUid',
+  'countryCode',
+  'providerCode',
+  'mediaUid',
+  'mediaType',
+  'hasOLR',
+  'ocrQualityScore',
+  'relevanceScore',
+  'pageNumbers',
+  'collectionUids',
+] as const satisfies readonly (keyof ContentItemPublic)[]
+
+// Type check to ensure all fields in ContentItemPublic are included in ExportedFields
+type MissingKeys = Exclude<keyof ContentItemPublic, (typeof ExportedFields)[number]>
+const _ensureComplete: MissingKeys extends never ? true : MissingKeys = true
+
 /**
  * Creates a unique export ID with date prefix, user hash, and UUID.
  * @param userId - The ID of the user creating the export
@@ -146,6 +178,7 @@ const assertWritableFolder = (exportFolder?: string) => {
  */
 export const appendItemsToCSV = async <T extends Record<string, any>>(
   filePath: string,
+  headerNames: readonly (keyof T)[],
   items: T[],
   options?: { headers?: boolean }
 ): Promise<void> => {
@@ -165,6 +198,16 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
 
   const csvContent = stringify(items, {
     header: includeHeaders,
+    columns: Array.from(headerNames) as string[],
+    quoted: true,
+    cast: {
+      object: (value: any) => {
+        if (value === null) {
+          return ''
+        }
+        return JSON.stringify(value)
+      },
+    },
   })
 
   if (fileExists) {
@@ -309,7 +352,8 @@ export const createJobHandler = (app: ImpressoApplication) => {
     logger.info(`📝 Writing ${data.length} documents to export ${exportId} for user ${userId} (offset: ${offset})`)
 
     const exportFilePath = getExportFilePath(exportFolder!, exportId, 'csv')
-    await appendItemsToCSV(exportFilePath, data)
+
+    await appendItemsToCSV(exportFilePath, [...ExportedFields], data)
 
     const progressInPercent = Math.min(100, Math.round(((offset + data.length) / total) * 100))
     logger.info(`📊 Job ${job.id} ${job.name} is ${progressInPercent}% complete`)
