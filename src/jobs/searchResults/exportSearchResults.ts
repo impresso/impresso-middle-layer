@@ -17,6 +17,8 @@ import { AppServices, ImpressoApplication } from '../../types'
 // until the app is fully ESM, we need to import this way
 const { default: ZipStream } = require('zip-stream')
 
+type ExportedContentItem = Omit<ContentItemPublic, 'embeddings'>
+
 const ExportedFields = [
   'uid',
   'copyrightStatus',
@@ -27,7 +29,6 @@ const ExportedFields = [
   'entities',
   'mentions',
   'topics',
-  'embeddings',
   'transcriptLength',
   'totalPages',
   'languageCode',
@@ -43,10 +44,10 @@ const ExportedFields = [
   'relevanceScore',
   'pageNumbers',
   'collectionUids',
-] as const satisfies readonly (keyof ContentItemPublic)[]
+] as const satisfies readonly (keyof ExportedContentItem)[]
 
 // Type check to ensure all fields in ContentItemPublic are included in ExportedFields
-type MissingKeys = Exclude<keyof ContentItemPublic, (typeof ExportedFields)[number]>
+type MissingKeys = Exclude<keyof ExportedContentItem, (typeof ExportedFields)[number]>
 const _ensureComplete: MissingKeys extends never ? true : MissingKeys = true
 
 /**
