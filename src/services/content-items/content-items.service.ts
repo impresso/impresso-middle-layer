@@ -1,9 +1,9 @@
 import { ServiceOptions } from '@feathersjs/feathers'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { ImpressoApplication } from '../../types'
-import { docs } from './content-items.schema'
-import createService from './content-items.class'
-import hooks from './content-items.hooks'
+import { ImpressoApplication } from '@/types.js'
+import { docs } from '@/services/content-items/content-items.schema.js'
+import createService from '@/services/content-items/content-items.class.js'
+import hooks from '@/services/content-items/content-items.hooks.js'
 
 export default function (app: ImpressoApplication) {
   const isPublicApi = app.get('isPublicApi') ?? false

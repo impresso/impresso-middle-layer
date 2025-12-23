@@ -1,5 +1,5 @@
-import { SolrNamespace } from '../../solr'
-import { SolrFacetQueryParams } from '../../data/types'
+import { SolrNamespace } from '@/solr.js'
+import { SolrFacetQueryParams } from '@/data/types.js'
 import {
   BucketValue,
   FacetsContainer,
@@ -8,8 +8,8 @@ import {
   SelectRequestBody,
   SelectResponse,
   SimpleSolrClient,
-} from '../../internalServices/simpleSolr'
-import { findByIds } from '../../solr/queryBuilders'
+} from '@/internalServices/simpleSolr.js'
+import { findByIds } from '@/solr/queryBuilders.js'
 
 export type SolrFactory<T, K extends string, B extends BucketValue, O> = (
   response: SelectResponse<T, K, B>

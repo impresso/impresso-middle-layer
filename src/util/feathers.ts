@@ -1,4 +1,6 @@
-import { defaultServiceMethods } from '@feathersjs/feathers';
+import feathers from '@feathersjs/feathers';
+
+const { defaultServiceMethods } = feathers;
 
 type T = any;
 

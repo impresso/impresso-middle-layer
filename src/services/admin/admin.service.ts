@@ -1,8 +1,8 @@
 import { ServiceOptions } from '@feathersjs/feathers'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { ImpressoApplication } from '../../types'
-import { Service } from './admin.class'
-import { getDocs } from './admin.schema'
+import { ImpressoApplication } from '@/types.js'
+import { Service } from './admin.class.js'
+import { getDocs } from './admin.schema.js'
 
 export default (app: ImpressoApplication) => {
   app.use('/admin', new Service(app), {

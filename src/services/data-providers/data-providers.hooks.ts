@@ -1,10 +1,10 @@
 import { HookOptions } from '@feathersjs/feathers'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { rateLimit } from '../../hooks/rateLimiter'
-import { inPublicApi } from '../../hooks/appMode'
-import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
-import { transformDataProvider } from '../../transformers/dataProvider'
-import { ImpressoApplication } from '../../types'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
+import { inPublicApi } from '@/hooks/appMode.js'
+import { transformResponse, transformResponseDataItem } from '@/hooks/transformation.js'
+import { transformDataProvider } from '@/transformers/dataProvider.js'
+import { ImpressoApplication } from '@/types.js'
 
 export default {
   around: {

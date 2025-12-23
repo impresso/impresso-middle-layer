@@ -1,9 +1,9 @@
 import { Job } from 'bullmq'
-import { ImpressoApplication } from '../../types'
-import { logger } from '../../logger'
-import { SolrNamespace } from '../../solr'
+import { ImpressoApplication } from '@/types.js'
+import { logger } from '@/logger.js'
+import { SolrNamespace } from '@/solr.js'
 import { Filter } from 'impresso-jscommons'
-import { filtersToQueryAndVariables } from '../../util/solr'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 
 export const JobNameAddQueryResultItemsToCollection = 'addQueryResultItemsToCollection'
 

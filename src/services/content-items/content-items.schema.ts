@@ -1,6 +1,6 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { MethodParameter } from '../../util/openapi'
-import { getStandardParameters, getStandardResponses } from '../../util/openapi'
+import type { MethodParameter } from '@/util/openapi.js'
+import { getStandardParameters, getStandardResponses } from '@/util/openapi.js'
 
 export const includeEmbeddingsParameter = {
   in: 'query',

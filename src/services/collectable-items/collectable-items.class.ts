@@ -3,14 +3,14 @@ import {
   AddCollectableItemsFromFilters,
   CollectableItemsUpdatedResponse,
   UpdateCollectableItemsRequest,
-} from '../../models/generated/shared'
+} from '@/models/generated/shared.js'
+import { SlimUser } from '@/authentication.js'
+import { addItemsToCollection } from '@/jobs/collections/addItemsToCollection.js'
+import { removeItemsFromCollection } from '@/jobs/collections/removeItemsFromCollection.js'
+import { ImpressoApplication } from '@/types.js'
+import { SolrNamespaces } from '@/solr.js'
+import { filterAdapter } from '@/util/models.js'
 import { BadRequest, NotAuthenticated } from '@feathersjs/errors'
-import { SlimUser } from '../../authentication'
-import { addItemsToCollection } from '../../jobs/collections/addItemsToCollection'
-import { removeItemsFromCollection } from '../../jobs/collections/removeItemsFromCollection'
-import { ImpressoApplication } from '../../types'
-import { SolrNamespaces } from '../../solr'
-import { filterAdapter } from '../../util/models'
 
 interface WithUser {
   user?: SlimUser

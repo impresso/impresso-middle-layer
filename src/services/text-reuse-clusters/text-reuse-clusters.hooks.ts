@@ -1,21 +1,21 @@
 import { ApplicationHookOptions } from '@feathersjs/feathers'
-import { inPublicApi, inWebAppApi } from '../../hooks/appMode'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { decodeJsonQueryParameters } from '../../hooks/parameters'
-import { validate } from '../../hooks/params'
-import { rateLimit } from '../../hooks/rateLimiter'
-import { RedactionPolicy, redactResponse, redactResponseDataItem, unlessHasPermission } from '../../hooks/redaction'
+import { inPublicApi, inWebAppApi } from '@/hooks/appMode.js'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { decodeJsonQueryParameters } from '@/hooks/parameters.js'
+import { validate } from '@/hooks/params.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
+import { RedactionPolicy, redactResponse, redactResponseDataItem, unlessHasPermission } from '@/hooks/redaction.js'
 import {
   renameQueryParameters,
   renameTopLevelField,
   transformResponse,
   transformResponseDataItem,
-} from '../../hooks/transformation'
-import { transformBaseFind } from '../../transformers/base'
-import { transformTextReuseCluster } from '../../transformers/textReuse'
-import { ImpressoApplication } from '../../types'
-import { parseFilters } from '../../util/queryParameters'
-import { loadYamlFile } from '../../util/yaml'
+} from '@/hooks/transformation.js'
+import { transformBaseFind } from '@/transformers/base.js'
+import { transformTextReuseCluster } from '@/transformers/textReuse.js'
+import { ImpressoApplication } from '@/types.js'
+import { parseFilters } from '@/util/queryParameters.js'
+import { loadYamlFile } from '@/util/yaml.js'
 
 const trPassageRedactionPolicy: RedactionPolicy = loadYamlFile(`${__dirname}/resources/trClusterRedactionPolicy.yml`)
 

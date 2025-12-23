@@ -1,9 +1,9 @@
 import { ServiceOptions } from '@feathersjs/feathers'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { ImpressoApplication } from '../../types'
-import { ImpressoImageEmbeddingService, ImpressoTextEmbeddingService } from './impresso-embedder.class'
-import hooks from './impresso-embedder.hooks'
-import { imageEmbedderDocs, textEmbedderDocs } from './impresso-embedder.schema'
+import { ImpressoApplication } from '@/types.js'
+import { ImpressoImageEmbeddingService, ImpressoTextEmbeddingService } from './impresso-embedder.class.js'
+import hooks from './impresso-embedder.hooks.js'
+import { imageEmbedderDocs, textEmbedderDocs } from './impresso-embedder.schema.js'
 
 export default (app: ImpressoApplication) => {
   const baseUrl = app.get('impressoNerServiceUrl') ?? 'https://impresso-annotation.epfl.ch/api'

@@ -1,7 +1,7 @@
 import YAML from 'yaml'
 import Debug from 'debug'
 import { readFileSync } from 'fs'
-import { StatsConfiguration } from '../models/generated/common'
+import { StatsConfiguration } from '@/models/generated/common.js'
 
 const debug = Debug('impresso/data')
 

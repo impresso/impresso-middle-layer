@@ -1,4 +1,4 @@
-import { logger } from '../logger'
+import { logger } from '@/logger.js'
 
 export async function measureTime<T>(fn: () => Promise<T>, label: string, doLog = undefined) {
   const hrstart = process.hrtime()

@@ -1,21 +1,21 @@
 /* eslint-disable no-unused-vars */
-import { SelectRequest, SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { SolrNamespaces } from '../../solr'
-import { asFindAll } from '../../util/solr/adapters'
-import { logger } from '../../logger'
-import { buildResolvers } from '../../internalServices/cachedResolvers'
-import { ImpressoApplication } from '../../types'
-import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
-import { FindMethodFields } from '../content-items/content-items.class'
-import { PrintContentItem } from '../../models/solr'
+import { SelectRequest, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { SolrNamespaces } from '@/solr.js'
+import { asFindAll } from '@/util/solr/adapters.js'
+import { logger } from '@/logger.js'
+import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { ImpressoApplication } from '@/types.js'
+import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
+import { FindMethodFields } from '@/services/content-items/content-items.class.js'
+import { PrintContentItem } from '@/models/solr.js'
 
 import lodash from 'lodash'
 import { NotFound } from '@feathersjs/errors'
 import Debug from 'debug'
 const debug = Debug('impresso/services:articles-suggestions')
-import ArticleTopic from '../../models/articles-topics.model'
-import { ContentItemTopic } from '../../models/generated/schemas'
-import { utils } from '../../solr'
+import ArticleTopic from '@/models/articles-topics.model.js'
+import { ContentItemTopic } from '@/models/generated/schemas.js'
+import { utils } from '@/solr.js'
 const { wrapAll } = utils
 
 const SIM_BY_TOPICS = 'topics'

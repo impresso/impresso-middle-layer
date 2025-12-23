@@ -1,4 +1,4 @@
-import { getToSelect } from '../../util/solr/adapters.js'
+import { getToSelect } from '@/util/solr/adapters.js'
 import { groupBy, mapValues, first } from 'lodash'
 import {
   getTextReusePassagesRequestForArticle,
@@ -6,8 +6,8 @@ import {
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
   PassageFields,
-} from '../../logic/textReuse/solr.js'
-import { SolrNamespaces } from '../../solr.js'
+} from '@/logic/textReuse/solr.js'
+import { SolrNamespaces } from '@/solr.js'
 
 function buildResponse(passages, clusters) {
   const clustersById = mapValues(groupBy(clusters, 'id'), first)

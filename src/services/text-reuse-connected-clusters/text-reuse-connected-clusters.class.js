@@ -1,4 +1,4 @@
-import { getToSelect } from '../../util/solr/adapters'
+import { getToSelect } from '@/util/solr/adapters.js'
 import { mapValues, groupBy } from 'lodash'
 import {
   buildConnectedClustersRequest,
@@ -7,7 +7,7 @@ import {
   convertClustersSolrResponseToClusters,
   getLatestTextReusePassageForClusterIdRequest,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
-} from '../../logic/textReuse/solr'
+} from '@/logic/textReuse/solr.js'
 
 function buildResponseClusters(clusters, clusterIdsAndText) {
   const clustersById = mapValues(groupBy(clusters, 'id'), v => v[0])

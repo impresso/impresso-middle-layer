@@ -1,7 +1,7 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { MethodParameter, QueryParameter } from '../../util/openapi'
-import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
-import { orderByValues } from './entities.hooks'
+import type { MethodParameter, QueryParameter } from '@/util/openapi.js'
+import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
+import { orderByValues } from '@/services/entities/entities.hooks.js'
 
 const parameterQ: QueryParameter = {
   in: 'query',

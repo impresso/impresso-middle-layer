@@ -1,4 +1,4 @@
-import { EntityProfilesExperiment } from './entityProfiles'
-import { SubdocEmbeddingsExperiment } from './subdocEmbeddings'
+import { EntityProfilesExperiment } from './entityProfiles.js'
+import { SubdocEmbeddingsExperiment } from './subdocEmbeddings.js'
 
 export const experiments = [new SubdocEmbeddingsExperiment(), new EntityProfilesExperiment()]

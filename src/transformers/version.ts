@@ -1,5 +1,5 @@
-import { VersionDetails } from '../models/generated/schemas'
-import { VersionDetails as VersionDetailsPublic } from '../models/generated/schemasPublic'
+import { VersionDetails } from '@/models/generated/schemas.js'
+import { VersionDetails as VersionDetailsPublic } from '@/models/generated/schemasPublic.js'
 
 export const transformVersionDetails = (input: VersionDetails): VersionDetailsPublic => {
   return {

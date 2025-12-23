@@ -4,6 +4,7 @@
   "version": "3.3.1",
   "homepage": "",
   "main": "src",
+  "type": "module",
   "keywords": [
     "feathers"
   ],
@@ -22,8 +23,8 @@
     "npm": ">= 3.0.0"
   },
   "scripts": {
-    "watch": "tsc -p ./tsconfig.json -w & tscp -w",
-    "build": "tsc -p ./tsconfig.json",
+    "watch": "tsc -p ./tsconfig.json -w & tscp -w & tsc-alias -w",
+    "build": "tsc -p ./tsconfig.json && tsc-alias",
     "copy-files": "tscp",
     "test": "mocha",
     "test-watch": "mocha --watch 'test/**/*.test.{js,ts}'",
@@ -31,22 +32,22 @@
     "lintfix": "eslint src/. --config .eslintrc.mjs --fix",
     "lint": "eslint src/. --config .eslintrc.mjs",
     "lint-api-spec": "spectral lint http://localhost:3030/swagger.json ",
-    "start": "node dist/",
-    "dev": "nodemon --exec 'node --env-file=.env' --enable-source-maps --inspect dist/ --ignore 'data/*' --env-file ./.env",
+    "start": "tsx dist/",
+    "dev": "nodemon --exec 'tsx --env-file=.env' --enable-source-maps --inspect dist/ --ignore 'data/*' --env-file ./.env",
     "bun-run": "bun run --watch src/index.ts",
     "cli": "node src/admin/cli.js",
     "generate-types": "node src/scripts/generate-types.js"
   },
   "dependencies": {
-    "@feathersjs/authentication": "5.0.31",
-    "@feathersjs/authentication-local": "5.0.31",
-    "@feathersjs/authentication-oauth": "5.0.31",
-    "@feathersjs/configuration": "5.0.31",
-    "@feathersjs/errors": "5.0.31",
-    "@feathersjs/express": "5.0.31",
-    "@feathersjs/feathers": "5.0.31",
-    "@feathersjs/schema": "5.0.31",
-    "@feathersjs/socketio": "5.0.31",
+    "@feathersjs/authentication": "5.0.37",
+    "@feathersjs/authentication-local": "5.0.37",
+    "@feathersjs/authentication-oauth": "5.0.37",
+    "@feathersjs/configuration": "5.0.37",
+    "@feathersjs/errors": "5.0.37",
+    "@feathersjs/express": "5.0.37",
+    "@feathersjs/feathers": "5.0.37",
+    "@feathersjs/schema": "5.0.37",
+    "@feathersjs/socketio": "5.0.37",
     "@iiif/parser": "^2.1.8",
     "@keyv/redis": "5.1.2",
     "ajv": "8.12.0",
@@ -88,7 +89,7 @@
     "graphology-metrics": "^2.3.1",
     "helmet": "^3.21.1",
     "http-proxy-middleware": "^3.0.5",
-    "impresso-jscommons": "github:impresso/impresso-jscommons#v1.11.0",
+    "impresso-jscommons": "github:impresso/impresso-jscommons#esm-chore",
     "ioredis": "5.8.1",
     "json-bigint": "github:sidorares/json-bigint#8208aa1352eba252b60756672ab7c17f300d6ccd",
     "json2csv": "^4.3.3",
@@ -131,7 +132,7 @@
     "zip-stream": "^7.0.0"
   },
   "devDependencies": {
-    "@openapi-contrib/json-schema-to-openapi-schema": "3.0.1",
+    "@openapi-contrib/json-schema-to-openapi-schema": "4.3.0",
     "@sequelize/sqlite3": "^7.0.0-alpha.47",
     "@stoplight/spectral-cli": "6.11.1",
     "@stoplight/spectral-owasp-ruleset": "2.0.1",
@@ -151,8 +152,9 @@
     "nodemon": "3.1.0",
     "prettier": "3.2.5",
     "sinon": "^19.0.2",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.20.5",
-    "typescript": "5.7.3",
+    "typescript": "5.9.3",
     "typescript-cp": "0.1.9"
   }
 }

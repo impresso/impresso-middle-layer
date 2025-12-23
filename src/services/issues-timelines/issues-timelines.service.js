@@ -1,6 +1,6 @@
 // Initializes the `issues-timelines` service on path `/issues-timelines`
-import createService from './issues-timelines.class.js'
-import hooks from './issues-timelines.hooks'
+import createService from '@/services/issues-timelines/issues-timelines.class.js'
+import hooks from '@/services/issues-timelines/issues-timelines.hooks.js'
 
 export default function (app) {
   const options = {

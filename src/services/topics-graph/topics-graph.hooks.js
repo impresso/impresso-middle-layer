@@ -1,6 +1,6 @@
-import { eachFilterValidator } from '../search/search.validators'
-import { validateEach, queryWithCommonParams, validate } from '../../hooks/params'
-import { filtersToSolrQuery } from '../../hooks/search'
+import { eachFilterValidator } from '@/services/search/search.validators.js'
+import { validateEach, queryWithCommonParams, validate } from '@/hooks/params.js'
+import { filtersToSolrQuery } from '@/hooks/search.js'
 
 /**
  * A special case context validator for the 'find' endpoint here.

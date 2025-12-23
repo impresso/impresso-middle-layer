@@ -1,7 +1,7 @@
 import type { Sequelize } from 'sequelize'
 import initDebug from 'debug'
-import type { ImpressoApplication } from '../../types'
-import User from '../../models/users.model'
+import type { ImpressoApplication } from '@/types.js'
+import User from '@/models/users.model.js'
 import { NotAuthenticated, BadRequest } from '@feathersjs/errors'
 
 const debug = initDebug('impresso:services/change-password')

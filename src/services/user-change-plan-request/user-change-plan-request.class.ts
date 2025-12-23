@@ -1,9 +1,9 @@
 import type { InferAttributes, Sequelize } from 'sequelize'
 import initDebug from 'debug'
-import type { ImpressoApplication } from '../../types'
-import User from '../../models/users.model'
+import type { ImpressoApplication } from '@/types.js'
+import User from '@/models/users.model.js'
 import { BadRequest, NotFound } from '@feathersjs/errors'
-import UserChangePlanRequest, { StatusPending } from '../../models/user-change-plan-request'
+import UserChangePlanRequest, { StatusPending } from '@/models/user-change-plan-request.js'
 
 const debug = initDebug('impresso:services/user-change-plan-request')
 

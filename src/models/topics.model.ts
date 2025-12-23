@@ -1,6 +1,6 @@
 import lodash from 'lodash'
-import { Topic as ITopic, TopicWord as ITopicWord } from './generated/schemas'
-import { Topic as ISolrTopic } from './generated/solr'
+import { Topic as ITopic, TopicWord as ITopicWord } from '@/models/generated/schemas.js'
+import { Topic as ISolrTopic } from '@/models/generated/solr.js'
 
 class TopicWord implements ITopicWord {
   w: string
@@ -25,7 +25,7 @@ class TopicWord implements ITopicWord {
 }
 
 class Topic implements ITopic {
-  static readonly SOLR_FL: (keyof ISolrTopic)[] = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s']
+  static readonly SOLR_FL: string[] = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s'] satisfies (keyof ISolrTopic)[]
 
   uid: string
   language: string

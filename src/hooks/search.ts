@@ -1,8 +1,8 @@
 import Debug from 'debug'
 import lodash from 'lodash'
 
-import { filtersToQueryAndVariables } from '../util/solr'
-import { SolrNamespaces } from '../solr'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { SolrNamespaces } from '@/solr.js'
 import { HookContext } from '@feathersjs/feathers'
 
 const debug = Debug('impresso/hooks:search')

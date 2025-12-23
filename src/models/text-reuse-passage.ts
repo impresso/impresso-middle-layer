@@ -4,8 +4,8 @@ import {
   ContentItemCore,
   ContextualMetadataFields,
   ImageFields,
-} from './generated/solr/contentItem'
-import { LanguageCode, TextContentFields } from './solr'
+} from './generated/solr/contentItem.js'
+import { LanguageCode, TextContentFields } from './solr.js'
 
 const TRPassageCoreFields = [
   'id',

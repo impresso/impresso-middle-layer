@@ -1,11 +1,11 @@
 import assert from 'assert'
 import { groupBy, includes, uniq, values } from 'lodash'
-import { Filter } from '../../models'
-import { SolrNamespace, SolrNamespaces } from '../../solr'
-import { filtersToSolr } from './filterReducers'
-import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '../../models/solr'
-import { SelectRequestBody } from '../../internalServices/simpleSolr'
-import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
+import { Filter } from '@/models/index.js'
+import { SolrNamespace, SolrNamespaces } from '@/solr.js'
+import { filtersToSolr } from '@/util/solr/filterReducers.js'
+import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
+import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
+import { SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
 
 /**
  * Type representing the `score` field in Solr documents.

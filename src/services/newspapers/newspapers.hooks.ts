@@ -1,15 +1,15 @@
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { rateLimit } from '../../hooks/rateLimiter'
-import { OrderByChoices } from './newspapers.schema'
-import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
-import { transformNewspaper } from '../../transformers/newspaper'
-import { transformBaseFind } from '../../transformers/base'
-import { ImpressoApplication } from '../../types'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
+import { OrderByChoices } from '@/services/newspapers/newspapers.schema.js'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '@/hooks/transformation.js'
+import { transformNewspaper } from '@/transformers/newspaper.js'
+import { transformBaseFind } from '@/transformers/base.js'
+import { ImpressoApplication } from '@/types.js'
 import { HookOptions } from '@feathersjs/feathers'
-import { inPublicApi } from '../../hooks/appMode'
-import { NewspapersService } from './newspapers.class'
+import { inPublicApi } from '@/hooks/appMode.js'
+import { NewspapersService } from '@/services/newspapers/newspapers.class.js'
 
-import { queryWithCommonParams, validate } from '../../hooks/params'
+import { queryWithCommonParams, validate } from '@/hooks/params.js'
 
 const findQueryParamsRenamePolicy = {
   term: 'q',

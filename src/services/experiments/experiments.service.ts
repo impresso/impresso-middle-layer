@@ -1,8 +1,8 @@
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { ImpressoApplication } from '../../types'
-import { Experiments } from './experiments.class'
-import hooks from './experiments.hooks'
-import { getDocs } from './experiments.schema'
+import { ImpressoApplication } from '@/types.js'
+import { Experiments } from './experiments.class.js'
+import hooks from './experiments.hooks.js'
+import { getDocs } from './experiments.schema.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 
 export default function (app: ImpressoApplication) {

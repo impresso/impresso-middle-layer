@@ -1,31 +1,31 @@
 import { Params } from '@feathersjs/feathers'
 import lodash from 'lodash'
-import { isNumber, SolrMappings } from '../../data/constants'
-import { FindResponse } from '../../models/common'
-import type { SearchFacet } from '../../models/generated/schemas'
-import type { Filter } from '../../models/generated/shared'
-import { SearchFacet as SearchFacetModel } from '../../models/search-facets.model'
-import { ImpressoApplication } from '../../types'
-import { areCacheableFacets, isCacheableQuery } from '../../util/cache'
-import { measureTime } from '../../util/instruments'
-import { IndexId } from './search-facets.schema'
+import { isNumber, SolrMappings } from '@/data/constants.js'
+import { FindResponse } from '@/models/common.js'
+import type { SearchFacet } from '@/models/generated/schemas.js'
+import type { Filter } from '@/models/generated/shared.js'
+import { SearchFacet as SearchFacetModel } from '@/models/search-facets.model.js'
+import { ImpressoApplication } from '@/types.js'
+import { areCacheableFacets, isCacheableQuery } from '@/util/cache.js'
+import { measureTime } from '@/util/instruments.js'
+import { IndexId } from '@/services/search-facets/search-facets.schema.js'
 import {
   isSolrRangeFacetQueryParams,
   isSolrTermsFacetQueryParams,
   SolrFacetQueryParams,
   SolrRangeFacetQueryParams,
   SolrTermsFacetQueryParams,
-} from '../../data/types'
+} from '@/data/types.js'
 import {
   SelectQueryParameters,
   SelectRequest,
   SelectRequestBody,
   SimpleSolrClient,
-} from '../../internalServices/simpleSolr'
-import { SolrNamespace, SolrNamespaces } from '../../solr'
+} from '@/internalServices/simpleSolr.js'
+import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 
 import Debug from 'debug'
-import { toPair } from '../../solr/queries/collections'
+import { toPair } from '@/solr/queries/collections.js'
 const debug = Debug('impresso/services:search-facets')
 
 type FacetMetadata = any

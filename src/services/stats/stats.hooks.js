@@ -4,8 +4,8 @@ import assert from 'assert'
 import { BadRequest } from '@feathersjs/errors'
 import { protobuf } from 'impresso-jscommons'
 
-import { statsConfiguration } from '../../data'
-import { TimeDomain, SupportedStats, DefaultStats } from './common'
+import { statsConfiguration } from '@/data/index.js'
+import { TimeDomain, SupportedStats, DefaultStats } from '@/services/stats/common.js'
 
 const SupportedIndexes = Object.freeze(Object.keys(statsConfiguration.indexes))
 const SupportedFacetsByIndex = SupportedIndexes.reduce((acc, index) => {

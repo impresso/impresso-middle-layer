@@ -1,7 +1,7 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { MethodParameter } from '../../util/openapi'
-import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
-import { GroupByValues, OrderByKeyToField } from './text-reuse-passages.class'
+import type { MethodParameter } from '@/util/openapi.js'
+import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
+import { GroupByValues, OrderByKeyToField } from '@/services/text-reuse-passages/text-reuse-passages.class.js'
 
 const parameterOrderBy: MethodParameter = {
   in: 'query',

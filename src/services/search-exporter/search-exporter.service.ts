@@ -1,12 +1,12 @@
 // Initializes the `exporter` service on path `/exporter`
 import { stringify } from 'csv-stringify/sync'
-import { Service } from './search-exporter.class'
-import hooks from './search-exporter.hooks.js'
-import { ImpressoApplication } from '../../types'
+import { Service } from '@/services/search-exporter/search-exporter.class.js'
+import hooks from '@/services/search-exporter/search-exporter.hooks.js'
+import { ImpressoApplication } from '@/types.js'
 import type { Application as ExpressApplication } from '@feathersjs/express'
 import type { Request, Response } from 'express'
 
-export default function (app: ImpressoApplication & ExpressApplication) {
+export default async function (app: ImpressoApplication & ExpressApplication) {
   // Initialize our service with any options it requires
   app.use('/search-exporter', new Service(app), (req: Request, res: Response) => {
     res.type('text/plain')

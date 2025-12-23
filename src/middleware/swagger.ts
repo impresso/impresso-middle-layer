@@ -1,6 +1,6 @@
 import swagger, { swaggerUI } from 'feathers-swagger'
-import { logger } from '../logger'
-import { ImpressoApplication } from '../types'
+import { logger } from '@/logger.js'
+import { ImpressoApplication } from '@/types.js'
 import fs from 'fs'
 import path from 'path'
 import { Application } from '@feathersjs/express'

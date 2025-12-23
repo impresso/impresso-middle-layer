@@ -1,10 +1,10 @@
-import { SpecialMembershipAccessService as Service } from './special-membership-access.class'
-import { ImpressoApplication } from '../../types'
+import { SpecialMembershipAccessService as Service } from '@/services/special-membership-access/special-membership-access.class.js'
+import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { queryWithCommonParams } from '../../hooks/params'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { queryWithCommonParams } from '@/hooks/params.js'
 
-export default (app: ImpressoApplication) => {
+export default async (app: ImpressoApplication) => {
   app.use('/special-membership-access', new Service(app), {
     events: [],
   } as ServiceOptions)

@@ -6,18 +6,20 @@ import {
   JWTStrategy,
   JwtVerifyOptions,
 } from '@feathersjs/authentication'
-import { logger } from './logger'
+import { logger } from '@/logger.js'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 import { NotAuthenticated } from '@feathersjs/errors'
 import { ServiceOptions } from '@feathersjs/feathers'
 import initDebug from 'debug'
-import { createSwaggerServiceOptions } from 'feathers-swagger'
-import User from './models/users.model'
-import { docs } from './services/authentication/authentication.schema'
-import { ImpressoApplication } from './types'
-import { BufferUserPlanGuest } from './models/user-bitmap.model'
-import { bigIntToBuffer, bufferToBigInt } from './util/bigint'
+import swagger from 'feathers-swagger'
+import User from '@/models/users.model.js'
+import { docs } from '@/services/authentication/authentication.schema.js'
+import { ImpressoApplication } from '@/types.js'
+import { BufferUserPlanGuest } from '@/models/user-bitmap.model.js'
+import { bigIntToBuffer, bufferToBigInt } from '@/util/bigint.js'
 import type { Sequelize } from 'sequelize'
+
+const { createSwaggerServiceOptions } = swagger
 
 const debug = initDebug('impresso/authentication')
 debug('initialising authentication')

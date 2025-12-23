@@ -1,12 +1,12 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import { SolrMappings } from '../../data/constants'
+import { SolrMappings } from '@/data/constants.js'
 import {
   MethodParameter,
   QueryParameter,
   filtersQueryParameter,
   getStandardParameters,
   getStandardResponses,
-} from '../../util/openapi'
+} from '@/util/openapi.js'
 
 export type IndexId = 'search' | 'tr-clusters' | 'tr-passages' | 'images' | 'collection-items'
 

@@ -1,9 +1,9 @@
 import { hooks } from '@feathersjs/authentication'
-import { validate, validateEach, queryWithCommonParams, REGEX_UID, REGEX_UIDS, utils } from '../../hooks/params'
-import { filtersToSolrQuery } from '../../hooks/search'
-import { FilterTypes, Contexts, SolrMappings } from '../../data/constants'
+import { validate, validateEach, queryWithCommonParams, REGEX_UID, REGEX_UIDS, utils } from '@/hooks/params.js'
+import { filtersToSolrQuery } from '@/hooks/search.js'
+import { FilterTypes, Contexts, SolrMappings } from '@/data/constants.js'
 
-import { eachFilterValidator, paramsValidator } from '../search/search.validators'
+import { eachFilterValidator, paramsValidator } from '@/services/search/search.validators.js'
 
 const { authenticate } = hooks
 

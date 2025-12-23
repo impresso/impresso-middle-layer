@@ -1,7 +1,7 @@
-import { SolrFacetQueryParams } from '../data/types'
-import { Bucket, SelectRequestBody, SimpleSolrClient } from '../internalServices/simpleSolr'
-import { IYear } from '../models/years.model'
-import { ImageSimilarityVectorField } from '../services/images/images.class'
+import { SolrFacetQueryParams } from '@/data/types.js'
+import { Bucket, SelectRequestBody, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { IYear } from '@/models/years.model.js'
+import { ImageSimilarityVectorField } from '@/services/images/images.class.js'
 
 const MaxYears = 10000 // total number of years to fetch. Adjust as needed
 

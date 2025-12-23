@@ -1,5 +1,5 @@
 import { DataTypes, Sequelize } from 'sequelize'
-import { getNameFromUid, getTypeCodeFromUid, TypeCodeToType, TypeShorthandToType } from '../utils/entity.utils'
+import { getNameFromUid, getTypeCodeFromUid, TypeCodeToType, TypeShorthandToType } from '@/utils/entity.utils.js'
 
 interface IEntity {
   uid: string

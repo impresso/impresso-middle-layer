@@ -1,13 +1,13 @@
-import { ImpressoApplication } from '../../types'
-import { Service as SequelizeService } from '../sequelize.service'
-import User from '../../models/users.model'
+import { ImpressoApplication } from '@/types.js'
+import { Service as SequelizeService } from '@/services/sequelize.service.js'
+import User from '@/models/users.model.js'
 import { Params } from '@feathersjs/feathers'
 import { Filter } from 'impresso-jscommons'
-import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters } from './util'
-import { EntityId, resolve as resolveWikidata } from '../wikidata'
-import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { SolrNamespaces } from '../../solr'
-import Entity, { IEntitySolrHighlighting, suggestField } from '../../models/entities.model'
+import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters } from '@/services/entities/util.js'
+import { EntityId, resolve as resolveWikidata } from '@/services/wikidata.js'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { SolrNamespaces } from '@/solr.js'
+import Entity, { IEntitySolrHighlighting, suggestField } from '@/models/entities.model.js'
 
 /* eslint-disable no-unused-vars */
 import debugLib from 'debug'
@@ -16,8 +16,8 @@ import lodash from 'lodash'
 import { Op } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
 
-import { measureTime } from '../../util/instruments'
-import { buildSearchEntitiesSolrQuery } from './logic'
+import { measureTime } from '@/util/instruments.js'
+import { buildSearchEntitiesSolrQuery } from '@/services/entities/logic.js'
 
 interface Sanitized<T> {
   sanitized: T

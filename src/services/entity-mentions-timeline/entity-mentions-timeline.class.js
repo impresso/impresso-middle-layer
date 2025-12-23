@@ -1,6 +1,6 @@
 import { get } from 'lodash'
-import { SolrNamespaces } from '../../solr'
-import { filtersToQueryAndVariables } from '../../util/solr'
+import { SolrNamespaces } from '@/solr.js'
+import { filtersToQueryAndVariables } from '@/util/solr.js'
 
 /**
  * @typedef {import('../../models').Filter} Filter

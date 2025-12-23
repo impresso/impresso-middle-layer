@@ -1,5 +1,5 @@
-import { authenticate } from '../../hooks/authenticate'
-import { queryWithCommonParams, validate } from '../../hooks/params'
+import { authenticate } from '@/hooks/authenticate.js'
+import { queryWithCommonParams, validate } from '@/hooks/params.js'
 
 export default {
   before: {

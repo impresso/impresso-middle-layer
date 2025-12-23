@@ -1,7 +1,7 @@
-import { relevanceContextItemsToSolrFormula, buildSolrQuery, withScore } from './logic'
-import { SolrNamespaces } from '../../solr'
-import { filtersToQueryAndVariables } from '../../util/solr'
-import { getItemsFromSolrResponse, getTotalFromSolrResponse } from '../search/search.extractors'
+import { relevanceContextItemsToSolrFormula, buildSolrQuery, withScore } from './logic.js'
+import { SolrNamespaces } from '@/solr.js'
+import { filtersToQueryAndVariables } from '@/util/solr.js'
+import { getItemsFromSolrResponse, getTotalFromSolrResponse } from '@/services/search/search.extractors.js'
 
 /**
  * @deprecated - only used for article recommendations in the web app. Remove once replaced.

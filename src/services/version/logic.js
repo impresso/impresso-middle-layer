@@ -42,7 +42,7 @@ const getSingleDocumentQuery = isFirstDocument => ({
 const searchResponseToDate = doc => doc.meta_date_dt
 
 /**
- * @param {import('../../internalServices/simpleSolr').SimpleSolrClient} solr
+ * @param {import('@/internalServices/simpleSolr.js').SimpleSolrClient} solr
  */
 async function getFirstAndLastDocumentDates(solr) {
   const results = await Promise.all(

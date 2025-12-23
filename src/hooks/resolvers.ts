@@ -1,10 +1,10 @@
 import lodash from 'lodash'
-import { logger } from '../logger'
+import { logger } from '@/logger.js'
 import { HookContext } from '@feathersjs/feathers'
-import { Service as SearchFacetService } from '../services/search-facets/search-facets.class'
-import { ImpressoApplication } from '../types'
-import { FindResponse } from '../models/common'
-import { SearchFacet, SearchFacetBucket } from '../models/generated/schemas'
+import { Service as SearchFacetService } from '@/services/search-facets/search-facets.class.js'
+import { ImpressoApplication } from '@/types.js'
+import { FindResponse } from '@/models/common.js'
+import { SearchFacet, SearchFacetBucket } from '@/models/generated/schemas.js'
 import debugLib from 'debug'
 const debug = debugLib('impresso/hooks/resolvers')
 

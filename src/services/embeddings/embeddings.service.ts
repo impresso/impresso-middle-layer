@@ -1,13 +1,13 @@
 import { ServiceOptions } from '@feathersjs/feathers'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { logger } from '../../logger'
-import { SolrNamespaces } from '../../solr'
-import { ImpressoApplication } from '../../types'
-import { createService as createV1Service } from './embeddings-v1.class'
-import hooksv1 from './embeddings-v1.hooks'
-import { EmbeddingsService } from './embeddings.class'
-import hooks from './embeddings.hooks'
-import { getDocs } from './embeddings.schema'
+import { logger } from '@/logger.js'
+import { SolrNamespaces } from '@/solr.js'
+import { ImpressoApplication } from '@/types.js'
+import { createService as createV1Service } from './embeddings-v1.class.js'
+import hooksv1 from './embeddings-v1.hooks.js'
+import { EmbeddingsService } from './embeddings.class.js'
+import hooks from './embeddings.hooks.js'
+import { getDocs } from './embeddings.schema.js'
 
 function hasWordEmbeddingsIndex(app: ImpressoApplication): boolean {
   const namespaces = app.get('solrConfiguration').namespaces ?? []

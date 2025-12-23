@@ -1,6 +1,6 @@
 // Initializes the `articles-suggestions` service on path `/articles-suggestions`
-import { ArticlesSuggestionsService } from './articles-suggestions.class'
-import hooks from './articles-suggestions.hooks'
+import { ArticlesSuggestionsService } from './articles-suggestions.class.js'
+import hooks from './articles-suggestions.hooks.js'
 
 export default function (app) {
   // Initialize our service with any options it requires

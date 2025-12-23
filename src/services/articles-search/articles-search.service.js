@@ -1,5 +1,5 @@
-import { ArticlesSearch } from './articles-search.class'
-import hooks from './articles-search.hooks'
+import { ArticlesSearch } from './articles-search.class.js'
+import hooks from './articles-search.hooks.js'
 
 export default function (app) {
   const options = {}

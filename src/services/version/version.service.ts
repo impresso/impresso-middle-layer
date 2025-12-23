@@ -1,15 +1,20 @@
 import debug from 'debug'
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { docs } from './version.schema'
-import { ImpressoApplication } from '../../types'
+import { docs } from '@/services/version/version.schema.js'
+import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
-import { transformVersionDetails } from '../../transformers/version'
-import { VersionDetails } from '../../models/generated/schemas'
+import { transformVersionDetails } from '@/transformers/version.js'
+import { VersionDetails } from '@/models/generated/schemas.js'
 import path from 'path'
 import fs from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const log = debug('impresso/services:version')
-import { getFirstAndLastDocumentDates } from './logic'
+import { getFirstAndLastDocumentDates } from '@/services/version/logic.js'
 
 interface PartnerInstitutionDirectoryEntry {
   partner_institution_id: string

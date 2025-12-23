@@ -1,8 +1,8 @@
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { TextReuseClusters } from './text-reuse-clusters.class'
-import hooks from './text-reuse-clusters.hooks'
-import { getDocs } from './text-reuse-clusters.schema'
-import { ImpressoApplication } from '../../types'
+import { TextReuseClusters } from '@/services/text-reuse-clusters/text-reuse-clusters.class.js'
+import hooks from '@/services/text-reuse-clusters/text-reuse-clusters.hooks.js'
+import { getDocs } from '@/services/text-reuse-clusters/text-reuse-clusters.schema.js'
+import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 
 const init = (app: ImpressoApplication) => {

@@ -1,4 +1,4 @@
-import type { SolrServerProxy } from '../../../configuration'
+import type { SolrServerProxy } from '@/configuration.js'
 import type { RetryHandler } from 'undici'
 
 export type RetryOptions = RetryHandler.RetryOptions

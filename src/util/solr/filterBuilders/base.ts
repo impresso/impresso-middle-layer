@@ -1,4 +1,4 @@
-import { Filter } from '../../../models'
+import { Filter } from '@/models/index.js'
 import {
   BaseFilterBuilderFn,
   FilterField,
@@ -7,7 +7,7 @@ import {
   isPrefixedFilterField,
   ItemBuilder,
   ValueTransformer,
-} from './types'
+} from '@/util/solr/filterBuilders/types.js'
 
 interface FilterStatement<T> {
   items: T[]

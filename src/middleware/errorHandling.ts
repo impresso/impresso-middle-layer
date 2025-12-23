@@ -3,8 +3,8 @@ import type { Request, Response } from 'express'
 import { FeathersError, type GeneralError } from '@feathersjs/errors'
 
 import { errorHandler } from '@feathersjs/express'
-import type { ImpressoApplication } from '../types'
-import { logger } from '../logger'
+import type { ImpressoApplication } from '@/types.js'
+import { logger } from '@/logger.js'
 
 const DefaultProblemUriBase = 'https://impresso-project.ch/probs'
 

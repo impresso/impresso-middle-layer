@@ -283,7 +283,7 @@ Set `isPublicApi: true` in configuration to:
 
 ## Important Notes
 
-- The application uses a **path alias** `@/*` mapped to `./src/*` for cleaner imports
+- The application uses a **path alias** `@/*` mapped to `./src/*` for cleaner imports (use `@` instead of relative import unless the import is from the same folder).
 - **Node.js requirement**: >= 20.0.0
 - **Sensitive data redaction**: Passwords, tokens, and PII are automatically redacted in logs and error responses
 - **File copying**: `tscp` (typescript-cp) copies non-TS files (YAML, JSON) to dist directory during build

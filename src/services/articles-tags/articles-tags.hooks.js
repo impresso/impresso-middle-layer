@@ -1,5 +1,5 @@
 import { hooks } from '@feathersjs/authentication'
-import { validate, REGEX_UID } from '../../hooks/params'
+import { validate, REGEX_UID } from '@/hooks/params.js'
 
 const { authenticate } = hooks
 

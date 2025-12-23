@@ -3,7 +3,7 @@ import debugLib from 'debug'
 const debug = debugLib('impresso/services/bucket-items')
 import { NotImplemented } from '@feathersjs/errors'
 import lodash from 'lodash'
-// import { Neo4jService as Service } from '../neo4j.service'
+import { Service as Neo4jService } from '@/services/neo4j.service.js'
 
 /**
  * @deprecated

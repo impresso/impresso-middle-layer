@@ -6,7 +6,7 @@ import decypher from 'decypher'
 import Debug from 'debug'
 const debug = Debug('impresso/services:Neo4jService')
 import errors from '@feathersjs/errors'
-import { neo4jRecordMapper, neo4jRun, neo4jToInt } from './neo4j.utils'
+import { neo4jRecordMapper, neo4jRun, neo4jToInt } from './neo4j.utils.js'
 
 /**
  * @deprecated

@@ -1,4 +1,4 @@
-import { buildResolvers, CachedFacetType, ICachedResolvers } from '../internalServices/cachedResolvers'
+import { buildResolvers, CachedFacetType, ICachedResolvers } from '@/internalServices/cachedResolvers.js'
 import {
   SearchFacet as ISearchFacet,
   SearchFacetBucket as ISearchFacetBucket,
@@ -9,9 +9,9 @@ import {
   Collection as ICollection,
   Newspaper as INewspaper,
   Partner as IPartner,
-} from './generated/schemas'
-import { ImpressoApplication } from '../types'
-import { FacetWithLabel } from './generated/shared'
+} from '@/models/generated/schemas.js'
+import { ImpressoApplication } from '@/types.js'
+import { FacetWithLabel } from '@/models/generated/shared.js'
 
 type FacetType = 'newspaper' | 'language' | 'topic' | 'person' | 'location' | 'collection' | 'year'
 

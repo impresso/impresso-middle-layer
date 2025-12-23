@@ -1,10 +1,11 @@
-/* eslint global-require: "off" */
+import * as path from 'path'
+import { fileURLToPath } from 'url'
 import Debug from 'debug'
 const debug = Debug('impresso/services:FusionService')
 import decypher from 'decypher'
 import { NotFound } from '@feathersjs/errors'
-import neo4j from '../neo4j'
-import sequelize from '../sequelize'
+import neo4j from '@/neo4j.js'
+import sequelize from '@/sequelize.ts'
 
 import { neo4jRun, neo4jRecordMapper, neo4jSummary } from './neo4j.utils'
 

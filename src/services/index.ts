@@ -1,5 +1,5 @@
-import { ImpressoApplication } from '../types'
-import { logger } from '../logger'
+import { ImpressoApplication } from '@/types.js'
+import { logger } from '@/logger.js'
 
 /**
  * Some public services are declared here but are only required internally by

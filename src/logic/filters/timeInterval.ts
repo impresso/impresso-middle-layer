@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { Filter } from '../../models'
+import { Filter } from '@/models/index.js'
 
 // Define interface for daterange filters specifically
 interface DaterangeFilter extends Filter {

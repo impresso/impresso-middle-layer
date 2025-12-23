@@ -1,19 +1,19 @@
-import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../models/authorization'
-import { asObjectOrUndefined } from '../models/content-item'
+import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
+import { asObjectOrUndefined } from '@/models/content-item.js'
 import {
   ContentItemMention,
   ContentItemNamedEntity,
   ContentItem as ContentItemPrivate,
   ContentItemText,
   ContentItemTopic,
-} from '../models/generated/schemas/contentItem'
+} from '@/models/generated/schemas/contentItem.js'
 import {
   ContentItem as ContentItemPublic,
   EntityMention,
   NamedEntity,
   TopicMention,
-} from '../models/generated/schemasPublic'
-import { base64BytesToBigInt, OpenPermissions } from '../util/bigint'
+} from '@/models/generated/schemasPublic.js'
+import { base64BytesToBigInt, OpenPermissions } from '@/util/bigint.js'
 
 const toType = (input: ContentItemText['itemType']): ContentItemPublic['type'] => {
   if (input == null || input.trim() === '') return 'ar'

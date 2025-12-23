@@ -1,7 +1,7 @@
 import { get } from 'lodash'
 import { BadRequest } from '@feathersjs/errors'
-import { authenticate } from '../../hooks/authenticate'
-import { validateWithSchema } from '../../hooks/schema'
+import { authenticate } from '@/hooks/authenticate.js'
+import { validateWithSchema } from '@/hooks/schema.js'
 
 /**
  * At the moment we are not allowing to filter by full text search queries

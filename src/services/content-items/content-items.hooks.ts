@@ -1,30 +1,30 @@
 import { HookOptions } from '@feathersjs/feathers'
-import { SolrMappings } from '../../data/constants'
+import { SolrMappings } from '@/data/constants.js'
 import {
   ContextCondtition,
   ImpressoAppHookContext,
   inPublicApi,
   inPublicApiOrWhen,
   inWebAppApi,
-} from '../../hooks/appMode'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
-import { rateLimit } from '../../hooks/rateLimiter'
+} from '@/hooks/appMode.js'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '@/hooks/params.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
 import {
   RedactionPolicy,
   redactResponse,
   redactResponseDataItem,
   unlessHasPermission,
   unlessHasPermissionAndWithinQuota,
-} from '../../hooks/redaction'
-import { filtersToSolrQuery, termToSolrFilter } from '../../hooks/search'
-import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
-import { transformBaseFind } from '../../transformers/base'
-import { transformContentItem } from '../../transformers/contentItem'
-import { ImpressoApplication } from '../../types'
-import { loadYamlFile } from '../../util/yaml'
-import { eachFilterValidator } from '../search/search.validators'
-import { ContentItemService } from './content-items.class'
+} from '@/hooks/redaction.js'
+import { filtersToSolrQuery, termToSolrFilter } from '@/hooks/search.js'
+import { transformResponse, transformResponseDataItem } from '@/hooks/transformation.js'
+import { transformBaseFind } from '@/transformers/base.js'
+import { transformContentItem } from '@/transformers/contentItem.js'
+import { ImpressoApplication } from '@/types.js'
+import { loadYamlFile } from '@/util/yaml.js'
+import { eachFilterValidator } from '@/services/search/search.validators.js'
+import { ContentItemService } from '@/services/content-items/content-items.class.js'
 
 export const contentItemRedactionPolicyPublicApi = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicy.yml`

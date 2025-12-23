@@ -1,6 +1,6 @@
 import { Filter } from 'impresso-jscommons'
-import { queryWithCommonParams, validate, validateEach, utils, ValidationRules } from '../../hooks/params'
-import { filtersToSequelizeQuery } from '../../hooks/sequelize'
+import { queryWithCommonParams, validate, validateEach, utils, ValidationRules } from '@/hooks/params.js'
+import { filtersToSequelizeQuery } from '@/hooks/sequelize.js'
 
 const filtersValidator: ValidationRules<Filter> = {
   context: {

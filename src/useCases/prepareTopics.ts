@@ -1,15 +1,14 @@
-import { Bucket, SelectRequestBody, SimpleSolrClient, TermsFacetDetails } from '../internalServices/simpleSolr'
-import { Topic, TopicWord } from '../models/generated/schemas'
-import { SolrNamespaces } from '../solr'
-import { logger } from '../logger'
+import { Bucket, SelectRequestBody, SimpleSolrClient, TermsFacetDetails } from '@/internalServices/simpleSolr.js'
+import { Topic, TopicWord } from '@/models/generated/schemas.js'
+import { SolrNamespaces } from '@/solr.js'
+import { logger } from '@/logger.js'
 import { uniqBy } from 'lodash'
 
-import Graph from 'graphology'
+import { MultiGraph as Graph } from 'graphology'
 import { circular } from 'graphology-layout'
-import forceAtlas2 from 'graphology-layout-forceatlas2'
-import pagerank from 'graphology-metrics/centrality/pagerank'
-import louvain from 'graphology-communities-louvain'
-import hits from 'graphology-metrics/centrality/hits'
+import { default as forceAtlas2 } from 'graphology-layout-forceatlas2'
+import { default as louvain } from 'graphology-communities-louvain'
+import { hits, pagerank } from 'graphology-metrics/centrality/index.js'
 
 const TopicsLimit = 10 ** 6
 const TopNTopics = 10
@@ -364,6 +363,7 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
     circular.assign(graph)
   }
 
+  // @ts-ignore
   const positions = forceAtlas2(graph, {
     iterations: 100,
     settings: {
@@ -373,6 +373,7 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
   })
 
   const pageranks = pagerank(graph, { alpha: 0.9, getEdgeWeight: 1 })
+  // @ts-ignore
   const communities = louvain(graph)
 
   const { hubs = undefined, authorities = undefined } = getHits(graph)

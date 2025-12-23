@@ -1,9 +1,9 @@
 import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { getDocs } from './entities.schema'
-import hooks from './entities.hooks'
+import { getDocs } from '@/services/entities/entities.schema.js'
+import hooks from '@/services/entities/entities.hooks.js'
 
 // Initializes the `entities` service on path `/entities`
-import createService from './entities.class.js'
+import createService from '@/services/entities/entities.class.js'
 
 export default function (app) {
   const options = {

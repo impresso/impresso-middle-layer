@@ -1,9 +1,9 @@
 import type { Id, Params, ServiceMethods } from '@feathersjs/feathers'
 import { BadRequest } from '@feathersjs/errors'
-import { experiments } from './experiments'
-import { PublicFindResponse as FindResponse } from '../../models/common'
-import { ExperimentBase } from './experiments/base'
-import { ImpressoApplication } from '../../types'
+import { experiments } from './experiments/index.js'
+import { PublicFindResponse as FindResponse } from '@/models/common.js'
+import { ExperimentBase } from './experiments/base.js'
+import { ImpressoApplication } from '@/types.js'
 
 export const ValidExperimentIds: readonly string[] = Object.freeze(experiments.map(e => e.id))
 

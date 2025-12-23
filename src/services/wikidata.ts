@@ -7,11 +7,11 @@ import Debug from 'debug'
 import lodash from 'lodash'
 import type { Entities, Entity, EntityId } from 'wikibase-sdk' with { 'resolution-mode': 'import' }
 // import { WBK } from 'wikibase-sdk'
-import { RedisClient } from '../redis'
-import { createFetchClient } from '../utils/http/client'
-import type { IFetchClient } from '../utils/http/client/base'
-import { WikidataEntityDetails } from '../models/generated/schemas'
-import { parallelLimit } from '../util/fn'
+import { RedisClient } from '@/redis.js'
+import { createFetchClient } from '@/utils/http/client/index.js'
+import type { IFetchClient } from '@/utils/http/client/base.js'
+import { WikidataEntityDetails } from '@/models/generated/schemas.js'
+import { parallelLimit } from '@/util/fn.js'
 
 export type ICache = Pick<RedisClient, 'get' | 'set'>
 

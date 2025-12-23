@@ -1,5 +1,5 @@
 import { Filter, protobuf } from 'impresso-jscommons'
-import { isFilters } from './models'
+import { isFilters } from '@/util/models.js'
 
 export const parseOrderBy = (orderBy: string | undefined, keyFieldMap: Record<string, string> = {}) => {
   if (orderBy == null) return []

@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { logger } from '../logger'
+import { logger } from '@/logger.js'
 import Debug from 'debug'
 const debug = Debug('impresso/hooks/validators')
 import { get, set } from 'lodash'

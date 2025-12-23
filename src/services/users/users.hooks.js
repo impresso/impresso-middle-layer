@@ -1,4 +1,4 @@
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
 import {
   queryWithCommonParams,
   validate,
@@ -9,7 +9,7 @@ import {
   VALIDATE_PASSWORD,
   VALIDATE_OPTIONAL_PASSWORD,
   REGEX_SLUG,
-} from '../../hooks/params'
+} from '@/hooks/params.js'
 import { hooks } from '@feathersjs/authentication-local'
 
 const { protect } = hooks

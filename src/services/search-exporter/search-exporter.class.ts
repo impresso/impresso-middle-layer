@@ -1,8 +1,8 @@
 import { Params } from '@feathersjs/feathers'
 import debugLib from 'debug'
 import { Filter } from 'impresso-jscommons'
-import User from '../../models/users.model.js'
-import { ImpressoApplication } from '../../types.js'
+import User from '@/models/users.model.js'
+import { ImpressoApplication } from '@/types.js'
 
 const debug = debugLib('impresso/services:search-exporter')
 

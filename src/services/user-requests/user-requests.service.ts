@@ -1,8 +1,8 @@
-import { Service } from './user-requests.class'
-import { ImpressoApplication } from '../../types'
+import { Service } from './user-requests.class.js'
+import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { authenticate } from '@feathersjs/authentication'
-import { queryWithCommonParams } from '../../hooks/params'
+import { queryWithCommonParams } from '@/hooks/params.js'
 
 const obfuscateProperties = () => (context: any) => {
   if (context.result) {
