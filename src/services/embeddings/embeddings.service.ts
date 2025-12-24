@@ -1,5 +1,5 @@
 import { ServiceOptions } from '@feathersjs/feathers'
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { logger } from '@/logger.js'
 import { SolrNamespaces } from '@/solr.js'
 import { ImpressoApplication } from '@/types.js'

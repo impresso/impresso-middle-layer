@@ -1,8 +1,14 @@
 import util from 'util'
 import { exec as execCallback } from 'child_process'
 import { readFile as readFileCallback } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
 const exec = util.promisify(execCallback)
 const readFile = util.promisify(readFileCallback)
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const PackageJsonPath = `${__dirname}/../../../package.json`
 

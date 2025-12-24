@@ -1,4 +1,4 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { ImpressoApplication } from '@/types.js'
 import { Experiments } from './experiments.class.js'
 import hooks from './experiments.hooks.js'

@@ -1,4 +1,4 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { TextReusePassages as TextReusePassagesService } from '@/services/text-reuse-passages/text-reuse-passages.class.js'
 import hooks from '@/services/text-reuse-passages/text-reuse-passages.hooks.js'
 import { getDocs } from '@/services/text-reuse-passages/text-reuse-passages.schema.js'

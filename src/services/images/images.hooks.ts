@@ -7,6 +7,11 @@ import { redactResponse, redactResponseDataItem, unlessHasPermission } from '@/h
 import { ImpressoApplication } from '@/types.js'
 import { RedactionPolicy } from '@/util/redaction.js'
 import { loadYamlFile } from '@/util/yaml.js'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export const imageRedactionPolicy: RedactionPolicy = loadYamlFile(`${__dirname}/resources/imageRedactionPolicy.yml`)
 

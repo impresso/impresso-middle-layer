@@ -1,5 +1,5 @@
 import { ServiceOptions } from '@feathersjs/feathers'
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { ImpressoApplication } from '@/types.js'
 import { ImpressoNerService } from './impresso-ner.class.js'
 import hooks from './impresso-ner.hooks.js'

@@ -1,4 +1,4 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { getDocs } from '@/services/entities/entities.schema.js'
 import hooks from '@/services/entities/entities.hooks.js'
 

@@ -1,4 +1,4 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { ImpressoApplication } from '@/types.js'
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
 import hooks from '@/services/media-sources/media-sources.hooks.js'

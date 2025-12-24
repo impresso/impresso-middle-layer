@@ -1,4 +1,4 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { getDocs, IndexId } from '@/services/search-facets/search-facets.schema.js'
 import { SolrMappings } from '@/data/constants.js'
 import { Service } from '@/services/search-facets/search-facets.class.js'

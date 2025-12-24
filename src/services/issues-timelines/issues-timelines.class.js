@@ -90,6 +90,6 @@ export class Service {
   }
 }
 
-export default async function (options) {
+export default function (options) {
   return new Service(options)
 }

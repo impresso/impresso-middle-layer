@@ -16,6 +16,11 @@ import { transformTextReuseCluster } from '@/transformers/textReuse.js'
 import { ImpressoApplication } from '@/types.js'
 import { parseFilters } from '@/util/queryParameters.js'
 import { loadYamlFile } from '@/util/yaml.js'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const trPassageRedactionPolicy: RedactionPolicy = loadYamlFile(`${__dirname}/resources/trClusterRedactionPolicy.yml`)
 

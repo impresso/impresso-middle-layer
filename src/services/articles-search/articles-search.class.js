@@ -1,6 +1,6 @@
 import { relevanceContextItemsToSolrFormula, buildSolrQuery, withScore } from './logic.js'
 import { SolrNamespaces } from '@/solr.js'
-import { filtersToQueryAndVariables } from '@/util/solr.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { getItemsFromSolrResponse, getTotalFromSolrResponse } from '@/services/search/search.extractors.js'
 
 /**

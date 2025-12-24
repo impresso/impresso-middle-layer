@@ -12,7 +12,9 @@ import { SolrMappings } from '@/data/constants.js'
 import { getFacetsFromSolrResponse } from '@/services/search/search.extractors.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
-import { logic } from 'impresso-jscommons'
+import jscommons from 'impresso-jscommons'
+
+const { logic } = jscommons
 
 const {
   filter: { mergeFilters },

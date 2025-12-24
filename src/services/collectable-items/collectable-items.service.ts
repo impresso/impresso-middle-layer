@@ -1,5 +1,5 @@
 import { ServiceOptions } from '@feathersjs/feathers'
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { optionsDisabledInPublicApi } from '@/hooks/public-api.js'
 import { ImpressoApplication } from '@/types.js'
 import { getDocs } from './collectable-items.schema.js'

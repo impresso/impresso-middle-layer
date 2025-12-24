@@ -1,9 +1,9 @@
 import { get } from 'lodash-es'
 import { SolrNamespaces } from '@/solr.js'
-import { filtersToQueryAndVariables } from '@/util/solr.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 
 /**
- * @typedef {import('../../models').Filter} Filter
+ * @typedef {import('@/models/index.js').Filter} Filter
  */
 
 const Resolution = Object.freeze({
@@ -182,9 +182,9 @@ function buildMentionResponse(mentionLabel, mentionType, facetSearchResult) {
 class EntityMentionsTimeline {
   constructor(app) {
     this.app = app
-    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+    /** @type {import('@/internalServices/simpleSolr.js').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
-    /** @type {import('../entities/entities.class').Service} */
+    /** @type {import('@/services/entities/entities.class.js').Service} */
     this.entitiesService = app.service('entities')
     this.app = app
   }

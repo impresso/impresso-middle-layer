@@ -16,7 +16,7 @@ import { Filter } from '@/models/index.js'
 
 import { mapValues, groupBy, clone, get } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
-import { protobuf } from 'impresso-jscommons'
+import jscommons from 'impresso-jscommons'
 import {
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
@@ -33,6 +33,8 @@ import {
 } from '@/logic/textReuse/solr.js'
 import { parseOrderBy } from '@/util/queryParameters.js'
 import { SolrNamespaces } from '@/solr.js'
+
+const { protobuf } = jscommons
 
 interface ClusterIdAndTextAndPermission {
   id: any

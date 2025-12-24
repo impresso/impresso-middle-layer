@@ -1,5 +1,5 @@
 // Initializes the `topics` service on path `/topics`
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
 import { Service } from '@/services/topics/topics.class.js'

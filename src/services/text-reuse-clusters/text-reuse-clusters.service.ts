@@ -1,4 +1,4 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { TextReuseClusters } from '@/services/text-reuse-clusters/text-reuse-clusters.class.js'
 import hooks from '@/services/text-reuse-clusters/text-reuse-clusters.hooks.js'
 import { getDocs } from '@/services/text-reuse-clusters/text-reuse-clusters.schema.js'

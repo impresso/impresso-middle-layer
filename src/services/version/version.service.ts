@@ -1,5 +1,5 @@
 import debug from 'debug'
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { docs } from '@/services/version/version.schema.js'
 import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
