@@ -35,6 +35,7 @@
     "start": "tsx dist/",
     "dev": "nodemon --exec 'tsx --env-file=.env' --enable-source-maps --inspect dist/ --ignore 'data/*' --env-file ./.env",
     "bun-run": "bun run --watch src/index.ts",
+    "bun-test": "bun test",
     "cli": "node src/admin/cli.js",
     "generate-types": "node src/scripts/generate-types.js"
   },

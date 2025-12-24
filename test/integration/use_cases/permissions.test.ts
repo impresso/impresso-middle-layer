@@ -1,25 +1,23 @@
 import assert from 'assert'
-import app from '../../../src/app'
-import { SlimUser } from '../../../src/authentication'
+import app from '@/app.js'
+import { SlimUser } from '@/authentication.js'
 import {
   ContentItemPermissionsDetails,
   getContentItemsPermissionsDetails,
   PermissionDetails,
   PermissionsScope,
-} from '../../../src/useCases/getContentItemsPermissionsDetails'
-import { UserAccount, getUserAccountsWithAvailablePermissions } from '../../../src/useCases/getUsersPermissionsDetails'
-import { bigIntToBitString, bitmapsAlign } from '../../../src/util/bigint'
-import { safeStringifyJson } from '../../../src/util/jsonCodec'
-
+} from '@/useCases/getContentItemsPermissionsDetails.js'
+import { UserAccount, getUserAccountsWithAvailablePermissions } from '@/useCases/getUsersPermissionsDetails.js'
+import { bigIntToBitString, bitmapsAlign } from '@/util/bigint.js'
+import { safeStringifyJson } from '@/util/jsonCodec.js'
 import {
-  contentItemRedactionPolicy,
+  contentItemRedactionPolicyPublicApi,
   contentItemRedactionPolicyWebApp,
-} from '../../../src/services/articles/articles.hooks'
-import { trPassageRedactionPolicy } from '../../../src/services/text-reuse-passages/text-reuse-passages.hooks'
-import { imageRedactionPolicy } from '../../../src/services/images/images.hooks'
-import { DefaultConverters, RedactionPolicy } from '../../../src/util/redaction'
+} from '@/services/content-items/content-items.hooks.js'
+import { imageRedactionPolicy } from '@/services/images/images.hooks.js'
+import { DefaultConverters, RedactionPolicy } from '@/util/redaction.js'
 import { JSONPath } from 'jsonpath-plus'
-import { SolrNamespaces } from '../../../src/solr'
+import { SolrNamespaces } from '@/solr.js'
 
 interface RedactionTestContext {
   scope: PermissionsScope
@@ -286,7 +284,7 @@ describe('Bitmap permissions', function () {
           const params = { user: buildSlimUser(testCase), authenticated: true }
           return await service.get(testCase.contentItemId, params)
         },
-        contentItemRedactionPolicy,
+        contentItemRedactionPolicyPublicApi,
         undefined,
         'none'
       )
@@ -311,7 +309,7 @@ describe('Bitmap permissions', function () {
           }
           return await service.find(params)
         },
-        contentItemRedactionPolicy,
+        contentItemRedactionPolicyPublicApi,
         (result, testCase) => {
           assert.strictEqual(
             result.data.length,

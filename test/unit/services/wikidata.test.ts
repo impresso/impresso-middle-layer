@@ -1,6 +1,7 @@
 import assert from 'assert'
 import sinon from 'sinon'
-import { resolveWithCache, WikidataCacheKeyPrefix, ICache } from '../../../src/services/wikidata.ts'
+import { resolveWithCache, WikidataCacheKeyPrefix, ICache } from '@/services/wikidata.js'
+import { RedisArgument } from 'redis'
 
 /**
  * In-memory cache implementation for testing
@@ -8,12 +9,13 @@ import { resolveWithCache, WikidataCacheKeyPrefix, ICache } from '../../../src/s
 class MemoryCache implements ICache {
   private store: Map<string, string> = new Map()
 
-  async get(key: string): Promise<string | null> {
-    return this.store.get(key) ?? null
+  async get(key: string | Buffer<ArrayBufferLike>): Promise<string | null> {
+    return this.store.get(key as string) ?? null
   }
 
-  async set(key: string, value: string): Promise<void> {
-    this.store.set(key, value)
+  async set(key: string | Buffer<ArrayBufferLike>, value: string | number | RedisArgument): Promise<string | null> {
+    this.store.set(key as string, value as string)
+    return null
   }
 
   clear(): void {
