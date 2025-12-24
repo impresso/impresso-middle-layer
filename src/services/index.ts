@@ -153,22 +153,10 @@ export default (app: ImpressoApplication & ExpressApplication) => {
     ...(!isPublicApi && features?.barista?.enabled ? baristaServices : []),
   ]
 
-  // Extract service names from the import module names
-  const getServiceName = (serviceFn: any) => {
-    // Get the module name from the function's toString representation
-    // This works because the imports have names like 'search', 'contentItems', etc.
-    const match = serviceFn.toString().match(/^(?:async\s+)?function\s+(\w+)/)
-    if (match) {
-      // Convert camelCase to kebab-case
-      return match[1].replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-    }
-    return 'unknown'
-  }
-
-  const serviceNames = services.map(getServiceName)
+  const serviceNames = services.map(s => s.name)
   logger.info(`Loading services: ${serviceNames.join(', ')}`)
 
   services.forEach(service => {
-    app.configure(service)
+    app.configure(service.init)
   })
 }
