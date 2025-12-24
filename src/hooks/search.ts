@@ -1,5 +1,5 @@
 import Debug from 'debug'
-import lodash from 'lodash'
+import { groupBy } from 'lodash-es'
 
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
@@ -98,7 +98,7 @@ export const filtersToSolrQuery =
     context[prop].sanitized.sv = vars
     context[prop].sanitized.sfq = solrFilter
     // NOTE: `queryComponents` should be deprecated
-    const filters = lodash.groupBy(context[prop].sanitized.filters, 'type')
+    const filters = groupBy(context[prop].sanitized.filters, 'type')
     context[prop].sanitized.queryComponents = ([] as any[])
       .concat(
         filters.isFront,

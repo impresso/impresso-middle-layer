@@ -1,7 +1,7 @@
 /**
  * @deprecated - remove when articles-search is removed but check that this file is not used elsewhere.
  */
-import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
+import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash-es'
 import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
 import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '@/util/solr/index.js'
 import { ContentItemService } from '@/services/content-items/content-items.class.js'

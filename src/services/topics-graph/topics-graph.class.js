@@ -5,7 +5,7 @@ import { WellKnownKeys } from '@/cache.js'
 
 import debugLib from 'debug'
 const debug = debugLib('impresso/services:topics-graph')
-import { min, max } from 'lodash'
+import { min, max } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
 import Topic from '@/models/topics.model.js'
 import { measureTime } from '@/util/instruments.js'

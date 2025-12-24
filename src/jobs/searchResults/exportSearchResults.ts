@@ -5,7 +5,8 @@ import { createHash } from 'crypto'
 import { stringify } from 'csv-stringify/sync'
 import { accessSync, createReadStream, createWriteStream, constants as fsConstants } from 'fs'
 import { access, appendFile, unlink, writeFile } from 'fs/promises'
-import { Filter, protobuf } from 'impresso-jscommons'
+import { Filter } from 'impresso-jscommons'
+import jscommons from 'impresso-jscommons'
 import { basename, dirname, join } from 'path'
 import { v7 as uuidv7 } from 'uuid'
 import { logger } from '@/logger.js'
@@ -14,6 +15,8 @@ import DBJob from '@/models/jobs.model.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import ZipStream from 'zip-stream'
+
+const { protobuf } = jscommons
 
 type ExportedContentItem = Omit<ContentItemPublic, 'embeddings'>
 

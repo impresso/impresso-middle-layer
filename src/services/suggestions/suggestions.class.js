@@ -8,7 +8,7 @@ import Debug from 'debug'
 const debug = Debug('impresso/services:suggestions')
 import { parse as chronoParse } from 'chrono-node'
 import moment from 'moment'
-import lodash from 'lodash'
+import lodash from 'lodash-es'
 
 import { NotFound, NotImplemented } from '@feathersjs/errors'
 import { latinise, toPlainText } from '@/helpers.js'
@@ -205,7 +205,7 @@ export class Service {
       return []
     }
 
-    const articletitles = async () => { }
+    const articletitles = async () => {}
 
     const dateranges = async () => {
       const myears = params.query.q.match(MULTI_YEAR_RANGE)

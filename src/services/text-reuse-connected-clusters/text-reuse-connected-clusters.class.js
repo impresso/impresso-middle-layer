@@ -1,5 +1,5 @@
 import { getToSelect } from '@/util/solr/adapters.js'
-import { mapValues, groupBy } from 'lodash'
+import { mapValues, groupBy } from 'lodash-es'
 import {
   buildConnectedClustersRequest,
   parseConnectedClustersResponse,

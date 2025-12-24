@@ -12,7 +12,7 @@ import Entity, { IEntitySolrHighlighting, suggestField } from '@/models/entities
 /* eslint-disable no-unused-vars */
 import debugLib from 'debug'
 const debug = debugLib('impresso/services:entities')
-import lodash from 'lodash'
+import { flow, keyBy, map, compact } from 'lodash-es'
 import { Op } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
 
@@ -151,7 +151,7 @@ class Service {
     )
 
     // entities from sequelize, containing wikidata and dbpedia urls
-    const sequelizeEntitiesIndex = lodash.keyBy(sequelizeResult.data, 'uid')
+    const sequelizeEntitiesIndex = keyBy(sequelizeResult.data, 'uid')
     const result = {
       total: solrResult.response?.numFound,
       limit: qp.limit,
@@ -181,7 +181,9 @@ class Service {
     }
 
     // get wikidata ids
-    const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value() as EntityId[]
+    const getEntityIds = flow([x => map(x, 'wikidataId'), x => compact(x)])
+    // const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value() as EntityId[]
+    const wkdIds = getEntityIds(sequelizeEntitiesIndex) as EntityId[]
 
     debug('[find] wikidata loading:', wkdIds.length)
     const resolvedEntities = await resolveWikidata({

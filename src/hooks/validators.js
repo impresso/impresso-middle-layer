@@ -2,7 +2,7 @@
 import { logger } from '@/logger.js'
 import Debug from 'debug'
 const debug = Debug('impresso/hooks/validators')
-import { get, set } from 'lodash'
+import { get, set } from 'lodash-es'
 import { BadRequest } from '@feathersjs/errors'
 import { Validator } from 'jsonschema'
 import { validated, formatValidationErrors } from '../util/jsonschema'

@@ -1,4 +1,4 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { getDocs } from '@/services/search/search.schema.js'
 import { ImpressoApplication } from '@/types.js'
 import { Service } from '@/services/search/search.class.js'

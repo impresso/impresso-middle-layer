@@ -2,8 +2,13 @@ import YAML from 'yaml'
 import Debug from 'debug'
 import { readFileSync } from 'fs'
 import { StatsConfiguration } from '@/models/generated/common.js'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
 
 const debug = Debug('impresso/data')
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export const statsConfiguration: StatsConfiguration = YAML.parse(readFileSync(`${__dirname}/stats.yml`).toString())
 

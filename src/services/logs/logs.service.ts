@@ -5,7 +5,7 @@ import createService from '@/services/logs/logs.class.js'
 
 const debug = Debug('impresso/services:logs')
 
-export default async function (app: ImpressoApplication) {
+export default function (app: ImpressoApplication) {
   debug('Registering logs service')
-  app.use('/logs', await createService(), optionsDisabledInPublicApi(app))
+  app.use('/logs', createService(), optionsDisabledInPublicApi(app))
 }

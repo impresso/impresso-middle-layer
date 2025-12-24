@@ -1,4 +1,4 @@
-import { get } from 'lodash'
+import { get } from 'lodash-es'
 import { SolrNamespaces } from '@/solr.js'
 import { filtersToQueryAndVariables } from '@/util/solr.js'
 

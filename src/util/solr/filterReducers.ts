@@ -12,9 +12,14 @@ import { invertRecord } from '@/util/fn.js'
 import capitalisedValueFilterBuilder from '@/util/solr/filterBuilders/capitalisedValue.js'
 import { escapeIdValue, idValueBuilder, unescapeIdValue, valueBuilder } from '@/util/solr/filterBuilders/value.js'
 import { readFileSync } from 'fs'
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
 import YAML from 'yaml'
 
 export { escapeIdValue, unescapeIdValue }
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const filtersConfig: SolrFiltersConfiguration = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
 

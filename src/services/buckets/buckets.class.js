@@ -1,7 +1,7 @@
 import debugLib from 'debug'
 const debug = debugLib('impresso/services:buckets')
 import slugify from 'slugify'
-import lodash from 'lodash'
+import lodash from 'lodash-es'
 import { NotImplemented } from '@feathersjs/errors'
 import { Service as Neo4jService } from '@/services/neo4j.service.js'
 

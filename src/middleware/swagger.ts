@@ -1,9 +1,15 @@
-import swagger, { swaggerUI } from 'feathers-swagger'
+import swagger from 'feathers-swagger'
 import { logger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import fs from 'fs'
-import path from 'path'
+import path, { dirname } from 'path'
 import { Application } from '@feathersjs/express'
+import { fileURLToPath } from 'url'
+
+const { swaggerUI } = swagger
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const schemaBaseDir = path.join(__dirname, '../schema')
 

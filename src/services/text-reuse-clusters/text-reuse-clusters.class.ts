@@ -14,7 +14,7 @@ import { OpenPermissions } from '@/util/bigint.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { Filter } from '@/models/index.js'
 
-import { mapValues, groupBy, clone, get } from 'lodash'
+import { mapValues, groupBy, clone, get } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
 import { protobuf } from 'impresso-jscommons'
 import {

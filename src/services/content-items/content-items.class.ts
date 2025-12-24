@@ -1,4 +1,4 @@
-import { Dictionary, keyBy, take } from 'lodash'
+import { keyBy, take } from 'lodash-es'
 import Debug from 'debug'
 import { Op } from 'sequelize'
 
@@ -189,6 +189,8 @@ const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: Imp
     },
   }
 }
+
+type Dictionary<T> = Record<string, T>
 
 const withIIIF = (
   contentItems: ContentItem[],

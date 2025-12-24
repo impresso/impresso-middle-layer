@@ -1,5 +1,5 @@
 import { getToSelect } from '@/util/solr/adapters.js'
-import { groupBy, mapValues, first } from 'lodash'
+import { groupBy, mapValues, first } from 'lodash-es'
 import {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,

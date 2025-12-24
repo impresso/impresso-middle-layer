@@ -1,4 +1,4 @@
-import lodash from 'lodash'
+import { keyBy } from 'lodash-es'
 import { logger } from '@/logger.js'
 import { HookContext } from '@feathersjs/feathers'
 import { Service as SearchFacetService } from '@/services/search-facets/search-facets.class.js'
@@ -61,7 +61,7 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
     })
     .then(({ data }: { data: any }) => {
       debug('resolveTextReuseClusters data:', data.length)
-      return lodash.keyBy(data, 'textReuseCluster.id')
+      return keyBy(data, 'textReuseCluster.id')
     })
     .catch((err: Error) => {
       logger.error('hook resolveTextReuseClusters ERROR')

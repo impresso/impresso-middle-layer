@@ -25,6 +25,11 @@ import { ImpressoApplication } from '@/types.js'
 import { loadYamlFile } from '@/util/yaml.js'
 import { eachFilterValidator } from '@/services/search/search.validators.js'
 import { ContentItemService } from '@/services/content-items/content-items.class.js'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export const contentItemRedactionPolicyPublicApi = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicy.yml`

@@ -9,7 +9,7 @@ import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
 import { FindMethodFields } from '@/services/content-items/content-items.class.js'
 import { PrintContentItem } from '@/models/solr.js'
 
-import lodash from 'lodash'
+import { take } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
 import Debug from 'debug'
 const debug = Debug('impresso/services:articles-suggestions')
@@ -80,7 +80,7 @@ export class ArticlesSuggestionsService {
       }
 
       let topicWeight: string = '1'
-      const topicsChoosen: ContentItemTopic[] = lodash.take(
+      const topicsChoosen: ContentItemTopic[] = take(
         topics.sort((a: ContentItemTopic, b: ContentItemTopic) => b.relevance - a.relevance),
         params.query.amount
       )

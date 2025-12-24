@@ -4,7 +4,7 @@
  */
 
 import Debug from 'debug'
-import lodash from 'lodash'
+import { get, uniq } from 'lodash-es'
 import type { Entities, Entity, EntityId } from 'wikibase-sdk' with { 'resolution-mode': 'import' }
 // import { WBK } from 'wikibase-sdk'
 import { RedisClient } from '@/redis.js'
@@ -143,9 +143,9 @@ class Location extends NamedEntity {
     //  "altitude": null,
     //  "precision": 0.00027777777777778,
     // }
-    this.coordinates = lodash.get(claims, `${PLACE_COORDINATES}[0].mainsnak.datavalue.value`)
+    this.coordinates = get(claims, `${PLACE_COORDINATES}[0].mainsnak.datavalue.value`)
 
-    this.country = lodash.get(claims, `${PLACE_COUNTRY}[0].mainsnak.datavalue.value`)
+    this.country = get(claims, `${PLACE_COUNTRY}[0].mainsnak.datavalue.value`)
 
     if (this.country && this.country.id) {
       this.addPending('country', this.country.id)
@@ -190,14 +190,14 @@ class Human extends NamedEntity {
       type: 'human',
     })
 
-    this.birthDate = lodash.get(claims, 'P569[0].mainsnak.datavalue.value.time')
+    this.birthDate = get(claims, 'P569[0].mainsnak.datavalue.value.time')
 
-    this.deathDate = lodash.get(claims, 'P570[0].mainsnak.datavalue.value.time')
+    this.deathDate = get(claims, 'P570[0].mainsnak.datavalue.value.time')
 
     // get related entities: birthPlace, deathPlace,
-    this.birthPlace = lodash.get(claims, 'P19[0].mainsnak.datavalue.value')
+    this.birthPlace = get(claims, 'P19[0].mainsnak.datavalue.value')
 
-    this.deathPlace = lodash.get(claims, 'P20[0].mainsnak.datavalue.value')
+    this.deathPlace = get(claims, 'P20[0].mainsnak.datavalue.value')
 
     if (this.birthPlace && this.birthPlace.id) {
       this.addPending('birthPlace', this.birthPlace.id)
@@ -220,7 +220,7 @@ class Human extends NamedEntity {
 }
 
 const getNamedEntityClass = (entity: { claims: any }) => {
-  const iof = lodash.get(entity.claims, `${IS_INSTANCE_OF}[0]mainsnak.datavalue.value.id`)
+  const iof = get(entity.claims, `${IS_INSTANCE_OF}[0]mainsnak.datavalue.value.id`)
   debug('getNamedEntityClass: iof', iof)
   if (iof === IS_HUMAN) {
     return Human
@@ -360,7 +360,7 @@ export const resolve = async ({
     .map(e => e.getPendings())
     .reduce((acc, val) => acc.concat(val), []) as EntityId[]
 
-  const secondLevelEntities = await resolveWithCache(lodash.uniq(secondLevelIds), languages, cache, fetchClient)
+  const secondLevelEntities = await resolveWithCache(uniq(secondLevelIds), languages, cache, fetchClient)
   Object.values(entities).forEach(e => {
     e.resolvePendings(secondLevelEntities)
   })

@@ -31,6 +31,6 @@ export class Service {
   }
 }
 
-export default async function () {
+export default function () {
   return new Service()
 }

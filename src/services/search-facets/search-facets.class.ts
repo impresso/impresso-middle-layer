@@ -1,5 +1,5 @@
 import { Params } from '@feathersjs/feathers'
-import lodash from 'lodash'
+import { pick } from 'lodash-es'
 import { isNumber, SolrMappings } from '@/data/constants.js'
 import { FindResponse } from '@/models/common.js'
 import type { SearchFacet } from '@/models/generated/schemas.js'
@@ -153,14 +153,14 @@ const buildFacetsRequest = (
       if (isSolrTermsFacetQueryParams(facetParams)) {
         const combinedParams: SolrTermsFacetQueryParams = {
           ...facetParams,
-          ...lodash.pick(facetsq, 'limit', 'offset', 'sort'),
+          ...pick(facetsq, 'limit', 'offset', 'sort'),
         }
         return { ...acc, [facetType]: combinedParams }
       } else if (isSolrRangeFacetQueryParams(facetParams)) {
         const combinedParams: SolrRangeFacetQueryParams = {
           ...facetParams,
           ...facetsq,
-          ...lodash.pick(facetsq, 'start', 'end', 'gap', 'include'),
+          ...pick(facetsq, 'start', 'end', 'gap', 'include'),
           other: 'all',
         }
         return { ...acc, [facetType]: combinedParams }

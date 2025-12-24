@@ -1,4 +1,4 @@
-import * as lodash from 'lodash'
+import * as lodash from 'lodash-es'
 import { DataTypes, Sequelize } from 'sequelize'
 import { annotate, render, sliceAtSplitpoints, toExcerpt, toHierarchy } from '@/helpers.js'
 import { ImpressoApplication } from '@/types.js'

@@ -1,4 +1,4 @@
-import lodash from 'lodash'
+import lodash from 'lodash-es'
 import debugLib from 'debug'
 const debug = debugLib('impresso/hooks:sequelize')
 const verbose = debugLib('verbose:impresso/hooks:sequelize')

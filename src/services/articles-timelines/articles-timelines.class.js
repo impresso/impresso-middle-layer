@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import lodash from 'lodash'
+import lodash from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
 import Timeline from '@/models/timelines.model.js'
 import { measureTime } from '@/util/instruments.js'
