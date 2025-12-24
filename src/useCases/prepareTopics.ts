@@ -2,7 +2,7 @@ import { Bucket, SelectRequestBody, SimpleSolrClient, TermsFacetDetails } from '
 import { Topic, TopicWord } from '@/models/generated/schemas.js'
 import { SolrNamespaces } from '@/solr.js'
 import { logger } from '@/logger.js'
-import { uniqBy } from 'lodash'
+import { uniqBy } from 'lodash-es'
 
 import { MultiGraph as Graph } from 'graphology'
 import { circular } from 'graphology-layout'

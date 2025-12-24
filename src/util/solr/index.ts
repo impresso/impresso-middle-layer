@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { groupBy, includes, uniq, values } from 'lodash'
+import { groupBy } from 'lodash'
 import { Filter } from '@/models/index.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { filtersToSolr } from '@/util/solr/filterReducers.js'
