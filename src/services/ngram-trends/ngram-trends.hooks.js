@@ -19,15 +19,15 @@ const ForbiddenFilterTypes = ['string', 'regex']
  */
 const validateFilterTypes =
   (fieldPath, excludedTypes = []) =>
-  context => {
-    const filters = get(context, fieldPath)
-    const unexpectedFilters = filters.filter(({ type }) => excludedTypes.includes(type))
-    if (unexpectedFilters.length > 0) {
-      const unexpectedTypes = unexpectedFilters.map(({ type }) => type)
-      throw new BadRequest(`Filters with the following types are not allowed: ${unexpectedTypes.join(', ')}`)
+    context => {
+      const filters = get(context, fieldPath)
+      const unexpectedFilters = filters.filter(({ type }) => excludedTypes.includes(type))
+      if (unexpectedFilters.length > 0) {
+        const unexpectedTypes = unexpectedFilters.map(({ type }) => type)
+        throw new BadRequest(`Filters with the following types are not allowed: ${unexpectedTypes.join(', ')}`)
+      }
+      return context
     }
-    return context
-  }
 
 /**
  * Create validator function that fails validation if one or more multigrams

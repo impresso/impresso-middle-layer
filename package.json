@@ -130,7 +130,6 @@
   },
   "devDependencies": {
     "@openapi-contrib/json-schema-to-openapi-schema": "4.3.0",
-    "@sequelize/sqlite3": "^7.0.0-alpha.47",
     "@stoplight/spectral-cli": "6.11.1",
     "@stoplight/spectral-owasp-ruleset": "2.0.1",
     "@types/cache-manager": "^2.10.3",
@@ -150,6 +149,7 @@
     "nodemon": "3.1.0",
     "prettier": "3.2.5",
     "sinon": "^19.0.2",
+    "sqlite3": "^5.1.7",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.20.5",
     "typescript": "5.9.3",

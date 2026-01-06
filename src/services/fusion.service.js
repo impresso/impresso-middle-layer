@@ -1,5 +1,3 @@
-import * as path from 'path'
-import { fileURLToPath } from 'url'
 import Debug from 'debug'
 const debug = Debug('impresso/services:FusionService')
 import decypher from 'decypher'
