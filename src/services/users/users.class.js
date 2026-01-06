@@ -1,15 +1,15 @@
 /* eslint-disable no-unused-vars */
 import { nanoid } from 'nanoid'
-import User from '../../models/users.model.js'
-import Group from '../../models/groups.model.js'
-import Profile from '../../models/profiles.model.js'
+import User from '@/models/users.model.js'
+import Group from '@/models/groups.model.js'
+import Profile from '@/models/profiles.model.js'
 import { BadRequest, NotFound, MethodNotAllowed } from '@feathersjs/errors'
 import { Op } from 'sequelize'
 import Debug from 'debug'
 const debug = Debug('impresso/services:users')
-import { encrypt } from '../../crypto.js'
-import sequelize from '../../sequelize.js'
-import { sequelizeErrorHandler } from '../sequelize.utils.js'
+import { encrypt } from '@/crypto.js'
+import sequelize from '@/sequelize.js'
+import { sequelizeErrorHandler } from '@/services/sequelize.utils.js'
 
 export class Service {
   constructor({ app }) {

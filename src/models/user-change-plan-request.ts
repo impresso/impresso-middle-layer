@@ -1,6 +1,6 @@
 import type { Sequelize } from 'sequelize'
 import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize'
-import Group from './groups.model'
+import Group from './groups.model.js'
 
 export const StatusPending = 'pending'
 export const StatusApproved = 'approved'

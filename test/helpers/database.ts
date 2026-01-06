@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize'
-import { ImpressoApplication } from '../../src/types'
+import { ImpressoApplication } from '@/types.js'
 
 export interface TestDatabase {
   sequelize: Sequelize

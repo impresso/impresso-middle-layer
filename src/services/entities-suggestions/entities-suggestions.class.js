@@ -1,9 +1,9 @@
-import { suggestField } from '../../models/entities.model'
+import { suggestField } from '@/models/entities.model.js'
 
 import { Op } from 'sequelize'
-import SequelizeService from '../sequelize.service'
-import { measureTime } from '../../util/instruments'
-import { SolrNamespaces } from '../../solr'
+import SequelizeService from '@/services/sequelize.service.js'
+import { measureTime } from '@/util/instruments.js'
+import { SolrNamespaces } from '@/solr.js'
 
 /**
  * @typedef {{

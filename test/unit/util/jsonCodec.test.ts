@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { customJSONReplacer, CustomEncoder, safeParseJson, safeStringifyJson } from '../../../src/util/jsonCodec'
+import { customJSONReplacer, CustomEncoder, safeParseJson, safeStringifyJson } from '@/util/jsonCodec.js'
 
 describe('jsonCodec', () => {
   describe('customJSONReplacer', () => {

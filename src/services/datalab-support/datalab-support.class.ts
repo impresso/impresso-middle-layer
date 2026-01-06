@@ -1,8 +1,8 @@
 import { ClientService, Params } from '@feathersjs/feathers'
-import { buildPythonFunctionCall, isFunctionName, isResource } from '../../logic/filters/impressoPy'
-import { NotFound } from '@feathersjs/errors'
-import { parseFilters } from '../../util/queryParameters'
+import { buildPythonFunctionCall, isFunctionName, isResource } from '@/logic/filters/impressoPy.js'
+import { parseFilters } from '@/util/queryParameters.js'
 import { Filter } from 'impresso-jscommons'
+import { NotFound } from '@feathersjs/errors'
 
 type SupportAspect = 'impresso-py-function'
 

@@ -1,5 +1,5 @@
 import { HookContext, HookFunction, Service } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../types'
+import { ImpressoApplication } from '@/types.js'
 
 export type ImpressoAppHookContext<S = Service> = HookContext<ImpressoApplication, S>
 type ImpressoAppHookFunction<S = Service> = HookFunction<ImpressoApplication, S>

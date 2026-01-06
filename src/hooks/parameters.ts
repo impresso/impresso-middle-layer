@@ -1,6 +1,6 @@
 import type { Application, HookContext } from '@feathersjs/feathers'
-import { parseFilters } from '../util/queryParameters'
-import { AppServices, ImpressoApplication } from '../types'
+import { parseFilters } from '@/util/queryParameters.js'
+import { AppServices, ImpressoApplication } from '@/types.js'
 
 export const decodeJsonQueryParameters = (parametersNames: string[]) => async (context: HookContext<Application>) => {
   const { query } = context.params

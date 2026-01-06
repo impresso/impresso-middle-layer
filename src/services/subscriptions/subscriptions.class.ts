@@ -1,6 +1,6 @@
 import type { Sequelize } from 'sequelize'
-import type { ImpressoApplication } from '../../types'
-import SubscriptionDataset from '../../models/subscription-datasets.model'
+import type { ImpressoApplication } from '@/types.js'
+import SubscriptionDataset from '@/models/subscription-datasets.model.js'
 
 export interface ServiceOptions {
   app: ImpressoApplication

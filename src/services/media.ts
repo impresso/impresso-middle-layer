@@ -3,10 +3,10 @@ import type { Application as ExpressApplication } from '@feathersjs/express'
 import debugModule from 'debug'
 import { NextFunction, Request, Response } from 'express'
 
-import Job from '../models/jobs.model'
-import User from '../models/users.model'
+import Job from '@/models/jobs.model.js'
+import User from '@/models/users.model.js'
 
-import { ImpressoApplication } from '../types'
+import { ImpressoApplication } from '@/types.js'
 
 const debug = debugModule('impresso/media')
 

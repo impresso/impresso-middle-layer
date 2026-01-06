@@ -1,6 +1,6 @@
 // Initializes the `table-of-contents` service on path `/table-of-contents`
-import createService from './table-of-contents.class.js'
-import hooks from './table-of-contents.hooks'
+import createService from '@/services/table-of-contents/table-of-contents.class.js'
+import hooks from '@/services/table-of-contents/table-of-contents.hooks.js'
 
 export default function (app) {
   const paginate = app.get('paginate')

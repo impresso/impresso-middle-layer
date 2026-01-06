@@ -1,6 +1,6 @@
 import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
-import SubscriptionDataset, { type SubscriptionDatasetAttributes } from './subscription-datasets.model'
-import User from './users.model'
+import SubscriptionDataset, { type SubscriptionDatasetAttributes } from './subscription-datasets.model.js'
+import User from './users.model.js'
 
 export const StatusPending = 'pending'
 export const StatusApproved = 'approved'

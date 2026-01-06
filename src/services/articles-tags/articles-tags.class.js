@@ -3,7 +3,7 @@ import debugLib from 'debug'
 const debug = debugLib('impresso/services:articles-tags')
 import shash from 'short-hash'
 import { NotImplemented } from '@feathersjs/errors'
-// import { Neo4jService as Service } from '../neo4j.service'
+import { Service as Neo4jService } from '@/services/neo4j.service.js'
 
 /**
  * @deprecated

@@ -1,5 +1,5 @@
-import { utils, REGEX_UID, REGEX_UIDS, ValidationRules } from '../../hooks/params'
-import { SolrMappings, FilterTypes, Contexts, Operators, Precision } from '../../data/constants.js'
+import { utils, REGEX_UID, REGEX_UIDS, ValidationRules } from '@/hooks/params.js'
+import { SolrMappings, FilterTypes, Contexts, Operators, Precision } from '@/data/constants.js'
 import { Filter } from 'impresso-jscommons'
 
 const eachFilterValidator: ValidationRules<Filter & { daterange: string; uid: string }> = {

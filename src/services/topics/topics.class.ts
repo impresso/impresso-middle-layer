@@ -1,17 +1,17 @@
 import { NotFound } from '@feathersjs/errors'
 import type { Id, Params } from '@feathersjs/feathers'
 import debugLib from 'debug'
-import { buildResolvers } from '../../internalServices/cachedResolvers'
-import type { Filter } from '../../models'
-import { FindResponse } from '../../models/common'
-import { Topic } from '../../models/generated/schemas'
-import { Topic as SolrTopic } from '../../models/generated/solr'
-import TopicModel, { SOLR_FL } from '../../models/topics.model'
-import { SolrNamespaces } from '../../solr'
-import type { ImpressoApplication } from '../../types'
-import { measureTime } from '../../util/instruments'
-import { asFindAll, asGet } from '../../util/solr/adapters'
-import { escapeValue } from '../../util/solr/filterReducers'
+import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import type { Filter } from '@/models/index.js'
+import { FindResponse } from '@/models/common.js'
+import { Topic } from '@/models/generated/schemas.js'
+import { Topic as SolrTopic } from '@/models/generated/solr.js'
+import TopicModel, { SOLR_FL } from '@/models/topics.model.js'
+import { SolrNamespaces } from '@/solr.js'
+import type { ImpressoApplication } from '@/types.js'
+import { measureTime } from '@/util/instruments.js'
+import { asFindAll, asGet } from '@/util/solr/adapters.js'
+import { escapeValue } from '@/util/solr/filterReducers.js'
 
 const debug = debugLib('impresso/services:topics')
 
@@ -199,6 +199,8 @@ export class Service {
           }
           topic.countItems = typeof bucket.count === 'number' ? bucket.count : 0
           return topic
+        } else {
+          return undefined
         }
       })
     )

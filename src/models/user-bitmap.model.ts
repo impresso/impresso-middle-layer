@@ -1,6 +1,6 @@
 import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
-import SubscriptionDataset, { type SubscriptionDatasetAttributes } from './subscription-datasets.model'
-import { bigIntToBuffer, bufferToBigInt } from '../util/bigint'
+import SubscriptionDataset, { type SubscriptionDatasetAttributes } from '@/models/subscription-datasets.model.js'
+import { bigIntToBuffer, bufferToBigInt } from '@/util/bigint.js'
 
 export interface UserBitmapAttributes {
   id: number

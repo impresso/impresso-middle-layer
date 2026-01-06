@@ -1,14 +1,14 @@
 import { Application } from '@feathersjs/feathers'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 import { createClient } from 'celery-node'
-import RedisBackend from 'celery-node/dist/backends/redis'
+import { Redis } from 'ioredis'
 import debugModule from 'debug'
-import { CeleryConfig } from './configuration'
-import { logger } from './logger'
-import Job from './models/jobs.model.js'
-import type { LogData } from './services/logs/logs.class'
-import { ImpressoApplication } from './types'
-import { AsyncResult } from 'celery-node/dist/app/result'
+import { CeleryConfig } from '@/configuration.js'
+import { logger } from '@/logger.js'
+import Job from '@/models/jobs.model.js'
+import type { LogData } from '@/services/logs/logs.class.js'
+import { ImpressoApplication } from '@/types.js'
+import { AsyncResult } from 'celery-node/dist/app/result.js'
 
 const debug = debugModule('impresso/celery')
 
@@ -24,7 +24,7 @@ export interface CeleryClient {
 
 const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
   const client = createClient(config.brokerUrl, config.backendUrl)
-  const backend: RedisBackend = client.backend as RedisBackend
+  const backend = client.backend as any as { redis: Redis }
 
   backend.redis.on('connect', () => {
     backend.redis.psubscribe('celery-task-meta-*', () => {

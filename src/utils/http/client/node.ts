@@ -2,10 +2,10 @@ import { request, Dispatcher, Agent, RetryAgent, RetryHandler } from 'undici'
 
 import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
-import { IncomingHttpHeaders } from 'undici/types/header'
+import type { IncomingHttpHeaders } from 'undici/types/header.d.ts'
 import { SolrServerProxy } from '../../../configuration.js'
 import { logger } from '../../../logger.js'
-import { FetchOptions, IFetchClient, IFetchClientOptions } from './base'
+import type { FetchOptions, IFetchClient, IFetchClientOptions } from './base.ts'
 
 interface InitHttpPoolOptions extends IFetchClientOptions {
   maxParallelConnections?: number

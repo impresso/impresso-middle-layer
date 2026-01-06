@@ -1,8 +1,8 @@
 import assert from 'assert'
 import config from '@feathersjs/configuration'
-import solr from '../../src/solr'
-import Article from '../../src/models/articles.model'
-import Issue from '../../src/models/issues.model'
+import solr from '@/solr'
+import Article from '@/models/articles.model'
+import Issue from '@/models/issues.model'
 
 const solrClient = solr.client(config.solr, config.solrConnectionPool)
 

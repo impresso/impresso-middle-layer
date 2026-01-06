@@ -1,5 +1,5 @@
 import { HookContext, HookFunction } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../types'
+import { ImpressoApplication } from '@/types.js'
 
 export const transformResponse = <S, I, O>(
   transformer: ((item: I) => O) | ((item: I, context: HookContext<ImpressoApplication>) => O),

@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { NotFound } from '@feathersjs/errors'
-import Timeline from '../../models/timelines.model'
-import { sequelizeErrorHandler, whereReducer } from '../sequelize.utils.js'
-import { measureTime } from '../../util/instruments'
+import Timeline from '@/models/timelines.model.js'
+import { sequelizeErrorHandler, whereReducer } from '@/services/sequelize.utils.js'
+import { measureTime } from '@/util/instruments.js'
 
 export class Service {
   constructor({ name = '', app }) {

@@ -1,6 +1,6 @@
-import { WellKnownKeys } from '../cache'
-import { ImpressoApplication } from '../types'
-import { prepareAvailableYearBuckets } from '../useCases/prepareAvailableYearBuckets' // Import the use case
+import { WellKnownKeys } from '@/cache.js'
+import { ImpressoApplication } from '@/types.js'
+import { prepareAvailableYearBuckets } from '@/useCases/prepareAvailableYearBuckets.js' // Import the use case
 
 /** 100 days */
 const DefaultTtlMilliSeconds = 60 * 60 * 24 * 100 * 1000

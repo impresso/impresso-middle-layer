@@ -1,5 +1,5 @@
-import { Service } from './terms-of-use.class'
-import { ImpressoApplication } from '../../types'
+import { Service } from '@/services/terms-of-use/terms-of-use.class.js'
+import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { authenticate } from '@feathersjs/authentication'
 

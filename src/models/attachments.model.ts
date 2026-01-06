@@ -1,7 +1,7 @@
 import type { ModelStatic, Sequelize } from 'sequelize'
 import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize'
 
-import Job from './jobs.model'
+import Job from '@/models/jobs.model.js'
 
 /**
  * Database model interface for attachments.

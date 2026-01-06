@@ -1,7 +1,7 @@
 import { HookContext } from '@feathersjs/feathers'
-import { AppServices, ImpressoApplication } from '../types'
-import { mediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
-import { buildResolvers } from '../internalServices/cachedResolvers'
+import { AppServices, ImpressoApplication } from '@/types.js'
+import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
+import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 
 import debugLib from 'debug'
 const debug = debugLib('impresso/hooks:search-info')

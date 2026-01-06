@@ -1,9 +1,9 @@
-import { ServiceSwaggerOptions, operation } from 'feathers-swagger'
-import { SolrMappings } from '../../data/constants'
-import type { MethodParameter } from '../../util/openapi'
-import { filtersQueryParameter, getSchemaRef, getStandardParameters, getStandardResponses } from '../../util/openapi'
-import { paramsValidator } from './search.validators'
-import { includeEmbeddingsParameter } from '../content-items/content-items.schema'
+import { ServiceSwaggerOptions } from 'feathers-swagger'
+import { SolrMappings } from '@/data/constants.js'
+import type { MethodParameter } from '@/util/openapi.js'
+import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
+import { paramsValidator } from '@/services/search/search.validators.js'
+import { includeEmbeddingsParameter } from '@/services/content-items/content-items.schema.js'
 
 const parameterQ: MethodParameter = {
   in: 'query',

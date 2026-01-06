@@ -3,10 +3,10 @@ import {
   ImpressoEmbeddingResponse,
   ImpressoImageEmbeddingRequest,
   ImpressoTextEmbeddingRequest,
-} from '../../models/generated/shared'
-import { IFetchClient } from '../../utils/http/client/base'
-import { createFetchClient } from '../../utils/http/client'
-import { sendDownstreamRequest } from '../../utils/downstream-service'
+} from '@/models/generated/shared.js'
+import { IFetchClient } from '@/utils/http/client/base.js'
+import { createFetchClient } from '@/utils/http/client/index.js'
+import { sendDownstreamRequest } from '@/utils/downstream-service.js'
 
 interface TextDownstreamRequest {
   data: string

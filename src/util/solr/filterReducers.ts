@@ -1,21 +1,25 @@
-import { readFileSync } from 'fs'
-import YAML from 'yaml'
-import { Filter, FilterPrecision } from '../../models'
 import {
   FilterDefinition,
-  SolrConfiguration,
   SolrFiltersConfiguration,
   SolrServerNamespaceConfiguration,
-} from '../../models/generated/common'
-import { SolrNamespace, SolrNamespaces } from '../../solr'
-import { InvalidArgumentError } from '../error'
-import capitalisedValueFilterBuilder from './filterBuilders/capitalisedValue'
-import { valueBuilder, idValueBuilder, escapeIdValue, unescapeIdValue } from './filterBuilders/value'
-import { SupportedLanguageCodes } from '../../models/solr'
-import { ImageTypeValueLookup } from '../../services/images/images.class'
-import { invertRecord } from '../fn'
+} from '@/models/generated/common.js'
+import { Filter, FilterPrecision } from '@/models/index.js'
+import { SupportedLanguageCodes } from '@/models/solr.js'
+import { ImageTypeValueLookup } from '@/services/images/images.class.js'
+import { SolrNamespace, SolrNamespaces } from '@/solr.js'
+import { InvalidArgumentError } from '@/util/error.js'
+import { invertRecord } from '@/util/fn.js'
+import capitalisedValueFilterBuilder from '@/util/solr/filterBuilders/capitalisedValue.js'
+import { escapeIdValue, idValueBuilder, unescapeIdValue, valueBuilder } from '@/util/solr/filterBuilders/value.js'
+import { readFileSync } from 'fs'
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import YAML from 'yaml'
 
 export { escapeIdValue, unescapeIdValue }
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const filtersConfig: SolrFiltersConfiguration = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
 
@@ -59,7 +63,7 @@ const fullyEscapeValue = (value: string) => escapeValue(value).replace(/"/g, d =
  * Convert filter to a Solr request.
  * @param {string} value filter value
  * @param {string[]} solrFields Solr fields to apply the value to.
- * @param {import('../../models').FilterPrecision} precision filter precision.
+ * @param {import('@/models/index.js').FilterPrecision} precision filter precision.
  */
 const getStringQueryWithFields = (value: string | null, solrFields: string[], precision?: FilterPrecision) => {
   let q
@@ -104,7 +108,7 @@ const catchAllPrefix = (prefix: string) => prefix.slice(0, -1)
 
 /**
  * String type filter handler
- * @param {import('../../models').Filter[]} filters
+ * @param {import('@/models/index.js').Filter[]} filters
  * @param {string | string[] | object} field
  * @return {string} solr query
  */

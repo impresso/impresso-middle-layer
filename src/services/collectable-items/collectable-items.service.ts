@@ -1,10 +1,10 @@
 import { ServiceOptions } from '@feathersjs/feathers'
-import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { optionsDisabledInPublicApi } from '../../hooks/public-api'
-import { ImpressoApplication } from '../../types'
-import { getDocs } from './collectable-items.schema'
-import { CollectableItemsService as Service } from './collectable-items.class'
-import hooks from './collectable-items.hooks'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
+import { optionsDisabledInPublicApi } from '@/hooks/public-api.js'
+import { ImpressoApplication } from '@/types.js'
+import { getDocs } from './collectable-items.schema.js'
+import { CollectableItemsService as Service } from './collectable-items.class.js'
+import hooks from './collectable-items.hooks.js'
 
 export default (app: ImpressoApplication) => {
   const service = new Service(app)

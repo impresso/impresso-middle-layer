@@ -1,9 +1,9 @@
 import assert from 'assert'
-import { filtersToSolr, escapeIdValue, unescapeIdValue } from '../../../../src/util/solr/filterReducers'
-import { SolrNamespaces } from '../../../../src/solr'
-import { filtersToQueryAndVariables } from '../../../../src/util/solr/index'
-import { InvalidArgumentError } from '../../../../src/util/error'
-import { Filter, FilterContext, FilterOperator } from '../../../../src/models'
+import { filtersToSolr, escapeIdValue, unescapeIdValue } from '@/util/solr/filterReducers.js'
+import { SolrNamespaces } from '@/solr.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { InvalidArgumentError } from '@/util/error.js'
+import { Filter, FilterContext, FilterOperator } from '@/models/index.js'
 
 describe('filtersToSolr', () => {
   it('escapes parentheses', () => {

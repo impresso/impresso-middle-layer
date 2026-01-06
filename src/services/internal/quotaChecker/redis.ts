@@ -1,11 +1,16 @@
+import * as path from 'path'
+import { fileURLToPath } from 'url'
 import { disallow } from 'feathers-hooks-common'
 import { readFileSync } from 'fs'
-import { logger } from '../../../logger'
-import { RedisClient } from '../../../redis'
-import type { ImpressoApplication } from '../../../types'
-import { ensureServiceIsFeathersCompatible } from '../../../util/feathers'
+import { logger } from '@/logger.js'
+import { RedisClient } from '@/redis.js'
+import type { ImpressoApplication } from '@/types.js'
+import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
 
-const quotaCheckScript = readFileSync(`${__dirname}/lua/quotaCheck.lua`).toString()
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const quotaCheckScript = readFileSync(path.join(__dirname, 'lua/quotaCheck.lua')).toString()
 
 /**
  * Result from a quota check operation.

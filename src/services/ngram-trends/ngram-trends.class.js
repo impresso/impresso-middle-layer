@@ -1,11 +1,11 @@
-import { SolrNamespaces } from '../../solr'
+import { SolrNamespaces } from '@/solr.js'
 import {
   unigramTrendsRequestToSolrQuery,
   parseUnigramTrendsResponse,
   guessTimeIntervalFromFilters,
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
-} from './logic/solrQuery'
+} from '@/services/ngram-trends/logic/solrQuery.js'
 
 function mergeResponses(responses, totalsResponse) {
   const timeIntervals = [...new Set(responses.map(({ timeInterval }) => timeInterval))]

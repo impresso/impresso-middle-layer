@@ -1,8 +1,8 @@
 import assert from 'assert'
-import { getSolrErrorDetails } from '../../../../src/util/solr/errors'
-import solrSuccessfulResponse from './responses/solrSuccessfulResponse.json'
-import solrExceptionUndefinedField from './responses/solrExceptionUndefinedField.json'
-import solrErrorTimeout from './responses/solrErrorTimeout.json'
+import { getSolrErrorDetails } from '@/util/solr/errors.js'
+import solrSuccessfulResponse from './responses/solrSuccessfulResponse.json' with { type: 'json' }
+import solrExceptionUndefinedField from './responses/solrExceptionUndefinedField.json' with { type: 'json' }
+import solrErrorTimeout from './responses/solrErrorTimeout.json' with { type: 'json' }
 
 describe('getSolrErrorDetails', () => {
   it('returns undefined for successful response (status 0)', () => {

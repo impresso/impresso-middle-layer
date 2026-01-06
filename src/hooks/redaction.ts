@@ -1,11 +1,11 @@
 import { HookContext, HookFunction } from '@feathersjs/feathers'
-import { FindResponse } from '../models/common'
-import { ImpressoApplication } from '../types'
-import { Redactable, RedactionPolicy, redactObject } from '../util/redaction'
-import { SlimUser } from '../authentication'
-import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '../models/authorization'
-import { BufferUserPlanGuest } from '../models/user-bitmap.model'
-import { OpenPermissions, bitmapsAlign as bitmapsAlignCheck } from '../util/bigint'
+import { FindResponse } from '@/models/common.js'
+import { ImpressoApplication } from '@/types.js'
+import { Redactable, RedactionPolicy, redactObject } from '@/util/redaction.js'
+import { SlimUser } from '@/authentication.js'
+import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '@/models/authorization.js'
+import { BufferUserPlanGuest } from '@/models/user-bitmap.model.js'
+import { OpenPermissions, bitmapsAlign as bitmapsAlignCheck } from '@/util/bigint.js'
 
 export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 export type AsyncRedactCondition = (

@@ -1,5 +1,5 @@
 import * as assert from 'assert'
-import { getV3CompatibleIIIFUrl } from '../../../src/util/iiif'
+import { getV3CompatibleIIIFUrl } from '@/util/iiif.js'
 
 describe('getV3CompatibleIIIFUrl', () => {
   it('should convert a v2 URL with full to v3 with max', () => {

@@ -1,6 +1,6 @@
 // Initializes the `articles-timelines` service on path `/articles-timelines`
 import createService from './articles-timelines.class.js'
-import hooks from './articles-timelines.hooks'
+import hooks from './articles-timelines.hooks.js'
 
 export default function (app) {
   const options = {

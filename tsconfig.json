@@ -1,7 +1,10 @@
 {
   "include": [
     "src/**/*.ts",
-    "src/**/*.js", "src/models/jobs.model.cjs", "src/services/sequelize.utils.js", "src/models/properties.model.js",
+    "src/**/*.js",
+    "test/**/*.ts",
+    "test/**/*.ts",
+    "test/**/*.js"
   ],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
@@ -31,7 +34,7 @@
 
     /* Modules */
     "module": "NodeNext",                                /* Specify what module code is generated. */
-    "rootDir": "./src",                                  /* Specify the root folder within your source files. */
+    // "rootDir": "./src",                                  /* Specify the root folder within your source files. */
     // "moduleResolution": "node10",                     /* Specify how TypeScript looks up a file from a given module specifier. */
     "moduleResolution": "nodenext",
     // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
@@ -39,9 +42,9 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    // "rootDirs": [
-    //   "./src", "./test"
-    // ],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    "rootDirs": [
+      "./src", "./test"
+    ],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
     // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */

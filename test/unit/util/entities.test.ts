@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { getNameFromUid, getTypeCodeFromUid } from '../../../src/utils/entity.utils'
+import { getNameFromUid, getTypeCodeFromUid } from '@/utils/entity.utils.js'
 
 describe('Entity utility functions', () => {
   describe('getNameFromUid', () => {

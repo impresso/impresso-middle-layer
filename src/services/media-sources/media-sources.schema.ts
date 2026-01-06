@@ -1,7 +1,7 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getStandardParameters, getStandardResponses, MethodParameter, QueryParameter } from '../../util/openapi'
-import { MediaSource } from '../../models/generated/schemas'
-import { OrderByValues } from './media-sources.class'
+import { getStandardParameters, getStandardResponses, MethodParameter, QueryParameter } from '@/util/openapi.js'
+import { MediaSource } from '@/models/generated/schemas.js'
+import { OrderByValues } from '@/services/media-sources/media-sources.class.js'
 
 const parameterTerm: QueryParameter = {
   in: 'query',

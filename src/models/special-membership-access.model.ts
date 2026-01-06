@@ -1,8 +1,8 @@
 import type { Sequelize } from 'sequelize'
 import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize'
 
-import User from './users.model'
-import UserSpecialMembershipRequest from './user-special-membership-requests.model'
+import User from '@/models/users.model.js'
+import UserSpecialMembershipRequest from '@/models/user-special-membership-requests.model.js'
 
 export interface ISpecialMembershipAccessAttributes {
   id: number

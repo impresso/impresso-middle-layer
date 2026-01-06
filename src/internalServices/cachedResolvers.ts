@@ -1,11 +1,11 @@
-import Entity from '../models/entities.model'
-import Topic from '../models/topics.model'
-import { optionalMediaSourceToNewspaper } from '../services/newspapers/newspapers.class'
-import { ImpressoApplication } from '../types'
-import { Newspaper as NewspaperInternal } from '../models/generated/schemas'
-import { WellKnownKeys } from '../cache'
-import { getPartnerResolver } from './facetResolvers/partnerResolver'
-import { getNameFromUid } from '../utils/entity.utils'
+import Entity from '@/models/entities.model.js'
+import Topic from '@/models/topics.model.js'
+import { optionalMediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
+import { ImpressoApplication } from '@/types.js'
+import { Newspaper as NewspaperInternal } from '@/models/generated/schemas.js'
+import { WellKnownKeys } from '@/cache.js'
+import { getPartnerResolver } from '@/internalServices/facetResolvers/partnerResolver.js'
+import { getNameFromUid } from '@/utils/entity.utils.js'
 import {
   Topic as ITopic,
   Year as IYear,
@@ -13,9 +13,9 @@ import {
   Collection as ICollection,
   Newspaper as INewspaper,
   Partner as IPartner,
-} from '../models/generated/schemas'
-import { FacetWithLabel } from '../models/generated/shared'
-import { ImageTypeValueLookup } from '../services/images/images.class'
+} from '@/models/generated/schemas.js'
+import { FacetWithLabel } from '@/models/generated/shared.js'
+import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 export type CachedFacetType =
   | 'newspaper'
   | 'topic'

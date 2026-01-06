@@ -1,7 +1,7 @@
 import assert from 'assert'
 import stringify from 'csv-stringify-as-promised'
 import fs from 'fs'
-import app from '../../../src/app'
+import app from '@/app'
 
 /**
  * use with

@@ -1,10 +1,10 @@
 // Initializes the `topics` service on path `/topics`
-import { createSwaggerServiceOptions } from 'feathers-swagger'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import { ServiceOptions } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../../types'
-import { Service } from './topics.class'
-import hooks from './topics.hooks'
-import { getDocs } from './topics.schema'
+import { ImpressoApplication } from '@/types.js'
+import { Service } from '@/services/topics/topics.class.js'
+import hooks from '@/services/topics/topics.hooks.js'
+import { getDocs } from '@/services/topics/topics.schema.js'
 
 export default function (app: ImpressoApplication) {
   const isPublicApi = app.get('isPublicApi') ?? false

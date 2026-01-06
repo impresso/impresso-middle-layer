@@ -1,6 +1,6 @@
 import { Application } from '@feathersjs/express'
 import type { Request, Response } from 'express'
-import { ImpressoApplication } from '../types'
+import { ImpressoApplication } from '@/types.js'
 
 /**
  * This service is only available in the public API.

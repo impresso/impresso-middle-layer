@@ -1,8 +1,8 @@
 import type { Sequelize } from 'sequelize'
-import type { ImpressoApplication } from '../../types'
+import type { ImpressoApplication } from '@/types.js'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
-import UserRequest from '../../models/user-requests.model'
+import UserRequest from '@/models/user-requests.model.js'
 
 const debug = Debug('impresso/services:user-requests')
 

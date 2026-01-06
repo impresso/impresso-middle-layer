@@ -1,6 +1,6 @@
 import assert from 'assert'
-import app from '../../../src/app'
-import Newspaper from '../../../src/models/newspapers.model'
+import app from '@/app'
+import Newspaper from '@/models/newspapers.model'
 /**
 ./node_modules/.bin/eslint  \
 src/models src/services/newspapers src/hooks test/services/newspapers.test.js \

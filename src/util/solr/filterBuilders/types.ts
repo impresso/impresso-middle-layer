@@ -1,4 +1,4 @@
-import { Filter } from '../../../models'
+import { Filter } from '@/models/index.js'
 
 export interface PrefixedFilterField {
   prefix: string

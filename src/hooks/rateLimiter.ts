@@ -1,7 +1,7 @@
 import type { HookContext, NextFunction } from '@feathersjs/feathers'
-import type { ImpressoApplication } from '../types'
+import type { ImpressoApplication } from '@/types.js'
 import { TooManyRequests } from '@feathersjs/errors'
-import { logger } from '../logger'
+import { logger } from '@/logger.js'
 
 export const DefaultResource = 'default'
 

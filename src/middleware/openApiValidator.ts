@@ -1,14 +1,18 @@
 import RefParser, { FileInfo } from '@apidevtools/json-schema-ref-parser'
 import type { Application } from '@feathersjs/express'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
-import convertSchema from '@openapi-contrib/json-schema-to-openapi-schema'
+import { convert as convertSchema } from '@openapi-contrib/json-schema-to-openapi-schema'
 import * as OpenApiValidator from 'express-openapi-validator'
-import { HttpError as OpenApiHttpError } from 'express-openapi-validator/dist/framework/types'
-import type { OpenAPIV3, OpenApiValidatorOpts, ValidationError } from 'express-openapi-validator/dist/framework/types'
+import { HttpError as OpenApiHttpError } from 'express-openapi-validator/dist/framework/types.js'
+import type {
+  OpenAPIV3,
+  OpenApiValidatorOpts,
+  ValidationError,
+} from 'express-openapi-validator/dist/framework/types.js'
 import fs from 'fs'
-import { logger } from '../logger'
-import type { ImpressoApplication } from '../types'
-import { parseFilters } from '../util/queryParameters'
+import { logger } from '@/logger.js'
+import type { ImpressoApplication } from '@/types.js'
+import { parseFilters } from '@/util/queryParameters.js'
 import type {
   NextFunction as ExpressNextFunction,
   Request as ExpressRequest,

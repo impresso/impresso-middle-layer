@@ -2,7 +2,7 @@ import assert from 'node:assert'
 import {
   buildFindBySimilarEmbeddingsSolrQuery,
   buildGetTermEmbeddingVectorSolrQuery,
-} from '../../../src/services/embeddings/embeddings.class'
+} from '@/services/embeddings/embeddings.class.js'
 
 describe('buildGetTermEmbeddingVectorSolrQuery', () => {
   it('should return the correct query when language is not provided', () => {

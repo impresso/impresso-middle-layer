@@ -1,21 +1,22 @@
-import Attachment from '../../models/attachments.model'
-import { PublicFindResponse } from '../../models/common'
+import Attachment from '@/models/attachments.model.js'
+import { PublicFindResponse } from '@/models/common.js'
 import { Job } from 'bullmq'
 import { createHash } from 'crypto'
 import { stringify } from 'csv-stringify/sync'
 import { accessSync, createReadStream, createWriteStream, constants as fsConstants } from 'fs'
 import { access, appendFile, unlink, writeFile } from 'fs/promises'
-import { Filter, protobuf } from 'impresso-jscommons'
+import { Filter } from 'impresso-jscommons'
+import jscommons from 'impresso-jscommons'
 import { basename, dirname, join } from 'path'
 import { v7 as uuidv7 } from 'uuid'
-import { logger } from '../../logger'
-import { ContentItem as ContentItemPublic } from '../../models/generated/schemasPublic'
-import DBJob from '../../models/jobs.model'
-import { SolrNamespace, SolrNamespaces } from '../../solr'
-import { AppServices, ImpressoApplication } from '../../types'
+import { logger } from '@/logger.js'
+import { ContentItem as ContentItemPublic } from '@/models/generated/schemasPublic.js'
+import DBJob from '@/models/jobs.model.js'
+import { SolrNamespace, SolrNamespaces } from '@/solr.js'
+import { AppServices, ImpressoApplication } from '@/types.js'
+import ZipStream from 'zip-stream'
 
-// until the app is fully ESM, we need to import this way
-const { default: ZipStream } = require('zip-stream')
+const { protobuf } = jscommons
 
 type ExportedContentItem = Omit<ContentItemPublic, 'embeddings'>
 

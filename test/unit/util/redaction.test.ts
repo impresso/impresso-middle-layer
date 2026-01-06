@@ -1,4 +1,4 @@
-import { RedactionPolicy, redactObject } from '../../../src/util/redaction'
+import { RedactionPolicy, redactObject } from '@/util/redaction.js'
 import assert from 'assert'
 
 interface TestDocument {

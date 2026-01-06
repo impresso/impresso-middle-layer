@@ -1,8 +1,8 @@
 import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
-import { Cache, WellKnownKeys } from '../../cache'
-import type { MediaSource } from '../../models/generated/schemas'
+import { Cache, WellKnownKeys } from '@/cache.js'
+import type { MediaSource } from '@/models/generated/schemas.js'
 import { NotFound } from '@feathersjs/errors'
-import { PublicFindResponse as FindResponse } from '../../models/common'
+import { PublicFindResponse as FindResponse } from '@/models/common.js'
 
 type PartialMediaSource = Omit<MediaSource, 'properties'> & { properties?: MediaSource['properties'] }
 

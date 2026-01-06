@@ -1,7 +1,7 @@
 import * as errors from '@feathersjs/errors'
 import Debug from 'debug'
 const debug = Debug('impresso/hooks:params')
-import { assignIn } from 'lodash'
+import { assignIn } from 'lodash-es'
 import { logger } from '../logger.js'
 import { HookContext } from '@feathersjs/feathers'
 

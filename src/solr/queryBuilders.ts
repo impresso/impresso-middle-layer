@@ -2,7 +2,7 @@
  * Common query builders.
  */
 
-import { SelectRequest } from '../internalServices/simpleSolr'
+import { SelectRequest } from '@/internalServices/simpleSolr.js'
 
 export const findByIds = (ids: string[], fields?: string[]): SelectRequest => {
   if (ids.length == 0) throw new Error(`${findByIds.name}: list of IDs cannot be empty`)

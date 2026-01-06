@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
-import { SearchFacet } from '../../models/search-facets.model'
-import { getNameFromUid } from '../../utils/entity.utils'
-import Newspaper from '../../models/newspapers.model'
-import { BaseArticle } from '../../models/articles.model'
-import { measureTime } from '../../util/instruments'
-import { asFindAll } from '../../util/solr/adapters'
+import { SearchFacet } from '@/models/search-facets.model.js'
+import { getNameFromUid } from '@/utils/entity.utils.js'
+import Newspaper from '@/models/newspapers.model.js'
+import { BaseArticle } from '@/models/articles.model.js'
+import { measureTime } from '@/util/instruments.js'
+import { asFindAll } from '@/util/solr/adapters.js'
 
 const BaseArticleTocFields = [
   'id',

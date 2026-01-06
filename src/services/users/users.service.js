@@ -1,6 +1,6 @@
 // Initializes the `users` service on path `/users`
-import createService from './users.class.js'
-import hooks from './users.hooks'
+import createService from '@/services/users/users.class.js'
+import hooks from '@/services/users/users.hooks.js'
 
 export default function (app) {
   const paginate = app.get('paginate')

@@ -1,5 +1,5 @@
-import { IFetchClient } from './http/client/base'
-import { logger } from '../logger'
+import { IFetchClient } from '@/utils/http/client/base.js'
+import { logger } from '@/logger.js'
 
 export const sendDownstreamRequest = async <R extends { [key: string]: any }, T>(
   client: IFetchClient,

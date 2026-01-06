@@ -1,12 +1,12 @@
 // Initializes the `pages` service on path `/pages`
-import createService from './pages.class.js'
-import hooks from './pages.hooks.js'
+import createService from '@/services/pages/pages.class.js'
+import hooks from '@/services/pages/pages.hooks.js'
 
-export default function (app) {
+export default async function (app) {
   // Initialize our service with any options it requires
   app.use(
     '/pages',
-    createService({
+    await createService({
       name: 'pages',
       app,
     })

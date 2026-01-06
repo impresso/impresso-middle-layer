@@ -1,16 +1,16 @@
 import { strict as assert } from 'assert'
 import { BadRequest, NotFound } from '@feathersjs/errors'
-import { UserSpecialMembershipRequestService } from '../../../src/services/user-special-membership-requests/user-special-membership-requests.class'
+import { UserSpecialMembershipRequestService } from '@/services/user-special-membership-requests/user-special-membership-requests.class.js'
 import UserSpecialMembershipRequest, {
   IUserSpecialMembershipRequestAttributes,
-} from '../../../src/models/user-special-membership-requests.model'
+} from '@/models/user-special-membership-requests.model.js'
 
-import User from '../../../src/models/users.model'
+import User from '@/models/users.model.js'
 import SpecialMembershipAccess, {
   ISpecialMembershipAccessAttributes,
-} from '../../../src/models/special-membership-access.model'
-import type { TestDatabase } from '../../helpers/database'
-import { setupTestDatabase, teardownTestDatabase } from '../../helpers/database'
+} from '@/models/special-membership-access.model.js'
+import type { TestDatabase } from '../../helpers/database.js'
+import { setupTestDatabase, teardownTestDatabase } from '../../helpers/database.js'
 
 // --- Mock Test Data -------------------------------------
 

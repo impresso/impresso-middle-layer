@@ -5,8 +5,8 @@ import {
   getStandardResponses,
   MethodParameter,
   QueryParameter,
-} from '../../util/openapi'
-import { OrderByChoices } from './images.class'
+} from '@/util/openapi.js'
+import { OrderByChoices } from '@/services/images/images.class.js'
 
 const parameterTerm: QueryParameter = {
   in: 'query',

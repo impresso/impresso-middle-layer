@@ -1,11 +1,11 @@
-import { logger } from './logger'
+import { logger } from '@/logger.js'
 import Debug from 'debug'
 import { Sequelize, Options, Dialect } from 'sequelize'
-import { SequelizeConfig, SolrServerProxy } from './models/generated/common'
-import { ImpressoApplication } from './types'
+import { SequelizeConfig, SolrServerProxy } from '@/models/generated/common.js'
+import { ImpressoApplication } from '@/types.js'
 import { ConnectionOptions } from 'mysql2'
-import SocksConnection from './util/socks'
-import { getSocksProxyConfiguration, shouldUseSocksProxy } from './util/socksProxyConfiguration'
+import SocksConnection from '@/util/socks.js'
+import { getSocksProxyConfiguration, shouldUseSocksProxy } from '@/util/socksProxyConfiguration.js'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 import { Application } from '@feathersjs/feathers'
 
@@ -19,7 +19,7 @@ const defaultPoolConfig = {
   evict: 30000,
 }
 
-const getSequelizeClient = (config: SequelizeConfig) => {
+export const getSequelizeClient = (config: SequelizeConfig) => {
   const socksProxyOptions = getSocksProxyConfiguration()
 
   const streamGetter = shouldUseSocksProxy(config.host, socksProxyOptions)

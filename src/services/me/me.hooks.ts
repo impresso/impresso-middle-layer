@@ -1,7 +1,7 @@
 import { discard } from 'feathers-hooks-common'
-import { REGEX_PASSWORD, validate } from '../../hooks/params'
-import { validateWithSchema } from '../../hooks/schema'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
+import { REGEX_PASSWORD, validate } from '@/hooks/params.js'
+import { validateWithSchema } from '@/hooks/schema.js'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
 
 interface UserUpdatePayload {
   pattern?: string

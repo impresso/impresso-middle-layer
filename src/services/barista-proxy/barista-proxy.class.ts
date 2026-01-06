@@ -1,8 +1,8 @@
 import type { Params, ServiceMethods } from '@feathersjs/feathers'
 import { BadRequest } from '@feathersjs/errors'
-import { BaristaConfig } from '../../models/generated/common'
-import { IFetchClient } from '../../utils/http/client/base'
-import { createFetchClient } from '../../utils/http/client'
+import { BaristaConfig } from '@/models/generated/common.js'
+import { IFetchClient } from '@/utils/http/client/base.js'
+import { createFetchClient } from '@/utils/http/client/index.js'
 
 export interface BaristaRequest {
   message: string

@@ -1,6 +1,6 @@
 import { logger } from '../../logger'
 import assert from 'assert'
-import { get, omitBy, isUndefined } from 'lodash'
+import { get, omitBy, isUndefined } from 'lodash-es'
 import { SolrMappings } from '../../data/constants'
 
 const PassageFields = {
@@ -383,30 +383,20 @@ function parseConnectedClustersCountResponse(response) {
 export {
   getTextReusePassagesRequestForArticle,
   convertPassagesSolrResponseToPassages,
-
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
-
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
-
   DefaultClusterFields,
-
   getPaginationInfoFromPassagesSolrResponse,
-
   getTextReuseClusterPassagesRequest,
-
   getLatestTextReusePassageForClusterIdRequest,
-
   PassageFields,
-
   buildSolrRequestForExtraClusterDetails,
   getFacetsFromExtraClusterDetailsResponse,
   getTimelineResolution,
-
   buildConnectedClustersRequest,
   parseConnectedClustersResponse,
-
   buildConnectedClustersCountRequest,
   parseConnectedClustersCountResponse,
 }

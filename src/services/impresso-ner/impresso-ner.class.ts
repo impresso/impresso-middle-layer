@@ -1,7 +1,7 @@
-import type { Params } from '@feathersjs/feathers'
-import { logger } from '../../logger'
-import { createFetchClient } from '../../utils/http/client'
-import { IFetchClient } from '../../utils/http/client/base'
+import { logger } from '@/logger.js'
+import { createFetchClient } from '@/utils/http/client/index.js'
+import { IFetchClient } from '@/utils/http/client/base.js'
+import { Params } from '@feathersjs/feathers'
 
 export interface RequestPayload {
   text: string

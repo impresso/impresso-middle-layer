@@ -1,6 +1,6 @@
 // Initializes the `buckets-items` service on path `/buckets-items`
 import createService from './buckets-items.class.js'
-import hooks from './buckets-items.hooks'
+import hooks from './buckets-items.hooks.js'
 
 export default function (app) {
   const paginate = app.get('paginate')

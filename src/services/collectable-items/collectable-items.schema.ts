@@ -1,6 +1,6 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { MethodParameter, getRequestBodyContent, getStandardParameters, getStandardResponses } from '../../util/openapi'
-import { REGEX_UID } from '../../hooks/params'
+import { MethodParameter, getRequestBodyContent, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
+import { REGEX_UID } from '@/hooks/params.js'
 
 const commonParameters: MethodParameter[] = [
   {

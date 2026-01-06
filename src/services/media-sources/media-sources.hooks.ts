@@ -1,7 +1,7 @@
 import { HookMap } from '@feathersjs/feathers'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { rateLimit } from '../../hooks/rateLimiter'
-import { AppServices, ImpressoApplication } from '../../types'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
+import { AppServices, ImpressoApplication } from '@/types.js'
 
 export default {
   around: {

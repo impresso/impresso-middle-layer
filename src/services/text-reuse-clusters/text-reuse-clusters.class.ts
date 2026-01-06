@@ -1,22 +1,22 @@
 import type { Params } from '@feathersjs/feathers'
-import type { ImpressoApplication } from '../../types'
+import type { ImpressoApplication } from '@/types.js'
 import type {
   ClusterElement,
   Facet,
   FindTextReuseClustersResponse,
   GetTextReuseClusterResponse,
-} from './models/generated'
-import { FindQueyParameters } from './text-reuse-clusters.schema'
-import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { getToSelect } from '../../util/solr/adapters'
-import { MediaSources } from '../media-sources/media-sources.class'
-import { OpenPermissions } from '../../util/bigint'
-import { filtersToQueryAndVariables } from '../../util/solr'
-import { Filter } from '../../models'
+} from '@/services/text-reuse-clusters/models/generated.js'
+import { FindQueyParameters } from '@/services/text-reuse-clusters/text-reuse-clusters.schema.js'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { getToSelect } from '@/util/solr/adapters.js'
+import { MediaSources } from '@/services/media-sources/media-sources.class.js'
+import { OpenPermissions } from '@/util/bigint.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { Filter } from '@/models/index.js'
 
-import { mapValues, groupBy, clone, get } from 'lodash'
+import { mapValues, groupBy, clone, get } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
-import { protobuf } from 'impresso-jscommons'
+import jscommons from 'impresso-jscommons'
 import {
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
@@ -30,9 +30,11 @@ import {
   getTimelineResolution,
   buildConnectedClustersCountRequest,
   parseConnectedClustersCountResponse,
-} from '../../logic/textReuse/solr'
-import { parseOrderBy } from '../../util/queryParameters'
-import { SolrNamespaces } from '../../solr'
+} from '@/logic/textReuse/solr.js'
+import { parseOrderBy } from '@/util/queryParameters.js'
+import { SolrNamespaces } from '@/solr.js'
+
+const { protobuf } = jscommons
 
 interface ClusterIdAndTextAndPermission {
   id: any

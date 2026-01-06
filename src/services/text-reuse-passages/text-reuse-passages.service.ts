@@ -1,8 +1,8 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { TextReusePassages as TextReusePassagesService } from './text-reuse-passages.class'
-import hooks from './text-reuse-passages.hooks'
-import { getDocs } from './text-reuse-passages.schema'
-import { ImpressoApplication } from '../../types'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
+import { TextReusePassages as TextReusePassagesService } from '@/services/text-reuse-passages/text-reuse-passages.class.js'
+import hooks from '@/services/text-reuse-passages/text-reuse-passages.hooks.js'
+import { getDocs } from '@/services/text-reuse-passages/text-reuse-passages.schema.js'
+import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 
 export default function (app: ImpressoApplication) {

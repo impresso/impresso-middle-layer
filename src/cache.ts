@@ -1,9 +1,9 @@
 import KeyvRedis from '@keyv/redis'
 import { createCache } from 'cache-manager'
 import { Keyv } from 'keyv'
-import type { Configuration } from './configuration'
-import { logger } from './logger'
-import type { ImpressoApplication } from './types'
+import type { Configuration } from './configuration.js'
+import { logger } from './logger.js'
+import type { ImpressoApplication } from './types.js'
 
 export type { Cache } from 'cache-manager'
 

@@ -1,5 +1,5 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getStandardParameters, getStandardResponses, MethodParameter, QueryParameter } from '../../util/openapi'
+import { getStandardParameters, getStandardResponses, MethodParameter, QueryParameter } from '@/util/openapi.js'
 
 const parameterTerm: QueryParameter = {
   in: 'query',

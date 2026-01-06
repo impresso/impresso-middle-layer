@@ -5,8 +5,8 @@ import {
   guessTimeIntervalFromFilters,
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
-} from '../../../src/services/ngram-trends/logic/solrQuery'
-import { SupportedLanguageCodes } from '../../../src/models/solr'
+} from '@/services/ngram-trends/logic/solrQuery'
+import { SupportedLanguageCodes } from '@/models/solr'
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
   it('builds expected payload', () => {
@@ -19,12 +19,13 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
         vars: {},
         facet: true,
         'facet.limit': -1,
-        'facet.pivot': SupportedLanguageCodes.map(langCode => `{!stats=tf_stats_${langCode} key=${langCode}}meta_year_i`).concat([
-          `{!stats=tf_stats_other key=other}meta_year_i`,
-        ]),
-        'stats.field': SupportedLanguageCodes.map(langCode => `{!tag=tf_stats_${langCode} key=tf_stats_${langCode} sum=true func}termfreq(content_txt_${langCode},'Einstein')`).concat([
-          `{!tag=tf_stats_other key=tf_stats_other sum=true func}termfreq(content_txt,'Einstein')`,
-        ]),
+        'facet.pivot': SupportedLanguageCodes.map(
+          langCode => `{!stats=tf_stats_${langCode} key=${langCode}}meta_year_i`
+        ).concat([`{!stats=tf_stats_other key=other}meta_year_i`]),
+        'stats.field': SupportedLanguageCodes.map(
+          langCode =>
+            `{!tag=tf_stats_${langCode} key=tf_stats_${langCode} sum=true func}termfreq(content_txt_${langCode},'Einstein')`
+        ).concat([`{!tag=tf_stats_other key=tf_stats_other sum=true func}termfreq(content_txt,'Einstein')`]),
         stats: true,
         'json.facet': JSON.stringify({
           country: {
@@ -219,7 +220,7 @@ describe('unigramTrendsRequestToTotalTokensSolrQuery', () => {
     const payload = unigramTrendsRequestToTotalTokensSolrQuery(filters, 'year')
     const expectedPayload = {
       query: '*:*',
-      filter: ["meta_date_dt:[1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z]"],
+      filter: ['meta_date_dt:[1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z]'],
       limit: 0,
       params: {
         vars: {},

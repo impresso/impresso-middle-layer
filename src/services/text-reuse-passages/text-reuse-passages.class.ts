@@ -2,12 +2,12 @@ import { NotFound } from '@feathersjs/errors'
 import { Params } from '@feathersjs/feathers'
 import Debug from 'debug'
 import { Filter } from 'impresso-jscommons'
-import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { AllDocumentFields } from '../../models/text-reuse-passage'
-import TextReusePassage, { SolrFields } from '../../models/text-reuse-passages.model'
-import { ImpressoApplication } from '../../types'
-import { parseOrderBy } from '../../util/queryParameters'
-import { filtersToQueryAndVariables } from '../../util/solr'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { AllDocumentFields } from '@/models/text-reuse-passage.js'
+import TextReusePassage, { SolrFields } from '@/models/text-reuse-passages.model.js'
+import { ImpressoApplication } from '@/types.js'
+import { parseOrderBy } from '@/util/queryParameters.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 
 const debug = Debug('impresso/services/text-reuse-passages')
 
@@ -68,7 +68,7 @@ export class TextReusePassages {
     const mediaSourcesLookup = await this.app.service('media-sources').getLookup()
 
     return this.solr
-      .select<Record<keyof AllDocumentFields, any>>(this.solr.namespaces.TextReusePassages, {
+      .select<AllDocumentFields>(this.solr.namespaces.TextReusePassages, {
         body: {
           query,
           filter,
@@ -95,19 +95,18 @@ export class TextReusePassages {
 
   async get(id: string) {
     // return the corresponding textReusePassages instance.
-    const textReusePassage = await this.solr
-      .selectOne<Record<keyof AllDocumentFields, any>>(this.solr.namespaces.TextReusePassages, {
-        body: {
-          query: [id].map(d => `${SolrFields.id}:${d.split(':').join('\\:')}`).join(' OR '),
-          params: {
-            hl: false,
-          },
-          limit: 1,
-          // all of them
-          fields: Object.values(SolrFields).join(','),
+    const doc = await this.solr.selectOne<AllDocumentFields>(this.solr.namespaces.TextReusePassages, {
+      body: {
+        query: [id].map(d => `${SolrFields.id}:${d.split(':').join('\\:')}`).join(' OR '),
+        params: {
+          hl: false,
         },
-      })
-      .then(doc => (doc != null ? TextReusePassage.fromSolr(doc) : undefined))
+        limit: 1,
+        // all of them
+        fields: Object.values(SolrFields).join(','),
+      },
+    })
+    const textReusePassage = doc != null ? TextReusePassage.fromSolr(doc) : undefined
     debug('textReusePassages:', textReusePassage)
     if (textReusePassage == null) return new NotFound(id)
     return textReusePassage

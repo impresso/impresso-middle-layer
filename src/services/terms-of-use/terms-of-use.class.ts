@@ -1,7 +1,7 @@
 import type { Sequelize } from 'sequelize'
-import type { ImpressoApplication } from '../../types'
-import UserBitmap, { BufferUserPlanAuthUser } from '../../models/user-bitmap.model'
-import User from '../../models/users.model'
+import type { ImpressoApplication } from '@/types.js'
+import UserBitmap, { BufferUserPlanAuthUser } from '@/models/user-bitmap.model.js'
+import User from '@/models/users.model.js'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
 const debug = Debug('impresso/services:terms-of-use')

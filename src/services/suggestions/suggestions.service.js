@@ -1,6 +1,6 @@
 // Initializes the `suggestions` service on path `/suggestions`
-import createService from './suggestions.class.js'
-import hooks from './suggestions.hooks'
+import createService from '@/services/suggestions/suggestions.class.js'
+import hooks from '@/services/suggestions/suggestions.hooks.js'
 
 export default function (app) {
   // Initialize our service with any options it requires

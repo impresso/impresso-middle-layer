@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { validateRouteId, utils } from '../../../src/hooks/params'
+import { validateRouteId, utils } from '@/hooks/params'
 // usage from cli:
 // mocha test/hooks/params.test.js
 describe("'params' hook", () => {
@@ -18,16 +18,15 @@ describe("'params' hook", () => {
       assert.fail(err)
     })
   })
-
-    ;[
-      ['ciao "mamma Bella" e ciao"', 'ciao* AND "mamma Bella" AND ciao*'],
-      ['amsterdam OR paris', 'amsterdam OR paris'],
-      ['*amsterdam* paris', '*amsterdam* AND paris'],
-      // @todo ['amsterdam*, roma', 'amsterdam* OR roma']
-    ].forEach(d => {
-      it(`should transform: /${d[0]}/ to lucene query: /${d[1]}/`, done => {
-        assert.equal(utils.toLucene(d[0]), d[1])
-        done()
-      })
+  ;[
+    ['ciao "mamma Bella" e ciao"', 'ciao* AND "mamma Bella" AND ciao*'],
+    ['amsterdam OR paris', 'amsterdam OR paris'],
+    ['*amsterdam* paris', '*amsterdam* AND paris'],
+    // @todo ['amsterdam*, roma', 'amsterdam* OR roma']
+  ].forEach(d => {
+    it(`should transform: /${d[0]}/ to lucene query: /${d[1]}/`, done => {
+      assert.equal(utils.toLucene(d[0]), d[1])
+      done()
     })
+  })
 })

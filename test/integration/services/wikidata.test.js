@@ -1,5 +1,5 @@
 import assert from 'assert'
-import wikidata from '../../../src/services/wikidata'
+import wikidata from '@/services/wikidata'
 
 /*
 

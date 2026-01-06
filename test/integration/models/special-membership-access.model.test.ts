@@ -1,9 +1,9 @@
 import assert from 'assert'
-import app from '../../../src/app'
-import { SequelizeConfig } from '../../../src/models/generated/common'
+import app from '@/app.js'
+import { SequelizeConfig } from '@/models/generated/common.js'
 import SpecialMembershipAccess, {
   ISpecialMembershipAccessAttributes,
-} from '../../../src/models/special-membership-access.model'
+} from '@/models/special-membership-access.model.js'
 
 const config: SequelizeConfig = app.get('sequelize')
 

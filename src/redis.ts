@@ -1,9 +1,9 @@
 import { disallow } from 'feathers-hooks-common'
 import { createClient } from 'redis'
-import type { RedisConfiguration } from './configuration'
-import { logger } from './logger'
-import { ImpressoApplication } from './types'
-import { ensureServiceIsFeathersCompatible } from './util/feathers'
+import type { RedisConfiguration } from '@/configuration.js'
+import { logger } from '@/logger.js'
+import { ImpressoApplication } from '@/types.js'
+import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
 import { Application } from '@feathersjs/feathers'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 

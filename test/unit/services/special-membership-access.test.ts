@@ -1,12 +1,12 @@
 import { strict as assert } from 'assert'
 import { NotFound } from '@feathersjs/errors'
-import { SpecialMembershipAccessService } from '../../../src/services/special-membership-access/special-membership-access.class'
-import type { ISpecialMembershipAccessAttributes } from '../../../src/models/special-membership-access.model'
+import { SpecialMembershipAccessService } from '@/services/special-membership-access/special-membership-access.class.js'
+import type { ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
 
-import User from '../../../src/models/users.model'
-import { setupTestDatabase, teardownTestDatabase, TestDatabase } from '../../helpers/database'
-import UserSpecialMembershipRequest from '../../../src/models/user-special-membership-requests.model'
-import SpecialMembershipAccess from '../../../src/models/special-membership-access.model'
+import User from '@/models/users.model.js'
+import { setupTestDatabase, teardownTestDatabase, TestDatabase } from '../../helpers/database.js'
+import UserSpecialMembershipRequest from '@/models/user-special-membership-requests.model.js'
+import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
 
 const mockUsers = Array.from({ length: 2 }, (_, i) => ({
   uid: `user${i + 1}`,
@@ -95,7 +95,10 @@ describe('SpecialMembershipAccessService', () => {
         changelog: [],
       })
       const limit = 5
-      const result = await service.find({ query: { limit, offset: 0 }, user: { id: 1 } })
+      const result = await service.find({
+        query: { limit, offset: 0 },
+        user: { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false },
+      })
 
       assert.ok(Array.isArray(result.data))
       assert.strictEqual(result.data.length, limit)

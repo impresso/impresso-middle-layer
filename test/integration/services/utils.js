@@ -1,10 +1,10 @@
 import debugModule from 'debug'
 const debug = debugModule('impresso/test:utils')
-import app from '../../../src/app'
-import sequelize from '../../../src/sequelize'
+import app from '@/app'
+import sequelize from '@/sequelize'
 
-import Collection from '../../../src/models/user-collection'
-import User from '../../../src/models/users.model'
+import Collection from '@/models/user-collection'
+import User from '@/models/users.model'
 
 const removeGeneratedUser = async user => {
   const client = sequelize.client(app.get('sequelize'))

@@ -1,6 +1,9 @@
-import { Filter } from '../../../models'
-import baseFilterBuilderFn, { defaultItemBuilder, noPrefixFilterFieldConverter } from './base'
-import { FilterBuilderFn, FilterField } from './types'
+import { Filter } from '@/models/index.js'
+import baseFilterBuilderFn, {
+  defaultItemBuilder,
+  noPrefixFilterFieldConverter,
+} from '@/util/solr/filterBuilders/base.js'
+import { FilterBuilderFn, FilterField } from '@/util/solr/filterBuilders/types.js'
 
 export const escapeString = (s: string): string => s.replace(/[()\\+&|!{}[\]?:;,]/g, d => `\\${d}`)
 

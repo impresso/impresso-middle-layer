@@ -1,6 +1,6 @@
-import { buildResolvers } from '../../internalServices/cachedResolvers'
-import { ImpressoApplication } from '../../types'
-import { getTypeFromUid } from '../../utils/entity.utils'
+import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { ImpressoApplication } from '@/types.js'
+import { getTypeFromUid } from '@/utils/entity.utils.js'
 
 const isDateRangeString = (v: string) => v.match(/.+ TO .+/) != null
 const getDateStrings = (v: string) => v.match(/(.+) TO (.+)/)?.slice(1, 3) ?? [undefined, undefined]

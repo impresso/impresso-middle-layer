@@ -1,4 +1,11 @@
-import { parallelLimit, groupBy, removeNullAndUndefined, setDifference, mapRecordValues, invertRecord } from '../../../src/util/fn'
+import {
+  parallelLimit,
+  groupBy,
+  removeNullAndUndefined,
+  setDifference,
+  mapRecordValues,
+  invertRecord,
+} from '@/util/fn.js'
 import assert from 'assert'
 
 describe('fn utilities', () => {
@@ -10,7 +17,7 @@ describe('fn utilities', () => {
         { id: 3, category: 'A' },
       ]
 
-      const result = groupBy(items, (item) => item.category)
+      const result = groupBy(items, item => item.category)
 
       assert.deepStrictEqual(result['A'], [
         { id: 1, category: 'A' },
@@ -70,7 +77,7 @@ describe('fn utilities', () => {
     it('should map record values', () => {
       const record = { a: 1, b: 2, c: 3 }
 
-      const result = mapRecordValues(record, (v) => v * 2)
+      const result = mapRecordValues(record, v => v * 2)
 
       assert.deepStrictEqual(result, { a: 2, b: 4, c: 6 })
     })
@@ -89,14 +96,14 @@ describe('fn utilities', () => {
   describe('parallelLimit', () => {
     it('should process all inputs', async () => {
       const inputs = [1, 2, 3, 4, 5]
-      const results = await parallelLimit(inputs, async (n) => n * 2, 2)
+      const results = await parallelLimit(inputs, async n => n * 2, 2)
 
       assert.deepStrictEqual(results, [2, 4, 6, 8, 10])
     })
 
     it('should maintain order of results', async () => {
       const inputs = [5, 3, 1, 4, 2]
-      const results = await parallelLimit(inputs, async (n) => n * 2, 2)
+      const results = await parallelLimit(inputs, async n => n * 2, 2)
 
       assert.deepStrictEqual(results, [10, 6, 2, 8, 4])
     })
@@ -109,7 +116,7 @@ describe('fn utilities', () => {
       const asyncFn = async (n: number) => {
         currentConcurrent++
         maxConcurrent = Math.max(maxConcurrent, currentConcurrent)
-        await new Promise((resolve) => setTimeout(resolve, 50))
+        await new Promise(resolve => setTimeout(resolve, 50))
         currentConcurrent--
         return n * 2
       }
@@ -117,31 +124,35 @@ describe('fn utilities', () => {
       const inputs = Array.from({ length: 10 }, (_, i) => i)
       await parallelLimit(inputs, asyncFn, concurrencyLimit)
 
-      assert.strictEqual(maxConcurrent, concurrencyLimit, `Expected max concurrent to be ${concurrencyLimit}, but got ${maxConcurrent}`)
+      assert.strictEqual(
+        maxConcurrent,
+        concurrencyLimit,
+        `Expected max concurrent to be ${concurrencyLimit}, but got ${maxConcurrent}`
+      )
     })
 
     it('should handle single item', async () => {
-      const results = await parallelLimit([42], async (n) => n * 2, 1)
+      const results = await parallelLimit([42], async n => n * 2, 1)
 
       assert.deepStrictEqual(results, [84])
     })
 
     it('should handle empty array', async () => {
-      const results = await parallelLimit([], async (n) => n * 2, 1)
+      const results = await parallelLimit([], async n => n * 2, 1)
 
       assert.deepStrictEqual(results, [])
     })
 
     it('should work with concurrency limit of 1', async () => {
       const inputs = [1, 2, 3, 4, 5]
-      const results = await parallelLimit(inputs, async (n) => n * 2, 1)
+      const results = await parallelLimit(inputs, async n => n * 2, 1)
 
       assert.deepStrictEqual(results, [2, 4, 6, 8, 10])
     })
 
     it('should handle large concurrency limit (higher than input count)', async () => {
       const inputs = [1, 2, 3]
-      const results = await parallelLimit(inputs, async (n) => n * 2, 100)
+      const results = await parallelLimit(inputs, async n => n * 2, 100)
 
       assert.deepStrictEqual(results, [2, 4, 6])
     })
@@ -152,10 +163,14 @@ describe('fn utilities', () => {
       let errorOccurred = false
 
       try {
-        const results = await parallelLimit(inputs, async (n) => {
-          await new Promise((resolve) => setTimeout(resolve, Math.random() * 50))
-          return n * 2
-        }, concurrencyLimit)
+        const results = await parallelLimit(
+          inputs,
+          async n => {
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 50))
+            return n * 2
+          },
+          concurrencyLimit
+        )
 
         assert.strictEqual(results.length, 10, 'All results should be returned')
         assert.deepStrictEqual(results, [0, 2, 4, 6, 8, 10, 12, 14, 16, 18])
@@ -186,7 +201,7 @@ describe('fn utilities', () => {
 
     it('should throw when concurrency limit is less than 1', async () => {
       try {
-        await parallelLimit([1, 2, 3], async (n) => n, 0)
+        await parallelLimit([1, 2, 3], async n => n, 0)
         assert.fail('Should have thrown an error')
       } catch (error: any) {
         assert.strictEqual(error.message, 'concurrencyLimit must be at least 1')
@@ -200,7 +215,7 @@ describe('fn utilities', () => {
 
       const asyncFn = async (n: number) => {
         executionLog.push(n)
-        await new Promise((resolve) => setTimeout(resolve, 100))
+        await new Promise(resolve => setTimeout(resolve, 100))
         return n
       }
 
@@ -208,7 +223,10 @@ describe('fn utilities', () => {
 
       // Should have processed all items
       assert.strictEqual(executionLog.length, 6)
-      assert.deepStrictEqual(executionLog.sort((a, b) => a - b), [1, 2, 3, 4, 5, 6])
+      assert.deepStrictEqual(
+        executionLog.sort((a, b) => a - b),
+        [1, 2, 3, 4, 5, 6]
+      )
     })
   })
 })

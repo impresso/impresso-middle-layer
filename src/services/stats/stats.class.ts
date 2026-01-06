@@ -1,14 +1,14 @@
 import { Id, Params } from '@feathersjs/feathers'
 import Debug from 'debug'
-import { statsConfiguration } from '../../data'
-import { SolrFacetQueryParams } from '../../data/types'
-import { buildResolvers } from '../../internalServices/cachedResolvers'
-import { SelectRequestBody, SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { getWidestInclusiveTimeInterval } from '../../logic/filters/timeInterval'
-import { FacetTypeGroup, SolrServerNamespaceConfiguration } from '../../models/generated/common'
-import { ImpressoApplication } from '../../types'
-import { filtersToQueryAndVariables } from '../../util/solr'
-import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from './common'
+import { statsConfiguration } from '@/data/index.js'
+import { SolrFacetQueryParams } from '@/data/types.js'
+import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { SelectRequestBody, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { getWidestInclusiveTimeInterval } from '@/logic/filters/timeInterval.js'
+import { FacetTypeGroup, SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
+import { ImpressoApplication } from '@/types.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from '@/services/stats/common.js'
 
 const debug = Debug('impresso/services:stats')
 

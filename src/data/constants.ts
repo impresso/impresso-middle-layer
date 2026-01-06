@@ -1,7 +1,11 @@
 import assert from 'assert'
-import { constants, FilterType } from 'impresso-jscommons'
-import { DataIndex } from './index'
-import { SolrFacetQueryParams, SolrRangeFacetQueryParams } from './types'
+import { FilterType } from 'impresso-jscommons'
+import jscommons from 'impresso-jscommons'
+
+import { SolrFacetQueryParams, SolrRangeFacetQueryParams } from '@/data/types.js'
+import { DataIndex } from '@/data/index.js'
+
+const { constants } = jscommons
 
 const facetRanges = new DataIndex({ name: 'facetRanges' })
 

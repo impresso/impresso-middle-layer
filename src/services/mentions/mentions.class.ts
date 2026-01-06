@@ -1,14 +1,14 @@
 import { Params } from '@feathersjs/feathers'
 import Debug from 'debug'
 import { Op } from 'sequelize'
-import { ImpressoApplication } from '../../types'
-import { measureTime } from '../../util/instruments'
-import { Service as SequelizeService } from '../sequelize.service'
-import { ContentItem, EntityMention } from '../../models/generated/schemas'
-import { toTextWrap } from '../../helpers'
-import { groupBy } from '../../util/fn'
-import { filtersToQueryAndVariables } from '../../util/solr'
-import { SolrNamespaces } from '../../solr'
+import { ImpressoApplication } from '@/types.js'
+import { measureTime } from '@/util/instruments.js'
+import initSequelizeService, { Service as SequelizeService } from '@/services/sequelize.service.js'
+import { ContentItem, EntityMention } from '@/models/generated/schemas.js'
+import { toTextWrap } from '@/helpers.js'
+import { groupBy } from '@/util/fn.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { SolrNamespaces } from '@/solr.js'
 
 const debug = Debug('impresso/services:mentions')
 
@@ -32,7 +32,7 @@ export class Service {
 
   constructor({ app }: ServiceOptions) {
     this.app = app
-    this.sequelizeService = new SequelizeService({
+    this.sequelizeService = initSequelizeService({
       app: app as any,
       name: 'entity-mentions',
     })
@@ -112,6 +112,6 @@ export class Service {
   }
 }
 
-export default function (options: ServiceOptions): Service {
+export default async function (options: ServiceOptions): Promise<Service> {
   return new Service(options)
 }

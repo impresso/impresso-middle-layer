@@ -1,22 +1,22 @@
 /* eslint-disable no-unused-vars */
-import { mediaSourceToNewspaper } from '../newspapers/newspapers.class'
-import { SolrNamespaces } from '../../solr'
-import Entity from '../../models/entities.model'
-import { getNameFromUid } from '../../utils/entity.utils'
+import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
+import { SolrNamespaces } from '@/solr.js'
+import Entity from '@/models/entities.model.js'
+import { getNameFromUid } from '@/utils/entity.utils.js'
 
 import Debug from 'debug'
 const debug = Debug('impresso/services:suggestions')
 import { parse as chronoParse } from 'chrono-node'
 import moment from 'moment'
-import lodash from 'lodash'
+import lodash from 'lodash-es'
 
 import { NotFound, NotImplemented } from '@feathersjs/errors'
-import { latinise, toPlainText } from '../../helpers.js'
+import { latinise, toPlainText } from '@/helpers.js'
 
-import Mention from '../../models/mentions.model.js'
-import Topic from '../../models/topics.model.js'
-import Suggestion from '../../models/suggestions.model.js'
-import { measureTime } from '../../util/instruments.js'
+import Mention from '@/models/mentions.model.js'
+import Topic from '@/models/topics.model.js'
+import Suggestion from '@/models/suggestions.model.js'
+import { measureTime } from '@/util/instruments.js'
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 
@@ -205,7 +205,7 @@ export class Service {
       return []
     }
 
-    const articletitles = async () => { }
+    const articletitles = async () => {}
 
     const dateranges = async () => {
       const myears = params.query.q.match(MULTI_YEAR_RANGE)

@@ -1,5 +1,5 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getStandardResponses } from '../../util/openapi'
+import { getStandardResponses } from '@/util/openapi.js'
 
 export const getDocs = (): ServiceSwaggerOptions => ({
   description: 'Admin information',

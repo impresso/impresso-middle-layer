@@ -1,8 +1,8 @@
 // Initializes the `exporter` service on path `/exporter`
 import { stringify } from 'csv-stringify/sync'
-import { Service } from './search-exporter.class'
-import hooks from './search-exporter.hooks.js'
-import { ImpressoApplication } from '../../types'
+import { Service } from '@/services/search-exporter/search-exporter.class.js'
+import hooks from '@/services/search-exporter/search-exporter.hooks.js'
+import { ImpressoApplication } from '@/types.js'
 import type { Application as ExpressApplication } from '@feathersjs/express'
 import type { Request, Response } from 'express'
 

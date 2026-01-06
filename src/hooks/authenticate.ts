@@ -1,7 +1,7 @@
 import { hooks } from '@feathersjs/authentication'
 import { NotAuthenticated } from '@feathersjs/errors'
 import type { HookContext, NextFunction } from '@feathersjs/feathers'
-import type { ImpressoApplication } from '../types'
+import type { ImpressoApplication } from '@/types.js'
 /**
  * A wrapper around authenticate hook from featherjs
  * to enabe allowUnauthenticate again ...

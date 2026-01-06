@@ -1,15 +1,15 @@
 import { ClientService } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../../types'
-import { NewspaperIssue } from '../../models/generated/schemas'
-import { FindResponse } from '../../models/common'
-import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
+import { ImpressoApplication } from '@/types.js'
+import { NewspaperIssue } from '@/models/generated/schemas.js'
+import { FindResponse } from '@/models/common.js'
+import initSequelizeService, { Service as SequelizeService } from '@/services/sequelize.service.js'
 
-import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { findAllRequestAdapter, findRequestAdapter } from '../../util/solr/adapters'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { findAllRequestAdapter, findRequestAdapter } from '@/util/solr/adapters.js'
 import { NotFound } from '@feathersjs/errors'
-import Page from '../../models/pages.model'
-import { measureTime } from '../../util/instruments'
-import { FindParams } from '../content-items/content-items.class'
+import Page from '@/models/pages.model.js'
+import { measureTime } from '@/util/instruments.js'
+import { FindParams } from '@/services/content-items/content-items.class.js'
 
 const CoversQuery = `
 SELECT id as uid,
@@ -192,6 +192,6 @@ export class IssueService implements IIssueService {
   }
 }
 
-export default function (options: { app: ImpressoApplication }): IIssueService {
+export default async function (options: { app: ImpressoApplication }): Promise<IIssueService> {
   return new IssueService(options)
 }

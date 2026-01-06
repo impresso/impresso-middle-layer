@@ -1,4 +1,4 @@
-import { authenticate } from '../../hooks/authenticate'
+import { authenticate } from '@/hooks/authenticate.js'
 // import { validateWithSchema } from '../../hooks/schema'
 
 export default {

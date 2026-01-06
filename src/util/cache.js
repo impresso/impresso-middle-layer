@@ -1,4 +1,4 @@
-import { intersection } from 'lodash';
+import { intersection } from 'lodash-es'
 
 /*
   Not everything can be cached in Impresso. Solr and database results
@@ -11,18 +11,14 @@ import { intersection } from 'lodash';
   be cached or not.
  */
 
-const NotCacheableFilterTypes = [
-  'collection',
-];
+const NotCacheableFilterTypes = ['collection']
 
-const NotCacheableFacetTypes = [
-  'collection',
-];
+const NotCacheableFacetTypes = ['collection']
 
 /* Assuming we are talking about the main Solr articles index */
 const NotCacheableSolrFields = [
   // 'ucoll_ss', // collections ids
-];
+]
 
 /**
  * Return `true` if a query with this set of filters can be cached.
@@ -30,8 +26,8 @@ const NotCacheableSolrFields = [
  * @returns {boolean}
  */
 function isCacheableQuery(filters) {
-  const filtersTypes = [...new Set(filters.map(({ type }) => type))];
-  return intersection(filtersTypes, NotCacheableFilterTypes).length === 0;
+  const filtersTypes = [...new Set(filters.map(({ type }) => type))]
+  return intersection(filtersTypes, NotCacheableFilterTypes).length === 0
 }
 
 /**
@@ -40,7 +36,7 @@ function isCacheableQuery(filters) {
  * @returns {boolean}
  */
 function areCacheableFacets(facetTypes) {
-  return intersection(facetTypes, NotCacheableFacetTypes).length === 0;
+  return intersection(facetTypes, NotCacheableFacetTypes).length === 0
 }
 
 /**
@@ -49,11 +45,7 @@ function areCacheableFacets(facetTypes) {
  * @returns {boolean}
  */
 function areCacheableSolrFields(solrFields) {
-  return intersection(solrFields, NotCacheableSolrFields).length === 0;
+  return intersection(solrFields, NotCacheableSolrFields).length === 0
 }
 
-export {
-  isCacheableQuery,
-  areCacheableFacets,
-  areCacheableSolrFields,
-};
+export { isCacheableQuery, areCacheableFacets, areCacheableSolrFields }

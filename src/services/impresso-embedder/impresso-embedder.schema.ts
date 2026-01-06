@@ -1,5 +1,5 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getRequestBodyContent, getStandardResponses } from '../../util/openapi'
+import { getRequestBodyContent, getStandardResponses } from '@/util/openapi.js'
 
 export const imageEmbedderDocs: ServiceSwaggerOptions = {
   tags: ['Tools'],

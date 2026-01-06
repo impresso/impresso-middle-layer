@@ -8,7 +8,7 @@ import {
   numberRangeExtractor,
   simpleValueExtractor,
   getImageTypeExtractor,
-} from './extractors'
+} from './extractors.js'
 
 const ItemsExtractors = Object.freeze({
   daterange: daterangeExtractor,

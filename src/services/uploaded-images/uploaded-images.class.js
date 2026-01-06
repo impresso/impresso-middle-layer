@@ -4,8 +4,8 @@ const debug = Debug('impresso/services:uploaded-images')
 const verbose = Debug('verbose:impresso/services:uploaded-images')
 import { Op } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
-import UploadedImage from '../../models/uploaded-images.model.js'
-import SequelizeService from '../sequelize.service.js'
+import UploadedImage from '@/models/uploaded-images.model.js'
+import SequelizeService from '@/services/sequelize.service.js'
 
 /* eslint-disable no-unused-vars */
 export class Service {

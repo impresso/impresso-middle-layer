@@ -1,9 +1,9 @@
-import { EntityDetails } from '../models/generated/schemas'
+import { EntityDetails } from '@/models/generated/schemas.js'
 import {
   EntityDetails as EntityDetailsPublic,
   WikidataPerson,
   WikidataLocation,
-} from '../models/generated/schemasPublic'
+} from '@/models/generated/schemasPublic.js'
 
 const transformDateTimeISO = (input?: any): string | undefined => {
   if (input === undefined) {

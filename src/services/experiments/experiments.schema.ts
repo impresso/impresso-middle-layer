@@ -1,5 +1,5 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getStandardResponses, MethodParameter } from '../../util/openapi'
+import { getStandardResponses, MethodParameter } from '@/util/openapi.js'
 
 const updateParameters: MethodParameter[] = [
   {

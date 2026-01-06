@@ -1,9 +1,9 @@
 import { Filter } from 'impresso-jscommons'
-import { SolrNamespaces } from '../../solr'
-import { filtersToQueryAndVariables } from '../../util/solr'
-import { SelectRequestBody } from '../../internalServices/simpleSolr'
-import { TypeToTypeShorthand } from '../../utils/entity.utils'
-import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
+import { SolrNamespaces } from '@/solr.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
+import { TypeToTypeShorthand } from '@/utils/entity.utils.js'
+import { SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
 
 const SolrFields = Object.freeze({
   Id: 'id',

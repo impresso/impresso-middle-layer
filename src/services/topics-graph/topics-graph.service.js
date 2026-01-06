@@ -1,6 +1,6 @@
 // Initializes the `topics-graph` service on path `/topics-graph`
-import { TopicsGraph } from './topics-graph.class'
-import hooks from './topics-graph.hooks'
+import { TopicsGraph } from '@/services/topics-graph/topics-graph.class.js'
+import hooks from '@/services/topics-graph/topics-graph.hooks.js'
 
 export default function (app) {
   // Initialize our service with any options it requires

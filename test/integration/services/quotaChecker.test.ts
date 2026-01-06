@@ -1,6 +1,6 @@
 import assert from 'assert'
-import app from '../../../src/app'
-import { IQuotaChecker, QuotaChecker } from '../../../src/services/internal/quotaChecker/redis'
+import app from '@/app.js'
+import { IQuotaChecker, QuotaChecker } from '@/services/internal/quotaChecker/redis.js'
 
 /**
  * NODE_ENV=default npm run integration-test -- test/integration/services/quotaChecker.test.ts

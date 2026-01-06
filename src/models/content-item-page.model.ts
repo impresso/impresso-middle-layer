@@ -1,12 +1,12 @@
 import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
-import { ImpressoApplication } from '../types'
+import { ImpressoApplication } from '@/types.js'
 import {
   getExternalThumbnailUrl,
   getJSONUrl,
   getManifestJSONUrl,
   getThumbnailUrl,
   sanitizeIiifImageUrl,
-} from '../util/iiif'
+} from '@/util/iiif.js'
 
 interface ContentItemPageAttributes {
   uid: string

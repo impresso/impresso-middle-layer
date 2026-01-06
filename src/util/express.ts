@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, Send } from 'express'
-import { safeParseJson, safeStringifyJson } from './jsonCodec'
+import { safeParseJson, safeStringifyJson } from '@/util/jsonCodec.js'
 
 /**
  * Custom JSON middleware for Express.

@@ -1,8 +1,8 @@
-import { SolrNamespace } from '../solr'
+import { SolrNamespace } from '@/solr.js'
 import { QueryTypes, type Sequelize } from 'sequelize'
-import { Bucket, SelectRequestBody, SimpleSolrClient } from '../internalServices/simpleSolr'
-import { MediaSource } from '../models/generated/schemas'
-import { logger } from '../logger'
+import { Bucket, SelectRequestBody, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { MediaSource } from '@/models/generated/schemas.js'
+import { logger } from '@/logger.js'
 
 const sqlGetNewsappersDetails = `
 SELECT

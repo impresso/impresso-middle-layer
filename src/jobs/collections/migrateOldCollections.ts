@@ -1,8 +1,8 @@
 import { Job } from 'bullmq'
-import { ImpressoApplication } from '../../types'
-import { logger } from '../../logger'
-import { SolrNamespaces } from '../../solr'
-import { addItemsToCollection } from './addItemsToCollection'
+import { ImpressoApplication } from '@/types.js'
+import { logger } from '@/logger.js'
+import { SolrNamespaces } from '@/solr.js'
+import { addItemsToCollection } from './addItemsToCollection.js'
 
 export const JobNameMigrateOldCollections = 'migrateOldCollections'
 

@@ -1,16 +1,16 @@
-import Page from '../../models/pages.model'
+import Page from '@/models/pages.model.js'
 import debugLib from 'debug'
 const debug = debugLib('impresso/services:pages')
 import { NotFound } from '@feathersjs/errors'
-import SequelizeService from '../sequelize.service.js'
-import { measureTime } from '../../util/instruments.js'
-import { asFindAll } from '../../util/solr/adapters.js'
+import initSequelizeService from '@/services/sequelize.service.js'
+import { measureTime } from '@/util/instruments.js'
+import { asFindAll } from '@/util/solr/adapters.js'
 
 export class Service {
   constructor({ app, name }) {
     this.name = name
     this.solr = app.service('simpleSolrClient')
-    this.SequelizeService = SequelizeService({
+    this.SequelizeService = initSequelizeService({
       app,
       name,
     })
@@ -62,6 +62,6 @@ export class Service {
   }
 }
 
-export default function (options) {
+export default async function (options) {
   return new Service(options)
 }

@@ -1,6 +1,6 @@
 import assert from 'assert'
-import app from '../../../src/app'
-import { toPlainText } from '../../../src/helpers'
+import app from '@/app'
+import { toPlainText } from '@/helpers'
 /*
 
  ./node_modules/.bin/eslint \

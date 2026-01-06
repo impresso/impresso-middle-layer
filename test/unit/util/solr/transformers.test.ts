@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { parseDPFS, asList, asNumberArray, toPairs } from '../../../../src/util/solr/transformers'
+import { parseDPFS, asList, asNumberArray, toPairs } from '@/util/solr/transformers.js'
 
 describe('parseDPFS', () => {
   it('returns empty array when dpfs is undefined', () => {

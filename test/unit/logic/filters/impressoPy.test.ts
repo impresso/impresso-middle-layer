@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { buildPythonFunctionCall } from '../../../../src/logic/filters/impressoPy'
+import { buildPythonFunctionCall } from '@/logic/filters/impressoPy.js'
 import { Filter } from 'impresso-jscommons'
 
 describe('buildPythonFunctionCall', () => {

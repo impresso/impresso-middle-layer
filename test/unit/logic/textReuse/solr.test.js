@@ -5,8 +5,8 @@ import {
   getTextReuseClustersRequestForIds,
   convertClustersSolrResponseToClusters,
   DefaultClusterFields,
-} from '../../../../src/logic/textReuse/solr'
-import { validated } from '../../../../src/util/json'
+} from '@/logic/textReuse/solr'
+import { validated } from '@/util/json'
 
 const PassageSchemaUri =
   'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json'

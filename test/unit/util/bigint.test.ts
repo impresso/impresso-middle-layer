@@ -1,10 +1,4 @@
-import {
-  bigIntToBitString,
-  bigIntToBuffer,
-  bigIntToLongString,
-  bitmapsAlign,
-  bufferToBigInt,
-} from '../../../src/util/bigint'
+import { bigIntToBitString, bigIntToBuffer, bigIntToLongString, bitmapsAlign, bufferToBigInt } from '@/util/bigint.js'
 import assert from 'assert'
 
 const testBigInts: [bigint, string][] = [
@@ -14,14 +8,6 @@ const testBigInts: [bigint, string][] = [
   [BigInt('0b' + '1' + [...Array(62)].map(() => '0').join('') + '1'), 'gAAAAAAAAAE='],
   [BigInt('0b' + [...Array(64)].map(() => '1').join('')), '//////////8='],
 ]
-
-function bufferToBinaryString(buffer) {
-  return buffer
-    .toString('hex')
-    .match(/.{1,2}/g)
-    .map(byte => parseInt(byte, 16).toString(2).padStart(8, '0'))
-    .join(' ')
-}
 
 describe('bigint utils', () => {
   it('should convert bigint to buffer and back', () => {

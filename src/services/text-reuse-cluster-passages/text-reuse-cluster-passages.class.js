@@ -1,17 +1,17 @@
-import { optionalMediaSourceToNewspaper } from '../newspapers/newspapers.class'
+import { optionalMediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import {
   getTextReuseClusterPassagesRequest,
   getPaginationInfoFromPassagesSolrResponse,
   convertPassagesSolrResponseToPassages,
   PassageFields,
-} from '../../logic/textReuse/solr'
+} from '@/logic/textReuse/solr.js'
 // import sequelize from '../../sequelize'
-import { QueryGetIIIFManifests } from '../../logic/iiif'
-import { toArticlePageDetails } from '../../logic/ids'
-import { parseOrderBy } from '../../util/queryParameters'
-import { measureTime } from '../../util/instruments'
-import { SolrNamespaces } from '../../solr'
-import { getToSelect } from '../../util/solr/adapters'
+import { QueryGetIIIFManifests } from '@/logic/iiif.js'
+import { toArticlePageDetails } from '@/logic/ids.js'
+import { parseOrderBy } from '@/util/queryParameters.js'
+import { measureTime } from '@/util/instruments.js'
+import { SolrNamespaces } from '@/solr.js'
+import { getToSelect } from '@/util/solr/adapters.js'
 
 const OrderByKeyToField = {
   date: PassageFields.Date,

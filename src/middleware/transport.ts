@@ -2,13 +2,12 @@ import type { Application as ExpressApplication } from '@feathersjs/express'
 import { rest, urlencoded } from '@feathersjs/express'
 import { Decoder } from 'socket.io-parser'
 import cors from 'cors'
-import { ImpressoApplication } from '../types'
+import { ImpressoApplication } from '@/types.js'
 // import { Server as EioWsServer } from 'eiows'
 
 import socketio from '@feathersjs/socketio'
-import { logger } from '../logger'
-import { CustomEncoder, CustomDecoder } from '../util/jsonCodec'
-import { customJsonMiddleware } from '../util/express'
+import { logger } from '@/logger.js'
+import { CustomEncoder } from '@/util/jsonCodec.js'
 
 export default (app: ImpressoApplication & ExpressApplication) => {
   const isPublicApi = app.get('isPublicApi')

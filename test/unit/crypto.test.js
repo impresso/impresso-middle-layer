@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { encrypt } from '../../src/crypto'
+import { encrypt } from '@/crypto.js'
 
 /**
  * use with

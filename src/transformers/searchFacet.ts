@@ -1,17 +1,17 @@
 import { HookContext } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../types'
+import { ImpressoApplication } from '@/types.js'
 
 import {
   Collection,
   SearchFacet,
   SearchFacetBucket as SearchFacetBucketInternal,
   SearchFacetRangeBucket,
-} from '../models/generated/schemas'
-import { SearchFacetBucket, BaseFindResponse } from '../models/generated/schemasPublic'
-import Newspaper from '../models/newspapers.model'
-import Entity from '../models/entities.model'
-import Topic from '../models/topics.model'
-import { FacetWithLabel } from '../models/generated/shared'
+} from '@/models/generated/schemas.js'
+import { SearchFacetBucket, BaseFindResponse } from '@/models/generated/schemasPublic.js'
+import Newspaper from '@/models/newspapers.model.js'
+import Entity from '@/models/entities.model.js'
+import Topic from '@/models/topics.model.js'
+import { FacetWithLabel } from '@/models/generated/shared.js'
 
 interface FacetContainer extends BaseFindResponse {
   data: SearchFacetBucket[]

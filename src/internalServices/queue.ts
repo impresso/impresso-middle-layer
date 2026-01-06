@@ -1,24 +1,24 @@
 import { Job as BullJob, Queue } from 'bullmq'
-import IORedis from 'ioredis'
-import { RedisConfiguration } from '../configuration'
-import { AddItemsToCollectionJobData, JobNameAddItemsToCollection } from '../jobs/collections/addItemsToCollection'
+import { Redis as IORedis } from 'ioredis'
+import { RedisConfiguration } from '@/configuration.js'
+import { AddItemsToCollectionJobData, JobNameAddItemsToCollection } from '@/jobs/collections/addItemsToCollection.js'
 import {
   AddQueryResultItemsToCollectionJobData,
   JobNameAddQueryResultItemsToCollection,
-} from '../jobs/collections/addQueryResultItemsToCollection'
-import { JobNameMigrateOldCollections, MigrateOldCollectionsJobData } from '../jobs/collections/migrateOldCollections'
+} from '@/jobs/collections/addQueryResultItemsToCollection.js'
+import { JobNameMigrateOldCollections, MigrateOldCollectionsJobData } from '@/jobs/collections/migrateOldCollections.js'
 import {
   JobNameRemoveAllCollectionItems,
   RemoveAllCollectionItemsJobData,
-} from '../jobs/collections/removeAllCollectionItems'
+} from '@/jobs/collections/removeAllCollectionItems.js'
 import {
   JobNameRemoveItemsFromCollection,
   RemoveItemsFromCollectionJobData,
-} from '../jobs/collections/removeItemsFromCollection'
-import { ExportSearchResultsJobData, JobNameExportSearchResults } from '../jobs/searchResults/exportSearchResults'
-import { logger } from '../logger'
-import { ImpressoApplication } from '../types'
-import { ensureServiceIsFeathersCompatible } from '../util/feathers'
+} from '@/jobs/collections/removeItemsFromCollection.js'
+import { ExportSearchResultsJobData, JobNameExportSearchResults } from '@/jobs/searchResults/exportSearchResults.js'
+import { logger } from '@/logger.js'
+import { ImpressoApplication } from '@/types.js'
+import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
 
 export interface QueueServiceOptions {
   redisConfig: RedisConfiguration

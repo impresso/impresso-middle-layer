@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize'
-import Newspaper from './newspapers.model'
-import { NewspaperIssue } from './generated/schemas'
-import { ArticleFields, ContentItemCore, ContextualMetadataFields } from './generated/solr/contentItem'
+import Newspaper from '@/models/newspapers.model.js'
+import { NewspaperIssue } from '@/models/generated/schemas.js'
+import { ArticleFields, ContentItemCore, ContextualMetadataFields } from '@/models/generated/solr/contentItem.js'
 
 const ACCESS_RIGHTS_ND = 'NotDefined'
 const ACCESS_RIGHTS_CLOSED = 'Closed'

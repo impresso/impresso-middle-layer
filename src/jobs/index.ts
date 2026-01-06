@@ -1,10 +1,10 @@
 import type { HookContext, NextFunction } from '@feathersjs/hooks'
-import { logger } from '../logger'
-import type { ImpressoApplication } from '../types'
-import updateFacetRangesCache from './updateFacetRanges'
-import updateMediaSourcesCache from './updateMediaSourcesCache'
-import updateTopicsCache from './updateTopicsCache'
-import updateYearsCache from './updateYears'
+import { logger } from '@/logger.js'
+import type { ImpressoApplication } from '@/types.js'
+import updateFacetRangesCache from '@/jobs/updateFacetRanges.js'
+import updateMediaSourcesCache from '@/jobs/updateMediaSourcesCache.js'
+import updateTopicsCache from '@/jobs/updateTopicsCache.js'
+import updateYearsCache from '@/jobs/updateYears.js'
 
 /**
  * Jobs to run on startup

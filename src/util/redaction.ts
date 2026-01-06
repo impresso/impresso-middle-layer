@@ -1,8 +1,7 @@
 import { JSONPath } from 'jsonpath-plus'
-import { safeParseJson, safeStringifyJson } from './jsonCodec'
-import { sanitizeIiifImageUrl } from '../util/iiif'
-import { ImageUrlRewriteRule } from '../models/generated/common'
-import { ImpressoApplication } from '../types'
+import { safeParseJson, safeStringifyJson } from '@/util/jsonCodec.js'
+import { sanitizeIiifImageUrl } from '@/util/iiif.js'
+import { ImageUrlRewriteRule } from '@/models/generated/common.js'
 /**
  * Represents a redactable object with arbitrary string keys and values.
  * The `symbol` keys are for internal use (like the `AuthorizationBitmapsKey`).

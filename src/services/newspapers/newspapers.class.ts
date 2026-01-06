@@ -1,9 +1,9 @@
 import { ClientService, Id, Params } from '@feathersjs/feathers'
-import { Newspaper as NewspaperInternal, MediaSource, NewspaperIssue } from '../../models/generated/schemas'
-import { FindResponse } from '../../models/common'
-import { DefaultPageSize, MediaSources, OrderBy } from '../media-sources/media-sources.class'
+import { Newspaper as NewspaperInternal, MediaSource, NewspaperIssue } from '@/models/generated/schemas.js'
+import { FindResponse } from '@/models/common.js'
+import { DefaultPageSize, MediaSources, OrderBy } from '@/services/media-sources/media-sources.class.js'
 import { NotFound } from '@feathersjs/errors'
-import { ImpressoApplication } from '../../types'
+import { ImpressoApplication } from '@/types.js'
 
 const getYear = (isoDateString: string) => new Date(isoDateString).getFullYear()
 

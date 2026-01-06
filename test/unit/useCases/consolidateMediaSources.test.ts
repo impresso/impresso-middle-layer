@@ -1,9 +1,9 @@
 import assert from 'assert'
 import { Sequelize } from 'sequelize'
 import sinon from 'sinon'
-import { MediaSource } from '../../../src/models/generated/schemas'
-import { SelectResponse, SimpleSolrClient } from '../../../src/internalServices/simpleSolr'
-import { consolidateMediaSources, DBNewspaperDetails, FacetBucket } from '../../../src/useCases/consolidateMediaSources'
+import { MediaSource } from '@/models/generated/schemas.js'
+import { SelectResponse, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { consolidateMediaSources, DBNewspaperDetails, FacetBucket } from '@/useCases/consolidateMediaSources.js'
 
 type DBResponse = DBNewspaperDetails[]
 type SolrResponse = SelectResponse<unknown, 'sources', FacetBucket>
@@ -41,7 +41,7 @@ describe('consolidateMediaSources', () => {
     sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
     sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
 
-    const result = await consolidateMediaSources(dbClient, solrClient, 'test')
+    const result = await consolidateMediaSources(dbClient, solrClient, 'search')
     const expected = [
       {
         uid: 'ZBT',
@@ -68,7 +68,7 @@ describe('consolidateMediaSources', () => {
     sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
     sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
 
-    const result = await consolidateMediaSources(dbClient, solrClient, 'test')
+    const result = await consolidateMediaSources(dbClient, solrClient, 'search')
 
     assert.deepEqual(result, [])
   })
@@ -91,7 +91,7 @@ describe('consolidateMediaSources', () => {
     sinon.mock(dbClient).expects('query').once().withArgs(sinon.match.any).resolves(dbResponse)
     sinon.mock(solrClient).expects('select').once().withArgs(sinon.match.any).resolves(solrResponse)
 
-    const result = await consolidateMediaSources(dbClient, solrClient, 'test')
+    const result = await consolidateMediaSources(dbClient, solrClient, 'search')
     const expected = [
       {
         uid: 'ZBT',

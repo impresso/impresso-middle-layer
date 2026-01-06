@@ -1,5 +1,5 @@
-import app from './app'
-import { logger } from './logger'
+import app from '@/app.js'
+import { logger } from '@/logger.js'
 
 process.on('unhandledRejection', (error: Error) => {
   logger.error('unhandledRejection', error)

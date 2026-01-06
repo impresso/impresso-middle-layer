@@ -1,14 +1,14 @@
 /* eslint-disable no-unused-vars */
-import { buildResolvers } from '../../internalServices/cachedResolvers'
-import { asFindAll } from '../../util/solr/adapters'
-import { WellKnownKeys } from '../../cache'
+import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { asFindAll } from '@/util/solr/adapters.js'
+import { WellKnownKeys } from '@/cache.js'
 
 import debugLib from 'debug'
 const debug = debugLib('impresso/services:topics-graph')
-import { min, max } from 'lodash'
+import { min, max } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
-import Topic from '../../models/topics.model'
-import { measureTime } from '../../util/instruments'
+import Topic from '@/models/topics.model.js'
+import { measureTime } from '@/util/instruments.js'
 
 const toNode = topic => ({
   id: topic.uid,

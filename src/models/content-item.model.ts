@@ -3,10 +3,10 @@
  */
 
 import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
-import { ImpressoApplication } from '../types'
-import Collection from './collections.model'
-import CollectableItem from './collectable-items.model'
-import ContentItemPage from './content-item-page.model'
+import { ImpressoApplication } from '@/types.js'
+import Collection from './collections.model.js'
+import CollectableItem from './collectable-items.model.js'
+import ContentItemPage from './content-item-page.model.js'
 
 interface ContentItemAttributes {
   uid: string

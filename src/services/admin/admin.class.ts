@@ -1,10 +1,10 @@
 import { ClientService, Params, Query } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../../types'
+import { ImpressoApplication } from '@/types.js'
 import {
   ContentItemPermissionsDetails,
   getContentItemsPermissionsDetails,
-} from '../../useCases/getContentItemsPermissionsDetails'
-import { getUserAccountsWithAvailablePermissions, UserAccount } from '../../useCases/getUsersPermissionsDetails'
+} from '@/useCases/getContentItemsPermissionsDetails.js'
+import { getUserAccountsWithAvailablePermissions, UserAccount } from '@/useCases/getUsersPermissionsDetails.js'
 
 interface FindResponse {
   contentItemsPermissionsDetails: ContentItemPermissionsDetails

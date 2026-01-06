@@ -1,24 +1,30 @@
-import { getSolrErrorDetails, SolrError } from '../util/solr/errors'
-import { Cache } from '../cache'
-import { SolrFacetQueryParams } from '../data/types'
-import { logger } from '../logger'
+import { getSolrErrorDetails, SolrError } from '@/util/solr/errors.js'
+import { Cache } from '@/cache.js'
+import { SolrFacetQueryParams } from '@/data/types.js'
+import { logger } from '@/logger.js'
 import {
   SolrConfiguration,
   SolrServerAuth,
   SolrServerConfiguration,
   SolrServerNamespaceConfiguration,
-} from '../models/generated/common'
-import { checkResponseStatus, defaultFetchOptions, sanitizeSolrResponse, SolrNamespace, SolrNamespaces } from '../solr'
-import { ImpressoApplication } from '../types'
-import { createSha256Hash } from '../util/crypto'
-import { ensureServiceIsFeathersCompatible } from '../util/feathers'
-import { serialize } from '../util/serialize'
-import { notCachingCollectionItemsStrategyBuilder } from '../util/solr/cacheControl'
-import { removeNullAndUndefined } from '../util/fn'
-import { safeParseJson, safeStringifyJson } from '../util/jsonCodec'
-import { getSocksProxyConfiguration, shouldUseSocksProxy } from '../util/socksProxyConfiguration'
-import { IFetchClient } from '../utils/http/client/base'
-import { createFetchClient } from '../utils/http/client'
+} from '@/models/generated/common.js'
+import {
+  checkResponseStatus,
+  defaultFetchOptions,
+  sanitizeSolrResponse,
+  SolrNamespace,
+  SolrNamespaces,
+} from '@/solr.js'
+import { ImpressoApplication } from '@/types.js'
+import { createSha256Hash } from '@/util/crypto.js'
+import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
+import { serialize } from '@/util/serialize.js'
+import { notCachingCollectionItemsStrategyBuilder } from '@/util/solr/cacheControl.js'
+import { removeNullAndUndefined } from '@/util/fn.js'
+import { safeParseJson, safeStringifyJson } from '@/util/jsonCodec.js'
+import { getSocksProxyConfiguration, shouldUseSocksProxy } from '@/util/socksProxyConfiguration.js'
+import { IFetchClient } from '@/utils/http/client/base.js'
+import { createFetchClient } from '@/utils/http/client/index.js'
 
 const DefaultSuggesterDictonary = 'm_suggester_infix'
 

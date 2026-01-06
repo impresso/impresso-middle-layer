@@ -1,10 +1,14 @@
 import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
 import { NotFound } from '@feathersjs/errors'
-import { PublicFindResponse as FindResponse } from '../../models/common'
-import { DataProvider } from '../../models/generated/schemas'
+import { PublicFindResponse as FindResponse } from '@/models/common.js'
+import { DataProvider } from '@/models/generated/schemas.js'
 import * as path from 'path'
 import * as fs from 'fs'
+import { fileURLToPath } from 'url'
 import debug from 'debug'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const log = debug('impresso/services:data-providers')
 

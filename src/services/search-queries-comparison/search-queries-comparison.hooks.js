@@ -1,6 +1,6 @@
 import { hooks } from '@feathersjs/authentication-local'
-import { authenticate } from '../../hooks/authenticate'
-import { validateWithSchema } from '../../hooks/schema'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { validateWithSchema } from '@/hooks/schema.js'
 
 const { protect } = hooks
 

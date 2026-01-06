@@ -1,5 +1,5 @@
 import type { HookContext, NextFunction } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../types'
+import { ImpressoApplication } from '@/types.js'
 import { disallow } from 'feathers-hooks-common'
 
 export const disableInPublicApi = async (context: HookContext<ImpressoApplication>, next: NextFunction) => {

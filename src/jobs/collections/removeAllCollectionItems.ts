@@ -1,8 +1,8 @@
 import { Job } from 'bullmq'
-import { ImpressoApplication } from '../../types'
-import { logger } from '../../logger'
-import { SolrNamespaces } from '../../solr'
-import { DeleteRequest } from '../../internalServices/simpleSolr'
+import { ImpressoApplication } from '@/types.js'
+import { logger } from '@/logger.js'
+import { SolrNamespaces } from '@/solr.js'
+import { DeleteRequest } from '@/internalServices/simpleSolr.js'
 
 export const JobNameRemoveAllCollectionItems = 'removeAllCollectionItems'
 

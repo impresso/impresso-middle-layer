@@ -1,16 +1,16 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { getDocs } from './newspapers.schema'
-import { NewspapersService } from './newspapers.class'
-import { ImpressoApplication } from '../../types'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
+import { getDocs } from '@/services/newspapers/newspapers.schema.js'
+import { NewspapersService } from '@/services/newspapers/newspapers.class.js'
+import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
-import hooks from './newspapers.hooks'
+import hooks from '@/services/newspapers/newspapers.hooks.js'
 
 /**
  * @deprecated Use the `media-sources` service instead.
  * This service is only kept for backward compatibility
  * in the web app.
  */
-export default function (app: ImpressoApplication) {
+export default async function (app: ImpressoApplication) {
   const isPublicApi = app.get('isPublicApi') ?? false
 
   // Initialize our service with any options it requires

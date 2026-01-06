@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { aggregateFiltersByType } from '../../../../src/logic/filters/impressoPy'
+import { aggregateFiltersByType } from '@/logic/filters/impressoPy.js'
 import { Filter } from 'impresso-jscommons'
 
 describe('aggregateFiltersByType', () => {
