@@ -10,10 +10,9 @@ This file provides guidance to AI coding agents when working with code in this r
 
 ### Building and Running
 
-- **Watch & compile**: `npm run watch` - Runs TypeScript compiler and file copy in watch mode
-- **Build**: `npm run build` - Compile TypeScript to JavaScript
-- **Development server**: `npm run dev` - Starts nodemon with source maps enabled (uses `.env` file)
-- **Production start**: `NODE_ENV=production npm start` - Run compiled app with production config
+- **Development server**: `npm run dev` - Runs the app directly with tsx (uses `.env` file)
+- **Development with bun**: `bun run dev` - Alternative: Run the app with bun runtime
+- **Production start**: `NODE_ENV=production npm start` - Run the app with tsx in production config
 
 ### Testing
 
@@ -249,8 +248,7 @@ Test helpers available:
 
 ```bash
 npm install
-npm run watch  # In one terminal
-npm run dev    # In another terminal (with .env file)
+npm run dev  # Start the development server with hot reload (with .env file)
 ```
 
 Enable specific features via `config/development.json`:
@@ -259,9 +257,8 @@ Enable specific features via `config/development.json`:
 
 ### Production Deployment
 
-1. Build: `npm run build`
-2. Create `config/production.json` with production settings
-3. Start: `NODE_ENV=production npm start` or use PM2/Forever
+1. Create `config/production.json` with production settings
+2. Start: `NODE_ENV=production npm start`
 
 Use `.env` for sensitive values (database passwords, API keys).
 
@@ -285,7 +282,7 @@ Set `isPublicApi: true` in configuration to:
 
 - The application uses a **path alias** `@/*` mapped to `./src/*` for cleaner imports (use `@` instead of relative import unless the import is from the same folder).
 - **Node.js requirement**: >= 20.0.0
+- **Runtime**: Uses tsx for TypeScript execution (or bun as an alternative)
 - **Sensitive data redaction**: Passwords, tokens, and PII are automatically redacted in logs and error responses
-- **File copying**: `tscp` (typescript-cp) copies non-TS files (YAML, JSON) to dist directory during build
 - **Legacy code**: The repository contains legacy code that should not be used as a design pattern reference. All new code must use Sequelize v6+, Feathersjs v5+, bullmq queue. All public services should have a json schema for input/output.
 
