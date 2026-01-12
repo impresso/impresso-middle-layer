@@ -1,6 +1,6 @@
 // Initializes the `uploaded-images` service on path `/uploaded-images`
-import createService from './uploaded-images.class.js'
-import hooks from './uploaded-images.hooks.js'
+import createService from '@/services/uploaded-images/uploaded-images.class.js'
+import hooks from '@/services/uploaded-images/uploaded-images.hooks.js'
 
 export default function (app) {
   // Initialize our service with any options it requires

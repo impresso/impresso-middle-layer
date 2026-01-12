@@ -1,8 +1,8 @@
 import type { ModelStatic, Sequelize } from 'sequelize'
 import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize'
 
-import SpecialMembershipAccess from './special-membership-access.model'
-import User from './users.model'
+import SpecialMembershipAccess from './special-membership-access.model.js'
+import User from './users.model.js'
 
 export const StatusPending = 'pending'
 export const StatusApproved = 'approved'

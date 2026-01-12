@@ -1,6 +1,6 @@
-import { prepareTopics } from '../useCases/prepareTopics'
-import { WellKnownKeys } from '../cache'
-import { ImpressoApplication } from '../types'
+import { prepareTopics } from '@/useCases/prepareTopics.js'
+import { WellKnownKeys } from '@/cache.js'
+import { ImpressoApplication } from '@/types.js'
 
 /** 100 days */
 const DefaultTtlSeconds = 60 * 60 * 24 * 100 * 1000

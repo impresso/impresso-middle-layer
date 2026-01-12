@@ -3,17 +3,17 @@ import Debug from 'debug'
 import { ApplicationHookFunction, ApplicationHookOptions, HookContext } from '@feathersjs/feathers'
 import { ValidationError } from 'ajv'
 import { GeneralError, BadGateway, BadRequest, Unprocessable, Conflict, FeathersError } from '@feathersjs/errors'
-import { ImpressoApplication } from './types'
-import { logger } from './logger'
+import { ImpressoApplication } from '@/types.js'
+import { logger } from '@/logger.js'
 import { hooks } from '@feathersjs/authentication'
 
 const { authenticate } = hooks
 
 const debug = Debug('impresso/app.hooks')
 // import { validateRouteId } from './hooks/params'
-import { InvalidArgumentError } from './util/error'
-import { SlimUser } from './authentication'
-import { SolrError } from './util/solr/errors'
+import { InvalidArgumentError } from '@/util/error.js'
+import { SlimUser } from '@/authentication.js'
+import { SolrError } from '@/util/solr/errors.js'
 
 const basicParams = () => (context: HookContext) => {
   // do nothing with internal services

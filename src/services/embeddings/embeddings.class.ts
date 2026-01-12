@@ -1,9 +1,9 @@
 import type { ClientService, Params } from '@feathersjs/feathers'
-import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { PublicFindResponse as FindResponse } from '../../models/common'
-import { ImpressoApplication } from '../../types'
-import { escapeValue } from '../../util/solr/filterReducers'
-import { WordMatch } from '../../models/generated/schemasPublic'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { PublicFindResponse as FindResponse } from '@/models/common.js'
+import { ImpressoApplication } from '@/types.js'
+import { escapeValue } from '@/util/solr/filterReducers.js'
+import { WordMatch } from '@/models/generated/schemasPublic.js'
 
 export type ValidLanguageCodes = 'de' | 'fr' | 'lb'
 

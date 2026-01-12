@@ -1,6 +1,6 @@
 import assert from 'assert'
-import app from '../../../src/app'
-import User from '../../../src/models/users.model'
+import app from '@/app'
+import User from '@/models/users.model'
 /**
  * use with
   ./node_modules/.bin/eslint test/integration/services/users.test.js  \

@@ -1,4 +1,4 @@
-import { authenticate } from '../../hooks/authenticate.js'
+import { authenticate } from '@/hooks/authenticate.js'
 
 export default {
   before: {

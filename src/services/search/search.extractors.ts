@@ -1,15 +1,15 @@
 /**
  * @deprecated - remove when articles-search is removed but check that this file is not used elsewhere.
  */
-import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash'
-import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
-import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '../../util/solr'
-import { ContentItemService } from '../content-items/content-items.class'
-import { ImpressoApplication } from '../../types'
-import { buildResolvers, CachedFacetType, IResolver } from '../../internalServices/cachedResolvers'
-import { ContentItem } from '../../models/generated/schemas/contentItem'
-import { SolrServerNamespaceConfiguration } from '../../models/generated/common'
-import { SolrNamespaces } from '../../solr'
+import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash-es'
+import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
+import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '@/util/solr/index.js'
+import { ContentItemService } from '@/services/content-items/content-items.class.js'
+import { ImpressoApplication } from '@/types.js'
+import { buildResolvers, CachedFacetType, IResolver } from '@/internalServices/cachedResolvers.js'
+import { ContentItem } from '@/models/generated/schemas/contentItem.js'
+import { SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
+import { SolrNamespaces } from '@/solr.js'
 import { Filter } from 'impresso-jscommons'
 
 export const getContentItemMatches = (

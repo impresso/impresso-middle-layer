@@ -1,8 +1,8 @@
 import type { Sequelize } from 'sequelize'
-import { PublicFindResponse as FindResponse } from '../../models/common'
-import type { ImpressoApplication } from '../../types'
+import { PublicFindResponse as FindResponse } from '@/models/common.js'
+import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import SpecialMembershipAccess from '../../models/special-membership-access.model'
+import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
 import { NotFound } from '@feathersjs/errors'
 
 export interface FindQuery {

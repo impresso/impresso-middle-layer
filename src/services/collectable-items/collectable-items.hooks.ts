@@ -1,8 +1,8 @@
 import { HookContext, HookOptions } from '@feathersjs/feathers'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { rateLimit } from '../../hooks/rateLimiter'
-import { ImpressoApplication } from '../../types'
-import { ICollectableItemsService } from './collectable-items.class'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
+import { ImpressoApplication } from '@/types.js'
+import { ICollectableItemsService } from './collectable-items.class.js'
 
 export default {
   around: {

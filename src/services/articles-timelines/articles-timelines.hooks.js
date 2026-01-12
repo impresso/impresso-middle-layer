@@ -1,5 +1,5 @@
-import { validate, validateEach, queryWithCommonParams, REGEX_UID } from '../../hooks/params'
-import { filtersToSolrQuery } from '../../hooks/search'
+import { validate, validateEach, queryWithCommonParams, REGEX_UID } from '@/hooks/params.js'
+import { filtersToSolrQuery } from '@/hooks/search.js'
 
 export default {
   before: {

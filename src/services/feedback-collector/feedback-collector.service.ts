@@ -1,7 +1,7 @@
-import { ImpressoApplication } from '../../types'
+import { ImpressoApplication } from '@/types.js'
 
-import Service from './feedback-collector.class'
-import hooks from './feedback-collector.hooks'
+import Service from '@/services/feedback-collector/feedback-collector.class.js'
+import hooks from '@/services/feedback-collector/feedback-collector.hooks.js'
 
 export default function (app: ImpressoApplication) {
   app.use('/feedback-collector', new Service())

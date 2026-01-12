@@ -1,6 +1,6 @@
 // Initializes the `search-queries` service on path `/search-queries`
-import { SearchQueries } from './search-queries.class'
-import hooks from './search-queries.hooks'
+import { SearchQueries } from '@/services/search-queries/search-queries.class.js'
+import hooks from '@/services/search-queries/search-queries.hooks.js'
 
 export default function (app) {
   const paginate = app.get('paginate')

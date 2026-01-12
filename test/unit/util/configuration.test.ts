@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { replaceEnvVariables, replaceEnvVariablesStrict } from '../../../src/util/configuration'
+import { replaceEnvVariables, replaceEnvVariablesStrict } from '@/util/configuration.js'
 
 describe('Environment Variable Configuration Utils', () => {
   describe('replaceEnvVariables', () => {

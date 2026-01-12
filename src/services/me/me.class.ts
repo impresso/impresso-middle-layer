@@ -1,13 +1,13 @@
 import type { Sequelize } from 'sequelize'
-import type { ImpressoApplication } from '../../types'
+import type { ImpressoApplication } from '@/types.js'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import Debug from 'debug'
 import { NotFound, BadRequest } from '@feathersjs/errors'
 const debug = Debug('impresso:services/me')
-import User, { Me } from '../../models/users.model'
-import Group from '../../models/groups.model'
-import Profile from '../../models/profiles.model'
-import { logger } from '../../logger'
+import User, { Me } from '@/models/users.model.js'
+import Group from '@/models/groups.model.js'
+import Profile from '@/models/profiles.model.js'
+import { logger } from '@/logger.js'
 
 interface Params extends FeathersParams {
   user: {

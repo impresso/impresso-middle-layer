@@ -1,8 +1,8 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { MethodParameter } from '../../util/openapi'
-import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '../../util/openapi'
-import { OrderByKeyToField } from './text-reuse-clusters.class'
-import { Filter } from '../../models'
+import type { MethodParameter } from '@/util/openapi.js'
+import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
+import { OrderByKeyToField } from '@/services/text-reuse-clusters/text-reuse-clusters.class.js'
+import { Filter } from '@/models/index.js'
 
 export interface FindQueyParameters {
   text?: string

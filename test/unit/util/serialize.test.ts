@@ -1,4 +1,4 @@
-import { getCacheKey } from '../../../src/util/serialize'
+import { getCacheKey } from '@/util/serialize.js'
 import assert from 'assert'
 
 describe('serialize', () => {

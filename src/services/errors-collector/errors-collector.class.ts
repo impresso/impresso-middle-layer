@@ -1,6 +1,6 @@
-import { logger } from '../../logger'
+import { logger } from '@/logger.js'
+import { SlimUser } from '@/authentication.js'
 import { Params } from '@feathersjs/feathers'
-import { SlimUser } from '../../authentication'
 
 interface ErrorsCollectorPayload {
   id: string

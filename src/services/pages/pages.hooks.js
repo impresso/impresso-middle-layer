@@ -1,4 +1,4 @@
-import { queryWithCommonParams } from '../../hooks/params.js'
+import { queryWithCommonParams } from '@/hooks/params.js'
 
 export default {
   before: {

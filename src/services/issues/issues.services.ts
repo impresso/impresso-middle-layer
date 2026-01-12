@@ -1,7 +1,7 @@
-import { ImpressoApplication } from '../../types'
+import { ImpressoApplication } from '@/types.js'
 
-import createService from './issues.class'
-import hooks from './issues.hooks'
+import createService from '@/services/issues/issues.class.js'
+import hooks from '@/services/issues/issues.hooks.js'
 
 export default function (app: ImpressoApplication) {
   app.use('/issues', createService({ app }))

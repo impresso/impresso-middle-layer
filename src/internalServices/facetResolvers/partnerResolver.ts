@@ -1,6 +1,6 @@
-import { IResolver } from '../cachedResolvers'
-import { ImpressoApplication } from '../../types'
-import { MediaSource, Partner } from '../../models/generated/schemas'
+import { IResolver } from '@/internalServices/cachedResolvers.js'
+import { ImpressoApplication } from '@/types.js'
+import { MediaSource, Partner } from '@/models/generated/schemas.js'
 
 const getPropValue = (source: MediaSource, prop: string) => source.properties?.find(p => p.id === prop)?.value
 

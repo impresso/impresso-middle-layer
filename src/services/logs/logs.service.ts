@@ -1,7 +1,7 @@
 import Debug from 'debug'
-import { optionsDisabledInPublicApi } from '../../hooks/public-api'
-import { ImpressoApplication } from '../../types'
-import createService from './logs.class'
+import { optionsDisabledInPublicApi } from '@/hooks/public-api.js'
+import { ImpressoApplication } from '@/types.js'
+import createService from '@/services/logs/logs.class.js'
 
 const debug = Debug('impresso/services:logs')
 

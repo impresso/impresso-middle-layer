@@ -1,6 +1,10 @@
-import { defaultServiceMethods } from '@feathersjs/feathers';
+import feathers from '@feathersjs/feathers'
+import feathersSwagger from 'feathers-swagger'
 
-type T = any;
+const { defaultServiceMethods } = feathers
+export const { createSwaggerServiceOptions } = feathersSwagger
+
+type T = any
 
 /**
  * A workaround for FeathersJS services (https://feathersjs.com/api/services)
@@ -8,9 +12,9 @@ type T = any;
  * will attempt to treat it as an Express middleware, which will cause an error.
  */
 export const ensureServiceIsFeathersCompatible = (service: T): T => {
-  const hasAnyMethods = defaultServiceMethods.some(name => service && typeof service[name] === 'function');
+  const hasAnyMethods = defaultServiceMethods.some(name => service && typeof service[name] === 'function')
   if (!hasAnyMethods) {
-    (service as any).get = function () {};
+    ;(service as any).get = function () {}
   }
-  return service;
-};
+  return service
+}

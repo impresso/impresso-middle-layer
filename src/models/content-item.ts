@@ -9,8 +9,8 @@ import type {
   ImageFields,
   SemanticEnrichmentsFields,
   AudioFields,
-} from './generated/solr/contentItem'
-import type { LanguageCode, TextContentFields } from './solr'
+} from './generated/solr/contentItem.js'
+import type { LanguageCode, TextContentFields } from './solr.js'
 
 import type {
   ContentItem,
@@ -19,15 +19,15 @@ import type {
   ContentItemMention,
   ContentItemNamedEntity,
   ContentItemTopic,
-} from './generated/schemas/contentItem'
-import { bigIntToBase64Bytes, OpenPermissions } from '../util/bigint'
-import { asList, asNumberArray, parseDPFS, toPairs } from '../util/solr/transformers'
-import { setDifference } from '../util/fn'
-import { getNameFromUid } from '../utils/entity.utils'
-import { IFragmentsAndHighlights } from './articles.model'
-import { getContentItemMatches } from '../services/search/search.extractors'
-import { parsePlainsField, WithScore } from '../util/solr'
-import { vectorToCanonicalEmbedding } from '../services/impresso-embedder/impresso-embedder.class'
+} from './generated/schemas/contentItem.js'
+import { bigIntToBase64Bytes, OpenPermissions } from '@/util/bigint.js'
+import { asList, asNumberArray, parseDPFS, toPairs } from '@/util/solr/transformers.js'
+import { setDifference } from '@/util/fn.js'
+import { getNameFromUid } from '@/utils/entity.utils.js'
+import { IFragmentsAndHighlights } from './articles.model.js'
+import { getContentItemMatches } from '@/services/search/search.extractors.js'
+import { parsePlainsField, WithScore } from '@/util/solr/index.js'
+import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
 
 const ContentItemCoreFields = [
   'id',
@@ -319,13 +319,26 @@ const buildAudioFileUrl = (recordId: string, partnerId: string): string => {
 }
 
 /**
+ * Type guard to check if a document has full content fields.
+ * @param doc The document to check.
+ * @returns true if the document is of type AllDocumentFields, false if SlimDocumentFields.
+ */
+const isFullDocument = (
+  doc: WithScore<AllDocumentFields | SlimDocumentFields>
+): doc is WithScore<AllDocumentFields> => {
+  const isFullContent = FullContentOnlyFields.some(field => field in doc)
+  const isEmbedding = EmbeddingsFields.some(field => field in doc)
+  return isFullContent || isEmbedding
+}
+
+/**
  * Converts a Solr document to a ContentItem.
  * @param doc The Solr document to convert.
  * @param opts An optional parameter with optional `maxScore` that should be used as score denominator.
  * @returns The converted ContentItem.
  */
 export const toContentItem = (
-  doc: WithScore<AllDocumentFields>,
+  doc: WithScore<AllDocumentFields | SlimDocumentFields>,
   { maxScore }: { maxScore?: number } = {}
 ): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
@@ -385,10 +398,10 @@ export const toContentItem = (
     image: {
       isCoordinatesConverted: doc.cc_b,
       isFrontPage: doc.front_b,
-      lineBreaks: asNumberArray(doc.lb_plain),
+      lineBreaks: isFullDocument(doc) ? asNumberArray(doc.lb_plain) : [],
       pagesCount: doc.nb_pages_i,
-      paragraphBreaks: asNumberArray(doc.pb_plain),
-      regionBreaks: asNumberArray(doc.rb_plain),
+      paragraphBreaks: isFullDocument(doc) ? asNumberArray(doc.pb_plain) : [],
+      regionBreaks: isFullDocument(doc) ? asNumberArray(doc.rb_plain) : [],
       pages: doc.page_id_ss?.map((pageId: string, idx: number) => {
         return {
           id: pageId,
@@ -402,7 +415,7 @@ export const toContentItem = (
       ...(namedEntities != null ? { namedEntities } : {}),
       ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),
-      ...(doc.gte_multi_v768 != null
+      ...(isFullDocument(doc) && doc.gte_multi_v768 != null
         ? { embeddings: [vectorToCanonicalEmbedding(doc.gte_multi_v768, 'gte-768')] }
         : {}),
     },
@@ -411,10 +424,12 @@ export const toContentItem = (
       startTime: doc.meta_start_time_s,
       recordsCount: doc.nb_record_i,
       records: doc.record_id_ss?.map((recordId: string, idx: number) => {
-        const utterancesEndOffsets = asList<number>(doc.ub_plain) ?? []
+        const utterancesEndOffsets = asList<number>(isFullDocument(doc) ? doc.ub_plain : undefined) ?? []
 
         // TODO: Remove the `rrreb_plain` option when the index is fixed. It's a mistake.
-        const audioSegmentsLocators = parseAudioRecordTimecodes(doc.rreb_plain ?? (doc as any)['rrreb_plain'])
+        const audioSegmentsLocators = parseAudioRecordTimecodes(
+          isFullDocument(doc) ? doc.rreb_plain : (doc as any)['rrreb_plain']
+        )
           .find(r => r.id === recordId)
           ?.t?.map(item => toAudioSegmentLocator(item, utterancesEndOffsets))
 
@@ -443,5 +458,5 @@ export const withMatches = (contentItem: ContentItem, fragmentsAndHighlighting: 
       ...contentItem.text,
       matches: getContentItemMatches(contentItem, undefined, fragmentsAndHighlighting),
     },
-  }
+  } satisfies ContentItem
 }

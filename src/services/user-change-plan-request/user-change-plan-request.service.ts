@@ -1,7 +1,7 @@
-import { Service } from './user-change-plan-request.class'
-import { ImpressoApplication } from '../../types'
+import { Service } from './user-change-plan-request.class.js'
+import { ImpressoApplication } from '@/types.js'
 import { HookContext, ServiceOptions } from '@feathersjs/feathers'
-import { authenticateAround } from '../../hooks/authenticate'
+import { authenticateAround } from '@/hooks/authenticate.js'
 import { BadRequest } from '@feathersjs/errors'
 
 export default (app: ImpressoApplication) => {

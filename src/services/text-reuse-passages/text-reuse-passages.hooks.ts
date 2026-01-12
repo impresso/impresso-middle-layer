@@ -1,16 +1,21 @@
 import { ApplicationHookOptions } from '@feathersjs/feathers'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { decodeJsonQueryParameters, decodePathParameters } from '../../hooks/parameters'
-import { validate } from '../../hooks/params'
-import { rateLimit } from '../../hooks/rateLimiter'
-import { RedactionPolicy, redactResponse, redactResponseDataItem, unlessHasPermission } from '../../hooks/redaction'
-import { transformResponse, transformResponseDataItem } from '../../hooks/transformation'
-import { transformBaseFind } from '../../transformers/base'
-import { transformTextReusePassage } from '../../transformers/textReuse'
-import { ImpressoApplication } from '../../types'
-import { parseFilters } from '../../util/queryParameters'
-import { loadYamlFile } from '../../util/yaml'
-import { inPublicApi, inWebAppApi } from '../../hooks/appMode'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { decodeJsonQueryParameters, decodePathParameters } from '@/hooks/parameters.js'
+import { validate } from '@/hooks/params.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
+import { RedactionPolicy, redactResponse, redactResponseDataItem, unlessHasPermission } from '@/hooks/redaction.js'
+import { transformResponse, transformResponseDataItem } from '@/hooks/transformation.js'
+import { transformBaseFind } from '@/transformers/base.js'
+import { transformTextReusePassage } from '@/transformers/textReuse.js'
+import { ImpressoApplication } from '@/types.js'
+import { parseFilters } from '@/util/queryParameters.js'
+import { loadYamlFile } from '@/util/yaml.js'
+import { inPublicApi, inWebAppApi } from '@/hooks/appMode.js'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export const trPassageRedactionPolicy: RedactionPolicy = loadYamlFile(
   `${__dirname}/resources/trPassageRedactionPolicy.yml`

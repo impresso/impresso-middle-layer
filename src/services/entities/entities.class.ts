@@ -1,23 +1,23 @@
-import { ImpressoApplication } from '../../types'
-import { Service as SequelizeService } from '../sequelize.service'
-import User from '../../models/users.model'
+import { ImpressoApplication } from '@/types.js'
+import { Service as SequelizeService } from '@/services/sequelize.service.js'
+import User from '@/models/users.model.js'
 import { Params } from '@feathersjs/feathers'
 import { Filter } from 'impresso-jscommons'
-import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters } from './util'
-import { EntityId, resolve as resolveWikidata } from '../wikidata'
-import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { SolrNamespaces } from '../../solr'
-import Entity, { IEntitySolrHighlighting, suggestField } from '../../models/entities.model'
+import { buildSequelizeWikidataIdFindEntitiesCondition, sortFindEntitiesFilters } from '@/services/entities/util.js'
+import { EntityId, resolve as resolveWikidata } from '@/services/wikidata.js'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { SolrNamespaces } from '@/solr.js'
+import Entity, { IEntitySolrHighlighting, suggestField } from '@/models/entities.model.js'
 
 /* eslint-disable no-unused-vars */
 import debugLib from 'debug'
 const debug = debugLib('impresso/services:entities')
-import lodash from 'lodash'
+import { flow, keyBy, map, compact } from 'lodash-es'
 import { Op } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
 
-import { measureTime } from '../../util/instruments'
-import { buildSearchEntitiesSolrQuery } from './logic'
+import { measureTime } from '@/util/instruments.js'
+import { buildSearchEntitiesSolrQuery } from '@/services/entities/logic.js'
 
 interface Sanitized<T> {
   sanitized: T
@@ -151,7 +151,7 @@ class Service {
     )
 
     // entities from sequelize, containing wikidata and dbpedia urls
-    const sequelizeEntitiesIndex = lodash.keyBy(sequelizeResult.data, 'uid')
+    const sequelizeEntitiesIndex = keyBy(sequelizeResult.data, 'uid')
     const result = {
       total: solrResult.response?.numFound,
       limit: qp.limit,
@@ -181,7 +181,9 @@ class Service {
     }
 
     // get wikidata ids
-    const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value() as EntityId[]
+    const getEntityIds = flow([x => map(x, 'wikidataId'), x => compact(x)])
+    // const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value() as EntityId[]
+    const wkdIds = getEntityIds(sequelizeEntitiesIndex) as EntityId[]
 
     debug('[find] wikidata loading:', wkdIds.length)
     const resolvedEntities = await resolveWikidata({

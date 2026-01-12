@@ -1,9 +1,9 @@
-import { createSwaggerServiceOptions } from 'feathers-swagger'
-import { getDocs } from './data-providers.schema'
-import { DataProviders } from './data-providers.class'
-import { ImpressoApplication } from '../../types'
+import { createSwaggerServiceOptions } from '@/util/feathers.js'
+import { getDocs } from './data-providers.schema.js'
+import { DataProviders } from './data-providers.class.js'
+import { ImpressoApplication } from '@/types.js'
+import hooks from './data-providers.hooks.js'
 import { ServiceOptions } from '@feathersjs/feathers'
-import hooks from './data-providers.hooks'
 
 export default function (app: ImpressoApplication) {
   const isPublicApi = app.get('isPublicApi') ?? false

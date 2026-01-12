@@ -1,6 +1,6 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getStandardParameters, getStandardResponses, QueryParameter } from '../../util/openapi'
-import { DefaultPageSize, DefaultTopK, ValidLanguageCodes } from './embeddings.class'
+import { getStandardParameters, getStandardResponses, QueryParameter } from '@/util/openapi.js'
+import { DefaultPageSize, DefaultTopK, ValidLanguageCodes } from './embeddings.class.js'
 
 const parameterTerm: QueryParameter = {
   in: 'query',

@@ -1,4 +1,11 @@
 import type { JSONSchema7 as JSONSchema } from 'json-schema'
+import baseFindResponse from '@/schema/schemas/BaseFind.json' with { type: 'json' }
+import baseFindResponsePublic from '@/schema/schemasPublic/BaseFind.json' with { type: 'json' }
+
+// @ts-ignore
+delete baseFindResponse['$schema']
+// @ts-ignore
+delete baseFindResponsePublic['$schema']
 
 interface Parameter {
   name: string
@@ -57,12 +64,6 @@ interface GetStandardResponsesParams {
   standardPagination?: boolean
   isPublic?: boolean
 }
-
-import baseFindResponse from '../schema/schemas/BaseFind.json'
-delete (baseFindResponse as any)['$schema']
-
-import baseFindResponsePublic from '../schema/schemasPublic/BaseFind.json'
-delete (baseFindResponsePublic as any)['$schema']
 
 const getBaseFindResponse = (itemRef: string, isPublic: boolean): JSONSchema => {
   const response = JSON.parse(JSON.stringify(isPublic ? baseFindResponsePublic : baseFindResponse))

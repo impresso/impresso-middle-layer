@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
 import Debug from 'debug'
 const debug = Debug('impresso/services:search-queries')
-import SequelizeService from '../sequelize.service'
-import SearchQuery from '../../models/search-queries.model'
+import SequelizeService from '@/services/sequelize.service.js'
+import SearchQuery from '@/models/search-queries.model.js'
 
 export class SearchQueries {
   constructor(options) {

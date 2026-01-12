@@ -1,8 +1,8 @@
-import { Configuration } from '../../configuration'
-import { SelectRequestBody, CachingStrategy } from '../../internalServices/simpleSolr'
-import { logger } from '../../logger'
-import { SolrConfiguration } from '../../models/generated/common'
-import { SolrNamespaces } from '../../solr'
+import { Configuration } from '@/configuration.js'
+import { SelectRequestBody, CachingStrategy } from '@/internalServices/simpleSolr.js'
+import { logger } from '@/logger.js'
+import { SolrConfiguration } from '@/models/generated/common.js'
+import { SolrNamespaces } from '@/solr.js'
 
 const NotCacheableSolrFields = [
   'ucoll_ss', // collections ids

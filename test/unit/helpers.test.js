@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { toHierarchy, sliceAtSplitpoints, annotate, render, toExcerpt, latinise, toTextWrap } from '../../src/helpers'
+import { toHierarchy, sliceAtSplitpoints, annotate, render, toExcerpt, latinise, toTextWrap } from '@/helpers.js'
 
 const fulltext =
   "L'AFFAIRE DES BIJOUX DE LA BEGUM L'interrogatoire de Watson un des principaux complices II se prétend le filleul de M. Churchill / Marseille, 22 janvier. " +

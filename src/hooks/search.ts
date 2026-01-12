@@ -1,8 +1,8 @@
 import Debug from 'debug'
-import lodash from 'lodash'
+import { groupBy } from 'lodash-es'
 
-import { filtersToQueryAndVariables } from '../util/solr'
-import { SolrNamespaces } from '../solr'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { SolrNamespaces } from '@/solr.js'
 import { HookContext } from '@feathersjs/feathers'
 
 const debug = Debug('impresso/hooks:search')
@@ -98,7 +98,7 @@ export const filtersToSolrQuery =
     context[prop].sanitized.sv = vars
     context[prop].sanitized.sfq = solrFilter
     // NOTE: `queryComponents` should be deprecated
-    const filters = lodash.groupBy(context[prop].sanitized.filters, 'type')
+    const filters = groupBy(context[prop].sanitized.filters, 'type')
     context[prop].sanitized.queryComponents = ([] as any[])
       .concat(
         filters.isFront,

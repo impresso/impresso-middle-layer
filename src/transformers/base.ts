@@ -1,5 +1,5 @@
-import { BaseFind } from '../models/generated/schemas'
-import { BaseFindResponse as BaseFindPublic } from '../models/generated/schemasPublic'
+import { BaseFind } from '@/models/generated/schemas.js'
+import { BaseFindResponse as BaseFindPublic } from '@/models/generated/schemasPublic.js'
 
 export const transformBaseFind = (input: BaseFind): BaseFindPublic => {
   return {

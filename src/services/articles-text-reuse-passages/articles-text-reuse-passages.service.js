@@ -1,5 +1,5 @@
-import { ArticlesTextReusePassages } from './articles-text-reuse-passages.class'
-import hooks from './articles-text-reuse-passages.hooks'
+import { ArticlesTextReusePassages } from './articles-text-reuse-passages.class.js'
+import hooks from './articles-text-reuse-passages.hooks.js'
 
 export default function (app) {
   const options = {}

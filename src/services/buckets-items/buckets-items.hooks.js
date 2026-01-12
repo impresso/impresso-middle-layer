@@ -1,6 +1,6 @@
 import { hooks } from '@feathersjs/authentication'
-import { validate, validateEach, REGEX_UID, queryWithCommonParams } from '../../hooks/params'
-import { assignIIIF } from '../../hooks/iiif'
+import { validate, validateEach, REGEX_UID, queryWithCommonParams } from '@/hooks/params.js'
+import { assignIIIF } from '@/hooks/iiif.js'
 
 const { authenticate } = hooks
 

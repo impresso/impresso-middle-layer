@@ -1,8 +1,8 @@
-import { Indexes, SolrMappings } from '../data/constants'
-import { SolrRangeFacetQueryParams } from '../data/types'
-import { SimpleSolrClient } from '../internalServices/simpleSolr'
-import { logger } from '../logger'
-import { SolrNamespace } from '../solr'
+import { Indexes, SolrMappings } from '@/data/constants.js'
+import { SolrRangeFacetQueryParams } from '@/data/types.js'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { logger } from '@/logger.js'
+import { SolrNamespace } from '@/solr.js'
 
 // Define the structure for the processed facet ranges
 export interface FacetRangeInfo {
