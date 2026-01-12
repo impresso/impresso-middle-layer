@@ -20,10 +20,6 @@ COPY --from=builder /impresso-middle-layer/node_modules/ ./node_modules/
 
 COPY src ./src
 
-RUN npm run build
-RUN npm run copy-files
-RUN ls -la ./dist
-
 COPY public ./public
 
 RUN mkdir -p config
@@ -33,4 +29,4 @@ ENV GIT_TAG=${GIT_TAG}
 ENV GIT_BRANCH=${GIT_BRANCH}
 ENV GIT_REVISION=${GIT_REVISION}
 
-ENTRYPOINT [ "node", "./dist" ]
+ENTRYPOINT [ "./node_modules/.bin/tsx", "./src/index.ts" ]

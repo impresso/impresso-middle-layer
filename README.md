@@ -119,7 +119,7 @@ For local testing:
 docker build \
   --progress plain \
   -f Dockerfile \
-  -t impresso_middle_layer .
+  -t impresso/impresso-middle-layer:latest .
 ```
 
 ```shell

@@ -12,6 +12,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const schemaBaseDir = path.join(__dirname, '../schema')
+const packageJsonUrl = path.join(__dirname, '../../package.json')
 
 interface SchemaRef {
   $ref: string
@@ -84,7 +85,7 @@ export default (app: ImpressoApplication & Application) => {
       info: {
         title: 'Impresso Public API',
         description: 'Impresso Public API Documentation',
-        version: require('../../package.json').version,
+        version: JSON.parse(fs.readFileSync(packageJsonUrl, 'utf8')).version,
         contact: {
           name: 'Impresso Project team',
           url: 'https://impresso-project.ch/',
