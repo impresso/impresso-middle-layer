@@ -5,11 +5,15 @@ import { validateWithSchema } from '@/hooks/schema.js'
 const { protect } = hooks
 
 export default {
-  before: {
-    create: [
+  around: {
+    all: [
       authenticate('jwt', {
         allowUnauthenticated: true,
-      }),
+      })
+    ]
+  },
+  before: {
+    create: [
       validateWithSchema('services/search-queries-comparison/schema/post/payload.json'),
     ],
   },
