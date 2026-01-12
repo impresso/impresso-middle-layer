@@ -32,7 +32,7 @@
     "lintfix": "eslint src/. --config .eslintrc.mjs --fix",
     "lint": "eslint src/. --config .eslintrc.mjs",
     "lint-api-spec": "spectral lint http://localhost:3030/swagger.json ",
-    "start": "tsx dist/",
+    "start": "tsx --env-file=./.env dist/src",
     "dev": "nodemon --exec 'tsx --env-file=.env' --enable-source-maps --inspect dist/ --ignore 'data/*' --env-file ./.env",
     "bun-run": "bun run --watch src/index.ts",
     "bun-test": "bun test",
