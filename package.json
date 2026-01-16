@@ -119,7 +119,7 @@
     "swagger-ui-dist": "5.12.0",
     "truncatise": "0.0.8",
     "tsx": "^4.21.0",
-    "undici": "7.16.0",
+    "undici": "7.18.2",
     "uuid": "11.0.0",
     "wikibase-sdk": "^11.1.0",
     "winston": "3.13.0",
