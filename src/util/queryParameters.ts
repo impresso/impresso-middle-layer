@@ -27,10 +27,11 @@ const parseFilterString = (filterStr: string): Filter[] => {
  *  - a list of stringifed objects
  *  - a single stringifed object
  *  - a protobuf serialized list of objects
+ *  - a list of filter objects or a single filter object
  *
  * @return {object[]} List of filters as objects
  */
-export const parseFilters = (value?: string | string[] | Filter[] | undefined): Filter[] => {
+export const parseFilters = (value?: string | string[] | Filter | Filter[] | undefined): Filter[] => {
   if (value == null) return []
 
   if (typeof value === 'string') {
@@ -39,9 +40,10 @@ export const parseFilters = (value?: string | string[] | Filter[] | undefined): 
     return value.map(parseFilterString).flat()
   }
 
-  if (isFilters(value)) return value
+  const arrayValue = Array.isArray(value) ? value : [value]
 
-  throw new Error(`Invalid filters parameter: ${JSON.stringify(value)}`)
+  if (isFilters(arrayValue)) return arrayValue as Filter[]
+  else throw new Error(`Invalid filters parameter: ${JSON.stringify(value)}`)
 }
 
 export const parseFilter = (value?: string | string[] | undefined): Filter | undefined => {
