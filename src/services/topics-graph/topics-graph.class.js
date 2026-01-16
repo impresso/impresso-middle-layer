@@ -16,8 +16,8 @@ const toNode = topic => ({
   label: topic.getExcerpt().join(' - '),
   pos: {
     // initial position
-    x: topic.x,
-    y: topic.y,
+    x: topic?.x ?? 0,
+    y: topic?.y ?? 0,
   },
   pagerank: topic.pagerank,
   community: topic.community,
@@ -148,11 +148,18 @@ export class TopicsGraph {
         })
       })
 
+      // ensure all nodes have valid positions
+      nodes.forEach(n => {
+        if (n.pos == null || typeof n.pos.x !== 'number' || typeof n.pos.y !== 'number') {
+          n.pos = { x: 0, y: 0 }
+        }
+      })
+
       return {
         info: {
           extents: {
-            x: [min(nodes.map(n => n.pos.x)), max(nodes.map(n => n.pos.x))],
-            y: [min(nodes.map(n => n.pos.y)), max(nodes.map(n => n.pos.y))],
+            x: [min(nodes.map(n => n.pos?.x ?? 0)), max(nodes.map(n => n.pos?.x ?? 0))],
+            y: [min(nodes.map(n => n.pos?.y ?? 0)), max(nodes.map(n => n.pos?.y ?? 0))],
           },
         },
         nodes,
