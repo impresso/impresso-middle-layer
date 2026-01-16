@@ -1,11 +1,11 @@
-import { buildResolvers } from '../../internalServices/cachedResolvers'
-import { resolveAsync } from '../../util/solr/adapters'
+import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { resolveAsync } from '@/util/solr/adapters.js'
 import debug from 'debug'
-import Topic from '../../models/topics.model'
+import Topic from '@/models/topics.model.js'
 import { HookContext } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../../types'
-import ArticleTopic from '../../models/articles-topics.model'
-import Article from '../../models/articles.model'
+import { ImpressoApplication } from '@/types.js'
+import ArticleTopic from '@/models/articles-topics.model.js'
+import Article from '@/models/articles.model.js'
 
 const debugLogger = debug('impresso/hooks/resolvers:articles')
 

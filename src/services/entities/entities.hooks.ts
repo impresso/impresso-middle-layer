@@ -1,13 +1,13 @@
-import { SolrNamespaces } from '../../solr'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { rateLimit } from '../../hooks/rateLimiter'
+import { SolrNamespaces } from '@/solr.js'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
 
-import { validate, validateEach, queryWithCommonParams, utils } from '../../hooks/params'
-import { termToSolrFilter, filtersToSolrQuery } from '../../hooks/search'
-import { transformResponseDataItem, transformResponse, renameQueryParameters } from '../../hooks/transformation'
-import { transformEntityDetails } from '../../transformers/entity'
-import { transformBaseFind } from '../../transformers/base'
-import { inPublicApi } from '../../hooks/appMode'
+import { validate, validateEach, queryWithCommonParams, utils } from '@/hooks/params.js'
+import { termToSolrFilter, filtersToSolrQuery } from '@/hooks/search.js'
+import { transformResponseDataItem, transformResponse, renameQueryParameters } from '@/hooks/transformation.js'
+import { transformEntityDetails } from '@/transformers/entity.js'
+import { transformBaseFind } from '@/transformers/base.js'
+import { inPublicApi } from '@/hooks/appMode.js'
 
 const orderByMap = {
   relevance: 'score ASC',

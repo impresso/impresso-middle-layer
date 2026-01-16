@@ -1,18 +1,20 @@
 import { BadRequest } from '@feathersjs/errors'
-import { SolrMappings } from '../../data/constants'
+import { SolrMappings } from '@/data/constants.js'
 
 /**
- * @typedef {import('./').Response} Response
- * @typedef {import('./').Request} Request
- * @typedef {import('./').FacetRequest} FacetRequest
+ * @typedef {import('./index.d.ts').Response} Response
+ * @typedef {import('./index.d.ts').Request} Request
+ * @typedef {import('./index.d.ts').FacetRequest} FacetRequest
  * @typedef {import('impresso-jscommons').Filter} Filter
  * @typedef {import('impresso-jscommons').Facet} Facet
  */
 
-import { getFacetsFromSolrResponse } from '../search/search.extractors'
-import { filtersToQueryAndVariables } from '../../util/solr'
-import { SolrNamespaces } from '../../solr'
-import { logic } from 'impresso-jscommons'
+import { getFacetsFromSolrResponse } from '@/services/search/search.extractors.js'
+import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { SolrNamespaces } from '@/solr.js'
+import jscommons from 'impresso-jscommons'
+
+const { logic } = jscommons
 
 const {
   filter: { mergeFilters },
@@ -150,8 +152,8 @@ async function getResponseFacetsFromSolrResponse(solrResponse, app) {
 }
 
 export class SearchQueriesComparison {
-  setup(app) {
-    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+  async setup(app) {
+    /** @type {import('@/internalServices/simpleSolr.js').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
 
     this.app = app

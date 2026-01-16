@@ -1,12 +1,17 @@
 import { ApplicationHookOptions } from '@feathersjs/feathers'
-import { inPublicApi, inWebAppApi } from '../../hooks/appMode'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { sanitizeFilters } from '../../hooks/parameters'
-import { rateLimit } from '../../hooks/rateLimiter'
-import { redactResponse, redactResponseDataItem, unlessHasPermission } from '../../hooks/redaction'
-import { ImpressoApplication } from '../../types'
-import { RedactionPolicy } from '../../util/redaction'
-import { loadYamlFile } from '../../util/yaml'
+import { inPublicApi, inWebAppApi } from '@/hooks/appMode.js'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { sanitizeFilters } from '@/hooks/parameters.js'
+import { rateLimit } from '@/hooks/rateLimiter.js'
+import { redactResponse, redactResponseDataItem, unlessHasPermission } from '@/hooks/redaction.js'
+import { ImpressoApplication } from '@/types.js'
+import { RedactionPolicy } from '@/util/redaction.js'
+import { loadYamlFile } from '@/util/yaml.js'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export const imageRedactionPolicy: RedactionPolicy = loadYamlFile(`${__dirname}/resources/imageRedactionPolicy.yml`)
 

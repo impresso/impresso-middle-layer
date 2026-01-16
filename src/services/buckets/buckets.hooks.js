@@ -2,8 +2,8 @@ import auth from '@feathersjs/authentication'
 
 const { authenticate } = auth.hooks
 import { queryWithCurrentUser } from 'feathers-authentication-hooks'
-import { assignIIIF } from '../../hooks/iiif.js'
-import { queryWithCommonParams, validate, REGEX_UID, utils } from '../../hooks/params.js'
+import { assignIIIF } from '@/hooks/iiif.js'
+import { queryWithCommonParams, validate, REGEX_UID, utils } from '@/hooks/params.js'
 
 const ORDER_BY = {
   date: 'buc.creation_time',

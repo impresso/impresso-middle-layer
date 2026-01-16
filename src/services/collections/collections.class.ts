@@ -1,23 +1,23 @@
 import { NotAuthenticated, NotFound } from '@feathersjs/errors'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import { InferAttributes, Op, Sequelize, WhereOptions } from 'sequelize'
-import { SlimUser } from '../../authentication'
-import { QueueService } from '../../internalServices/queue'
-import { PublicFindResponse as FindResponse } from '../../models/common'
-import type { Collection } from '../../models/generated/schemasPublic'
-import { NewCollectionRequest } from '../../models/generated/shared'
-import UserCollection, { IUserCollection } from '../../models/user-collection'
-import type { ImpressoApplication } from '../../types'
-import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import { SolrNamespaces } from '../../solr'
+import { SlimUser } from '@/authentication.js'
+import { QueueService } from '@/internalServices/queue.js'
+import { PublicFindResponse as FindResponse } from '@/models/common.js'
+import type { Collection } from '@/models/generated/schemasPublic.js'
+import { NewCollectionRequest } from '@/models/generated/shared.js'
+import UserCollection, { IUserCollection } from '@/models/user-collection.js'
+import type { ImpressoApplication } from '@/types.js'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { SolrNamespaces } from '@/solr.js'
 import {
   CollectionIdPair,
   CollectionsByContentItemIdBucket,
   queryGetCollectionsByContentItems,
   queryGetItemsCountsForCollections,
   toPair,
-} from '../../solr/queries/collections'
-import { createCollectionId } from '../../models/collections.model'
+} from '@/solr/queries/collections.js'
+import { createCollectionId } from '@/models/collections.model.js'
 
 export type CollectionsPatch = Partial<Omit<Collection, 'uid'>>
 export type CollectionsFindResult = FindResponse<Collection>

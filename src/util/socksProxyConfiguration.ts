@@ -1,4 +1,4 @@
-import { ImpressoProxy } from '../models/generated/common'
+import type { ImpressoProxy } from '@/models/generated/common.ts'
 
 const SocketConfigurationEnvFileName = 'IMPRESSO_SOCKS_PROXY_CONFIG'
 

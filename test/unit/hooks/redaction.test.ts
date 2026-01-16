@@ -1,14 +1,14 @@
-import { bitmapsAlign, BitMapsAlignContext, unlessHasPermissionAndWithinQuota } from '../../../src/hooks/redaction'
+import { bitmapsAlign, BitMapsAlignContext, unlessHasPermissionAndWithinQuota } from '@/hooks/redaction.js'
 import assert from 'assert'
 import {
   BufferUserPlanAuthUser,
   BufferUserPlanEducational,
   BufferUserPlanGuest,
   BufferUserPlanResearcher,
-} from '../../../src/models/user-bitmap.model'
+} from '@/models/user-bitmap.model.js'
 import { HookContext } from '@feathersjs/feathers'
-import { ImpressoApplication } from '../../../src/types'
-import { AuthorizationBitmapsKey } from '../../../src/models/authorization'
+import { ImpressoApplication } from '@/types.js'
+import { AuthorizationBitmapsKey } from '@/models/authorization.js'
 
 const contextWithBitmap = (bitmap: bigint): BitMapsAlignContext => ({
   params: {
@@ -81,7 +81,13 @@ describe('unlessHasPermissionAndWithinQuota', () => {
         service: (name: string) => {
           if (name === 'quotaChecker') {
             return {
-              check: async () => ({ allowed: true, count: 5, wasCounted: false, windowStart: 0, secondsUntilReset: 86400 }),
+              check: async () => ({
+                allowed: true,
+                count: 5,
+                wasCounted: false,
+                windowStart: 0,
+                secondsUntilReset: 86400,
+              }),
             }
           }
         },
@@ -109,7 +115,13 @@ describe('unlessHasPermissionAndWithinQuota', () => {
         service: (name: string) => {
           if (name === 'quotaChecker') {
             return {
-              check: async () => ({ allowed: false, count: 100, wasCounted: false, windowStart: 0, secondsUntilReset: 86400 }),
+              check: async () => ({
+                allowed: false,
+                count: 100,
+                wasCounted: false,
+                windowStart: 0,
+                secondsUntilReset: 86400,
+              }),
             }
           }
         },

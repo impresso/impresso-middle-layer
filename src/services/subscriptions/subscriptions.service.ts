@@ -1,5 +1,5 @@
-import { Service } from './subscriptions.class'
-import { ImpressoApplication } from '../../types'
+import { Service } from '@/services/subscriptions/subscriptions.class.js'
+import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 
 export default (app: ImpressoApplication) => {

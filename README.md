@@ -6,10 +6,7 @@ Internal API for the impresso web application and public API.
 git clone impresso-middle-layer
 cd path/to/impresso-middle-layer && npm install
 
-# Watch and compile/copy files in one terminal:
-npm run watch
-
-# Run the app in another terminal:
+# Run the app:
 npm run dev
 ```
 
@@ -105,9 +102,9 @@ Getting up and running is as easy as 1, 2, 3, 4, 5.
    ```
    NODE_ENV=development DEBUG=impresso* npm run update-topics
    ```
-3. Start the app! Use the env variable `NODE_ENV` to switch between your development or production configuration file.
+3. Start the app! The app uses tsx for TypeScript execution with hot reload. Use the env variable `NODE_ENV` to switch between your development or production configuration file.
    ```
-   NODE_ENV=development DEBUG=impresso* npm run dev
+   npm run dev
    ```
 
 
@@ -119,7 +116,7 @@ For local testing:
 docker build \
   --progress plain \
   -f Dockerfile \
-  -t impresso_middle_layer .
+  -t impresso/impresso-middle-layer:latest .
 ```
 
 ```shell
@@ -148,36 +145,6 @@ Then start with:
 ```
 NODE_ENV=production forever start /path/to/forever.production.json
 ```
-
-## Deployment with PM2
-
-Install pm2, then [generate a template](https://pm2.io/doc/en/runtime/guide/ecosystem-file)
-using the command `pm2 init` then edit the `ecosystem.config.js` file:
-
-```
-export default {
-  apps : [{
-    name: 'impresso-middle-layer',
-    cwd: '/path/to/impresso/impresso-middle-layer',
-    script: 'src',
-
-    //
-    // args: 'one two',
-    instances: 4,
-    autorestart: false,
-    watch: false,
-    max_memory_restart: '1G',
-    env: {
-      NODE_ENV: 'development'
-    },
-    env_production : {
-      NODE_ENV: 'production'
-    }
-  }],
-}
-```
-
-Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
 
 ## Testing
 

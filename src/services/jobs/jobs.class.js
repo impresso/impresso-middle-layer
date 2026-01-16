@@ -2,19 +2,19 @@
 import debugLib from 'debug'
 const debug = debugLib('impresso/services:jobs')
 import { BadGateway, NotFound, NotImplemented } from '@feathersjs/errors'
-import SequelizeService from '../sequelize.service'
-import { STATUS_KILLED, STATUS_DONE } from '../../models/jobs.model.js'
-import { measureTime } from '../../util/instruments'
+import initSequelizeService, { Service as SequelizeService } from '@/services/sequelize.service.js'
+import { STATUS_KILLED, STATUS_DONE } from '@/models/jobs.model.js'
+import { measureTime } from '@/util/instruments.js'
 
 export class Service {
   constructor(options) {
     this.options = options
   }
 
-  setup(app, path) {
+  async setup(app, path) {
     this.app = app
     this.name = 'jobs'
-    this.sequelizeService = new SequelizeService({
+    this.sequelizeService = initSequelizeService({
       app,
       name: this.name,
     })
@@ -120,6 +120,6 @@ export class Service {
   }
 }
 
-export default function (options) {
+export default async function (options) {
   return new Service(options)
 }

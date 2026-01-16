@@ -1,7 +1,11 @@
-import { ImpressoApplication } from '../types'
-import { loadFacetRanges } from '../useCases/loadFacetRanges'
+import { ImpressoApplication } from '@/types.js'
+import { loadFacetRanges } from '@/useCases/loadFacetRanges.js'
 import { writeFile, access, constants, stat } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const CacheFileName = resolve(__dirname, '../../data/facetRanges.json')
 

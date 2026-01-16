@@ -1,5 +1,5 @@
-import { logger } from './logger'
-import { FetchOptions } from './utils/http/client/base'
+import { logger } from '@/logger.js'
+import { FetchOptions } from '@/utils/http/client/base.js'
 
 export type SolrNamespace =
   | 'search'

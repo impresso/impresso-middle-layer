@@ -1,8 +1,8 @@
 import { ClientService } from '@feathersjs/feathers'
-import { FindResponse } from '../../models/common'
-import { ContentItem } from '../../models/generated/schemas/contentItem'
-import { ImpressoApplication } from '../../types'
-import { FindParams } from '../content-items/content-items.class'
+import { FindResponse } from '@/models/common.js'
+import { ContentItem } from '@/models/generated/schemas/contentItem.js'
+import { ImpressoApplication } from '@/types.js'
+import { FindParams } from '@/services/content-items/content-items.class.js'
 
 type SearchService = Pick<ClientService<ContentItem, unknown, unknown, FindResponse<ContentItem>>, 'find'>
 

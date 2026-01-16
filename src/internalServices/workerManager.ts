@@ -1,35 +1,35 @@
 import { Application, NextFunction } from '@feathersjs/feathers'
 import { HookContext } from '@feathersjs/hooks'
 import { Processor, QueueEvents, Worker } from 'bullmq'
-import IORedis from 'ioredis'
-import { RedisConfiguration } from '../configuration'
+import { Redis as IORedis } from 'ioredis'
+import { RedisConfiguration } from '@/configuration.js'
 import {
   createJobHandler as createAddItemsToCollectionJobHandler,
   JobNameAddItemsToCollection,
-} from '../jobs/collections/addItemsToCollection'
+} from '@/jobs/collections/addItemsToCollection.js'
 import {
   createJobHandler as createAddQueryResultItemsToCollectionJobHandler,
   JobNameAddQueryResultItemsToCollection,
-} from '../jobs/collections/addQueryResultItemsToCollection'
+} from '@/jobs/collections/addQueryResultItemsToCollection.js'
 import {
   createJobHandler as createMigrateOldCollectionsJobHandler,
   JobNameMigrateOldCollections,
-} from '../jobs/collections/migrateOldCollections'
+} from '@/jobs/collections/migrateOldCollections.js'
 import {
   JobNameRemoveAllCollectionItems,
   createJobHandler as removeAllCollectionItemsJobHandler,
-} from '../jobs/collections/removeAllCollectionItems'
+} from '@/jobs/collections/removeAllCollectionItems.js'
 import {
   JobNameRemoveItemsFromCollection,
   createJobHandler as removeItemsToCollectionJobHandler,
-} from '../jobs/collections/removeItemsFromCollection'
+} from '@/jobs/collections/removeItemsFromCollection.js'
 import {
   createJobHandler as exportSearchResultsJobHandler,
   JobNameExportSearchResults,
-} from '../jobs/searchResults/exportSearchResults'
-import { logger } from '../logger'
-import { ImpressoApplication } from '../types'
-import { ensureServiceIsFeathersCompatible } from '../util/feathers'
+} from '@/jobs/searchResults/exportSearchResults.js'
+import { logger } from '@/logger.js'
+import { ImpressoApplication } from '@/types.js'
+import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
 
 type WorkerDefinition = [string /* queue name*/, Processor<any, any, any>, number /* concurrency */]
 

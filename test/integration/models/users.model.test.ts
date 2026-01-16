@@ -1,12 +1,12 @@
 import assert from 'assert'
 import debug from 'debug'
 
-import { client as getSequelizeClient } from '../../../src/sequelize'
+import { getSequelizeClient } from '@/sequelize.js'
 
-import User, { UserAttributes } from '../../../src/models/users.model'
-import UserBitmap from '../../../src/models/user-bitmap.model'
-import Group from '../../../src/models/groups.model'
-import app from '../../../src/app'
+import User, { UserAttributes } from '@/models/users.model.js'
+import UserBitmap from '@/models/user-bitmap.model.js'
+import Group from '@/models/groups.model.js'
+import app from '@/app.js'
 
 const logger = debug('impresso/test:models:users.model.test')
 const userId = process.env.USER_ID
@@ -15,7 +15,7 @@ const config = app.get('sequelize')
 logger(`Test started using env variable USER_ID: ${userId} and NODE_ENV=${process.env.NODE_ENV}`)
 logger(`Sequelize configuration: ${config.host}:${config.port} db:${config.database}`)
 
-const sequelizeClient = getSequelizeClient(config)
+const { client: sequelizeClient } = getSequelizeClient(config)
 
 const establishConnection = async () => {
   try {

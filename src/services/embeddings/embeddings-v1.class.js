@@ -1,7 +1,6 @@
-import { escapeValue } from '../../util/solr/filterReducers'
-import { NotFound } from '@feathersjs/errors'
-import { measureTime } from '../../util/instruments'
-import { asFindAll } from '../../util/solr/adapters'
+import { escapeValue } from '@/util/solr/filterReducers.js'
+import { measureTime } from '@/util/instruments.js'
+import { asFindAll } from '@/util/solr/adapters.js'
 import debugModule from 'debug'
 
 const debug = debugModule('impresso/services:embeddings')

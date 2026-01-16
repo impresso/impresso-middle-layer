@@ -1,5 +1,5 @@
-import User from '../../models/users.model'
-import { logger } from '../../logger'
+import User from '@/models/users.model.js'
+import { logger } from '@/logger.js'
 import jwt from 'jsonwebtoken'
 import { NotImplemented, BadRequest, NotFound } from '@feathersjs/errors'
 import debugLib from 'debug'

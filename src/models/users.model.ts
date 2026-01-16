@@ -1,9 +1,9 @@
 import { Sequelize, DataTypes, ModelDefined, CreationOptional } from 'sequelize'
-import { encrypt } from '../crypto'
-import UserBitmap, { BufferUserPlanGuest } from './user-bitmap.model'
-import Group from './groups.model'
-import Profile from './profiles.model'
-import { bigIntToBase64Bytes } from '../util/bigint'
+import { encrypt } from '@/crypto.js'
+import UserBitmap, { BufferUserPlanGuest } from '@/models/user-bitmap.model.js'
+import Group from '@/models/groups.model.js'
+import Profile from '@/models/profiles.model.js'
+import { bigIntToBase64Bytes } from '@/util/bigint.js'
 
 const CRYPTO_ITERATIONS = 180000
 

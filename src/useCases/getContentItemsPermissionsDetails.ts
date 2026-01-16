@@ -1,7 +1,7 @@
-import { SolrFacetQueryParams } from '../data/types'
-import { SimpleSolrClient, SelectRequestBody, Bucket } from '../internalServices/simpleSolr'
-import { SolrNamespaces } from '../solr'
-import { bigIntToBitString, bigIntToLongString } from '../util/bigint'
+import { SolrFacetQueryParams } from '@/data/types.js'
+import { SimpleSolrClient, SelectRequestBody, Bucket } from '@/internalServices/simpleSolr.js'
+import { SolrNamespaces } from '@/solr.js'
+import { bigIntToBitString, bigIntToLongString } from '@/util/bigint.js'
 
 export type PermissionsScope = 'explore' | 'get_transcript' | 'get_images'
 const permissionsScopes: PermissionsScope[] = ['explore', 'get_transcript', 'get_images']

@@ -1,6 +1,6 @@
-import { get } from 'lodash'
+import { get } from 'lodash-es'
 import { BadRequest } from '@feathersjs/errors'
-import { validated, formatValidationErrors } from '../util/json'
+import { validated, formatValidationErrors } from '@/util/json.js'
 import { HookContext } from '@feathersjs/feathers'
 
 /**

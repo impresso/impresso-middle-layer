@@ -1,6 +1,6 @@
 // Initializes the `articles-recommendations` service on path `/articles-recommendations`
-import { ArticlesRecommendations } from './articles-recommendations.class'
-import hooks from './articles-recommendations.hooks'
+import { ArticlesRecommendations } from './articles-recommendations.class.js'
+import hooks from './articles-recommendations.hooks.js'
 
 export default function (app) {
   const options = {

@@ -1,21 +1,55 @@
-import Attachment from '../../models/attachments.model'
-import { PublicFindResponse } from '../../models/common'
+import Attachment from '@/models/attachments.model.js'
+import { PublicFindResponse } from '@/models/common.js'
 import { Job } from 'bullmq'
 import { createHash } from 'crypto'
 import { stringify } from 'csv-stringify/sync'
 import { accessSync, createReadStream, createWriteStream, constants as fsConstants } from 'fs'
 import { access, appendFile, unlink, writeFile } from 'fs/promises'
-import { Filter, protobuf } from 'impresso-jscommons'
+import { Filter } from 'impresso-jscommons'
+import jscommons from 'impresso-jscommons'
 import { basename, dirname, join } from 'path'
 import { v7 as uuidv7 } from 'uuid'
-import { logger } from '../../logger'
-import { ContentItem as ContentItemPublic } from '../../models/generated/schemasPublic'
-import DBJob from '../../models/jobs.model'
-import { SolrNamespace, SolrNamespaces } from '../../solr'
-import { AppServices, ImpressoApplication } from '../../types'
+import { logger } from '@/logger.js'
+import { ContentItem as ContentItemPublic } from '@/models/generated/schemasPublic.js'
+import DBJob from '@/models/jobs.model.js'
+import { SolrNamespace, SolrNamespaces } from '@/solr.js'
+import { AppServices, ImpressoApplication } from '@/types.js'
+import ZipStream from 'zip-stream'
 
-// until the app is fully ESM, we need to import this way
-const { default: ZipStream } = require('zip-stream')
+const { protobuf } = jscommons
+
+type ExportedContentItem = Omit<ContentItemPublic, 'embeddings'>
+
+const ExportedFields = [
+  'uid',
+  'copyrightStatus',
+  'type',
+  'sourceMedium',
+  'title',
+  'transcript',
+  'entities',
+  'mentions',
+  'topics',
+  'transcriptLength',
+  'totalPages',
+  'languageCode',
+  'isOnFrontPage',
+  'publicationDate',
+  'issueUid',
+  'countryCode',
+  'providerCode',
+  'mediaUid',
+  'mediaType',
+  'hasOLR',
+  'ocrQualityScore',
+  'relevanceScore',
+  'pageNumbers',
+  'collectionUids',
+] as const satisfies readonly (keyof ExportedContentItem)[]
+
+// Type check to ensure all fields in ContentItemPublic are included in ExportedFields
+type MissingKeys = Exclude<keyof ExportedContentItem, (typeof ExportedFields)[number]>
+const _ensureComplete: MissingKeys extends never ? true : MissingKeys = true
 
 /**
  * Creates a unique export ID with date prefix, user hash, and UUID.
@@ -57,7 +91,7 @@ const publishProgressUpdate = async (
   })
 }
 
-const PageSize = 1000
+const PageSize = 250
 
 export const JobNameExportSearchResults = 'exportSearchResults'
 
@@ -146,6 +180,7 @@ const assertWritableFolder = (exportFolder?: string) => {
  */
 export const appendItemsToCSV = async <T extends Record<string, any>>(
   filePath: string,
+  headerNames: readonly (keyof T)[],
   items: T[],
   options?: { headers?: boolean }
 ): Promise<void> => {
@@ -165,6 +200,16 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
 
   const csvContent = stringify(items, {
     header: includeHeaders,
+    columns: Array.from(headerNames) as string[],
+    quoted: true,
+    cast: {
+      object: (value: any) => {
+        if (value === null) {
+          return ''
+        }
+        return JSON.stringify(value)
+      },
+    },
   })
 
   if (fileExists) {
@@ -309,7 +354,8 @@ export const createJobHandler = (app: ImpressoApplication) => {
     logger.info(`📝 Writing ${data.length} documents to export ${exportId} for user ${userId} (offset: ${offset})`)
 
     const exportFilePath = getExportFilePath(exportFolder!, exportId, 'csv')
-    await appendItemsToCSV(exportFilePath, data)
+
+    await appendItemsToCSV(exportFilePath, [...ExportedFields], data)
 
     const progressInPercent = Math.min(100, Math.round(((offset + data.length) / total) * 100))
     logger.info(`📊 Job ${job.id} ${job.name} is ${progressInPercent}% complete`)

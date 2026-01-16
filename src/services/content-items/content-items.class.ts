@@ -1,18 +1,18 @@
-import { Dictionary, keyBy, take } from 'lodash'
+import { keyBy, take } from 'lodash-es'
 import Debug from 'debug'
 import { Op } from 'sequelize'
 
-import { logger } from '../../logger'
-import initSequelizeService, { Service as SequelizeService } from '../sequelize.service'
-import Article, { IFragmentsAndHighlights } from '../../models/articles.model'
-import Issue from '../../models/issues.model'
-import { measureTime } from '../../util/instruments'
-import { ImpressoApplication } from '../../types'
-import { SlimUser } from '../../authentication'
-import { asFind, asGet, findAllRequestAdapter, findRequestAdapter, SolrFactory } from '../../util/solr/adapters'
-import { SimpleSolrClient } from '../../internalServices/simpleSolr'
-import Page, { withRewrittenIIIF } from '../../models/pages.model'
-import { buildResolvers } from '../../internalServices/cachedResolvers'
+import { logger } from '@/logger.js'
+import initSequelizeService, { Service as SequelizeService } from '@/services/sequelize.service.js'
+import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
+import Issue from '@/models/issues.model.js'
+import { measureTime } from '@/util/instruments.js'
+import { ImpressoApplication } from '@/types.js'
+import { SlimUser } from '@/authentication.js'
+import { asFind, asGet, findAllRequestAdapter, findRequestAdapter, SolrFactory } from '@/util/solr/adapters.js'
+import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import Page, { withRewrittenIIIF } from '@/models/pages.model.js'
+import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import {
   SlimContentItemFieldsNames,
   FullContentItemFieldsNames,
@@ -24,28 +24,28 @@ import {
   withMatches,
   EmbeddingsFields,
   ContentTextFields,
-} from '../../models/content-item'
+} from '@/models/content-item.js'
 import { ClientService, Params } from '@feathersjs/feathers'
-import { FindResponse } from '../../models/common'
+import { FindResponse } from '@/models/common.js'
 import {
   ContentItem,
   ContentItemPage,
   Collection as ContentItemCollection,
-} from '../../models/generated/schemas/contentItem'
-import { ContentItemDbModel } from '../../models/content-item.model'
-import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '../../models/content-item-page.model'
-import { mapRecordValues } from '../../util/fn'
+} from '@/models/generated/schemas/contentItem.js'
+import { ContentItemDbModel } from '@/models/content-item.model.js'
+import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '@/models/content-item-page.model.js'
+import { mapRecordValues } from '@/util/fn.js'
 import { NotFound } from '@feathersjs/errors'
-import { Collection, Topic } from '../../models/generated/schemas'
-import { WellKnownKeys } from '../../cache'
-import { getContentItemMatches } from '../search/search.extractors'
-import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '../../models/generated/solr/contentItem'
-import { allContentFields, plainFieldAsJson, ScoreField } from '../../util/solr'
-import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '../../models/authorization'
-import { base64BytesToBigInt } from '../../util/bigint'
-import { QueueService } from '../../internalServices/queue'
+import { Collection, Topic } from '@/models/generated/schemas.js'
+import { WellKnownKeys } from '@/cache.js'
+import { getContentItemMatches } from '@/services/search/search.extractors.js'
+import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/solr/contentItem.js'
+import { allContentFields, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
+import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
+import { base64BytesToBigInt } from '@/util/bigint.js'
+import { QueueService } from '@/internalServices/queue.js'
 import { Filter } from 'impresso-jscommons'
-import { isTrue } from '../../util/queryParameters'
+import { isTrue } from '@/util/queryParameters.js'
 
 const DefaultLimit = 10
 
@@ -189,6 +189,8 @@ const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: Imp
     },
   }
 }
+
+type Dictionary<T> = Record<string, T>
 
 const withIIIF = (
   contentItems: ContentItem[],
@@ -383,9 +385,9 @@ export class ContentItemService implements IContentItemService {
       body: requestBody,
     })
 
-    const contentItems = (
-      results.response?.docs?.map(d => toContentItem(d, { maxScore: results.response?.maxScore })) ?? []
-    ).map(item => withMatches(item, results))
+    const contentItems = (results.response?.docs ?? ([] as SlimDocumentFields[]))
+      .map(d => toContentItem(d, { maxScore: results.response?.maxScore }))
+      .map(item => withMatches(item, results))
 
     // get data enrichment items
     const topicIds = contentItems.flatMap(d => d.semanticEnrichments?.topics?.map(t => t.id) ?? [])

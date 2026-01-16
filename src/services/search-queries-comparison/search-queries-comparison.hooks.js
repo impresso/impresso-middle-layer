@@ -1,15 +1,19 @@
 import { hooks } from '@feathersjs/authentication-local'
-import { authenticate } from '../../hooks/authenticate'
-import { validateWithSchema } from '../../hooks/schema'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { validateWithSchema } from '@/hooks/schema.js'
 
 const { protect } = hooks
 
 export default {
-  before: {
-    create: [
+  around: {
+    all: [
       authenticate('jwt', {
         allowUnauthenticated: true,
-      }),
+      })
+    ]
+  },
+  before: {
+    create: [
       validateWithSchema('services/search-queries-comparison/schema/post/payload.json'),
     ],
   },

@@ -1,7 +1,7 @@
 import type { ServiceSwaggerOptions } from 'feathers-swagger'
-import type { MethodParameter, QueryParameter } from '../../util/openapi'
-import { getRequestBodyContent, getStandardParameters, getStandardResponses } from '../../util/openapi'
-import { REGEX_UIDS } from '../../hooks/params'
+import type { MethodParameter, QueryParameter } from '@/util/openapi.js'
+import { getRequestBodyContent, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
+import { REGEX_UIDS } from '@/hooks/params.js'
 
 const parameterUids: QueryParameter = {
   in: 'query',

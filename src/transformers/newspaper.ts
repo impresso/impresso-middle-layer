@@ -1,5 +1,5 @@
-import { Newspaper as NewspaperInternal } from '../models/generated/schemas'
-import { Newspaper as NewspaperPublic } from '../models/generated/schemasPublic'
+import { Newspaper as NewspaperInternal } from '@/models/generated/schemas.js'
+import { Newspaper as NewspaperPublic } from '@/models/generated/schemasPublic.js'
 
 export const transformNewspaper = (input: NewspaperInternal): NewspaperPublic => {
   return {

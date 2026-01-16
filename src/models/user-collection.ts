@@ -1,7 +1,7 @@
 import type { ModelStatic, Sequelize } from 'sequelize'
 import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreationAttributes, Model } from 'sequelize'
 
-import User from './users.model'
+import User from './users.model.js'
 
 /**
  * Database model interface for user collections.

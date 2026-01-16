@@ -1,6 +1,6 @@
 import assert from 'assert'
-import Topic from '../../../src/models/topics.model'
-import { Topic as SolrTopic } from '../../../src/models/generated/solr'
+import Topic from '@/models/topics.model.js'
+import { Topic as SolrTopic } from '@/models/generated/solr.js'
 
 const mock = {
   id: 'tmGDL_tp00_fr',

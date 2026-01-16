@@ -1,4 +1,4 @@
-import { ImpressoApplication } from '../../../types'
+import { ImpressoApplication } from '@/types.js'
 
 /**
  * Base interface for an experiment container.

@@ -1,6 +1,6 @@
-import { SolrNamespaces } from '../../../solr'
-import { ImpressoApplication } from '../../../types'
-import { ExperimentBase } from './base'
+import { SolrNamespaces } from '@/solr.js'
+import { ImpressoApplication } from '@/types.js'
+import { ExperimentBase } from './base.js'
 
 interface RequestBody {
   solrPayload: Record<string, any>

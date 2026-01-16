@@ -4,14 +4,14 @@ import {
   getThumbnailUrl,
   getExternalThumbnailUrl,
   sanitizeIiifImageUrl,
-} from '../util/iiif'
-import { Config, ImageUrlRewriteRule } from './generated/common'
-import { IArticleEntity, ArticleEntity } from './articles-entities.model'
-import { IArticleTag, ArticleTag } from './articles-tags.model'
+} from '@/util/iiif.js'
+import { Config, ImageUrlRewriteRule } from '@/models/generated/common.js'
+import { IArticleEntity, ArticleEntity } from '@/models/articles-entities.model.js'
+import { IArticleTag, ArticleTag } from '@/models/articles-tags.model.js'
 import { Sequelize } from 'sequelize'
 
 import { DataTypes } from 'sequelize'
-import Issue from './issues.model'
+import Issue from '@/models/issues.model.js'
 import initConfig from '@feathersjs/configuration'
 
 const config = initConfig()() as any as Config

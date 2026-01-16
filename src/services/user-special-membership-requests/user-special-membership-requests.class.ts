@@ -1,12 +1,12 @@
 import { Op, type Sequelize } from 'sequelize'
-import { PublicFindResponse as FindResponse } from '../../models/common'
-import type { ImpressoApplication } from '../../types'
+import { PublicFindResponse as FindResponse } from '@/models/common.js'
+import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import UserSpecialMembershipRequestModel from '../../models/user-special-membership-requests.model'
+import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
 import { BadRequest, NotFound } from '@feathersjs/errors'
-import { SlimUser } from '../../authentication'
-import SpecialMembershipAccess from '../../models/special-membership-access.model'
-import { CeleryClient } from '../../celery'
+import { SlimUser } from '@/authentication.js'
+import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
+import { CeleryClient } from '@/celery.js'
 
 export interface FindQuery {
   limit?: number

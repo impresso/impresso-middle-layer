@@ -1,6 +1,6 @@
-import lodash from 'lodash'
-import { Topic as ITopic, TopicWord as ITopicWord } from './generated/schemas'
-import { Topic as ISolrTopic } from './generated/solr'
+import { findIndex, take } from 'lodash-es'
+import { Topic as ITopic, TopicWord as ITopicWord } from '@/models/generated/schemas.js'
+import { Topic as ISolrTopic } from '@/models/generated/solr.js'
 
 class TopicWord implements ITopicWord {
   w: string
@@ -25,7 +25,7 @@ class TopicWord implements ITopicWord {
 }
 
 class Topic implements ITopic {
-  static readonly SOLR_FL: (keyof ISolrTopic)[] = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s']
+  static readonly SOLR_FL: string[] = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s'] satisfies (keyof ISolrTopic)[]
 
   uid: string
   language: string
@@ -85,16 +85,14 @@ class Topic implements ITopic {
     this.model = String(model)
     if (checkHighlight) {
       // get highlighted word
-      const idx = lodash.findIndex(this.words, 'h')
+      const idx = findIndex(this.words, 'h')
       if (idx > wordsInExcerpt - 1) {
-        this.excerpt = lodash
-          .take(this.words, wordsInExcerpt - 1)
-          .concat([new TopicWord({ w: '...', p: 0 }), this.words[idx]])
+        this.excerpt = take(this.words, wordsInExcerpt - 1).concat([new TopicWord({ w: '...', p: 0 }), this.words[idx]])
       } else {
-        this.excerpt = lodash.take(this.words, wordsInExcerpt)
+        this.excerpt = take(this.words, wordsInExcerpt)
       }
     } else {
-      this.excerpt = lodash.take(this.words, wordsInExcerpt)
+      this.excerpt = take(this.words, wordsInExcerpt)
     }
     this.countItems = countItems
     this.relatedTopics = relatedTopics

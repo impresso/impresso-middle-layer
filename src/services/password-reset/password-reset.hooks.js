@@ -1,4 +1,4 @@
-import { validate, REGEX_EMAIL, REGEX_PASSWORD } from '../../hooks/params'
+import { validate, REGEX_EMAIL, REGEX_PASSWORD } from '@/hooks/params.js'
 
 export default {
   before: {

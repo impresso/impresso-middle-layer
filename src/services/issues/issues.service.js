@@ -1,8 +1,8 @@
 // Initializes the `issues` service on path `/issues`
-import hooks from './issues.hooks'
-import createService from './issues.class'
+import hooks from '@/services/issues/issues.hooks.js'
+import createService from '@/services/issues/issues.class.js'
 
-export default function (app) {
+export default async function (app) {
   const paginate = app.get('paginate')
 
   const options = {
@@ -12,7 +12,7 @@ export default function (app) {
   }
 
   // Initialize our service with any options it requires
-  app.use('/issues', createService(options))
+  app.use('/issues', await createService(options))
 
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('issues')

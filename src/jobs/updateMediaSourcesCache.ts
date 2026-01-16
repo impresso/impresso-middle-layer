@@ -1,7 +1,7 @@
-import { consolidateMediaSources } from '../useCases/consolidateMediaSources'
-import { WellKnownKeys } from '../cache'
-import { ImpressoApplication } from '../types'
-import { SolrNamespaces } from '../solr'
+import { consolidateMediaSources } from '@/useCases/consolidateMediaSources.js'
+import { WellKnownKeys } from '@/cache.js'
+import { ImpressoApplication } from '@/types.js'
+import { SolrNamespaces } from '@/solr.js'
 
 /** 100 days */
 const DefaultTtlSeconds = 60 * 60 * 24 * 100 * 1000

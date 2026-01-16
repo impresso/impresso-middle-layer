@@ -5,7 +5,7 @@ import {
   getRequestBodyContent,
   getResponseContent,
   retryAfterHeaders,
-} from '../../util/openapi'
+} from '@/util/openapi.js'
 
 export const docs: ServiceSwaggerOptions = {
   description: 'Issue a token for the user',

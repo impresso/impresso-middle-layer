@@ -1,6 +1,6 @@
-import { OpenPermissions } from '../util/bigint'
-import { LanguageCode } from './solr'
-import { AllDocumentFields } from './text-reuse-passage'
+import { OpenPermissions } from '@/util/bigint.js'
+import { LanguageCode } from '@/models/solr.js'
+import { AllDocumentFields } from '@/models/text-reuse-passage.js'
 
 interface ITRPassageConstructor {
   id?: string

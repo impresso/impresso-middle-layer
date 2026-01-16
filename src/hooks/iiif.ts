@@ -1,6 +1,6 @@
 import type { HookContext } from '@feathersjs/feathers'
 import Debug from 'debug'
-import type { ImpressoApplication } from '../types'
+import type { ImpressoApplication } from '@/types.js'
 
 type ProxyConfig = any
 

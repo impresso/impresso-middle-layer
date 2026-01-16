@@ -1,8 +1,8 @@
 /**
- * @typedef {import('.').RelevanceContextItem} RelevanceContextItem
- * @typedef {import('.').RelevanceContextItemType} RelevanceContextItemType
- * @typedef {import('.').TimeRangeContextParameters} TimeRangeContextParameters
- * @typedef {import('.').ItemContextParameters} ItemContextParameters
+ * @typedef {import('./index.js').RelevanceContextItem} RelevanceContextItem
+ * @typedef {import('./index.js').RelevanceContextItemType} RelevanceContextItemType
+ * @typedef {import('./index.js').TimeRangeContextParameters} TimeRangeContextParameters
+ * @typedef {import('./index.js').ItemContextParameters} ItemContextParameters
  */
 
 const RelevanceContextItemTypes = Object.freeze({

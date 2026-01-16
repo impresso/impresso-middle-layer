@@ -1,9 +1,9 @@
-import { Service } from './me.class'
-import type { ImpressoApplication } from '../../types'
-import hooks from './me.hooks'
+import { Service } from '@/services/me/me.class.js'
+import type { ImpressoApplication } from '@/types.js'
+import hooks from '@/services/me/me.hooks.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 
-export default (app: ImpressoApplication) => {
+export default async (app: ImpressoApplication) => {
   app.use(
     '/me',
     new Service({

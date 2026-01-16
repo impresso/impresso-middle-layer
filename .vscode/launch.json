@@ -25,24 +25,18 @@
       ]
     },
     {
-      "name": "Nodemon: Start",
+      "name": "Start internal API",
       "type": "node",
       "request": "launch",
-      "runtimeExecutable": "nodemon",
+      "runtimeExecutable": "tsx",
       "args": [
-        "--exec",
-        "node --env-file=.env",
-        "--enable-source-maps",
-        "--inspect",
-        "dist/",
-        "--ignore",
-        "data/*",
-        "--env-file",
-        "./.env"
+        "--env-file=.env",
+        "--watch",
+        "src/index.ts"
       ]
     },
     {
-      "name": "Nodemon: Attach",
+      "name": "Attach",
       "type": "node",
       "request": "attach",
       "port": 9229

@@ -2,8 +2,7 @@
  * Contains all queries related to collections.
  */
 
-import { Bucket, SelectRequestBody, TermsFacetDetails } from '../../internalServices/simpleSolr'
-import { CollectionItem } from '../../models/generated/solr'
+import { Bucket, SelectRequestBody, TermsFacetDetails } from '@/internalServices/simpleSolr.js'
 
 /**
  * A pair of user ID and collection ID

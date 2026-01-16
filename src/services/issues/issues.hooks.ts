@@ -1,10 +1,10 @@
 import { Hook, HookContext } from '@feathersjs/feathers'
-import { authenticateAround as authenticate } from '../../hooks/authenticate'
-import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '../../hooks/params'
-import { filtersToSolrQuery } from '../../hooks/search'
-import { ImpressoApplication } from '../../types'
-import { sanitizeIiifImageUrl } from '../../util/iiif'
-import { eachFilterValidator } from '../search/search.validators'
+import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '@/hooks/params.js'
+import { filtersToSolrQuery } from '@/hooks/search.js'
+import { ImpressoApplication } from '@/types.js'
+import { sanitizeIiifImageUrl } from '@/util/iiif.js'
+import { eachFilterValidator } from '@/services/search/search.validators.js'
 
 const getPrefix = (prefixes: string[], url?: string): string | undefined => {
   return url == null ? undefined : prefixes.find(prefix => url.startsWith(prefix))

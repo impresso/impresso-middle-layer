@@ -1,6 +1,6 @@
 // Initializes the `init` service on path `/init`
 import createService from './init.class.js'
-import hooks from './init.hooks'
+import hooks from './init.hooks.js'
 
 export default function (app) {
   const paginate = app.get('paginate')
