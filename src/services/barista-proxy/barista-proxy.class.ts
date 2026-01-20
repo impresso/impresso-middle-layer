@@ -83,6 +83,8 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
     const messages: any[] = []
     let buffer = ''
 
+    const userUid = params?.user?.uid
+
     const eventEmitter = this as any as EventEmitter
 
     try {
@@ -111,6 +113,7 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
               eventEmitter.emit('barista-response', {
                 type: 'chunk',
                 data: parsed['messages'] ?? [],
+                userUid,
               })
             } catch (error) {
               // Skip invalid JSON
@@ -124,6 +127,7 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
       eventEmitter.emit('barista-response', {
         type: 'done',
         data: [],
+        userUid,
       })
 
       return { messages: [] }
@@ -132,6 +136,7 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
       eventEmitter.emit('barista-response', {
         type: 'error',
         error: error instanceof Error ? error.message : 'Unknown error',
+        userUid,
       })
       throw new BadRequest('Stream reading failed: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }

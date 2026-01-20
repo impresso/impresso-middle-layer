@@ -9,8 +9,9 @@ export default function (app: ImpressoApplication) {
   app.service('barista-proxy').hooks(hooks)
 
   // Publish barista-response events to authenticated users
-  app.service('barista-proxy').publish('barista-response', (data: any, context: any) => {
-    // Send to authenticated channel for logged-in users
-    return app.channel('authenticated')
+  app.service('barista-proxy').publish('barista-response', (data: any, context: any, x: any) => {
+    // Send to authenticated channel for the logged-in user only
+    // fall back to 'null' channel if no userUid is provided (should not happen)
+    return app.channel(data.userUid != null ? `logs/${data.userUid}` : `logs/null`)
   })
 }
