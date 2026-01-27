@@ -132,7 +132,6 @@ const internalApiServices = [
   { name: 'terms-of-use', init: termsOfUse },
   { name: 'user-change-plan-request', init: userChangePlanRequest },
   { name: 'user-requests', init: userRequests },
-  { name: 'user-requests-reviews', init: userRequestsReviews },
   { name: 'newspapers', init: newspapers },
   { name: 'feedback-collector', init: feedbackCollector },
   { name: 'datalab-support', init: datalabSupport },
