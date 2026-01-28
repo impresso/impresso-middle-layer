@@ -85,7 +85,7 @@ export const loadFacetRanges = async (solrClient: SimpleSolrClient): Promise<All
       allRanges[index] = indexRanges
       logger.info(`Successfully loaded facet ranges for index: ${index}`)
     } catch (error: any) {
-      logger.error(`Error fetching facet ranges for index ${index}:`, error.message || error)
+      logger.error(`Error fetching facet ranges for index ${index}: ${error instanceof Error ? error.message : error}`)
       // Decide if we should throw, return partial data, or an empty object for this index
       allRanges[index] = {} // Assign empty object on error for this index
     }
