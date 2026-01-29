@@ -65,7 +65,7 @@ import datalabSupport from './datalab-support/datalab-support.service.js'
 import specialMembershipAccess from './special-membership-access/special-membership-access.service.js'
 import userSpecialMembershipRequests from './user-special-membership-requests/user-special-membership-requests.service.js'
 import baristaProxy from './barista-proxy/barista-proxy.service.js'
-
+import magicLink from './magic-link/magic-link.service.js'
 /**
  * Some public services are declared here but are only required internally by
  * other services. Whether a service is available publicly or not is determined
@@ -137,6 +137,7 @@ const internalApiServices = [
   { name: 'datalab-support', init: datalabSupport },
   { name: 'special-membership-access', init: specialMembershipAccess },
   { name: 'user-special-membership-requests', init: userSpecialMembershipRequests },
+  { name: 'magic-link', init: magicLink },
 ]
 
 const baristaServices = [{ name: 'barista-proxy', init: baristaProxy }]
