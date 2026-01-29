@@ -8,7 +8,107 @@ import { request, Dispatcher } from 'undici'
 import { EventEmitter } from 'stream'
 
 export interface BaristaRequest {
+  /**
+   * Additionalinstructions
+   * @description Additional instructions to guide the agent's response. This is an extra added in addition to the system prompt.
+   */
+  additionalInstructions?: string | null
+  /**
+   * Message
+   * @description The message to send to the Barista agent.
+   */
   message: string
+  /**
+   * Modelid
+   * @description The ID of the model to use.
+   */
+  modelId?:
+    | (
+        | 'llama-3.3-70b-versatile'
+        | 'llama-3.1-8b-instant'
+        | 'qwen/qwen3-32b'
+        | 'openai/gpt-oss-20b'
+        | 'openai/gpt-oss-120b'
+      )
+    | null
+  /** @description Current query filters for the context, if different from the last set in the conversation. */
+  searchQuery?: {
+    /**
+     * Filters
+     * @description List of filters to apply
+     */
+    filters?: {
+      /**
+       * Context
+       * @description Filter context
+       * @default include
+       * @enum {string}
+       */
+      context: 'include' | 'exclude'
+      /**
+       * Op
+       * @description Filter operator. Choice depends on filter type and context.
+       * @default AND
+       * @enum {string}
+       */
+      op: 'AND' | 'OR'
+      /**
+       * Precision
+       * @description Filter precision
+       * @default exact
+       * @enum {string}
+       */
+      precision: 'exact' | 'partial' | 'fuzzy' | 'soft'
+      /**
+       * Q
+       * @description Value depends on the filter type. For boolean filters - not required. Non-string types should be converted to string.
+       */
+      q?: string[] | string
+      /**
+       * Type
+       * @description Filter type
+       * @enum {string}
+       */
+      type:
+        | 'hasTextContents'
+        | 'ocrQuality'
+        | 'contentLength'
+        | 'isFront'
+        | 'string'
+        | 'title'
+        | 'daterange'
+        | 'uid'
+        | 'copyright'
+        | 'partner'
+        | 'language'
+        | 'page'
+        | 'issue'
+        | 'newspaper'
+        | 'topic'
+        | 'year'
+        | 'type'
+        | 'sourceMedium'
+        | 'sourceType'
+        | 'country'
+        | 'mention'
+        | 'person'
+        | 'location'
+        | 'nag'
+        | 'org'
+        | 'regex'
+        | 'textReuseClusterSize'
+        | 'textReuseClusterLexicalOverlap'
+        | 'textReuseClusterDayDelta'
+        | 'contentItemId'
+        | 'textReusePassage'
+        | 'imageTechnique'
+    }[]
+  } | null
+  /**
+   * Sessionid
+   * @description Session ID for the conversation.
+   */
+  sessionId?: string | null
 }
 
 export interface BaristaResponse {
@@ -50,10 +150,7 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
       },
-      body: JSON.stringify({
-        message: data.message,
-        session_id: params?.user?.uid || v4(),
-      }),
+      body: JSON.stringify(data),
     })
 
     if (response.statusCode !== 200) {
