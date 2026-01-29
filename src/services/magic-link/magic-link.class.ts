@@ -44,8 +44,19 @@ export class MagicLinkService {
       throw new NotFound()
     }
     // Generate a unique token for the user's password reset request
-    const token = jwt.sign({ email: data.email }, this.config.secret, { expiresIn: 60 * 5 })
-    debug('[create] Generated magic link token for email:', data.email, 'token:', token, 'userId:', user.get('id'))
+    const token = jwt.sign({ userId: user.get('id') }, this.config.secret, {
+      ...this.config.jwtOptions,
+      expiresIn: 60 * 5,
+    })
+    debug(
+      '[create] Generated magic link token for email:',
+      data.email,
+      'token:',
+      token,
+      'userId:',
+      user.get('id'),
+      this.config.jwtOptions
+    )
 
     await this.celeryClient
       .run({
