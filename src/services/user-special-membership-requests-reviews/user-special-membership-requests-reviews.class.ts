@@ -124,6 +124,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
           lastname: user.get('lastname') as string,
           groups: (user as any).groups?.map((d: Group) => d.toJSON()),
           profile: (user as any).profile,
+          bitmap: (user as any).userBitmap ? (user as any).userBitmap.get('bitmap') : undefined,
         }
         return acc
       },
