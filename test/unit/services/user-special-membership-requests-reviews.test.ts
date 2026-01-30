@@ -1,4 +1,3 @@
-import Debug from 'debug'
 import { strict as assert } from 'assert'
 // Feathers
 import type { TestDatabase } from '../../helpers/database.js'
@@ -14,8 +13,6 @@ import User from '@/models/users.model.js'
 // Services
 import { UserSpecialMembershipRequestReviewsService } from '@/services/user-special-membership-requests-reviews/user-special-membership-requests-reviews.class.js'
 import Group from '@/models/groups.model.js'
-
-Debug.enable('impresso*')
 
 // --- Mock Test Data -------------------------------------
 const mockUserPlans = ['plan-basic', 'plan-educational', 'plan-researcher'].map((name, index) => ({

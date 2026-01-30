@@ -4,9 +4,10 @@ import type { ImpressoApplication } from '@/types.js'
 import type { Params } from '@feathersjs/feathers'
 import { Sequelize } from 'sequelize'
 import Debug from 'debug'
-import { Unavailable } from '@feathersjs/errors'
+import { Unavailable, BadRequest } from '@feathersjs/errors'
 import jwt from 'jsonwebtoken'
 import { CeleryClient } from '@/celery.js'
+import { logger } from '@/logger.js'
 
 const debug = Debug('impresso:services:magic-link')
 
@@ -66,21 +67,23 @@ export class MagicLinkService {
         result: 'ok',
       }
     }
-    // Generate a unique token for the user's password reset request
-    const token = jwt.sign({ userId: user.get('id') }, this.config.secret, {
-      ...this.config.jwtOptions,
+    // Generate a unique token for the user's password reset request, this is not our JWT for auth
+    const token = jwt.sign({ email: data.email }, this.config.secret, {
       expiresIn: 60 * 5,
     })
+    // save into the db
+
     debug('[create] Generated magic link token for email:', data.email, 'userId:', user.get('id'))
     if (!this.celeryClient) {
       debug('[create] No celery client configured, cannot send email to', data.email)
+      logger.error('Email service not configured')
       throw new Unavailable('Email service not configured')
     }
     await this.celeryClient
       .run({
         task: 'impresso.tasks.send_magic_link_email',
         args: [
-          // user id
+          // user email
           user.get('id'),
           // token
           token,
@@ -88,9 +91,29 @@ export class MagicLinkService {
       })
       .catch((err: Error) => {
         debug('[create] Error sending magic link email to', data.email, 'error:', err)
+        logger.error('Failed to send magic link email to', data.email, 'error:', err)
         throw new Unavailable('Failed to send email')
       })
 
+    return {
+      result: 'ok',
+    }
+  }
+
+  async get(token: string): Promise<CreateResult> {
+    debug('[get] Verifying magic link token:', token)
+
+    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+      throw new BadRequest('Invalid token format')
+    }
+    try {
+      const decoded = jwt.verify(token, this.config.secret)
+      debug('[get] Decoded token:', decoded)
+      // @todo: return verified token?
+    } catch (err) {
+      logger.error(err)
+      throw new BadRequest('Invalid token')
+    }
     return {
       result: 'ok',
     }

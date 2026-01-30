@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert'
-import { NotFound, Unavailable } from '@feathersjs/errors'
+import { BadRequest, NotFound, Unavailable } from '@feathersjs/errors'
 import { MagicLinkService } from '@/services/magic-link/magic-link.class.js'
 import User from '@/models/users.model.js'
 import { setupTestDatabase, teardownTestDatabase, TestDatabase } from '../../helpers/database.js'
@@ -82,17 +82,10 @@ describe('MagicLinkService', () => {
       assert.ok(typeof taskCall.args[1] === 'string') // token
     })
 
-    it('should throw NotFound when user not found', async () => {
-      await assert.rejects(
-        async () => {
-          await service.create({ email: 'nonexistent@example.com' })
-        },
-        (error: any) => {
-          assert.ok(error instanceof NotFound)
-          return true
-        }
-      )
-
+    it('should still return OK when user not found, but no email sent', async () => {
+      const result = await service.create({ email: 'nonexistent@example.com' })
+      assert.ok(result)
+      assert.strictEqual(result.result, 'ok')
       // Celery should not be called
       assert.strictEqual(celeryRunCalls.length, 0)
     })
@@ -146,17 +139,10 @@ describe('MagicLinkService', () => {
         ...mockUsers[0],
         isActive: false,
       } as any)
-
-      await assert.rejects(
-        async () => {
-          await service.create({ email: mockUsers[0].email })
-        },
-        (error: any) => {
-          assert.ok(error instanceof NotFound)
-          return true
-        }
-      )
-
+      const result = await service.create({ email: mockUsers[0].email })
+      assert.ok(result)
+      assert.strictEqual(result.result, 'ok')
+      // Celery should not be called
       assert.strictEqual(celeryRunCalls.length, 0)
     })
 
@@ -173,6 +159,39 @@ describe('MagicLinkService', () => {
       assert.ok(typeof token === 'string')
       const parts = token.split('.')
       assert.strictEqual(parts.length, 3, 'Token should have 3 parts (JWT format)')
+    })
+
+    describe('get', () => {
+      it('should return a valid token in response', async () => {
+        // Create a test user
+        const user = await userModel.create(mockUsers[0] as any)
+        await service.create({ email: mockUsers[0].email })
+
+        const taskCall = celeryRunCalls[0]
+        const token = taskCall.args[1]
+
+        console.log(token)
+
+        const result = await service.get(token)
+
+        assert.ok(result)
+      })
+
+      it('should throw BadRequest error for a bad JWT', async () => {
+        await assert.rejects(service.get('999'), (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, 'Invalid token format')
+          return true
+        })
+      })
+      it('should throw BadRequest error for an invalid JWT', async () => {
+        const invalidToken = 'invalid.payload.signature'
+        await assert.rejects(service.get(invalidToken), (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, 'Invalid token')
+          return true
+        })
+      })
     })
   })
 })
