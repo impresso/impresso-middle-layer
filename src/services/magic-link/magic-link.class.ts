@@ -1,4 +1,4 @@
-import { AuthConfig } from '@/models/generated/common.js'
+import { Config } from '@/models/generated/common.js'
 import User from '@/models/users.model.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { Params } from '@feathersjs/feathers'
@@ -7,9 +7,11 @@ import Debug from 'debug'
 import { Unavailable, BadRequest } from '@feathersjs/errors'
 import jwt from 'jsonwebtoken'
 import { CeleryClient } from '@/celery.js'
+import { RedisClient } from '@/redis.js'
 import { logger } from '@/logger.js'
+import { randomUUID } from 'crypto'
 
-const debug = Debug('impresso:services:magic-link')
+const debug = Debug('impresso/services:magic-link')
 
 export interface CreateData {
   email: string
@@ -34,16 +36,21 @@ export interface CreateResult {
  * @throws {Unavailable} If email delivery fails during token creation
  */
 export class MagicLinkService {
-  protected readonly config: AuthConfig
+  protected readonly config: Config['magicLink']
   protected readonly sequelizeClient: Sequelize
   protected readonly userModel: ReturnType<typeof User.sequelize>
   protected readonly celeryClient: CeleryClient
+  protected readonly redisClient: RedisClient
+  public readonly name: string
 
   constructor(protected readonly app: ImpressoApplication) {
-    this.config = app.get('authentication') || {}
+    this.config = app.get('magicLink')
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.userModel = User.sequelize(this.sequelizeClient)
     this.celeryClient = app.get('celeryClient') as CeleryClient
+    this.redisClient = app.service('redisClient').client as RedisClient
+    this.name = 'magicLink'
+    debug('Initialized service %s', this.name)
   }
 
   /**
@@ -68,11 +75,11 @@ export class MagicLinkService {
       }
     }
     // Generate a unique token for the user's password reset request, this is not our JWT for auth
-    const token = jwt.sign({ email: data.email }, this.config.secret, {
-      expiresIn: 60 * 5,
+    const token = jwt.sign({ rand: randomUUID() }, this.config.secret, {
+      expiresIn: this.config.expiration,
     })
-    // save into the db
-
+    // save user id related to the token into the db
+    await this.redisClient.setEx(`magic-link:${token}`, this.config.expiration, String(user.get('id')))
     debug('[create] Generated magic link token for email:', data.email, 'userId:', user.get('id'))
     if (!this.celeryClient) {
       debug('[create] No celery client configured, cannot send email to', data.email)
@@ -109,7 +116,17 @@ export class MagicLinkService {
     try {
       const decoded = jwt.verify(token, this.config.secret)
       debug('[get] Decoded token:', decoded)
-      // @todo: return verified token?
+      // check if token exists in redis and get value (user id) associated with the token
+      const userIdStr = await this.redisClient.get(`magic-link:${token}`)
+      if (!userIdStr) {
+        debug('[get] Token has no associated user id in redis:', token)
+        throw new BadRequest('Invalid token')
+      }
+      const userId = Number(userIdStr)
+      debug('[get] Retrieved user id from token:', userId)
+      // delete the token after use
+      await this.redisClient.del(`magic-link:${token}`)
+      debug('[get] Token valid, deleted from redis:', token)
     } catch (err) {
       logger.error(err)
       throw new BadRequest('Invalid token')

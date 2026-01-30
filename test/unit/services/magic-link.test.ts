@@ -4,6 +4,7 @@ import { MagicLinkService } from '@/services/magic-link/magic-link.class.js'
 import User from '@/models/users.model.js'
 import { setupTestDatabase, teardownTestDatabase, TestDatabase } from '../../helpers/database.js'
 import type { CeleryClient } from '@/celery.js'
+import { RedisClient } from '@/redis.js'
 
 const mockUsers = Array.from({ length: 2 }, (_, i) => ({
   uid: `user${i + 1}`,
@@ -21,7 +22,9 @@ describe('MagicLinkService', () => {
   let service: MagicLinkService
   let userModel: ReturnType<typeof User.sequelize>
   let celeryClient: CeleryClient
+  let redisClient: any
   let celeryRunCalls: Array<{ task: string; args: any[] }>
+  let redisSetExCalls: Record<string, { key: string; expiration: number; value: string }>
 
   before(async () => {
     // Setup database once for all tests
@@ -29,6 +32,8 @@ describe('MagicLinkService', () => {
     userModel = User.sequelize(db.sequelize)
     // Track celery calls
     celeryRunCalls = []
+    // track redis keys
+    redisSetExCalls = {}
     // Create a simple mock celery client that tracks calls
     celeryClient = {
       run: async (task: { task: string; args: any[] }) => {
@@ -37,14 +42,42 @@ describe('MagicLinkService', () => {
       },
     } as CeleryClient
 
+    // mock REDIS client service
+    redisClient = {
+      client: {
+        setEx: async (key: string, expiration: number, value: string) => {
+          redisSetExCalls[key] = { key, expiration, value }
+          return 'OK'
+        },
+        get: async (key: string) => {
+          const record = redisSetExCalls[key]
+          return record ? record.value : null
+        },
+        del: async (key: string) => {
+          delete redisSetExCalls[key]
+          return 1
+        },
+      } as RedisClient,
+    }
+
     // Update the app mock to return the celeryClient
     ;(db.app as any).get = (key: string) => {
+      if (key === 'magicLink') {
+        return {
+          secret: 'test-magic-link-secret',
+          expiration: 300, // 5 minutes
+        }
+      }
       if (key === 'sequelizeClient') return db.sequelize
       if (key === 'authentication')
         return {
           secret: 'test-secret-key',
         }
       if (key === 'celeryClient') return celeryClient
+      return {}
+    }
+    ;(db.app as any).service = (name: string) => {
+      if (name === 'redisClient') return redisClient
       return {}
     }
 
@@ -160,37 +193,36 @@ describe('MagicLinkService', () => {
       const parts = token.split('.')
       assert.strictEqual(parts.length, 3, 'Token should have 3 parts (JWT format)')
     })
+  })
+  describe('get', () => {
+    it('should return a valid token in response', async () => {
+      // Create a test user
+      const user = await userModel.create(mockUsers[0] as any)
+      await service.create({ email: mockUsers[0].email })
 
-    describe('get', () => {
-      it('should return a valid token in response', async () => {
-        // Create a test user
-        const user = await userModel.create(mockUsers[0] as any)
-        await service.create({ email: mockUsers[0].email })
+      const taskCall = celeryRunCalls[0]
+      const token = taskCall.args[1]
 
-        const taskCall = celeryRunCalls[0]
-        const token = taskCall.args[1]
+      console.log(token)
 
-        console.log(token)
+      const result = await service.get(token)
 
-        const result = await service.get(token)
+      assert.ok(result)
+    })
 
-        assert.ok(result)
+    it('should throw BadRequest error for a bad JWT', async () => {
+      await assert.rejects(service.get('999'), (error: any) => {
+        assert.ok(error instanceof BadRequest)
+        assert.strictEqual(error.message, 'Invalid token format')
+        return true
       })
-
-      it('should throw BadRequest error for a bad JWT', async () => {
-        await assert.rejects(service.get('999'), (error: any) => {
-          assert.ok(error instanceof BadRequest)
-          assert.strictEqual(error.message, 'Invalid token format')
-          return true
-        })
-      })
-      it('should throw BadRequest error for an invalid JWT', async () => {
-        const invalidToken = 'invalid.payload.signature'
-        await assert.rejects(service.get(invalidToken), (error: any) => {
-          assert.ok(error instanceof BadRequest)
-          assert.strictEqual(error.message, 'Invalid token')
-          return true
-        })
+    })
+    it('should throw BadRequest error for an invalid JWT', async () => {
+      const invalidToken = 'invalid.payload.signature'
+      await assert.rejects(service.get(invalidToken), (error: any) => {
+        assert.ok(error instanceof BadRequest)
+        assert.strictEqual(error.message, 'Invalid token')
+        return true
       })
     })
   })
