@@ -83,6 +83,10 @@
       "secure": true
     }
   },
+  "magicLink": {
+    "secret": "***********",
+    "expiration": 3600
+  },
   "media": {
     "host": "http://localhost:3030",
     "path": "/media",

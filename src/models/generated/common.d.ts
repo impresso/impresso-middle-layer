@@ -48,6 +48,19 @@ export interface Config {
   imlAuthConfiguration?: AuthConfig1;
   cache?: CacheConfig;
   appHooks?: AppHooksConfig;
+  /**
+   * Configuration for the magic link service
+   */
+  magicLink: {
+    /**
+     * Secret for signing magic link tokens
+     */
+    secret: string;
+    /**
+     * Expiration time for magic link tokens in seconds
+     */
+    expiration: number;
+  };
   media?: MediaConfig;
   solrConfiguration: SolrConfiguration;
   recommender?: RecommenderConfig;

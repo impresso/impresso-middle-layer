@@ -53,6 +53,16 @@
     },
     "cache": { "$ref": "#/definitions/CacheConfig" },
     "appHooks": { "$ref": "#/definitions/AppHooksConfig" },
+    "magicLink": {
+      "type": "object",
+      "properties": {
+        "secret": { "type": "string", "description": "Secret for signing magic link tokens" },
+        "expiration": { "type": "number", "description": "Expiration time for magic link tokens in seconds" }
+      },
+      "required": ["secret", "expiration"],
+      "additionalProperties": false,
+      "description": "Configuration for the magic link service"
+    },
     "media": { "$ref": "#/definitions/MediaConfig" },
     "solrConfiguration": { "$ref": "./solrConfiguration.json" },
     "recommender": { "$ref": "#/definitions/RecommenderConfig" },
@@ -63,7 +73,7 @@
     "public": { "type": "string", "description": "Path to the public folder" },
     "multer": { "$ref": "#/definitions/MulterConfig" }
   },
-  "required": ["solrConfiguration", "sequelize", "authentication", "images"],
+  "required": ["solrConfiguration", "sequelize", "authentication", "images", "magicLink"],
   "definitions": {
     "ImageUrlRewriteRule": {
       "type": "object",
