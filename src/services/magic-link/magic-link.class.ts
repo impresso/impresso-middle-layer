@@ -4,7 +4,7 @@ import type { ImpressoApplication } from '@/types.js'
 import type { Params } from '@feathersjs/feathers'
 import { Sequelize } from 'sequelize'
 import Debug from 'debug'
-import { NotFound, Unavailable } from '@feathersjs/errors'
+import { Unavailable } from '@feathersjs/errors'
 import jwt from 'jsonwebtoken'
 import { CeleryClient } from '@/celery.js'
 
@@ -18,6 +18,20 @@ export interface CreateResult {
   result: string
 }
 
+/**
+ * Service for managing magic link authentication flows.
+ *
+ * Handles the creation and validation of temporary authentication tokens
+ * that are sent to users via email for passwordless authentication.
+ *
+ * @remarks
+ * - Tokens are generated using JWT with a 5-minute expiration window
+ * - Requires Celery client for asynchronous email delivery
+ * - User must be active and exist in the database to receive a magic link
+ *
+ * @throws {Unavailable} If email service (Celery) is not configured
+ * @throws {Unavailable} If email delivery fails during token creation
+ */
 export class MagicLinkService {
   protected readonly config: AuthConfig
   protected readonly sequelizeClient: Sequelize
@@ -31,6 +45,12 @@ export class MagicLinkService {
     this.celeryClient = app.get('celeryClient') as CeleryClient
   }
 
+  /**
+   *
+   * @param data
+   * @param _params
+   * @returns
+   */
   async create(data: CreateData, _params?: Params): Promise<CreateResult> {
     // generate temporary token and send email.
     // save token to redisdb with expiration time.
@@ -41,23 +61,21 @@ export class MagicLinkService {
     })
     if (!user) {
       debug('[create] User not found <email>:', data.email)
-      throw new NotFound()
+      debug('[get] uid not found <uid>:', data.email)
+      return {
+        result: 'ok',
+      }
     }
     // Generate a unique token for the user's password reset request
     const token = jwt.sign({ userId: user.get('id') }, this.config.secret, {
       ...this.config.jwtOptions,
       expiresIn: 60 * 5,
     })
-    debug(
-      '[create] Generated magic link token for email:',
-      data.email,
-      'token:',
-      token,
-      'userId:',
-      user.get('id'),
-      this.config.jwtOptions
-    )
-
+    debug('[create] Generated magic link token for email:', data.email, 'userId:', user.get('id'))
+    if (!this.celeryClient) {
+      debug('[create] No celery client configured, cannot send email to', data.email)
+      throw new Unavailable('Email service not configured')
+    }
     await this.celeryClient
       .run({
         task: 'impresso.tasks.send_magic_link_email',
