@@ -8,7 +8,7 @@ import {
 } from '@feathersjs/authentication'
 import { logger } from '@/logger.js'
 import { LocalStrategy } from '@feathersjs/authentication-local'
-import { NotAuthenticated } from '@feathersjs/errors'
+import { NotAuthenticated, BadRequest } from '@feathersjs/errors'
 import { ServiceOptions } from '@feathersjs/feathers'
 import initDebug from 'debug'
 import swagger from 'feathers-swagger'
@@ -18,6 +18,8 @@ import { ImpressoApplication } from '@/types.js'
 import { BufferUserPlanGuest } from '@/models/user-bitmap.model.js'
 import { bigIntToBuffer, bufferToBigInt } from '@/util/bigint.js'
 import type { Sequelize } from 'sequelize'
+import type { Cache } from '@/cache.js'
+import jwt from 'jsonwebtoken'
 
 const { createSwaggerServiceOptions } = swagger
 
@@ -185,6 +187,89 @@ class ImlAppJWTStrategy extends JWTStrategy {
   }
 }
 
+/**
+ * A custom JWT strategy that verifies magic link tokens.
+ * Validates the token against the cache, retrieves the user,
+ * and deletes the token to prevent reuse (one-time token).
+ */
+class MagicLinkJWTStrategy extends JWTStrategy {
+  name = 'magic-link'
+  async authenticate(authentication: AuthenticationRequest, params: AuthenticationParams) {
+    const { accessToken } = authentication
+    if (!accessToken) {
+      throw new NotAuthenticated('No access token')
+    }
+
+    const magicLinkConfig = (this.app as ImpressoApplication).get('magicLink')
+    if (!magicLinkConfig) {
+      throw new NotAuthenticated('Magic link not configured')
+    }
+
+    debug('[MagicLinkJWTStrategy] Verifying magic link token')
+
+    try {
+      // Verify JWT signature with magic link secret
+      const payload = jwt.verify(accessToken, magicLinkConfig.secret) as { email: string }
+
+      // Check if token exists in cache
+      const cache = (this.app as ImpressoApplication).get('cacheManager') as Cache
+      const cacheKey = `magic-link:${accessToken}`
+      const tokenData = await cache.get(cacheKey)
+
+      if (!tokenData) {
+        debug('[MagicLinkJWTStrategy] Token not found in cache or expired')
+        throw new BadRequest('Invalid or expired token')
+      }
+
+      debug('[MagicLinkJWTStrategy] Token verified, looking up user by email:', payload.email)
+
+      // Get user from database
+      const sequelizeClient = (this.app as ImpressoApplication).get('sequelizeClient') as Sequelize
+      const userModel = User.sequelize(sequelizeClient)
+      const user = await userModel.scope('isActive').findOne({
+        where: {
+          email: payload.email,
+        },
+      })
+
+      if (!user) {
+        debug('[MagicLinkJWTStrategy] User not found for email:', payload.email)
+        throw new NotAuthenticated('User not found')
+      }
+
+      // Delete token from cache (one-time use)
+      await cache.del(cacheKey)
+      debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
+
+      const { entity } = this.configuration
+
+      return {
+        authentication: { strategy: this.name },
+        [entity]: user,
+      } as any
+    } catch (err) {
+      if (err instanceof NotAuthenticated || err instanceof BadRequest) {
+        throw err
+      }
+      logger.error('[MagicLinkJWTStrategy] Token verification failed:', err)
+      throw new NotAuthenticated('Invalid token')
+    }
+  }
+
+  get configuration() {
+    const authConfig = this.authentication?.configuration
+    const config = super.configuration
+    return {
+      ...config,
+      service: authConfig?.service,
+      entity: authConfig?.entity,
+      entityId: authConfig?.entityId,
+      header: '',
+      schemes: ['Magic-Link'],
+    }
+  }
+}
+
 export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi')
   const useDbUserInRequestContext = app.get('authentication')?.useDbUserInRequestContext
@@ -194,6 +279,7 @@ export default (app: ImpressoApplication) => {
 
   authentication.register('jwt', jwtStrategy)
   authentication.register('local', new HashedPasswordVerifier(app))
+  // authentication.register('magic-link', new MagicLinkJWTStrategy())
 
   if (isPublicApi) {
     authentication.register('jwt-app', new ImlAppJWTStrategy())
