@@ -58,12 +58,13 @@ import changePassword from './change-password/change-password.service.js'
 import termsOfUse from './terms-of-use/terms-of-use.service.js'
 import userChangePlanRequest from './user-change-plan-request/user-change-plan-request.service.js'
 import userRequests from './user-requests/user-requests.service.js'
-import userRequestsReviews from './user-requests-reviews/user-requests-reviews.service.js'
+import userRequestsReviews from './user-special-membership-requests-reviews/user-special-membership-requests-reviews.service.js'
 import newspapers from './newspapers/newspapers.service.js'
 import feedbackCollector from './feedback-collector/feedback-collector.service.js'
 import datalabSupport from './datalab-support/datalab-support.service.js'
 import specialMembershipAccess from './special-membership-access/special-membership-access.service.js'
 import userSpecialMembershipRequests from './user-special-membership-requests/user-special-membership-requests.service.js'
+import userSpecialMembershipRequestsReviews from './user-special-membership-requests-reviews/user-special-membership-requests-reviews.service.js'
 import baristaProxy from './barista-proxy/barista-proxy.service.js'
 import magicLink from './magic-link/magic-link.service.js'
 /**
@@ -131,12 +132,12 @@ const internalApiServices = [
   { name: 'terms-of-use', init: termsOfUse },
   { name: 'user-change-plan-request', init: userChangePlanRequest },
   { name: 'user-requests', init: userRequests },
-  { name: 'user-requests-reviews', init: userRequestsReviews },
   { name: 'newspapers', init: newspapers },
   { name: 'feedback-collector', init: feedbackCollector },
   { name: 'datalab-support', init: datalabSupport },
   { name: 'special-membership-access', init: specialMembershipAccess },
   { name: 'user-special-membership-requests', init: userSpecialMembershipRequests },
+  { name: 'user-special-membership-requests-reviews', init: userSpecialMembershipRequestsReviews },
   { name: 'magic-link', init: magicLink },
 ]
 
