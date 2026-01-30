@@ -11,7 +11,6 @@ import Group from '@/models/groups.model.js'
 import Profile from '@/models/profiles.model.js'
 
 const debug = Debug('impresso/services:user-special-membership-requests-reviews')
-debug('Loading user-special-membership-requests-reviews service')
 export interface FindQuery {
   limit?: number
   offset?: number
