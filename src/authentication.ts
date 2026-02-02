@@ -294,9 +294,10 @@ export default (app: ImpressoApplication) => {
 
   const jwtStrategy = useDbUserInRequestContext ? new JWTStrategy() : new NoDBJWTStrategy()
 
-  authentication.register('jwt', jwtStrategy)
-  authentication.register('local', new HashedPasswordVerifier(app))
   authentication.register('magic-link', new MagicLinkJWTStrategy(app))
+  authentication.register('jwt', jwtStrategy)
+
+  authentication.register('local', new HashedPasswordVerifier(app))
 
   if (isPublicApi) {
     authentication.register('jwt-app', new ImlAppJWTStrategy())

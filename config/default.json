@@ -61,6 +61,9 @@
     "entity": "user",
     "service": "users",
     "secret": "***********",
+    "magic-link": {
+      "entity": null
+    },
     "authStrategies": ["local", "jwt-app", "jwt", "magic-link"],
     "jwtOptions": {
       "header": {
