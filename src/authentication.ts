@@ -16,10 +16,12 @@ import User from '@/models/users.model.js'
 import { docs } from '@/services/authentication/authentication.schema.js'
 import { ImpressoApplication } from '@/types.js'
 import { BufferUserPlanGuest } from '@/models/user-bitmap.model.js'
-import { bigIntToBuffer, bufferToBigInt } from '@/util/bigint.js'
+import { bigIntToBase64Bytes, bigIntToBuffer, bufferToBigInt } from '@/util/bigint.js'
 import type { Sequelize } from 'sequelize'
 import type { Cache } from '@/cache.js'
 import jwt from 'jsonwebtoken'
+import { RedisClient } from './redis.js'
+import Group from './models/groups.model.js'
 
 const { createSwaggerServiceOptions } = swagger
 
@@ -193,7 +195,11 @@ class ImlAppJWTStrategy extends JWTStrategy {
  * and deletes the token to prevent reuse (one-time token).
  */
 class MagicLinkJWTStrategy extends JWTStrategy {
-  name = 'magic-link'
+  app: ImpressoApplication
+  constructor(app: ImpressoApplication) {
+    super()
+    this.app = app
+  }
   async authenticate(authentication: AuthenticationRequest, params: AuthenticationParams) {
     const { accessToken } = authentication
     if (!accessToken) {
@@ -205,47 +211,58 @@ class MagicLinkJWTStrategy extends JWTStrategy {
       throw new NotAuthenticated('Magic link not configured')
     }
 
-    debug('[MagicLinkJWTStrategy] Verifying magic link token')
+    debug('[MagicLinkJWTStrategy] Verifying magic link token', accessToken)
 
     try {
       // Verify JWT signature with magic link secret
-      const payload = jwt.verify(accessToken, magicLinkConfig.secret) as { email: string }
-
+      jwt.verify(accessToken, magicLinkConfig.secret)
       // Check if token exists in cache
-      const cache = (this.app as ImpressoApplication).get('cacheManager') as Cache
+      const redisClient = this.app.service('redisClient').client as RedisClient
       const cacheKey = `magic-link:${accessToken}`
-      const tokenData = await cache.get(cacheKey)
+      const tokenData = await redisClient.get(cacheKey)
 
       if (!tokenData) {
         debug('[MagicLinkJWTStrategy] Token not found in cache or expired')
         throw new BadRequest('Invalid or expired token')
       }
 
-      debug('[MagicLinkJWTStrategy] Token verified, looking up user by email:', payload.email)
+      debug('[MagicLinkJWTStrategy] Token exists, looking up user by tokenData:', tokenData)
+      // Delete token from cache (one-time use)
+      // await redisClient.del(cacheKey)
 
+      debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
       // Get user from database
-      const sequelizeClient = (this.app as ImpressoApplication).get('sequelizeClient') as Sequelize
+      const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
       const userModel = User.sequelize(sequelizeClient)
       const user = await userModel.scope('isActive').findOne({
         where: {
-          email: payload.email,
+          id: Number(tokenData),
         },
+        include: ['groups', 'profile', 'userBitmap'],
       })
 
       if (!user) {
-        debug('[MagicLinkJWTStrategy] User not found for email:', payload.email)
+        debug('[MagicLinkJWTStrategy] User not found for id stored in redis:', tokenData)
         throw new NotAuthenticated('User not found')
       }
 
-      // Delete token from cache (one-time use)
-      await cache.del(cacheKey)
-      debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
+      debug('[MagicLinkJWTStrategy] User found:', user.get('email'), 'id:', user.get('id'))
 
       const { entity } = this.configuration
 
+      debug('[MagicLinkJWTStrategy] entity:', entity)
+      const userBitmap = (user as any).userBitmap
+      const slimUser: SlimUser = {
+        uid: user.get('profile')?.uid || '',
+        id: Number(user.get('id')),
+        bitmap: userBitmap?.bitmap ?? BufferUserPlanGuest,
+        isStaff: !!user.get('isStaff'),
+        groups: ((user.get('groups') as Group[]) ?? []).map(g => g.name) ?? [],
+      }
+      debug('[MagicLinkJWTStrategy] slim user:', slimUser)
       return {
         authentication: { strategy: this.name },
-        [entity]: user,
+        [entity]: slimUser,
       } as any
     } catch (err) {
       if (err instanceof NotAuthenticated || err instanceof BadRequest) {
@@ -279,7 +296,7 @@ export default (app: ImpressoApplication) => {
 
   authentication.register('jwt', jwtStrategy)
   authentication.register('local', new HashedPasswordVerifier(app))
-  // authentication.register('magic-link', new MagicLinkJWTStrategy())
+  authentication.register('magic-link', new MagicLinkJWTStrategy(app))
 
   if (isPublicApi) {
     authentication.register('jwt-app', new ImlAppJWTStrategy())

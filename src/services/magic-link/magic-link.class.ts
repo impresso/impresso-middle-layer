@@ -80,7 +80,7 @@ export class MagicLinkService {
     })
     // save user id related to the token into the db
     await this.redisClient.setEx(`magic-link:${token}`, this.config.expiration, String(user.get('id')))
-    debug('[create] Generated magic link token for email:', data.email, 'userId:', user.get('id'))
+    debug('[create] Generated magic link token for email:', data.email, 'userId:', user.get('id'), 'token:', token)
     if (!this.celeryClient) {
       debug('[create] No celery client configured, cannot send email to', data.email)
       logger.error('Email service not configured')
@@ -102,35 +102,6 @@ export class MagicLinkService {
         throw new Unavailable('Failed to send email')
       })
 
-    return {
-      result: 'ok',
-    }
-  }
-
-  async get(token: string): Promise<CreateResult> {
-    debug('[get] Verifying magic link token:', token)
-
-    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
-      throw new BadRequest('Invalid token format')
-    }
-    try {
-      const decoded = jwt.verify(token, this.config.secret)
-      debug('[get] Decoded token:', decoded)
-      // check if token exists in redis and get value (user id) associated with the token
-      const userIdStr = await this.redisClient.get(`magic-link:${token}`)
-      if (!userIdStr) {
-        debug('[get] Token has no associated user id in redis:', token)
-        throw new BadRequest('Invalid token')
-      }
-      const userId = Number(userIdStr)
-      debug('[get] Retrieved user id from token:', userId)
-      // delete the token after use
-      await this.redisClient.del(`magic-link:${token}`)
-      debug('[get] Token valid, deleted from redis:', token)
-    } catch (err) {
-      logger.error(err)
-      throw new BadRequest('Invalid token')
-    }
     return {
       result: 'ok',
     }

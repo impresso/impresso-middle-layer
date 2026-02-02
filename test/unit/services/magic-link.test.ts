@@ -194,36 +194,37 @@ describe('MagicLinkService', () => {
       assert.strictEqual(parts.length, 3, 'Token should have 3 parts (JWT format)')
     })
   })
-  describe('get', () => {
-    it('should return a valid token in response', async () => {
-      // Create a test user
-      const user = await userModel.create(mockUsers[0] as any)
-      await service.create({ email: mockUsers[0].email })
 
-      const taskCall = celeryRunCalls[0]
-      const token = taskCall.args[1]
+  // describe('get', () => {
+  //   it('should return a valid token in response', async () => {
+  //     // Create a test user
+  //     const user = await userModel.create(mockUsers[0] as any)
+  //     await service.create({ email: mockUsers[0].email })
 
-      console.log(token)
+  //     const taskCall = celeryRunCalls[0]
+  //     const token = taskCall.args[1]
 
-      const result = await service.get(token)
+  //     console.log(token)
 
-      assert.ok(result)
-    })
+  //     const result = await service.get(token)
 
-    it('should throw BadRequest error for a bad JWT', async () => {
-      await assert.rejects(service.get('999'), (error: any) => {
-        assert.ok(error instanceof BadRequest)
-        assert.strictEqual(error.message, 'Invalid token format')
-        return true
-      })
-    })
-    it('should throw BadRequest error for an invalid JWT', async () => {
-      const invalidToken = 'invalid.payload.signature'
-      await assert.rejects(service.get(invalidToken), (error: any) => {
-        assert.ok(error instanceof BadRequest)
-        assert.strictEqual(error.message, 'Invalid token')
-        return true
-      })
-    })
-  })
+  //     assert.ok(result)
+  //   })
+
+  //   it('should throw BadRequest error for a bad JWT', async () => {
+  //     await assert.rejects(service.get('999'), (error: any) => {
+  //       assert.ok(error instanceof BadRequest)
+  //       assert.strictEqual(error.message, 'Invalid token format')
+  //       return true
+  //     })
+  //   })
+  //   it('should throw BadRequest error for an invalid JWT', async () => {
+  //     const invalidToken = 'invalid.payload.signature'
+  //     await assert.rejects(service.get(invalidToken), (error: any) => {
+  //       assert.ok(error instanceof BadRequest)
+  //       assert.strictEqual(error.message, 'Invalid token')
+  //       return true
+  //     })
+  //   })
+  // })
 })
