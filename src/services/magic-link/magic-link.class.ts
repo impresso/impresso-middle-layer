@@ -69,7 +69,6 @@ export class MagicLinkService {
     })
     if (!user) {
       debug('[create] User not found <email>:', data.email)
-      debug('[get] uid not found <uid>:', data.email)
       return {
         result: 'ok',
       }
