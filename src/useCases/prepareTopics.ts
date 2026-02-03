@@ -82,7 +82,7 @@ const getHits = (graph: Graph): ReturnType<typeof hits> | { hubs: undefined; aut
   try {
     return hits(graph, { normalize: false })
   } catch (error) {
-    logger.error('Error calculating HITS: %s', error)
+    logger.warn('Error calculating HITS: %s', error)
     return { hubs: undefined, authorities: undefined }
   }
 }

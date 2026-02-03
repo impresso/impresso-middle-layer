@@ -43,3 +43,9 @@ export const WellKnownKeys = Object.freeze({
   Topics: 'cache:topics',
   Years: 'cache:years',
 })
+
+export const WellKnownMetadataKeys = Object.freeze({
+  MediaSourcesComputedAt: 'cache:meta:mediaSources:computedAt',
+  TopicsComputedAt: 'cache:meta:topics:computedAt',
+  YearsComputedAt: 'cache:meta:years:computedAt',
+})

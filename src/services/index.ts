@@ -149,7 +149,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
   const services = [
     ...publicApiServices,
     ...(!isPublicApi ? internalApiServices : []),
-    ...(isPublicApi && adminEndpointsEnabled ? adminServices : []),
+    ...(!isPublicApi || (isPublicApi && adminEndpointsEnabled) ? adminServices : []),
     ...(!isPublicApi && features?.barista?.enabled ? baristaServices : []),
   ]
 

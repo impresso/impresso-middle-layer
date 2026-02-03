@@ -1,4 +1,4 @@
-import { WellKnownKeys } from '@/cache.js'
+import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
 import { ImpressoApplication } from '@/types.js'
 import { prepareAvailableYearBuckets } from '@/useCases/prepareAvailableYearBuckets.js' // Import the use case
 
@@ -25,6 +25,7 @@ const run = async (app: ImpressoApplication) => {
     const years = await prepareAvailableYearBuckets(solrClient)
 
     await cache.set(WellKnownKeys.Years, JSON.stringify(years), DefaultTtlMilliSeconds)
+    await cache.set(WellKnownMetadataKeys.YearsComputedAt, new Date().toISOString(), DefaultTtlMilliSeconds)
     console.log(`Successfully updated and cached years data for ${Object.keys(years).length} years.`)
   } catch (error) {
     console.error('Error updating years data:', error)

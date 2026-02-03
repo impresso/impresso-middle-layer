@@ -1,5 +1,5 @@
 import { prepareTopics } from '@/useCases/prepareTopics.js'
-import { WellKnownKeys } from '@/cache.js'
+import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
 import { ImpressoApplication } from '@/types.js'
 
 /** 100 days */
@@ -17,6 +17,7 @@ const run = async (app: ImpressoApplication) => {
 
   const topics = await prepareTopics(solrClient)
   await cache.set(WellKnownKeys.Topics, JSON.stringify(topics), DefaultTtlSeconds)
+  await cache.set(WellKnownMetadataKeys.TopicsComputedAt, new Date().toISOString(), DefaultTtlSeconds)
 }
 
 export default run
