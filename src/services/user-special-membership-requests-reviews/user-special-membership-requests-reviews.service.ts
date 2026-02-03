@@ -1,6 +1,6 @@
 import { UserSpecialMembershipRequestReviewsService as Service } from './user-special-membership-requests-reviews.class.js'
 import { ImpressoApplication } from '@/types.js'
-import { HookContext, ServiceOptions } from '@feathersjs/feathers'
+import { ServiceOptions } from '@feathersjs/feathers'
 import { authenticate } from '@feathersjs/authentication'
 import { queryWithCommonParams, utils, validate } from '@/hooks/params.js'
 
