@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert'
-import { BadRequest, NotFound, Unavailable } from '@feathersjs/errors'
+import { Unavailable } from '@feathersjs/errors'
 import { MagicLinkService } from '@/services/magic-link/magic-link.class.js'
 import User from '@/models/users.model.js'
 import { setupTestDatabase, teardownTestDatabase, TestDatabase } from '../../helpers/database.js'
