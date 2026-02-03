@@ -37,22 +37,21 @@ export interface ServiceOptions {
   name: string
 }
 /**
- * Service to retrieve account details,
- * e.g. latest terms of use acceptance date, list of subscription, user bitmap.
+ * Service exposing reviewer-scoped access to special membership requests.
+ * It allows authenticated reviewers to list and retrieve special membership
+ * requests that are assigned to them or otherwise visible in their review
+ * scope. The service is read-only from the client perspective and does not
+ * support creating, updating, or deleting requests.
  *
  *    DEBUG=impresso/services:user-special-membership-requests-reviews npm run dev
  *
- * Test
- *
- * This service return a userBitmap object with the date the user accepted the terms of use.
- * /account-details find() method, it uses the authenticated user id from hook to find the user bitmap record.
- * /account-details patch() method, for the moment being, this just updates the dateAcceptedTerms field in the user bitmap record.
- * Subscription need to be validated by admin users, so they arent part of this service.
+ * The exposed find/get operations return special membership requests together
+ * with basic requester information (see the Requester type) to support
+ * review workflows in the backoffice or other internal tools.
  *
  * @param {ImpressoApplication} app
  * @param {string} name
  * @returns {ServiceMethods}
- *
  *
  */
 export type IUserSpecialMembershipRequestReviewsService = Omit<
