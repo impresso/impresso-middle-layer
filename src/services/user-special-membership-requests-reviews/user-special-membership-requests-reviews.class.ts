@@ -6,7 +6,7 @@ import Debug from 'debug'
 import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
 import { NotFound } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
-import User, { Me } from '@/models/users.model.js'
+import User from '@/models/users.model.js'
 import Group from '@/models/groups.model.js'
 import Profile from '@/models/profiles.model.js'
 
