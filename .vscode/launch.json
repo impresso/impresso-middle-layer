@@ -28,12 +28,28 @@
       "name": "Start internal API",
       "type": "node",
       "request": "launch",
-      "runtimeExecutable": "tsx",
-      "args": [
+      "program": "${workspaceFolder}/src/index.ts",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--import", "tsx",
         "--env-file=.env",
-        "--watch",
-        "src/index.ts"
-      ]
+        "--watch"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Start public API",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/index.ts",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--import", "tsx",
+        "--env-file=.env",
+        "--watch"
+      ],
+      "env": {"HOST": "api"},
+      "console": "integratedTerminal"
     },
     {
       "name": "Attach",

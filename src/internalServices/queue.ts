@@ -16,6 +16,10 @@ import {
   RemoveItemsFromCollectionJobData,
 } from '@/jobs/collections/removeItemsFromCollection.js'
 import { ExportSearchResultsJobData, JobNameExportSearchResults } from '@/jobs/searchResults/exportSearchResults.js'
+import {
+  JobNameRebuildWellKnownCache,
+  RebuildWellKnownCacheJobData,
+} from '@/jobs/rebuildWellKnownCache.js'
 import { logger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
@@ -34,6 +38,7 @@ export class QueueService {
   private queueAddQueryResultItemsToCollection: Queue
   private queueExportSearchResults: Queue
   private queueMigrateOldCollections: Queue
+  private queueRebuildWellKnownCache: Queue
 
   private redisConfig: RedisConfiguration
 
@@ -95,6 +100,10 @@ export class QueueService {
       connection,
       defaultJobOptions,
     })
+    this.queueRebuildWellKnownCache = new Queue(JobNameRebuildWellKnownCache, {
+      connection,
+      defaultJobOptions,
+    })
   }
 
   /**
@@ -149,6 +158,13 @@ export class QueueService {
     return this.queueMigrateOldCollections.add(JobNameMigrateOldCollections, data)
   }
 
+  async rebuildWellKnownCache(
+    data: RebuildWellKnownCacheJobData
+  ): Promise<BullJob<RebuildWellKnownCacheJobData>> {
+    logger.info(`Queueing job to rebuild well-known caches`)
+    return this.queueRebuildWellKnownCache.add(JobNameRebuildWellKnownCache, data)
+  }
+
   /**
    * Get queue statistics
    */
@@ -160,6 +176,7 @@ export class QueueService {
       this.queueAddQueryResultItemsToCollection,
       this.queueExportSearchResults,
       this.queueMigrateOldCollections,
+      this.queueRebuildWellKnownCache,
     ]
 
     const stats = await Promise.all(
@@ -191,6 +208,7 @@ export class QueueService {
     await this.queueAddQueryResultItemsToCollection.close()
     await this.queueExportSearchResults.close()
     await this.queueMigrateOldCollections.close()
+    await this.queueRebuildWellKnownCache.close()
     logger.info('Queue service closed')
   }
 }
