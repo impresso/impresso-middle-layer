@@ -42,7 +42,7 @@ export interface Filter {
  * Request body for the authentication endpoint
  */
 export interface AuthenticationCreateRequest {
-  strategy: "local" | "jwt-app";
+  strategy: "local" | "jwt-app" | "jwt" | "magic-link";
   email?: string;
   password?: string;
   accessToken?: string;

@@ -61,7 +61,7 @@
     "entity": "user",
     "service": "users",
     "secret": "***********",
-    "authStrategies": ["local", "jwt-app", "jwt"],
+    "authStrategies": ["local", "jwt-app", "jwt", "magic-link"],
     "jwtOptions": {
       "header": {
         "typ": "access"
@@ -82,6 +82,10 @@
       "httpOnly": true,
       "secure": true
     }
+  },
+  "magicLink": {
+    "secret": "***********",
+    "expiration": 300
   },
   "media": {
     "host": "http://localhost:3030",
