@@ -196,4 +196,111 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
       assert.strictEqual(result.pagination.total, 0)
     })
   })
+
+  describe('get', () => {
+    it('should return request for direct reviewer', async () => {
+      // Create a request with direct reviewer assignment
+      const directRequest = {
+        id: 20,
+        reviewerId: mockReviewerUserA.id,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.get(20, {
+        user: { id: mockReviewerUserA.id },
+      })
+
+      assert.ok(result)
+      assert.strictEqual(result.id, 20)
+      assert.strictEqual(result.reviewerId, mockReviewerUserA.id)
+    })
+
+    it('should return request for special access reviewer', async () => {
+      // Create a request with special access reviewer (through subscription)
+      const specialAccessRequest = {
+        id: 21,
+        reviewerId: null,
+        userId: 1,
+        specialMembershipAccessId: 2, // Assigned to reviewer A via special membership access
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(specialAccessRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.get(21, {
+        user: { id: mockReviewerUserA.id },
+      })
+
+      assert.ok(result)
+      assert.strictEqual(result.id, 21)
+      assert.strictEqual(result.userId, 1)
+    })
+
+    it('should throw NotFound when reviewer is not authorized for direct review', async () => {
+      // Create a request for reviewer B
+      const directRequest = {
+        id: 22,
+        reviewerId: mockReviewerUserB.id,
+        userId: 1,
+        specialMembershipAccessId: 1,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      try {
+        await service.get(22, {
+          user: { id: mockReviewerUserA.id },
+        })
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+
+    it('should throw NotFound when reviewer is not authorized for special access review', async () => {
+      // Create a request assigned to reviewer B via special membership access
+      const specialAccessRequest = {
+        id: 23,
+        reviewerId: null,
+        userId: 1,
+        specialMembershipAccessId: 1, // Assigned to reviewer B
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(specialAccessRequest as IUserSpecialMembershipRequestAttributes)
+
+      try {
+        await service.get(23, {
+          user: { id: mockReviewerUserA.id },
+        })
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+
+    it('should throw NotFound for non-existent request', async () => {
+      try {
+        await service.get(9999, {
+          user: { id: mockReviewerUserA.id },
+        })
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+  })
 })

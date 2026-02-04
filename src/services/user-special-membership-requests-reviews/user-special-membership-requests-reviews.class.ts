@@ -145,7 +145,13 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     const record = await this.requestModel.findByPk(id, {
       include: ['specialMembershipAccess'],
     })
-    if (!record || record.reviewerId !== reviewerId) {
+    const isDirectReviewer = record && record.reviewerId === reviewerId
+    const isSpecialAccessReviewer =
+      record &&
+      (record as any).specialMembershipAccess &&
+      (record as any).specialMembershipAccess.reviewerId === reviewerId
+
+    if (!record || (!isDirectReviewer && !isSpecialAccessReviewer)) {
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
     }
     return record.toJSON() as UserSpecialMembershipRequestModel
