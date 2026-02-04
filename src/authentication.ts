@@ -227,9 +227,12 @@ class MagicLinkJWTStrategy extends JWTStrategy {
 
       debug('[MagicLinkJWTStrategy] Token exists, looking up user by tokenData:', tokenData)
       // Delete token from cache (one-time use)
-      // await redisClient.del(cacheKey)
-
-      debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
+      try {
+        await redisClient.del(cacheKey)
+        debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
+      } catch (deleteErr) {
+        logger.error('[MagicLinkJWTStrategy] Failed to delete magic link token from cache:', deleteErr)
+      }
       // Get user from database
       const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
       const userModel = User.sequelize(sequelizeClient)
