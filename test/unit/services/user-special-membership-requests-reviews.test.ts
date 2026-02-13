@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert'
 // Feathers
-import type { TestDatabase } from '../../helpers/database.js'
-import { setupTestDatabase, teardownTestDatabase } from '../../helpers/database.js'
+import type { CeleryCall, RedisSetExCall, TestDatabase } from '../../helpers/database.js'
+import { setupTestDatabase, setupTestDatabaseRedisCelery, teardownTestDatabase } from '../../helpers/database.js'
 // Models
 import UserSpecialMembershipRequest, {
   IUserSpecialMembershipRequestAttributes,
@@ -121,20 +121,25 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
   let service: UserSpecialMembershipRequestReviewsService
   let userModel: ReturnType<typeof User.sequelize>
   let groupModel: ReturnType<typeof Group.initModel>
+  const trackers = { celeryCalls: [] as CeleryCall[], redisCalls: {} as Record<string, RedisSetExCall> }
+
   let specialMembershipAccessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
   let userSpecialMembershipRequestModel: ReturnType<typeof UserSpecialMembershipRequest.initialize>
 
   before(async () => {
     // Setup database once for all tests
-    db = setupTestDatabase({
+    db = setupTestDatabaseRedisCelery(trackers.celeryCalls, trackers.redisCalls, {
       logging: false,
     })
     userModel = User.sequelize(db.sequelize)
     specialMembershipAccessModel = SpecialMembershipAccess.initialize(db.sequelize)
     userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(db.sequelize)
     groupModel = Group.initModel(db.sequelize)
-    await db.sequelize.sync({ force: true })
 
+    trackers.celeryCalls.length = 0
+    for (const key in trackers.redisCalls) delete trackers.redisCalls[key]
+
+    await db.sequelize.sync({ force: true })
     service = new UserSpecialMembershipRequestReviewsService(db.app)
   })
 
@@ -143,6 +148,8 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
   })
 
   beforeEach(async () => {
+    trackers.celeryCalls.length = 0
+    for (const key in trackers.redisCalls) delete trackers.redisCalls[key]
     // Clear the tables before each test
     await db.sequelize.truncate({ cascade: true })
     // Insert related mock data
@@ -297,6 +304,127 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
         await service.get(9999, {
           user: { id: mockReviewerUserA.id },
         })
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+  })
+
+  describe('patch', () => {
+    it('should update status for direct reviewer', async () => {
+      // Create a request with direct reviewer assignment
+      const directRequest = {
+        id: 30,
+        reviewerId: mockReviewerUserA.id,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.patch(
+        30,
+        { status: 'approved' },
+        {
+          user: { id: mockReviewerUserA.id },
+        }
+      )
+
+      assert.ok(result)
+      assert.strictEqual(result.id, 30)
+      assert.strictEqual(result.status, 'approved')
+      assert.strictEqual(trackers.celeryCalls.length, 1, 'Expected one Celery call after patching request')
+      const celeryCall = trackers.celeryCalls[0]
+      assert.strictEqual(
+        celeryCall.task,
+        'impresso.tasks.userSpecialMembershipRequest_tasks.after_special_membership_request_updated'
+      )
+      assert.ok(Array.isArray(celeryCall.args))
+      assert.strictEqual(celeryCall.args[0], 30)
+    })
+
+    it('should update status for special access reviewer', async () => {
+      // Create a request with special access reviewer
+      const specialAccessRequest = {
+        id: 31,
+        reviewerId: null,
+        userId: 1,
+        specialMembershipAccessId: 2, // Assigned to reviewer A
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(specialAccessRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.patch(
+        31,
+        { status: 'rejected' },
+        {
+          user: { id: mockReviewerUserA.id },
+        }
+      )
+
+      assert.ok(result)
+      assert.strictEqual(result.id, 31)
+      assert.strictEqual(result.status, 'rejected')
+    })
+
+    it('should throw NotFound when reviewer is not authorized to patch', async () => {
+      // Create a request for reviewer B
+      const directRequest = {
+        id: 32,
+        reviewerId: mockReviewerUserB.id,
+        userId: 1,
+        specialMembershipAccessId: 1,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      try {
+        await service.patch(
+          32,
+          { status: 'approved' },
+          {
+            user: { id: mockReviewerUserA.id },
+          }
+        )
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+
+    it('should throw NotFound for non-existent request', async () => {
+      try {
+        await service.patch(
+          9999,
+          { status: 'approved' },
+          {
+            user: { id: mockReviewerUserA.id },
+          }
+        )
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+    it('should not accept patch without id', async () => {
+      try {
+        await service.patch(
+          null as any,
+          { status: 'approved' },
+          {
+            user: { id: mockReviewerUserA.id },
+          }
+        )
         assert.fail('Should have thrown NotFound')
       } catch (error: any) {
         assert.strictEqual(error.code, 404)
