@@ -3,13 +3,14 @@ import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, NullableId, Params } from '@feathersjs/feathers'
 import Debug from 'debug'
-import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
-import { NotFound } from '@feathersjs/errors'
+import UserSpecialMembershipRequestModel, { AvailableStatuses } from '@/models/user-special-membership-requests.model.js'
+import { NotFound, BadRequest } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
 import User from '@/models/users.model.js'
 import Group from '@/models/groups.model.js'
 import Profile from '@/models/profiles.model.js'
 import { CeleryClient } from '@/celery.js'
+import { logger } from '@/logger.js'
 
 const debug = Debug('impresso/services:user-special-membership-requests-reviews')
 export interface FindQuery {
@@ -177,6 +178,14 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     if (id == null) {
       throw new NotFound('UserSpecialMembershipRequest id is required')
     }
+
+    // Validate status field if provided
+    if (data.status && !AvailableStatuses.includes(data.status)) {
+      throw new BadRequest(
+        `Invalid status value. Must be one of: ${AvailableStatuses.join(', ')}`
+      )
+    }
+
     const record = await this.requestModel.findByPk(id, {
       include: ['specialMembershipAccess'],
     })
@@ -190,17 +199,20 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
     }
 
-    await record.update(data)
+    const updateData = { ...(data || {}), dateLastModified: new Date() }
+    await record.update(updateData)
     debug('Updated request %s', id)
-    if (this.celeryClient)
-      this.celeryClient
-        .run({
+    
+    if (this.celeryClient) {
+      try {
+        await this.celeryClient.run({
           task: 'impresso.tasks.userSpecialMembershipRequest_tasks.after_special_membership_request_updated',
           args: [record.id],
         })
-        .catch(err => {
-          console.error('Error sending after_special_membership_request_updated task:', err)
-        })
+      } catch (err) {
+        logger.error('Error sending after_special_membership_request_updated task:', err)
+      }
+    }
 
     return record.toJSON() as UserSpecialMembershipRequestModel
   }
