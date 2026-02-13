@@ -199,7 +199,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
     }
 
-    const updateData = { ...(data || {}), dateLastModified: new Date() }
+    const updateData = { ...data, dateLastModified: new Date() }
     await record.update(updateData)
     debug('Updated request %s', id)
     
