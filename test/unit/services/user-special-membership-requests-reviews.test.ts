@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert'
 // Feathers
 import type { CeleryCall, RedisSetExCall, TestDatabase } from '../../helpers/database.js'
-import { setupTestDatabase, setupTestDatabaseRedisCelery, teardownTestDatabase } from '../../helpers/database.js'
+import { setupTestDatabaseRedisCelery, teardownTestDatabase } from '../../helpers/database.js'
 // Models
 import UserSpecialMembershipRequest, {
   IUserSpecialMembershipRequestAttributes,
@@ -429,6 +429,69 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
       } catch (error: any) {
         assert.strictEqual(error.code, 404)
       }
+    })
+
+    it('should reject invalid status values', async () => {
+      // Create a request with direct reviewer assignment
+      const directRequest = {
+        id: 33,
+        reviewerId: mockReviewerUserA.id,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      try {
+        await service.patch(
+          33,
+          { status: 'invalid_status' as any },
+          {
+            user: { id: mockReviewerUserA.id },
+          }
+        )
+        assert.fail('Should have thrown BadRequest')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 400)
+        assert.ok(error.message.includes('Invalid status value'))
+      }
+    })
+
+    it('should update dateLastModified when patching', async () => {
+      // Create a request with an old dateLastModified
+      const oldDate = new Date('2020-01-01')
+      const directRequest = {
+        id: 34,
+        reviewerId: mockReviewerUserA.id,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: oldDate,
+        dateLastModified: oldDate,
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.patch(
+        34,
+        { status: 'approved' },
+        {
+          user: { id: mockReviewerUserA.id },
+        }
+      )
+
+      assert.ok(result)
+      assert.strictEqual(result.status, 'approved')
+      // dateLastModified should be updated to a recent date
+      const dateLastModified = new Date(result.dateLastModified)
+      const now = new Date()
+      const diffInMs = now.getTime() - dateLastModified.getTime()
+      // Should be within last 5 seconds
+      assert.ok(diffInMs < 5000, 'dateLastModified should be updated to current time')
+      assert.ok(dateLastModified > oldDate, 'dateLastModified should be newer than old date')
     })
   })
 })
