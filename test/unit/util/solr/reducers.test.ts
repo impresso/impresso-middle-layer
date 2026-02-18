@@ -1071,17 +1071,17 @@ describe('getSortParams', () => {
 
   it('sets topicRelevance param when orderBy contains $topicRelevanceScore', () => {
     const filters: Filter[] = [{ type: 'topic', q: 'tm-fr-all-v2.0_tp44_fr' }]
-    const result = getSortParams(filters, 'topicRelevanceScore desc')
+    const result = getSortParams(filters, '$topicRelevanceScore desc')
     assert.deepStrictEqual(result, {
-      $topicRelevanceScore: 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))',
+      topicRelevanceScore: 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))',
     })
   })
 
   it('sets topicRelevance param to "0" when orderBy contains $topicRelevanceScore but no topic filters', () => {
     const filters: Filter[] = [{ type: 'newspaper', q: 'JDG' }]
-    const result = getSortParams(filters, 'topicRelevanceScore desc')
+    const result = getSortParams(filters, '$topicRelevanceScore desc')
     assert.deepStrictEqual(result, {
-      $topicRelevanceScore: '0',
+      topicRelevanceScore: '0',
     })
   })
 })
