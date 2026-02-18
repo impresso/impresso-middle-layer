@@ -1,9 +1,10 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { getStandardResponses } from '@/util/openapi.js'
+import { getRequestBodyContent, getStandardResponses } from '@/util/openapi.js'
 
 export const getDocs = (): ServiceSwaggerOptions => ({
   description: 'Admin information',
-  securities: ['find'],
+  multi: ['patch'],
+  securities: ['find', 'patchMulti'],
   operations: {
     find: {
       operationId: 'admin',
@@ -11,6 +12,20 @@ export const getDocs = (): ServiceSwaggerOptions => ({
       parameters: [],
       responses: getStandardResponses({
         method: 'find',
+        schema: 'admin',
+        isPublic: true,
+        standardPagination: false,
+      }),
+    },
+    patchMulti: {
+      operationId: 'adminPatch',
+      description: 'Admin maintenance operations',
+      parameters: [],
+      requestBody: {
+        content: getRequestBodyContent('AdminPatchRequest'),
+      },
+      responses: getStandardResponses({
+        method: 'patch',
         schema: 'Freeform',
         isPublic: true,
         standardPagination: false,

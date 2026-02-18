@@ -1,5 +1,5 @@
 import { consolidateMediaSources } from '@/useCases/consolidateMediaSources.js'
-import { WellKnownKeys } from '@/cache.js'
+import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
 import { ImpressoApplication } from '@/types.js'
 import { SolrNamespaces } from '@/solr.js'
 
@@ -19,6 +19,7 @@ const run = async (app: ImpressoApplication) => {
 
   const sources = await consolidateMediaSources(dbClient, solrClient, SolrNamespaces.Search)
   await cache.set(WellKnownKeys.MediaSources, JSON.stringify(sources), DefaultTtlSeconds)
+  await cache.set(WellKnownMetadataKeys.MediaSourcesComputedAt, new Date().toISOString(), DefaultTtlSeconds)
 }
 
 export default run

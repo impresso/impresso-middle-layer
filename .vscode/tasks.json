@@ -27,6 +27,24 @@
       "group": {
         "isDefault": false
       }
+    },
+    {
+      "label": "Typecheck 🔍",
+      "type": "npm",
+      "script": "typecheck",
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Create exports folder 📁",
+      "type": "shell",
+      "command": "mkdir",
+      "args": ["-p", "/tmp/impresso-exports"],
+      "group": {
+        "isDefault": false
+      }
     }
   ]
 }

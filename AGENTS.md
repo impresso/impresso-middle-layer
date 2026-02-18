@@ -174,6 +174,7 @@ Startup jobs run after app initialization:
 - Topic cache updates
 - Media source cache updates
 - Year statistics computation
+ - Well-known cache rebuilds can be queued via the admin service (BullMQ job: `rebuildWellKnownCache`)
 
 See [src/jobs/](src/jobs/) for job implementations.
 
@@ -222,6 +223,20 @@ throw new NotFound('Resource not found')
 ```
 
 Error details are redacted in production to avoid leaking sensitive information.
+
+## Cache Maintenance
+
+- Redis cache groups use key prefixes:
+  - `cache:db:*` for Sequelize read cache
+  - `cache:solr:*` for Solr response cache
+  - `cache:wikidata:*` for Wikidata entity cache
+- Well-known cache entries live under:
+  - `cache:mediaSources`, `cache:topics`, `cache:years`
+  - Computed timestamps are stored in:
+    `cache:meta:mediaSources:computedAt`, `cache:meta:topics:computedAt`, `cache:meta:years:computedAt`
+- Admin service (`/admin`) supports maintenance actions via `patch`:
+  - `clear-db-cache`, `clear-solr-cache`, `clear-wikidata-cache`, `rebuild-well-known-cache`
+  - Rebuild is asynchronous (BullMQ job `rebuildWellKnownCache`).
 
 ### ESM support
 
@@ -285,4 +300,3 @@ Set `isPublicApi: true` in configuration to:
 - **Runtime**: Uses tsx for TypeScript execution (or bun as an alternative)
 - **Sensitive data redaction**: Passwords, tokens, and PII are automatically redacted in logs and error responses
 - **Legacy code**: The repository contains legacy code that should not be used as a design pattern reference. All new code must use Sequelize v6+, Feathersjs v5+, bullmq queue. All public services should have a json schema for input/output.
-
