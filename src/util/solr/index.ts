@@ -6,6 +6,7 @@ import { filtersToSolr } from '@/util/solr/filterReducers.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
 import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
 import { SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
+import { escapeIdValue } from '@/util/solr/filterBuilders/value.js'
 
 /**
  * Type representing the `score` field in Solr documents.
@@ -74,7 +75,8 @@ const wrapAsFilter = (q: string) => {
 export function filtersToQueryAndVariables(
   filters: Filter[],
   solrNamespace: SolrNamespace = SolrNamespaces.Search,
-  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
+  doNotWrapFilters = false
 ): SolrQueryBase {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
 
@@ -90,7 +92,12 @@ export function filtersToQueryAndVariables(
       solrNamespace,
       solrNamespacesConfiguration
     )
-    const filterQuery = NON_FILTERED_FIELDS.includes(key) ? baseSolrQueryFilter : wrapAsFilter(baseSolrQueryFilter)
+
+    // We wrap every filter into `filter(...)` except when:
+    // - the filter type is in the exclusion list `NON_FILTERED_FIELDS`, meaning it's meant to be used directly in the `q` parameter and affect the score
+    // - we are explicitly asked not to wrap filters to influence scoring.
+    const filterQuery =
+      NON_FILTERED_FIELDS.includes(key) || doNotWrapFilters ? baseSolrQueryFilter : wrapAsFilter(baseSolrQueryFilter)
 
     if (destination === 'query') {
       queries.push(filterQuery)
@@ -167,3 +174,51 @@ export const allContentFields = [
   'content_txt',
   ...SupportedLanguageCodes.map(lang => `content_txt_${lang}` as ContentField),
 ] satisfies ContentField[]
+
+/**
+ * Given filters, build a topic relevance parameter value for Solr.
+ * Example return: "sum(payload(topics_dpfs, tm-fr-all-v2.0_tp44_fr),payload(topics_dpfs, tm-fr-all-v2.0_tp52_fr))"
+ *
+ * @param filters List of filters
+ * @returns {string} Solr function query string or "0" if no topic filters found
+ */
+export const getTopicRelevanceFunction = (filters: Filter[]): string => {
+  const payloads: string[] = []
+
+  filters
+    .filter(f => f.type === 'topic' && f.q)
+    .forEach(filter => {
+      const qs = Array.isArray(filter.q) ? filter.q : [filter.q!]
+      qs.forEach(q => {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        payloads.push(`payload(topics_dpfs,${escapeIdValue(q.toString())})`)
+      })
+    })
+
+  if (payloads.length === 0) {
+    return '0'
+  }
+
+  return `sum(${payloads.join(',')})`
+}
+
+/**
+ * Given filters and expected orderBy parameter, build Solr params object with sort variables.
+ * Currently only supports `$topicRelevanceScore`.
+ *
+ * @param filters List of filters
+ * @param orderBy The orderBy parameter
+ * @returns {Record<string, string>} Solr params object
+ */
+export const getSortParams = (filters: Filter[], orderBy?: string): Record<string, string> => {
+  const params: Record<string, string> = {}
+  if (!orderBy) {
+    return params
+  }
+
+  if (orderBy.includes('$topicRelevanceScore')) {
+    params['topicRelevanceScore'] = getTopicRelevanceFunction(filters)
+  }
+
+  return params
+}

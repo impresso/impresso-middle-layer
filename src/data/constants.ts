@@ -277,6 +277,7 @@ const searchSolrMappings = {
     relevance: 'score',
     id: 'id',
     ocrQuality: 'ocrqa_f',
+    topicRelevance: '$topicRelevanceScore',
   },
   groupBy: {
     issues: 'meta_issue_id_s',
