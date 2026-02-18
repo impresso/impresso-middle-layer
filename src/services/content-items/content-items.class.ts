@@ -40,7 +40,7 @@ import { Collection, Topic } from '@/models/generated/schemas.js'
 import { WellKnownKeys } from '@/cache.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/solr/contentItem.js'
-import { allContentFields, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
+import { allContentFields, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
 import { QueueService } from '@/internalServices/queue.js'
@@ -351,7 +351,7 @@ export class ContentItemService implements IContentItemService {
 
   async _find(params: FindParams): Promise<FindResponse<ContentItem>> {
     const fields = [
-      ...ScoreField,
+      ...[ScoreField],
       // if include embeddings is requested, add those fields
       ...(isTrue(params.query?.include_embeddings) ? FindMethodFieldsWithEmbeddings : FindMethodFields),
       // if include transcript is requested, add those fields
@@ -379,6 +379,8 @@ export class ContentItemService implements IContentItemService {
         ...highlightBLock,
         // add variables if there are any
         ...((params.query as any)?.['sv'] ?? {}),
+        // any sort params
+        ...getSortParams(params.query?.filters ?? [], params.query?.order_by),
       },
     }
     const results = await this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
