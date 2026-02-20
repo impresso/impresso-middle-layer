@@ -1,6 +1,7 @@
 import assert from 'node:assert'
 import {
   CsvExportService,
+  mapContentItemTypesToCsvRows,
   mapDataProvidersToCsvRows,
   mapMediaSourcesToCsvRows,
   serializeCsvRows,
@@ -49,6 +50,29 @@ describe('csv-exports service helpers', () => {
     assert.deepStrictEqual(result, [
       { id: 'ABC', label: 'Alpha Bulletin' },
       { id: 'XYZ', label: 'Zeta Times' },
+    ])
+  })
+
+  it('maps static content item type expansions to id,label rows', () => {
+    const result = mapContentItemTypesToCsvRows()
+
+    assert.deepStrictEqual(result, [
+      { id: 'ad', label: 'advertisement' },
+      { id: 'ar', label: 'article' },
+      { id: 'ob', label: 'obituary' },
+      { id: 'tb', label: 'tables' },
+      { id: 'section', label: 'section' },
+      { id: 'uc', label: 'unclassified items' },
+      { id: 'page', label: 'Page' },
+      { id: 'death_notice', label: 'obituary (other)' },
+      { id: 'weather', label: 'weather forecast' },
+      { id: 'w', label: 'weather news (other)' },
+      { id: 'picture', label: 'picture' },
+      { id: 'ch', label: 'chronicle' },
+      { id: 'rb', label: 'radio broadcast' },
+      { id: 'rbe', label: 'radio broadcast episode' },
+      { id: 'chapter', label: 'chapter' },
+      { id: 'no-type', label: 'No type provided' },
     ])
   })
 

@@ -40,13 +40,20 @@ const getDocs = ({ operationId, description }: { operationId: string; descriptio
 export const getDataProvidersCsvDocs = (): ServiceSwaggerOptions => {
   return getDocs({
     operationId: 'getDataProvidersCsvExport',
-    description: 'Get data providers CSV export',
+    description: 'Get data providers metadata as a CSV',
   })
 }
 
 export const getDataSourcesCsvDocs = (): ServiceSwaggerOptions => {
   return getDocs({
     operationId: 'getDataSourcesCsvExport',
-    description: 'Get data sources CSV export',
+    description: 'Get data sources metadata as a CSV',
+  })
+}
+
+export const getContentItemTypesCsvDocs = (): ServiceSwaggerOptions => {
+  return getDocs({
+    operationId: 'getContentItemTypesCsvExport',
+    description: 'Get content item types metadata as a CSV',
   })
 }

@@ -204,29 +204,54 @@ describe('csv-exports service (public API)', () => {
     assert.strictEqual(response.statusCode, 404)
   })
 
+  it('serves static content item types CSV without authentication', async () => {
+    const response = await invokeGetRoute(app, '/csv-exports/content-item-types.csv')
+
+    assert.strictEqual(response.statusCode, 200)
+
+    const lines = String(response.body)
+      .trim()
+      .split(/\r?\n/)
+
+    assert.strictEqual(lines[0], 'id,label')
+    assert.ok(lines.includes('ad,advertisement'))
+    assert.ok(lines.includes('no-type,No type provided'))
+  })
+
   it('formats CSV responses via express.after with text/csv content type', async () => {
     const providersFormatted = await invokeCsvFormatter(app, 'csv-exports/data-providers.csv', 'id,label\nA,Alpha\n')
     const sourcesFormatted = await invokeCsvFormatter(app, 'csv-exports/data-sources.csv', 'id,label\nB,Beta\n')
+    const contentTypesFormatted = await invokeCsvFormatter(
+      app,
+      'csv-exports/content-item-types.csv',
+      'id,label\nad,advertisement\n'
+    )
 
     assert.strictEqual(providersFormatted.headers['content-type'], 'text/csv; charset=utf-8')
     assert.strictEqual(sourcesFormatted.headers['content-type'], 'text/csv; charset=utf-8')
+    assert.strictEqual(contentTypesFormatted.headers['content-type'], 'text/csv; charset=utf-8')
     assert.strictEqual(providersFormatted.body, 'id,label\nA,Alpha\n')
     assert.strictEqual(sourcesFormatted.body, 'id,label\nB,Beta\n')
+    assert.strictEqual(contentTypesFormatted.body, 'id,label\nad,advertisement\n')
   })
 
-  it('documents both CSV endpoints in Swagger with empty security', () => {
+  it('documents all CSV endpoints in Swagger with empty security', () => {
     const docs = (app as any).docs
 
     const providersPath = docs.paths['/csv-exports/data-providers.csv']
     const sourcesPath = docs.paths['/csv-exports/data-sources.csv']
+    const contentTypesPath = docs.paths['/csv-exports/content-item-types.csv']
 
     assert.ok(providersPath)
     assert.ok(sourcesPath)
+    assert.ok(contentTypesPath)
 
     assert.deepStrictEqual(providersPath.get.security, [])
     assert.deepStrictEqual(sourcesPath.get.security, [])
+    assert.deepStrictEqual(contentTypesPath.get.security, [])
 
     assert.strictEqual(providersPath.get.responses['200'].content['text/csv'].schema.type, 'string')
     assert.strictEqual(sourcesPath.get.responses['200'].content['text/csv'].schema.type, 'string')
+    assert.strictEqual(contentTypesPath.get.responses['200'].content['text/csv'].schema.type, 'string')
   })
 })

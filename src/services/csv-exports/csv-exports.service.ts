@@ -6,10 +6,15 @@ import { DataProviders } from '@/services/data-providers/data-providers.class.js
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
 import {
   CsvExportService,
+  mapContentItemTypesToCsvRows,
   mapDataProvidersToCsvRows,
   mapMediaSourcesToCsvRows,
 } from '@/services/csv-exports/csv-exports.class.js'
-import { getDataProvidersCsvDocs, getDataSourcesCsvDocs } from '@/services/csv-exports/csv-exports.schema.js'
+import {
+  getContentItemTypesCsvDocs,
+  getDataProvidersCsvDocs,
+  getDataSourcesCsvDocs,
+} from '@/services/csv-exports/csv-exports.schema.js'
 
 const sendCsvResponse = (_req: Request, res: Response, next: NextFunction) => {
   if (res.data == null) return next()
@@ -62,6 +67,14 @@ export default (app: ImpressoApplication) => {
     return mapMediaSourcesToCsvRows(result.data)
   })
 
+  const contentItemTypesCsvService = new CsvExportService(async () => mapContentItemTypesToCsvRows())
+
   registerCsvExport(app, '/csv-exports/data-providers.csv', dataProvidersCsvService, getDataProvidersCsvDocs())
   registerCsvExport(app, '/csv-exports/data-sources.csv', dataSourcesCsvService, getDataSourcesCsvDocs())
+  registerCsvExport(
+    app,
+    '/csv-exports/content-item-types.csv',
+    contentItemTypesCsvService,
+    getContentItemTypesCsvDocs()
+  )
 }
