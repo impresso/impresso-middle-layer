@@ -190,7 +190,7 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
 
       const result = await service.find({
         user: { id: mockReviewerUserA.id },
-        query: { status: ['approved'], order_by: '-date' },
+        query: { status: ['approved'] },
       })
       // Reviewer A is assigned to subscriptions with ids 2, 3, and 5
       assert.strictEqual(result.pagination.total, 0)
