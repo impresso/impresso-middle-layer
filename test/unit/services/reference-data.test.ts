@@ -5,9 +5,9 @@ import {
   mapDataProvidersToCsvRows,
   mapMediaSourcesToCsvRows,
   serializeCsvRows,
-} from '@/services/csv-exports/csv-exports.class.js'
+} from '@/services/reference-data/reference-data.class.js'
 
-describe('csv-exports service helpers', () => {
+describe('reference-data service helpers', () => {
   it('serializes rows with id,label header and comma delimiter', () => {
     const result = serializeCsvRows([
       { id: 'source-1', label: 'Source One' },

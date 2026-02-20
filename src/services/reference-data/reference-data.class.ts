@@ -1,6 +1,8 @@
 import type { Params } from '@feathersjs/feathers'
 import { stringify } from 'csv-stringify/sync'
 import type { DataProvider, MediaSource } from '@/models/generated/schemas.js'
+import type { DataProviders } from '@/services/data-providers/data-providers.class.js'
+import type { MediaSources } from '@/services/media-sources/media-sources.class.js'
 
 export interface CsvExportRow {
   id: string
@@ -63,6 +65,33 @@ export const mapContentItemTypesToCsvRows = (): CsvExportRow[] => {
     label,
   }))
 }
+
+export const newDataProvidersCsvRowLoader =
+  (dataProviders: Pick<DataProviders, 'find'>): CsvExportRowLoader =>
+  async () => {
+    const result = await dataProviders.find({
+      query: {
+        limit: Number.MAX_SAFE_INTEGER,
+        offset: 0,
+      },
+    })
+
+    return mapDataProvidersToCsvRows(result.data)
+  }
+
+export const newDataSourcesCsvRowLoader =
+  (mediaSources: Pick<MediaSources, 'findMediaSources'>): CsvExportRowLoader =>
+  async () => {
+    const result = await mediaSources.findMediaSources({
+      limit: Number.MAX_SAFE_INTEGER,
+      offset: 0,
+      order_by: 'name',
+    })
+
+    return mapMediaSourcesToCsvRows(result.data)
+  }
+
+export const contentItemTypesCsvRowLoader: CsvExportRowLoader = async () => mapContentItemTypesToCsvRows()
 
 export class CsvExportService {
   constructor(private readonly loadRows: CsvExportRowLoader) {}

@@ -2,7 +2,7 @@ import assert from 'node:assert'
 import swagger from 'feathers-swagger'
 import { feathers, getServiceOptions } from '@feathersjs/feathers'
 import express, { rest } from '@feathersjs/express'
-import csvExports from '@/services/csv-exports/csv-exports.service.js'
+import csvExports from '@/services/reference-data/reference-data.service.js'
 import { WellKnownKeys } from '@/cache.js'
 
 const mockMediaSources = [
@@ -136,7 +136,7 @@ const invokeCsvFormatter = async (app: any, path: string, data: string): Promise
   })
 }
 
-describe('csv-exports service (public API)', () => {
+describe('reference-data service (public API)', () => {
   let app: any
 
   before(() => {
@@ -174,44 +174,38 @@ describe('csv-exports service (public API)', () => {
   })
 
   it('serves data providers CSV without authentication', async () => {
-    const response = await invokeGetRoute(app, '/csv-exports/data-providers.csv')
+    const response = await invokeGetRoute(app, '/reference-data/data-providers.csv')
 
     assert.strictEqual(response.statusCode, 200)
 
-    const lines = String(response.body)
-      .trim()
-      .split(/\r?\n/)
+    const lines = String(response.body).trim().split(/\r?\n/)
 
     assert.strictEqual(lines[0], 'id,label')
     assert.ok(lines.length > 1)
   })
 
   it('serves data sources CSV ordered by media source name', async () => {
-    const response = await invokeGetRoute(app, '/csv-exports/data-sources.csv')
+    const response = await invokeGetRoute(app, '/reference-data/data-sources.csv')
 
     assert.strictEqual(response.statusCode, 200)
 
-    const lines = String(response.body)
-      .trim()
-      .split(/\r?\n/)
+    const lines = String(response.body).trim().split(/\r?\n/)
 
     assert.deepStrictEqual(lines, ['id,label', 'ALPHA,Alpha Daily', 'ZULU,Zulu Gazette'])
   })
 
-  it('returns 404 for unknown CSV endpoint under /csv-exports', async () => {
-    const response = await invokeGetRoute(app, '/csv-exports/unknown.csv')
+  it('returns 404 for unknown CSV endpoint under /reference-data', async () => {
+    const response = await invokeGetRoute(app, '/reference-data/unknown.csv')
 
     assert.strictEqual(response.statusCode, 404)
   })
 
   it('serves static content item types CSV without authentication', async () => {
-    const response = await invokeGetRoute(app, '/csv-exports/content-item-types.csv')
+    const response = await invokeGetRoute(app, '/reference-data/content-item-types.csv')
 
     assert.strictEqual(response.statusCode, 200)
 
-    const lines = String(response.body)
-      .trim()
-      .split(/\r?\n/)
+    const lines = String(response.body).trim().split(/\r?\n/)
 
     assert.strictEqual(lines[0], 'id,label')
     assert.ok(lines.includes('ad,advertisement'))
@@ -219,11 +213,11 @@ describe('csv-exports service (public API)', () => {
   })
 
   it('formats CSV responses via express.after with text/csv content type', async () => {
-    const providersFormatted = await invokeCsvFormatter(app, 'csv-exports/data-providers.csv', 'id,label\nA,Alpha\n')
-    const sourcesFormatted = await invokeCsvFormatter(app, 'csv-exports/data-sources.csv', 'id,label\nB,Beta\n')
+    const providersFormatted = await invokeCsvFormatter(app, 'reference-data/data-providers.csv', 'id,label\nA,Alpha\n')
+    const sourcesFormatted = await invokeCsvFormatter(app, 'reference-data/data-sources.csv', 'id,label\nB,Beta\n')
     const contentTypesFormatted = await invokeCsvFormatter(
       app,
-      'csv-exports/content-item-types.csv',
+      'reference-data/content-item-types.csv',
       'id,label\nad,advertisement\n'
     )
 
@@ -238,9 +232,9 @@ describe('csv-exports service (public API)', () => {
   it('documents all CSV endpoints in Swagger with empty security', () => {
     const docs = (app as any).docs
 
-    const providersPath = docs.paths['/csv-exports/data-providers.csv']
-    const sourcesPath = docs.paths['/csv-exports/data-sources.csv']
-    const contentTypesPath = docs.paths['/csv-exports/content-item-types.csv']
+    const providersPath = docs.paths['/reference-data/data-providers.csv']
+    const sourcesPath = docs.paths['/reference-data/data-sources.csv']
+    const contentTypesPath = docs.paths['/reference-data/content-item-types.csv']
 
     assert.ok(providersPath)
     assert.ok(sourcesPath)
