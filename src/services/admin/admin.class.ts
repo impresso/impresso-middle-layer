@@ -1,18 +1,15 @@
-import { Params } from '@feathersjs/feathers'
-import { ImpressoApplication } from '@/types.js'
-import {
-  ContentItemPermissionsDetails,
-  getContentItemsPermissionsDetails,
-} from '@/useCases/getContentItemsPermissionsDetails.js'
 import { WellKnownMetadataKeys } from '@/cache.js'
-import { WikidataCacheKeyPrefix } from '@/services/wikidata.js'
-import type { RedisClient } from '@/redis.js'
 import { getQueueService } from '@/internalServices/queue.js'
 import type { Admin, AdminPatchRequest } from '@/models/generated/schemasPublic.js'
+import type { RedisClient } from '@/redis.js'
+import { WikidataCacheKeyPrefix } from '@/services/wikidata.js'
+import { ImpressoApplication } from '@/types.js'
+import { getContentItemsPermissionsDetails } from '@/useCases/getContentItemsPermissionsDetails.js'
+import { Params } from '@feathersjs/feathers'
 
 type FindResponse = Admin & {
-  contentItemsPermissionsDetails: ContentItemPermissionsDetails
-  imagesPermissionsDetails: ContentItemPermissionsDetails
+  contentItemsPermissionsDetails: Awaited<ReturnType<typeof getContentItemsPermissionsDetails>>
+  imagesPermissionsDetails: Awaited<ReturnType<typeof getContentItemsPermissionsDetails>>
   cacheCounts: CacheCounts
   wellKnownComputedAt: WellKnownComputedAt
 }
@@ -37,21 +34,20 @@ export class Service implements IService {
   constructor(private readonly app: ImpressoApplication) {}
 
   async find(params?: Params<FindParams>): Promise<FindResponse> {
-    const [contentItemsPermissionsDetails, imagesPermissionsDetails] = await Promise.all([
-      getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Search'),
-      getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Images'),
-    ])
+    const [contentItemsPermissionsDetails, imagesPermissionsDetails, cacheCounts, wellKnownComputedAt] =
+      await Promise.all([
+        getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Search'),
+        getContentItemsPermissionsDetails(this.app.service('simpleSolrClient'), 'Images'),
+        this.getCacheCounts(),
+        this.getWellKnownComputedAt(),
+      ])
 
-    // const userAccounts = await getUserAccountsWithAvailablePermissions(this.app.get('sequelizeClient')!)
-    const cacheCounts = await this.getCacheCounts()
-    const wellKnownComputedAt = await this.getWellKnownComputedAt()
     return {
-      contentItemsPermissionsDetails,
-      imagesPermissionsDetails,
-      // userAccounts,
-      cacheCounts,
-      wellKnownComputedAt,
-    } satisfies FindResponse
+      contentItemsPermissionsDetails: contentItemsPermissionsDetails as FindResponse['contentItemsPermissionsDetails'],
+      imagesPermissionsDetails: imagesPermissionsDetails as FindResponse['imagesPermissionsDetails'],
+      cacheCounts: cacheCounts,
+      wellKnownComputedAt: wellKnownComputedAt,
+    }
   }
 
   async patch(_id: null, data: PatchData, params?: Params): Promise<PatchResponse> {
