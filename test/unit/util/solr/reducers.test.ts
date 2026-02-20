@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { filtersToSolr, escapeIdValue, unescapeIdValue } from '@/util/solr/filterReducers.js'
 import { SolrNamespaces } from '@/solr.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { filtersToQueryAndVariables, getTopicRelevanceFunction, getSortParams } from '@/util/solr/index.js'
 import { InvalidArgumentError } from '@/util/error.js'
 import { Filter, FilterContext, FilterOperator } from '@/models/index.js'
 
@@ -1012,5 +1012,76 @@ describe('handles "imageTypeValueOrLabel" filter', () => {
     } satisfies Filter
     const { query } = filtersToSolr([filter], SolrNamespaces.Images, [])
     assert.equal(query, 'type_l0_tp:*')
+  })
+})
+
+describe('getTopicRelevanceFunction', () => {
+  it('returns "0" when no topic filters are present', () => {
+    const filters: Filter[] = [{ type: 'newspaper', q: 'JDG' }]
+    const result = getTopicRelevanceFunction(filters)
+    assert.strictEqual(result, '0')
+  })
+
+  it('returns a sum of payloads for a single topic filter', () => {
+    const filters: Filter[] = [{ type: 'topic', q: 'tm-fr-all-v2.0_tp44_fr' }]
+    const result = getTopicRelevanceFunction(filters)
+    assert.strictEqual(result, 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))')
+  })
+
+  it('returns a sum of payloads for multiple topic filters', () => {
+    const filters: Filter[] = [
+      { type: 'topic', q: 'tm-fr-all-v2.0_tp44_fr' },
+      { type: 'topic', q: 'tm-fr-all-v2.0_tp52_fr' },
+    ]
+    const result = getTopicRelevanceFunction(filters)
+    assert.strictEqual(
+      result,
+      'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr),payload(topics_dpfs,tm-fr-all-v2.0_tp52_fr))'
+    )
+  })
+
+  it('handles array of queries in a single filter', () => {
+    const filters: Filter[] = [{ type: 'topic', q: ['tm-fr-all-v2.0_tp44_fr', 'tm-fr-all-v2.0_tp52_fr'] }]
+    const result = getTopicRelevanceFunction(filters)
+    assert.strictEqual(
+      result,
+      'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr),payload(topics_dpfs,tm-fr-all-v2.0_tp52_fr))'
+    )
+  })
+
+  it('escapes topic IDs correctly', () => {
+    const filters: Filter[] = [{ type: 'topic', q: 'tm-fr-all-v2.0_tp44_fr_(test)' }]
+    const result = getTopicRelevanceFunction(filters)
+    assert.strictEqual(result, 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr_$28$test$29$))')
+  })
+})
+
+describe('getSortParams', () => {
+  it('returns empty object when orderBy is undefined', () => {
+    const filters: Filter[] = []
+    const result = getSortParams(filters)
+    assert.deepStrictEqual(result, {})
+  })
+
+  it('returns empty object when orderBy does not contain $topicRelevanceScore', () => {
+    const filters: Filter[] = []
+    const result = getSortParams(filters, 'score desc')
+    assert.deepStrictEqual(result, {})
+  })
+
+  it('sets topicRelevance param when orderBy contains $topicRelevanceScore', () => {
+    const filters: Filter[] = [{ type: 'topic', q: 'tm-fr-all-v2.0_tp44_fr' }]
+    const result = getSortParams(filters, '$topicRelevanceScore desc')
+    assert.deepStrictEqual(result, {
+      topicRelevanceScore: 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))',
+    })
+  })
+
+  it('sets topicRelevance param to "0" when orderBy contains $topicRelevanceScore but no topic filters', () => {
+    const filters: Filter[] = [{ type: 'newspaper', q: 'JDG' }]
+    const result = getSortParams(filters, '$topicRelevanceScore desc')
+    assert.deepStrictEqual(result, {
+      topicRelevanceScore: '0',
+    })
   })
 })

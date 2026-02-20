@@ -38,7 +38,16 @@ export const contentItemRedactionPolicyWebApp = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
 ) as RedactionPolicy
 
-type OrderBy = 'date' | 'relevance' | 'uid' | 'issue' | 'page' | 'newspaper' | 'hasTextContents' | 'ocrQuality'
+type OrderBy =
+  | 'date'
+  | 'relevance'
+  | 'uid'
+  | 'issue'
+  | 'page'
+  | 'newspaper'
+  | 'hasTextContents'
+  | 'ocrQuality'
+  | 'topicRelevance'
 type ReverseOrderBy = `-${OrderBy}`
 type FullOrderBy = OrderBy | ReverseOrderBy
 
@@ -51,6 +60,7 @@ const OrderByChoices: OrderBy[] = [
   'newspaper',
   'hasTextContents',
   'ocrQuality',
+  'topicRelevance',
 ]
 const FullOrderByChoices: FullOrderBy[] = [...OrderByChoices, ...OrderByChoices.map(o => `-${o}`)] as FullOrderBy[]
 
