@@ -20,6 +20,12 @@ import {
   JobNameRebuildWellKnownCache,
   RebuildWellKnownCacheJobData,
 } from '@/jobs/rebuildWellKnownCache.js'
+import {
+  DownstreamServiceHealthCheckIntervalMs,
+  DownstreamServiceHealthCheckJobData,
+  DownstreamServiceHealthCheckJobId,
+  JobNameDownstreamServiceHealthCheck,
+} from '@/jobs/downstreamServiceHealthCheck.js'
 import { logger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
@@ -39,6 +45,7 @@ export class QueueService {
   private queueExportSearchResults: Queue
   private queueMigrateOldCollections: Queue
   private queueRebuildWellKnownCache: Queue
+  private queueDownstreamServiceHealthCheck: Queue
 
   private redisConfig: RedisConfiguration
 
@@ -104,6 +111,10 @@ export class QueueService {
       connection,
       defaultJobOptions,
     })
+    this.queueDownstreamServiceHealthCheck = new Queue(JobNameDownstreamServiceHealthCheck, {
+      connection,
+      defaultJobOptions,
+    })
   }
 
   /**
@@ -165,6 +176,19 @@ export class QueueService {
     return this.queueRebuildWellKnownCache.add(JobNameRebuildWellKnownCache, data)
   }
 
+  async scheduleDownstreamServiceHealthCheck(
+    data: DownstreamServiceHealthCheckJobData
+  ): Promise<BullJob<DownstreamServiceHealthCheckJobData>> {
+    logger.info('Scheduling periodic downstream service health check (every 5 minutes)')
+    return this.queueDownstreamServiceHealthCheck.add(JobNameDownstreamServiceHealthCheck, data, {
+      jobId: DownstreamServiceHealthCheckJobId,
+      repeat: {
+        every: DownstreamServiceHealthCheckIntervalMs,
+        immediately: true,
+      },
+    })
+  }
+
   /**
    * Get queue statistics
    */
@@ -177,6 +201,7 @@ export class QueueService {
       this.queueExportSearchResults,
       this.queueMigrateOldCollections,
       this.queueRebuildWellKnownCache,
+      this.queueDownstreamServiceHealthCheck,
     ]
 
     const stats = await Promise.all(
@@ -209,6 +234,7 @@ export class QueueService {
     await this.queueExportSearchResults.close()
     await this.queueMigrateOldCollections.close()
     await this.queueRebuildWellKnownCache.close()
+    await this.queueDownstreamServiceHealthCheck.close()
     logger.info('Queue service closed')
   }
 }
