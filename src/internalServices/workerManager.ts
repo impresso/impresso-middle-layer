@@ -31,6 +31,10 @@ import {
   createJobHandler as rebuildWellKnownCacheJobHandler,
   JobNameRebuildWellKnownCache,
 } from '@/jobs/rebuildWellKnownCache.js'
+import {
+  createJobHandler as downstreamServiceHealthCheckJobHandler,
+  JobNameDownstreamServiceHealthCheck,
+} from '@/jobs/downstreamServiceHealthCheck.js'
 import { logger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
@@ -229,6 +233,7 @@ export default (app: ImpressoApplication) => {
       [JobNameAddQueryResultItemsToCollection, createAddQueryResultItemsToCollectionJobHandler(app), 1],
       [JobNameExportSearchResults, exportSearchResultsJobHandler(app), 1],
       [JobNameRebuildWellKnownCache, rebuildWellKnownCacheJobHandler(app), 1],
+      [JobNameDownstreamServiceHealthCheck, downstreamServiceHealthCheckJobHandler(app), 1],
     ]
 
     const workerManagerService = createWorkerManagerService(app, workerDefinitions)
