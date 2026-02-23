@@ -1,9 +1,11 @@
-import { Op, type Sequelize } from 'sequelize'
+import { Op, OrderItem, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, NullableId, Params } from '@feathersjs/feathers'
 import Debug from 'debug'
-import UserSpecialMembershipRequestModel, { AvailableStatuses } from '@/models/user-special-membership-requests.model.js'
+import UserSpecialMembershipRequestModel, {
+  AvailableStatuses,
+} from '@/models/user-special-membership-requests.model.js'
 import { NotFound, BadRequest } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
 import User from '@/models/users.model.js'
@@ -16,6 +18,7 @@ const debug = Debug('impresso/services:user-special-membership-requests-reviews'
 export interface FindQuery {
   limit?: number
   offset?: number
+  order_by?: OrderItem[]
   status?: string[]
 }
 export interface UserSpecialMembershipRequestParams<Q = FindQuery> extends Params<Q> {
@@ -92,9 +95,9 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
   }
 
   async find(params?: UserSpecialMembershipRequestParams) {
-    const { limit = 10, offset = 0 } = params?.query ?? {}
+    const { limit = 10, offset = 0, order_by = [['dateLastModified', 'DESC']], status } = params?.query ?? {}
     const reviewerId = params?.user?.id
-    debug('Finding requests for reviewerId %s', reviewerId)
+    debug('Finding requests for reviewerId %s with order_by %s', reviewerId, JSON.stringify(order_by))
 
     if (reviewerId == null) {
       return { data: [], pagination: { limit, offset, total: 0 } }
@@ -106,7 +109,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
         [Op.or]: [{ reviewerId: reviewerId }, { '$specialMembershipAccess.reviewer_id$': reviewerId }],
         ...(params?.query?.status ? { status: { [Op.in]: params.query.status } } : {}),
       },
-      order: [['dateLastModified', 'DESC']],
+      order: order_by as OrderItem[],
       include: ['specialMembershipAccess'],
     })
 
@@ -181,9 +184,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
 
     // Validate status field if provided
     if (data.status && !AvailableStatuses.includes(data.status)) {
-      throw new BadRequest(
-        `Invalid status value. Must be one of: ${AvailableStatuses.join(', ')}`
-      )
+      throw new BadRequest(`Invalid status value. Must be one of: ${AvailableStatuses.join(', ')}`)
     }
 
     const record = await this.requestModel.findByPk(id, {
@@ -202,7 +203,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     const updateData = { ...data, dateLastModified: new Date() }
     await record.update(updateData)
     debug('Updated request %s', id)
-    
+
     if (this.celeryClient) {
       try {
         await this.celeryClient.run({

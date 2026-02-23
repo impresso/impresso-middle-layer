@@ -114,6 +114,31 @@ const mockRequestsForReviewerA = [
       },
     ],
   },
+  {
+    id: 13,
+    reviewerId: null,
+    userId: 3,
+    specialMembershipAccessId: 5,
+    dateCreated: new Date(),
+    dateLastModified: new Date(),
+    status: 'approved',
+    changelog: [
+      {
+        status: 'pending',
+        subscription: 'diamond',
+        date: new Date().toISOString(),
+        reviewer: '',
+        notes: 'Initial request',
+      },
+      {
+        status: 'approved',
+        subscription: 'diamond',
+        date: new Date().toISOString(),
+        reviewer: 'Reviewer First Reviewer Last',
+        notes: 'Approved',
+      },
+    ],
+  },
 ] as IUserSpecialMembershipRequestAttributes[]
 
 describe('UserSpecialMembershipRequestReviewsService', () => {
@@ -197,10 +222,23 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
 
       const result = await service.find({
         user: { id: mockReviewerUserA.id },
-        query: { status: ['approved'], order_by: '-date' },
+        query: { status: ['approved'], order_by: [['dateLastModified', 'DESC']] },
       })
-      // Reviewer A is assigned to subscriptions with ids 2, 3, and 5
-      assert.strictEqual(result.pagination.total, 0)
+      // Reviewer A is assigned to subscriptions with ids 2, 3, and 5 but only one is approved
+      assert.strictEqual(result.data.length, 1)
+      assert.strictEqual(result.pagination.total, 1)
+    })
+    it('should return PENDING requests assigned to the reviewer, order by -date', async () => {
+      // Create requests assigned to different reviewers
+      await userSpecialMembershipRequestModel.bulkCreate(mockRequestsForReviewerA)
+
+      const result = await service.find({
+        user: { id: mockReviewerUserA.id },
+        query: { status: ['pending'], order_by: [['dateLastModified', 'DESC']] },
+      })
+      // Reviewer A is assigned to subscriptions with ids 2, 3, and 5 but only one is pending
+      assert.strictEqual(result.data.length, 3)
+      assert.strictEqual(result.pagination.total, 3)
     })
   })
 
