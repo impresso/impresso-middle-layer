@@ -89,7 +89,7 @@ export class MagicLinkService {
     }
     await this.celeryClient
       .run({
-        task: 'impresso.tasks.send_magic_link_email',
+        task: 'impresso.tasks.email_magic_link',
         args: [
           // user email
           user.get('id'),
