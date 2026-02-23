@@ -255,7 +255,7 @@ class MagicLinkJWTStrategy extends JWTStrategy {
       debug('[MagicLinkJWTStrategy] entity:', entity)
       const userBitmap = (user as any).userBitmap
       const slimUser: SlimUser = {
-        uid: user.get('profile')?.uid || '',
+        uid: (user.get('profile') as any)?.uid || '',
         id: Number(user.get('id')),
         bitmap: userBitmap?.bitmap ?? BufferUserPlanGuest,
         isStaff: !!user.get('isStaff'),

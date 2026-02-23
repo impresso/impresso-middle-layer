@@ -5,6 +5,7 @@ import updateFacetRangesCache from '@/jobs/updateFacetRanges.js'
 import updateMediaSourcesCache from '@/jobs/updateMediaSourcesCache.js'
 import updateTopicsCache from '@/jobs/updateTopicsCache.js'
 import updateYearsCache from '@/jobs/updateYears.js'
+import { getQueueService } from '@/internalServices/queue.js'
 
 /**
  * Jobs to run on startup
@@ -12,6 +13,7 @@ import updateYearsCache from '@/jobs/updateYears.js'
 export const startupJobs = async (context: HookContext<ImpressoApplication>, next: NextFunction) => {
   // run jobs asynchronously - no need to wait for them
   logger.info('Running async jobs...')
+  const isPublicApi = context.app.get('isPublicApi') === true
   await Promise.all([
     updateMediaSourcesCache(context.app)
       .then(() => logger.info('Media sources cache updated.'))
@@ -25,6 +27,14 @@ export const startupJobs = async (context: HookContext<ImpressoApplication>, nex
     updateFacetRangesCache(context.app)
       .then(() => logger.info('Facet ranges cache updated.'))
       .catch(e => logger.error('Error updating facet ranges cache:', e)),
+    ...(isPublicApi
+      ? [
+          getQueueService(context.app)
+            .scheduleDownstreamServiceHealthCheck({ requestedBy: 'startup' })
+            .then(() => logger.info('Periodic downstream health check scheduled (every 5 minutes).'))
+            .catch(e => logger.error('Error scheduling periodic downstream health check:', e)),
+        ]
+      : [Promise.resolve(logger.info('Skipping downstream health check scheduling (internal API mode).'))]),
   ]).then(() => logger.info('Async jobs completed...'))
 
   await next()

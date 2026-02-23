@@ -20,6 +20,7 @@ import impressoNer from './impresso-ner/impresso-ner.service.js'
 import impressoEmbedder from './impresso-embedder/impresso-embedder.service.js'
 import mediaSources from './media-sources/media-sources.service.js'
 import dataProviders from './data-providers/data-providers.service.js'
+import referenceData from './reference-data/reference-data.service.js'
 import topics from './topics/topics.service.js'
 import images from './images/images.service.js'
 import experiments from './experiments/experiments.service.js'
@@ -86,6 +87,7 @@ const publicApiServices = [
   { name: 'impresso-embedder', init: impressoEmbedder },
   { name: 'media-sources', init: mediaSources },
   { name: 'data-providers', init: dataProviders },
+  { name: 'reference-data', init: referenceData },
   { name: 'topics', init: topics },
   { name: 'images', init: images },
   { name: 'experiments', init: experiments },
