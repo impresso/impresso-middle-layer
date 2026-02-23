@@ -486,6 +486,7 @@ export interface ImageUrlRewriteRule {
 }
 export interface CallbackUrlsConfig {
   passwordReset?: string;
+  magicLink?: string;
   [k: string]: unknown;
 }
 export interface MulterConfig {

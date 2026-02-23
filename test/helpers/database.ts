@@ -91,6 +91,8 @@ export function setupTestDatabaseRedisCelery(
         return celeryClient
       case 'redisClient': // Sometimes used via get instead of service
         return redisClient
+      case 'callbackUrls':
+        return { magicLink: 'http://test-callback-url.com/magic-link' }
       default:
         return {}
     }
