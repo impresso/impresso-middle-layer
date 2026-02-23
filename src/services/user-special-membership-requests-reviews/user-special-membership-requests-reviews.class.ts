@@ -1,19 +1,24 @@
-import { Op, type Sequelize } from 'sequelize'
+import { Op, OrderItem, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
-import type { ClientService, Id, Params } from '@feathersjs/feathers'
+import type { ClientService, Id, NullableId, Params } from '@feathersjs/feathers'
 import Debug from 'debug'
-import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
-import { NotFound } from '@feathersjs/errors'
+import UserSpecialMembershipRequestModel, {
+  AvailableStatuses,
+} from '@/models/user-special-membership-requests.model.js'
+import { NotFound, BadRequest } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
 import User from '@/models/users.model.js'
 import Group from '@/models/groups.model.js'
 import Profile from '@/models/profiles.model.js'
+import { CeleryClient } from '@/celery.js'
+import { logger } from '@/logger.js'
 
 const debug = Debug('impresso/services:user-special-membership-requests-reviews')
 export interface FindQuery {
   limit?: number
   offset?: number
+  order_by?: OrderItem[]
   status?: string[]
 }
 export interface UserSpecialMembershipRequestParams<Q = FindQuery> extends Params<Q> {
@@ -61,11 +66,19 @@ export type IUserSpecialMembershipRequestReviewsService = Omit<
     any,
     FindResponse<UserSpecialMembershipRequestModel & { requester: Requester }>
   >,
-  'create' | 'patch' | 'remove' | 'update'
->
+  'create' | 'remove' | 'update' | 'patch'
+> & {
+  // Define your strict single-item patch here
+  patch(
+    id: Id, // Force id to be a single Id (non-nullable)
+    data: Partial<UserSpecialMembershipRequestModel>,
+    params?: UserSpecialMembershipRequestParams
+  ): Promise<UserSpecialMembershipRequestModel>
+}
 
 export class UserSpecialMembershipRequestReviewsService implements IUserSpecialMembershipRequestReviewsService {
   protected readonly sequelizeClient: Sequelize
+  protected readonly celeryClient: CeleryClient
   protected readonly requestModel: ReturnType<typeof UserSpecialMembershipRequestModel.initialize>
   public readonly name: string
 
@@ -75,15 +88,16 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
    */
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
+    this.celeryClient = app.get('celeryClient') as CeleryClient
     this.requestModel = UserSpecialMembershipRequestModel.initialize(this.sequelizeClient)
     this.name = 'user-special-membership-requests-reviews'
     debug('Initialized service %s', this.name)
   }
 
   async find(params?: UserSpecialMembershipRequestParams) {
-    const { limit = 10, offset = 0 } = params?.query ?? {}
+    const { limit = 10, offset = 0, order_by = [['dateLastModified', 'DESC']], status } = params?.query ?? {}
     const reviewerId = params?.user?.id
-    debug('Finding requests for reviewerId %s', reviewerId)
+    debug('Finding requests for reviewerId %s with order_by %s', reviewerId, JSON.stringify(order_by))
 
     if (reviewerId == null) {
       return { data: [], pagination: { limit, offset, total: 0 } }
@@ -95,7 +109,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
         [Op.or]: [{ reviewerId: reviewerId }, { '$specialMembershipAccess.reviewer_id$': reviewerId }],
         ...(params?.query?.status ? { status: { [Op.in]: params.query.status } } : {}),
       },
-      order: [['dateLastModified', 'DESC']],
+      order: order_by as OrderItem[],
       include: ['specialMembershipAccess'],
     })
 
@@ -154,6 +168,53 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     if (!record || (!isDirectReviewer && !isSpecialAccessReviewer)) {
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
     }
+    return record.toJSON() as UserSpecialMembershipRequestModel
+  }
+
+  async patch(
+    id: Id,
+    data: Partial<UserSpecialMembershipRequestModel>,
+    params?: UserSpecialMembershipRequestParams
+  ): Promise<UserSpecialMembershipRequestModel> {
+    const reviewerId = params?.user?.id
+    debug('Patching request %s by reviewer %s', id, reviewerId)
+    if (id == null) {
+      throw new NotFound('UserSpecialMembershipRequest id is required')
+    }
+
+    // Validate status field if provided
+    if (data.status && !AvailableStatuses.includes(data.status)) {
+      throw new BadRequest(`Invalid status value. Must be one of: ${AvailableStatuses.join(', ')}`)
+    }
+
+    const record = await this.requestModel.findByPk(id, {
+      include: ['specialMembershipAccess'],
+    })
+    const isDirectReviewer = record && record.reviewerId === reviewerId
+    const isSpecialAccessReviewer =
+      record &&
+      (record as any).specialMembershipAccess &&
+      (record as any).specialMembershipAccess.reviewerId === reviewerId
+
+    if (!record || (!isDirectReviewer && !isSpecialAccessReviewer)) {
+      throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
+    }
+
+    const updateData = { ...data, dateLastModified: new Date() }
+    await record.update(updateData)
+    debug('Updated request %s', id)
+
+    if (this.celeryClient) {
+      try {
+        await this.celeryClient.run({
+          task: 'impresso.tasks.userSpecialMembershipRequest_tasks.after_special_membership_request_updated',
+          args: [record.id],
+        })
+      } catch (err) {
+        logger.error('Error sending after_special_membership_request_updated task:', err)
+      }
+    }
+
     return record.toJSON() as UserSpecialMembershipRequestModel
   }
 }

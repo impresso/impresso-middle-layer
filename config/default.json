@@ -25,7 +25,8 @@
     "windowDays": 30
   },
   "callbackUrls": {
-    "passwordReset": "http://localhost:8080/password-reset"
+    "passwordReset": "http://localhost:5173/password-reset",
+    "magicLink": "http://localhost:5173/magic-link"
   },
   "host": "localhost",
   "port": 3030,

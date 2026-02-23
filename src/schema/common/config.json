@@ -124,7 +124,8 @@
     "CallbackUrlsConfig": {
       "type": "object",
       "properties": {
-        "passwordReset": { "type": "string" }
+        "passwordReset": { "type": "string" },
+        "magicLink": { "type": "string" }
       }
     },
     "ImagesConfig": {
