@@ -210,15 +210,19 @@ export const getTopicRelevanceFunction = (filters: Filter[]): string => {
  * @param orderBy The orderBy parameter
  * @returns {Record<string, string>} Solr params object
  */
-export const getSortParams = (filters: Filter[], orderBy?: string): Record<string, string> => {
+export const getSortParams = (
+  filters: Filter[],
+  orderBy?: string
+): {
+  sort: string
+  params: Record<string, string>
+} => {
+  const sort = orderBy ?? 'score desc, id asc'
   const params: Record<string, string> = {}
-  if (!orderBy) {
-    return params
-  }
 
-  if (orderBy.includes('$topicRelevanceScore')) {
+  if (sort.includes('$topicRelevanceScore')) {
     params['topicRelevanceScore'] = getTopicRelevanceFunction(filters)
   }
 
-  return params
+  return { sort, params }
 }

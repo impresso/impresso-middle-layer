@@ -1057,23 +1057,32 @@ describe('getTopicRelevanceFunction', () => {
 })
 
 describe('getSortParams', () => {
-  it('returns empty object when orderBy is undefined', () => {
+  it('returns stable default sort and empty params when orderBy is undefined', () => {
     const filters: Filter[] = []
     const result = getSortParams(filters)
-    assert.deepStrictEqual(result, {})
+    assert.deepStrictEqual(result, {
+      sort: 'score desc, id asc',
+      params: {},
+    })
   })
 
-  it('returns empty object when orderBy does not contain $topicRelevanceScore', () => {
+  it('returns provided sort and empty params when orderBy does not contain $topicRelevanceScore', () => {
     const filters: Filter[] = []
     const result = getSortParams(filters, 'score desc')
-    assert.deepStrictEqual(result, {})
+    assert.deepStrictEqual(result, {
+      sort: 'score desc',
+      params: {},
+    })
   })
 
   it('sets topicRelevance param when orderBy contains $topicRelevanceScore', () => {
     const filters: Filter[] = [{ type: 'topic', q: 'tm-fr-all-v2.0_tp44_fr' }]
     const result = getSortParams(filters, '$topicRelevanceScore desc')
     assert.deepStrictEqual(result, {
-      topicRelevanceScore: 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))',
+      sort: '$topicRelevanceScore desc',
+      params: {
+        topicRelevanceScore: 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))',
+      },
     })
   })
 
@@ -1081,7 +1090,10 @@ describe('getSortParams', () => {
     const filters: Filter[] = [{ type: 'newspaper', q: 'JDG' }]
     const result = getSortParams(filters, '$topicRelevanceScore desc')
     assert.deepStrictEqual(result, {
-      topicRelevanceScore: '0',
+      sort: '$topicRelevanceScore desc',
+      params: {
+        topicRelevanceScore: '0',
+      },
     })
   })
 })
