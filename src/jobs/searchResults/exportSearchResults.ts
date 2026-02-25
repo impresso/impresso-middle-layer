@@ -11,6 +11,7 @@ import { basename, dirname, join } from 'path'
 import { v7 as uuidv7 } from 'uuid'
 import { logger } from '@/logger.js'
 import { ContentItem as ContentItemPublic } from '@/models/generated/schemasPublic.js'
+import { FindResponseInternal } from '@/services/content-items/content-items.class.js'
 import DBJob from '@/models/jobs.model.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
@@ -105,6 +106,7 @@ export interface ExportSearchResultsJobData {
     offset: number
     exportId: string
     jobRecordId: number
+    nextCursorMark?: string
   }
 }
 
@@ -336,20 +338,18 @@ export const createJobHandler = (app: ImpressoApplication) => {
     // applies the correct access controls for the user and transforms
     // the data to match the public API schema
     const contentItemsService = app.service('content-items')
-    const result = await contentItemsService.find({
+    const result = await contentItemsService.findInternal({
       query: {
         filters,
-        offset,
+        offset, // Solr ignores offset if cursorMark is present.
         limit: PageSize,
         include_transcript: true,
         order_by: 'score desc, id asc',
+        nextCursorMark: exportContext?.nextCursorMark ?? '*',
       },
       asPublicApi: true,
     })
-    const {
-      data,
-      pagination: { total },
-    } = result as any as PublicFindResponse<ContentItemPublic>
+    const { data, total, nextCursorMark } = result as unknown as FindResponseInternal<ContentItemPublic>
 
     // write the documents to the export store
     logger.info(`📝 Writing ${data.length} documents to export ${exportId} for user ${userId} (offset: ${offset})`)
@@ -377,6 +377,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
           offset: offset + data.length,
           exportId,
           jobRecordId: jobRecord.id,
+          nextCursorMark,
         },
       })
       await publishProgressUpdate(app.service('logs'), userUid, exportId, progressInPercent, jobRecord)

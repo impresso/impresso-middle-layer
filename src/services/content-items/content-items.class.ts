@@ -27,6 +27,11 @@ import {
 } from '@/models/content-item.js'
 import { ClientService, Params } from '@feathersjs/feathers'
 import { FindResponse } from '@/models/common.js'
+
+export interface FindResponseInternal<T> extends FindResponse<T> {
+  nextCursorMark?: string
+}
+
 import {
   ContentItem,
   ContentItemPage,
@@ -159,6 +164,7 @@ interface FindQuery {
   include_embeddings?: boolean
   include_transcript?: boolean
   term?: string
+  nextCursorMark?: string
 }
 
 interface AsPublicApiMixin {
@@ -319,10 +325,11 @@ export class ContentItemService implements IContentItemService {
   }
 
   async find(params: FindParams): Promise<FindResponse<ContentItem>> {
+    delete params.query?.nextCursorMark
     return await this._find(params)
   }
 
-  async findInternal(params: FindParams): Promise<FindResponse<ContentItem>> {
+  async findInternal(params: FindParams): Promise<FindResponseInternal<ContentItem>> {
     return await this._find(params)
   }
 
@@ -349,7 +356,7 @@ export class ContentItemService implements IContentItemService {
     return pagesByIds
   }
 
-  async _find(params: FindParams): Promise<FindResponse<ContentItem>> {
+  async _find(params: FindParams): Promise<FindResponseInternal<ContentItem>> {
     const fields = [
       ...[ScoreField],
       // if include embeddings is requested, add those fields
@@ -371,8 +378,10 @@ export class ContentItemService implements IContentItemService {
         }
 
     const request = findRequestAdapter(params)
+    const { sort, params: sortParams } = getSortParams(params.query?.filters ?? [], params.query?.order_by)
     const requestBody = {
       ...request,
+      sort,
       fields: fields.join(','),
       params: {
         ...request.params,
@@ -380,7 +389,8 @@ export class ContentItemService implements IContentItemService {
         // add variables if there are any
         ...((params.query as any)?.['sv'] ?? {}),
         // any sort params
-        ...getSortParams(params.query?.filters ?? [], params.query?.order_by),
+        ...sortParams,
+        ...(params.query?.nextCursorMark ? { cursorMark: params.query.nextCursorMark } : {}),
       },
     }
     const results = await this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
@@ -412,6 +422,7 @@ export class ContentItemService implements IContentItemService {
       offset: results.response?.start ?? 0,
       limit: request.limit ?? DefaultLimit,
       total: results.response?.numFound ?? 0,
+      nextCursorMark: results.nextCursorMark,
     }
 
     // if (results.response?.docs?.length)

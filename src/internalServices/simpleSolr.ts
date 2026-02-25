@@ -136,6 +136,8 @@ export interface SelectResponse<T, K extends string, B extends BucketValue> {
       statistics?: any
     }
   }
+
+  nextCursorMark?: string
 }
 
 export interface SuggestEntry {
