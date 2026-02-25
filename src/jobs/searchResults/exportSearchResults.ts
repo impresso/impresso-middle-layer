@@ -342,6 +342,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
         offset,
         limit: PageSize,
         include_transcript: true,
+        order_by: 'score desc, id asc',
       },
       asPublicApi: true,
     })
