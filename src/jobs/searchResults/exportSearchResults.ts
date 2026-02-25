@@ -341,11 +341,11 @@ export const createJobHandler = (app: ImpressoApplication) => {
     const result = await contentItemsService.findInternal({
       query: {
         filters,
-        offset, // Solr ignores offset if cursorMark is present.
+        ...(exportContext?.nextCursorMark != null ? {} : { offset }), // Must not be set if cursorMark is present.
         limit: PageSize,
         include_transcript: true,
         order_by: 'score desc, id asc',
-        nextCursorMark: exportContext?.nextCursorMark ?? '*',
+        ...(exportContext?.nextCursorMark != null ? { nextCursorMark: exportContext.nextCursorMark } : {}),
       },
       asPublicApi: true,
     })
