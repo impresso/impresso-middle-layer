@@ -45,7 +45,7 @@ import { Collection, Topic } from '@/models/generated/schemas.js'
 import { WellKnownKeys } from '@/cache.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/solr/contentItem.js'
-import { allContentFields, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
+import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
 import { QueueService } from '@/internalServices/queue.js'
@@ -377,7 +377,9 @@ export class ContentItemService implements IContentItemService {
         }
 
     const request = findRequestAdapter(params)
-    const { sort, params: sortParams } = getSortParams(params.query?.filters ?? [], params.query?.order_by)
+    const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], params.query?.order_by)
+    const sort = params.query?.nextCursorMark != null ? ensureIdSort(rawSort) : rawSort
+
     const requestBody = {
       ...request,
       sort,

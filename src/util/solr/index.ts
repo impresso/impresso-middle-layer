@@ -226,3 +226,17 @@ export const getSortParams = (
 
   return { sort, params }
 }
+
+/**
+ * Ensures that a Solr sort string includes sorting by the `id` field,
+ * which is required for cursor-based pagination (`cursorMark`) to be stable.
+ * If `id asc` or `id desc` is already present, the sort string is returned unchanged.
+ * Otherwise `, id asc` is appended.
+ *
+ * @param sort The Solr sort string (e.g. `"score desc, date_i desc"`)
+ * @returns The sort string guaranteed to include an `id` sort clause
+ */
+export const ensureIdSort = (sort: string): string => {
+  if (/\bid\s+(asc|desc)\b/i.test(sort)) return sort
+  return sort ? `${sort}, id asc` : 'id asc'
+}

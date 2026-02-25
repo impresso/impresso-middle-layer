@@ -35,6 +35,7 @@
         "--env-file=.env",
         "--watch"
       ],
+      "restart": { "delay": 1000 },
       "console": "integratedTerminal"
     },
     {
@@ -49,6 +50,7 @@
         "--watch"
       ],
       "env": {"HOST": "api"},
+      "restart": { "delay": 1000 },
       "console": "integratedTerminal"
     },
     {
