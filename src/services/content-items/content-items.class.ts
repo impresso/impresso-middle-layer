@@ -28,7 +28,7 @@ import {
 import { ClientService, Params } from '@feathersjs/feathers'
 import { FindResponse } from '@/models/common.js'
 
-export interface FindResponseInternal<T> extends FindResponse<T> {
+export interface FindResponseWithCursor<T> extends FindResponse<T> {
   nextCursorMark?: string
 }
 
@@ -324,12 +324,12 @@ export class ContentItemService implements IContentItemService {
     return this.app?.service('simpleSolrClient')!
   }
 
-  async find(params: FindParams): Promise<FindResponse<ContentItem>> {
+  async find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     delete params.query?.nextCursorMark
     return await this._find(params)
   }
 
-  async findInternal(params: FindParams): Promise<FindResponseInternal<ContentItem>> {
+  async findInternal(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     return await this._find(params)
   }
 
@@ -356,7 +356,7 @@ export class ContentItemService implements IContentItemService {
     return pagesByIds
   }
 
-  async _find(params: FindParams): Promise<FindResponseInternal<ContentItem>> {
+  async _find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     const fields = [
       ...[ScoreField],
       // if include embeddings is requested, add those fields
@@ -390,7 +390,7 @@ export class ContentItemService implements IContentItemService {
         ...((params.query as any)?.['sv'] ?? {}),
         // any sort params
         ...sortParams,
-        ...(params.query?.nextCursorMark ? { cursorMark: params.query.nextCursorMark } : {}),
+        ...(params.query?.nextCursorMark != null ? { cursorMark: params.query.nextCursorMark } : {}),
       },
     }
     const results = await this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {

@@ -11,7 +11,6 @@ import { basename, dirname, join } from 'path'
 import { v7 as uuidv7 } from 'uuid'
 import { logger } from '@/logger.js'
 import { ContentItem as ContentItemPublic } from '@/models/generated/schemasPublic.js'
-import { FindResponseInternal } from '@/services/content-items/content-items.class.js'
 import DBJob from '@/models/jobs.model.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
@@ -338,18 +337,22 @@ export const createJobHandler = (app: ImpressoApplication) => {
     // applies the correct access controls for the user and transforms
     // the data to match the public API schema
     const contentItemsService = app.service('content-items')
-    const result = await contentItemsService.findInternal({
-      query: {
-        filters,
-        ...(exportContext?.nextCursorMark != null ? {} : { offset }), // Must not be set if cursorMark is present.
-        limit: PageSize,
-        include_transcript: true,
-        order_by: 'score desc, id asc',
-        ...(exportContext?.nextCursorMark != null ? { nextCursorMark: exportContext.nextCursorMark } : {}),
-      },
+    const query = {
+      filters,
+      limit: PageSize,
+      include_transcript: true,
+      ...(exportContext?.nextCursorMark != null
+        ? { nextCursorMark: exportContext.nextCursorMark }
+        : { nextCursorMark: '*' }),
+    }
+    const result = await contentItemsService.find({
+      query,
       asPublicApi: true,
     })
-    const { data, total, nextCursorMark } = result as unknown as FindResponseInternal<ContentItemPublic>
+    const { data, nextCursorMark, pagination } = result as unknown as PublicFindResponse<ContentItemPublic> & {
+      nextCursorMark?: string
+    }
+    const { total } = pagination
 
     // write the documents to the export store
     logger.info(`📝 Writing ${data.length} documents to export ${exportId} for user ${userId} (offset: ${offset})`)

@@ -69,6 +69,7 @@ interface Params {
   include_embeddings?: boolean
   include_transcript?: boolean
   term?: string
+  nextCursorMark?: string
 }
 
 /**
@@ -122,6 +123,11 @@ export default {
           required: false,
           min_length: 1,
           max_length: 200,
+        },
+        nextCursorMark: {
+          required: false,
+          min_length: 1,
+          max_length: 1000,
         },
       }),
       validateEach('filters', eachFilterValidator, {
