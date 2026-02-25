@@ -59,7 +59,7 @@ describe('MagicLinkService', () => {
 
       // Verify the celery task was called with correct parameters
       const taskCall = trackers.celeryCalls[0]
-      assert.strictEqual(taskCall.task, 'impresso.tasks.send_magic_link_email')
+      assert.strictEqual(taskCall.task, 'impresso.tasks.email_magic_link')
       assert.ok(Array.isArray(taskCall.args))
       assert.strictEqual(taskCall.args[0], mockUsers[0].id)
       assert.ok(typeof taskCall.args[1] === 'string') // token
