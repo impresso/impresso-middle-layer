@@ -325,7 +325,6 @@ export class ContentItemService implements IContentItemService {
   }
 
   async find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
-    delete params.query?.nextCursorMark
     return await this._find(params)
   }
 
