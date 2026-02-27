@@ -94,13 +94,18 @@ export default (app: ImpressoApplication & Application) => {
       },
       components: {
         schemas: {
-          // shared schemas (shared by both internal and external schemas)
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/shared`, './schema/shared'),
+          // canonical schemas
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical`, './schema/canonical'),
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/ContentItem`, './schema/canonical/ContentItem'),
           // public schemas
           ...getFilesAsSchemaRefs(`${schemaBaseDir}/schemasPublic`, './schema/schemasPublic'),
+          // app specific schemas
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/app`, './schema/app'),
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/responses`, './schema/app/responses'),
         },
-        requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/requestBodies`, './schema/requestBodies'),
-        responses: getFilesAsSchemaRefs(`${schemaBaseDir}/responses`, './schema/responses'),
+        requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
+        responses: getFilesAsSchemaRefs(`${schemaBaseDir}/app/responses`, './schema/app/responses'),
         parameters: getFilesAsSchemaRefs(`${schemaBaseDir}/parameters`, './schema/parameters'),
         securitySchemes: {
           BearerAuth: {

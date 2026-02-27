@@ -20,7 +20,7 @@ import {
 import { filtersToSolrQuery, termToSolrFilter } from '@/hooks/search.js'
 import { transformResponse, transformResponseDataItem } from '@/hooks/transformation.js'
 import { transformBaseFind } from '@/transformers/base.js'
-import { transformContentItem } from '@/transformers/contentItem.js'
+// import { transformContentItem } from '@/transformers/contentItem.js'
 import { ImpressoApplication } from '@/types.js'
 import { loadYamlFile } from '@/util/yaml.js'
 import { eachFilterValidator } from '@/services/search/search.validators.js'
@@ -145,7 +145,7 @@ export default {
       ...inPublicApiOrWhen(
         [
           transformResponse(transformBaseFind),
-          transformResponseDataItem(transformContentItem),
+          // transformResponseDataItem(transformContentItem),
           // NOTE: Do not check quota in find - transcript is not included
           redactResponseDataItem(
             contentItemRedactionPolicyPublicApi,
@@ -158,7 +158,7 @@ export default {
     ],
     get: [
       ...inPublicApi([
-        transformResponse(transformContentItem),
+        // transformResponse(transformContentItem),
         redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermissionAndWithinQuota('getTranscript', 'uid')),
       ]),
       ...inWebAppApi([redactResponse(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),

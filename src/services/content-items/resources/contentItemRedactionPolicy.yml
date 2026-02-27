@@ -1,9 +1,9 @@
-# yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
+# yaml-language-server: $schema=../../../schema/app/configuration/redactionPolicy.json
 name: content-item-redaction-policy
 items:
   - jsonPath: $.text.title
     valueConverterName: redact
-  - jsonPath: $.text.transcript
+  - jsonPath: $.text.content
     valueConverterName: redact
   # - jsonPath: $.regions
   #   valueConverterName: emptyArray
@@ -13,3 +13,5 @@ items:
   #   valueConverterName: contextNotAllowedImage
   # - jsonPath: $.pages[*].iiifThumbnail
   #   valueConverterName: contextNotAllowedImage
+  - jsonPath: $.image.pages.[*].iiif.thumbnailUrl
+    valueConverterName: contextNotAllowedImage

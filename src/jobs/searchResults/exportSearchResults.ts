@@ -7,49 +7,56 @@ import { accessSync, createReadStream, createWriteStream, constants as fsConstan
 import { access, appendFile, unlink, writeFile } from 'fs/promises'
 import { Filter } from 'impresso-jscommons'
 import jscommons from 'impresso-jscommons'
+import { get } from 'lodash-es'
 import { basename, dirname, join } from 'path'
 import { v7 as uuidv7 } from 'uuid'
 import { logger } from '@/logger.js'
-import { ContentItem as ContentItemPublic } from '@/models/generated/schemasPublic.js'
+import { ContentItem as ContentItemPublic } from '@/models/generated/canonical/contentItem.js'
 import DBJob from '@/models/jobs.model.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import ZipStream from 'zip-stream'
+import { FlatKeys } from '@/util/types.js'
 
 const { protobuf } = jscommons
 
-type ExportedContentItem = Omit<ContentItemPublic, 'embeddings'>
+type FlatFields = FlatKeys<ContentItemPublic, 3>
 
 const ExportedFields = [
-  'uid',
-  'copyrightStatus',
-  'type',
-  'sourceMedium',
-  'title',
-  'transcript',
-  'entities',
-  'mentions',
-  'topics',
-  'transcriptLength',
-  'totalPages',
-  'languageCode',
-  'isOnFrontPage',
-  'publicationDate',
-  'issueUid',
-  'countryCode',
-  'providerCode',
-  'mediaUid',
-  'mediaType',
-  'hasOLR',
-  'ocrQualityScore',
+  'id',
+  'access.copyright',
+  'text.itemType',
+  'meta.sourceMedium',
+  'text.title',
+  'text.content',
+  'semanticEnrichments.namedEntities.locations',
+  'semanticEnrichments.namedEntities.persons',
+  'semanticEnrichments.namedEntities.newsagencies',
+  'semanticEnrichments.namedEntities.organisations',
+  'semanticEnrichments.mentions.locations',
+  'semanticEnrichments.mentions.persons',
+  'semanticEnrichments.mentions.newsagencies',
+  'semanticEnrichments.mentions.organisations',
+  'semanticEnrichments.topics',
+  'text.contentLength',
+  'image.pagesCount',
+  'text.langCode',
+  'image.isFrontPage',
+  'meta.date',
+  'issueId',
+  'meta.countryCode',
+  'meta.partnerId',
+  'meta.mediaId',
+  'meta.sourceType',
+  'semanticEnrichments.ocrQuality',
   'relevanceScore',
-  'pageNumbers',
-  'collectionUids',
-] as const satisfies readonly (keyof ExportedContentItem)[]
+  'image.pages',
+  'semanticEnrichments.collections',
+] as const satisfies FlatFields[]
 
 // Type check to ensure all fields in ContentItemPublic are included in ExportedFields
-type MissingKeys = Exclude<keyof ExportedContentItem, (typeof ExportedFields)[number]>
-const _ensureComplete: MissingKeys extends never ? true : MissingKeys = true
+// type MissingKeys = Exclude<keyof ExportedContentItem, (typeof ExportedFields)[number]>
+// const _ensureComplete: MissingKeys extends never ? true : MissingKeys = true
 
 /**
  * Creates a unique export ID with date prefix, user hash, and UUID.
@@ -181,7 +188,7 @@ const assertWritableFolder = (exportFolder?: string) => {
  */
 export const appendItemsToCSV = async <T extends Record<string, any>>(
   filePath: string,
-  headerNames: readonly (keyof T)[],
+  headerNames: readonly FlatKeys<T, 3>[],
   items: T[],
   options?: { headers?: boolean }
 ): Promise<void> => {
@@ -199,9 +206,14 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
 
   const { headers: includeHeaders = !fileExists } = options ?? {}
 
-  const csvContent = stringify(items, {
+  const columns = Array.from(headerNames) as string[]
+  const flatItems = items.map(item =>
+    Object.fromEntries(columns.map(col => [col, get(item, col)]))
+  )
+
+  const csvContent = stringify(flatItems, {
     header: includeHeaders,
-    columns: Array.from(headerNames) as string[],
+    columns,
     quoted: true,
     cast: {
       object: (value: any) => {

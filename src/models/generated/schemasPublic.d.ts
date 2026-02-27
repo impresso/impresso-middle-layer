@@ -35,231 +35,6 @@ export interface BaseFindResponse {
 
 
 /**
- * Collection details.
- */
-export interface Collection {
-  /**
-   * Unique identifier of the collection.
-   */
-  uid: string;
-  /**
-   * Title of the collection.
-   */
-  title?: string;
-  /**
-   * Description of the collection.
-   */
-  description?: string;
-  /**
-   * Access level of the collection.
-   */
-  accessLevel?: "public" | "private";
-  /**
-   * Creation date of the collection.
-   */
-  createdAt?: string;
-  /**
-   * Last update date of the collection.
-   */
-  updatedAt?: string;
-  /**
-   * Total number of items in the collection.
-   */
-  totalItems?: number;
-}
-
-
-/**
- * A journal/magazine content item (article, advertisement, etc.)
- */
-export interface ContentItem {
-  /**
-   * The unique identifier of the content item.
-   */
-  uid: string;
-  /**
-   * Copyright status.
-   */
-  copyrightStatus?: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
-  /**
-   * The type of the content item, as present in the OLR provided by the data provider. All content items are not characterised by the same set of types.
-   */
-  type?: string;
-  /**
-   * Medium of the source (audio for audio radio broadcasts, print for newspapers, typescript for digitised radio bulletin typescripts).
-   */
-  sourceMedium?: "audio" | "print" | "typescript";
-  /**
-   * The title of the content item.
-   */
-  title?: string;
-  /**
-   * Transcript of the content item.
-   */
-  transcript?: string;
-  entities?: ContentItemNamedEntitiesInformation;
-  mentions?: ContentItemEntitiesMentionsInformation;
-  /**
-   * Topics mentioned in the content item.
-   */
-  topics?: TopicMention[];
-  /**
-   * Precomputed embeddings for the content item in the format: <model_type>:<base64_embedding_vector>.
-   */
-  embeddings?: string[];
-  /**
-   * The length of the transcript in characters.
-   */
-  transcriptLength?: number;
-  /**
-   * Total number of pages the item covers.
-   */
-  totalPages?: number;
-  /**
-   * ISO 639-1 language code of the content item.
-   */
-  languageCode?: string;
-  /**
-   * Whether the content item is on the front page of the publication.
-   */
-  isOnFrontPage?: boolean;
-  /**
-   * The publication date of the content item.
-   */
-  publicationDate?: string;
-  /**
-   * Unique issue identifier
-   */
-  issueUid?: string;
-  /**
-   * ISO 3166-1 alpha-2 country code of the content item.
-   */
-  countryCode?: string;
-  /**
-   * The code of the data provider.
-   */
-  providerCode?: string;
-  /**
-   * Media title alias. Usually a 3 letter code of the media title (newspaper, radio station, etc.).
-   */
-  mediaUid?: string;
-  /**
-   * The type of the media the content item belongs to.
-   */
-  mediaType?: "newspaper" | "radio_broadcast" | "radio_magazine" | "radio_schedule" | "monograph" | "encyclopedia";
-  /**
-   * Whether the content item has OCR/OLR data available.
-   */
-  hasOLR?: boolean;
-  /**
-   * OCR quality score of the content item (0 - 1).
-   */
-  ocrQualityScore?: number;
-  /**
-   * Relevance score of the content item (0 - 1).
-   */
-  relevanceScore?: number;
-  /**
-   * Page numbers the content item appears on.
-   */
-  pageNumbers?: number[];
-  /**
-   * Unique identifiers of collections the content item belongs to.
-   */
-  collectionUids?: string[];
-}
-/**
- * A collection of linked named entities (location, person, etc.) present in text.
- */
-export interface ContentItemNamedEntitiesInformation {
-  /**
-   * Linked location entities mentioned in the content item.
-   */
-  locations?: NamedEntity[];
-  /**
-   * Linked person entities mentioned in the content item.
-   */
-  persons?: NamedEntity[];
-  /**
-   * Linked organisation entities mentioned in the content item.
-   */
-  organisations?: NamedEntity[];
-  /**
-   * Linked news agency entities mentioned in the content item.
-   */
-  newsAgencies?: NamedEntity[];
-}
-/**
- * An named entity (location, persion, etc) present in text.
- */
-export interface NamedEntity {
-  /**
-   * Unique identifier of the entity
-   */
-  uid: string;
-  /**
-   * How many times it is mentioned in the text
-   */
-  count?: number;
-}
-/**
- * A collection of entity mentions (location, person, etc.) present in text.
- */
-export interface ContentItemEntitiesMentionsInformation {
-  /**
-   * Locations mentioned in the content item.
-   */
-  locations?: EntityMention[];
-  /**
-   * Persons mentioned in the content item.
-   */
-  persons?: EntityMention[];
-  /**
-   * Organisations mentioned in the content item.
-   */
-  organisations?: EntityMention[];
-  /**
-   * News agencies mentioned in the content item.
-   */
-  newsAgencies?: EntityMention[];
-}
-/**
- * An entity (location, person, etc.) mentioned in the content item.
- */
-export interface EntityMention {
-  /**
-   * The surface form (label) of the entity mention
-   */
-  surfaceForm: string;
-  /**
-   * Confidence score of the entity mention
-   */
-  mentionConfidence: number;
-  /**
-   * Start offset of the entity mention in the content item
-   */
-  startOffset?: number;
-  /**
-   * End offset of the entity mention in the content item
-   */
-  endOffset?: number;
-}
-/**
- * Topic presence in a content item.
- */
-export interface TopicMention {
-  /**
-   * Unique identifier of the topic.
-   */
-  uid: string;
-  /**
-   * Relevance of the topic in the content item.
-   */
-  relevance?: number;
-}
-
-
-/**
  * A data provider is a partner institution that provides content to Impresso (e.g., libraries, archives, media organizations).
  */
 export interface DataProvider {
@@ -661,6 +436,41 @@ export interface Newspaper {
    * Total number of pages in the newspaper.
    */
   totalPages?: number;
+}
+
+
+/**
+ * Public collection details.
+ */
+export interface PublicCollection {
+  /**
+   * Unique identifier of the collection.
+   */
+  uid: string;
+  /**
+   * Title of the collection.
+   */
+  title?: string;
+  /**
+   * Description of the collection.
+   */
+  description?: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
+  /**
+   * Creation date of the collection.
+   */
+  createdAt?: string;
+  /**
+   * Last update date of the collection.
+   */
+  updatedAt?: string;
+  /**
+   * Total number of items in the collection.
+   */
+  totalItems?: number;
 }
 
 

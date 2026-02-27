@@ -1,7 +1,7 @@
 import { Collection as CollectionInternal } from '@/models/generated/canonical.js'
-import { Collection as CollectionPublic } from '@/models/generated/schemasPublic.js'
+import { PublicCollection } from '@/models/generated/schemasPublic.js'
 
-export const transformCollection = (input: CollectionInternal): CollectionPublic => {
+export const transformCollection = (input: CollectionInternal): PublicCollection => {
   const { creatorId, ...rest } = input
   return rest
 }
