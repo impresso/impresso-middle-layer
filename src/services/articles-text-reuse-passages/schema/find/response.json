@@ -17,25 +17,25 @@
       "additionalProperties": false,
       "properties": {
         "id": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/id"
+          "$ref": "../../../../schema/models/text-reuse/passage.json#/properties/id"
         },
         "clusterId": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/id"
+          "$ref": "../../../../schema/models/text-reuse/cluster.json#/properties/id"
         },
         "clusterSize": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/clusterSize"
+          "$ref": "../../../../schema/models/text-reuse/cluster.json#/properties/clusterSize"
         },
         "lexicalOverlap": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/lexicalOverlap"
+          "$ref": "../../../../schema/models/text-reuse/cluster.json#/properties/lexicalOverlap"
         },
         "timeCoverage": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json#/properties/timeCoverage"
+          "$ref": "../../../../schema/models/text-reuse/cluster.json#/properties/timeCoverage"
         },
         "offsetStart": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/offsetStart"
+          "$ref": "../../../../schema/models/text-reuse/passage.json#/properties/offsetStart"
         },
         "offsetEnd": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json#/properties/offsetEnd"
+          "$ref": "../../../../schema/models/text-reuse/passage.json#/properties/offsetEnd"
         }
       },
       "required": ["id", "clusterId", "clusterSize", "offsetStart", "offsetEnd"]

@@ -14,17 +14,17 @@ const basePath = './src/schema'
 const outputPath = './src/models/generated'
 const schemaBits = [
   'canonical',
+  'canonical/contentItem',
   'app/requests',
   'app/responses',
   'app/configuration',
+  'app/models',
   'deprecated/internalApi',
+  'deprecated/models',
   'external/solr',
   'external/solr/ContentItem',
   // deprecated:
-  'schemas',
-  'schemas/contentItem',
   'schemasPublic',
-  'shared',
 ]
 const directories = fs
   .readdirSync(basePath, {

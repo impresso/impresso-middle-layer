@@ -8,7 +8,7 @@
     "clusters": {
       "type": "array",
       "items": {
-        "$ref": "./TextReuseClusterCompound.json"
+        "$ref": "../../deprecated/models/TextReuseClusterCompound.json"
       }
     },
     "info": {

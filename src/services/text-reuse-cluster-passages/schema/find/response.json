@@ -20,7 +20,7 @@
       "additionalProperties": false,
       "properties": {
         "passage": {
-          "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json"
+          "$ref": "../../../../schema/models/text-reuse/passage.json"
         },
         "newspaper": {
           "type": "object",

@@ -1,4 +1,4 @@
-import { DataProvider } from '@/models/generated/schemas.js'
+import { DataProvider } from '@/models/generated/canonical.js'
 import { DataProvider as DataProviderPublic } from '@/models/generated/schemasPublic.js'
 
 export const transformDataProvider = (input: DataProvider): DataProviderPublic => {

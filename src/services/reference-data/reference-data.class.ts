@@ -1,6 +1,6 @@
 import type { Params } from '@feathersjs/feathers'
 import { stringify } from 'csv-stringify/sync'
-import type { DataProvider, MediaSource } from '@/models/generated/schemas.js'
+import type { DataProvider, MediaSource } from '@/models/generated/canonical.js'
 import type { DataProviders } from '@/services/data-providers/data-providers.class.js'
 import type { MediaSources } from '@/services/media-sources/media-sources.class.js'
 

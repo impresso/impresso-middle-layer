@@ -1,5 +1,5 @@
 import type { JSONSchema7 as JSONSchema } from 'json-schema'
-import baseFindResponse from '@/schema/schemas/BaseFind.json' with { type: 'json' }
+import baseFindResponse from '@/schema/deprecated/internalApi/BaseFind.json' with { type: 'json' }
 import baseFindResponsePublic from '@/schema/schemasPublic/BaseFind.json' with { type: 'json' }
 
 // @ts-ignore

@@ -1,6 +1,6 @@
 import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
 import { Cache, WellKnownKeys } from '@/cache.js'
-import type { MediaSource } from '@/models/generated/schemas.js'
+import type { MediaSource } from '@/models/generated/canonical.js'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 

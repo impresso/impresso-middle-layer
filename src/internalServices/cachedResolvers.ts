@@ -1,8 +1,6 @@
 import Entity from '@/models/entities.model.js'
 import Topic from '@/models/topics.model.js'
-import { optionalMediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import { ImpressoApplication } from '@/types.js'
-import { Newspaper as NewspaperInternal } from '@/models/generated/schemas.js'
 import { WellKnownKeys } from '@/cache.js'
 import { getPartnerResolver } from '@/internalServices/facetResolvers/partnerResolver.js'
 import { getNameFromUid } from '@/utils/entity.utils.js'
@@ -11,13 +9,13 @@ import {
   Year as IYear,
   Entity as IEntity,
   Collection as ICollection,
-  Newspaper as INewspaper,
   Partner as IPartner,
-} from '@/models/generated/schemas.js'
-import { FacetWithLabel } from '@/models/generated/shared.js'
+  MediaSource as IMediaSource,
+} from '@/models/generated/canonical.js'
+import { FacetWithLabel } from '@/models/generated/canonical.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 export type CachedFacetType =
-  | 'newspaper'
+  | 'mediaSource'
   | 'topic'
   | 'person'
   | 'location'
@@ -30,12 +28,12 @@ export type CachedFacetType =
   | 'imageTechnique'
   | 'imageCommunicationGoal'
   | 'imageContentType'
-export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
+export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | IMediaSource | IPartner | FacetWithLabel
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
 
 export type ICachedResolvers = {
-  newspaper: IResolver<NewspaperInternal>
+  mediaSource: IResolver<IMediaSource>
   topic: IResolver<ITopic>
   person: IResolver<IEntity>
   location: IResolver<IEntity>
@@ -97,12 +95,12 @@ const getYearResolver = (app: ImpressoApplication): IResolver<IYear> => {
   }
 }
 
-const getNewspaperResolver = (app: ImpressoApplication): IResolver<NewspaperInternal> => {
+const getMediaSourceResolver = (app: ImpressoApplication): IResolver<IMediaSource> => {
   const mediaSources = app.service('media-sources')
   return async (id: string) => {
     const lookup = await mediaSources.getLookup()
     const item = lookup[id]
-    return optionalMediaSourceToNewspaper(item)
+    return item
   }
 }
 
@@ -121,7 +119,7 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     person: (id: string) => entityResolver(id, 'person'),
     topic: getTopicResolver(app),
     year: getYearResolver(app),
-    newspaper: getNewspaperResolver(app),
+    mediaSource: getMediaSourceResolver(app),
     partner: getPartnerResolver(app),
     nag: (id: string) => entityResolver(id, 'nag'),
     organisation: (id: string) => entityResolver(id, 'organisation'),

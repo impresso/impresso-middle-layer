@@ -1,6 +1,7 @@
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { ImpressoApplication } from '@/types.js'
 import { getTypeFromUid } from '@/utils/entity.utils.js'
+import { optionalMediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 
 const isDateRangeString = (v: string) => v.match(/.+ TO .+/) != null
 const getDateStrings = (v: string) => v.match(/(.+) TO (.+)/)?.slice(1, 3) ?? [undefined, undefined]
@@ -26,7 +27,8 @@ async function newspaperExtractor({ q = '' }, app: ImpressoApplication) {
   const resolvers = buildResolvers(app)
 
   const codes = Array.isArray(q) ? q : [q]
-  return await Promise.all(codes.map(async code => resolvers.newspaper(code.trim())))
+  const dataSources = await Promise.all(codes.map(async code => resolvers.mediaSource(code.trim())))
+  return dataSources.map(optionalMediaSourceToNewspaper)
 }
 
 async function topicExtractor({ q = '' }, app: ImpressoApplication) {

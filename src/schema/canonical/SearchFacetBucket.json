@@ -21,13 +21,13 @@
     "item": {
       "description": "The item in the bucket. Particular objct schema depends on the facet type",
       "oneOf": [
-        { "$ref": "./Newspaper.json" },
+        { "$ref": "./MediaSource.json" },
         { "$ref": "./Collection.json" },
         { "$ref": "./Entity.json" },
         { "$ref": "./Topic.json" },
         { "$ref": "./Year.json" },
         { "$ref": "./Partner.json" },
-        { "$ref": "../shared/FacetWithLabel.json" }
+        { "$ref": "./FacetWithLabel.json" }
       ]
     }
   }

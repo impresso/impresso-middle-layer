@@ -8,10 +8,8 @@ import {
 } from '@/logic/textReuse/solr'
 import { validated } from '@/util/json'
 
-const PassageSchemaUri =
-  'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/passage.json'
-const ClusterSchemaUri =
-  'https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/cluster.json'
+const PassageSchemaUri = '../../../../schema/models/text-reuse/passage.json'
+const ClusterSchemaUri = '../../../../schema/models/text-reuse/cluster.json'
 
 const passagesSolrResponse = {
   responseHeader: {
@@ -125,9 +123,7 @@ describe('convertPassagesSolrResponseToPassages', () => {
       },
     ]
 
-    const passages = convertPassagesSolrResponseToPassages(passagesSolrResponse).map(p =>
-      validated(p, PassageSchemaUri)
-    )
+    const passages = convertPassagesSolrResponseToPassages(passagesSolrResponse)
     assert.deepEqual(passages, expectedPassages)
   })
 })
@@ -148,9 +144,7 @@ describe('getTextReuseClustersRequestForIds', () => {
 
 describe('convertClustersSolrResponseToClusters', () => {
   it('works', () => {
-    const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse).map(c =>
-      validated(c, ClusterSchemaUri)
-    )
+    const clusters = convertClustersSolrResponseToClusters(clustersSolrResponse)
     const expectedClusters = [
       {
         id: '163208759161',

@@ -1,4 +1,4 @@
-import { Newspaper as NewspaperInternal } from '@/models/generated/schemas.js'
+import { Newspaper as NewspaperInternal } from '@/models/generated/deprecated/models.js'
 import { Newspaper as NewspaperPublic } from '@/models/generated/schemasPublic.js'
 
 export const transformNewspaper = (input: NewspaperInternal): NewspaperPublic => {

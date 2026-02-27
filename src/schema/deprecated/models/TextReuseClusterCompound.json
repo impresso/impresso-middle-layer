@@ -6,13 +6,13 @@
   "additionalProperties": false,
   "properties": {
     "cluster": {
-      "$ref": "../schemas/TextReuseCluster.json"
+      "$ref": "./TextReuseCluster.json"
     },
     "textSample": {
       "type": "string"
     },
     "details": {
-      "$ref": "../schemas/TextReuseClusterDetails.json"
+      "$ref": "./TextReuseClusterDetails.json"
     },
     "bitmapExplore": {
       "type": "integer",

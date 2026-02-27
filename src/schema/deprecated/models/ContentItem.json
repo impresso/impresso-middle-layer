@@ -42,13 +42,13 @@
     "locations": {
       "type": "array",
       "items": {
-        "$ref": "./Entity.json"
+        "$ref": "../../canonical/Entity.json"
       }
     },
     "persons": {
       "type": "array",
       "items": {
-        "$ref": "./Entity.json"
+        "$ref": "../../canonical/Entity.json"
       }
     },
     "language": {
@@ -123,7 +123,7 @@
     "collections": {
       "anyOf": [
         { "type": "array", "items": { "type": "string" } },
-        { "type": "array", "items": { "$ref": "./Collection.json" } }
+        { "type": "array", "items": { "$ref": "../../canonical/Collection.json" } }
       ]
     },
     "newspaper": {

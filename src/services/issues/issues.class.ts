@@ -1,6 +1,6 @@
 import { ClientService } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
-import { NewspaperIssue } from '@/models/generated/schemas.js'
+import { NewspaperIssue } from '@/models/generated/deprecated/models.js'
 import { FindResponse } from '@/models/common.js'
 import initSequelizeService, { Service as SequelizeService } from '@/services/sequelize.service.js'
 

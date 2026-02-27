@@ -1,4 +1,4 @@
-import { BaseFind } from './generated/schemas.js'
+import { BaseFind } from './generated/deprecated/internalApi.js'
 import { BaseFindResponse } from './generated/schemasPublic.js'
 
 export interface FindResponse<T> extends Omit<BaseFind, 'data'> {

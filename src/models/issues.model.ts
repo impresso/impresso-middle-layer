@@ -1,6 +1,6 @@
 import Sequelize from 'sequelize'
 import Newspaper from '@/models/newspapers.model.js'
-import { NewspaperIssue } from '@/models/generated/schemas.js'
+import { NewspaperIssue } from '@/models/generated/deprecated/models.js'
 import { ArticleFields, ContentItemCore } from '@/models/generated/external/solr/ContentItem.js'
 
 const ACCESS_RIGHTS_ND = 'NotDefined'

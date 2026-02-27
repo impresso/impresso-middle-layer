@@ -1,5 +1,5 @@
 import { ClientService, Id, Params } from '@feathersjs/feathers'
-import { Newspaper as NewspaperInternal, MediaSource, NewspaperIssue } from '@/models/generated/schemas.js'
+import { Newspaper as NewspaperInternal, MediaSource, NewspaperIssue } from '@/models/generated/deprecated/models.js'
 import { FindResponse } from '@/models/common.js'
 import { DefaultPageSize, MediaSources, OrderBy } from '@/services/media-sources/media-sources.class.js'
 import { NotFound } from '@feathersjs/errors'

@@ -32,10 +32,10 @@
     "wikidataDetails": {
       "anyOf": [
         {
-          "$ref": "./WikidataHuman.json"
+          "$ref": "../canonical/WikidataPerson.json"
         },
         {
-          "$ref": "./WikidataLocation.json"
+          "$ref": "../canonical/WikidataLocation.json"
         }
       ]
     }

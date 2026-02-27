@@ -17,6 +17,8 @@ This means that schemas in `schemas` directory *must not use definitions section
 - app/ - app specific schemas (configuration, non-public request/responses, etc)
   - requests/ - API requests
   - responses/ - API responses
+  - configuration/ - various configuration files schemas
+  - models/ - models used in the app but not exposed outside in any form
 - external/ - schemas of external services Impresso Middle Layer talks to
   - solr/ - Solr schemas
 - deprecated/ - all old schemas that are being phased out.

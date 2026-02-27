@@ -42,7 +42,7 @@
       "description": "Confidence score for Named Entity Recognition"
     },
     "contentItem": {
-      "$ref": "./contentItem/ContentItem.json"
+      "$ref": "../../canonical/contentItem/ContentItem.json"
     },
     "context": {
       "type": "string",

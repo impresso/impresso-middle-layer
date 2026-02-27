@@ -1,5 +1,4 @@
 import { Bucket, SelectRequestBody, SimpleSolrClient, TermsFacetDetails } from '@/internalServices/simpleSolr.js'
-import { Topic, TopicWord } from '@/models/generated/schemas.js'
 import { SolrNamespaces } from '@/solr.js'
 import { logger } from '@/logger.js'
 import { uniqBy } from 'lodash-es'
@@ -9,6 +8,7 @@ import { circular } from 'graphology-layout'
 import { default as forceAtlas2 } from 'graphology-layout-forceatlas2'
 import { default as louvain } from 'graphology-communities-louvain'
 import { hits, pagerank } from 'graphology-metrics/centrality/index.js'
+import { Topic, TopicWord } from '@/models/generated/canonical.js'
 
 const TopicsLimit = 10 ** 6
 const TopNTopics = 10

@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "properties": {
     "topic": {
-      "$ref": "./Topic.json"
+      "$ref": "../../canonical/Topic.json"
     },
     "relevance": {
       "type": "number",

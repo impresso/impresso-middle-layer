@@ -2,7 +2,7 @@
  * Entity-related utility functions
  */
 
-import { EntityDetails } from '@/models/generated/schemas.js'
+import { EntityDetails } from '@/models/generated/deprecated/models.js'
 
 export const EntityCodes = {
   50: 'person',

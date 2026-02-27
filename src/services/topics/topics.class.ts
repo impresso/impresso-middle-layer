@@ -4,7 +4,7 @@ import debugLib from 'debug'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import type { Filter } from '@/models/index.js'
 import { FindResponse } from '@/models/common.js'
-import { Topic } from '@/models/generated/schemas.js'
+import { Topic } from '@/models/generated/canonical.js'
 import type { Topic as SolrTopic } from '@/models/generated/external/solr.js'
 import TopicModel, { SOLR_FL } from '@/models/topics.model.js'
 import { SolrNamespaces } from '@/solr.js'
@@ -12,6 +12,7 @@ import type { ImpressoApplication } from '@/types.js'
 import { measureTime } from '@/util/instruments.js'
 import { asFindAll, asGet } from '@/util/solr/adapters.js'
 import { escapeValue } from '@/util/solr/filterReducers.js'
+import { BucketValue } from '@/internalServices/simpleSolr.js'
 
 const debug = debugLib('impresso/services:topics')
 
@@ -63,7 +64,7 @@ export class Service {
       //   () => this.app.get('solrClient').findAll(request),
       //   'topics.find.solr.topics_suggest'
       // )
-      const solrSuggestResponse = await asFindAll(this.solr, 'topics', request)
+      const solrSuggestResponse = await asFindAll<{}, string, string, SolrTopic>(this.solr, 'topics', request)
 
       debug('[find] params.sanitized.q:', params.sanitized, 'load topic uids...')
       // no ids? return empty stuff

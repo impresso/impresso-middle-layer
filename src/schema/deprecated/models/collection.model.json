@@ -1,7 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/collection.model.json",
-  "title": "Collection",
+  "title": "CollectionModel",
   "description": "Description of the collection object (Collection class)",
   "type": "object",
   "additionalProperties": false,
@@ -48,7 +47,7 @@
       "examples": [3245]
     },
     "creator": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/base-user.model.json#"
+      "$ref": "./base-user.model.json"
     },
     "labels": {
       "type": "array",

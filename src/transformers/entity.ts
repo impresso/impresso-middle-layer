@@ -1,4 +1,4 @@
-import { EntityDetails } from '@/models/generated/schemas.js'
+import { EntityDetails } from '@/models/generated/deprecated/models.js'
 import {
   EntityDetails as EntityDetailsPublic,
   WikidataPerson,

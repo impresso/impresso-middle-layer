@@ -7,147 +7,6 @@
  */
 
 
-export interface BaseFind {
-  /**
-   * The number of items returned in this response
-   */
-  limit: number;
-  /**
-   * Starting index of the items subset returned in this response
-   */
-  offset: number;
-  /**
-   * The total number of items matching the query
-   */
-  total: number;
-  /**
-   * Additional information about the response.
-   */
-  info?: {
-    [k: string]: unknown;
-  };
-  data: unknown[];
-}
-
-
-export type UniqueIdentifierForTheUser = string;
-export type UniqueUsernameForTheUserForOtherHumans = string;
-
-export interface BaseUser {
-  uid: UniqueIdentifierForTheUser;
-  username: UniqueUsernameForTheUserForOtherHumans;
-  [k: string]: unknown;
-}
-
-
-/**
- * Collectable item group object
- */
-export interface CollectableItemGroup {
-  /**
-   * The id of the collectable item group
-   */
-  itemId?: string;
-  /**
-   * Content type of the collectable item group: (A)rticle, (E)ntities, (P)ages, (I)ssues
-   */
-  contentType?: "A" | "E" | "P" | "I";
-  /**
-   * Ids of the collections
-   */
-  collectionIds?: string[];
-  /**
-   * Search queries
-   */
-  searchQueries?: string[];
-  /**
-   * Collection objects
-   */
-  collections?: Collection[];
-  /**
-   * The latest date added to the collectable item group
-   */
-  latestDateAdded?: string;
-  [k: string]: unknown;
-}
-/**
- * Collection details.
- */
-export interface Collection {
-  /**
-   * Unique identifier of the collection.
-   */
-  uid: string;
-  /**
-   * Title of the collection.
-   */
-  title?: string;
-  /**
-   * Description of the collection.
-   */
-  description?: string;
-  /**
-   * Access level of the collection.
-   */
-  accessLevel?: "public" | "private";
-  /**
-   * Creation date of the collection.
-   */
-  createdAt?: string;
-  /**
-   * Last update date of the collection.
-   */
-  updatedAt?: string;
-  /**
-   * Total number of items in the collection.
-   */
-  totalItems?: number;
-  /**
-   * Identifier of the user who created the collection.
-   */
-  creatorId?: string;
-}
-
-
-/**
- * Collection details.
- */
-export interface Collection {
-  /**
-   * Unique identifier of the collection.
-   */
-  uid: string;
-  /**
-   * Title of the collection.
-   */
-  title?: string;
-  /**
-   * Description of the collection.
-   */
-  description?: string;
-  /**
-   * Access level of the collection.
-   */
-  accessLevel?: "public" | "private";
-  /**
-   * Creation date of the collection.
-   */
-  createdAt?: string;
-  /**
-   * Last update date of the collection.
-   */
-  updatedAt?: string;
-  /**
-   * Total number of items in the collection.
-   */
-  totalItems?: number;
-  /**
-   * Identifier of the user who created the collection.
-   */
-  creatorId?: string;
-}
-
-
 /**
  * A journal/magazine content item (article, advertisement, etc.)
  */
@@ -777,76 +636,6 @@ export interface TopicWord {
 
 
 /**
- * Content item permissions
- */
-export interface ContentPermissions {
-  /**
-   * Bitmap representing the 'explore' permissions of the content item
-   */
-  exploreBitmap?: number;
-  /**
-   * Bitmap representing the 'get transcript' permissions of the content item
-   */
-  getTranscriptBitmap?: number;
-  /**
-   * Bitmap representing the 'get images' permissions of the content item
-   */
-  getImagesBitmap?: number;
-}
-
-
-/**
- * A data provider is a partner institution that provides content to Impresso (e.g., libraries, archives, media organizations).
- */
-export interface DataProvider {
-  /**
-   * The unique identifier of the data provider.
-   */
-  id: string;
-  /**
-   * The default name of the data provider.
-   */
-  name: string;
-  /**
-   * Names of the data provider in different languages.
-   */
-  names: {
-    /**
-     * ISO 639-1 language code.
-     */
-    langCode: string;
-    /**
-     * Name of the data provider in this language.
-     */
-    name: string;
-  }[];
-  /**
-   * Bitmap index used for efficient data provider filtering.
-   */
-  bitmapIndex?: number;
-}
-
-
-/**
- * An entity like location, person, etc
- */
-export interface Entity {
-  /**
-   * Unique identifier of the entity
-   */
-  uid: string;
-  /**
-   * Relevance of the entity in the document
-   */
-  relevance: number;
-  /**
-   * Name of the entity
-   */
-  name?: string;
-}
-
-
-/**
  * An entity like location, person, etc
  */
 export interface EntityDetails {
@@ -1471,224 +1260,6 @@ export interface ContentItemAccessBitmaps {
 
 
 /**
- * ID of the text reuse passage
- */
-export type PassageID = string;
-
-/**
- * Response for GET /text-reuse-clusters
- */
-export interface FindTextReuseClustersResponse {
-  clusters: TextReuseClusterCompound[];
-  info: {
-    [k: string]: unknown;
-  };
-}
-/**
- * Text reuse cluster with details and a sample
- */
-export interface TextReuseClusterCompound {
-  cluster?: TextReuseCluster;
-  textSample: string;
-  details?: TextReuseClusterDetails;
-  /**
-   * Access rights bitmap for the UI
-   */
-  bitmapExplore?: number;
-  /**
-   * Access rights bitmap for downloading the transcript
-   */
-  bitmapGetTranscript?: number;
-}
-/**
- * Represents a cluster of text reuse passages
- */
-export interface TextReuseCluster {
-  id: PassageID;
-  /**
-   * Percentage of overlap between passages in the cluster
-   */
-  lexicalOverlap?: number;
-  /**
-   * Number of passages in cluster
-   */
-  clusterSize?: number;
-  /**
-   * Number of connected clusters
-   */
-  connectedClustersCount?: number;
-  /**
-   * Time window covered by documents in the cluster
-   */
-  timeCoverage?: {
-    from?: string;
-    to?: string;
-  };
-}
-/**
- * Extra details of the cluster
- */
-export interface TextReuseClusterDetails {
-  facets: {
-    /**
-     * Facet type
-     */
-    type?: string;
-    /**
-     * Number of buckets
-     */
-    numBuckets?: number;
-    buckets?: {
-      [k: string]: unknown;
-    }[];
-  }[];
-  /**
-   * Resolution for the 'date' facet
-   */
-  resolution?: "year" | "month" | "day";
-}
-
-
-/**
- * An image from a content item
- */
-export interface Image {
-  /**
-   * The unique identifier of the image
-   */
-  uid: string;
-  /**
-   * Image caption
-   */
-  caption?: string;
-  /**
-   * The unique identifier of the issue that the image belongs to.
-   */
-  issueUid: string;
-  /**
-   * The unique identifier of the content item that the image belongs to.
-   */
-  contentItemUid?: string;
-  /**
-   * The URL of the image preview
-   */
-  previewUrl: string;
-  /**
-   * The page numbers of the issue that the image belongs to.
-   */
-  pageNumbers?: number[];
-  /**
-   * The media source of the image
-   */
-  mediaSourceRef: {
-    /**
-     * The unique identifier of the media source
-     */
-    uid: string;
-    /**
-     * The name of the media source
-     */
-    name: string;
-    /**
-     * The type of the media source
-     */
-    type?: "newspaper";
-  };
-  imageTypes?: {
-    /**
-     * Whether the content is an image or not.
-     */
-    visualContent?: string;
-    /**
-     * Determines if the image is a photograph.
-     */
-    technique?: string;
-    /**
-     * Purpose or communicative function of the image.
-     */
-    communicationGoal?: string;
-    /**
-     * Classification of the visual content.
-     */
-    visualContentType?: string;
-  };
-  /**
-   * The date of the image or the date of the issue that the image belongs to.
-   */
-  date: string;
-  /**
-   * Precomputed embeddings for the image in the format: <model_type>:<base64_embedding_vector>.
-   */
-  embeddings?: string[];
-}
-
-
-/**
- * A media source is what a content item belongs to. This can be a newspaper, a TV or a radio station, etc.
- */
-export interface MediaSource {
-  /**
-   * The unique identifier of the media source.
-   */
-  uid: string;
-  /**
-   * The type of the media source.
-   */
-  type: "newspaper";
-  /**
-   * A display name of the media source.
-   */
-  name: string;
-  /**
-   * ISO 639-2 language codes this media source has content in.
-   */
-  languageCodes: string[];
-  /**
-   * The range of years this media source has been published for. Impresso may not have data for all this period. Is not defined if there is no information.
-   *
-   * @minItems 2
-   * @maxItems 2
-   */
-  publishedPeriodYears?: [number, number];
-  /**
-   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.  Is not defined if there are no content items for this source.
-   *
-   * @minItems 2
-   * @maxItems 2
-   */
-  availableDatesRange?: [string, string];
-  totals: {
-    /**
-     * The number of articles in the media source.
-     */
-    articles?: number;
-    /**
-     * The number of issues in the media source.
-     */
-    issues?: number;
-    /**
-     * The number of pages in the media source.
-     */
-    pages?: number;
-  };
-  properties?: {
-    /**
-     * The unique identifier of the property.
-     */
-    id: string;
-    /**
-     * The name of the property.
-     */
-    label: string;
-    /**
-     * The value of the property.
-     */
-    value: string;
-  }[];
-}
-
-
-/**
  * A newspaper
  */
 export interface Newspaper {
@@ -1910,22 +1481,6 @@ export interface Page {
 }
 
 
-export interface Partner {
-  /**
-   * Partner ID
-   */
-  id: string;
-  /**
-   * Partner Title
-   */
-  title: string;
-  /**
-   * URL of the partner's website
-   */
-  url?: string;
-}
-
-
 /**
  * An object containing search results for a facet
  */
@@ -1977,113 +1532,70 @@ export interface SearchFacetBucket {
   /**
    * The item in the bucket. Particular objct schema depends on the facet type
    */
-  item?: Newspaper | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
+  item?: MediaSource | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
 /**
- * A newspaper
+ * A media source is what a content item belongs to. This can be a newspaper, a TV or a radio station, etc.
  */
-export interface Newspaper {
+export interface MediaSource {
   /**
-   * The unique identifier of the newspaper
+   * The unique identifier of the media source.
    */
   uid: string;
   /**
-   * The acronym of the newspaper
+   * The type of the media source.
    */
-  acronym: string;
+  type: "newspaper";
   /**
-   * The labels of the newspaper
-   */
-  labels: string[];
-  /**
-   * Language codes of the languages used in the newspaper
-   */
-  languages: string[];
-  /**
-   * TODO
-   */
-  properties?: NewspaperProperty[];
-  /**
-   * TODO
-   */
-  included: boolean;
-  /**
-   * Title of the newspaper
-   */
-  name: string;
-  endYear: number | null;
-  startYear: number | null;
-  firstIssue?: NewspaperIssue;
-  lastIssue?: NewspaperIssue;
-  /**
-   * The number of articles in the newspaper
-   */
-  countArticles: number;
-  /**
-   * The number of issues in the newspaper
-   */
-  countIssues: number;
-  /**
-   * The number of pages in the newspaper
-   */
-  countPages: number;
-  /**
-   * TODO
-   */
-  fetched?: boolean;
-  /**
-   * The number of years of the newspaper available
-   */
-  deltaYear: number;
-}
-export interface NewspaperProperty {
-  /**
-   * The name of the property
+   * A display name of the media source.
    */
   name: string;
   /**
-   * The value of the property
+   * ISO 639-2 language codes this media source has content in.
    */
-  value: string;
+  languageCodes: string[];
   /**
-   * The label of the property
+   * The range of years this media source has been published for. Impresso may not have data for all this period. Is not defined if there is no information.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  label: string;
+  publishedPeriodYears?: [number, number];
   /**
-   * Whether the value is a URL
+   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.  Is not defined if there are no content items for this source.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  isUrl?: boolean;
-  [k: string]: unknown;
-}
-export interface NewspaperIssue {
-  /**
-   * The unique identifier of the issue
-   */
-  uid: string;
-  /**
-   * TODO
-   */
-  cover: string;
-  /**
-   * The labels of the issue
-   */
-  labels: string[];
-  /**
-   * TODO
-   */
-  fresh: boolean;
-  /**
-   * TODO: list available options
-   */
-  accessRights: string;
-  /**
-   * The date of the issue
-   */
-  date?: string;
-  /**
-   * The year of the issue
-   */
-  year?: string;
+  availableDatesRange?: [string, string];
+  totals: {
+    /**
+     * The number of articles in the media source.
+     */
+    articles?: number;
+    /**
+     * The number of issues in the media source.
+     */
+    issues?: number;
+    /**
+     * The number of pages in the media source.
+     */
+    pages?: number;
+  };
+  properties?: {
+    /**
+     * The unique identifier of the property.
+     */
+    id: string;
+    /**
+     * The name of the property.
+     */
+    label: string;
+    /**
+     * The value of the property.
+     */
+    value: string;
+  }[];
 }
 /**
  * Collection details.
@@ -2317,347 +1829,6 @@ export interface SearchFacetRangeBucket {
    * Lower bound of the range
    */
   upper?: number;
-}
-
-
-/**
- * Facet bucket
- */
-export interface SearchFacetBucket {
-  /**
-   * Number of items in the bucket
-   */
-  count: number;
-  /**
-   * Value of the 'type' element
-   */
-  val: string;
-  /**
-   * UID of the 'type' element. Same as 'val'
-   */
-  uid?: string;
-  /**
-   * The item in the bucket. Particular objct schema depends on the facet type
-   */
-  item?: Newspaper | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
-}
-/**
- * A newspaper
- */
-export interface Newspaper {
-  /**
-   * The unique identifier of the newspaper
-   */
-  uid: string;
-  /**
-   * The acronym of the newspaper
-   */
-  acronym: string;
-  /**
-   * The labels of the newspaper
-   */
-  labels: string[];
-  /**
-   * Language codes of the languages used in the newspaper
-   */
-  languages: string[];
-  /**
-   * TODO
-   */
-  properties?: NewspaperProperty[];
-  /**
-   * TODO
-   */
-  included: boolean;
-  /**
-   * Title of the newspaper
-   */
-  name: string;
-  endYear: number | null;
-  startYear: number | null;
-  firstIssue?: NewspaperIssue;
-  lastIssue?: NewspaperIssue;
-  /**
-   * The number of articles in the newspaper
-   */
-  countArticles: number;
-  /**
-   * The number of issues in the newspaper
-   */
-  countIssues: number;
-  /**
-   * The number of pages in the newspaper
-   */
-  countPages: number;
-  /**
-   * TODO
-   */
-  fetched?: boolean;
-  /**
-   * The number of years of the newspaper available
-   */
-  deltaYear: number;
-}
-export interface NewspaperProperty {
-  /**
-   * The name of the property
-   */
-  name: string;
-  /**
-   * The value of the property
-   */
-  value: string;
-  /**
-   * The label of the property
-   */
-  label: string;
-  /**
-   * Whether the value is a URL
-   */
-  isUrl?: boolean;
-  [k: string]: unknown;
-}
-export interface NewspaperIssue {
-  /**
-   * The unique identifier of the issue
-   */
-  uid: string;
-  /**
-   * TODO
-   */
-  cover: string;
-  /**
-   * The labels of the issue
-   */
-  labels: string[];
-  /**
-   * TODO
-   */
-  fresh: boolean;
-  /**
-   * TODO: list available options
-   */
-  accessRights: string;
-  /**
-   * The date of the issue
-   */
-  date?: string;
-  /**
-   * The year of the issue
-   */
-  year?: string;
-}
-/**
- * Collection details.
- */
-export interface Collection {
-  /**
-   * Unique identifier of the collection.
-   */
-  uid: string;
-  /**
-   * Title of the collection.
-   */
-  title?: string;
-  /**
-   * Description of the collection.
-   */
-  description?: string;
-  /**
-   * Access level of the collection.
-   */
-  accessLevel?: "public" | "private";
-  /**
-   * Creation date of the collection.
-   */
-  createdAt?: string;
-  /**
-   * Last update date of the collection.
-   */
-  updatedAt?: string;
-  /**
-   * Total number of items in the collection.
-   */
-  totalItems?: number;
-  /**
-   * Identifier of the user who created the collection.
-   */
-  creatorId?: string;
-}
-/**
- * An entity like location, person, etc
- */
-export interface Entity {
-  /**
-   * Unique identifier of the entity
-   */
-  uid: string;
-  /**
-   * Relevance of the entity in the document
-   */
-  relevance: number;
-  /**
-   * Name of the entity
-   */
-  name?: string;
-}
-/**
- * A topic
- */
-export interface Topic {
-  /**
-   * The unique identifier of the topic
-   */
-  uid: string;
-  /**
-   * The language code of the topic
-   */
-  language: string;
-  /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    uid: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
-   * Number of content items with this topic
-   */
-  countItems?: number;
-  excerpt?: TopicWord[];
-  /**
-   * Top N words associated with the topic
-   */
-  words?: TopicWord[];
-  /**
-   * ID of the model used to generate the topic
-   */
-  model?: string;
-  /**
-   * List of matched topic suggestions (if any)
-   */
-  matches?: string[];
-}
-/**
- * A word included in a topic
- */
-export interface TopicWord {
-  /**
-   * Word surface form
-   */
-  w: string;
-  /**
-   * Probability of the word in topic
-   */
-  p: number;
-  /**
-   * If word is highlighted
-   */
-  h?: boolean;
-}
-/**
- * A year (TODO)
- */
-export interface Year {
-  /**
-   * Numeric representation of the year
-   */
-  uid?: number;
-  values?: YearWeights;
-  refs?: YearWeights;
-}
-/**
- * Total items counts within a year
- */
-export interface YearWeights {
-  /**
-   * Number of content items
-   */
-  c?: number;
-  /**
-   * Number of articles
-   */
-  a?: number;
-  /**
-   * Number of pages
-   */
-  p?: number;
-  /**
-   * Number of issues
-   */
-  i?: number;
-  /**
-   * Number of images (with or without vectors)
-   */
-  m?: number;
-}
-export interface Partner {
-  /**
-   * Partner ID
-   */
-  id: string;
-  /**
-   * Partner Title
-   */
-  title: string;
-  /**
-   * URL of the partner's website
-   */
-  url?: string;
-}
-/**
- * An facet that has a value and a label
- */
-export interface FacetWithLabel {
-  /**
-   * Unique identifier of the facet
-   */
-  id: string;
-  /**
-   * Label of the facet
-   */
-  label: string;
 }
 
 
@@ -2811,295 +1982,6 @@ export interface TextReuseClusterDetails {
 
 
 /**
- * ID of the text reuse passage
- */
-export type PassageID = string;
-/**
- * ID of the article
- */
-export type ArticleID = string;
-/**
- * ID of the cluster
- */
-export type ClusterID = string;
-/**
- * The size of the cluster
- */
-export type ClusterSize = number;
-/**
- * The time difference in days between the two articles
- */
-export type TimeDifferenceInDays = number;
-/**
- * The lexical overlap between the two articles
- */
-export type LexicalOverlap = number;
-
-/**
- * Represents a passage of text that was identified as a part of a text reuse cluster
- */
-export interface TextReusePassage {
-  id: PassageID;
-  article: ArticleDetails;
-  textReuseCluster: ClusterDetails;
-  offsetStart: number | null;
-  offsetEnd: number | null;
-  /**
-   * Textual content of the passage
-   */
-  content: string;
-  /**
-   * Title of the content item (article) where this passage was found
-   */
-  title: string;
-  connectedClusters?: {
-    /**
-     * ID of the connected cluster
-     */
-    id: string;
-  }[];
-  /**
-   * TBD
-   */
-  isFront?: boolean;
-  /**
-   * Size of the passage
-   */
-  size?: number;
-  newspaper?: {
-    [k: string]: unknown;
-  };
-  /**
-   * Issue details
-   */
-  issue?: {
-    /**
-     * ID of the issue
-     */
-    id: string;
-  };
-  /**
-   * Date of the item (article) where this passage was found
-   */
-  date?: string;
-  /**
-   * Bounding box of the passage in the page
-   */
-  pageRegions?: string[];
-  /**
-   * Numbers of the pages where the passage was found
-   */
-  pageNumbers: number[];
-  /**
-   * Collection IDs the passage belongs to
-   */
-  collections: string[];
-  /**
-   * Access rights bitmap for the UI
-   */
-  bitmapExplore?: number;
-  /**
-   * Access rights bitmap for downloading the transcript
-   */
-  bitmapGetTranscript?: number;
-}
-/**
- * Details of the article the passage belongs to
- */
-export interface ArticleDetails {
-  id: ArticleID;
-}
-/**
- * Details of the cluster the passage belongs to
- */
-export interface ClusterDetails {
-  id: ClusterID;
-  clusterSize?: ClusterSize;
-  timeDifferenceDay?: TimeDifferenceInDays;
-  lexicalOverlap?: LexicalOverlap;
-}
-
-
-/**
- * A topic
- */
-export interface Topic {
-  /**
-   * The unique identifier of the topic
-   */
-  uid: string;
-  /**
-   * The language code of the topic
-   */
-  language: string;
-  /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    uid: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
-   * Number of content items with this topic
-   */
-  countItems?: number;
-  excerpt?: TopicWord[];
-  /**
-   * Top N words associated with the topic
-   */
-  words?: TopicWord[];
-  /**
-   * ID of the model used to generate the topic
-   */
-  model?: string;
-  /**
-   * List of matched topic suggestions (if any)
-   */
-  matches?: string[];
-}
-/**
- * A word included in a topic
- */
-export interface TopicWord {
-  /**
-   * Word surface form
-   */
-  w: string;
-  /**
-   * Probability of the word in topic
-   */
-  p: number;
-  /**
-   * If word is highlighted
-   */
-  h?: boolean;
-}
-
-
-/**
- * A word included in a topic
- */
-export interface TopicWord {
-  /**
-   * Word surface form
-   */
-  w: string;
-  /**
-   * Probability of the word in topic
-   */
-  p: number;
-  /**
-   * If word is highlighted
-   */
-  h?: boolean;
-}
-
-
-/**
- * User details
- */
-export interface User {
-  id: number;
-  username: string;
-  firstname: string;
-  lastname: string;
-  isStaff: boolean;
-  isActive: boolean;
-  isSuperuser: boolean;
-  uid: string;
-}
-
-
-/**
- * Version of the API. Contains information about the current version of the API, features, etc.
- */
-export interface VersionDetails {
-  solr: {
-    endpoints?: {
-      [k: string]: string;
-    };
-    [k: string]: unknown;
-  };
-  mysql: {
-    endpoint?: string;
-    [k: string]: unknown;
-  };
-  version: string;
-  apiVersion: {
-    branch?: string;
-    revision?: string;
-    version?: string;
-    [k: string]: unknown;
-  };
-  documentsDateSpan: {
-    start?: string;
-    end?: string;
-    [k: string]: unknown;
-  };
-  newspapers: {
-    [k: string]: {
-      name?: string;
-      [k: string]: unknown;
-    };
-  };
-  features: {
-    [k: string]: {
-      [k: string]: unknown;
-    };
-  };
-  partnerInstitutions?: {
-    id: string;
-    names: {
-      langCode: string;
-      name: string;
-    }[];
-    bitmapIndex: number;
-  }[];
-}
-
-
-/**
  * Details of a wikidata entity  (TODO: add person/location specific fields)
  */
 export interface WikidataEntityDetails {
@@ -3226,85 +2108,72 @@ export interface WikidataLocation1 {
 }
 
 
-/**
- * Represents a word match result from word embeddings similarity search
- */
-export interface WordMatch {
-  /**
-   * Unique identifier for the word
-   */
-  id: string;
-  /**
-   * The language code of the word
-   */
-  languageCode: string;
-  /**
-   * The word
-   */
-  word: string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
+export interface BaseUserDetails {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
 }
 
 
+export type PropertiesUid = string;
+export type PropertiesName = string;
+export type PropertiesDescription = string;
+export type StatusOfTheCollection = string;
+export type PropertiesCreationDate = string;
+export type PropertiesLastModifiedDate = string;
+export type NumberOfItemsInTheCollection = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
 /**
- * A year (TODO)
+ * Description of the collection object (Collection class)
  */
-export interface Year {
-  /**
-   * Numeric representation of the year
-   */
-  uid?: number;
-  values?: YearWeights;
-  refs?: YearWeights;
+export interface CollectionModel {
+  uid: PropertiesUid;
+  name: PropertiesName;
+  description: PropertiesDescription;
+  status: StatusOfTheCollection;
+  creationDate: PropertiesCreationDate;
+  lastModifiedDate: PropertiesLastModifiedDate;
+  countItems: NumberOfItemsInTheCollection;
+  creator: BaseUserDetails;
+  labels?: string[];
 }
-/**
- * Total items counts within a year
- */
-export interface YearWeights {
-  /**
-   * Number of content items
-   */
-  c?: number;
-  /**
-   * Number of articles
-   */
-  a?: number;
-  /**
-   * Number of pages
-   */
-  p?: number;
-  /**
-   * Number of issues
-   */
-  i?: number;
-  /**
-   * Number of images (with or without vectors)
-   */
-  m?: number;
+export interface BaseUserDetails {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
 }
 
 
+export type PropertiesUid = string;
+export type PropertiesName = string;
+export type PropertiesDescription = string;
+export type BufferedJSONObjectContainingAnArrayOfFilters = string;
+export type PropertiesCreationDate = string;
+export type PropertiesLastModifiedDate = string;
+export type NumberOfResultsWhenTheSearchWasSaved = number | string;
+export type UniqueIdentifierForTheUser = string;
+export type UniqueUsernameForTheUserForOtherHumans = string;
+
 /**
- * Total items counts within a year
+ * Description of the search query object (SearchQuery class)
  */
-export interface YearWeights {
-  /**
-   * Number of content items
-   */
-  c?: number;
-  /**
-   * Number of articles
-   */
-  a?: number;
-  /**
-   * Number of pages
-   */
-  p?: number;
-  /**
-   * Number of issues
-   */
-  i?: number;
-  /**
-   * Number of images (with or without vectors)
-   */
-  m?: number;
+export interface SearchQuery {
+  uid: PropertiesUid;
+  name: PropertiesName;
+  description: PropertiesDescription;
+  data: BufferedJSONObjectContainingAnArrayOfFilters;
+  creationDate: PropertiesCreationDate;
+  lastModifiedDate: PropertiesLastModifiedDate;
+  countItems: NumberOfResultsWhenTheSearchWasSaved;
+  creator: BaseUserDetails;
+}
+export interface BaseUserDetails {
+  uid: UniqueIdentifierForTheUser;
+  username: UniqueUsernameForTheUserForOtherHumans;
+  [k: string]: unknown;
 }

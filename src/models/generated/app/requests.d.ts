@@ -44,6 +44,76 @@ export interface Filter {
 
 
 /**
+ * Request body for the authentication endpoint
+ */
+export interface AuthenticationCreateRequest {
+  strategy: "local" | "jwt-app" | "jwt" | "magic-link";
+  email?: string;
+  password?: string;
+  accessToken?: string;
+  [k: string]: unknown;
+}
+
+
+/**
+ * Body of a request to the Impresso Image Embedding endpoint
+ */
+export interface ImpressoImageEmbeddingRequest {
+  /**
+   * Which embedding space the embedding is going to be used in
+   */
+  searchTarget: "image" | "multimodal";
+  /**
+   * Base64-encoded image bytes. JPG and PNG formats are supported.
+   */
+  bytes: string;
+}
+
+
+/**
+ * Request body for the Impresso NER endpoint
+ */
+export interface ImpressoNamedEntityRecognitionRequest {
+  /**
+   * Text to be processed for named entity recognition
+   */
+  text: string;
+  /**
+   * NER method to be used: `ner` (default), `ner-nel` (named entity recognition with named entity linking) and `nel` (linking only - enclose entities in [START] [END] tags).
+   */
+  method?: "ner" | "ner-nel" | "nel";
+}
+
+
+/**
+ * Body of a request to the Impresso Text Embedding endpoint
+ */
+export interface ImpressoTextEmbeddingRequest {
+  /**
+   * Which embedding space the embedding is going to be used in
+   */
+  searchTarget: "multimodal" | "text";
+  /**
+   * Text to be embedded
+   */
+  text: string;
+}
+
+
+/**
+ * Create new collection request
+ */
+export interface NewCollectionRequest {
+  name: string;
+  description?: string;
+  /**
+   * Access level of the collection.
+   */
+  accessLevel?: "public" | "private";
+}
+
+
+/**
  * Request to update collectible items in a collection
  */
 export interface UpdateCollectableItemsRequest {

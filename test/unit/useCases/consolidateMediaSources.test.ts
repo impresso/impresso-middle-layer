@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { Sequelize } from 'sequelize'
 import sinon from 'sinon'
-import { MediaSource } from '@/models/generated/schemas.js'
+import { MediaSource } from '@/models/generated/canonical.js'
 import { SelectResponse, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { consolidateMediaSources, DBNewspaperDetails, FacetBucket } from '@/useCases/consolidateMediaSources.js'
 

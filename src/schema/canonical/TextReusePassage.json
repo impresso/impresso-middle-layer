@@ -117,15 +117,15 @@
       "type": "integer",
       "description": "Size of the passage"
     },
-    "newspaper": {
+    "mediaSource": {
       "$allOf": [
-        { "$ref": "./Newspaper.json" },
+        { "$ref": "./MediaSource.json" },
         {
           "type": "object",
           "properties": {
             "id": {
               "type": "string",
-              "description": "ID of the newspaper"
+              "description": "ID of the media source"
             }
           }
         }

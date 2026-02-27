@@ -23,7 +23,7 @@ const TemporalResolution = Object.freeze({
   Day: 'day',
 })
 
-type FacetLabel = 'topic' | 'newspaper' | 'person' | 'location' | 'language' | 'country' | 'type'
+type FacetLabel = 'topic' | 'mediaSource' | 'person' | 'location' | 'language' | 'country' | 'type'
 type LabelExtractor = (id: string) => Promise<string>
 
 const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelExtractor> => {
@@ -34,9 +34,9 @@ const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelE
       if (topic == null) return key
       return topic.words?.map(({ w }: any) => w)?.join(', ') ?? ''
     },
-    newspaper: async (key: string) => {
-      const newspaper = await resolvers.newspaper(key)
-      return newspaper == null ? key : newspaper.name
+    mediaSource: async (key: string) => {
+      const mediaSource = await resolvers.mediaSource(key)
+      return mediaSource == null ? key : mediaSource.name
     },
     person: async (key: string) => {
       const entity = await resolvers.person(key)

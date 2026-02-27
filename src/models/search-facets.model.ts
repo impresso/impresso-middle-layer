@@ -1,17 +1,10 @@
 import { buildResolvers, CachedFacetType, ICachedResolvers } from '@/internalServices/cachedResolvers.js'
+import { ImpressoApplication } from '@/types.js'
 import {
-  SearchFacet as ISearchFacet,
   SearchFacetBucket as ISearchFacetBucket,
   SearchFacetRangeBucket as ISearchFacetRangeBucket,
-  Topic as ITopic,
-  Year as IYear,
-  Entity as IEntity,
-  Collection as ICollection,
-  Newspaper as INewspaper,
-  Partner as IPartner,
-} from '@/models/generated/schemas.js'
-import { ImpressoApplication } from '@/types.js'
-import { FacetWithLabel } from '@/models/generated/shared.js'
+  SearchFacet as ISearchFacet,
+} from '@/models/generated/deprecated/models.js'
 
 type FacetType = 'newspaper' | 'language' | 'topic' | 'person' | 'location' | 'collection' | 'year'
 
@@ -19,14 +12,14 @@ interface SearchFacetBucketOptions {
   val: string
   count: number
   uid?: string
-  item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
+  item?: ISearchFacetBucket['item']
 }
 
 class SearchFacetBucket implements ISearchFacetBucket {
   public count: number
   public val: string
   public uid?: string
-  public item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
+  public item?: ISearchFacetBucket['item']
   public lower?: number
   public upper?: number
 

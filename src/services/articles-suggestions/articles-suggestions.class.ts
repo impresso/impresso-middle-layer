@@ -14,7 +14,7 @@ import { NotFound } from '@feathersjs/errors'
 import Debug from 'debug'
 const debug = Debug('impresso/services:articles-suggestions')
 import ArticleTopic from '@/models/articles-topics.model.js'
-import { ContentItemTopic } from '@/models/generated/schemas.js'
+import { ContentItemTopic } from '@/models/generated/deprecated/models.js'
 import { utils } from '@/solr.js'
 const { wrapAll } = utils
 

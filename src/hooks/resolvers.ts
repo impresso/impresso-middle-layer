@@ -4,7 +4,7 @@ import { HookContext } from '@feathersjs/feathers'
 import { Service as SearchFacetService } from '@/services/search-facets/search-facets.class.js'
 import { ImpressoApplication } from '@/types.js'
 import { FindResponse } from '@/models/common.js'
-import { SearchFacet, SearchFacetBucket } from '@/models/generated/schemas.js'
+import { SearchFacet, SearchFacetBucket } from '@/models/generated/deprecated/models.js'
 import debugLib from 'debug'
 const debug = debugLib('impresso/hooks/resolvers')
 
