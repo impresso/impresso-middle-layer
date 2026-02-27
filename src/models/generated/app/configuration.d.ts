@@ -8,6 +8,25 @@
 
 
 /**
+ * Socks proxy configuration
+ */
+export interface SocksProxyConfiguration {
+  /**
+   * The hostname of the proxy server.
+   */
+  host: string;
+  /**
+   * The port number of the proxy server.
+   */
+  port: number;
+  /**
+   * The list of domains to route through the proxy.
+   */
+  domains: string[];
+}
+
+
+/**
  * Impresso config file.
  */
 export interface Config {
@@ -498,49 +517,6 @@ export interface MulterConfig {
 }
 
 
-/**
- * Impresso socks proxy configuration
- */
-export interface ImpressoProxy {
-  /**
-   * The hostname of the proxy server.
-   */
-  host: string;
-  /**
-   * The port number of the proxy server.
-   */
-  port: number;
-  /**
-   * The list of domains to route through the proxy.
-   */
-  domains: string[];
-}
-
-
-/**
- * TODO: review this schema
- */
-export interface Pagination {
-  /**
-   * Limit to this many items
-   */
-  limit?: number;
-  /**
-   * Skip this many items
-   */
-  offset?: number;
-  /**
-   * DEPRECATED. Display N-th page (using 'limit' as the number of items in the page). Only used in the web app.
-   */
-  page?: number;
-  /**
-   * Total items available
-   */
-  total?: number;
-  [k: string]: unknown;
-}
-
-
 export interface RedactionPolicy {
   name: string;
   items: RedactionPolicyItem[];
@@ -622,6 +598,9 @@ export interface SolrServerNamespaceConfiguration {
 }
 
 
+/**
+ * Solr Filters configuration file schema (solrFilters.yml)
+ */
 export interface SolrFiltersConfiguration {
   /**
    * Indexes (by Solr namespace) with their filter definitions.

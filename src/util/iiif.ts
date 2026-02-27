@@ -1,4 +1,4 @@
-import { ImageUrlRewriteRule } from '@/models/generated/common.js'
+import type { ImageUrlRewriteRule } from '@/models/generated/app/configuration.js'
 
 import {
   regionParameterToString,

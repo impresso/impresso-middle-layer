@@ -1,13 +1,10 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/text-reuse/clusterDetails.json",
   "type": "object",
   "title": "Text reuse cluster details",
   "description": "Extra details of the cluster",
   "additionalProperties": false,
-  "required": [
-    "facets"
-  ],
+  "required": ["facets"],
   "properties": {
     "facets": {
       "type": "array",

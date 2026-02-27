@@ -1,16 +1,13 @@
-import { Id, NullableId } from '@feathersjs/feathers'
-import {
-  AddCollectableItemsFromFilters,
-  CollectableItemsUpdatedResponse,
-  UpdateCollectableItemsRequest,
-} from '@/models/generated/shared.js'
 import { SlimUser } from '@/authentication.js'
 import { addItemsToCollection } from '@/jobs/collections/addItemsToCollection.js'
 import { removeItemsFromCollection } from '@/jobs/collections/removeItemsFromCollection.js'
-import { ImpressoApplication } from '@/types.js'
+import type { AddCollectableItemsFromFilters, UpdateCollectableItemsRequest } from '@/models/generated/app/requests.js'
+import type { CollectableItemsUpdatedResponse } from '@/models/generated/app/responses.js'
 import { SolrNamespaces } from '@/solr.js'
+import { ImpressoApplication } from '@/types.js'
 import { filterAdapter } from '@/util/models.js'
 import { BadRequest, NotAuthenticated } from '@feathersjs/errors'
+import { Id, NullableId } from '@feathersjs/feathers'
 
 interface WithUser {
   user?: SlimUser

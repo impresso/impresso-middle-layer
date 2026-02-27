@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/me/schema/post/payload.json",
   "description": "Request payload for POST /me (update or create method)",
   "type": "object",
   "properties": {
@@ -27,10 +26,17 @@
       "maxLength": 30
     },
     "pattern": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "type": "string"
+        }
+      ],
       "description": "set of colors to be used as user pattern background"
     },
     "affiliation": {
@@ -45,6 +51,6 @@
       "maxLength": 200
     }
   },
-  "required": ["firstname", "lastname", "email", "displayName"],
-  "additionalProperties": false
+  "required": ["firstname", "lastname", "email"],
+  "additionalProperties": true
 }

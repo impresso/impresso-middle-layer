@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/search-queries-comparison/schema/intersection/post/response.json",
   "description": "Response for POST /search-queries-comparison/intersection",
   "type": "object",
   "additionalProperties": false,
@@ -53,9 +52,5 @@
       }
     }
   },
-  "required": [
-    "facetsSets",
-    "intersectionFacets",
-    "facetsIds"
-  ]
+  "required": ["facetsSets", "intersectionFacets", "facetsIds"]
 }

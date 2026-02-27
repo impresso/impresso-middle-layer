@@ -93,7 +93,6 @@
     "json-bigint": "github:sidorares/json-bigint#8208aa1352eba252b60756672ab7c17f300d6ccd",
     "json2csv": "^4.3.3",
     "jsonpath-plus": "^10.3.0",
-    "jsonschema": "^1.4.1",
     "jsonwebtoken": "^9.0.3",
     "lodash-es": "^4.17.22",
     "md5-file": "^4.0.0",

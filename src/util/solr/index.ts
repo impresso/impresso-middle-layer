@@ -5,7 +5,7 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { filtersToSolr } from '@/util/solr/filterReducers.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
 import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
-import { SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
+import type { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { escapeIdValue } from '@/util/solr/filterBuilders/value.js'
 
 /**
@@ -69,7 +69,7 @@ const wrapAsFilter = (q: string) => {
 
 /**
  * Return Solr query string and referenced variables for a set of filters.
- * @param {Array<object>} filters a list of filters of type `src/schema/search/filter.json`.
+ * @param {Array<object>} filters a list of filters of type `src/schema/canonical/Filter.json`.
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  */
 export function filtersToQueryAndVariables(

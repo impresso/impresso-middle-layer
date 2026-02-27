@@ -5,7 +5,7 @@ import {
   getExternalThumbnailUrl,
   sanitizeIiifImageUrl,
 } from '@/util/iiif.js'
-import { Config, ImageUrlRewriteRule } from '@/models/generated/common.js'
+import { Config, ImageUrlRewriteRule } from '@/models/generated/app/configuration.js'
 import { IArticleEntity, ArticleEntity } from '@/models/articles-entities.model.js'
 import { IArticleTag, ArticleTag } from '@/models/articles-tags.model.js'
 import { Sequelize } from 'sequelize'

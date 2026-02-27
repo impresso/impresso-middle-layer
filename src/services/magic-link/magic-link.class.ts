@@ -1,4 +1,4 @@
-import { CallbackUrlsConfig, Config } from '@/models/generated/common.js'
+import { CallbackUrlsConfig, Config } from '@/models/generated/app/configuration.js'
 import User from '@/models/users.model.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { Params } from '@feathersjs/feathers'

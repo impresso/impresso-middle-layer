@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Solr Filters Configuration",
+  "title": "SolrFiltersConfiguration",
+  "description": "Solr Filters configuration file schema (solrFilters.yml)",
   "type": "object",
   "properties": {
     "indexes": {

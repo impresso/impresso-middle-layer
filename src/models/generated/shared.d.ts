@@ -8,37 +8,6 @@
 
 
 /**
- * Request to add content items to a collection from content items that match given filters
- */
-export interface AddCollectableItemsFromFilters {
-  /**
-   * Filters to apply when selecting items to add to the collection
-   */
-  filters: Filter[];
-  /**
-   * Namespace to use when selecting items to add to the collection
-   */
-  namespace: "search" | "tr_passages";
-}
-/**
- * A single filter criteria
- */
-export interface Filter {
-  context?: "include" | "exclude";
-  op?: "AND" | "OR";
-  /**
-   * Possible values are in 'search.validators:eachFilterValidator.type.choices'
-   */
-  type: string;
-  precision?: "fuzzy" | "soft" | "exact" | "partial";
-  q?: string | string[];
-  daterange?: string;
-  uids?: string;
-  uid?: string;
-}
-
-
-/**
  * Request body for the authentication endpoint
  */
 export interface AuthenticationCreateRequest {
@@ -80,22 +49,6 @@ export interface User {
 
 
 /**
- * Request to update collectible items in a collection
- */
-export interface CollectableItemsUpdatedResponse {
-  /**
-   * Total number of items added to the collection
-   */
-  totalAdded: number;
-  /**
-   * Total number of items removed from the collection
-   */
-  totalRemoved: number;
-  [k: string]: unknown;
-}
-
-
-/**
  * Remove collection response
  */
 export interface RemoveCollectionResponse {
@@ -126,30 +79,6 @@ export interface RemoveCollectionResponse {
 
 
 /**
- * Error response that follows https://datatracker.ietf.org/doc/html/rfc7807#section-3.1
- */
-export interface Error {
-  /**
-   * A URI reference [RFC3986] that identifies the problem type.
-   */
-  type: string;
-  /**
-   * A short, human-readable summary of the problem type.
-   */
-  title: string;
-  /**
-   * The HTTP status code ([RFC7231], Section 6)
-   */
-  status: number;
-  /**
-   * A human-readable explanation specific to this occurrence of the problem.
-   */
-  detail?: string;
-  [k: string]: unknown;
-}
-
-
-/**
  * An facet that has a value and a label
  */
 export interface FacetWithLabel {
@@ -161,24 +90,6 @@ export interface FacetWithLabel {
    * Label of the facet
    */
   label: string;
-}
-
-
-/**
- * A single filter criteria
- */
-export interface Filter {
-  context?: "include" | "exclude";
-  op?: "AND" | "OR";
-  /**
-   * Possible values are in 'search.validators:eachFilterValidator.type.choices'
-   */
-  type: string;
-  precision?: "fuzzy" | "soft" | "exact" | "partial";
-  q?: string | string[];
-  daterange?: string;
-  uids?: string;
-  uid?: string;
 }
 
 
@@ -510,20 +421,4 @@ export interface NewCollectionRequest {
    * Access level of the collection.
    */
   accessLevel?: "public" | "private";
-}
-
-
-/**
- * Request to update collectible items in a collection
- */
-export interface UpdateCollectableItemsRequest {
-  /**
-   * IDs of the items to add to the collection
-   */
-  add?: string[];
-  /**
-   * IDs of the items to remove from the collection
-   */
-  remove?: string[];
-  [k: string]: unknown;
 }

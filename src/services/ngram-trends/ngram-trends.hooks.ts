@@ -2,6 +2,15 @@ import { get } from 'lodash-es'
 import { BadRequest } from '@feathersjs/errors'
 import { authenticate } from '@/hooks/authenticate.js'
 import { validateWithSchema } from '@/hooks/schema.js'
+import { newAjvInstance } from '@/util/json.js'
+import { HookContext } from '@feathersjs/feathers'
+import { Filter } from 'impresso-jscommons'
+
+const validationInstance = newAjvInstance([
+  ['schema/canonical/Filter.json', 'schema/canonical/Filter.json'],
+  ['services/ngram-trends/schema/post/payload.json', 'request'],
+  ['services/ngram-trends/schema/post/response.json', 'response'],
+])
 
 /**
  * At the moment we are not allowing to filter by full text search queries
@@ -18,16 +27,16 @@ const ForbiddenFilterTypes = ['string', 'regex']
  * @return {object} context
  */
 const validateFilterTypes =
-  (fieldPath, excludedTypes = []) =>
-    context => {
-      const filters = get(context, fieldPath)
-      const unexpectedFilters = filters.filter(({ type }) => excludedTypes.includes(type))
-      if (unexpectedFilters.length > 0) {
-        const unexpectedTypes = unexpectedFilters.map(({ type }) => type)
-        throw new BadRequest(`Filters with the following types are not allowed: ${unexpectedTypes.join(', ')}`)
-      }
-      return context
+  (fieldPath: string, excludedTypes: string[] = []) =>
+  (context: HookContext) => {
+    const filters = get(context, fieldPath) as Filter[]
+    const unexpectedFilters = filters.filter(({ type }) => excludedTypes.includes(type))
+    if (unexpectedFilters.length > 0) {
+      const unexpectedTypes = unexpectedFilters.map(({ type }) => type)
+      throw new BadRequest(`Filters with the following types are not allowed: ${unexpectedTypes.join(', ')}`)
     }
+    return context
+  }
 
 /**
  * Create validator function that fails validation if one or more multigrams
@@ -38,8 +47,8 @@ const validateFilterTypes =
  *
  * @return {object} context
  */
-const ensureUnigrams = fieldPath => context => {
-  const ngrams = get(context, fieldPath)
+const ensureUnigrams = (fieldPath: string) => (context: HookContext) => {
+  const ngrams = get(context, fieldPath) as string[]
   const multigrams = ngrams.filter(ngram => ngram.split(' ').length > 1)
   if (multigrams.length > 0) {
     throw new BadRequest(
@@ -55,12 +64,12 @@ export default {
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),
-      validateWithSchema('services/ngram-trends/schema/post/payload.json'),
+      validateWithSchema('request', validationInstance),
       validateFilterTypes('data.filters', ForbiddenFilterTypes),
       ensureUnigrams('data.ngrams'),
     ],
   },
   after: {
-    create: [validateWithSchema('services/ngram-trends/schema/post/response.json', 'result')],
+    create: [validateWithSchema('response', validationInstance, 'result')],
   },
 }

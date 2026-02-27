@@ -1,7 +1,7 @@
 import { logger } from '@/logger.js'
 import Debug from 'debug'
 import { Sequelize, Options, Dialect } from 'sequelize'
-import { SequelizeConfig, SolrServerProxy } from '@/models/generated/common.js'
+import { SequelizeConfig } from '@/models/generated/app/configuration.js'
 import { ImpressoApplication } from '@/types.js'
 import { ConnectionOptions } from 'mysql2'
 import SocksConnection from '@/util/socks.js'

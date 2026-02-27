@@ -1,7 +1,6 @@
-import { Configuration } from '@/configuration.js'
-import { SelectRequestBody, CachingStrategy } from '@/internalServices/simpleSolr.js'
+import type { CachingStrategy } from '@/internalServices/simpleSolr.js'
 import { logger } from '@/logger.js'
-import { SolrConfiguration } from '@/models/generated/common.js'
+import type { SolrConfiguration } from '@/models/generated/app/configuration.js'
 import { SolrNamespaces } from '@/solr.js'
 
 const NotCacheableSolrFields = [

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../schema/common/solrFilters.json
+# yaml-language-server: $schema=../../schema/app/configuration/solrFilters.json
 indexes:
   # Index id (solr namespace)
   search:

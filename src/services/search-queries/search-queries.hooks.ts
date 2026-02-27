@@ -1,6 +1,9 @@
 import { hooks } from '@feathersjs/authentication'
 import { validateWithSchema } from '@/hooks/schema.js'
 import { queryWithCommonParams } from '@/hooks/params.js'
+import { newAjvInstance } from '@/util/json.js'
+
+const validationInstance = newAjvInstance([['services/search-queries/schema/post/payload.json', 'request']])
 
 const { authenticate } = hooks
 
@@ -9,7 +12,7 @@ export default {
     all: [authenticate('jwt')],
     find: [queryWithCommonParams()],
     get: [],
-    create: [validateWithSchema('services/search-queries/schema/post/payload.json')],
+    create: [validateWithSchema('request', validationInstance)],
     update: [],
     patch: [],
     remove: [],

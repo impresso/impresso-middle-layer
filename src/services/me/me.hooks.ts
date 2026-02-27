@@ -2,6 +2,9 @@ import { discard } from 'feathers-hooks-common'
 import { REGEX_PASSWORD, validate } from '@/hooks/params.js'
 import { validateWithSchema } from '@/hooks/schema.js'
 import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
+import { newAjvInstance } from '@/util/json.js'
+
+const validationInstance = newAjvInstance([['services/me/schema/post/payload.json', 'request']])
 
 interface UserUpdatePayload {
   pattern?: string
@@ -20,7 +23,7 @@ export default {
     get: [],
     create: [],
     update: [
-      validateWithSchema('services/me/schema/post/payload.json'),
+      validateWithSchema('request', validationInstance),
       validate<UserUpdatePayload>(
         {
           pattern: {
@@ -44,6 +47,7 @@ export default {
       ),
     ],
     patch: [
+      validateWithSchema('request', validationInstance),
       validate(
         {
           previousPassword: {

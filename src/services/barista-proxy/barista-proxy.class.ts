@@ -1,6 +1,6 @@
 import type { Params, ServiceMethods } from '@feathersjs/feathers'
 import { BadRequest } from '@feathersjs/errors'
-import { BaristaConfig } from '@/models/generated/common.js'
+import { BaristaConfig } from '@/models/generated/app/configuration.js'
 import type { ImpressoApplication } from '@/types.js'
 import { v4 } from 'uuid'
 import { SlimUser } from '@/authentication.js'
