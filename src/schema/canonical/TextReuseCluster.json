@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "Unique ID of the text reuse cluster."
     },
@@ -43,5 +43,5 @@
       "required": ["startDate", "endDate"]
     }
   },
-  "required": ["uid"]
+  "required": ["id"]
 }

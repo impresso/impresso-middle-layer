@@ -23,7 +23,7 @@ export const transformTextReusePassage = (input: TextReusePassageInternal): Text
 
 export const transformTextReuseCluster = (input: TextReuseClusterCompound): TextReuseCluster => {
   return {
-    uid: input.cluster?.id!,
+    id: input.cluster?.id!,
     clusterSize: input.cluster?.clusterSize!,
     lexicalOverlap: input.cluster?.lexicalOverlap!,
     textSample: input.textSample,

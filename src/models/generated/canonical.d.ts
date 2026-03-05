@@ -945,7 +945,7 @@ export interface TextReuseCluster {
   /**
    * Unique ID of the text reuse cluster.
    */
-  uid: string;
+  id: string;
   /**
    * Overlap in percents between the passages in the cluster.
    */
