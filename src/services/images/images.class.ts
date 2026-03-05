@@ -221,15 +221,15 @@ const toImage = (
   const imageTypes = toTypes(doc)
 
   return {
-    uid: doc.id!,
+    id: doc.id!,
     ...(doc.linked_ci_s != null ? { contentItemUid: doc.linked_ci_s } : {}),
-    issueUid: doc.meta_issue_id_s!,
+    issueId: doc.meta_issue_id_s!,
     previewUrl: getV3CompatibleIIIFUrl(sanitizeIiifImageUrl(doc.iiif_link_s! ?? doc.iiif_url_s!, rewriteRules))!,
     date: doc.meta_date_dt!,
     ...(doc.caption_txt != null ? { caption: doc.caption_txt.join('\n') } : {}),
     ...(doc.page_nb_is != null ? { pageNumbers: doc.page_nb_is } : {}),
     mediaSourceRef: {
-      uid: doc.meta_journal_s!,
+      id: doc.meta_journal_s!,
       name: mediaSources[doc.meta_journal_s!]?.name,
       type: 'newspaper',
     },

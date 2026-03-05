@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the image"
     },
@@ -13,11 +13,11 @@
       "type": "string",
       "description": "Image caption"
     },
-    "issueUid": {
+    "issueId": {
       "type": "string",
       "description": "The unique identifier of the issue that the image belongs to."
     },
-    "contentItemUid": {
+    "contentItemId": {
       "type": "string",
       "description": "The unique identifier of the content item that the image belongs to."
     },
@@ -58,7 +58,7 @@
     "mediaSourceRef": {
       "type": "object",
       "properties": {
-        "uid": {
+        "id": {
           "type": "string",
           "description": "The unique identifier of the media source"
         },
@@ -72,7 +72,7 @@
           "enum": ["newspaper"]
         }
       },
-      "required": ["uid", "name"],
+      "required": ["id", "name"],
       "description": "The media source of the image",
       "additionalProperties": false
     },
@@ -89,5 +89,5 @@
       }
     }
   },
-  "required": ["uid", "issueUid", "previewUrl", "mediaSourceRef", "date"]
+  "required": ["id", "issueId", "previewUrl", "mediaSourceRef", "date"]
 }

@@ -423,7 +423,7 @@ export interface Image {
   /**
    * The unique identifier of the image
    */
-  uid: string;
+  id: string;
   /**
    * Image caption
    */
@@ -431,11 +431,11 @@ export interface Image {
   /**
    * The unique identifier of the issue that the image belongs to.
    */
-  issueUid: string;
+  issueId: string;
   /**
    * The unique identifier of the content item that the image belongs to.
    */
-  contentItemUid?: string;
+  contentItemId?: string;
   /**
    * The URL of the image preview
    */
@@ -469,7 +469,7 @@ export interface Image {
     /**
      * The unique identifier of the media source
      */
-    uid: string;
+    id: string;
     /**
      * The name of the media source
      */
