@@ -310,7 +310,7 @@ export class ContentItemService implements IContentItemService {
       const result = await this.app.get('cacheManager').get<string>(WellKnownKeys.Topics)
       this._topicsCache = JSON.parse(result ?? '[]')
     }
-    const topics = this._topicsCache?.filter(t => topicIds.includes(t.uid)) ?? []
+    const topics = this._topicsCache?.filter(t => topicIds.includes(t.id)) ?? []
     return keyBy(topics, 'uid')
   }
 

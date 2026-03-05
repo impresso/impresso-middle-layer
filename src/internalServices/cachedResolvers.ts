@@ -79,7 +79,7 @@ const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
     const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
     const deserialisedTopics: ITopic[] = JSON.parse(result ?? '[]')
 
-    const topic = deserialisedTopics.find(t => t.uid === id)
+    const topic = deserialisedTopics.find(t => t.id === id)
     if (!topic) return undefined
     return new Topic(topic as unknown as any) as any as ITopic
   }

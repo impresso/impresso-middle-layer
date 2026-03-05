@@ -27,7 +27,7 @@ class TopicWord implements ITopicWord {
 class Topic implements ITopic {
   static readonly SOLR_FL: string[] = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s'] satisfies (keyof ISolrTopic)[]
 
-  uid: string
+  id: string
   language: string
   community?: number | undefined
   pagerank?: number | undefined
@@ -48,7 +48,7 @@ class Topic implements ITopic {
 
   constructor(
     {
-      uid = '',
+      id = '',
       language = '',
       model = '',
       // array of topicWords
@@ -61,7 +61,7 @@ class Topic implements ITopic {
       pagerank = 0,
       community = undefined,
     }: {
-      uid?: string
+      id?: string
       language?: string
       model?: string
       words?: ITopicWord[]
@@ -79,7 +79,7 @@ class Topic implements ITopic {
       checkHighlight = false,
     } = {}
   ) {
-    this.uid = String(uid)
+    this.id = String(id)
     this.language = String(language)
     this.words = words
     this.model = String(model)
@@ -110,7 +110,7 @@ class Topic implements ITopic {
   static solrFactory() {
     return (topic: ISolrTopic) =>
       new Topic({
-        uid: topic.id,
+        id: topic.id,
         language: topic.lg_s,
         words: topic.word_probs_dpf.split(' ').map(d => TopicWord.create(d)),
         model: topic.tp_model_s,
@@ -120,7 +120,7 @@ class Topic implements ITopic {
   static solrFacetFactory() {
     return (doc: ISolrTopic) => {
       const topic = new Topic({
-        uid: doc.id,
+        id: doc.id,
         language: doc.lg_s,
         words: doc.word_probs_dpf.split(' ').map(d => TopicWord.create(d)),
         model: doc.tp_model_s,
@@ -140,7 +140,7 @@ class Topic implements ITopic {
     return (sug: ISuggestion) =>
       new Topic(
         {
-          uid: sug.payload,
+          id: sug.payload,
           language: sug.payload.split('_').pop(),
           words: sug.term.split(' ').map(
             w =>

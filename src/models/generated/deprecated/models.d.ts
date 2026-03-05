@@ -390,7 +390,7 @@ export interface Topic {
   /**
    * The unique identifier of the topic
    */
-  uid: string;
+  id: string;
   /**
    * The language code of the topic
    */
@@ -492,7 +492,7 @@ export interface Topic {
   /**
    * The unique identifier of the topic
    */
-  uid: string;
+  id: string;
   /**
    * The language code of the topic
    */
@@ -1669,7 +1669,7 @@ export interface Topic {
   /**
    * The unique identifier of the topic
    */
-  uid: string;
+  id: string;
   /**
    * The language code of the topic
    */

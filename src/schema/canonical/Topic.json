@@ -4,9 +4,9 @@
   "title": "Topic",
   "description": "A topic",
   "additionalProperties": false,
-  "required": ["uid", "language"],
+  "required": ["id", "language"],
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the topic"
     },

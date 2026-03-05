@@ -88,9 +88,9 @@ export class Service {
             const t = await resolvers.topic(doc.id)
             if (!t) return undefined
 
-            const topicResult = { ...t, uid: t?.uid ?? '' } as InternalTopic
-            if (t?.uid && solrSuggestResponse.highlighting?.[t.uid]?.topic_suggest) {
-              topicResult.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
+            const topicResult = { ...t, uid: t?.id ?? '' } as InternalTopic
+            if (t?.id && solrSuggestResponse.highlighting?.[t.id]?.topic_suggest) {
+              topicResult.matches = solrSuggestResponse.highlighting[t.id].topic_suggest
             }
             return topicResult
           })
@@ -193,16 +193,16 @@ export class Service {
     const data = await Promise.all(
       buckets.map(async d => {
         const bucket = typeof d === 'object' && d !== null && 'val' in d ? d : { val: d, count: 0 }
-        const topic: InternalTopic | undefined = await resolvers.topic(String(bucket.val))
-        if (topic != null) {
-          if (uids.length && topics[String(bucket.val)]) {
-            topic.matches = topics[String(bucket.val)].matches
-          }
-          topic.contentItemsCount = typeof bucket.count === 'number' ? bucket.count : 0
-          return topic
-        } else {
-          return undefined
+        const topic = await resolvers.topic(String(bucket.val))
+        if (topic == null) return
+
+        const { id: topicId, ...topicOther } = topic
+        const internalTopic: InternalTopic = { uid: topicId, ...topicOther } satisfies InternalTopic
+        if (uids.length && topics[String(bucket.val)]) {
+          internalTopic.matches = topics[String(bucket.val)].matches
         }
+        internalTopic.contentItemsCount = typeof bucket.count === 'number' ? bucket.count : 0
+        return internalTopic
       })
     )
 
@@ -228,16 +228,18 @@ export class Service {
             if (!topic) {
               throw new NotFound(`Topic with id ${id} not found`)
             }
+            const { id: uid, ...topicBody } = topic
+
             const cached = await resolvers.topic(String(id))
             if (cached) {
               if (cached.contentItemsCount !== undefined) {
-                return { ...topic, contentItemsCount: cached.contentItemsCount } satisfies InternalTopic
+                return { uid, ...topicBody, contentItemsCount: cached.contentItemsCount } satisfies InternalTopic
               }
               if ((cached as any).relatedTopics !== undefined) {
-                return { ...topic, relatedTopics: (cached as any).relatedTopics } satisfies InternalTopic
+                return { uid, ...topicBody, relatedTopics: (cached as any).relatedTopics } satisfies InternalTopic
               }
             }
-            return topic
+            return { uid, ...topicBody } satisfies InternalTopic
           }
         ),
       'topics.get.solr.topics'
