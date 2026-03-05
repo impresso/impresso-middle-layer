@@ -176,7 +176,7 @@ export interface Entity {
   /**
    * Unique identifier of the entity
    */
-  uid: string;
+  id: string;
   /**
    * Relevance of the entity in the document
    */
@@ -1652,7 +1652,7 @@ export interface Entity {
   /**
    * Unique identifier of the entity
    */
-  uid: string;
+  id: string;
   /**
    * Relevance of the entity in the document
    */

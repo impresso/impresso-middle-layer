@@ -18,7 +18,7 @@ import { ContentItemTextMatch } from '@/models/generated/canonical/contentItem.j
 const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
 
 interface IArticleDPF {
-  uid: string
+  id: string
   relevance: number | string
 }
 
@@ -29,7 +29,7 @@ interface IArticleRegion {
 }
 
 interface IBaseArticle {
-  uid?: string
+  id?: string
   type?: string
   title?: string
   excerpt?: string
@@ -73,11 +73,11 @@ interface IArticleOptions extends IBaseArticle {
 }
 
 class ArticleDPF {
-  uid: string
+  id: string
   relevance: number
 
-  constructor({ uid, relevance }: IArticleDPF = { uid: '', relevance: '' }) {
-    this.uid = uid
+  constructor({ id, relevance }: IArticleDPF = { id: '', relevance: '' }) {
+    this.id = id
     this.relevance = typeof relevance === 'string' ? parseFloat(relevance) : relevance
   }
 
@@ -94,7 +94,7 @@ class ArticleDPF {
       .map(d => {
         const parts = d.split('|')
         return new ArticleDPF({
-          uid: parts[0],
+          id: parts[0],
           relevance: parts[1],
         })
       })
@@ -151,8 +151,8 @@ class ArticleMatch extends Fragment implements ContentItemTextMatch {
 /**
  * @deprecated use `content-item` instead.
  */
-export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> {
-  uid: string
+export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'persons' | 'locations' | 'uid'> {
+  id: string
   type: string
   title: string
   size: number
@@ -165,7 +165,7 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
   locations?: ArticleDPF[]
 
   constructor({
-    uid = '',
+    id = '',
     type = '',
     title = '',
     excerpt = '',
@@ -176,7 +176,7 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
     locations = [],
     collections = [],
   }: IBaseArticle = {}) {
-    this.uid = String(uid)
+    this.id = String(id)
     this.type = String(type)
     this.title = String(title).trim()
     this.size = typeof size === 'string' ? parseInt(size, 10) : size
@@ -220,7 +220,7 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
     const fragments = res.fragments || {}
     return doc =>
       new BaseArticle({
-        uid: doc.id,
+        id: doc.id,
         type: doc.item_type_s,
         size: doc.content_length_i,
         pages: (doc.page_id_ss || []).map(uid => ({
@@ -240,9 +240,9 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
 
 type ContentItemWithCorrectTypes = Omit<
   ContentItem,
-  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages' | 'topics' | 'id'
+  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages' | 'topics' | 'uid'
 > & {
-  uid: string
+  id: string
   issue?: Issue
   date?: Date
   bitmapExplore?: bigint
@@ -280,7 +280,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
   copyright?: ContentItem['copyright']
 
   constructor({
-    uid = '',
+    id = '',
     type = '',
     language = '',
     title = '',
@@ -315,7 +315,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     copyright = undefined,
   }: IArticleOptions = {}) {
     super({
-      uid,
+      id,
       type,
       title,
       excerpt,
@@ -445,7 +445,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
 
       if (rcs.length < trs.length) {
         // it would never happen.... or not?
-        throw new Error(`article ${this.uid} coordinates corrupted`)
+        throw new Error(`article ${this.id} coordinates corrupted`)
       }
 
       // then, for each region,
@@ -669,7 +669,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
       const rc = getRegionCoordinatesFromDocument(doc)
 
       const art = new Article({
-        uid: doc.id,
+        id: doc.id,
         type: doc.item_type_s,
         language: doc.lg_s,
 
@@ -734,8 +734,8 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
         return art
       }
       // get text matches
-      const fragments = res.fragments?.[art.uid]?.[`content_txt_${art.language}`]
-      const highlights = res.highlighting?.[art.uid]?.[`content_txt_${art.language}`]
+      const fragments = res.fragments?.[art.id]?.[`content_txt_${art.language}`]
+      const highlights = res.highlighting?.[art.id]?.[`content_txt_${art.language}`]
       //
       // console.log('fragments!!', res.fragments, '--', fragments);
       // console.log('highlights!!', res.highlighting, '--', highlights);

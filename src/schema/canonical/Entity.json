@@ -5,7 +5,7 @@
   "title": "Entity",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "Unique identifier of the entity"
     },
@@ -18,5 +18,5 @@
       "description": "Name of the entity"
     }
   },
-  "required": ["uid", "relevance"]
+  "required": ["id", "relevance"]
 }
