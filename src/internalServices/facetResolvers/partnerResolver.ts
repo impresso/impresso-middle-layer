@@ -1,38 +1,40 @@
 import { IResolver } from '@/internalServices/cachedResolvers.js'
 import { ImpressoApplication } from '@/types.js'
-import { MediaSource, Partner } from '@/models/generated/canonical.js'
+import { Partner } from '@/models/generated/canonical.js'
+import partnerInstitutionsDirectory from '@/services/version/resources/partner_institutions_directory.json' with { type: 'json' }
 
-const getPropValue = (source: MediaSource, prop: string) => source.properties?.find(p => p.id === prop)?.value
+interface PartnerInstitutionDirectoryEntry {
+  partner_institution_id: string
+  partner_institution_names: { lang: string; name: string }[]
+}
 
 // In-memory cache
 let partnersCache: Record<string, Partner> | null = null
 
-export const getPartnerResolver = (app: ImpressoApplication): IResolver<Partner> => {
-  const mediaSources = app.service('media-sources')
+const getPreferredPartnerTitle = (entry: PartnerInstitutionDirectoryEntry): string => {
+  const names = entry.partner_institution_names ?? []
+  const english = names.find(n => n.lang === 'en')?.name
+  const first = names[0]?.name
+  return english ?? first ?? entry.partner_institution_id
+}
 
+const buildPartnersById = (entries: PartnerInstitutionDirectoryEntry[]): Record<string, Partner> => {
+  return entries.reduce(
+    (acc, entry) => {
+      if (acc[entry.partner_institution_id] != null) return acc
+      acc[entry.partner_institution_id] = {
+        id: entry.partner_institution_id,
+        title: getPreferredPartnerTitle(entry),
+      }
+      return acc
+    },
+    {} as Record<string, Partner>
+  )
+}
+
+export const getPartnerResolver = (_app: ImpressoApplication): IResolver<Partner> => {
   const loadPartnersData = async (): Promise<Record<string, Partner>> => {
-    const sources = await mediaSources.getLookup()
-
-    const partners = Object.values(sources).reduce(
-      (acc, source) => {
-        const partnerUid = getPropValue(source, 'partnerUid')
-
-        if (partnerUid == null) return acc
-
-        if (acc[partnerUid] == null) {
-          const partnerNames = getPropValue(source, 'institutionNames')?.split(', ')
-          const partnerLinks = getPropValue(source, 'institutionLinks')?.split(', ')
-
-          acc[partnerUid] = {
-            id: partnerUid,
-            title: partnerNames?.[0] ?? partnerUid,
-            url: partnerLinks?.[0],
-          }
-        }
-        return acc
-      },
-      {} as Record<string, Partner>
-    )
+    const partners = buildPartnersById(partnerInstitutionsDirectory as PartnerInstitutionDirectoryEntry[])
 
     // Store in memory cache
     partnersCache = partners

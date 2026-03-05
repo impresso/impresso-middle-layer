@@ -28,6 +28,9 @@ export type CachedFacetType =
   | 'imageTechnique'
   | 'imageCommunicationGoal'
   | 'imageContentType'
+  | 'dataDomain'
+  | 'copyright'
+  | 'contentItemType'
 export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | IMediaSource | IPartner | FacetWithLabel
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
@@ -46,9 +49,54 @@ export type ICachedResolvers = {
   imageTechnique: IResolver<FacetWithLabel>
   imageCommunicationGoal: IResolver<FacetWithLabel>
   imageContentType: IResolver<FacetWithLabel>
+  dataDomain: IResolver<FacetWithLabel>
+  copyright: IResolver<FacetWithLabel>
+  contentItemType: IResolver<FacetWithLabel>
 }
 
 // Record<CachedFacetType, IResolver<T>>
+
+const DataDomainLabels = {
+  pbl: 'Public',
+  prt: 'Private',
+} as const
+
+const CopyrightLabels = {
+  pbl: 'Public domain',
+  und: 'Protected domain: copyright undetermined',
+  nkn: 'Protected domain: no known copyright',
+  euo: 'Protected domain: in copyright - EU orphan work',
+  unk: 'Protected domain: in copyright - unknown rightsholders',
+  in_cpy: 'Protected domain: in copyright',
+} as const
+
+const ContentItemTypeLabels = {
+  ar: 'Article',
+  ad: 'Advertisement',
+  page: 'Page',
+  tb: 'Table',
+  ob: 'Obituary',
+  w: 'Weather',
+  chapter: 'Chapter',
+  chronicle: 'Chronicle',
+  unsegmented: 'Unsegmented',
+  radio_broadcast_episode: 'Radio broadcast episode',
+  radio_bulletin: 'Radio bulletin',
+} as const
+
+const fromLookup =
+  (lookup: Record<string, string>): IResolver<FacetWithLabel> =>
+  async (id: string) => {
+    const label = lookup[id]
+    if (label == null) return undefined
+    return { id, label } satisfies FacetWithLabel
+  }
+
+export const getDataDomainResolver = (): IResolver<FacetWithLabel> => fromLookup(DataDomainLabels)
+
+export const getCopyrightResolver = (): IResolver<FacetWithLabel> => fromLookup(CopyrightLabels)
+
+export const getContentItemTypeResolver = (): IResolver<FacetWithLabel> => fromLookup(ContentItemTypeLabels)
 
 const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection> => {
   const collectionsService = app.service('collections')
@@ -127,5 +175,8 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     imageTechnique: (id: string) => imageTypeResolver(id, 'type_l1_tp'),
     imageCommunicationGoal: (id: string) => imageTypeResolver(id, 'type_l2_tp'),
     imageContentType: (id: string) => imageTypeResolver(id, 'type_l3_tp'),
+    dataDomain: getDataDomainResolver(),
+    copyright: getCopyrightResolver(),
+    contentItemType: getContentItemTypeResolver(),
   }
 }

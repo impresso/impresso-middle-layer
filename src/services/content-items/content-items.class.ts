@@ -12,7 +12,7 @@ import { SlimUser } from '@/authentication.js'
 import { asFind, asGet, findAllRequestAdapter, findRequestAdapter, SolrFactory } from '@/util/solr/adapters.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import Page, { withRewrittenIIIF } from '@/models/pages.model.js'
-import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { ICachedResolvers, buildResolvers } from '@/internalServices/cachedResolvers.js'
 import {
   SlimContentItemFieldsNames,
   FullContentItemFieldsNames,
@@ -198,34 +198,52 @@ const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: Imp
 
 type Dictionary<T> = Record<string, T>
 
-const withIIIF = (
+type ContentItemEnricher = (item: ContentItem) => ContentItem | Promise<ContentItem>
+
+const enrichContentItems = async (
   contentItems: ContentItem[],
-  dbPagesLookup: Dictionary<Dictionary<DBContentItemPage>>,
-  app: ImpressoApplication
-) => {
-  return contentItems.map(item => {
+  enrichers: ContentItemEnricher[]
+): Promise<ContentItem[]> => {
+  if (contentItems.length === 0 || enrichers.length === 0) return contentItems
+
+  return await Promise.all(
+    contentItems.map(async item => {
+      let enrichedItem = item
+      for (const withEnricher of enrichers) {
+        enrichedItem = await withEnricher(enrichedItem)
+      }
+      return enrichedItem
+    })
+  )
+}
+
+const withIIIF =
+  (dbPagesLookup: Dictionary<Dictionary<DBContentItemPage>>, app: ImpressoApplication): ContentItemEnricher =>
+  item => {
     const pages = item.image?.pages ?? []
+    if (pages.length === 0) return item
+
     const enrichedPages = pages.map(page => {
       const dbPage = dbPagesLookup[item.id]?.[page.id!]
       if (dbPage) return pageWithIIIF(page, dbPage, app)
       return page
     })
-    if (enrichedPages.length > 0) {
-      return {
-        ...item,
-        image: {
-          ...item.image,
-          pages: enrichedPages,
-        },
-      }
-    }
-    return item
-  })
-}
 
-const withTopics = (contentItems: ContentItem[], topicsLookup: Dictionary<Topic>): ContentItem[] => {
-  return contentItems.map(item => {
+    return {
+      ...item,
+      image: {
+        ...item.image,
+        pages: enrichedPages,
+      },
+    }
+  }
+
+const withTopics =
+  (topicsLookup: Dictionary<Topic>): ContentItemEnricher =>
+  item => {
     const topics = item.semanticEnrichments?.topics ?? []
+    if (topics.length === 0) return item
+
     const enrichedTopics = topics.map(topic => {
       const topicDetails = topicsLookup[topic.id]
       if (topicDetails) {
@@ -240,36 +258,107 @@ const withTopics = (contentItems: ContentItem[], topicsLookup: Dictionary<Topic>
       return topic
     })
 
-    if (enrichedTopics.length > 0) {
-      return {
-        ...item,
-        semanticEnrichments: {
-          ...item.semanticEnrichments,
-          topics: enrichedTopics,
-        },
-      }
+    return {
+      ...item,
+      semanticEnrichments: {
+        ...item.semanticEnrichments,
+        topics: enrichedTopics,
+      },
     }
-    return item
-  })
-}
+  }
 
-const withCollections = (contentItems: ContentItem[], collectionsLookup: Dictionary<Collection[]>): ContentItem[] => {
-  if (Object.keys(collectionsLookup).length === 0) return contentItems
-
-  return contentItems.map(item => {
+const withCollections =
+  (collectionsLookup: Dictionary<Collection[]>): ContentItemEnricher =>
+  item => {
     const collections = collectionsLookup[item.id] ?? []
-    if (collections.length > 0) {
-      return {
-        ...item,
-        semanticEnrichments: {
-          ...item.semanticEnrichments,
-          collections,
-        },
-      }
+    if (collections.length === 0) return item
+
+    return {
+      ...item,
+      semanticEnrichments: {
+        ...item.semanticEnrichments,
+        collections,
+      },
     }
-    return item
-  })
+  }
+
+interface ContentItemMetadataResolvers {
+  mediaSource: ICachedResolvers['mediaSource']
+  partner: ICachedResolvers['partner']
+  dataDomain: ICachedResolvers['dataDomain']
+  copyright: ICachedResolvers['copyright']
+  contentItemType: ICachedResolvers['contentItemType']
 }
+
+const withMetaLabels =
+  ({ mediaSource, partner }: ContentItemMetadataResolvers): ContentItemEnricher =>
+  async item => {
+    const [mediaSourceItem, partnerItem] = await Promise.all([
+      item.meta?.mediaTitle == null && item.meta?.mediaId != null ? mediaSource(item.meta.mediaId) : undefined,
+      item.meta?.partnerTitle == null && item.meta?.partnerId != null ? partner(item.meta.partnerId) : undefined,
+    ])
+    const mediaTitle = mediaSourceItem?.name
+    const partnerTitle = partnerItem?.title
+    const hasMetaPatch =
+      (mediaTitle != null && item.meta?.mediaTitle == null) || (partnerTitle != null && item.meta?.partnerTitle == null)
+    if (!hasMetaPatch || item.meta == null) return item
+
+    return {
+      ...item,
+      meta: {
+        ...item.meta,
+        ...(mediaTitle != null && item.meta.mediaTitle == null ? { mediaTitle } : {}),
+        ...(partnerTitle != null && item.meta.partnerTitle == null ? { partnerTitle } : {}),
+      },
+    }
+  }
+
+const withAccessLabels =
+  ({ dataDomain, copyright }: ContentItemMetadataResolvers): ContentItemEnricher =>
+  async item => {
+    const [dataDomainItem, copyrightItem] = await Promise.all([
+      item.access?.dataDomainLabel == null && item.access?.dataDomain != null
+        ? dataDomain(item.access.dataDomain)
+        : undefined,
+      item.access?.copyrightLabel == null && item.access?.copyright != null
+        ? copyright(item.access.copyright)
+        : undefined,
+    ])
+    const dataDomainLabel = dataDomainItem?.label
+    const copyrightLabel = copyrightItem?.label
+    const hasAccessPatch =
+      (dataDomainLabel != null && item.access?.dataDomainLabel == null) ||
+      (copyrightLabel != null && item.access?.copyrightLabel == null)
+    if (!hasAccessPatch || item.access == null) return item
+
+    return {
+      ...item,
+      access: {
+        ...item.access,
+        ...(dataDomainLabel != null && item.access.dataDomainLabel == null ? { dataDomainLabel } : {}),
+        ...(copyrightLabel != null && item.access.copyrightLabel == null ? { copyrightLabel } : {}),
+      },
+    }
+  }
+
+const withTextLabels =
+  ({ contentItemType }: ContentItemMetadataResolvers): ContentItemEnricher =>
+  async item => {
+    const [itemTypeItem] = await Promise.all([
+      item.text?.itemTypeLabel == null && item.text?.itemType != null ? contentItemType(item.text.itemType) : undefined,
+    ])
+    const itemTypeLabel = itemTypeItem?.label
+    const hasTextPatch = itemTypeLabel != null && item.text?.itemTypeLabel == null
+    if (!hasTextPatch || item.text == null) return item
+
+    return {
+      ...item,
+      text: {
+        ...item.text,
+        ...(itemTypeLabel != null && item.text.itemTypeLabel == null ? { itemTypeLabel } : {}),
+      },
+    }
+  }
 
 export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights, maxScore?: number) => {
   return (doc: AllDocumentFields): ContentItem => {
@@ -295,6 +384,7 @@ export class ContentItemService implements IContentItemService {
   app: ImpressoApplication
   contentItemsDbService: SequelizeService
   _topicsCache: Topic[] | undefined = undefined
+  _cachedResolvers: ICachedResolvers | undefined = undefined
 
   constructor({ app }: ServiceOptions) {
     this.app = app
@@ -318,6 +408,24 @@ export class ContentItemService implements IContentItemService {
     if (contentItemIds.length === 0 || !user) return {}
 
     return await this.app.service('collections').findByContentItems(contentItemIds, true, user)
+  }
+
+  getCachedResolvers(): ICachedResolvers {
+    if (this._cachedResolvers === undefined) {
+      this._cachedResolvers = buildResolvers(this.app)
+    }
+    return this._cachedResolvers
+  }
+
+  getContentItemMetadataResolvers(): ContentItemMetadataResolvers {
+    const resolvers = this.getCachedResolvers()
+    return {
+      mediaSource: resolvers.mediaSource,
+      partner: resolvers.partner,
+      dataDomain: resolvers.dataDomain,
+      copyright: resolvers.copyright,
+      contentItemType: resolvers.contentItemType,
+    }
   }
 
   get solr(): SimpleSolrClient {
@@ -411,15 +519,20 @@ export class ContentItemService implements IContentItemService {
       this._findPages(contentItemIds),
       this.getCollections(contentItemIds, params.user),
     ])
+    const metadataResolvers = this.getContentItemMetadataResolvers()
 
-    // add IIIF URLs to the content items pages
-    const enrichedContentItems = withCollections(
-      withTopics(withIIIF(contentItems, dbPages, this.app), topicsLookup),
-      collectionsLookup
-    )
+    const enrichedContentItems = await enrichContentItems(contentItems, [
+      withIIIF(dbPages, this.app),
+      withTopics(topicsLookup),
+      withCollections(collectionsLookup),
+      withMetaLabels(metadataResolvers),
+      withAccessLabels(metadataResolvers),
+      withTextLabels(metadataResolvers),
+      withAuthorizationBitmaps,
+    ])
 
     return {
-      data: enrichedContentItems.map(withAuthorizationBitmaps),
+      data: enrichedContentItems,
       offset: results.response?.start ?? 0,
       limit: request.limit ?? DefaultLimit,
       total: results.response?.numFound ?? 0,
@@ -538,13 +651,24 @@ export class ContentItemService implements IContentItemService {
 
     const topicIds = contentItem.semanticEnrichments?.topics?.map(t => t.id) ?? []
     const topicsLookup = await this.getTopics(topicIds)
+    const metadataResolvers = this.getContentItemMetadataResolvers()
 
-    const enrichedContentItem = withCollections(
-      withTopics(withIIIF([contentItem], dbPagesLookup, this.app), topicsLookup),
-      collectionsLookup
+    const enrichedContentItem = (
+      await enrichContentItems(
+        [contentItem],
+        [
+          withIIIF(dbPagesLookup, this.app),
+          withTopics(topicsLookup),
+          withCollections(collectionsLookup),
+          withMetaLabels(metadataResolvers),
+          withAccessLabels(metadataResolvers),
+          withTextLabels(metadataResolvers),
+          withAuthorizationBitmaps,
+        ]
+      )
     )?.[0]
 
-    return withAuthorizationBitmaps(enrichedContentItem)
+    return enrichedContentItem
 
     //   return Promise.all([
     //     // we perform a solr request to get
