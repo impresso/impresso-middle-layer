@@ -41,8 +41,7 @@ import { ContentItemDbModel } from '@/models/content-item.model.js'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '@/models/content-item-page.model.js'
 import { mapRecordValues } from '@/util/fn.js'
 import { NotFound } from '@feathersjs/errors'
-import { Collection, Topic } from '@/models/generated/canonical.js'
-import { WellKnownKeys } from '@/cache.js'
+import { Collection } from '@/models/generated/canonical.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
 import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/external/solr/ContentItem.js'
 import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
@@ -191,7 +190,7 @@ const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: Imp
     ...page,
     iiif: {
       manifestUrl: getIIIFManifestUrl(dbPage, app),
-      thumnbnailUrl: getIIIFThumbnailUrl(dbPage, app),
+      thumbnailUrl: getIIIFThumbnailUrl(dbPage, app),
     },
   }
 }
@@ -239,24 +238,43 @@ const withIIIF =
   }
 
 const withTopics =
-  (topicsLookup: Dictionary<Topic>): ContentItemEnricher =>
-  item => {
+  (topicResolver: ICachedResolvers['topic']): ContentItemEnricher =>
+  async item => {
     const topics = item.semanticEnrichments?.topics ?? []
     if (topics.length === 0) return item
 
-    const enrichedTopics = topics.map(topic => {
-      const topicDetails = topicsLookup[topic.id]
-      if (topicDetails) {
+    let hasTopicPatch = false
+
+    const enrichedTopics = await Promise.all(
+      topics.map(async topic => {
+        if (topic.label != null && topic.languageCode != null) return topic
+
+        const topicDetails = await topicResolver(topic.id)
+        if (topicDetails == null) return topic
+
+        const topicLabel =
+          topic.label ??
+          take(topicDetails.words, 5)
+            .map(word => word.w)
+            .join(' · ')
+
+        const languageCode = topic.languageCode ?? topicDetails.language
+        const hasPatch =
+          (topic.label == null && topicLabel !== '') || (topic.languageCode == null && languageCode != null)
+
+        if (!hasPatch) return topic
+        hasTopicPatch = true
         return {
           ...topic,
-          language: topicDetails.language,
-          label: take(topicDetails.words, 5)
-            .map(word => word.w)
-            .join(' · '),
+          ...(topic.label == null && topicLabel !== '' ? { label: topicLabel } : {}),
+          ...(topic.languageCode == null && languageCode != null ? { languageCode } : {}),
         }
-      }
-      return topic
-    })
+      })
+    )
+
+    if (!hasTopicPatch) {
+      return item
+    }
 
     return {
       ...item,
@@ -383,7 +401,6 @@ export type IContentItemService = Pick<
 export class ContentItemService implements IContentItemService {
   app: ImpressoApplication
   contentItemsDbService: SequelizeService
-  _topicsCache: Topic[] | undefined = undefined
   _cachedResolvers: ICachedResolvers | undefined = undefined
 
   constructor({ app }: ServiceOptions) {
@@ -393,15 +410,6 @@ export class ContentItemService implements IContentItemService {
       name: 'content-item',
       cacheReads: true,
     })
-  }
-
-  async getTopics(topicIds: string[]): Promise<Dictionary<Topic>> {
-    if (this._topicsCache === undefined) {
-      const result = await this.app.get('cacheManager').get<string>(WellKnownKeys.Topics)
-      this._topicsCache = JSON.parse(result ?? '[]')
-    }
-    const topics = this._topicsCache?.filter(t => topicIds.includes(t.id)) ?? []
-    return keyBy(topics, 'uid')
   }
 
   async getCollections(contentItemIds: string[], user?: SlimUser): Promise<Dictionary<Collection[]>> {
@@ -511,19 +519,18 @@ export class ContentItemService implements IContentItemService {
       .map(item => withMatches(item, results))
 
     // get data enrichment items
-    const topicIds = contentItems.flatMap(d => d.semanticEnrichments?.topics?.map(t => t.id) ?? [])
     const contentItemIds = contentItems.map(d => d.id)
 
-    const [topicsLookup, dbPages, collectionsLookup] = await Promise.all([
-      this.getTopics(topicIds),
+    const [dbPages, collectionsLookup] = await Promise.all([
       this._findPages(contentItemIds),
       this.getCollections(contentItemIds, params.user),
     ])
+    const resolvers = this.getCachedResolvers()
     const metadataResolvers = this.getContentItemMetadataResolvers()
 
     const enrichedContentItems = await enrichContentItems(contentItems, [
       withIIIF(dbPages, this.app),
-      withTopics(topicsLookup),
+      withTopics(resolvers.topic),
       withCollections(collectionsLookup),
       withMetaLabels(metadataResolvers),
       withAccessLabels(metadataResolvers),
@@ -649,8 +656,7 @@ export class ContentItemService implements IContentItemService {
 
     if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)
 
-    const topicIds = contentItem.semanticEnrichments?.topics?.map(t => t.id) ?? []
-    const topicsLookup = await this.getTopics(topicIds)
+    const resolvers = this.getCachedResolvers()
     const metadataResolvers = this.getContentItemMetadataResolvers()
 
     const enrichedContentItem = (
@@ -658,7 +664,7 @@ export class ContentItemService implements IContentItemService {
         [contentItem],
         [
           withIIIF(dbPagesLookup, this.app),
-          withTopics(topicsLookup),
+          withTopics(resolvers.topic),
           withCollections(collectionsLookup),
           withMetaLabels(metadataResolvers),
           withAccessLabels(metadataResolvers),

@@ -49,7 +49,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
     },
     get: {
       operationId: 'getTopic',
-      description: 'Get a topic by its UID',
+      description: 'Get a topic by its ID',
       parameters: [
         {
           in: 'path',
@@ -58,7 +58,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
           schema: {
             type: 'string',
           },
-          description: 'UID of the topic',
+          description: 'ID of the topic',
         },
       ],
       responses: getStandardResponses({

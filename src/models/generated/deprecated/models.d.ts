@@ -1065,7 +1065,7 @@ export interface IIIFContentItemPageDetails {
   /**
    * The URL of the thumbnail image for the page.
    */
-  thumnbnailUrl: string;
+  thumbnailUrl: string;
 }
 /**
  * Audio-related information for broadcast content

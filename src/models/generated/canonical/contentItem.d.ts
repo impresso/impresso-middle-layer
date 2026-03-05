@@ -343,7 +343,7 @@ export interface IIIFContentItemPageDetails {
   /**
    * The URL of the thumbnail image for the page.
    */
-  thumnbnailUrl: string;
+  thumbnailUrl: string;
 }
 /**
  * Audio-related information for broadcast content
@@ -704,7 +704,7 @@ export interface IIIFContentItemPageDetails {
   /**
    * The URL of the thumbnail image for the page.
    */
-  thumnbnailUrl: string;
+  thumbnailUrl: string;
 }
 
 
@@ -822,7 +822,7 @@ export interface IIIFContentItemPageDetails {
   /**
    * The URL of the thumbnail image for the page.
    */
-  thumnbnailUrl: string;
+  thumbnailUrl: string;
 }
 
 
@@ -837,7 +837,7 @@ export interface IIIFContentItemPageDetails {
   /**
    * The URL of the thumbnail image for the page.
    */
-  thumnbnailUrl: string;
+  thumbnailUrl: string;
 }
 
 

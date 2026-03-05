@@ -81,7 +81,7 @@ export default class Page implements IPage {
     // "LCE-1864-07-17-a-p0004".match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
     const match = this.uid.match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
     if (!match) {
-      throw new Error(`Invalid page UID: ${this.uid}`)
+      throw new Error(`Invalid page ID: ${this.uid}`)
     }
     const [, issueUid, newspaperUid, num] = match
 

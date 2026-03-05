@@ -222,7 +222,7 @@ const toImage = (
 
   return {
     id: doc.id!,
-    ...(doc.linked_ci_s != null ? { contentItemUid: doc.linked_ci_s } : {}),
+    ...(doc.linked_ci_s != null ? { contentItemId: doc.linked_ci_s } : {}),
     issueId: doc.meta_issue_id_s!,
     previewUrl: getV3CompatibleIIIFUrl(sanitizeIiifImageUrl(doc.iiif_link_s! ?? doc.iiif_url_s!, rewriteRules))!,
     date: doc.meta_date_dt!,
@@ -241,5 +241,5 @@ const toImage = (
       getImages: BigInt(doc.rights_bm_get_img_l ?? 0),
       getTranscript: BigInt(doc.rights_bm_get_tr_l ?? 0),
     } satisfies AuthorizationBitmapsDTO,
-  }
+  } satisfies Image
 }

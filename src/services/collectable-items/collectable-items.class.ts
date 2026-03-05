@@ -47,7 +47,7 @@ export class CollectableItemsService implements ICollectableItemsService {
     if (params.user?.id == null) throw new NotAuthenticated('User authentication required')
 
     const collectionId = params.route?.collection_id
-    if (collectionId == null) throw new BadRequest('Collection UID not provided')
+    if (collectionId == null) throw new BadRequest('Collection ID not provided')
 
     if (SupportedNamespaces.includes(data.namespace) === false)
       throw new BadRequest(
@@ -72,7 +72,7 @@ export class CollectableItemsService implements ICollectableItemsService {
     if (userId == null) throw new NotAuthenticated('User authentication required')
 
     const collectionId = params.route?.collection_id
-    if (collectionId == null) throw new BadRequest('Collection UID not provided')
+    if (collectionId == null) throw new BadRequest('Collection ID not provided')
 
     if (data.add != null && data.add.length > 0) {
       // we have a job handler but we can also run it directly for immediate feedback

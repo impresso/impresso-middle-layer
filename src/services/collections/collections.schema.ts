@@ -77,7 +77,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
     },
     get: {
       operationId: 'getCollection',
-      description: 'Get a collection by its UID',
+      description: 'Get a collection by its ID',
       parameters: [
         {
           in: 'path',
@@ -86,7 +86,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
           schema: {
             type: 'string',
           },
-          description: 'UID of the collection',
+          description: 'ID of the collection',
         },
       ],
       responses: getStandardResponses({
@@ -118,7 +118,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
           schema: {
             type: 'string',
           },
-          description: 'UID of the collection',
+          description: 'ID of the collection',
         },
       ],
       requestBody: {
@@ -141,7 +141,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
           schema: {
             type: 'string',
           },
-          description: 'UID of the collection',
+          description: 'ID of the collection',
         },
       ],
       responses: getStandardResponses({

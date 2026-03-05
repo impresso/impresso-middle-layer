@@ -35,7 +35,7 @@ export const TypeToTypeShorthand: Record<string, string> = Object.entries(TypeSh
 )
 
 /**
- * Extracts the display name from an entity UID
+ * Extracts the display name from an entity ID
  */
 export function getNameFromUid(uid: string): string {
   if (uid.indexOf('bert-') === 0) {
@@ -63,7 +63,7 @@ export function getNameFromUid(uid: string): string {
 }
 
 /**
- * Extracts the entity type from an entity UID
+ * Extracts the entity type from an entity ID
  */
 export function getTypeCodeFromUid(uid: string): string {
   // Handle formats like "2-50-Kanton_Waadt"

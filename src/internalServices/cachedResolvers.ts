@@ -12,6 +12,7 @@ import {
   Partner as IPartner,
   MediaSource as IMediaSource,
 } from '@/models/generated/canonical.js'
+import { InternalTopic } from '@/models/generated/deprecated/models.js'
 import { FacetWithLabel } from '@/models/generated/canonical.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 export type CachedFacetType =
@@ -123,11 +124,38 @@ const entityResolver = async (id: string, type: CachedFacetType) =>
   }) as any as IEntity
 
 const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
-  return async (id: string) => {
-    const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
-    const deserialisedTopics: ITopic[] = JSON.parse(result ?? '[]')
+  let topicsById: Record<string, ITopic> | null = null
 
-    const topic = deserialisedTopics.find(t => t.id === id)
+  const loadTopicsData = async (): Promise<Record<string, ITopic>> => {
+    const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
+    const deserialisedTopics: InternalTopic[] = JSON.parse(result ?? '[]')
+    const byId = deserialisedTopics.reduce(
+      (acc, topic) => {
+        if (acc[topic.uid] == null) {
+          acc[topic.uid] = {
+            id: topic.uid,
+            language: topic.language,
+            words: topic.words,
+            contentItemsCount: topic.contentItemsCount,
+            model: topic.model,
+          }
+        }
+        return acc
+      },
+      {} as Record<string, ITopic>
+    )
+    topicsById = byId
+    return byId
+  }
+
+  const getTopicsData = async (): Promise<Record<string, ITopic>> => {
+    if (topicsById != null) return topicsById
+    return await loadTopicsData()
+  }
+
+  return async (id: string) => {
+    const topics = await getTopicsData()
+    const topic = topics[id]
     if (!topic) return undefined
     return new Topic(topic as unknown as any) as any as ITopic
   }

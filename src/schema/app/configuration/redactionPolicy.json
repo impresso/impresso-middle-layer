@@ -23,7 +23,7 @@
         },
         "valueConverterName": {
           "type": "string",
-          "enum": ["redact", "contextNotAllowedImage", "remove", "emptyArray"]
+          "enum": ["redact", "contextNotAllowedImage", "remove", "emptyArray", "emptyObject"]
         }
       },
       "required": ["jsonPath", "valueConverterName"]
