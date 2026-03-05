@@ -20,7 +20,7 @@
     },
     "words": {
       "type": "array",
-      "items": { "$ref": "./TopicWord.json" },
+      "items": { "$ref": "../canonical/TopicWord.json" },
       "description": "Top N words associated with the topic"
     },
     "model": {

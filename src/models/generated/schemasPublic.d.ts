@@ -256,73 +256,6 @@ export interface WikidataLocation2 {
 
 
 /**
- * An entity (location, person, etc.) mentioned in the content item.
- */
-export interface EntityMention {
-  /**
-   * The surface form (label) of the entity mention
-   */
-  surfaceForm: string;
-  /**
-   * Confidence score of the entity mention
-   */
-  mentionConfidence: number;
-  /**
-   * Start offset of the entity mention in the content item
-   */
-  startOffset?: number;
-  /**
-   * End offset of the entity mention in the content item
-   */
-  endOffset?: number;
-}
-
-
-/**
- * A collection of entity mentions (location, person, etc.) present in text.
- */
-export interface ContentItemEntitiesMentionsInformation {
-  /**
-   * Locations mentioned in the content item.
-   */
-  locations?: EntityMention[];
-  /**
-   * Persons mentioned in the content item.
-   */
-  persons?: EntityMention[];
-  /**
-   * Organisations mentioned in the content item.
-   */
-  organisations?: EntityMention[];
-  /**
-   * News agencies mentioned in the content item.
-   */
-  newsAgencies?: EntityMention[];
-}
-/**
- * An entity (location, person, etc.) mentioned in the content item.
- */
-export interface EntityMention {
-  /**
-   * The surface form (label) of the entity mention
-   */
-  surfaceForm: string;
-  /**
-   * Confidence score of the entity mention
-   */
-  mentionConfidence: number;
-  /**
-   * Start offset of the entity mention in the content item
-   */
-  startOffset?: number;
-  /**
-   * End offset of the entity mention in the content item
-   */
-  endOffset?: number;
-}
-
-
-/**
  * Information about an available experiment including its identifier, name, and description.
  */
 export interface ExperimentInfo {
@@ -346,57 +279,6 @@ export interface ExperimentInfo {
  */
 export interface Freeform {
   [k: string]: unknown;
-}
-
-
-/**
- * A collection of linked named entities (location, person, etc.) present in text.
- */
-export interface ContentItemNamedEntitiesInformation {
-  /**
-   * Linked location entities mentioned in the content item.
-   */
-  locations?: NamedEntity[];
-  /**
-   * Linked person entities mentioned in the content item.
-   */
-  persons?: NamedEntity[];
-  /**
-   * Linked organisation entities mentioned in the content item.
-   */
-  organisations?: NamedEntity[];
-  /**
-   * Linked news agency entities mentioned in the content item.
-   */
-  newsAgencies?: NamedEntity[];
-}
-/**
- * An named entity (location, persion, etc) present in text.
- */
-export interface NamedEntity {
-  /**
-   * Unique identifier of the entity
-   */
-  uid: string;
-  /**
-   * How many times it is mentioned in the text
-   */
-  count?: number;
-}
-
-
-/**
- * An named entity (location, persion, etc) present in text.
- */
-export interface NamedEntity {
-  /**
-   * Unique identifier of the entity
-   */
-  uid: string;
-  /**
-   * How many times it is mentioned in the text
-   */
-  count?: number;
 }
 
 
@@ -587,40 +469,6 @@ export interface Topic {
    */
   model?: string;
 }
-/**
- * A word included in a topic
- */
-export interface TopicWord {
-  /**
-   * Word surface form
-   */
-  w: string;
-  /**
-   * Probability of the word in topic
-   */
-  p: number;
-  /**
-   * If word is highlighted
-   */
-  h?: boolean;
-}
-
-
-/**
- * Topic presence in a content item.
- */
-export interface TopicMention {
-  /**
-   * Unique identifier of the topic.
-   */
-  uid: string;
-  /**
-   * Relevance of the topic in the content item.
-   */
-  relevance?: number;
-}
-
-
 /**
  * A word included in a topic
  */
