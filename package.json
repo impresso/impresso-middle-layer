@@ -50,7 +50,7 @@
     "@feathersjs/socketio": "5.0.37",
     "@iiif/parser": "^2.1.8",
     "@keyv/redis": "5.1.2",
-    "ajv": "8.17.1",
+    "ajv": "8.18.0",
     "async": "^2.6.1",
     "aws-sdk": "^2.395.0",
     "axios": "^1.6.7",

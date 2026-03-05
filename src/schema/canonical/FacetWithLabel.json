@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "description": "An facet that has a value and a label",
   "type": "object",
   "title": "Facet with label",

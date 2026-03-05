@@ -1,8 +1,9 @@
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
-import { readFileSync } from 'fs'
-import { Ajv, ErrorObject } from 'ajv'
+import type { ErrorObject } from 'ajv'
 import formatsPlugin from 'ajv-formats'
+import { Ajv2019 as Ajv } from 'ajv/dist/2019.js'
+import { readFileSync } from 'fs'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
 
 export type SchemaIdPair = [string, string]
 
@@ -74,4 +75,4 @@ function formatValidationErrors(errors: (ErrorObject & { dataPath?: string })[] 
     .filter(e => e !== undefined)
 }
 
-export { validated, formatValidationErrors }
+export { formatValidationErrors, validated }

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "title": "MediaSource",
   "description": "A media source is what a content item belongs to. This can be a newspaper, a TV or a radio station, etc.",
   "type": "object",

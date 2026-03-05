@@ -1,12 +1,11 @@
 {
   "definitions": {},
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "type": "object",
   "title": "Base User Details",
   "required": ["uid", "username"],
   "properties": {
     "uid": {
-      "$id": "#/properties/uid",
       "type": "string",
       "title": "unique identifier for the user",
       "default": "",
@@ -14,7 +13,6 @@
       "pattern": "^([a-zA-Z-]+)$"
     },
     "username": {
-      "$id": "#/properties/username",
       "type": "string",
       "title": "unique username for the user for other humans",
       "default": "",

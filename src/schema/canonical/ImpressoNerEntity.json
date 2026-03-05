@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "title": "Impresso Named Entity Recognition Entity",
   "description": "Impresso NER entity",
   "type": "object",

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "type": "object",
   "title": "Full Version Details",
   "description": "Version of the API. Contains information about the current version of the API, features, etc.",

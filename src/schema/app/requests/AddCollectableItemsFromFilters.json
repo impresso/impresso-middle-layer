@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "description": "Request to add content items to a collection from content items that match given filters",
   "title": "Add Collectable Items From Filters",
   "type": "object",

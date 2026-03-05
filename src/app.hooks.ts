@@ -1,18 +1,18 @@
 // Application hooks that run for every service
-import Debug from 'debug'
-import { ApplicationHookFunction, ApplicationHookOptions, HookContext } from '@feathersjs/feathers'
-import { ValidationError } from 'ajv'
-import { GeneralError, BadGateway, BadRequest, Unprocessable, Conflict, FeathersError } from '@feathersjs/errors'
-import { ImpressoApplication } from '@/types.js'
 import { logger } from '@/logger.js'
+import { ImpressoApplication } from '@/types.js'
 import { hooks } from '@feathersjs/authentication'
+import { BadGateway, BadRequest, Conflict, FeathersError, GeneralError, Unprocessable } from '@feathersjs/errors'
+import { ApplicationHookFunction, HookContext } from '@feathersjs/feathers'
+import { ValidationError } from 'ajv/dist/2019.js'
+import Debug from 'debug'
 
 const { authenticate } = hooks
 
 const debug = Debug('impresso/app.hooks')
 // import { validateRouteId } from './hooks/params'
-import { InvalidArgumentError } from '@/util/error.js'
 import { SlimUser } from '@/authentication.js'
+import { InvalidArgumentError } from '@/util/error.js'
 import { SolrError } from '@/util/solr/errors.js'
 
 const basicParams = () => (context: HookContext) => {

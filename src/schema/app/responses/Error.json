@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "description": "Error response that follows https://datatracker.ietf.org/doc/html/rfc7807#section-3.1",
   "title": "Error",
   "type": "object",

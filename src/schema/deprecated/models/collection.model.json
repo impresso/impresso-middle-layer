@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "title": "CollectionModel",
   "description": "Description of the collection object (Collection class)",
   "type": "object",
@@ -7,24 +7,20 @@
   "required": ["uid", "name", "description", "status", "creationDate", "lastModifiedDate", "countItems", "creator"],
   "properties": {
     "uid": {
-      "$id": "#/properties/uid",
       "type": "string",
       "minLength": 2,
       "maxLength": 50
     },
     "name": {
-      "$id": "#/properties/name",
       "type": "string",
       "minLength": 2,
       "maxLength": 50
     },
     "description": {
-      "$id": "#/properties/description",
       "type": "string",
       "maxLength": 500
     },
     "status": {
-      "$id": "#/properties/status",
       "type": "string",
       "minLength": 2,
       "maxLength": 3,
@@ -32,15 +28,12 @@
       "examples": ["PRI", "DEL"]
     },
     "creationDate": {
-      "$id": "#/properties/creationDate",
       "type": "string"
     },
     "lastModifiedDate": {
-      "$id": "#/properties/lastModifiedDate",
       "type": "string"
     },
     "countItems": {
-      "$id": "#/properties/countItems",
       "type": ["integer", "string"],
       "title": "Number of items in the collection",
       "default": 0,

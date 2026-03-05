@@ -1,16 +1,20 @@
-import { Ajv, getValidator, JSONSchemaDefinition } from '@feathersjs/schema'
 import { Cache } from '@/cache.js'
-import type { RedisClientOptions } from 'redis'
-import { AuthenticationConfiguration } from '@feathersjs/authentication'
-import { Sequelize } from 'sequelize'
 import { CeleryClient } from '@/celery.js'
 import type { CeleryConfig, Config, RedisConfig, SolrServerProxy } from '@/models/generated/app/configuration.js'
-import { ImpressoApplication } from '@/types.js'
-import { feathersConfigurationLoader } from '@/util/configuration.js'
-
-const ajv = new Ajv()
 import configurationSchema from '@/schema/app/configuration/config.json' with { type: 'json' }
 import solrConfigurationSchema from '@/schema/app/configuration/solrConfiguration.json' with { type: 'json' }
+import { ImpressoApplication } from '@/types.js'
+import { feathersConfigurationLoader } from '@/util/configuration.js'
+import { AuthenticationConfiguration } from '@feathersjs/authentication'
+import { getValidator, JSONSchemaDefinition } from '@feathersjs/schema'
+import { Ajv2019 as Ajv } from 'ajv/dist/2019.js'
+import type { RedisClientOptions } from 'redis'
+import { Sequelize } from 'sequelize'
+
+const ajv = new Ajv({
+  coerceTypes: true,
+  addUsedSchema: false,
+})
 ajv.addSchema(solrConfigurationSchema, 'solrConfiguration.json')
 
 type RedisConfiguration = RedisConfig & RedisClientOptions

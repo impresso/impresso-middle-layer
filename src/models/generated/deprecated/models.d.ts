@@ -2186,12 +2186,7 @@ export interface BaseUserDetails {
 }
 
 
-export type PropertiesUid = string;
-export type PropertiesName = string;
-export type PropertiesDescription = string;
 export type StatusOfTheCollection = string;
-export type PropertiesCreationDate = string;
-export type PropertiesLastModifiedDate = string;
 export type NumberOfItemsInTheCollection = number | string;
 export type UniqueIdentifierForTheUser = string;
 export type UniqueUsernameForTheUserForOtherHumans = string;
@@ -2200,12 +2195,12 @@ export type UniqueUsernameForTheUserForOtherHumans = string;
  * Description of the collection object (Collection class)
  */
 export interface CollectionModel {
-  uid: PropertiesUid;
-  name: PropertiesName;
-  description: PropertiesDescription;
+  uid: string;
+  name: string;
+  description: string;
   status: StatusOfTheCollection;
-  creationDate: PropertiesCreationDate;
-  lastModifiedDate: PropertiesLastModifiedDate;
+  creationDate: string;
+  lastModifiedDate: string;
   countItems: NumberOfItemsInTheCollection;
   creator: BaseUserDetails;
   labels?: string[];
@@ -2217,12 +2212,7 @@ export interface BaseUserDetails {
 }
 
 
-export type PropertiesUid = string;
-export type PropertiesName = string;
-export type PropertiesDescription = string;
 export type BufferedJSONObjectContainingAnArrayOfFilters = string;
-export type PropertiesCreationDate = string;
-export type PropertiesLastModifiedDate = string;
 export type NumberOfResultsWhenTheSearchWasSaved = number | string;
 export type UniqueIdentifierForTheUser = string;
 export type UniqueUsernameForTheUserForOtherHumans = string;
@@ -2231,12 +2221,12 @@ export type UniqueUsernameForTheUserForOtherHumans = string;
  * Description of the search query object (SearchQuery class)
  */
 export interface SearchQuery {
-  uid: PropertiesUid;
-  name: PropertiesName;
-  description: PropertiesDescription;
+  uid: string;
+  name: string;
+  description: string;
   data: BufferedJSONObjectContainingAnArrayOfFilters;
-  creationDate: PropertiesCreationDate;
-  lastModifiedDate: PropertiesLastModifiedDate;
+  creationDate: string;
+  lastModifiedDate: string;
   countItems: NumberOfResultsWhenTheSearchWasSaved;
   creator: BaseUserDetails;
 }
