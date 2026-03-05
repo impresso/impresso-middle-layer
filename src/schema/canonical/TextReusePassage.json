@@ -5,7 +5,7 @@
   "description": "Represents a passage of text that was identified as a part of a text reuse cluster",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "Unique ID of the text reuse passage."
     },
@@ -33,5 +33,5 @@
       "required": ["start", "end"]
     }
   },
-  "required": ["uid"]
+  "required": ["id"]
 }

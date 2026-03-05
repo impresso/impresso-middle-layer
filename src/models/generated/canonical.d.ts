@@ -981,7 +981,7 @@ export interface TextReusePassage {
   /**
    * Unique ID of the text reuse passage.
    */
-  uid: string;
+  id: string;
   /**
    * Textual content of the passage.
    */

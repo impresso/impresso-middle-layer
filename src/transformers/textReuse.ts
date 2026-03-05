@@ -6,7 +6,7 @@ import { OpenPermissions } from '@/util/bigint.js'
 
 export const transformTextReusePassage = (input: TextReusePassageInternal): TextReusePassagePublic => {
   return {
-    uid: input.id,
+    id: input.id,
     content: input.content,
     contentItemId: input.article.id,
     offset: {
