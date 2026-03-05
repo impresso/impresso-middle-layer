@@ -173,7 +173,7 @@ export interface EntityDetails {
   /**
    * Unique identifier of the entity
    */
-  uid: string;
+  id: string;
   /**
    * Entity label
    */
