@@ -1,6 +1,6 @@
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { ImpressoApplication } from '@/types.js'
-import { getTypeFromUid } from '@/utils/entity.utils.js'
+import { getTypeFromId } from '@/utils/entity.utils.js'
 import { optionalMediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 
 const isDateRangeString = (v: string) => v.match(/.+ TO .+/) != null
@@ -44,7 +44,7 @@ async function entityExtractor({ q = '' }, app: ImpressoApplication) {
   const mappedItems = await Promise.all(
     items.map(async item => {
       const uid = item.trim()
-      const type = getTypeFromUid(uid)
+      const type = getTypeFromId(uid)
       return type === 'person' ? await resolvers.person(uid) : await resolvers.location(uid)
     })
   )

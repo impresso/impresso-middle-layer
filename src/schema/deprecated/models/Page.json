@@ -5,10 +5,10 @@
   "description": "A page of an article",
   "additionalProperties": false,
   "required": [
-    "uid",
+    "id",
     "num",
-    "issueUid",
-    "newspaperUid",
+    "issueId",
+    "newspaperId",
     "iiif",
     "iiifThumbnail",
     "accessRights",
@@ -18,7 +18,7 @@
     "regions"
   ],
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the page"
     },
@@ -26,11 +26,11 @@
       "type": "integer",
       "description": "The number of the page"
     },
-    "issueUid": {
+    "issueId": {
       "type": "string",
       "description": "Reference to the article"
     },
-    "newspaperUid": {
+    "newspaperId": {
       "type": "string",
       "description": "Unique ID of the newspaper"
     },

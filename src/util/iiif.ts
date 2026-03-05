@@ -45,9 +45,9 @@ export const getExternalFragmentUrl = (
   iiifManifestUrl: string,
   { coordinates, dimension = 'full' }: FragmentOptions
 ) => {
-  const externalUid = iiifManifestUrl.split('/info.json').shift()
+  const externalId = iiifManifestUrl.split('/info.json').shift()
   const size = dimensionToFormattedSizeParameter(dimension)
-  return `${externalUid}/${coordinates.join(',')}/${size}/0/default.png`
+  return `${externalId}/${coordinates.join(',')}/${size}/0/default.png`
 }
 
 export const getJSONUrl = (uid: string, baseUrl: string) => {
@@ -74,9 +74,9 @@ export const getExternalThumbnailUrl = (
   iiifManifestUrl: string,
   { dimension = 150 }: Pick<FragmentOptions, 'dimension'> = { dimension: 150 }
 ) => {
-  const externalUid = iiifManifestUrl.split('/info.json').shift()
+  const externalId = iiifManifestUrl.split('/info.json').shift()
   const size = dimensionToFormattedSizeParameter(dimension)
-  return `${externalUid}/full/${size}/0/default.png`
+  return `${externalId}/full/${size}/0/default.png`
 }
 
 /**

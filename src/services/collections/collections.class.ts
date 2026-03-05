@@ -19,7 +19,7 @@ import {
 } from '@/solr/queries/collections.js'
 import { createCollectionId } from '@/models/collections.model.js'
 
-export type CollectionsPatch = Partial<Omit<Collection, 'uid'>>
+export type CollectionsPatch = Partial<Omit<Collection, 'id'>>
 export type CollectionsFindResult = FindResponse<Collection>
 
 export interface CollectionsQuery {

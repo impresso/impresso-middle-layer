@@ -84,9 +84,9 @@ export class Service {
     // simplified where for sequelize raw queries.
     const where = []
 
-    if (params.sanitized.newspaper_uid) {
+    if (params.sanitized.newspaper_id) {
       where.push({
-        'pages.newspaper_id': params.sanitized.newspaper_uid,
+        'pages.newspaper_id': params.sanitized.newspaper_id,
       })
     }
 

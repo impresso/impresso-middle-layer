@@ -19,9 +19,9 @@
     "entity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["uid", "type", "name", "matches", "countItems", "countMentions"],
+      "required": ["id", "type", "name", "matches", "countItems", "countMentions"],
       "properties": {
-        "uid": {
+        "id": {
           "type": "string",
           "description": "ID of the entity",
           "examples": ["id-john-doe"],

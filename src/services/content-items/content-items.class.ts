@@ -456,16 +456,16 @@ export class ContentItemService implements IContentItemService {
       .find({
         include: 'pages',
         where: {
-          uid: { [Op.in]: contentItemIds },
+          id: { [Op.in]: contentItemIds },
         },
         limit: contentItemIds.length,
         offset: 0,
-        order_by: [['uid', 'DESC']],
+        order_by: [['id', 'DESC']],
       })
-      .then(({ data }) => keyBy(data, 'uid'))
+      .then(({ data }) => keyBy(data, 'id'))
 
     const pagesByIds = mapRecordValues(pagesByContentItemId, ({ pages }, ciId) => {
-      return keyBy(pages, 'uid')
+      return keyBy(pages, 'id')
     })
 
     return pagesByIds

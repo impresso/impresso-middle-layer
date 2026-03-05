@@ -27,7 +27,7 @@ export type WithScore<T> = T & {
  *
  * TODO: Explain why.
  */
-const NON_FILTERED_FIELDS = ['uid', 'string', 'entity-string', 'topic-string', 'embedding']
+const NON_FILTERED_FIELDS = ['id', 'string', 'entity-string', 'topic-string', 'embedding']
 
 /**
  * Translate DPF filter to appropriate field names

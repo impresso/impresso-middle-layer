@@ -87,7 +87,7 @@ export class Service {
         await client.run({
           task: 'impresso.tasks.update_user_bitmap_task',
           args: [
-            // collection_uid
+            // collection_id
             params.user.id,
           ],
         })

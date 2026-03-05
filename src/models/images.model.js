@@ -8,7 +8,7 @@ import Newspaper from './newspapers.model'
 
 class Image {
   constructor({
-    uid = '',
+    id = '',
     type = 'image',
     coords = [],
     title = '',
@@ -24,7 +24,7 @@ class Image {
     bitmapGetTranscript = undefined,
     bitmapGetImages = undefined,
   } = {}) {
-    this.uid = String(uid)
+    this.id = String(id)
     this.year = parseInt(year, 10)
     this.type = String(type)
     this.coords = coords
@@ -61,7 +61,7 @@ class Image {
 
   assignIIIF() {
     this.regions = this.pages.map(page => ({
-      pageUid: page.uid,
+      pageId: page.id,
       coords: this.coords,
       iiifFragment: getExternalFragmentUrl(page.iiif, { coordinates: this.coords, dimension: 250 }),
     }))
@@ -75,17 +75,17 @@ class Image {
   static solrFactory() {
     return doc => {
       const img = new Image({
-        uid: doc.id,
+        id: doc.id,
         newspaper: new Newspaper({
-          uid: doc.meta_journal_s,
+          id: doc.meta_journal_s,
         }),
         issue: new Issue({
-          uid: doc.meta_issue_id_s,
+          id: doc.meta_issue_id_s,
         }),
         pages: (Array.isArray(doc.page_nb_is) ? doc.page_nb_is : []).map(
           num =>
             new Page({
-              uid: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
+              id: `${doc.meta_issue_id_s}-p${String(num).padStart(4, '0')}`,
               num,
             })
         ),

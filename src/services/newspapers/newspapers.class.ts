@@ -17,7 +17,7 @@ export const mediaSourceToNewspaper = (mediaSource: MediaSource): NewspaperInter
   const deltaYear = (endYear ?? 0) - (startYear ?? 0)
 
   return {
-    uid: mediaSource.id,
+    id: mediaSource.id,
     name: mediaSource.name,
     acronym: mediaSource.id,
     countArticles: mediaSource.totals.articles ?? 0,

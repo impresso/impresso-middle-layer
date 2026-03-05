@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "pageUid": {
+    "pageId": {
       "type": "string"
     },
     "coords": {
@@ -26,5 +26,5 @@
       "description": "TODO"
     }
   },
-  "required": ["pageUid", "coords", "isEmpty"]
+  "required": ["pageId", "coords", "isEmpty"]
 }

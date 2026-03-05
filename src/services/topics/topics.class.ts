@@ -179,7 +179,7 @@ export class Service {
       debug('[find] filtering out facets, initial total approx:', topicFacet.numBuckets)
       // filter out facets based on their uid.
       buckets = buckets.filter(d => {
-        const val = typeof d === 'object' && d !== null && 'val' in d ? d.val : d
+        const val = typeof d === 'object' && d !== null && 'value' in d ? d.value : d
         return uids.includes(String(val))
       })
       debug('[find] new total: ', buckets.length)
@@ -197,7 +197,7 @@ export class Service {
         if (topic == null) return
 
         const { id: topicId, ...topicOther } = topic
-        const internalTopic: InternalTopic = { uid: topicId, ...topicOther } satisfies InternalTopic
+        const internalTopic: InternalTopic = { id: topicId, ...topicOther } satisfies InternalTopic
         if (uids.length && topics[String(bucket.val)]) {
           internalTopic.matches = topics[String(bucket.val)].matches
         }
@@ -228,18 +228,26 @@ export class Service {
             if (!topic) {
               throw new NotFound(`Topic with id ${id} not found`)
             }
-            const { id: uid, ...topicBody } = topic
+            const { id: topicId, ...topicBody } = topic
 
             const cached = await resolvers.topic(String(id))
             if (cached) {
               if (cached.contentItemsCount !== undefined) {
-                return { uid, ...topicBody, contentItemsCount: cached.contentItemsCount } satisfies InternalTopic
+                return {
+                  id: topicId,
+                  ...topicBody,
+                  contentItemsCount: cached.contentItemsCount,
+                } satisfies InternalTopic
               }
               if ((cached as any).relatedTopics !== undefined) {
-                return { uid, ...topicBody, relatedTopics: (cached as any).relatedTopics } satisfies InternalTopic
+                return {
+                  id: topicId,
+                  ...topicBody,
+                  relatedTopics: (cached as any).relatedTopics,
+                } satisfies InternalTopic
               }
             }
-            return { uid, ...topicBody } satisfies InternalTopic
+            return { id: topicId, ...topicBody } satisfies InternalTopic
           }
         ),
       'topics.get.solr.topics'

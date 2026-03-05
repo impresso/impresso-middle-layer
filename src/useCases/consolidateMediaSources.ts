@@ -6,7 +6,7 @@ import { logger } from '@/logger.js'
 
 const sqlGetNewsappersDetails = `
 SELECT
-  n.id as uid,
+  n.id as id,
   n.title as name,
   n.start_year as publishedFromYear,
   n.end_year as publishedToYear,
@@ -44,7 +44,7 @@ interface NewspaperProperty {
 }
 
 export interface DBNewspaperDetails {
-  uid: string
+  id: string
   name: string
   publishedFromYear?: number
   publishedToYear?: number
@@ -115,8 +115,8 @@ export const consolidateMediaSources = async (
   }, {})
 
   const mediaSources = dbNewspapersDetails.map(dbNewspaper => {
-    const articlesCount = articlesCounts[dbNewspaper.uid] ?? 0
-    const datesRange = datesRanges[dbNewspaper.uid] ?? undefined
+    const articlesCount = articlesCounts[dbNewspaper.id] ?? 0
+    const datesRange = datesRanges[dbNewspaper.id] ?? undefined
 
     const datesRangePart: Pick<MediaSource, 'availableDatesRange'> =
       datesRange != null
@@ -130,7 +130,7 @@ export const consolidateMediaSources = async (
         : {}
 
     return {
-      id: dbNewspaper.uid,
+      id: dbNewspaper.id,
       type: 'newspaper',
       name: dbNewspaper.name,
       languageCodes: dbNewspaper.languageCodes,

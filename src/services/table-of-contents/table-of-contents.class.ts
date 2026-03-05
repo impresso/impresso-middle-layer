@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { SearchFacet } from '@/models/search-facets.model.js'
-import { getNameFromUid } from '@/utils/entity.utils.js'
+import { getNameFromId } from '@/utils/entity.utils.js'
 import Newspaper from '@/models/newspapers.model.js'
-import { BaseArticle } from '@/models/articles.model.js'
-import { measureTime } from '@/util/instruments.js'
-import { asFindAll } from '@/util/solr/adapters.js'
+import { BaseArticle, IFragmentsAndHighlights } from '@/models/articles.model.js'
+import { asFindAll, FindAllParams } from '@/util/solr/adapters.js'
+import { ImpressoApplication } from '@/types.js'
+import { PrintContentItem } from '@/models/solr.js'
 
 const BaseArticleTocFields = [
   'id',
@@ -23,7 +24,10 @@ const BaseArticleTocFields = [
 ]
 
 export class Service {
-  constructor({ app, name }) {
+  app: ImpressoApplication
+  name: string
+
+  constructor({ app, name }: { app: ImpressoApplication; name: string }) {
     this.app = app
     this.name = name
   }
@@ -32,11 +36,11 @@ export class Service {
     return this.app.service('simpleSolrClient')
   }
 
-  async get(id, params) {
+  async get(id: string, params: any) {
     const newspaper = new Newspaper({
-      uid: id.split('-').shift(),
+      id: id.split('-').shift(),
     })
-    const highlightProps = {
+    const highlightProps: Record<string, number | string> = {
       'hl.snippets': 0,
       'hl.alternateField': 'content_txt_fr',
       'hl.maxAlternateFieldLength': 120,
@@ -44,7 +48,7 @@ export class Service {
     }
     const languages = newspaper.languages
 
-    if (newspaper.uid === 'NZZ') {
+    if (newspaper.id === 'NZZ') {
       highlightProps['hl.alternateField'] = 'content_txt_de'
     } else if (languages.length) {
       highlightProps['hl.alternateField'] = `content_txt_${languages[0]}`
@@ -78,13 +82,18 @@ export class Service {
       highlight_by: 'nd',
       highlightProps,
       fl: BaseArticleTocFields,
-    }
+    } satisfies FindAllParams
 
     // const result = await measureTime(
     //   () => this.app.get('solrClient').findAll(request, BaseArticle.solrFactory),
     //   'table-of-contents.get.solr.toc'
     // )
-    const result = await asFindAll(this.solr, 'search', request, BaseArticle.solrFactory)
+    const result = await asFindAll<PrintContentItem & IFragmentsAndHighlights, string, string, BaseArticle>(
+      this.solr,
+      'search',
+      request,
+      BaseArticle.solrFactory as any
+    )
 
     // get persons and locations from the facet,
     // using the simplified version of their buckets
@@ -93,8 +102,7 @@ export class Service {
         const t = await SearchFacet.build(
           {
             type,
-            ...result.facets[type],
-            noBuckets: true,
+            ...(result.facets?.[type] ?? ({} as any)),
           },
           this.app
         )
@@ -102,15 +110,12 @@ export class Service {
       })
     )
 
-    const personById = persons.reduce((acc, person) => ({ ...acc, [person.uid]: person }), {})
-    const locationById = locations.reduce((acc, location) => ({ ...acc, [location.uid]: location }), {})
-
-    result.response.docs.forEach(doc => {
+    result.response?.docs.forEach(doc => {
       doc.persons = doc.persons?.map(person => {
         return {
           ...person,
           type: 'person',
-          name: getNameFromUid(person.uid),
+          name: getNameFromId(person.id),
         }
       })
 
@@ -118,7 +123,7 @@ export class Service {
         return {
           ...location,
           type: 'location',
-          name: getNameFromUid(location.uid),
+          name: getNameFromId(location.id),
         }
       })
     })
@@ -128,18 +133,15 @@ export class Service {
       newspaper,
       persons,
       locations,
-      articles: result.response.docs,
-      countArticles: result.response.numFound,
+      articles: result.response?.docs ?? [],
+      countArticles: result.response?.numFound ?? 0,
       info: {
         fragments: result.fragments,
-        responseTime: {
-          solr: result.responseHeader.QTime,
-        },
       },
     }
   }
 }
 
-export default function (options) {
+export default function (options: { app: ImpressoApplication; name: string }) {
   return new Service(options)
 }

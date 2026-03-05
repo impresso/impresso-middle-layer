@@ -3,15 +3,15 @@ import type { MethodParameter, QueryParameter } from '@/util/openapi.js'
 import { getRequestBodyContent, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
 import { REGEX_UIDS } from '@/hooks/params.js'
 
-const parameterUids: QueryParameter = {
+const parameterIds: QueryParameter = {
   in: 'query',
-  name: 'uids',
+  name: 'ids',
   required: false,
   schema: {
     type: 'string',
     pattern: String(REGEX_UIDS).slice(1, -1),
   },
-  description: 'UIDs of collections (comma separated)',
+  description: 'IDs of collections (comma separated)',
 }
 
 const parameterTerm: QueryParameter = {
@@ -49,7 +49,7 @@ const parameterOrderBy: QueryParameter = {
 }
 
 const findParameters: MethodParameter[] = [
-  parameterUids,
+  parameterIds,
   parameterQ,
   parameterOrderBy,
   ...getStandardParameters({ method: 'find' }),

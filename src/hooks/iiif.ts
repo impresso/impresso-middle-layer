@@ -6,6 +6,9 @@ type ProxyConfig = any
 
 const debug = Debug('impresso/hooks:iiif')
 
+/**
+ * @deprecated Not used in any working code.
+ */
 const iiifMapper = (d: Record<string, any>, proxyConfig: ProxyConfig) => {
   const _d = {
     ...d,

@@ -12,17 +12,17 @@ import { measureTime } from '@/util/instruments.js'
 import { FindParams } from '@/services/content-items/content-items.class.js'
 
 const CoversQuery = `
-SELECT id as uid,
-  issue_id as issue_uid,
+SELECT id as id,
+  issue_id as issue_id,
   iiif_manifest as iiif,
   page_number as num,
   has_converted_coordinates as hasCoords,
   has_corrupted_json as hasErrors
-FROM pages WHERE id IN (:pageUids)`
+FROM pages WHERE id IN (:pageIds)`
 
 const IssuePagesQuery = `
 SELECT
-  pages.id as uid, pages.iiif_manifest as iiif, pages.page_number as num,
+  pages.id as id, pages.iiif_manifest as iiif, pages.page_number as num,
   pages.has_converted_coordinates as hasCoords,
   issues.access_rights as accessRights
 FROM pages
@@ -52,14 +52,14 @@ export class IssueService implements IIssueService {
     return this.app?.service('simpleSolrClient')!
   }
 
-  async getCoverIndex(pageUids: string[]): Promise<Record<string, Page>> {
+  async getCoverIndex(pageIds: string[]): Promise<Record<string, Page>> {
     return await measureTime(
       () =>
         this.dbService
           .rawSelect({
             query: CoversQuery,
             replacements: {
-              pageUids,
+              pageIds,
             },
           })
           .then(covers =>
@@ -67,15 +67,15 @@ export class IssueService implements IIssueService {
               (
                 acc: Record<string, Page>,
                 cover: {
-                  uid: string
-                  issue_uid: string
+                  id: string
+                  issue_id: string
                   iiif: string
                   num: number
                   hasCoords: boolean
                   hasErrors: boolean
                 }
               ) => {
-                acc[cover.uid] = new Page(cover)
+                acc[cover.id] = new Page(cover)
                 return acc
               },
               {}
@@ -128,7 +128,7 @@ export class IssueService implements IIssueService {
       data: solrResult.response!.docs.map(doc => {
         const issueId = doc['meta_issue_id_s']
         return {
-          uid: issueId,
+          id: issueId,
           labels: [],
           fresh: false,
           accessRights: 'unknown',
@@ -179,7 +179,7 @@ export class IssueService implements IIssueService {
 
     const doc = solrResult.response?.docs[0]
     return {
-      uid: id,
+      id,
       cover: '',
       labels: [],
       fresh: false,

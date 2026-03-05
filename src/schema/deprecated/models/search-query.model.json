@@ -3,9 +3,9 @@
   "description": "Description of the search query object (SearchQuery class)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["uid", "name", "description", "data", "creationDate", "lastModifiedDate", "countItems", "creator"],
+  "required": ["id", "name", "description", "data", "creationDate", "lastModifiedDate", "countItems", "creator"],
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "minLength": 2,
       "maxLength": 50

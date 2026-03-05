@@ -11,7 +11,7 @@ const debug = debugLib('impresso/hooks/resolvers')
 const supportedMethods = ['get', 'find']
 
 const isSearchFacetBucket = (bucket: any): bucket is SearchFacetBucket => {
-  return typeof bucket.val === 'string'
+  return typeof bucket.value === 'string'
 }
 
 const resultAsList = (result: FindResponse<SearchFacet> | SearchFacet | undefined): SearchFacet[] => {
@@ -40,23 +40,23 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
 
   const items = resultAsList(context.result)
 
-  const uids = items
+  const ids = items
     .filter(d => d.type === 'textReuseCluster')
     .reduce((acc, d) => acc.concat(d.buckets.filter(isSearchFacetBucket).map(di => String(di.value))), [] as string[])
 
-  if (!uids.length) return
+  if (!ids.length) return
 
-  debug('resolveTextReuseClusters uids:', uids)
+  debug('resolveTextReuseClusters ids:', ids)
   // get text reuse clusters as dictionary from text-reuse-clusters service
   const index = await context.app
     .service('text-reuse-passages')
     .find({
       query: {
-        filters: [{ type: 'textReuseCluster', q: uids }],
+        filters: [{ type: 'textReuseCluster', q: ids }],
         group_by: 'textReuseClusterId',
         // RK: x10 is a workaround for a Solr cluster that may return more items than IDs.
         // See https://impresso.slack.com/archives/CAHFF9TD1/p1756911197866689
-        limit: uids.length * 10,
+        limit: ids.length * 10,
       },
     })
     .then(({ data }: { data: any }) => {

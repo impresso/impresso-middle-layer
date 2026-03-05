@@ -3,7 +3,7 @@ import Topic from '@/models/topics.model.js'
 import { ImpressoApplication } from '@/types.js'
 import { WellKnownKeys } from '@/cache.js'
 import { getPartnerResolver } from '@/internalServices/facetResolvers/partnerResolver.js'
-import { getNameFromUid } from '@/utils/entity.utils.js'
+import { getNameFromId } from '@/utils/entity.utils.js'
 import {
   Topic as ITopic,
   Year as IYear,
@@ -118,9 +118,9 @@ const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection>
 
 const entityResolver = async (id: string, type: CachedFacetType) =>
   new Entity({
-    uid: id,
+    id,
     type,
-    name: getNameFromUid(id),
+    name: getNameFromId(id),
   }) as any as IEntity
 
 const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
@@ -131,9 +131,9 @@ const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
     const deserialisedTopics: InternalTopic[] = JSON.parse(result ?? '[]')
     const byId = deserialisedTopics.reduce(
       (acc, topic) => {
-        if (acc[topic.uid] == null) {
-          acc[topic.uid] = {
-            id: topic.uid,
+        if (acc[topic.id] == null) {
+          acc[topic.id] = {
+            id: topic.id,
             language: topic.language,
             words: topic.words,
             contentItemsCount: topic.contentItemsCount,

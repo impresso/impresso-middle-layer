@@ -29,13 +29,13 @@ describe("'newspapers' service", function () {
 
   it('get single newspaper', async () => {
     const result = await service.get('JDG')
-    assert.strictEqual(result.uid, 'JDG')
+    assert.strictEqual(result.id, 'JDG')
     assert.strictEqual(result.included, true)
   })
 
   it('get single newspaper existing, not yet included', async () => {
     const result = await service.get('DVF')
-    assert.strictEqual(result.uid, 'DVF')
+    assert.strictEqual(result.id, 'DVF')
     assert.strictEqual(result.included, false)
   })
 

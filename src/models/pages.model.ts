@@ -17,10 +17,10 @@ import initConfig from '@feathersjs/configuration'
 const config = initConfig()() as any as Config
 
 interface IPage {
-  uid: string
+  id: string
   num: number
-  issueUid: string
-  newspaperUid: string
+  issueId: string
+  newspaperId: string
   iiif: string
   iiifThumbnail: string
   accessRights: string
@@ -34,10 +34,10 @@ interface IPage {
 }
 
 export default class Page implements IPage {
-  public uid: string
+  public id: string
   public num: number
-  public issueUid: string
-  public newspaperUid: string
+  public issueId: string
+  public newspaperId: string
   public iiif: string
   public iiifThumbnail: string
   public accessRights: string
@@ -52,7 +52,7 @@ export default class Page implements IPage {
 
   constructor(
     {
-      uid = '',
+      id = '',
       iiif = '',
       labels = ['page'],
       // num = 0,
@@ -76,24 +76,24 @@ export default class Page implements IPage {
     } = {},
     complete = false
   ) {
-    this.uid = String(uid)
+    this.id = String(id)
 
     // "LCE-1864-07-17-a-p0004".match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
-    const match = this.uid.match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
+    const match = this.id.match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
     if (!match) {
-      throw new Error(`Invalid page ID: ${this.uid}`)
+      throw new Error(`Invalid page ID: ${this.id}`)
     }
-    const [, issueUid, newspaperUid, num] = match
+    const [, issueId, newspaperId, num] = match
 
     this.num = parseInt(num, 10)
-    this.issueUid = issueUid
-    this.newspaperUid = newspaperUid
+    this.issueId = issueId
+    this.newspaperId = newspaperId
 
     // if any iiif is provided
     const rules = config.images.rewriteRules
     if (!iiif.length) {
-      this.iiif = sanitizeIiifImageUrl(getJSONUrl(this.uid, config.images.baseUrl), rules ?? [])
-      this.iiifThumbnail = sanitizeIiifImageUrl(getThumbnailUrl(this.uid, config.images.baseUrl), rules ?? [])
+      this.iiif = sanitizeIiifImageUrl(getJSONUrl(this.id, config.images.baseUrl), rules ?? [])
+      this.iiifThumbnail = sanitizeIiifImageUrl(getThumbnailUrl(this.id, config.images.baseUrl), rules ?? [])
     } else {
       this.iiif = sanitizeIiifImageUrl(getManifestJSONUrl(iiif), rules ?? [])
       this.iiifThumbnail = sanitizeIiifImageUrl(getExternalThumbnailUrl(this.iiif), rules ?? [])
@@ -110,10 +110,6 @@ export default class Page implements IPage {
     this.hasCoords = Boolean(hasCoords)
     this.hasErrors = Boolean(hasErrors)
 
-    // if (issue_uid) {
-    //   this.issueUid = issue_uid;
-    // }
-    //
     if (regions) {
       this.regions = regions
     }
@@ -143,13 +139,13 @@ export default class Page implements IPage {
     const page = client.define(
       'page',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING,
           primaryKey: true,
           field: 'id',
           unique: true,
         },
-        issue_uid: {
+        issue_id: {
           type: DataTypes.STRING,
           field: 'issue_id',
         },

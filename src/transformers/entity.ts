@@ -57,7 +57,7 @@ const transformWikidataDetails = (input?: EntityDetails['wikidata']): WikidataPe
 
 export const transformEntityDetails = (input: EntityDetails): EntityDetailsPublic => {
   return {
-    id: input.uid,
+    id: input.id,
     label: input.name,
     totalContentItems: input.countItems,
     totalMentions: input.countMentions,

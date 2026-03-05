@@ -112,10 +112,10 @@ export async function getItemsFromSolrResponse(
     },
   }
 
-  const articlesIndex = keyBy((await articlesService.findInternal(articlesRequest)).data, 'uid')
+  const articlesIndex = keyBy((await articlesService.findInternal(articlesRequest)).data, 'id')
 
-  return uids.map((uid: string) => {
-    const article = articlesIndex[uid]
+  return uids.map((id: string) => {
+    const article = articlesIndex[id]
     const [matches, regions] = getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex)
     return Article.assignIIIF(assignIn(clone(article), { matches, regions }) as any)
   })

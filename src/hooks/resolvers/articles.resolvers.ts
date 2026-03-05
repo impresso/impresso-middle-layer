@@ -22,7 +22,7 @@ const resolveTopics = () => async (context: HookContext<ImpressoApplication>) =>
         }
         d.topics = await Promise.all(
           d.topics.map(async (at: ArticleTopic) => {
-            at.topic = await resolvers.topic(at.topicUid!)
+            at.topic = await resolvers.topic(at.topicId!)
             return at
           })
         )
@@ -39,7 +39,7 @@ const resolveTopics = () => async (context: HookContext<ImpressoApplication>) =>
       Klass: Topic,
       namespace: 'topics',
       items: context.result.topics,
-      idField: 'topicUid',
+      idField: 'topicId',
       itemField: 'topic',
     })
     context.result.topics = group.items?.sort((a, b) => ((a as any).relevance > (b as any).relevance ? -1 : 1))

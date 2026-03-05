@@ -19,7 +19,7 @@ describe('consolidateMediaSources', () => {
   it('should consolidate media sources correctly', async () => {
     const dbResponse = [
       {
-        uid: 'ZBT',
+        id: 'ZBT',
         name: 'Test Newspaper',
         publishedFromYear: 1900,
         publishedToYear: 2000,
@@ -76,7 +76,7 @@ describe('consolidateMediaSources', () => {
   it('should handle missing articles count in Solr response', async () => {
     const dbResponse = [
       {
-        uid: 'ZBT',
+        id: 'ZBT',
         name: 'Test Newspaper',
         publishedFromYear: 1900,
         publishedToYear: 2000,

@@ -10,7 +10,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["string", "type", "uid"]
+            "enum": ["string", "type", "id"]
           },
           "q": {
             "type": ["string", "array"]

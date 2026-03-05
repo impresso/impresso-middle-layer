@@ -18,7 +18,7 @@ export class Service extends Neo4jService {
    *    "bucket_uid": "5440949e-77c0-42f5-a41b-045183e215c7",
    *    "items": [{
    *      "label": "article",
-   *      "uid": "GDL-1811-11-22-a-i0004"
+   *      "id": "GDL-1811-11-22-a-i0004"
    *    }]
    *  }
    *  ```

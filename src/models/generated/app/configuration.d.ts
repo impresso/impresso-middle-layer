@@ -524,7 +524,7 @@ export interface RedactionPolicy {
 }
 export interface RedactionPolicyItem {
   jsonPath: string;
-  valueConverterName: "redact" | "contextNotAllowedImage" | "remove" | "emptyArray";
+  valueConverterName: "redact" | "contextNotAllowedImage" | "remove" | "emptyArray" | "emptyObject";
   [k: string]: unknown;
 }
 

@@ -1,24 +1,24 @@
 export interface IArticleTag {
-  articleUid: string
-  tagUid: string
+  articleId: string
+  tagId: string
   creationDate: Date
   lastModifiedDate: Date
 }
 
 export class ArticleTag implements IArticleTag {
-  public articleUid: string
-  public tagUid: string
+  public articleId: string
+  public tagId: string
   public creationDate: Date
   public lastModifiedDate: Date
 
   constructor({
-    articleUid = '',
-    tagUid = '',
+    articleId = '',
+    tagId = '',
     creationDate = new Date(),
     lastModifiedDate = new Date(),
   }: Partial<IArticleTag> = {}) {
-    this.articleUid = String(articleUid)
-    this.tagUid = String(tagUid)
+    this.articleId = String(articleId)
+    this.tagId = String(tagId)
 
     if (creationDate instanceof Date) {
       this.creationDate = creationDate

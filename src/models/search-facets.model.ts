@@ -11,22 +11,19 @@ type FacetType = 'newspaper' | 'language' | 'topic' | 'person' | 'location' | 'c
 interface SearchFacetBucketOptions {
   val: string
   count: number
-  uid?: string
   item?: ISearchFacetBucket['item']
 }
 
 class SearchFacetBucket implements ISearchFacetBucket {
   public count: number
   public value: string
-  public uid?: string
   public item?: ISearchFacetBucket['item']
   public lower?: number
   public upper?: number
 
-  constructor({ val, uid, count, item }: SearchFacetBucketOptions) {
+  constructor({ val, count, item }: SearchFacetBucketOptions) {
     this.count = typeof count == 'string' ? parseInt(count, 10) : count
     this.value = val
-    this.uid = uid
     this.item = item
   }
 
@@ -34,15 +31,13 @@ class SearchFacetBucket implements ISearchFacetBucket {
     { type, val, count }: Pick<SearchFacetBucketOptions, 'val' | 'count'> & { type: FacetType },
     resolvers: ICachedResolvers
   ) {
-    const uid = String(val)
     const resolver = resolvers[type as CachedFacetType]
 
-    const item = resolver != null ? await resolver(uid) : undefined
+    const item = resolver != null ? await resolver(val) : undefined
 
     return new SearchFacetBucket({
       val,
       count: typeof count == 'string' ? parseInt(count, 10) : count,
-      uid,
       item,
     })
   }

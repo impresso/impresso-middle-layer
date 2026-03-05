@@ -36,7 +36,7 @@ class Topic implements ITopic {
   authority?: number | undefined
   x?: number | undefined
   y?: number | undefined
-  relatedTopics?: { uid: string; w: number; avg?: number }[] | undefined
+  relatedTopics?: { id: string; w: number; avg?: number }[] | undefined
   relatedTopicsStats?:
     | { MinArticlesIncommon?: number; MaxRelatedTopicsToKeep?: number; RelatedThreshold?: number; Threshold?: number }
     | undefined
@@ -65,7 +65,7 @@ class Topic implements ITopic {
       language?: string
       model?: string
       words?: ITopicWord[]
-      relatedTopics?: { uid: string; w: number; avg?: number }[]
+      relatedTopics?: { id: string; w: number; avg?: number }[]
       countItems?: number
       x?: number | string
       y?: number | string

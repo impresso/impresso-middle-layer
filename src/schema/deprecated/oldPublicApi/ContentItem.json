@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the content item.",
       "minLength": 1
@@ -75,7 +75,7 @@
       "description": "The publication date of the content item.",
       "format": "date-time"
     },
-    "issueUid": {
+    "issueId": {
       "type": "string",
       "description": "Unique issue identifier"
     },
@@ -87,7 +87,7 @@
       "type": "string",
       "description": "The code of the data provider."
     },
-    "mediaUid": {
+    "mediaId": {
       "type": "string",
       "description": "Media title alias. Usually a 3 letter code of the media title (newspaper, radio station, etc.)."
     },
@@ -120,7 +120,7 @@
         "minimum": 1
       }
     },
-    "collectionUids": {
+    "collectionIds": {
       "type": "array",
       "description": "Unique identifiers of collections the content item belongs to.",
       "items": {
@@ -128,5 +128,5 @@
       }
     }
   },
-  "required": ["uid"]
+  "required": ["id"]
 }

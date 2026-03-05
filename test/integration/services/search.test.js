@@ -67,12 +67,12 @@ describe("'search' service", function () {
           {
             type: 'topic',
             context: 'include',
-            q: t1.uid,
+            q: t1.id,
           },
           {
             type: 'topic',
             context: 'include',
-            q: t2.uid,
+            q: t2.id,
           },
         ],
       },
@@ -151,7 +151,7 @@ describe("'search' service", function () {
       },
     })
     assert.ok(result)
-    assert.deepEqual(result.data[0].newspaper.uid, 'NZZ')
+    assert.deepEqual(result.data[0].newspaper.id, 'NZZ')
   })
 
   it('get search results with newspaper filters, with string filter', async () => {
@@ -169,7 +169,7 @@ describe("'search' service", function () {
       },
     })
     assert.ok(result)
-    assert.deepEqual(result.data[0].newspaper.uid, 'NZZ')
+    assert.deepEqual(result.data[0].newspaper.id, 'NZZ')
   })
 
   it('loaded solr content', async () => {

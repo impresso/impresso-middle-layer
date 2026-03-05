@@ -4,7 +4,7 @@
   "title": "Newspaper Issue",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the issue"
     },
@@ -37,5 +37,5 @@
       "description": "The year of the issue"
     }
   },
-  "required": ["uid", "cover", "labels", "fresh", "accessRights"]
+  "required": ["id", "cover", "labels", "fresh", "accessRights"]
 }

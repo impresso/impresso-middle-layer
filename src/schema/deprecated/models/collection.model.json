@@ -4,9 +4,9 @@
   "description": "Description of the collection object (Collection class)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["uid", "name", "description", "status", "creationDate", "lastModifiedDate", "countItems", "creator"],
+  "required": ["id", "name", "description", "status", "creationDate", "lastModifiedDate", "countItems", "creator"],
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "minLength": 2,
       "maxLength": 50

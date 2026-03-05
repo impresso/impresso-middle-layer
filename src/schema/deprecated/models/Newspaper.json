@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the newspaper"
     },
@@ -92,7 +92,7 @@
     }
   },
   "required": [
-    "uid",
+    "id",
     "acronym",
     "labels",
     "languages",

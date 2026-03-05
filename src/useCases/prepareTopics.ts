@@ -41,7 +41,7 @@ interface TopicIndexDocument {
   _version_: number
 }
 
-type TopicStub = Pick<InternalTopic, 'uid' | 'language' | 'model' | 'words'>
+type TopicStub = Pick<InternalTopic, 'id' | 'language' | 'model' | 'words'>
 type TopicStubWithCountItems = TopicStub & Pick<InternalTopic, 'contentItemsCount'>
 type TopicStubWithRelatedTopics = TopicStubWithCountItems &
   Pick<InternalTopic, 'relatedTopics' | 'degree' | 'relatedTopicsStats'>
@@ -67,7 +67,7 @@ const dpfToWords = (dpf: string): TopicWord[] => {
 }
 
 const topicIndexDocToTopicStub = (doc: TopicIndexDocument): TopicStub => ({
-  uid: doc.id,
+  id: doc.id,
   language: doc.lg_s,
   model: doc.tp_model_s,
   words: dpfToWords(doc.word_probs_dpf).slice(0, TopNTopics),
@@ -75,7 +75,7 @@ const topicIndexDocToTopicStub = (doc: TopicIndexDocument): TopicStub => ({
 
 const toTopicStubWithCountItems = (stub: TopicStub, counts: Record<string, number>): TopicStubWithCountItems => ({
   ...stub,
-  contentItemsCount: counts[stub.uid] ?? 0,
+  contentItemsCount: counts[stub.id] ?? 0,
 })
 
 const getHits = (graph: Graph): ReturnType<typeof hits> | { hubs: undefined; authorities: undefined } => {
@@ -243,21 +243,21 @@ const withRelatedTopics = async (
   solrClient: SimpleSolrClient,
   topicStubs: TopicStubWithCountItems[]
 ): Promise<TopicStubWithRelatedTopics[]> => {
-  const relatedTopicsRequest = buildRequestFindRelatedTopics(topicStubs.map(t => t.uid))
+  const relatedTopicsRequest = buildRequestFindRelatedTopics(topicStubs.map(t => t.id))
   const relatedTopicsResponse = await solrClient.select<any, any, RelatedTopicBucket>(SolrNamespaces.Search, {
     body: relatedTopicsRequest,
   })
 
   const topicsStubsWithRelatedTopics = topicStubs.map(topicStub => {
-    const facet = relatedTopicsResponse.facets?.[topicStub.uid] as any as RelatedTopicBucket
+    const facet = relatedTopicsResponse.facets?.[topicStub.id] as any as RelatedTopicBucket
 
     return {
       ...topicStub,
       relatedTopics:
         facet?.relatedTopics?.buckets
-          ?.filter(b => b.val !== topicStub.uid)
+          ?.filter(b => b.value !== topicStub.id)
           .map(b => ({
-            uid: b.val as string,
+            id: b.value as string,
             w: 0, // this will be assigned in the next step
             avg: 0, // this will be assigned in the next step
           })) ?? [],
@@ -270,8 +270,8 @@ const withRelatedTopics = async (
   )
 
   const topicsGroupsIds = topicsStubsWithRelatedTopics.map(topic => ({
-    topicId: topic.uid,
-    relatedTopicsIds: topic.relatedTopics.map(rt => rt.uid),
+    topicId: topic.id,
+    relatedTopicsIds: topic.relatedTopics.map(rt => rt.id),
   }))
   const relatedTopicsAvgWeightsRequest = buildRequestFindRelatedTopicsAverageWeight(topicsGroupsIds)
   const relatedTopicsAvgWeightsResponse = await solrClient.select<any, any, RelatedTopicAvgWeightBucket>(
@@ -307,7 +307,7 @@ const withRelatedTopics = async (
         degree: topic.relatedTopics.length,
         relatedTopics: topic.relatedTopics
           .map(relatedTopic => {
-            const { w, avg } = weightsAndAverages?.[topic.uid]?.[relatedTopic.uid] ?? { w: 0, avg: 0 }
+            const { w, avg } = weightsAndAverages?.[topic.id]?.[relatedTopic.id] ?? { w: 0, avg: 0 }
             return { ...relatedTopic, w, avg }
           })
           .sort((a, b) => b.w * b.avg - a.w * a.avg)
@@ -327,7 +327,7 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
 
   const nodes = uniqBy(
     Object.values(topics).map(topic => ({
-      key: topic.uid,
+      key: topic.id,
       attributes: {
         name: 'the awesome topic graph',
       },
@@ -341,8 +341,8 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
       .map(
         topic =>
           topic.relatedTopics?.map(rel => ({
-            source: topic.uid,
-            target: rel.uid,
+            source: topic.id,
+            target: rel.id,
             attributes: {
               weight: rel.w,
             },
@@ -386,12 +386,12 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
     topic =>
       ({
         ...topic,
-        x: positions[topic.uid].x,
-        y: positions[topic.uid].y,
-        pagerank: pageranks[topic.uid],
-        community: communities[topic.uid],
-        hub: hubs?.[topic.uid],
-        authority: authorities?.[topic.uid],
+        x: positions[topic.id].x,
+        y: positions[topic.id].y,
+        pagerank: pageranks[topic.id],
+        community: communities[topic.id],
+        hub: hubs?.[topic.id],
+        authority: authorities?.[topic.id],
       }) satisfies InternalTopic
   )
 }

@@ -224,7 +224,7 @@ describe('Bitmap permissions', function () {
             authenticated: true,
             query: {
               sq: '*:*',
-              filters: [{ q: [testCase.contentItemId], type: 'uid' }],
+              filters: [{ q: [testCase.contentItemId], type: 'id' }],
             },
           }
           return await service.find(params)
@@ -304,7 +304,7 @@ describe('Bitmap permissions', function () {
             authenticated: true,
             query: {
               sq: '*:*',
-              filters: [{ q: [testCase.contentItemId], type: 'uid' }],
+              filters: [{ q: [testCase.contentItemId], type: 'id' }],
             },
           }
           return await service.find(params)

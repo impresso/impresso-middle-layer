@@ -5,7 +5,7 @@ const debug = Debug('impresso/helpers')
 const verbose = Debug('verbose:impresso/helpers')
 
 interface Token {
-  uid?: string
+  id?: string
   l: number // left offset (start)
   r: number // right offset (end)
   t?: string // text content
@@ -22,11 +22,11 @@ const hasOverlaps = (a: Token, b: Token) => !(a.r <= b.l || a.l >= b.r)
 /**
  * create a markdown
  *
- * @param {string} uid text to cut
+ * @param {string} text text to cut
  *
  */
-const annotate = (tokens: Token[], uid: string, left: number, right: number, attr = 'ref') => {
-  debug(`annotate: ${attr}=${uid} (${left}, ${right})`)
+const annotate = (tokens: Token[], text: string, left: number, right: number, attr = 'ref') => {
+  debug(`annotate: ${attr}=${text} (${left}, ${right})`)
   for (let i = 0, l = tokens.length; i < l; i += 1) {
     // is included, continue on the next line
 
@@ -36,7 +36,7 @@ const annotate = (tokens: Token[], uid: string, left: number, right: number, att
       }
       tokens[i].attr = attr
       tokens[i].ref?.push({
-        uid,
+        id: text,
         l: left,
         r: right,
       })
@@ -182,13 +182,13 @@ const render = (tokens: Token[]) => {
               if (!c.ref) {
                 return c.t
               }
-              return `<span ${c.attr}="${c.ref.map((d: { uid: string }) => d.uid).join(' ')}">${c.t}</span>`
+              return `<span ${c.attr}="${c.ref.map((d: { id: string }) => d.id).join(' ')}">${c.t}</span>`
             })
             .join('')
         )
       } else {
         // no splitpoints, no internal chunks.
-        md.push(`<span ${tokens[i].attr}="${tokens[i]?.ref?.map(d => d.uid).join(' ')}">${tokens[i].t}</span>`)
+        md.push(`<span ${tokens[i].attr}="${tokens[i]?.ref?.map(d => d.id).join(' ')}">${tokens[i].t}</span>`)
       }
     } else if (tokens[i].t) {
       md.push(tokens[i].t as string)

@@ -41,7 +41,7 @@ export const contentItemRedactionPolicyWebApp = loadYamlFile(
 type OrderBy =
   | 'date'
   | 'relevance'
-  | 'uid'
+  | 'id'
   | 'issue'
   | 'page'
   | 'newspaper'
@@ -54,7 +54,7 @@ type FullOrderBy = OrderBy | ReverseOrderBy
 const OrderByChoices: OrderBy[] = [
   'date',
   'relevance',
-  'uid',
+  'id',
   'issue',
   'page',
   'newspaper',
@@ -159,7 +159,7 @@ export default {
     get: [
       ...inPublicApi([
         // transformResponse(transformContentItem),
-        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermissionAndWithinQuota('getTranscript', 'uid')),
+        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermissionAndWithinQuota('getTranscript', 'id')),
       ]),
       ...inWebAppApi([redactResponse(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],

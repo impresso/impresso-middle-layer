@@ -5,7 +5,7 @@
   "title": "Entity Details",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "Unique identifier of the entity"
     },
@@ -33,5 +33,5 @@
       "$ref": "./WikidataEntityDetails.json"
     }
   },
-  "required": ["uid", "type", "name", "countItems", "countMentions"]
+  "required": ["id", "type", "name", "countItems", "countMentions"]
 }

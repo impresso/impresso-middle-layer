@@ -16,7 +16,7 @@ type IDBCollection = Omit<ICollection, 'creationDate' | 'lastModifiedDate' | 'cr
   lastModifiedDate: Date
 }
 
-export type CollectionDbModel = ModelDefined<IDBCollection, Omit<IDBCollection, 'uid'>>
+export type CollectionDbModel = ModelDefined<IDBCollection, Omit<IDBCollection, 'id'>>
 
 /**
  * New ID of a collection. Format: "local-useruid-7hy8hvrX"
@@ -30,7 +30,6 @@ export const createCollectionId = (userId: string) => `${userId}-${nanoid(8)}`
  */
 export default class Collection implements IDBCollection {
   id: string
-  uid: string
   name: string
   description: string
   status: string
@@ -42,7 +41,7 @@ export default class Collection implements IDBCollection {
 
   constructor(
     {
-      uid = '',
+      id = '',
       name = '',
       description = '',
       labels = ['bucket', 'collection'],
@@ -54,8 +53,7 @@ export default class Collection implements IDBCollection {
     } = {},
     { complete = false } = {}
   ) {
-    this.uid = String(uid)
-    this.id = this.uid
+    this.id = String(id)
     this.labels = labels
     this.name = String(name)
     this.description = String(description)
@@ -75,8 +73,8 @@ export default class Collection implements IDBCollection {
       this.creator = new User(creator)
     }
 
-    if (!this.uid.length) {
-      this.uid = createCollectionId(this.creator?.uid!)
+    if (!this.id.length) {
+      this.id = createCollectionId(this.creator?.uid!)
     }
 
     if (complete) {
@@ -93,7 +91,7 @@ export default class Collection implements IDBCollection {
       createdAt: this.creationDate.toISOString(),
       title: this.name,
       accessLevel: this.status === STATUS_PRIVATE ? 'private' : 'public',
-      id: this.uid,
+      id: this.id,
     }
   }
 
@@ -104,7 +102,7 @@ export default class Collection implements IDBCollection {
     const collection = client.define(
       'collection',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING(50),
           primaryKey: true,
           unique: true,

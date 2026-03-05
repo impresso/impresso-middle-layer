@@ -11,8 +11,7 @@ import Topic from '@/models/topics.model.js'
 import { measureTime } from '@/util/instruments.js'
 
 const toNode = topic => ({
-  id: topic.uid,
-  uid: topic.uid,
+  id: topic.id,
   label: topic.getExcerpt().join(' - '),
   pos: {
     // initial position
@@ -46,7 +45,7 @@ export class TopicsGraph {
     debug('[get] query:', params.sanitized)
     const resolvers = buildResolvers(this.app)
     const topic = resolvers.topic(id)
-    if (!topic.uid.length) {
+    if (!topic.id.length) {
       throw new NotFound()
     }
     const request = {
@@ -87,7 +86,7 @@ export class TopicsGraph {
     let relatedTopics = []
     if (countItems) {
       relatedTopics = solrResponse.facets.topic.buckets.map(d => ({
-        uid: d.val,
+        id: d.val,
         w: d.count,
       }))
       relatedTopicsParams.total = solrResponse.facets.topic.numBuckets
@@ -100,22 +99,22 @@ export class TopicsGraph {
 
   async find(params) {
     debug('[find] params:', params.sanitized)
-    // consider only topic uids given as filters
-    let restrictToUids = []
+    // consider only topic ids given as filters
+    let restrictToIds = []
     const nodesIndex = {}
     const linksIndex = {}
     const nodes = []
     const links = []
     let info = {}
     const getOrCreateNode = (node, { forceUpdate = false } = {}) => {
-      if (typeof nodesIndex[node.uid] === 'undefined') {
-        nodesIndex[node.uid] = nodes.length
+      if (typeof nodesIndex[node.id] === 'undefined') {
+        nodesIndex[node.id] = nodes.length
         nodes.push(node)
       } else if (forceUpdate) {
         // update
-        nodes[nodesIndex[node.uid]] = node
+        nodes[nodesIndex[node.id]] = node
       }
-      return nodesIndex[node.uid]
+      return nodesIndex[node.id]
     }
 
     const getOrCreateLink = link => {
@@ -137,7 +136,7 @@ export class TopicsGraph {
         topic.relatedTopics.forEach((linked, i) => {
           if (i <= 5) {
             const target = getOrCreateNode(linked)
-            const id = [topic.uid, linked.uid].sort().join('-')
+            const id = [topic.id, linked.id].sort().join('-')
             getOrCreateLink({
               id,
               w: linked.w,
@@ -170,16 +169,16 @@ export class TopicsGraph {
     const resolvers = buildResolvers(this.app)
 
     if (!params.sanitized.expand) {
-      restrictToUids = params.sanitized.filters
+      restrictToIds = params.sanitized.filters
         .filter(d => d.type === 'topic' && d.context === 'visualize')
         // concatenate different q
         .reduce((acc, d) => acc.concat(d.q), [])
         // unique values only
         .filter((value, index, self) => self.indexOf(value) === index)
-      debug('[find] n of restrictToUids:', restrictToUids.length)
+      debug('[find] n of restrictToIds:', restrictToIds.length)
       // initial set of nodes
       await Promise.all(
-        restrictToUids.map(async d => {
+        restrictToIds.map(async d => {
           nodesIndex[d] = nodes.length
           nodes.push({
             ...toNode(await resolvers.topic(d)),
@@ -196,14 +195,14 @@ export class TopicsGraph {
           type: 'terms',
           field: 'topics_dpfs',
           mincount: 1,
-          limit: restrictToUids.length ? restrictToUids.length : 20,
+          limit: restrictToIds.length ? restrictToIds.length : 20,
           offset: params.query.offset,
           numBuckets: true,
           facet: {
             topNodes: {
               type: 'terms',
               field: 'topics_dpfs',
-              limit: restrictToUids.length ? 30 : 20,
+              limit: restrictToIds.length ? 30 : 20,
               numBuckets: true,
             },
           },
@@ -238,7 +237,7 @@ export class TopicsGraph {
     // return solrResponse;
     await Promise.all(
       solrResponse.facets.topic.buckets.map(async d => {
-        if (restrictToUids.length && !restrictToUids.includes(d.val)) {
+        if (restrictToIds.length && !restrictToIds.includes(d.val)) {
           return
         }
         if (typeof nodesIndex[d.val] === 'undefined') {
@@ -254,7 +253,7 @@ export class TopicsGraph {
         // console.log('index', nodesIndex);
         await Promise.all(
           d.topNodes.buckets.map(async dd => {
-            if (restrictToUids.length && !restrictToUids.includes(dd.val)) {
+            if (restrictToIds.length && !restrictToIds.includes(dd.val)) {
               return
             }
             if (typeof nodesIndex[dd.val] === 'undefined') {
@@ -262,7 +261,7 @@ export class TopicsGraph {
               nodes.push(toNode(await resolvers.topic(dd.val)))
             }
             // add link
-            if (dd.val !== d.val) {
+            if (dd.value !== d.value) {
               const linkId = [nodesIndex[d.val], nodesIndex[dd.val]].sort().join('-')
               if (typeof linksIndex[linkId] === 'undefined') {
                 linksIndex[linkId] = links.length

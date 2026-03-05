@@ -12,7 +12,7 @@
       "type": "number",
       "description": "TODO"
     },
-    "topicUid": {
+    "topicId": {
       "type": "string",
       "description": "TODO"
     }

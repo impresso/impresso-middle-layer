@@ -14,7 +14,7 @@
       "items": { "type": "number" },
       "description": "TODO"
     },
-    "pageUid": {
+    "pageId": {
       "type": "string",
       "description": "TODO"
     },

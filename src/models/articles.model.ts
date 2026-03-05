@@ -23,7 +23,7 @@ interface IArticleDPF {
 }
 
 interface IArticleRegion {
-  pageUid?: string
+  pageId?: string
   g?: any[]
   c?: number[]
 }
@@ -102,13 +102,13 @@ class ArticleDPF {
 }
 
 class ArticleRegion {
-  pageUid: string
+  pageId: string
   coords: number[]
   g: any[] = []
   isEmpty: boolean
 
-  constructor({ pageUid = '', g = [], c = [] }: IArticleRegion = {}) {
-    this.pageUid = String(pageUid)
+  constructor({ pageId = '', g = [], c = [] }: IArticleRegion = {}) {
+    this.pageId = String(pageId)
     this.coords = c
     // TODO: Rendering now happens on the client side,
     // so this field is not used anymore. Consider removing later.
@@ -133,7 +133,7 @@ class Fragment implements ContentItemTextMatch {
 
 class ArticleMatch extends Fragment implements ContentItemTextMatch {
   coords: number[]
-  pageUid: string
+  pageId: string
 
   constructor(
     { coords = [], fragment = '', pageId = '' }: ContentItemTextMatch = {
@@ -144,14 +144,14 @@ class ArticleMatch extends Fragment implements ContentItemTextMatch {
   ) {
     super({ fragment })
     this.coords = coords.map(coord => (typeof coord == 'string' ? parseInt(coord, 10) : coord))
-    this.pageUid = String(pageId)
+    this.pageId = String(pageId)
   }
 }
 
 /**
  * @deprecated use `content-item` instead.
  */
-export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'persons' | 'locations' | 'uid'> {
+export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'persons' | 'locations'> {
   id: string
   type: string
   title: string
@@ -223,9 +223,9 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'perso
         id: doc.id,
         type: doc.item_type_s,
         size: doc.content_length_i,
-        pages: (doc.page_id_ss || []).map(uid => ({
-          uid,
-          num: parseInt(uid.match(/p([0-9]+)$/)?.[1] ?? '', 10),
+        pages: (doc.page_id_ss || []).map(id => ({
+          id,
+          num: parseInt(id.match(/p([0-9]+)$/)?.[1] ?? '', 10),
         })),
         isCC: !!doc.cc_b,
         // eslint-disable-next-line no-use-before-define
@@ -240,7 +240,7 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'perso
 
 type ContentItemWithCorrectTypes = Omit<
   ContentItem,
-  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages' | 'topics' | 'uid'
+  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages' | 'topics'
 > & {
   id: string
   issue?: Issue
@@ -344,7 +344,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     if (issue instanceof Issue) {
       this.issue = issue
     } else if (issue) {
-      this.issue = new Issue({ uid: issue })
+      this.issue = new Issue({ id: issue })
     }
 
     this.dataProvider = dataProvider
@@ -352,7 +352,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     if (newspaper instanceof Newspaper) {
       this.newspaper = newspaper
     } else {
-      this.newspaper = new Newspaper({ uid: newspaper })
+      this.newspaper = new Newspaper({ id: newspaper })
     }
 
     this.collections = collections
@@ -408,16 +408,16 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     // which contains an array of coordinates [x,y,w,h]
     // this reduce function returns something like:
     //  const rcs = [
-    //    { page_uid: 'GDL-1900-08-08-a-p0002',
+    //    { page_id: 'GDL-1900-08-08-a-p0002',
     //      c: [ 3433, 1440, 783, 42 ] },
-    //    { page_uid: 'GDL-1900-08-08-a-p0002',
+    //    { page_id: 'GDL-1900-08-08-a-p0002',
     //      c: [ 3433, 1481, 783, 571 ] }
     //  ]
     const rcs = rc.reduce(
       (acc, pag) =>
         acc.concat(
           pag.r.map((reg: any) => ({
-            pageUid: pag.id,
+            pageId: pag.id,
             c: reg,
           }))
         ),
@@ -464,13 +464,13 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
 
   static assignIIIF(article: Article, props: string[] = ['regions', 'matches']): Article {
     // get iiif of pages
-    const pagesIndex = lodash.keyBy(article.pages, 'uid') // d => d.iiif);
+    const pagesIndex = lodash.keyBy(article.pages, 'id') // d => d.iiif);
     props.forEach(prop => {
       const a = article as any
       if (Array.isArray(a[prop])) {
         a[prop].forEach((d: any, i) => {
-          if (pagesIndex[a[prop][i].pageUid]) {
-            a[prop][i].iiifFragment = getExternalFragmentUrl(pagesIndex[a[prop][i].pageUid].iiif, {
+          if (pagesIndex[a[prop][i].pageId]) {
+            a[prop][i].iiifFragment = getExternalFragmentUrl(pagesIndex[a[prop][i].pageId].iiif, {
               coordinates: d.coords,
             })
           }
@@ -486,9 +486,9 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
    * which contains an array of coordinates [x,y,w,h]
    * this reduce function returns something like:
    *  const regions = [
-   *    { page_uid: 'GDL-1900-08-08-a-p0002',
+   *    { page_id: 'GDL-1900-08-08-a-p0002',
    *      c: [ 3433, 1440, 783, 42 ] },
-   *    { page_uid: 'GDL-1900-08-08-a-p0002',
+   *    { page_id: 'GDL-1900-08-08-a-p0002',
    *      c: [ 3433, 1481, 783, 571 ] }
    *  ][getPageRegions description]
    * @param  {Array}  regionCoords=[]
@@ -501,7 +501,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
           pag.r.map(
             (reg: any) =>
               new ArticleRegion({
-                pageUid: pag.id,
+                pageId: pag.id,
                 c: reg,
               })
           )
@@ -565,7 +565,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     const article = client.define(
       'article',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING(50),
           primaryKey: true,
           field: 'id',
@@ -681,10 +681,10 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
         dataProvider: doc.meta_partnerid_s,
 
         newspaper: new Newspaper({
-          uid: doc.meta_journal_s,
+          id: doc.meta_journal_s,
         }),
         issue: new Issue({
-          uid: doc.meta_issue_id_s,
+          id: doc.meta_issue_id_s,
         }),
 
         country: doc.meta_country_code_s,
@@ -694,7 +694,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
         pages: Array.isArray(doc.page_id_ss)
           ? doc.page_id_ss.map((d, i) =>
             new Page({
-              uid: d,
+              id: d,
             })
           )
           : [],

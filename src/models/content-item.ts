@@ -23,7 +23,7 @@ import type {
 import { bigIntToBase64Bytes, OpenPermissions } from '@/util/bigint.js'
 import { asList, asNumberArray, parseDPFS, toPairs } from '@/util/solr/transformers.js'
 import { setDifference } from '@/util/fn.js'
-import { getNameFromUid } from '@/utils/entity.utils.js'
+import { getNameFromId } from '@/utils/entity.utils.js'
 import { IFragmentsAndHighlights } from './articles.model.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
 import { parsePlainsField, WithScore } from '@/util/solr/index.js'
@@ -233,7 +233,7 @@ const parseContentItemEntityDPFS = (dpfs?: string[]): ContentItemNamedEntity[] =
     ([id, count]) => ({
       id,
       count: parseInt(count, 10),
-      label: getNameFromUid(id),
+      label: getNameFromId(id),
     }),
     dpfs
   )

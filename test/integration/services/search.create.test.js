@@ -22,7 +22,7 @@ describe("'search' service, 'create' method", function () {
     await service
       .create(
         {
-          collection_uid: 'local-abc',
+          collection_id: 'local-abc',
         },
         {
           query: {
@@ -45,7 +45,7 @@ describe("'search' service, 'create' method", function () {
           id: 12,
         },
         query: {
-          collection_uid: 'local-abc',
+          collection_id: 'local-abc',
           group_by: 'articles',
           filters: [
             {

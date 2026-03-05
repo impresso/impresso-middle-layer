@@ -4,9 +4,9 @@
   "title": "InternalTopic",
   "description": "A topic with bells and whistles for rendering in a graph",
   "additionalProperties": false,
-  "required": ["uid", "language"],
+  "required": ["id", "language"],
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the topic"
     },
@@ -48,7 +48,7 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "uid": {
+          "id": {
             "type": "string",
             "description": "The unique identifier of the related topic"
           },
@@ -61,7 +61,7 @@
             "description": "Related topic average combined topic weight"
           }
         },
-        "required": ["uid", "w"]
+        "required": ["id", "w"]
       }
     },
     "relatedTopicsStats": {

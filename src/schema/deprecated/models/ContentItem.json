@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the content item"
     },
@@ -184,5 +184,5 @@
       "description": "Access rights bitmap for getting images"
     }
   },
-  "required": ["uid", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt", "labels", "year"]
+  "required": ["id", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt", "labels", "year"]
 }
