@@ -43,8 +43,8 @@ describe('reference-data service helpers', () => {
 
   it('maps media sources to id,label rows', () => {
     const result = mapMediaSourcesToCsvRows([
-      { uid: 'ABC', name: 'Alpha Bulletin' },
-      { uid: 'XYZ', name: 'Zeta Times' },
+      { id: 'ABC', name: 'Alpha Bulletin' },
+      { id: 'XYZ', name: 'Zeta Times' },
     ])
 
     assert.deepStrictEqual(result, [

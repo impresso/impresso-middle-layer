@@ -17,9 +17,9 @@ export const mediaSourceToNewspaper = (mediaSource: MediaSource): NewspaperInter
   const deltaYear = (endYear ?? 0) - (startYear ?? 0)
 
   return {
-    uid: mediaSource.uid,
+    uid: mediaSource.id,
     name: mediaSource.name,
-    acronym: mediaSource.uid,
+    acronym: mediaSource.id,
     countArticles: mediaSource.totals.articles ?? 0,
     countIssues: mediaSource.totals.issues ?? 0,
     countPages: mediaSource.totals.pages ?? 0,
@@ -109,7 +109,7 @@ export class NewspapersService
 
     return results.data.reduce(
       (acc, mediaSource) => {
-        acc[mediaSource.uid] = mediaSourceToNewspaper(mediaSource)
+        acc[mediaSource.id] = mediaSourceToNewspaper(mediaSource)
         return acc
       },
       {} as Record<string, NewspaperInternal>

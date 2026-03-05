@@ -44,7 +44,7 @@ describe('consolidateMediaSources', () => {
     const result = await consolidateMediaSources(dbClient, solrClient, 'search')
     const expected = [
       {
-        uid: 'ZBT',
+        id: 'ZBT',
         type: 'newspaper',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],
@@ -94,7 +94,7 @@ describe('consolidateMediaSources', () => {
     const result = await consolidateMediaSources(dbClient, solrClient, 'search')
     const expected = [
       {
-        uid: 'ZBT',
+        id: 'ZBT',
         type: 'newspaper',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],

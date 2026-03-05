@@ -52,9 +52,9 @@ export const mapDataProvidersToCsvRows = (providers: Pick<DataProvider, 'id' | '
   }))
 }
 
-export const mapMediaSourcesToCsvRows = (mediaSources: Pick<MediaSource, 'uid' | 'name'>[]): CsvExportRow[] => {
+export const mapMediaSourcesToCsvRows = (mediaSources: Pick<MediaSource, 'id' | 'name'>[]): CsvExportRow[] => {
   return mediaSources.map(mediaSource => ({
-    id: mediaSource.uid,
+    id: mediaSource.id,
     label: mediaSource.name,
   }))
 }

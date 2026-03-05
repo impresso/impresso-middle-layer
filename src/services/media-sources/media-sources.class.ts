@@ -114,7 +114,7 @@ export class MediaSources
     const result = await this.cache.get<string>(WellKnownKeys.MediaSources)
     const deserialisedResult: MediaSource[] = JSON.parse(result ?? '[]')
 
-    const item = deserialisedResult?.find(mediaSource => mediaSource.uid === id)
+    const item = deserialisedResult?.find(mediaSource => mediaSource.id === id)
     return item
   }
 
@@ -127,7 +127,7 @@ export class MediaSources
 
     return results.data.reduce(
       (acc, mediaSource) => {
-        acc[mediaSource.uid] = mediaSource
+        acc[mediaSource.id] = mediaSource
         return acc
       },
       {} as Record<string, MediaSource>

@@ -130,7 +130,7 @@ export const consolidateMediaSources = async (
         : {}
 
     return {
-      uid: dbNewspaper.uid,
+      id: dbNewspaper.uid,
       type: 'newspaper',
       name: dbNewspaper.name,
       languageCodes: dbNewspaper.languageCodes,

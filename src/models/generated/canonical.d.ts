@@ -619,7 +619,7 @@ export interface MediaSource {
   /**
    * The unique identifier of the media source.
    */
-  uid: string;
+  id: string;
   /**
    * The type of the media source.
    */
@@ -721,7 +721,7 @@ export interface MediaSource {
   /**
    * The unique identifier of the media source.
    */
-  uid: string;
+  id: string;
   /**
    * The type of the media source.
    */

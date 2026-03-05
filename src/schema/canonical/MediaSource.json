@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "The unique identifier of the media source."
     },
@@ -86,5 +86,5 @@
       }
     }
   },
-  "required": ["uid", "type", "name", "languageCodes", "totals"]
+  "required": ["id", "type", "name", "languageCodes", "totals"]
 }
