@@ -875,6 +875,10 @@ export interface ContentItemMeta {
    */
   mediaId?: string;
   /**
+   * Human-readable title of the media source identified by mediaId.
+   */
+  mediaTitle?: string;
+  /**
    * Full date and time in ISO 8601 format
    */
   date: string;
@@ -882,6 +886,10 @@ export interface ContentItemMeta {
    * Identifier of the partner providing the content item.
    */
   partnerId?: string;
+  /**
+   * Human-readable title of the partner identified by partnerId.
+   */
+  partnerTitle?: string;
   /**
    * Country code of the content item.
    */
@@ -914,6 +922,10 @@ export interface ContentItemText {
     | "unsegmented"
     | "radio_broadcast_episode"
     | "radio_bulletin";
+  /**
+   * Human-readable label for the itemType code.
+   */
+  itemTypeLabel?: string;
   /**
    * Original language of the content item.
    */
@@ -955,7 +967,7 @@ export interface ContentItemTextMatch {
   /**
    * TODO
    */
-  pageUid?: string;
+  pageId?: string;
   /**
    * TODO
    */
@@ -1230,9 +1242,17 @@ export interface ContentItemAccessRights {
    */
   dataDomain: "pbl" | "prt";
   /**
+   * Human-readable label for the dataDomain code.
+   */
+  dataDomainLabel?: string;
+  /**
    * Copyright status.
    */
   copyright: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
+  /**
+   * Human-readable label for the copyright code.
+   */
+  copyrightLabel?: string;
   accessBitmaps?: ContentItemAccessBitmaps;
   [k: string]: unknown;
 }

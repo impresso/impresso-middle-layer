@@ -7,7 +7,7 @@ import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '@/
 import { ContentItemService } from '@/services/content-items/content-items.class.js'
 import { ImpressoApplication } from '@/types.js'
 import { buildResolvers, CachedFacetType, IResolver } from '@/internalServices/cachedResolvers.js'
-import { ContentItem } from '@/models/generated/schemas/contentItem.js'
+import { ContentItem } from '@/models/generated/canonical/contentItem.js'
 import { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { SolrNamespaces } from '@/solr.js'
 import { Filter } from 'impresso-jscommons'

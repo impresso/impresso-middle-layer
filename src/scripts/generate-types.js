@@ -19,12 +19,12 @@ const schemaBits = [
   'app/responses',
   'app/configuration',
   'app/models',
-  'deprecated/internalApi',
-  'deprecated/models',
   'external/solr',
   'external/solr/ContentItem',
   // deprecated:
   'schemasPublic',
+  'deprecated/internalApi',
+  'deprecated/models',
 ]
 const directories = fs
   .readdirSync(basePath, {

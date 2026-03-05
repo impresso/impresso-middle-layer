@@ -16,6 +16,10 @@
       "type": "string",
       "description": "Media title alias. Usually a 3 letter code of the media title (newspaper, radio station, etc.)."
     },
+    "mediaTitle": {
+      "type": "string",
+      "description": "Human-readable title of the media source identified by mediaId."
+    },
     "date": {
       "type": "string",
       "format": "date-time",
@@ -24,6 +28,10 @@
     "partnerId": {
       "type": "string",
       "description": "Identifier of the partner providing the content item."
+    },
+    "partnerTitle": {
+      "type": "string",
+      "description": "Human-readable title of the partner identified by partnerId."
     },
     "countryCode": {
       "type": "string",

@@ -24,6 +24,10 @@
       ],
       "description": "Type of content item, e.g., article, section."
     },
+    "itemTypeLabel": {
+      "type": "string",
+      "description": "Human-readable label for the itemType code."
+    },
     "originalLangCode": {
       "type": "string",
       "description": "Original language of the content item."

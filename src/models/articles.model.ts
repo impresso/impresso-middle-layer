@@ -13,7 +13,7 @@ import Issue from '@/models/issues.model.js'
 import Newspaper from '@/models/newspapers.model.js'
 import Page from '@/models/pages.model.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
-import { ContentItemTextMatch } from '@/models/generated/schemas/contentItem.js'
+import { ContentItemTextMatch } from '@/models/generated/canonical/contentItem.js'
 
 const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
 
@@ -136,15 +136,15 @@ class ArticleMatch extends Fragment implements ContentItemTextMatch {
   pageUid: string
 
   constructor(
-    { coords = [], fragment = '', pageUid = '' }: ContentItemTextMatch = {
+    { coords = [], fragment = '', pageId = '' }: ContentItemTextMatch = {
       coords: [],
       fragment: '',
-      pageUid: '',
+      pageId: '',
     }
   ) {
     super({ fragment })
     this.coords = coords.map(coord => (typeof coord == 'string' ? parseInt(coord, 10) : coord))
-    this.pageUid = String(pageUid)
+    this.pageUid = String(pageId)
   }
 }
 
@@ -546,7 +546,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
               match = new ArticleMatch({
                 fragment: fragments[i],
                 coords: pag.t[ii].c,
-                pageUid: pag.id,
+                pageId: pag.id,
               })
               break
             }
