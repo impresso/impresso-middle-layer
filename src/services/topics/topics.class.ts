@@ -4,7 +4,7 @@ import debugLib from 'debug'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import type { Filter } from '@/models/index.js'
 import { FindResponse } from '@/models/common.js'
-import { Topic } from '@/models/generated/canonical.js'
+import { InternalTopic } from '@/models/generated/deprecated/models.js'
 import type { Topic as SolrTopic } from '@/models/generated/external/solr.js'
 import TopicModel, { SOLR_FL } from '@/models/topics.model.js'
 import { SolrNamespaces } from '@/solr.js'
@@ -45,7 +45,7 @@ export class Service {
 
   async find(
     params: Params<FindQuery> & { sanitized: SanitizedParams; query: { limit: number; offset: number } }
-  ): Promise<FindResponse<Topic>> {
+  ): Promise<FindResponse<InternalTopic>> {
     // if there's a q, get all suggested topics matching q in their words (they are 300 max)
     const topics: Record<string, { order: number; matches?: string[] }> = {}
     // fill topics dict with results
@@ -88,7 +88,7 @@ export class Service {
             const t = await resolvers.topic(doc.id)
             if (!t) return undefined
 
-            const topicResult = { ...t, uid: t?.uid ?? '' } satisfies Topic
+            const topicResult = { ...t, uid: t?.uid ?? '' } as InternalTopic
             if (t?.uid && solrSuggestResponse.highlighting?.[t.uid]?.topic_suggest) {
               topicResult.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
             }
@@ -193,12 +193,12 @@ export class Service {
     const data = await Promise.all(
       buckets.map(async d => {
         const bucket = typeof d === 'object' && d !== null && 'val' in d ? d : { val: d, count: 0 }
-        const topic = await resolvers.topic(String(bucket.val))
+        const topic: InternalTopic | undefined = await resolvers.topic(String(bucket.val))
         if (topic != null) {
           if (uids.length && topics[String(bucket.val)]) {
             topic.matches = topics[String(bucket.val)].matches
           }
-          topic.countItems = typeof bucket.count === 'number' ? bucket.count : 0
+          topic.contentItemsCount = typeof bucket.count === 'number' ? bucket.count : 0
           return topic
         } else {
           return undefined
@@ -218,7 +218,7 @@ export class Service {
     }
   }
 
-  async get(id: Id, params?: Params): Promise<Topic> {
+  async get(id: Id, params?: Params): Promise<InternalTopic> {
     const resolvers = buildResolvers(this.app)
 
     return measureTime(
@@ -230,11 +230,11 @@ export class Service {
             }
             const cached = await resolvers.topic(String(id))
             if (cached) {
-              if (cached.countItems !== undefined) {
-                topic.countItems = cached.countItems
+              if (cached.contentItemsCount !== undefined) {
+                return { ...topic, contentItemsCount: cached.contentItemsCount } satisfies InternalTopic
               }
-              if (cached.relatedTopics !== undefined) {
-                topic.relatedTopics = cached.relatedTopics
+              if ((cached as any).relatedTopics !== undefined) {
+                return { ...topic, relatedTopics: (cached as any).relatedTopics } satisfies InternalTopic
               }
             }
             return topic

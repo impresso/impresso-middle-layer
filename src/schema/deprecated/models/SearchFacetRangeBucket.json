@@ -10,7 +10,7 @@
       "type": "integer",
       "description": "Number of items in the bucket"
     },
-    "val": {
+    "value": {
       "type": "integer",
       "description": "Value of the 'type' element"
     },

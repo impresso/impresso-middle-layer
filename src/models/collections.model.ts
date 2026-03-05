@@ -29,6 +29,7 @@ export const createCollectionId = (userId: string) => `${userId}-${nanoid(8)}`
  * @deprecated use `user-collection.ts` instead.
  */
 export default class Collection implements IDBCollection {
+  id: string
   uid: string
   name: string
   description: string
@@ -54,6 +55,7 @@ export default class Collection implements IDBCollection {
     { complete = false } = {}
   ) {
     this.uid = String(uid)
+    this.id = this.uid
     this.labels = labels
     this.name = String(name)
     this.description = String(description)
@@ -91,7 +93,7 @@ export default class Collection implements IDBCollection {
       createdAt: this.creationDate.toISOString(),
       title: this.name,
       accessLevel: this.status === STATUS_PRIVATE ? 'private' : 'public',
-      uid: this.uid,
+      id: this.uid,
     }
   }
 

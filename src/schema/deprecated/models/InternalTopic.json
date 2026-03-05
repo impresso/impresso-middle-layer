@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "InternalTopic",
+  "description": "A topic with bells and whistles for rendering in a graph",
+  "additionalProperties": false,
+  "required": ["uid", "language"],
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "The unique identifier of the topic"
+    },
+    "language": {
+      "type": "string",
+      "description": "The language code of the topic"
+    },
+    "community": {
+      "type": "number",
+      "description": "Topic community score using Louvain algorithm"
+    },
+    "pagerank": {
+      "type": "number",
+      "description": "Topic score using PageRank algorithm"
+    },
+    "degree": {
+      "type": "number",
+      "description": "Degree score (total related topics)"
+    },
+    "hub": {
+      "type": "number",
+      "description": "Hub score using HITS algorithm"
+    },
+    "authority": {
+      "type": "number",
+      "description": "Authority score using HITS algorithm"
+    },
+    "x": {
+      "type": "number",
+      "description": "Graph x position"
+    },
+    "y": {
+      "type": "number",
+      "description": "Graph y position"
+    },
+    "relatedTopics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "The unique identifier of the related topic"
+          },
+          "w": {
+            "type": "number",
+            "description": "Related topic weight (total articles in common)"
+          },
+          "avg": {
+            "type": "number",
+            "description": "Related topic average combined topic weight"
+          }
+        },
+        "required": ["uid", "w"]
+      }
+    },
+    "relatedTopicsStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "MinArticlesIncommon": {
+          "type": "number"
+        },
+        "MaxRelatedTopicsToKeep": {
+          "type": "number"
+        },
+        "RelatedThreshold": {
+          "type": "number"
+        },
+        "Threshold": {
+          "type": "number"
+        }
+      }
+    },
+    "contentItemsCount": {
+      "type": "number",
+      "description": "Number of content items with this topic"
+    },
+    "excerpt": {
+      "type": "array",
+      "items": { "$ref": "../../canonical/TopicWord.json" }
+    },
+    "words": {
+      "type": "array",
+      "items": { "$ref": "../../canonical/TopicWord.json" },
+      "description": "Top N words associated with the topic"
+    },
+    "model": {
+      "type": "string",
+      "description": "ID of the model used to generate the topic"
+    },
+    "matches": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of matched topic suggestions (if any)"
+    }
+  }
+}

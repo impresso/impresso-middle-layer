@@ -1,13 +1,15 @@
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
 
-import { Collection, SearchFacetBucket as SearchFacetBucketInternal } from '@/models/generated/canonical.js'
+import { Collection, SearchFacetBucket } from '@/models/generated/canonical.js'
 import { SearchFacet, SearchFacetRangeBucket } from '@/models/generated/deprecated/models.js'
-import { SearchFacetBucket, BaseFindResponse } from '@/models/generated/schemasPublic.js'
+import { BaseFindResponse } from '@/models/generated/app/responses.js'
 import Newspaper from '@/models/newspapers.model.js'
 import Entity from '@/models/entities.model.js'
 import Topic from '@/models/topics.model.js'
 import { FacetWithLabel } from '@/models/generated/canonical.js'
+
+type SearchFacetBucketInternal = SearchFacetBucket
 
 interface FacetContainer extends BaseFindResponse {
   data: SearchFacetBucket[]
@@ -25,7 +27,7 @@ const transformBucket = (
     case 'textReuseClusterDayDelta':
       return {
         count: input.count,
-        value: typeof input.val === 'string' ? parseInt(input.val) : input.val,
+        value: typeof input.value !== 'number' ? parseInt(String(input.value)) : input.value,
       }
     case 'country':
     case 'type':
@@ -35,27 +37,27 @@ const transformBucket = (
     case 'copyright':
       return {
         count: input.count,
-        value: String(input.val),
+        value: String(input.value),
       }
     case 'topic':
       const topicItem = (input as any)?.item as Topic
       return {
         count: input.count,
-        value: String(input.val),
+        value: String(input.value),
         label: topicItem?.words?.map(({ w, p }) => `${w} (${p})`).join(', '),
       }
     case 'collection':
       const collectionItem = (input as any)?.item as Collection
       return {
         count: input.count,
-        value: String(input.val),
+        value: String(input.value),
         label: collectionItem != null ? collectionItem.title : undefined,
       }
     case 'newspaper':
       const newspaperItem = (input as any)?.item as Newspaper
       return {
         count: input.count,
-        value: String(input.val),
+        value: String(input.value),
         label: newspaperItem?.name,
       }
     case 'person':
@@ -65,7 +67,7 @@ const transformBucket = (
       const entityItem = (input as any)?.item as Entity
       return {
         count: input.count,
-        value: String(input.val),
+        value: String(input.value),
         label: entityItem.name,
       }
     case 'imageVisualContent':
@@ -75,13 +77,13 @@ const transformBucket = (
       const facetItem = (input as any)?.item as FacetWithLabel
       return {
         count: input.count,
-        value: String(input.val),
+        value: String(input.value),
         label: facetItem?.label,
       }
     default:
       return {
         count: input.count,
-        value: input.val,
+        value: input.value ?? '',
       }
   }
 }

@@ -263,7 +263,7 @@ export interface Collection {
   /**
    * Unique identifier of the collection.
    */
-  uid: string;
+  id: string;
   /**
    * Title of the collection.
    */
@@ -396,58 +396,9 @@ export interface Topic {
    */
   language: string;
   /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    uid: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
    * Number of content items with this topic
    */
-  countItems?: number;
-  excerpt?: TopicWord[];
+  contentItemsCount?: number;
   /**
    * Top N words associated with the topic
    */
@@ -456,10 +407,6 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
-  /**
-   * List of matched topic suggestions (if any)
-   */
-  matches?: string[];
 }
 /**
  * A word included in a topic
@@ -551,58 +498,9 @@ export interface Topic {
    */
   language: string;
   /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    uid: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
    * Number of content items with this topic
    */
-  countItems?: number;
-  excerpt?: TopicWord[];
+  contentItemsCount?: number;
   /**
    * Top N words associated with the topic
    */
@@ -611,10 +509,6 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
-  /**
-   * List of matched topic suggestions (if any)
-   */
-  matches?: string[];
 }
 /**
  * A word included in a topic
@@ -1078,7 +972,7 @@ export interface Collection {
   /**
    * Unique identifier of the collection.
    */
-  uid: string;
+  id: string;
   /**
    * Title of the collection.
    */
@@ -1276,6 +1170,103 @@ export interface ContentItemAccessBitmaps {
    * Bitmap for get audio access. As bytes.
    */
   getAudio?: string;
+}
+
+
+/**
+ * A topic with bells and whistles for rendering in a graph
+ */
+export interface InternalTopic {
+  /**
+   * The unique identifier of the topic
+   */
+  uid: string;
+  /**
+   * The language code of the topic
+   */
+  language: string;
+  /**
+   * Topic community score using Louvain algorithm
+   */
+  community?: number;
+  /**
+   * Topic score using PageRank algorithm
+   */
+  pagerank?: number;
+  /**
+   * Degree score (total related topics)
+   */
+  degree?: number;
+  /**
+   * Hub score using HITS algorithm
+   */
+  hub?: number;
+  /**
+   * Authority score using HITS algorithm
+   */
+  authority?: number;
+  /**
+   * Graph x position
+   */
+  x?: number;
+  /**
+   * Graph y position
+   */
+  y?: number;
+  relatedTopics?: {
+    /**
+     * The unique identifier of the related topic
+     */
+    uid: string;
+    /**
+     * Related topic weight (total articles in common)
+     */
+    w: number;
+    /**
+     * Related topic average combined topic weight
+     */
+    avg?: number;
+  }[];
+  relatedTopicsStats?: {
+    MinArticlesIncommon?: number;
+    MaxRelatedTopicsToKeep?: number;
+    RelatedThreshold?: number;
+    Threshold?: number;
+  };
+  /**
+   * Number of content items with this topic
+   */
+  contentItemsCount?: number;
+  excerpt?: TopicWord[];
+  /**
+   * Top N words associated with the topic
+   */
+  words?: TopicWord[];
+  /**
+   * ID of the model used to generate the topic
+   */
+  model?: string;
+  /**
+   * List of matched topic suggestions (if any)
+   */
+  matches?: string[];
+}
+/**
+ * A word included in a topic
+ */
+export interface TopicWord {
+  /**
+   * Word surface form
+   */
+  w: string;
+  /**
+   * Probability of the word in topic
+   */
+  p: number;
+  /**
+   * If word is highlighted
+   */
+  h?: boolean;
 }
 
 
@@ -1542,15 +1533,15 @@ export interface SearchFacetBucket {
    */
   count: number;
   /**
-   * Value of the 'type' element
+   * Value that represents the bucket.
    */
-  val: string;
+  value: string | number;
   /**
-   * UID of the 'type' element. Same as 'val'
+   * Label of the value, if relevant.
    */
-  uid?: string;
+  label?: string;
   /**
-   * The item in the bucket. Particular objct schema depends on the facet type
+   * The item in the bucket. Particular object schema depends on the facet type
    */
   item?: MediaSource | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
@@ -1624,7 +1615,7 @@ export interface Collection {
   /**
    * Unique identifier of the collection.
    */
-  uid: string;
+  id: string;
   /**
    * Title of the collection.
    */
@@ -1684,58 +1675,9 @@ export interface Topic {
    */
   language: string;
   /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    uid: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
    * Number of content items with this topic
    */
-  countItems?: number;
-  excerpt?: TopicWord[];
+  contentItemsCount?: number;
   /**
    * Top N words associated with the topic
    */
@@ -1744,10 +1686,6 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
-  /**
-   * List of matched topic suggestions (if any)
-   */
-  matches?: string[];
 }
 /**
  * A word included in a topic
@@ -1840,7 +1778,7 @@ export interface SearchFacetRangeBucket {
   /**
    * Value of the 'type' element
    */
-  val: number;
+  value?: number;
   /**
    * Lower bound of the range
    */
@@ -1863,7 +1801,7 @@ export interface SearchFacetRangeBucket {
   /**
    * Value of the 'type' element
    */
-  val: number;
+  value?: number;
   /**
    * Lower bound of the range
    */
@@ -1998,6 +1936,116 @@ export interface TextReuseClusterDetails {
    * Resolution for the 'date' facet
    */
   resolution?: "year" | "month" | "day";
+}
+
+
+/**
+ * ID of the text reuse passage
+ */
+export type PassageID = string;
+/**
+ * ID of the article
+ */
+export type ArticleID = string;
+/**
+ * ID of the cluster
+ */
+export type ClusterID = string;
+/**
+ * The size of the cluster
+ */
+export type ClusterSize = number;
+/**
+ * The time difference in days between the two articles
+ */
+export type TimeDifferenceInDays = number;
+/**
+ * The lexical overlap between the two articles
+ */
+export type LexicalOverlap = number;
+
+/**
+ * Represents a passage of text that was identified as a part of a text reuse cluster
+ */
+export interface TextReusePassage {
+  id: PassageID;
+  article: ArticleDetails;
+  textReuseCluster: ClusterDetails;
+  offsetStart: number | null;
+  offsetEnd: number | null;
+  /**
+   * Textual content of the passage
+   */
+  content: string;
+  /**
+   * Title of the content item (article) where this passage was found
+   */
+  title: string;
+  connectedClusters?: {
+    /**
+     * ID of the connected cluster
+     */
+    id: string;
+  }[];
+  /**
+   * TBD
+   */
+  isFront?: boolean;
+  /**
+   * Size of the passage
+   */
+  size?: number;
+  mediaSource?: {
+    [k: string]: unknown;
+  };
+  /**
+   * Issue details
+   */
+  issue?: {
+    /**
+     * ID of the issue
+     */
+    id: string;
+  };
+  /**
+   * Date of the item (article) where this passage was found
+   */
+  date?: string;
+  /**
+   * Bounding box of the passage in the page
+   */
+  pageRegions?: string[];
+  /**
+   * Numbers of the pages where the passage was found
+   */
+  pageNumbers: number[];
+  /**
+   * Collection IDs the passage belongs to
+   */
+  collections: string[];
+  /**
+   * Access rights bitmap for the UI
+   */
+  bitmapExplore?: number;
+  /**
+   * Access rights bitmap for downloading the transcript
+   */
+  bitmapGetTranscript?: number;
+}
+/**
+ * Details of the article the passage belongs to
+ */
+export interface ArticleDetails {
+  id: ArticleID;
+}
+/**
+ * Details of the cluster the passage belongs to
+ */
+export interface ClusterDetails {
+  id: ClusterID;
+  clusterSize?: ClusterSize;
+  timeDifferenceDay?: TimeDifferenceInDays;
+  lexicalOverlap?: LexicalOverlap;
 }
 
 

@@ -8,6 +8,41 @@
 
 
 /**
+ * Admin service GET response.
+ */
+export interface AdminGETResponse {
+  contentItemsPermissionsDetails?: {
+    [k: string]: unknown;
+  };
+  imagesPermissionsDetails?: {
+    [k: string]: unknown;
+  };
+  userAccounts?: {
+    [k: string]: unknown;
+  }[];
+  cacheCounts?: {
+    db: number;
+    solr: number;
+    wikidata: number;
+  };
+  wellKnownComputedAt?: {
+    mediaSources: string | null;
+    topics: string | null;
+    years: string | null;
+  };
+  patchResult?: {
+    action: string;
+    cleared?: {
+      count: number;
+    };
+    jobId?: string;
+    [k: string]: unknown;
+  };
+  [k: string]: unknown;
+}
+
+
+/**
  * Authentication Response
  */
 export interface AuthenticationResponse {
@@ -33,6 +68,25 @@ export interface User {
   isActive: boolean;
   isSuperuser: boolean;
   uid: string;
+}
+
+
+export interface BaseFindResponse {
+  data: unknown[];
+  pagination: {
+    /**
+     * The total number of items matching the query
+     */
+    total: number;
+    /**
+     * The number of items returned in this response
+     */
+    limit: number;
+    /**
+     * Starting index of the items subset returned in this response
+     */
+    offset: number;
+  };
 }
 
 
@@ -182,6 +236,14 @@ export interface TextReuseClusterDetails {
    * Resolution for the 'date' facet
    */
   resolution?: "year" | "month" | "day";
+}
+
+
+/**
+ * Freeform schema - a schema that allows any property to be added to the object.
+ */
+export interface Freeform {
+  [k: string]: unknown;
 }
 
 
@@ -339,7 +401,7 @@ export interface ImpressoNamedEntityRecognitionEntity {
 /**
  * Version of the API. Contains information about the current version of the API, features, etc.
  */
-export interface VersionDetails {
+export interface FullVersionDetails {
   solr: {
     endpoints?: {
       [k: string]: string;
@@ -381,4 +443,15 @@ export interface VersionDetails {
     }[];
     bitmapIndex: number;
   }[];
+}
+
+
+/**
+ * Details of the current version of the API and details of its aspects.
+ */
+export interface VersionDetails {
+  /**
+   * Version of the API.
+   */
+  version: string;
 }

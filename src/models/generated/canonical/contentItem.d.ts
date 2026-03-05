@@ -250,7 +250,7 @@ export interface Collection {
   /**
    * Unique identifier of the collection.
    */
-  uid: string;
+  id: string;
   /**
    * Title of the collection.
    */
@@ -946,7 +946,7 @@ export interface Collection {
   /**
    * Unique identifier of the collection.
    */
-  uid: string;
+  id: string;
   /**
    * Title of the collection.
    */

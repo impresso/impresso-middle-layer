@@ -55,7 +55,7 @@ const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection>
   return async (id: string) => {
     const collection = await collectionsService.getInternal(id)
     return {
-      uid: id,
+      id: id,
       title: collection?.name ?? '',
       description: collection?.description ?? '',
       accessLevel: collection?.status == 'PRI' ? 'private' : 'public',

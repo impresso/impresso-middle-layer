@@ -44,7 +44,7 @@ export interface Collection {
   /**
    * Unique identifier of the collection.
    */
-  uid: string;
+  id: string;
   /**
    * Title of the collection.
    */
@@ -83,7 +83,7 @@ export interface Collection {
   /**
    * Unique identifier of the collection.
    */
-  uid: string;
+  id: string;
   /**
    * Title of the collection.
    */
@@ -163,6 +163,218 @@ export interface Entity {
    * Name of the entity
    */
   name?: string;
+}
+
+
+/**
+ * An entity: location or person.
+ */
+export interface EntityDetails {
+  /**
+   * Unique identifier of the entity
+   */
+  uid: string;
+  /**
+   * Entity label
+   */
+  label?: string;
+  type?: "person" | "location" | "organisation" | "newsagency";
+  /**
+   * Wikidata identifier of the entity.
+   */
+  wikidataId?: string;
+  /**
+   * Total number of mentions of the entity.
+   */
+  totalMentions?: number;
+  /**
+   * Total number of content items the entity is mentioned in.
+   */
+  totalContentItems?: number;
+  wikidataDetails?: WikidataPerson | WikidataLocation2;
+}
+/**
+ * Wikidata person schema. Based on https://schema.org/Person
+ */
+export interface WikidataPerson {
+  /**
+   * The Q Wikidata ID of the person (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "human";
+  /**
+   * Labels of the person in different languages
+   */
+  labels?: {
+    /**
+     * Description of the person in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the person in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the person in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * The birth date of the person
+   */
+  birthDate?: string;
+  /**
+   * The death date of the person
+   */
+  deathDate?: string;
+  birthPlace?: WikidataLocation;
+  deathPlace?: WikidataLocation1;
+}
+/**
+ * The birth place of the person
+ */
+export interface WikidataLocation {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
+}
+/**
+ * The death place of the person
+ */
+export interface WikidataLocation1 {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
+}
+/**
+ * Wikidata location schema. Based on https://schema.org/Place
+ */
+export interface WikidataLocation2 {
+  /**
+   * The Q Wikidata ID of the location (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "location";
+  /**
+   * Labels of the location in different languages
+   */
+  labels?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the location in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the location in a specific language
+     */
+    [k: string]: string;
+  };
+  coordinates?: {
+    /**
+     * The latitude of the location
+     */
+    latitude?: number;
+    /**
+     * The longitude of the location
+     */
+    longitude?: number;
+  };
+}
+
+
+/**
+ * Information about an available experiment including its identifier, name, and description.
+ */
+export interface ExperimentInfo {
+  /**
+   * The unique identifier of the experiment.
+   */
+  id: string;
+  /**
+   * The display name of the experiment.
+   */
+  name: string;
+  /**
+   * A description of what the experiment does.
+   */
+  description?: string;
 }
 
 
@@ -490,15 +702,15 @@ export interface SearchFacetBucket {
    */
   count: number;
   /**
-   * Value of the 'type' element
+   * Value that represents the bucket.
    */
-  val: string;
+  value: string | number;
   /**
-   * UID of the 'type' element. Same as 'val'
+   * Label of the value, if relevant.
    */
-  uid?: string;
+  label?: string;
   /**
-   * The item in the bucket. Particular objct schema depends on the facet type
+   * The item in the bucket. Particular object schema depends on the facet type
    */
   item?: MediaSource | Collection | Entity | Topic | Year | Partner | FacetWithLabel;
 }
@@ -572,7 +784,7 @@ export interface Collection {
   /**
    * Unique identifier of the collection.
    */
-  uid: string;
+  id: string;
   /**
    * Title of the collection.
    */
@@ -632,58 +844,9 @@ export interface Topic {
    */
   language: string;
   /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    uid: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
    * Number of content items with this topic
    */
-  countItems?: number;
-  excerpt?: TopicWord[];
+  contentItemsCount?: number;
   /**
    * Top N words associated with the topic
    */
@@ -692,10 +855,6 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
-  /**
-   * List of matched topic suggestions (if any)
-   */
-  matches?: string[];
 }
 /**
  * A word included in a topic
@@ -780,112 +939,71 @@ export interface FacetWithLabel {
 
 
 /**
- * ID of the text reuse passage
+ * Text reuse cluster details.
  */
-export type PassageID = string;
-/**
- * ID of the article
- */
-export type ArticleID = string;
-/**
- * ID of the cluster
- */
-export type ClusterID = string;
-/**
- * The size of the cluster
- */
-export type ClusterSize = number;
-/**
- * The time difference in days between the two articles
- */
-export type TimeDifferenceInDays = number;
-/**
- * The lexical overlap between the two articles
- */
-export type LexicalOverlap = number;
+export interface TextReuseCluster {
+  /**
+   * Unique ID of the text reuse cluster.
+   */
+  uid: string;
+  /**
+   * Overlap in percents between the passages in the cluster.
+   */
+  lexicalOverlap?: number;
+  /**
+   * Number of passages in the cluster.
+   */
+  clusterSize?: number;
+  /**
+   * Sample of a text from one of the passages in the cluster.
+   */
+  textSample?: string;
+  /**
+   * Time coverage of the cluster.
+   */
+  timeCoverage?: {
+    /**
+     * Publication date of the earliest content item in the cluster.
+     */
+    startDate: string;
+    /**
+     * Publication date of the latest content item in the cluster.
+     */
+    endDate: string;
+  };
+}
+
 
 /**
  * Represents a passage of text that was identified as a part of a text reuse cluster
  */
 export interface TextReusePassage {
-  id: PassageID;
-  article: ArticleDetails;
-  textReuseCluster: ClusterDetails;
-  offsetStart: number | null;
-  offsetEnd: number | null;
   /**
-   * Textual content of the passage
+   * Unique ID of the text reuse passage.
    */
-  content: string;
+  uid: string;
   /**
-   * Title of the content item (article) where this passage was found
+   * Textual content of the passage.
    */
-  title: string;
-  connectedClusters?: {
+  content?: string;
+  /**
+   * ID of the content item that the text reuse passage belongs to.
+   */
+  contentItemId?: string;
+  /**
+   * Start and end offsets of the passage in the content item.
+   */
+  offset?: {
     /**
-     * ID of the connected cluster
+     * Start offset of the passage in the content item.
      */
-    id: string;
-  }[];
-  /**
-   * TBD
-   */
-  isFront?: boolean;
-  /**
-   * Size of the passage
-   */
-  size?: number;
-  mediaSource?: {
+    start: number;
+    /**
+     * End offset of the passage in the content item.
+     */
+    end: number;
     [k: string]: unknown;
   };
-  /**
-   * Issue details
-   */
-  issue?: {
-    /**
-     * ID of the issue
-     */
-    id: string;
-  };
-  /**
-   * Date of the item (article) where this passage was found
-   */
-  date?: string;
-  /**
-   * Bounding box of the passage in the page
-   */
-  pageRegions?: string[];
-  /**
-   * Numbers of the pages where the passage was found
-   */
-  pageNumbers: number[];
-  /**
-   * Collection IDs the passage belongs to
-   */
-  collections: string[];
-  /**
-   * Access rights bitmap for the UI
-   */
-  bitmapExplore?: number;
-  /**
-   * Access rights bitmap for downloading the transcript
-   */
-  bitmapGetTranscript?: number;
-}
-/**
- * Details of the article the passage belongs to
- */
-export interface ArticleDetails {
-  id: ArticleID;
-}
-/**
- * Details of the cluster the passage belongs to
- */
-export interface ClusterDetails {
-  id: ClusterID;
-  clusterSize?: ClusterSize;
-  timeDifferenceDay?: TimeDifferenceInDays;
-  lexicalOverlap?: LexicalOverlap;
 }
 
 
@@ -902,58 +1020,9 @@ export interface Topic {
    */
   language: string;
   /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    uid: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
    * Number of content items with this topic
    */
-  countItems?: number;
-  excerpt?: TopicWord[];
+  contentItemsCount?: number;
   /**
    * Top N words associated with the topic
    */
@@ -962,10 +1031,6 @@ export interface Topic {
    * ID of the model used to generate the topic
    */
   model?: string;
-  /**
-   * List of matched topic suggestions (if any)
-   */
-  matches?: string[];
 }
 /**
  * A word included in a topic

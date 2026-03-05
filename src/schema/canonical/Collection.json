@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "uid": {
+    "id": {
       "type": "string",
       "description": "Unique identifier of the collection."
     },
@@ -41,5 +41,5 @@
       "description": "Identifier of the user who created the collection."
     }
   },
-  "required": ["uid"]
+  "required": ["id"]
 }

@@ -1,7 +1,7 @@
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
-import { TextReusePassage as TextReusePassageInternal } from '@/models/generated/canonical.js'
+import { TextReusePassage as TextReusePassageInternal } from '@/models/generated/deprecated/models.js'
 import { TextReuseClusterCompound } from '@/models/generated/deprecated/models.js'
-import { TextReusePassage as TextReusePassagePublic, TextReuseCluster } from '@/models/generated/schemasPublic.js'
+import { TextReusePassage as TextReusePassagePublic, TextReuseCluster } from '@/models/generated/canonical.js'
 import { OpenPermissions } from '@/util/bigint.js'
 
 export const transformTextReusePassage = (input: TextReusePassageInternal): TextReusePassagePublic => {

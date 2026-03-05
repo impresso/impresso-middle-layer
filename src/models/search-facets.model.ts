@@ -17,7 +17,7 @@ interface SearchFacetBucketOptions {
 
 class SearchFacetBucket implements ISearchFacetBucket {
   public count: number
-  public val: string
+  public value: string
   public uid?: string
   public item?: ISearchFacetBucket['item']
   public lower?: number
@@ -25,7 +25,7 @@ class SearchFacetBucket implements ISearchFacetBucket {
 
   constructor({ val, uid, count, item }: SearchFacetBucketOptions) {
     this.count = typeof count == 'string' ? parseInt(count, 10) : count
-    this.val = val
+    this.value = val
     this.uid = uid
     this.item = item
   }

@@ -53,7 +53,7 @@ export type ICollectionsService = Omit<
 const dbToCollection = (dbModel: IUserCollection): Collection => {
   if (dbModel.status === 'DEL') throw new Error('Cannot convert deleted collection')
   return {
-    uid: dbModel.id,
+    id: dbModel.id,
     title: dbModel.name,
     description: dbModel.description ?? '',
     accessLevel: dbModel.status === 'PRI' ? 'private' : 'public',

@@ -22,7 +22,6 @@ const schemaBits = [
   'external/solr',
   'external/solr/ContentItem',
   // deprecated:
-  'schemasPublic',
   'deprecated/internalApi',
   'deprecated/models',
 ]

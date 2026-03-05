@@ -42,7 +42,7 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
 
   const uids = items
     .filter(d => d.type === 'textReuseCluster')
-    .reduce((acc, d) => acc.concat(d.buckets.filter(isSearchFacetBucket).map(di => di.val)), [] as string[])
+    .reduce((acc, d) => acc.concat(d.buckets.filter(isSearchFacetBucket).map(di => String(di.value))), [] as string[])
 
   if (!uids.length) return
 
@@ -74,7 +74,7 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
 
     d.buckets.forEach(b => {
       if (isSearchFacetBucket(b)) {
-        b.item = index[b.val]
+        b.item = index[b.value]
       }
     })
   })

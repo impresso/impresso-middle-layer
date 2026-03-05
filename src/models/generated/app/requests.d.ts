@@ -44,6 +44,14 @@ export interface Filter {
 
 
 /**
+ * Admin maintenance action request.
+ */
+export interface AdminPatchRequest {
+  action: "clear-db-cache" | "clear-solr-cache" | "clear-wikidata-cache" | "rebuild-well-known-cache";
+}
+
+
+/**
  * Request body for the authentication endpoint
  */
 export interface AuthenticationCreateRequest {

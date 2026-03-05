@@ -2,7 +2,6 @@ import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
 import { rateLimit } from '@/hooks/rateLimiter.js'
 import { OrderByChoices } from '@/services/newspapers/newspapers.schema.js'
 import { transformResponseDataItem, transformResponse, renameQueryParameters } from '@/hooks/transformation.js'
-import { transformNewspaper } from '@/transformers/newspaper.js'
 import { transformBaseFind } from '@/transformers/base.js'
 import { ImpressoApplication } from '@/types.js'
 import { HookOptions } from '@feathersjs/feathers'
@@ -58,8 +57,8 @@ export default {
   },
 
   after: {
-    find: [...inPublicApi([transformResponse(transformBaseFind), transformResponseDataItem(transformNewspaper)])],
-    get: [...inPublicApi([transformResponse(transformNewspaper)])],
+    find: [...inPublicApi([transformResponse(transformBaseFind)])],
+    get: [],
     create: [],
     update: [],
     patch: [],

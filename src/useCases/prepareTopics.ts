@@ -8,7 +8,7 @@ import { circular } from 'graphology-layout'
 import { default as forceAtlas2 } from 'graphology-layout-forceatlas2'
 import { default as louvain } from 'graphology-communities-louvain'
 import { hits, pagerank } from 'graphology-metrics/centrality/index.js'
-import { Topic, TopicWord } from '@/models/generated/canonical.js'
+import { InternalTopic, TopicWord } from '@/models/generated/deprecated/models.js'
 
 const TopicsLimit = 10 ** 6
 const TopNTopics = 10
@@ -41,10 +41,10 @@ interface TopicIndexDocument {
   _version_: number
 }
 
-type TopicStub = Pick<Topic, 'uid' | 'language' | 'model' | 'words'>
-type TopicStubWithCountItems = TopicStub & Pick<Topic, 'countItems'>
+type TopicStub = Pick<InternalTopic, 'uid' | 'language' | 'model' | 'words'>
+type TopicStubWithCountItems = TopicStub & Pick<InternalTopic, 'contentItemsCount'>
 type TopicStubWithRelatedTopics = TopicStubWithCountItems &
-  Pick<Topic, 'relatedTopics' | 'degree' | 'relatedTopicsStats'>
+  Pick<InternalTopic, 'relatedTopics' | 'degree' | 'relatedTopicsStats'>
 
 type RelatedTopicBucket = Bucket & {
   relatedTopics: {
@@ -75,7 +75,7 @@ const topicIndexDocToTopicStub = (doc: TopicIndexDocument): TopicStub => ({
 
 const toTopicStubWithCountItems = (stub: TopicStub, counts: Record<string, number>): TopicStubWithCountItems => ({
   ...stub,
-  countItems: counts[stub.uid] ?? 0,
+  contentItemsCount: counts[stub.uid] ?? 0,
 })
 
 const getHits = (graph: Graph): ReturnType<typeof hits> | { hubs: undefined; authorities: undefined } => {
@@ -167,7 +167,7 @@ const buildRequestFindRelatedTopicsAverageWeight = (
   }, {}),
 })
 
-export const prepareTopics = async (solrClient: SimpleSolrClient): Promise<Topic[]> => {
+export const prepareTopics = async (solrClient: SimpleSolrClient): Promise<InternalTopic[]> => {
   const pageSize = 50
   let offset = 0
   let hasMorePages = true
@@ -190,14 +190,18 @@ export const prepareTopics = async (solrClient: SimpleSolrClient): Promise<Topic
   return fullTtopics
 }
 
-const prepareTopicsPage = async (solrClient: SimpleSolrClient, offset: number, pageSize: number): Promise<Topic[]> => {
+const prepareTopicsPage = async (
+  solrClient: SimpleSolrClient,
+  offset: number,
+  pageSize: number
+): Promise<InternalTopic[]> => {
   const topicsStubs = await getTopicsPage(solrClient, offset, pageSize)
   logger.info('Found %d topics', topicsStubs.length)
 
   const topicsStubsWithRelatedTopics = await withRelatedTopics(solrClient, topicsStubs)
   logger.info('Found weights and averages for related topics')
 
-  return topicsStubsWithRelatedTopics as Topic[]
+  return topicsStubsWithRelatedTopics as InternalTopic[]
 }
 
 const getTopicsPage = async (
@@ -257,7 +261,7 @@ const withRelatedTopics = async (
             w: 0, // this will be assigned in the next step
             avg: 0, // this will be assigned in the next step
           })) ?? [],
-    } satisfies TopicStubWithCountItems & Pick<Topic, 'relatedTopics'>
+    } satisfies TopicStubWithCountItems & Pick<InternalTopic, 'relatedTopics'>
   })
 
   logger.info(
@@ -318,7 +322,7 @@ const withRelatedTopics = async (
   )
 }
 
-const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise<Topic[]> => {
+const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise<InternalTopic[]> => {
   const graph = new Graph()
 
   const nodes = uniqBy(
@@ -388,6 +392,6 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
         community: communities[topic.uid],
         hub: hubs?.[topic.uid],
         authority: authorities?.[topic.uid],
-      }) satisfies Topic
+      }) satisfies InternalTopic
   )
 }
