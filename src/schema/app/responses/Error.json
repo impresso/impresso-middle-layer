@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Error response that follows https://datatracker.ietf.org/doc/html/rfc7807#section-3.1",
   "title": "Error",
   "type": "object",
@@ -10,8 +10,14 @@
       "format": "uri",
       "description": "A URI reference [RFC3986] that identifies the problem type."
     },
-    "title": { "type": "string", "description": "A short, human-readable summary of the problem type." },
-    "status": { "type": "integer", "description": "The HTTP status code ([RFC7231], Section 6)" },
+    "title": {
+      "type": "string",
+      "description": "A short, human-readable summary of the problem type."
+    },
+    "status": {
+      "type": "integer",
+      "description": "The HTTP status code ([RFC7231], Section 6)"
+    },
     "detail": {
       "type": "string",
       "description": "A human-readable explanation specific to this occurrence of the problem."

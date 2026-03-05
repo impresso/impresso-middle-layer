@@ -33,6 +33,7 @@ export interface Filter {
   precision?: "fuzzy" | "soft" | "exact" | "partial";
   q?: string | string[];
   /**
+   * @deprecated
    * DEPRECATED: Use `q`.
    */
   daterange?: string;

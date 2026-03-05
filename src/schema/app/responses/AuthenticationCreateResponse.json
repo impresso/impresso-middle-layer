@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Authentication Response",
   "description": "Authentication Response",
   "type": "object",
@@ -20,20 +20,36 @@
       }
     },
     "user": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "title": "User",
       "description": "User details",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "integer" },
-        "username": { "type": "string" },
-        "firstname": { "type": "string" },
-        "lastname": { "type": "string" },
-        "isStaff": { "type": "boolean" },
-        "isActive": { "type": "boolean" },
-        "isSuperuser": { "type": "boolean" },
-        "uid": { "type": "string" }
+        "id": {
+          "type": "integer"
+        },
+        "username": {
+          "type": "string"
+        },
+        "firstname": {
+          "type": "string"
+        },
+        "lastname": {
+          "type": "string"
+        },
+        "isStaff": {
+          "type": "boolean"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "isSuperuser": {
+          "type": "boolean"
+        },
+        "uid": {
+          "type": "string"
+        }
       },
       "required": ["id", "username", "firstname", "lastname", "isStaff", "isActive", "isSuperuser", "uid"]
     }

@@ -1,10 +1,12 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Schema for stats.yml",
   "title": "StatsConfiguration",
   "type": "object",
   "properties": {
-    "indexes": { "$ref": "#/definitions/Indexes" }
+    "indexes": {
+      "$ref": "#/definitions/Indexes"
+    }
   },
   "additionalProperties": false,
   "required": ["indexes"],
@@ -13,14 +15,18 @@
       "type": "object",
       "description": "Indexes configuration",
       "patternProperties": {
-        ".*": { "$ref": "#/definitions/Index" }
+        ".*": {
+          "$ref": "#/definitions/Index"
+        }
       },
       "additionalProperties": false
     },
     "Index": {
       "type": "object",
       "properties": {
-        "facets": { "$ref": "#/definitions/FacetTypeGroup" }
+        "facets": {
+          "$ref": "#/definitions/FacetTypeGroup"
+        }
       },
       "additionalProperties": false,
       "required": ["facets"]
@@ -29,9 +35,15 @@
       "type": "object",
       "description": "Facets group configuration",
       "properties": {
-        "term": { "$ref": "#/definitions/FacetSet" },
-        "numeric": { "$ref": "#/definitions/FacetSet" },
-        "temporal": { "$ref": "#/definitions/FacetSet" }
+        "term": {
+          "$ref": "#/definitions/FacetSet"
+        },
+        "numeric": {
+          "$ref": "#/definitions/FacetSet"
+        },
+        "temporal": {
+          "$ref": "#/definitions/FacetSet"
+        }
       },
       "additionalProperties": false
     },
@@ -39,7 +51,9 @@
       "type": "object",
       "description": "Facet set configuration",
       "patternProperties": {
-        ".*": { "$ref": "#/definitions/Facet" }
+        ".*": {
+          "$ref": "#/definitions/Facet"
+        }
       }
     },
     "Facet": {

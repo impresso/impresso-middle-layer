@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "title": "Topic",
   "description": "A topic",
@@ -20,7 +20,9 @@
     },
     "words": {
       "type": "array",
-      "items": { "$ref": "./TopicWord.json" },
+      "items": {
+        "$ref": "./TopicWord.json"
+      },
       "description": "Top N words associated with the topic"
     },
     "model": {

@@ -1,11 +1,12 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "description": "Semantic enrichments information",
   "properties": {
     "ocrQuality": {
       "type": "number",
-      "minimum": 0.0,
-      "maximum": 1.0,
+      "minimum": 0,
+      "maximum": 1,
       "description": "OCR quality assessment score between 0,00 and 1,00."
     },
     "namedEntities": {

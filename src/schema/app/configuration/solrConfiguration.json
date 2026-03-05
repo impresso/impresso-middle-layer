@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Solr configuration",
   "type": "object",
   "additionalProperties": false,
@@ -7,12 +7,16 @@
     "servers": {
       "type": "array",
       "description": "List of Solr servers available",
-      "items": { "$ref": "#/definitions/SolrServerConfiguration" }
+      "items": {
+        "$ref": "#/definitions/SolrServerConfiguration"
+      }
     },
     "namespaces": {
       "type": "array",
       "description": "List of namespaces (mapped to Solr indices)",
-      "items": { "$ref": "#/definitions/SolrServerNamespaceConfiguration" }
+      "items": {
+        "$ref": "#/definitions/SolrServerNamespaceConfiguration"
+      }
     }
   },
   "required": [],
@@ -34,11 +38,17 @@
           "description": "Authentication configuration for reading and writing (Base)",
           "additionalProperties": false,
           "properties": {
-            "read": { "$ref": "#/definitions/SolrServerAuth" },
-            "write": { "$ref": "#/definitions/SolrServerAuth" }
+            "read": {
+              "$ref": "#/definitions/SolrServerAuth"
+            },
+            "write": {
+              "$ref": "#/definitions/SolrServerAuth"
+            }
           }
         },
-        "proxy": { "$ref": "#/definitions/SolrServerProxy" }
+        "proxy": {
+          "$ref": "#/definitions/SolrServerProxy"
+        }
       },
       "required": ["id", "baseUrl"]
     },

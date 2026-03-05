@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Admin GET Response",
   "description": "Admin service GET response.",
   "type": "object",
@@ -24,9 +24,15 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "db": { "type": "integer" },
-        "solr": { "type": "integer" },
-        "wikidata": { "type": "integer" }
+        "db": {
+          "type": "integer"
+        },
+        "solr": {
+          "type": "integer"
+        },
+        "wikidata": {
+          "type": "integer"
+        }
       },
       "required": ["db", "solr", "wikidata"]
     },
@@ -34,9 +40,15 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "mediaSources": { "type": ["string", "null"] },
-        "topics": { "type": ["string", "null"] },
-        "years": { "type": ["string", "null"] }
+        "mediaSources": {
+          "type": ["string", "null"]
+        },
+        "topics": {
+          "type": ["string", "null"]
+        },
+        "years": {
+          "type": ["string", "null"]
+        }
       },
       "required": ["mediaSources", "topics", "years"]
     },
@@ -51,7 +63,9 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "count": { "type": "integer" }
+            "count": {
+              "type": "integer"
+            }
           },
           "required": ["count"]
         },
