@@ -4,9 +4,9 @@
   "title": "Year",
   "description": "A year (TODO)",
   "additionalProperties": false,
-  "required": ["y"],
+  "required": ["id"],
   "properties": {
-    "uid": {
+    "id": {
       "type": "integer",
       "description": "Numeric representation of the year"
     },

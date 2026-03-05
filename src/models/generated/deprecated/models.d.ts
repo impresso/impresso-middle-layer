@@ -1711,7 +1711,7 @@ export interface Year {
   /**
    * Numeric representation of the year
    */
-  uid?: number;
+  id: number;
   values?: YearWeights;
   refs?: YearWeights;
 }

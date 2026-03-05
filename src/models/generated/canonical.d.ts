@@ -410,6 +410,7 @@ export interface Filter {
    */
   daterange?: string;
   /**
+   * @deprecated
    * DEPRECATED: Use `q`.
    */
   uids?: string;
@@ -880,7 +881,7 @@ export interface Year {
   /**
    * Numeric representation of the year
    */
-  uid?: number;
+  id: number;
   values?: YearWeights;
   refs?: YearWeights;
 }
@@ -1264,7 +1265,7 @@ export interface Year {
   /**
    * Numeric representation of the year
    */
-  uid?: number;
+  id: number;
   values?: YearWeights;
   refs?: YearWeights;
 }

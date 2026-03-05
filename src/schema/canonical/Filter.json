@@ -48,7 +48,8 @@
     },
     "uids": {
       "type": "string",
-      "description": "DEPRECATED: Use `q`."
+      "description": "DEPRECATED: Use `q`.",
+      "deprecated": true
     }
   },
   "required": ["type"]

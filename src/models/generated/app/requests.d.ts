@@ -37,6 +37,7 @@ export interface Filter {
    */
   daterange?: string;
   /**
+   * @deprecated
    * DEPRECATED: Use `q`.
    */
   uids?: string;
