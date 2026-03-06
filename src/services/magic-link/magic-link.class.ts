@@ -81,7 +81,17 @@ export class MagicLinkService {
     })
     // save user id related to the token into the db
     await this.redisClient.setEx(`magic-link:${token}`, this.config.expiration, String(user.get('id')))
-    debug('[create] Generated magic link token for email:', data.email, 'userId:', user.get('id'), 'token:', token)
+    debug(
+      '[create] Generated magic link token for email:',
+      data.email,
+      'userId:',
+      user.get('id'),
+      'token:',
+      token,
+      'expires in:',
+      this.config.expiration,
+      'seconds'
+    )
     if (!this.celeryClient) {
       debug('[create] No celery client configured, cannot send email to', data.email)
       logger.error('Email service not configured')

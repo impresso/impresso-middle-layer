@@ -1,18 +1,19 @@
 import { authenticate } from '@feathersjs/authentication'
 import { queryWithCommonParams, utils, validate } from '@/hooks/params.js'
-import { OrderItem } from 'sequelize'
-
-interface Params {
-  order_by: OrderItem[]
-  status?: string[]
-}
+import { FindQuery } from './user-special-membership-requests-reviews.class.js'
 
 export default {
   before: {
     all: [authenticate('jwt')],
     find: [
-      validate<Params>(
+      validate<FindQuery>(
         {
+          limit: {
+            required: false,
+          },
+          offset: {
+            required: false,
+          },
           order_by: {
             required: false,
             choices: ['-dateLastModified', 'dateLastModified'],
@@ -28,6 +29,10 @@ export default {
           status: {
             required: false,
             choices: ['pending', 'approved', 'rejected'],
+          },
+          term: {
+            required: false,
+            regex: /^[\p{L}\p{N}\s\p{P}]*$/u,
           },
         },
         'GET',

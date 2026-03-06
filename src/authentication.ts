@@ -139,6 +139,7 @@ class NoDBJWTStrategy extends JWTStrategy {
       isStaff: payload.isStaff ?? false,
       groups: payload.groups ?? [],
     }
+    debug('[NoDBJWTStrategy] Authenticated user:', slimUser)
     return {
       ...result,
       [entity]: slimUser,
@@ -252,19 +253,9 @@ class MagicLinkJWTStrategy extends JWTStrategy {
 
       const { entity } = this.configuration
 
-      debug('[MagicLinkJWTStrategy] entity:', entity)
-      const userBitmap = (user as any).userBitmap
-      const slimUser: SlimUser = {
-        uid: (user.get('profile') as any)?.uid || '',
-        id: Number(user.get('id')),
-        bitmap: userBitmap?.bitmap ?? BufferUserPlanGuest,
-        isStaff: !!user.get('isStaff'),
-        groups: ((user.get('groups') as Group[]) ?? []).map(g => g.name) ?? [],
-      }
-      debug('[MagicLinkJWTStrategy] slim user:', slimUser)
       return {
         authentication: { strategy: this.name },
-        [entity]: slimUser,
+        [entity]: await this.getEntity(String(user.get('id')), params),
       } as any
     } catch (err) {
       if (err instanceof NotAuthenticated || err instanceof BadRequest) {
