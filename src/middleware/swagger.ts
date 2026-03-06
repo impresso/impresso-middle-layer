@@ -96,7 +96,7 @@ export default (app: ImpressoApplication & Application) => {
         schemas: {
           // canonical schemas
           ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical`, './schema/canonical'),
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/ContentItem`, './schema/canonical/ContentItem'),
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/contentItem`, './schema/canonical/contentItem'),
           // public schemas
           ...getFilesAsSchemaRefs(`${schemaBaseDir}/schemasPublic`, './schema/schemasPublic'),
           // app specific schemas
