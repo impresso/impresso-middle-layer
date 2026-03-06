@@ -159,10 +159,15 @@ const dereferenceSpec = async (spec: OpenAPIV3.DocumentV3) => {
          */
         read: async (file: FileInfo) => {
           const cwd = process.cwd()
-          const filePath = file.url.replace(cwd, `${cwd}/src`)
-          if (!fs.existsSync(filePath)) {
-            logger.error(`OpenAPI spec references a file that does not exist: ${filePath}`)
-            throw new Error(`File not found: ${filePath}`)
+          const filePathCandidates = [
+            file.url.replace(cwd, `${cwd}/src`),
+            file.url,
+            file.url.replace(`${cwd}/schema`, `${cwd}/src/schema`),
+          ]
+          const filePath = [...new Set(filePathCandidates)].find(candidatePath => fs.existsSync(candidatePath))
+          if (filePath == null) {
+            logger.error(`OpenAPI spec references a file that does not exist: ${filePathCandidates.join(', ')}`)
+            throw new Error(`File not found. Tried: ${filePathCandidates.join(', ')}`)
           }
           const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
           return await convertSchema(content)

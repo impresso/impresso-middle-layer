@@ -11,15 +11,36 @@ const { swaggerUI } = swagger
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const schemaBaseDir = path.join(__dirname, '../schema')
 const packageJsonUrl = path.join(__dirname, '../../package.json')
 
 interface SchemaRef {
   $ref: string
 }
 
-const getFilesAsSchemaRefs = (dir: string, prefix: string): Record<string, SchemaRef> => {
+const resolveSchemaBaseDir = (): string => {
+  const candidates = [
+    path.join(__dirname, '../schema'),
+    path.join(__dirname, '../../src/schema'),
+    path.join(process.cwd(), 'src/schema'),
+    path.join(process.cwd(), 'schema'),
+  ]
+
+  const matchingCandidate = candidates.find(dir => fs.existsSync(path.join(dir, 'canonical')))
+  if (matchingCandidate != null) {
+    return matchingCandidate
+  }
+
+  throw new Error(`Swagger schema directory not found. Checked: ${candidates.join(', ')}`)
+}
+
+const schemaBaseDir = resolveSchemaBaseDir()
+
+const getFilesAsSchemaRefs = (dir: string, prefix: string, required = false): Record<string, SchemaRef> => {
   if (!fs.existsSync(dir)) {
+    if (required) {
+      throw new Error(`Swagger schema directory not found: ${dir}`)
+    }
+
     return {}
   }
 
@@ -76,6 +97,7 @@ export default (app: ImpressoApplication & Application) => {
     return
   }
   logger.info('Public API - swagger middleware is enabled')
+  logger.info(`Swagger schema directory: ${schemaBaseDir}`)
 
   const prefix = app.get('publicApiPrefix')
 
@@ -95,10 +117,8 @@ export default (app: ImpressoApplication & Application) => {
       components: {
         schemas: {
           // canonical schemas
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical`, './schema/canonical'),
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/contentItem`, './schema/canonical/contentItem'),
-          // public schemas
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/schemasPublic`, './schema/schemasPublic'),
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical`, './schema/canonical', true),
+          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/contentItem`, './schema/canonical/contentItem', true),
           // app specific schemas
           ...getFilesAsSchemaRefs(`${schemaBaseDir}/app`, './schema/app'),
           ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
