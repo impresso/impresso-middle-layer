@@ -229,12 +229,12 @@ const toSpecSchemaRefPath = (absolutePath: string): string | undefined => {
   const schemaRoot = path.join(cwd, 'schema') + path.sep
 
   if (absolutePath.startsWith(srcSchemaRoot)) {
-    const relativePath = absolutePath.slice(srcSchemaRoot.length).replaceAll(path.sep, '/')
+    const relativePath = absolutePath.slice(srcSchemaRoot.length).split(path.sep).join('/')
     return `./schema/${relativePath}`
   }
 
   if (absolutePath.startsWith(schemaRoot)) {
-    const relativePath = absolutePath.slice(schemaRoot.length).replaceAll(path.sep, '/')
+    const relativePath = absolutePath.slice(schemaRoot.length).split(path.sep).join('/')
     return `./schema/${relativePath}`
   }
 

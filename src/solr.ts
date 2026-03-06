@@ -78,11 +78,21 @@ const defaultRetryOptions: FetchOptions['retryOptions'] = {
 export const defaultFetchOptions: FetchOptions = {
   retryOptions: defaultRetryOptions,
   onUnsuccessfulResponse: async (url, method, body, response) => {
+    const serializedBody =
+      typeof body === 'string'
+        ? body
+        : (() => {
+            try {
+              return JSON.stringify(body)
+            } catch {
+              return String(body)
+            }
+          })()
+    const normalizedBody = (serializedBody ?? '').replace(/\r|\n/g, ' ').slice(0, 200)
+    const normalizedResponse = (await response.text()).replace(/\r|\n/g, ' ').slice(0, 200)
+
     logger.error(
-      `Request to Solr endpoint ${url} with method ${method} and body ${JSON.stringify(body).slice(
-        0,
-        200
-      )}[...] failed with status ${response.status} and body: ${(await response.text()).slice(0, 200)}[...]`
+      `Request to Solr endpoint ${url} with method ${method} and body ${normalizedBody}[...] failed with status ${response.status} and body: ${normalizedResponse}[...]`
     )
   },
 }
