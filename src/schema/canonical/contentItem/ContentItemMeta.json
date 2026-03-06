@@ -37,12 +37,12 @@
     "countryCode": {
       "type": "string",
       "description": "Country code of the content item.",
-      "pattern": "^[A-Z]{2}$"
+      "pattern": "^[A-Za-z]{2}$"
     },
     "provinceCode": {
       "type": "string",
       "description": "Province code of the content item.",
-      "pattern": "^[A-Z]{2}$"
+      "pattern": "^[A-Za-z]{2}$"
     }
   },
   "required": ["sourceType", "sourceMedium", "mediaTitleAlias", "date", "meta_date_dt"],

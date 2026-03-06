@@ -12,6 +12,8 @@ interface InitHttpPoolOptions extends IFetchClientOptions {
 }
 
 const DefaultRequestTimeoutMs = 300 * 1000
+const DefaultRetryMaxRetries = 4
+const DefaultRetryTimeoutFactor = 2
 const UndiciDefaultRetryErrorCodes = [
   'ECONNRESET',
   'ECONNREFUSED',
@@ -24,6 +26,15 @@ const UndiciDefaultRetryErrorCodes = [
   'UND_ERR_SOCKET',
 ]
 const HeadersTimeoutRetryErrorCode = 'UND_ERR_HEADERS_TIMEOUT'
+
+function buildDefaultMinTimeout(maxTimeoutMs: number, maxRetries: number, timeoutFactor: number): number {
+  if (maxTimeoutMs <= 0) return 1
+  if (maxRetries <= 1 || timeoutFactor <= 1) return maxTimeoutMs
+
+  const retryStepsBeforeCap = Math.max(maxRetries - 2, 0)
+  const divisor = timeoutFactor ** retryStepsBeforeCap
+  return Math.max(1, Math.floor(maxTimeoutMs / divisor))
+}
 
 function urlSearchParamsToFormData(urlSearchParams: URLSearchParams): FormData {
   const formData = new FormData()
@@ -107,13 +118,21 @@ class ConnectionWrapper implements IFetchClient {
     }
   }
 
-  _buildRetryOptions(retryOptions: RetryHandler.RetryOptions): RetryHandler.RetryOptions {
+  _buildRetryOptions(retryOptions: RetryHandler.RetryOptions, requestTimeoutMs: number): RetryHandler.RetryOptions {
     const mergedErrorCodes = Array.from(
       new Set([...(retryOptions.errorCodes ?? UndiciDefaultRetryErrorCodes), HeadersTimeoutRetryErrorCode])
     )
+    const maxRetries = retryOptions.maxRetries ?? DefaultRetryMaxRetries
+    const timeoutFactor = retryOptions.timeoutFactor ?? DefaultRetryTimeoutFactor
+    const maxTimeout = retryOptions.maxTimeout ?? requestTimeoutMs
+    const minTimeout = retryOptions.minTimeout ?? buildDefaultMinTimeout(maxTimeout, maxRetries, timeoutFactor)
 
     return {
       ...retryOptions,
+      maxRetries,
+      timeoutFactor,
+      maxTimeout,
+      minTimeout,
       errorCodes: mergedErrorCodes,
     }
   }
@@ -127,7 +146,10 @@ class ConnectionWrapper implements IFetchClient {
 
     const agent =
       options?.retryOptions != null
-        ? new RetryAgent(this._createBaseAgent(requestTimeoutMs), this._buildRetryOptions(options.retryOptions))
+        ? new RetryAgent(
+            this._createBaseAgent(requestTimeoutMs),
+            this._buildRetryOptions(options.retryOptions, requestTimeoutMs)
+          )
         : this._createBaseAgent(requestTimeoutMs)
 
     const theUrl: string = url instanceof Request ? url.url : url.toString()

@@ -409,6 +409,7 @@ export interface TextContentFields {
     | "tb"
     | "ob"
     | "w"
+    | "ch"
     | "chapter"
     | "chronicle"
     | "unsegmented"
