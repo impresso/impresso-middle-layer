@@ -562,7 +562,7 @@ export class ContentItemService implements IContentItemService {
     //       ...params,
     //       scope: 'get',
     //       where: {
-    //         uid: { [Op.in]: results.data.map(d => d.uid) },
+    //         uid: { [Op.in]: results.data.map(d => d.id) },
     //       },
     //       limit: results.data.length,
     //       order_by: [['uid', 'DESC']],
@@ -579,7 +579,7 @@ export class ContentItemService implements IContentItemService {
     // const issuesRequest = {
     //   attributes: ['accessRights', 'uid'],
     //   where: {
-    //     uid: { [Op.in]: results.data.map(d => d?.issue?.uid) },
+    //     uid: { [Op.in]: results.data.map(d => d?.issue?.id) },
     //   },
     // }
     // const getRelatedIssuesPromise = measureTime(() => getIssues(issuesRequest, this.app!), 'articles.find.db.issues')
@@ -589,22 +589,22 @@ export class ContentItemService implements IContentItemService {
     //   ([addonsIndex, issuesIndex]) => ({
     //     ...results,
     //     data: results.data.map((article: Article) => {
-    //       if (article?.issue?.uid != null && issuesIndex[article?.issue?.uid]) {
-    //         article.issue.accessRights = issuesIndex[article.issue.uid].accessRights
+    //       if (article?.issue?.id != null && issuesIndex[article?.issue?.id]) {
+    //         article.issue.accessRights = issuesIndex[article.issue.id].accessRights
     //       }
-    //       if (!addonsIndex[article.uid]) {
-    //         debug('[find] no pages for uid', article.uid)
+    //       if (!addonsIndex[article.id]) {
+    //         debug('[find] no pages for uid', article.id)
     //         return article
     //       }
     //       // add pages
-    //       if (addonsIndex[article.uid].pages) {
+    //       if (addonsIndex[article.id].pages) {
     //         // NOTE [RK]: Checking type of object is a quick fix around cached
     //         // sequelized results. When a result is a plain Object instance it means
     //         // it came from cache. Otherwise it is a model instance and it was
     //         // loaded from the database.
     //         // This should be moved to the SequelizeService layer.
     //         const rewriteRules = this.app?.get('images')?.rewriteRules ?? []
-    //         article.pages = addonsIndex[article.uid].pages.map((d: any) =>
+    //         article.pages = addonsIndex[article.id].pages.map((d: any) =>
     //           withRewrittenIIIF(d.constructor === Object ? d : d.toJSON(), rewriteRules)
     //         )
     //       }
@@ -619,8 +619,8 @@ export class ContentItemService implements IContentItemService {
     // const resolvers = buildResolvers(this.app!)
     // result.data = await Promise.all(
     //   result.data.map(async (item: Article) => {
-    //     item.locations = await Promise.all(item.locations?.map(item => resolvers.location(item.uid)) ?? [])
-    //     item.persons = await Promise.all(item.persons?.map(item => resolvers.person(item.uid)) ?? [])
+    //     item.locations = await Promise.all(item.locations?.map(item => resolvers.location(item.id)) ?? [])
+    //     item.persons = await Promise.all(item.persons?.map(item => resolvers.person(item.id)) ?? [])
     //     return item
     //   })
     // )
@@ -716,8 +716,8 @@ export class ContentItemService implements IContentItemService {
     //       if (article != null) {
     //         const resolvers = buildResolvers(this.app!)
 
-    //         article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.uid)) ?? [])
-    //         article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])
+    //         article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.id)) ?? [])
+    //         article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.id)) ?? [])
 
     //         return Article.assignIIIF(article)
     //       }

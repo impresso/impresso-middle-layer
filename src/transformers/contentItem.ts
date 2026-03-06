@@ -93,7 +93,7 @@
 //     hasOLR: input.semanticEnrichments?.ocrQuality != null,
 //     ocrQualityScore: input.semanticEnrichments?.ocrQuality,
 //     pageNumbers: input.image?.pages?.map(p => p.number).filter(n => n != null) ?? [],
-//     collectionUids: input.semanticEnrichments?.collections?.map(c => c.uid) ?? [],
+//     collectionUids: input.semanticEnrichments?.collections?.map(c => c.id) ?? [],
 
 //     // Authorization information
 //     [AuthorizationBitmapsKey]: {

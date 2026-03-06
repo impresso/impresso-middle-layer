@@ -204,12 +204,12 @@ describe("'search' service", function () {
   //     user: staff,
   //   });
   //
-  //   assert.equal(createBucket.data.uid, 'local-bucket-test-only');
+  //   assert.equal(createBucket.data.id, 'local-bucket-test-only');
   //   assert.equal(createBucket.data.name, 'local-bucket-test-only');
   //   assert.equal(createBucket.info._stats.nodesCreated, 1);
   //
   //   const createBucketsItems = await app.service('buckets-items').create({
-  //     bucket_uid: createBucket.data.uid,
+  //     bucket_uid: createBucket.data.id,
   //     items: [{
   //       label: 'article',
   //       uid: 'GDL-1950-03-29-a-i0138',
@@ -251,7 +251,7 @@ describe("'search' service", function () {
   //   // console.log(res.data[0]);
   //   assert.ok(res.data.length);
   //   assert.ok(res.data[0].matches.length);
-  //   if (res.data[0].uid === 'GDL-1950-03-29-a-i0138') {
+  //   if (res.data[0].id === 'GDL-1950-03-29-a-i0138') {
   //     assert.equal(res.data[0].buckets.length > 0, true);
   //   }
   // });
