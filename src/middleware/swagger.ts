@@ -17,6 +17,8 @@ interface SchemaRef {
   $ref: string
 }
 
+type SchemaRefs = Record<string, SchemaRef>
+
 const resolveSchemaBaseDir = (): string => {
   const candidates = [
     path.join(__dirname, '../schema'),
@@ -60,6 +62,27 @@ const getFilesAsSchemaRefs = (dir: string, prefix: string, required = false): Re
     )
 }
 
+const ensureRequiredSchemas = (schemas: SchemaRefs): SchemaRefs => {
+  const result = { ...schemas }
+
+  if (result.ContentItem == null) {
+    const contentItemSchemaPath = path.join(schemaBaseDir, 'canonical/contentItem/ContentItem.json')
+    if (fs.existsSync(contentItemSchemaPath)) {
+      result.ContentItem = { $ref: './schema/canonical/contentItem/ContentItem.json' }
+      logger.error('Recovered missing Swagger component schema: ContentItem')
+    }
+  }
+
+  if (result.ContentItem == null) {
+    throw new Error(
+      `Swagger component schema "ContentItem" is missing. ` +
+        `schemaBaseDir=${schemaBaseDir}, availableSchemas=${Object.keys(result).join(', ')}`
+    )
+  }
+
+  return result
+}
+
 function getRedirectPrefix({ req, ctx }: any) {
   const headers = (req && req.headers) || (ctx && ctx.headers) || {}
   return headers['x-forwarded-prefix'] ? headers['x-forwarded-prefix'] : ''
@@ -100,6 +123,15 @@ export default (app: ImpressoApplication & Application) => {
   logger.info(`Swagger schema directory: ${schemaBaseDir}`)
 
   const prefix = app.get('publicApiPrefix')
+  const schemas = ensureRequiredSchemas({
+    // canonical schemas
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical`, './schema/canonical', true),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/contentItem`, './schema/canonical/contentItem', true),
+    // app specific schemas
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app`, './schema/app'),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/responses`, './schema/app/responses'),
+  })
 
   const swaggerItem = swagger({
     openApiVersion: 3,
@@ -115,15 +147,7 @@ export default (app: ImpressoApplication & Application) => {
         },
       },
       components: {
-        schemas: {
-          // canonical schemas
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical`, './schema/canonical', true),
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/contentItem`, './schema/canonical/contentItem', true),
-          // app specific schemas
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/app`, './schema/app'),
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/responses`, './schema/app/responses'),
-        },
+        schemas,
         requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
         responses: getFilesAsSchemaRefs(`${schemaBaseDir}/app/responses`, './schema/app/responses'),
         parameters: getFilesAsSchemaRefs(`${schemaBaseDir}/parameters`, './schema/parameters'),
