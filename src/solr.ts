@@ -77,6 +77,14 @@ const defaultRetryOptions: FetchOptions['retryOptions'] = {
 
 export const defaultFetchOptions: FetchOptions = {
   retryOptions: defaultRetryOptions,
+  onUnsuccessfulResponse: async (url, method, body, response) => {
+    logger.error(
+      `Request to Solr endpoint ${url} with method ${method} and body ${JSON.stringify(body).slice(
+        0,
+        200
+      )}[...] failed with status ${response.status} and body: ${(await response.text()).slice(0, 200)}[...]`
+    )
+  },
 }
 
 /**

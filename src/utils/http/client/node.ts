@@ -4,13 +4,26 @@ import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
 import type { IncomingHttpHeaders } from 'undici/types/header.d.ts'
 import { SolrServerProxy } from '../../../configuration.js'
-import { logger } from '../../../logger.js'
 import type { FetchOptions, IFetchClient, IFetchClientOptions } from './base.ts'
 
 interface InitHttpPoolOptions extends IFetchClientOptions {
   maxParallelConnections?: number
   acquireTimeoutSec?: number
 }
+
+const DefaultRequestTimeoutMs = 300 * 1000
+const UndiciDefaultRetryErrorCodes = [
+  'ECONNRESET',
+  'ECONNREFUSED',
+  'ENOTFOUND',
+  'ENETDOWN',
+  'ENETUNREACH',
+  'EHOSTDOWN',
+  'EHOSTUNREACH',
+  'EPIPE',
+  'UND_ERR_SOCKET',
+]
+const HeadersTimeoutRetryErrorCode = 'UND_ERR_HEADERS_TIMEOUT'
 
 function urlSearchParamsToFormData(urlSearchParams: URLSearchParams): FormData {
   const formData = new FormData()
@@ -68,7 +81,7 @@ class ConnectionWrapper implements IFetchClient {
     this.socksProxyOptions = opts.socksProxy
   }
 
-  _createBaseAgent(): Agent {
+  _createBaseAgent(requestTimeoutMs: number): Agent {
     if (this.socksProxyOptions != null) {
       const proxyConfig: SocksProxies = [
         {
@@ -87,10 +100,21 @@ class ConnectionWrapper implements IFetchClient {
       return socksAgent
     } else {
       return new Agent({
-        headersTimeout: 300 * 1000,
-        connectTimeout: 30 * 1000,
-        bodyTimeout: 300 * 1000,
+        headersTimeout: requestTimeoutMs,
+        connectTimeout: requestTimeoutMs,
+        bodyTimeout: requestTimeoutMs,
       })
+    }
+  }
+
+  _buildRetryOptions(retryOptions: RetryHandler.RetryOptions): RetryHandler.RetryOptions {
+    const mergedErrorCodes = Array.from(
+      new Set([...(retryOptions.errorCodes ?? UndiciDefaultRetryErrorCodes), HeadersTimeoutRetryErrorCode])
+    )
+
+    return {
+      ...retryOptions,
+      errorCodes: mergedErrorCodes,
     }
   }
 
@@ -99,49 +123,29 @@ class ConnectionWrapper implements IFetchClient {
 
     if (url instanceof Request) throw new Error('Request object not supported by undici')
 
-    const theUrl: string = url instanceof Request ? url.url : url.toString()
+    const requestTimeoutMs = options?.requestTimeoutMs ?? DefaultRequestTimeoutMs
 
     const agent =
       options?.retryOptions != null
-        ? new RetryAgent(this._createBaseAgent(), {
-            ...(options?.retryOptions ?? {}),
-            // see https://github.com/nodejs/undici/discussions/3072
-            errorCodes: ['UND_ERR_HEADERS_TIMEOUT'],
-            retry: (err, ctx, cb) => {
-              const retryCount = ctx.state.counter
-              // Add type assertion to fix the TypeScript error
-              const opts = ctx.opts as { retryOptions?: RetryHandler.RetryOptions }
-              const maxRetries = opts.retryOptions?.maxRetries ?? 0
-              const shouldRetry = retryCount <= maxRetries
+        ? new RetryAgent(this._createBaseAgent(requestTimeoutMs), this._buildRetryOptions(options.retryOptions))
+        : this._createBaseAgent(requestTimeoutMs)
 
-              const retryConfig = opts.retryOptions
-
-              if (!shouldRetry) {
-                logger.error(`Max retries reached for ${theUrl}. Retry config: ${JSON.stringify(retryConfig)}`)
-                return cb(err)
-              } else {
-                logger.debug(`Retrying request ${retryCount} of ${maxRetries} for ${theUrl}`)
-                cb()
-              }
-            },
-          })
-        : this._createBaseAgent()
-
+    const theUrl: string = url instanceof Request ? url.url : url.toString()
     const result = await request(theUrl, {
       method: init?.method as Dispatcher.HttpMethod,
       headers: init?.headers as IncomingHttpHeaders,
       body: body as any,
+      signal: init?.signal,
       dispatcher: agent,
-      headersTimeout: options?.requestTimeoutMs ?? 300 * 1000,
+      headersTimeout: requestTimeoutMs,
+      bodyTimeout: requestTimeoutMs,
     })
     const response = new XResponse(result)
-    await response.text()
     if (!response.ok) {
       try {
         // Only call the callback if the method and body are valid
         if (options?.onUnsuccessfulResponse && init?.method) {
-          const bodyObj = typeof body === 'object' ? (body as Record<string, any>) : {}
-          options.onUnsuccessfulResponse(theUrl, init.method as string, bodyObj, response)
+          options.onUnsuccessfulResponse(theUrl, init.method as string, body as any, response)
         }
       } catch (error) {
         // do nothing
