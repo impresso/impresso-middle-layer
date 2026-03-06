@@ -152,7 +152,6 @@ const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
   return async (id: string) => {
     const topics = await getTopicsData()
     const topic = topics[id]
-    console.log(')))', { id, topic }, topics)
     if (!topic) return undefined
     return new Topic(topic as unknown as any) as any as ITopic
   }

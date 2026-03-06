@@ -11,7 +11,7 @@ import { UserAccount, getUserAccountsWithAvailablePermissions } from '@/useCases
 import { bigIntToBitString, bitmapsAlign } from '@/util/bigint.js'
 import { safeStringifyJson } from '@/util/jsonCodec.js'
 import {
-  contentItemRedactionPolicyPublicApi,
+  contentItemBlanketRedactionPolicyPublicApi,
   contentItemRedactionPolicyWebApp,
 } from '@/services/content-items/content-items.hooks.js'
 import { imageRedactionPolicy } from '@/services/images/images.hooks.js'
@@ -284,7 +284,7 @@ describe('Bitmap permissions', function () {
           const params = { user: buildSlimUser(testCase), authenticated: true }
           return await service.get(testCase.contentItemId, params)
         },
-        contentItemRedactionPolicyPublicApi,
+        contentItemBlanketRedactionPolicyPublicApi,
         undefined,
         'none'
       )
@@ -309,7 +309,7 @@ describe('Bitmap permissions', function () {
           }
           return await service.find(params)
         },
-        contentItemRedactionPolicyPublicApi,
+        contentItemBlanketRedactionPolicyPublicApi,
         (result, testCase) => {
           assert.strictEqual(
             result.data.length,

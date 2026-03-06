@@ -5,17 +5,7 @@ items:
     valueConverterName: redact
   - jsonPath: $.text.content
     valueConverterName: redact
-  - jsonPath: $.image.lineBreaks
-    valueConverterName: emptyArray
-  - jsonPath: $.image.paragraphBreaks
-    valueConverterName: emptyArray
-  - jsonPath: $.image.regionBreaks
-    valueConverterName: emptyArray
-  - jsonPath: $.image.pages.[*].regionCoordinates
-    valueConverterName: emptyArray
   - jsonPath: $.image.pages.[*].iiif.thumbnailUrl
     valueConverterName: contextNotAllowedImage
-  - jsonPath: $.access.accessBitmaps
-    valueConverterName: emptyObject
   # - jsonPath: $.matches
   #   valueConverterName: emptyArray

@@ -31,9 +31,22 @@ import { dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-export const contentItemRedactionPolicyPublicApi = loadYamlFile(
-  `${__dirname}/resources/contentItemRedactionPolicy.yml`
+/**
+ * Redaction policy that removes fields we don't want to expose in the Public API
+ * regardless of the permissions of the user.
+ */
+export const contentItemBlanketRedactionPolicyPublicApi = loadYamlFile(
+  `${__dirname}/resources/contentItemBlanketRedactionPolicyPublicApi.yml`
 ) as RedactionPolicy
+
+/**
+ * Redaction policy that removes fields we don't want to redact in the Public API
+ * when the user has no permissions.
+ */
+export const contentItemUnauthorisedRedactionPolicyPublicApi = loadYamlFile(
+  `${__dirname}/resources/contentItemUnauthorisedRedactionPolicyPublicApi.yml`
+) as RedactionPolicy
+
 export const contentItemRedactionPolicyWebApp = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
 ) as RedactionPolicy
@@ -145,10 +158,10 @@ export default {
       ...inPublicApiOrWhen(
         [
           transformResponse(transformBaseFind),
-          // transformResponseDataItem(transformContentItem),
+          redactResponseDataItem(contentItemBlanketRedactionPolicyPublicApi),
           // NOTE: Do not check quota in find - transcript is not included
           redactResponseDataItem(
-            contentItemRedactionPolicyPublicApi,
+            contentItemUnauthorisedRedactionPolicyPublicApi,
             unlessHasPermissionAndWithinQuota('getTranscript')
           ),
         ],
@@ -158,8 +171,11 @@ export default {
     ],
     get: [
       ...inPublicApi([
-        // transformResponse(transformContentItem),
-        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermissionAndWithinQuota('getTranscript', 'id')),
+        redactResponse(contentItemBlanketRedactionPolicyPublicApi),
+        redactResponse(
+          contentItemUnauthorisedRedactionPolicyPublicApi,
+          unlessHasPermissionAndWithinQuota('getTranscript', 'id')
+        ),
       ]),
       ...inWebAppApi([redactResponse(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],
