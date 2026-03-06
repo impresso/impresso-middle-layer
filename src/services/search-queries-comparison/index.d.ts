@@ -1,4 +1,11 @@
-import { Filter, Facet } from 'impresso-jscommons'
+import { Filter } from 'impresso-jscommons'
+
+export interface Facet<T extends FilterType> {
+  type: T
+  buckets: SearchFacetBucket[]
+  operators?: FilterOperator[]
+  numBuckets?: number
+}
 
 export interface FacetRequest {
   type: string
