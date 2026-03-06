@@ -19,6 +19,7 @@ import type {
   Response as ExpressResponse,
 } from 'express'
 import { FeathersError } from '@feathersjs/errors'
+import path from 'path'
 
 export default (app: ImpressoApplication & Application) => {
   installMiddleware(app)
@@ -36,6 +37,10 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
   if (!isPublicApi) return
 
   const openApiConfig = app.get('openapi') ?? {}
+  if (openApiConfig.enabled === false) {
+    logger.info('OpenAPI validator middleware is disabled by configuration (openapi.enabled=false)')
+    return
+  }
 
   if (!('docs' in app))
     throw new Error('`docs` property not found in app object. Is swagger initialized? (app.use(swager))')
@@ -120,6 +125,12 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
   const isPublicApi = app.get('isPublicApi')
   if (!isPublicApi) return await next()
 
+  const openApiConfig = app.get('openapi') ?? {}
+  if (openApiConfig.enabled === false) {
+    logger.info('Skipping OpenAPI validator initialisation (openapi.enabled=false)')
+    return await next()
+  }
+
   logger.info('Initialising OpenAPI validator middleware')
 
   if (!('docs' in app))
@@ -133,11 +144,17 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
       'OpenAPI middleware options not found. Have you called the `init` hook before installing the middleware?'
     )
 
-  try {
-    await dereferenceSpec(spec)
-  } catch (error) {
-    logger.error('Failed to dereference OpenAPI spec', error)
-    throw error
+  const shouldDereferenceSpec = openApiConfig.validateSpec !== false
+  if (shouldDereferenceSpec) {
+    recoverMissingComponentSchemas(spec)
+    try {
+      await dereferenceSpec(spec)
+    } catch (error) {
+      logger.error('Failed to dereference OpenAPI spec', error)
+      throw error
+    }
+  } else {
+    logger.warn('Skipping OpenAPI spec dereference because openapi.validateSpec=false')
   }
 
   const middlewares = OpenApiValidator.middleware({ ...options, apiSpec: spec })
@@ -175,4 +192,106 @@ const dereferenceSpec = async (spec: OpenAPIV3.DocumentV3) => {
       },
     },
   })
+}
+
+const COMPONENT_SCHEMA_REF_PATTERN = /^#\/components\/schemas\/([^/]+)$/
+
+const collectReferencedSchemas = (input: unknown, collector = new Set<string>()): Set<string> => {
+  if (input == null) {
+    return collector
+  }
+
+  if (Array.isArray(input)) {
+    input.forEach(item => collectReferencedSchemas(item, collector))
+    return collector
+  }
+
+  if (typeof input !== 'object') {
+    return collector
+  }
+
+  const asRecord = input as Record<string, unknown>
+  const ref = asRecord.$ref
+  if (typeof ref === 'string') {
+    const match = ref.match(COMPONENT_SCHEMA_REF_PATTERN)
+    if (match?.[1] != null) {
+      collector.add(match[1])
+    }
+  }
+
+  Object.values(asRecord).forEach(value => collectReferencedSchemas(value, collector))
+  return collector
+}
+
+const toSpecSchemaRefPath = (absolutePath: string): string | undefined => {
+  const cwd = process.cwd()
+  const srcSchemaRoot = path.join(cwd, 'src/schema') + path.sep
+  const schemaRoot = path.join(cwd, 'schema') + path.sep
+
+  if (absolutePath.startsWith(srcSchemaRoot)) {
+    const relativePath = absolutePath.slice(srcSchemaRoot.length).replaceAll(path.sep, '/')
+    return `./schema/${relativePath}`
+  }
+
+  if (absolutePath.startsWith(schemaRoot)) {
+    const relativePath = absolutePath.slice(schemaRoot.length).replaceAll(path.sep, '/')
+    return `./schema/${relativePath}`
+  }
+
+  return undefined
+}
+
+const resolveComponentSchemaRef = (schemaName: string): string | undefined => {
+  const cwd = process.cwd()
+  const candidateRoots = [path.join(cwd, 'src/schema'), path.join(cwd, 'schema')]
+  const candidateDirs = ['canonical', 'canonical/contentItem', 'app', 'app/requests', 'app/responses', 'parameters']
+
+  for (const rootDir of candidateRoots) {
+    for (const subDir of candidateDirs) {
+      const absolutePath = path.join(rootDir, subDir, `${schemaName}.json`)
+      if (!fs.existsSync(absolutePath)) continue
+
+      const specRefPath = toSpecSchemaRefPath(absolutePath)
+      if (specRefPath != null) {
+        return specRefPath
+      }
+    }
+  }
+
+  return undefined
+}
+
+const recoverMissingComponentSchemas = (spec: OpenAPIV3.DocumentV3): void => {
+  spec.components = spec.components ?? {}
+  spec.components.schemas = spec.components.schemas ?? {}
+
+  const referencedSchemas = collectReferencedSchemas(spec)
+  const existingSchemas = spec.components.schemas as Record<string, unknown>
+  const missingSchemas = [...referencedSchemas].filter(schemaName => existingSchemas[schemaName] == null)
+
+  if (missingSchemas.length === 0) {
+    return
+  }
+
+  const recovered: string[] = []
+  const unresolved: string[] = []
+
+  for (const schemaName of missingSchemas) {
+    const schemaRef = resolveComponentSchemaRef(schemaName)
+    if (schemaRef == null) {
+      unresolved.push(schemaName)
+      continue
+    }
+
+    existingSchemas[schemaName] = { $ref: schemaRef }
+    recovered.push(`${schemaName}=>${schemaRef}`)
+  }
+
+  if (recovered.length > 0) {
+    logger.warn(`Recovered missing OpenAPI component schemas: ${recovered.join(', ')}`)
+  }
+
+  if (unresolved.length > 0) {
+    logger.error(`Unresolved OpenAPI component schemas: ${unresolved.join(', ')}`)
+  }
 }
