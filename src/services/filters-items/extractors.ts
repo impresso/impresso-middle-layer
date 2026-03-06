@@ -43,9 +43,9 @@ async function entityExtractor({ q = '' }, app: ImpressoApplication) {
   const items = Array.isArray(q) ? q : [q]
   const mappedItems = await Promise.all(
     items.map(async item => {
-      const uid = item.trim()
-      const type = getTypeFromId(uid)
-      return type === 'person' ? await resolvers.person(uid) : await resolvers.location(uid)
+      const id = item.trim()
+      const type = getTypeFromId(id)
+      return type === 'person' ? await resolvers.person(id) : await resolvers.location(id)
     })
   )
   return mappedItems.filter(item => item != null)
@@ -81,7 +81,7 @@ function numberRangeExtractor({ q = '' }) {
 
 function simpleValueExtractor({ q = '' }) {
   const items = Array.isArray(q) ? q : [q.trim()]
-  return items.map(uid => ({ uid }))
+  return items.map(id => ({ id }))
 }
 
 const getImageTypeExtractor = (
