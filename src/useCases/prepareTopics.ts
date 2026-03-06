@@ -377,8 +377,13 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
   })
 
   const pageranks = pagerank(graph, { alpha: 0.9, getEdgeWeight: 1 })
-  // @ts-ignore
-  const communities = louvain(graph)
+  let communities: Record<string, number> = {}
+  try {
+    // @ts-ignore
+    communities = louvain(graph)
+  } catch (error) {
+    console.warn('Error computing communities:', (error as Error).message)
+  }
 
   const { hubs = undefined, authorities = undefined } = getHits(graph)
 

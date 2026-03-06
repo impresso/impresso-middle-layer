@@ -124,8 +124,6 @@ const entityResolver = async (id: string, type: CachedFacetType) =>
   }) as any as IEntity
 
 const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
-  let topicsById: Record<string, ITopic> | null = null
-
   const loadTopicsData = async (): Promise<Record<string, ITopic>> => {
     const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
     const deserialisedTopics: InternalTopic[] = JSON.parse(result ?? '[]')
@@ -144,18 +142,17 @@ const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
       },
       {} as Record<string, ITopic>
     )
-    topicsById = byId
     return byId
   }
 
   const getTopicsData = async (): Promise<Record<string, ITopic>> => {
-    if (topicsById != null) return topicsById
     return await loadTopicsData()
   }
 
   return async (id: string) => {
     const topics = await getTopicsData()
     const topic = topics[id]
+    console.log(')))', { id, topic }, topics)
     if (!topic) return undefined
     return new Topic(topic as unknown as any) as any as ITopic
   }
