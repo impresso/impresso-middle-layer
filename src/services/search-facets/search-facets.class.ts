@@ -2,8 +2,8 @@ import { Params } from '@feathersjs/feathers'
 import { pick } from 'lodash-es'
 import { isNumber, SolrMappings } from '@/data/constants.js'
 import { FindResponse } from '@/models/common.js'
-import type { SearchFacet } from '@/models/generated/schemas.js'
-import type { Filter } from '@/models/generated/shared.js'
+import type { SearchFacet } from '@/models/generated/deprecated/models.js'
+import type { Filter } from '@/models/generated/canonical.js'
 import { SearchFacet as SearchFacetModel } from '@/models/search-facets.model.js'
 import { ImpressoApplication } from '@/types.js'
 import { areCacheableFacets, isCacheableQuery } from '@/util/cache.js'
@@ -26,6 +26,7 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 
 import Debug from 'debug'
 import { toPair } from '@/solr/queries/collections.js'
+import { CachedFacetType, buildResolvers, ICachedResolvers } from '@/internalServices/cachedResolvers.js'
 const debug = Debug('impresso/services:search-facets')
 
 type FacetMetadata = any
@@ -321,12 +322,117 @@ export class Service {
   name: string
   index: IndexId
   solr: SimpleSolrClient
+  _cachedResolvers: ICachedResolvers | undefined = undefined
 
   constructor({ app, name, index }: ServiceOptions) {
     this.app = app
     this.name = name
     this.index = index
     this.solr = app.service('simpleSolrClient')
+  }
+
+  getCachedResolvers(): ICachedResolvers {
+    if (this._cachedResolvers == null) {
+      this._cachedResolvers = buildResolvers(this.app)
+    }
+    return this._cachedResolvers
+  }
+
+  private static readonly FacetResolverByType: Partial<Record<string, CachedFacetType>> = {
+    newspaper: 'mediaSource',
+    topic: 'topic',
+    person: 'person',
+    location: 'location',
+    collection: 'collection',
+    year: 'year',
+    partner: 'partner',
+    nag: 'nag',
+    organisation: 'organisation',
+    imageVisualContent: 'imageVisualContent',
+    imageTechnique: 'imageTechnique',
+    imageCommunicationGoal: 'imageCommunicationGoal',
+    imageContentType: 'imageContentType',
+    dataDomain: 'dataDomain',
+    copyright: 'copyright',
+    type: 'contentItemType',
+  }
+
+  private isTermFacetBucket(bucket: unknown): bucket is { value: string | number; label?: string; item?: unknown } {
+    return typeof bucket === 'object' && bucket != null && 'value' in bucket
+  }
+
+  private getBucketLabelFromItem(facetType: string, item: unknown): string | undefined {
+    if (item == null || typeof item !== 'object') return undefined
+    const candidate = item as {
+      words?: { w: string; p?: number }[]
+      title?: string
+      name?: string
+      label?: string
+      id?: string | number
+    }
+
+    switch (facetType) {
+      case 'topic':
+        return candidate.words?.map(({ w, p }) => `${w}${p != null ? ` (${p})` : ''}`).join(', ')
+      case 'collection':
+      case 'partner':
+        return candidate.title
+      case 'newspaper':
+      case 'person':
+      case 'location':
+      case 'nag':
+      case 'organisation':
+        return candidate.name
+      case 'imageVisualContent':
+      case 'imageTechnique':
+      case 'imageCommunicationGoal':
+      case 'imageContentType':
+      case 'dataDomain':
+      case 'copyright':
+      case 'type':
+        return candidate.label
+      case 'year':
+        return candidate.id != null ? String(candidate.id) : undefined
+      default:
+        return candidate.label
+    }
+  }
+
+  async withFacetBucketLabels(facet: SearchFacet): Promise<SearchFacet> {
+    const resolverType = Service.FacetResolverByType[facet.type]
+    const resolver = resolverType != null ? this.getCachedResolvers()[resolverType] : undefined
+
+    const updatedBuckets = await Promise.all(
+      facet.buckets.map(async bucket => {
+        if (!this.isTermFacetBucket(bucket) || bucket.label != null) return bucket
+
+        const labelFromExistingItem = this.getBucketLabelFromItem(facet.type, bucket.item)
+        if (labelFromExistingItem != null) {
+          return {
+            ...bucket,
+            label: labelFromExistingItem,
+          }
+        }
+
+        if (resolver == null || bucket.value == null) return bucket
+
+        const resolvedItem = await resolver(String(bucket.value))
+        const resolvedLabel = this.getBucketLabelFromItem(facet.type, resolvedItem)
+        if (resolvedLabel == null) return bucket
+
+        return {
+          ...bucket,
+          label: resolvedLabel,
+        }
+      })
+    )
+
+    facet.buckets = updatedBuckets as any
+    return facet
+  }
+
+  async withFacetLabels(facets: SearchFacet[]): Promise<SearchFacet[]> {
+    return await Promise.all(facets.map(async facet => await this.withFacetBucketLabels(facet)))
   }
 
   async get(type: string, params: Params<GetQuery>): Promise<SearchFacet> {
@@ -351,7 +457,8 @@ export class Service {
       sanitizedParams
     )
 
-    return result[0]
+    const [facetWithLabels] = await this.withFacetLabels(result)
+    return facetWithLabels
   }
 
   async find(params: Params<FindQuery>): Promise<FindResponse<SearchFacet>> {
@@ -371,9 +478,10 @@ export class Service {
       (params as any)?.user?.id,
       sanitizedParams
     )
+    const resultWithLabels = await this.withFacetLabels(result)
 
     return {
-      data: result,
+      data: resultWithLabels,
       limit: facetsq.limit ?? 0,
       offset: facetsq.offset ?? 0,
       total: 0,

@@ -6,13 +6,14 @@ export const getDocs = (): ServiceSwaggerOptions => ({
   multi: ['patch'],
   securities: ['find', 'patchMulti'],
   operations: {
+    patch: false,
     find: {
-      operationId: 'admin',
-      description: 'Get admin information',
+      operationId: 'adminFind',
+      description: 'Admin Get Response',
       parameters: [],
       responses: getStandardResponses({
         method: 'find',
-        schema: 'admin',
+        schema: 'AdminGetResponse',
         isPublic: true,
         standardPagination: false,
       }),

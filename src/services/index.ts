@@ -49,8 +49,8 @@ import textReuseClusterPassages from './text-reuse-cluster-passages/text-reuse-c
 import filtersItems from './filters-items/filters-items.service.js'
 import stats from './stats/stats.service.js'
 import articlesRecommendations from './articles-recommendations/articles-recommendations.service.js'
-import articlesSearch from './articles-search/articles-search.service.js'
-import entitiesSuggestions from './entities-suggestions/entities-suggestions.service.js'
+// import articlesSearch from './articles-search/articles-search.service.js'
+// import entitiesSuggestions from './entities-suggestions/entities-suggestions.service.js'
 import entityMentionsTimeline from './entity-mentions-timeline/entity-mentions-timeline.service.js'
 import subscriptions from './subscriptions/subscriptions.service.js'
 import textReuseConnectedClusters from './text-reuse-connected-clusters/text-reuse-connected-clusters.service.js'
@@ -123,8 +123,8 @@ const internalApiServices = [
   { name: 'filters-items', init: filtersItems },
   { name: 'stats', init: stats },
   { name: 'articles-recommendations', init: articlesRecommendations },
-  { name: 'articles-search', init: articlesSearch },
-  { name: 'entities-suggestions', init: entitiesSuggestions },
+  // { name: 'articles-search', init: articlesSearch },
+  // { name: 'entities-suggestions', init: entitiesSuggestions },
   { name: 'entity-mentions-timeline', init: entityMentionsTimeline },
   { name: 'subscriptions', init: subscriptions },
   { name: 'text-reuse-connected-clusters', init: textReuseConnectedClusters },

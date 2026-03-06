@@ -120,7 +120,7 @@ export const getContentItemsPermissionsDetails = async (
 const toPermissionDetails = (buckets: Bucket[]): Omit<PermissionDetails, 'sample'>[] => {
   return buckets.map(bucket => {
     // Value can be either a number (if it fits) or a bigint (if it doesn't)
-    const bitmap = typeof bucket.val === 'bigint' ? bucket.val! : BigInt(bucket.val! as number)
+    const bitmap = typeof bucket.value === 'bigint' ? bucket.value! : BigInt(bucket.val! as number)
 
     return {
       bitmap,

@@ -152,7 +152,7 @@ function buildEntityResponse(entity, facetSearchResult) {
   const thumbnailUrl = get(entity, 'wikidata.images.0.value')
   return {
     type: 'entity',
-    id: entity.uid,
+    id: entity.id,
     label: entity.name,
     entityType: entity.type,
     wikidataId: entity.wikidataId,

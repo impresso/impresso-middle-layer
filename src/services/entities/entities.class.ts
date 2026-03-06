@@ -84,7 +84,7 @@ class Service {
         where: sequelizeWikidataFindEntitiesCondition,
       })
 
-      constraintIds = records.data.map((d: any) => d.uid)
+      constraintIds = records.data.map((d: any) => d.id)
     }
 
     debug('[find] constraintIds:', constraintIds)
@@ -133,7 +133,7 @@ class Service {
     // generate the sequelize clause.
     const where = {
       id: {
-        [Op.in]: entities?.map((d: any) => d.uid),
+        [Op.in]: entities?.map((d: any) => d.id),
       },
     }
     // get sequelize results
@@ -151,19 +151,19 @@ class Service {
     )
 
     // entities from sequelize, containing wikidata and dbpedia urls
-    const sequelizeEntitiesIndex = keyBy(sequelizeResult.data, 'uid')
+    const sequelizeEntitiesIndex = keyBy(sequelizeResult.data, 'id')
     const result = {
       total: solrResult.response?.numFound,
       limit: qp.limit,
       offset: qp.offset,
       data: entities?.map((d: any) => {
-        if (sequelizeEntitiesIndex[d.uid]) {
+        if (sequelizeEntitiesIndex[d.id]) {
           // enrich with wikidataID
-          d.wikidataId = sequelizeEntitiesIndex[d.uid].wikidataId
+          d.wikidataId = sequelizeEntitiesIndex[d.id].wikidataId
         }
 
         // enrich with fragments, if any provided:
-        const matches = (solrResult.highlighting?.[d.uid] as IEntitySolrHighlighting)?.[suggestField]
+        const matches = (solrResult.highlighting?.[d.id] as IEntitySolrHighlighting)?.[suggestField]
         if (matches) {
           d.matches = matches
         }

@@ -4,7 +4,7 @@ import { DataTypes } from 'sequelize'
 
 export default class SearchQuery {
   constructor({
-    uid = '',
+    id = '',
     name = '',
     description = '',
     data = '',
@@ -13,7 +13,7 @@ export default class SearchQuery {
     creator,
     countItems = -1,
   }) {
-    this.uid = String(uid)
+    this.id = String(id)
     this.name = String(name)
     this.description = String(description)
     this.data = String(data)
@@ -23,9 +23,9 @@ export default class SearchQuery {
 
     this.creator = creator
 
-    if (!this.uid.length) {
+    if (!this.id.length) {
       const hash = crypto.createHash('md5').update(this.data).digest('hex')
-      this.uid = `${this.creator.uid}-${hash}` //= > "local-useruid-7hy8hvrX"
+      this.id = `${this.creator.uid}-${hash}` //= > "local-useruid-7hy8hvrX"
     }
   }
 
@@ -35,11 +35,12 @@ export default class SearchQuery {
     const searchQuery = client.define(
       'searchquery',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING,
           allowNull: false,
           unique: true,
           field: 'id',
+          primaryKey: true,
         },
         name: {
           type: DataTypes.STRING,
@@ -98,7 +99,7 @@ export default class SearchQuery {
 
     searchQuery.prototype.toJSON = function (obfuscate = true) {
       const sq = new SearchQuery({
-        uid: this.uid,
+        id: this.id,
         name: this.name,
         data: this.data,
         description: this.description,

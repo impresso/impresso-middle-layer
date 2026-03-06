@@ -1,6 +1,9 @@
 import { ArticlesSearch } from './articles-search.class.js'
 import hooks from './articles-search.hooks.js'
 
+/**
+ * @deprecated Not used anywhere.
+ */
 export default function (app) {
   const options = {}
 

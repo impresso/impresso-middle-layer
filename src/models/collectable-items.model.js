@@ -15,7 +15,6 @@ const CONTENT_TYPES = {
 class CollectableItem {
   constructor({
     id = -1,
-    uid = null,
     itemId = '',
     contentType = '',
     collection = null,
@@ -23,7 +22,6 @@ class CollectableItem {
     dateAdded = new Date(),
   } = {}) {
     this.id = parseInt(id, 10)
-    this.uid = String(uid || this.id)
     this.itemId = String(itemId)
     this.contentType = String(contentType)
 
@@ -32,7 +30,7 @@ class CollectableItem {
     } else if (collection) {
       // note: this avoids sequelize error
       // ```
-      // cannot destructure property `uid` of 'undefined' or 'null'.
+      // cannot destructure property `id` of 'undefined' or 'null'.
       // ```
       this.collection = new Collection(collection)
     }

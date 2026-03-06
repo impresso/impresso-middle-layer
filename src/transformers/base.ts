@@ -1,5 +1,5 @@
-import { BaseFind } from '@/models/generated/schemas.js'
-import { BaseFindResponse as BaseFindPublic } from '@/models/generated/schemasPublic.js'
+import { BaseFind } from '@/models/generated/deprecated/internalApi.js'
+import { BaseFindResponse as BaseFindPublic } from '@/models/generated/app/responses.js'
 
 interface NextCursorMarkMixin {
   nextCursorMark?: string

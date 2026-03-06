@@ -5,7 +5,7 @@ import { SolrFacetQueryParams } from '@/data/types.js'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { SelectRequestBody, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { getWidestInclusiveTimeInterval } from '@/logic/filters/timeInterval.js'
-import { FacetTypeGroup, SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
+import { FacetTypeGroup, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { ImpressoApplication } from '@/types.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from '@/services/stats/common.js'
@@ -23,7 +23,7 @@ const TemporalResolution = Object.freeze({
   Day: 'day',
 })
 
-type FacetLabel = 'topic' | 'newspaper' | 'person' | 'location' | 'language' | 'country' | 'type'
+type FacetLabel = 'topic' | 'mediaSource' | 'person' | 'location' | 'language' | 'country' | 'type'
 type LabelExtractor = (id: string) => Promise<string>
 
 const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelExtractor> => {
@@ -34,9 +34,9 @@ const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelE
       if (topic == null) return key
       return topic.words?.map(({ w }: any) => w)?.join(', ') ?? ''
     },
-    newspaper: async (key: string) => {
-      const newspaper = await resolvers.newspaper(key)
-      return newspaper == null ? key : newspaper.name
+    mediaSource: async (key: string) => {
+      const mediaSource = await resolvers.mediaSource(key)
+      return mediaSource == null ? key : mediaSource.name
     },
     person: async (key: string) => {
       const entity = await resolvers.person(key)

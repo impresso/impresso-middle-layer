@@ -1,6 +1,6 @@
 import User from '@/models/users.model.js'
 import { nanoid } from 'nanoid'
-import { Collection as ICollection } from '@/models/generated/schemas.js'
+import { Collection as ICollection } from '@/models/generated/canonical.js'
 import { ModelDefined, Sequelize } from 'sequelize'
 
 import { DataTypes } from 'sequelize'
@@ -16,7 +16,7 @@ type IDBCollection = Omit<ICollection, 'creationDate' | 'lastModifiedDate' | 'cr
   lastModifiedDate: Date
 }
 
-export type CollectionDbModel = ModelDefined<IDBCollection, Omit<IDBCollection, 'uid'>>
+export type CollectionDbModel = ModelDefined<IDBCollection, Omit<IDBCollection, 'id'>>
 
 /**
  * New ID of a collection. Format: "local-useruid-7hy8hvrX"
@@ -29,7 +29,7 @@ export const createCollectionId = (userId: string) => `${userId}-${nanoid(8)}`
  * @deprecated use `user-collection.ts` instead.
  */
 export default class Collection implements IDBCollection {
-  uid: string
+  id: string
   name: string
   description: string
   status: string
@@ -41,7 +41,7 @@ export default class Collection implements IDBCollection {
 
   constructor(
     {
-      uid = '',
+      id = '',
       name = '',
       description = '',
       labels = ['bucket', 'collection'],
@@ -53,7 +53,7 @@ export default class Collection implements IDBCollection {
     } = {},
     { complete = false } = {}
   ) {
-    this.uid = String(uid)
+    this.id = String(id)
     this.labels = labels
     this.name = String(name)
     this.description = String(description)
@@ -73,8 +73,8 @@ export default class Collection implements IDBCollection {
       this.creator = new User(creator)
     }
 
-    if (!this.uid.length) {
-      this.uid = createCollectionId(this.creator?.uid!)
+    if (!this.id.length) {
+      this.id = createCollectionId(this.creator?.uid!)
     }
 
     if (complete) {
@@ -91,7 +91,7 @@ export default class Collection implements IDBCollection {
       createdAt: this.creationDate.toISOString(),
       title: this.name,
       accessLevel: this.status === STATUS_PRIVATE ? 'private' : 'public',
-      uid: this.uid,
+      id: this.id,
     }
   }
 
@@ -102,7 +102,7 @@ export default class Collection implements IDBCollection {
     const collection = client.define(
       'collection',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING(50),
           primaryKey: true,
           unique: true,

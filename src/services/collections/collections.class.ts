@@ -4,8 +4,8 @@ import { InferAttributes, Op, Sequelize, WhereOptions } from 'sequelize'
 import { SlimUser } from '@/authentication.js'
 import { QueueService } from '@/internalServices/queue.js'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
-import type { Collection } from '@/models/generated/schemasPublic.js'
-import { NewCollectionRequest } from '@/models/generated/shared.js'
+import type { Collection } from '@/models/generated/canonical.js'
+import { NewCollectionRequest } from '@/models/generated/app/requests.js'
 import UserCollection, { IUserCollection } from '@/models/user-collection.js'
 import type { ImpressoApplication } from '@/types.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
@@ -19,7 +19,7 @@ import {
 } from '@/solr/queries/collections.js'
 import { createCollectionId } from '@/models/collections.model.js'
 
-export type CollectionsPatch = Partial<Omit<Collection, 'uid'>>
+export type CollectionsPatch = Partial<Omit<Collection, 'id'>>
 export type CollectionsFindResult = FindResponse<Collection>
 
 export interface CollectionsQuery {
@@ -53,7 +53,7 @@ export type ICollectionsService = Omit<
 const dbToCollection = (dbModel: IUserCollection): Collection => {
   if (dbModel.status === 'DEL') throw new Error('Cannot convert deleted collection')
   return {
-    uid: dbModel.id,
+    id: dbModel.id,
     title: dbModel.name,
     description: dbModel.description ?? '',
     accessLevel: dbModel.status === 'PRI' ? 'private' : 'public',

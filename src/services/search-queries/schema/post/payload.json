@@ -1,27 +1,31 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/search-queries/schema/post/payload.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "description": "Request payload for POST /search-queries",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "name": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/search-query.model.json#/properties/name"
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50
     },
     "description": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/search-query.model.json#/properties/description"
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 1000
     },
     "data": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/search-query.model.json#/properties/data"
+      "type": "string",
+      "minLength": 2,
+      "title": "Buffered JSON object containing an array of filters",
+      "examples": ["KgZhYmMxMjM="]
     },
     "countItems": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/models/search-query.model.json#/properties/countItems"
+      "type": ["integer", "string"],
+      "title": "Number of results when the search was saved",
+      "default": 0,
+      "examples": [3245]
     }
   },
-  "required": [
-    "name",
-    "description",
-    "data",
-    "countItems"
-  ]
+  "required": ["name", "description", "data", "countItems"]
 }

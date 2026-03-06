@@ -1,6 +1,6 @@
 import assert from 'assert'
 import app from '@/app.js'
-import { SequelizeConfig } from '@/models/generated/common.js'
+import { SequelizeConfig } from '@/models/generated/app/configuration.js'
 import SpecialMembershipAccess, {
   ISpecialMembershipAccessAttributes,
 } from '@/models/special-membership-access.model.js'

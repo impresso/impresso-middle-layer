@@ -9,7 +9,7 @@ import CollectableItem from './collectable-items.model.js'
 import ContentItemPage from './content-item-page.model.js'
 
 interface ContentItemAttributes {
-  uid: string
+  id: string
   v: string
   creationDate: Date
   pages?: ContentItemPage[]
@@ -18,13 +18,13 @@ interface ContentItemAttributes {
 export type ContentItemDbModel = ModelDefined<ContentItemAttributes, Omit<ContentItemAttributes, 'id'>>
 
 export default class ContentItem implements ContentItemAttributes {
-  uid: string
+  id: string
   v: string
   creationDate: Date
   pages: ContentItemPage[]
 
-  constructor({ uid, v, creationDate, pages }: ContentItemAttributes) {
-    this.uid = uid
+  constructor({ id, v, creationDate, pages }: ContentItemAttributes) {
+    this.id = id
     this.v = v
     this.creationDate = creationDate
     this.pages = pages ?? []
@@ -38,7 +38,7 @@ export default class ContentItem implements ContentItemAttributes {
     const contentItem = client.define(
       'contentItem',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING(50),
           primaryKey: true,
           field: 'id',

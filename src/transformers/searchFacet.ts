@@ -1,26 +1,33 @@
-import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
+import { HookContext } from '@feathersjs/feathers'
 
+import { BaseFindResponse } from '@/models/generated/app/responses.js'
+import { Collection, Entity, FacetWithLabel, MediaSource, SearchFacetBucket } from '@/models/generated/canonical.js'
 import {
-  Collection,
   SearchFacet,
   SearchFacetBucket as SearchFacetBucketInternal,
   SearchFacetRangeBucket,
-} from '@/models/generated/schemas.js'
-import { SearchFacetBucket, BaseFindResponse } from '@/models/generated/schemasPublic.js'
-import Newspaper from '@/models/newspapers.model.js'
-import Entity from '@/models/entities.model.js'
+} from '@/models/generated/deprecated/models.js'
 import Topic from '@/models/topics.model.js'
-import { FacetWithLabel } from '@/models/generated/shared.js'
 
 interface FacetContainer extends BaseFindResponse {
   data: SearchFacetBucket[]
 }
 
-const transformBucket = (
-  input: SearchFacetBucketInternal | SearchFacetRangeBucket,
-  facetType: string
-): SearchFacetBucket => {
+const isSearchFacetBucketWithLabel = (
+  input: SearchFacetBucket | SearchFacetRangeBucket
+): input is SearchFacetBucket & { label: string } => {
+  if ((input as any)['lower'] || (input as any)['upper']) return false
+  return 'label' in input && input.label != null
+}
+
+type Input = SearchFacetBucket | SearchFacetBucketInternal | SearchFacetRangeBucket
+
+const isInternalBucketWithItem = (input: Input): input is SearchFacetBucketInternal => {
+  return 'item' in input
+}
+
+const transformBucket = (input: Input, facetType: string): SearchFacetBucket => {
   switch (facetType) {
     case 'contentLength':
     case 'month':
@@ -29,7 +36,7 @@ const transformBucket = (
     case 'textReuseClusterDayDelta':
       return {
         count: input.count,
-        value: typeof input.val === 'string' ? parseInt(input.val) : input.val,
+        value: typeof input.value !== 'number' ? parseInt(String(input.value)) : input.value,
       }
     case 'country':
     case 'type':
@@ -39,53 +46,62 @@ const transformBucket = (
     case 'copyright':
       return {
         count: input.count,
-        value: String(input.val),
+        value: String(input.value),
+        ...(isSearchFacetBucketWithLabel(input) ? { label: String(input.label) } : {}),
       }
     case 'topic':
-      const topicItem = (input as any)?.item as Topic
+      const topicItem = isInternalBucketWithItem(input) ? (input.item as Topic) : undefined
+      const topicLabel =
+        (isSearchFacetBucketWithLabel(input) ? input.label : undefined) ??
+        topicItem?.words?.map(({ w, p }) => `${w} (${p})`).join(', ')
       return {
         count: input.count,
-        value: String(input.val),
-        label: topicItem?.words?.map(({ w, p }) => `${w} (${p})`).join(', '),
+        value: String(input.value),
+        ...(topicLabel != null ? { label: topicLabel } : {}),
       }
     case 'collection':
-      const collectionItem = (input as any)?.item as Collection
+      const collectionItem = isInternalBucketWithItem(input) ? (input.item as Collection) : undefined
+      const collectionLabel = isSearchFacetBucketWithLabel(input) ? input.label : collectionItem?.title
       return {
         count: input.count,
-        value: String(input.val),
-        label: collectionItem != null ? collectionItem.title : undefined,
+        value: String(input.value),
+        ...(collectionLabel != null ? { label: collectionLabel } : {}),
       }
     case 'newspaper':
-      const newspaperItem = (input as any)?.item as Newspaper
+      const newspaperItem = isInternalBucketWithItem(input) ? (input.item as MediaSource) : undefined
+      const newspaperLabel = isSearchFacetBucketWithLabel(input) ? input.label : newspaperItem?.name
       return {
         count: input.count,
-        value: String(input.val),
-        label: newspaperItem?.name,
+        value: String(input.value),
+        ...(newspaperLabel != null ? { label: newspaperLabel } : {}),
       }
     case 'person':
     case 'location':
     case 'nag':
     case 'organisation':
-      const entityItem = (input as any)?.item as Entity
+      const entityItem = isInternalBucketWithItem(input) ? (input.item as Entity) : undefined
+      const entityLabel = isSearchFacetBucketWithLabel(input) ? input.label : entityItem?.name
       return {
         count: input.count,
-        value: String(input.val),
-        label: entityItem.name,
+        value: String(input.value),
+        ...(entityLabel != null ? { label: entityLabel } : {}),
       }
     case 'imageVisualContent':
     case 'imageTechnique':
     case 'imageCommunicationGoal':
     case 'imageContentType':
-      const facetItem = (input as any)?.item as FacetWithLabel
+      const facetItem = isInternalBucketWithItem(input) ? (input.item as FacetWithLabel) : undefined
+      const facetLabel = isSearchFacetBucketWithLabel(input) ? input.label : facetItem?.label
       return {
         count: input.count,
-        value: String(input.val),
-        label: facetItem?.label,
+        value: String(input.value),
+        ...(facetLabel != null ? { label: facetLabel } : {}),
       }
     default:
       return {
         count: input.count,
-        value: input.val,
+        value: input.value ?? '',
+        ...(isSearchFacetBucketWithLabel(input) ? { label: input.label } : {}),
       }
   }
 }

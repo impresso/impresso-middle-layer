@@ -1,39 +1,29 @@
 import { buildResolvers, CachedFacetType, ICachedResolvers } from '@/internalServices/cachedResolvers.js'
+import { ImpressoApplication } from '@/types.js'
 import {
-  SearchFacet as ISearchFacet,
   SearchFacetBucket as ISearchFacetBucket,
   SearchFacetRangeBucket as ISearchFacetRangeBucket,
-  Topic as ITopic,
-  Year as IYear,
-  Entity as IEntity,
-  Collection as ICollection,
-  Newspaper as INewspaper,
-  Partner as IPartner,
-} from '@/models/generated/schemas.js'
-import { ImpressoApplication } from '@/types.js'
-import { FacetWithLabel } from '@/models/generated/shared.js'
+  SearchFacet as ISearchFacet,
+} from '@/models/generated/deprecated/models.js'
 
 type FacetType = 'newspaper' | 'language' | 'topic' | 'person' | 'location' | 'collection' | 'year'
 
 interface SearchFacetBucketOptions {
   val: string
   count: number
-  uid?: string
-  item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
+  item?: ISearchFacetBucket['item']
 }
 
 class SearchFacetBucket implements ISearchFacetBucket {
   public count: number
-  public val: string
-  public uid?: string
-  public item?: ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
+  public value: string
+  public item?: ISearchFacetBucket['item']
   public lower?: number
   public upper?: number
 
-  constructor({ val, uid, count, item }: SearchFacetBucketOptions) {
+  constructor({ val, count, item }: SearchFacetBucketOptions) {
     this.count = typeof count == 'string' ? parseInt(count, 10) : count
-    this.val = val
-    this.uid = uid
+    this.value = val
     this.item = item
   }
 
@@ -41,15 +31,13 @@ class SearchFacetBucket implements ISearchFacetBucket {
     { type, val, count }: Pick<SearchFacetBucketOptions, 'val' | 'count'> & { type: FacetType },
     resolvers: ICachedResolvers
   ) {
-    const uid = String(val)
     const resolver = resolvers[type as CachedFacetType]
 
-    const item = resolver != null ? await resolver(uid) : undefined
+    const item = resolver != null ? await resolver(val) : undefined
 
     return new SearchFacetBucket({
       val,
       count: typeof count == 'string' ? parseInt(count, 10) : count,
-      uid,
       item,
     })
   }

@@ -1,5 +1,11 @@
 import { validateWithSchema } from '@/hooks/schema.js'
+import { newAjvInstance } from '@/util/json.js'
 import { authenticate } from '@/hooks/authenticate.js'
+
+const validationInstance = newAjvInstance([
+  ['schema/canonical/Filter.json', 'schema/canonical/Filter.json'],
+  ['services/articles-search/schema/create/payload.json', 'request'],
+])
 
 export default {
   before: {
@@ -7,7 +13,7 @@ export default {
     find: [],
     get: [],
     create: [
-      validateWithSchema('services/articles-search/schema/create/payload.json'),
+      validateWithSchema('request', validationInstance),
       authenticate('jwt', {
         allowUnauthenticated: true,
       }),

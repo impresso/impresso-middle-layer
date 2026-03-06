@@ -1,7 +1,7 @@
 export class Tag {
   constructor(
     {
-      uid = '',
+      id = '',
       name = '',
       labels = ['bucket', 'tag'],
       creationDate = new Date(),
@@ -10,7 +10,7 @@ export class Tag {
     } = {},
     complete = false
   ) {
-    this.uid = String(uid)
+    this.id = String(id)
     this.labels = labels
     this.name = String(name)
 

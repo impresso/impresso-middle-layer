@@ -100,7 +100,7 @@ function getResultsFromSolrResponse(response) {
   const highlights = response.highlighting
   return entitiesWithoutHighlights.map(entity => {
     /** @type {string[]} */
-    const matches = highlights[entity.uid][EntitySolrFields.Suggest] || []
+    const matches = highlights[entity.id][EntitySolrFields.Suggest] || []
     return {
       ...entity,
       matches,
@@ -159,12 +159,12 @@ export class EntitiesSuggestions {
     const dbItemsById = sequelizeResult.data.reduce(
       (acc, item) => ({
         ...acc,
-        [item.uid]: item,
+        [item.id]: item,
       }),
       {}
     )
     return entities.map(entity => {
-      const dbItem = dbItemsById[entity.uid]
+      const dbItem = dbItemsById[entity.id]
       const wikidataId = dbItem ? dbItem.wikidataId : undefined
       return wikidataId != null ? { ...entity, wikidataId } : entity
     })

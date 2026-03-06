@@ -54,7 +54,7 @@ describe("'collections' service", function () {
     })
 
     const patched = await service.patch(
-      created.uid,
+      created.id,
       {
         name: 'a new name',
         description: '',
@@ -63,10 +63,10 @@ describe("'collections' service", function () {
         user,
       }
     )
-    assert.deepEqual(patched.uid, created.uid)
+    assert.deepEqual(patched.id, created.id)
     assert.deepEqual(patched.name, 'a new name')
 
-    const getted = await service.get(created.uid, {
+    const getted = await service.get(created.id, {
       user,
     })
     assert.ok(getted.name, 'a new name')
@@ -77,21 +77,21 @@ describe("'collections' service", function () {
         q: 'new',
       },
     })
-    assert.deepEqual(found.data[0].uid, created.uid)
+    assert.deepEqual(found.data[0].id, created.id)
 
-    const removed = await service.remove(created.uid, {
+    const removed = await service.remove(created.id, {
       user,
     })
 
     await service
-      .get(created.uid, {
+      .get(created.id, {
         user,
       })
       .catch(err => {
         assert.deepEqual(err.name, 'NotFound')
       })
 
-    assert.deepEqual(removed.uid, created.uid)
+    assert.deepEqual(removed.id, created.id)
     assert.deepEqual(removed.status, 'DEL')
   })
 })

@@ -1,6 +1,6 @@
 import assert from 'assert'
 import Topic from '@/models/topics.model.js'
-import { Topic as SolrTopic } from '@/models/generated/solr.js'
+import { Topic as SolrTopic } from '@/models/generated/external/solr.d.js'
 
 const mock = {
   id: 'tmGDL_tp00_fr',
@@ -27,7 +27,7 @@ describe("'Topic' model", () => {
       payload: 'tmGDL_tp08_fr',
     })
     assert.equal(topic instanceof Topic, true)
-    assert.equal(topic.uid, 'tmGDL_tp08_fr')
+    assert.equal(topic.id, 'tmGDL_tp08_fr')
     assert.equal(topic.words?.length, 102)
     assert.equal(topic.excerpt?.[4].w, '...')
     assert.equal(topic.excerpt?.[5].w, '<b>jac</b>ques')

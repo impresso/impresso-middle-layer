@@ -79,7 +79,7 @@ const migrateOldCollections = async (app: ImpressoApplication, data: MigrateOldC
     })
     const collectionIdWithCountItems: [string, number][] =
       response.facets?.collection.buckets.map(bucket => {
-        const collectionId = bucket.val as string
+        const collectionId = bucket.value as string
         return [collectionId, bucket.count ?? 0]
       }) ?? []
 

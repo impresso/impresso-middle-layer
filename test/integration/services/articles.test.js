@@ -56,20 +56,20 @@ describe("'articles' service", function () {
         assert.fail(err.data)
       })
     assert.ok(result.total)
-    assert.ok(result.data[0].uid)
+    assert.ok(result.data[0].id)
     assert.equal(result.data[0].labels[0], 'article')
     assert.equal(result.info.filters[0].q, 'GDL-1947-03-12-a')
   })
 
   it('find given a single page filter', async () => {
-    const pageUid = 'GDL-1902-05-13-a-p0001'
+    const pageId = 'GDL-1902-05-13-a-p0001'
     const result = await service
       .find({
         query: {
           filters: [
             {
               type: 'page',
-              q: pageUid,
+              q: pageId,
             },
           ],
         },
@@ -79,9 +79,9 @@ describe("'articles' service", function () {
       })
     // console.log(result);
     assert.ok(result.total)
-    assert.ok(result.data[0].uid)
+    assert.ok(result.data[0].id)
     assert.equal(result.data[0].labels[0], 'article')
-    assert.equal(result.data[0].regions[0].pageUid, pageUid)
+    assert.equal(result.data[0].regions[0].pageId, pageId)
     assert.ok(result.data[0].regions[0].coords)
     assert.ok(result.data[0].regions[0].iiif_fragment)
   })
@@ -90,7 +90,7 @@ describe("'articles' service", function () {
     const result = await service.get('GDL-1902-05-13-a-i0006').catch(err => {
       assert.fail(err)
     })
-    assert.equal(result.uid, 'GDL-1902-05-13-a-i0006')
+    assert.equal(result.id, 'GDL-1902-05-13-a-i0006')
     assert.ok(result.regions, 'Check image regions')
     assert.ok(result.content, 'Check property content')
     assert.ok(result.excerpt, 'Check property excerpt')
@@ -106,7 +106,7 @@ describe("'articles' service", function () {
     assert.ok(results.length)
 
     // should NOT have contents....
-    assert.ok(results[0].uid, 'Check result')
+    assert.ok(results[0].id, 'Check result')
     assert.ok(!results[0].contents, true)
     assert.ok(results[0].title, 'Check property title')
     // assert.ok(res.total);

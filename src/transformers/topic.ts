@@ -1,12 +1,12 @@
-import { Topic as TopicInternal } from '@/models/generated/schemas.js'
-import { Topic as TopicPublic } from '@/models/generated/schemasPublic.js'
+import { InternalTopic } from '@/models/generated/deprecated/models.js'
+import { Topic as TopicPublic } from '@/models/generated/canonical.js'
 
-export const transformTopic = (input: TopicInternal): TopicPublic => {
-  const { uid, language, countItems, words, model } = input
+export const transformTopic = (input: InternalTopic): TopicPublic => {
+  const { id, language, contentItemsCount, words, model } = input
   return {
-    uid,
+    id,
     language,
-    contentItemsCount: countItems,
+    contentItemsCount: contentItemsCount,
     words,
     model,
   }

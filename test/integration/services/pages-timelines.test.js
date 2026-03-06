@@ -45,7 +45,7 @@ describe("'pages-timelines' service", function () {
   it('JDG pages timelines', async () => {
     const results = await app.service('pages-timelines').get('stats', {
       query: {
-        newspaper_uid: 'GDL',
+        newspaper_id: 'GDL',
       },
     })
     console.log(results)

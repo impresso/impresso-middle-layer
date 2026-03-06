@@ -176,7 +176,7 @@ function withScore(solrResponse) {
   )
 
   return articleItem => {
-    const score = itemIdToScore[articleItem.uid]
+    const score = itemIdToScore[articleItem.id]
     return {
       ...articleItem,
       score,

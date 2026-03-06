@@ -1,7 +1,7 @@
 import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
-import { DataProvider } from '@/models/generated/schemas.js'
+import { DataProvider } from '@/models/generated/canonical.js'
 import * as path from 'path'
 import * as fs from 'fs'
 import { fileURLToPath } from 'url'

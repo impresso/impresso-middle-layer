@@ -1,16 +1,13 @@
-import { Id, NullableId } from '@feathersjs/feathers'
-import {
-  AddCollectableItemsFromFilters,
-  CollectableItemsUpdatedResponse,
-  UpdateCollectableItemsRequest,
-} from '@/models/generated/shared.js'
 import { SlimUser } from '@/authentication.js'
 import { addItemsToCollection } from '@/jobs/collections/addItemsToCollection.js'
 import { removeItemsFromCollection } from '@/jobs/collections/removeItemsFromCollection.js'
-import { ImpressoApplication } from '@/types.js'
+import type { AddCollectableItemsFromFilters, UpdateCollectableItemsRequest } from '@/models/generated/app/requests.js'
+import type { CollectableItemsUpdatedResponse } from '@/models/generated/app/responses.js'
 import { SolrNamespaces } from '@/solr.js'
+import { ImpressoApplication } from '@/types.js'
 import { filterAdapter } from '@/util/models.js'
 import { BadRequest, NotAuthenticated } from '@feathersjs/errors'
+import { Id, NullableId } from '@feathersjs/feathers'
 
 interface WithUser {
   user?: SlimUser
@@ -50,7 +47,7 @@ export class CollectableItemsService implements ICollectableItemsService {
     if (params.user?.id == null) throw new NotAuthenticated('User authentication required')
 
     const collectionId = params.route?.collection_id
-    if (collectionId == null) throw new BadRequest('Collection UID not provided')
+    if (collectionId == null) throw new BadRequest('Collection ID not provided')
 
     if (SupportedNamespaces.includes(data.namespace) === false)
       throw new BadRequest(
@@ -75,7 +72,7 @@ export class CollectableItemsService implements ICollectableItemsService {
     if (userId == null) throw new NotAuthenticated('User authentication required')
 
     const collectionId = params.route?.collection_id
-    if (collectionId == null) throw new BadRequest('Collection UID not provided')
+    if (collectionId == null) throw new BadRequest('Collection ID not provided')
 
     if (data.add != null && data.add.length > 0) {
       // we have a job handler but we can also run it directly for immediate feedback

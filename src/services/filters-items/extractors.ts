@@ -1,6 +1,7 @@
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { ImpressoApplication } from '@/types.js'
-import { getTypeFromUid } from '@/utils/entity.utils.js'
+import { getTypeFromId } from '@/utils/entity.utils.js'
+import { optionalMediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 
 const isDateRangeString = (v: string) => v.match(/.+ TO .+/) != null
 const getDateStrings = (v: string) => v.match(/(.+) TO (.+)/)?.slice(1, 3) ?? [undefined, undefined]
@@ -26,7 +27,8 @@ async function newspaperExtractor({ q = '' }, app: ImpressoApplication) {
   const resolvers = buildResolvers(app)
 
   const codes = Array.isArray(q) ? q : [q]
-  return await Promise.all(codes.map(async code => resolvers.newspaper(code.trim())))
+  const dataSources = await Promise.all(codes.map(async code => resolvers.mediaSource(code.trim())))
+  return dataSources.map(optionalMediaSourceToNewspaper)
 }
 
 async function topicExtractor({ q = '' }, app: ImpressoApplication) {
@@ -41,9 +43,9 @@ async function entityExtractor({ q = '' }, app: ImpressoApplication) {
   const items = Array.isArray(q) ? q : [q]
   const mappedItems = await Promise.all(
     items.map(async item => {
-      const uid = item.trim()
-      const type = getTypeFromUid(uid)
-      return type === 'person' ? await resolvers.person(uid) : await resolvers.location(uid)
+      const id = item.trim()
+      const type = getTypeFromId(id)
+      return type === 'person' ? await resolvers.person(id) : await resolvers.location(id)
     })
   )
   return mappedItems.filter(item => item != null)
@@ -79,7 +81,7 @@ function numberRangeExtractor({ q = '' }) {
 
 function simpleValueExtractor({ q = '' }) {
   const items = Array.isArray(q) ? q : [q.trim()]
-  return items.map(uid => ({ uid }))
+  return items.map(id => ({ id }))
 }
 
 const getImageTypeExtractor = (

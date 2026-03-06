@@ -53,7 +53,7 @@ export class Service {
       thumbnail,
     }))
 
-    debug('[create] add to REDIS image - uid:', image.uid, '- checksum', image.checksum)
+    debug('[create] add to REDIS image - uid:', image.id, '- checksum', image.checksum)
     await this.app.service('redisClient').client.set(`img:${image.checksum}`, JSON.stringify(image))
 
     return image

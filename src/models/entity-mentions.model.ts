@@ -1,5 +1,9 @@
 import { DataTypes, Model, Sequelize } from 'sequelize'
-import type { ContentItem, EntityDetails, EntityMention as IEntityMention } from '@/models/generated/schemas.d.js'
+import type {
+  ContentItem,
+  EntityDetails,
+  EntityMention as IEntityMention,
+} from '@/models/generated/deprecated/models.js'
 import { EntityCodes } from '@/utils/entity.utils.js'
 
 // https://github.com/impresso/impresso-master-db/blob/master/impresso_db/models/enums.py#L179-L184

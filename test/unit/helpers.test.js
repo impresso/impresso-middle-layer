@@ -83,14 +83,14 @@ describe('should cut a text', () => {
 describe('should annotate a tokenized text', () => {
   it('with one annotation for one word in line 1', () => {
     annotate(lines, 'e019289', 53, 60)
-    assert.strictEqual(lines[1].ref[0].uid, 'e019289')
+    assert.strictEqual(lines[1].ref[0].id, 'e019289')
   })
 
   it('with one annotation for line 5 and 6', () => {
     annotate(lines, 'e019283', 186, 207)
     // console.log(lines[5], lines[6], lines[7]);
-    assert.strictEqual(lines[5].ref[0].uid, 'e019283')
-    assert.strictEqual(lines[6].ref[0].uid, 'e019283')
+    assert.strictEqual(lines[5].ref[0].id, 'e019283')
+    assert.strictEqual(lines[6].ref[0].id, 'e019283')
     assert.strictEqual(!!lines[7].ref, false)
   })
 
@@ -100,15 +100,15 @@ describe('should annotate a tokenized text', () => {
     annotate(lines, 'lindsay-watson', 264, 278)
     annotate(lines, 'aga-khan', 555, 563)
 
-    assert.strictEqual(lines[5].ref[1].uid, 'e019284')
+    assert.strictEqual(lines[5].ref[1].id, 'e019284')
     assert.strictEqual(lines[5].ref.length, 2)
-    // assert.strictEqual(lines[5].ref.map(d => d.uid).join(','), 'e019283,e019284,e019286');
+    // assert.strictEqual(lines[5].ref.map(d => d.id).join(','), 'e019283,e019284,e019286');
     // console.log(,lines[7],lines[8])
 
-    assert.strictEqual(lines[15].ref[0].uid, 'aga-khan')
-    assert.strictEqual(lines[16].ref[0].uid, 'aga-khan')
+    assert.strictEqual(lines[15].ref[0].id, 'aga-khan')
+    assert.strictEqual(lines[16].ref[0].id, 'aga-khan')
 
-    // assert.strictEqual(lines[6].ref[0].uid, 'e019283');
+    // assert.strictEqual(lines[6].ref[0].id, 'e019283');
     assert.strictEqual(!!lines[7].ref, false)
   })
 

@@ -1,17 +1,17 @@
 export interface IArticleEntity {
-  articleUid: string
-  entityUid: string
+  articleId: string
+  entityId: string
   frequence: number
 }
 
 export class ArticleEntity implements IArticleEntity {
-  articleUid: string
-  entityUid: string
+  articleId: string
+  entityId: string
   frequence: number
 
-  constructor({ articleUid = '', entityUid = '', frequence = 0 } = {}) {
-    this.articleUid = String(articleUid)
-    this.entityUid = String(entityUid)
+  constructor({ articleId = '', entityId = '', frequence = 0 } = {}) {
+    this.articleId = String(articleId)
+    this.entityId = String(entityId)
     this.frequence = typeof frequence == 'string' ? parseInt(frequence, 10) : frequence
   }
 }

@@ -1,8 +1,8 @@
 import { DataTypes } from 'sequelize'
 
 class Language {
-  constructor({ uid = '', code = '', uri = '' } = {}) {
-    this.uid = String(uid)
+  constructor({ id = '', code = '', uri = '' } = {}) {
+    this.id = String(id)
     this.code = String(code)
     this.uri = String(uri)
   }

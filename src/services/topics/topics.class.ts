@@ -4,14 +4,15 @@ import debugLib from 'debug'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import type { Filter } from '@/models/index.js'
 import { FindResponse } from '@/models/common.js'
-import { Topic } from '@/models/generated/schemas.js'
-import { Topic as SolrTopic } from '@/models/generated/solr.js'
+import { InternalTopic } from '@/models/generated/deprecated/models.js'
+import type { Topic as SolrTopic } from '@/models/generated/external/solr.js'
 import TopicModel, { SOLR_FL } from '@/models/topics.model.js'
 import { SolrNamespaces } from '@/solr.js'
 import type { ImpressoApplication } from '@/types.js'
 import { measureTime } from '@/util/instruments.js'
 import { asFindAll, asGet } from '@/util/solr/adapters.js'
 import { escapeValue } from '@/util/solr/filterReducers.js'
+import { BucketValue } from '@/internalServices/simpleSolr.js'
 
 const debug = debugLib('impresso/services:topics')
 
@@ -44,7 +45,7 @@ export class Service {
 
   async find(
     params: Params<FindQuery> & { sanitized: SanitizedParams; query: { limit: number; offset: number } }
-  ): Promise<FindResponse<Topic>> {
+  ): Promise<FindResponse<InternalTopic>> {
     // if there's a q, get all suggested topics matching q in their words (they are 300 max)
     const topics: Record<string, { order: number; matches?: string[] }> = {}
     // fill topics dict with results
@@ -63,7 +64,7 @@ export class Service {
       //   () => this.app.get('solrClient').findAll(request),
       //   'topics.find.solr.topics_suggest'
       // )
-      const solrSuggestResponse = await asFindAll(this.solr, 'topics', request)
+      const solrSuggestResponse = await asFindAll<{}, string, string, SolrTopic>(this.solr, 'topics', request)
 
       debug('[find] params.sanitized.q:', params.sanitized, 'load topic uids...')
       // no ids? return empty stuff
@@ -87,9 +88,9 @@ export class Service {
             const t = await resolvers.topic(doc.id)
             if (!t) return undefined
 
-            const topicResult = { ...t, uid: t?.uid ?? '' } satisfies Topic
-            if (t?.uid && solrSuggestResponse.highlighting?.[t.uid]?.topic_suggest) {
-              topicResult.matches = solrSuggestResponse.highlighting[t.uid].topic_suggest
+            const topicResult = { ...t, uid: t?.id ?? '' } as InternalTopic
+            if (t?.id && solrSuggestResponse.highlighting?.[t.id]?.topic_suggest) {
+              topicResult.matches = solrSuggestResponse.highlighting[t.id].topic_suggest
             }
             return topicResult
           })
@@ -178,7 +179,7 @@ export class Service {
       debug('[find] filtering out facets, initial total approx:', topicFacet.numBuckets)
       // filter out facets based on their uid.
       buckets = buckets.filter(d => {
-        const val = typeof d === 'object' && d !== null && 'val' in d ? d.val : d
+        const val = typeof d === 'object' && d !== null && 'value' in d ? d.value : d
         return uids.includes(String(val))
       })
       debug('[find] new total: ', buckets.length)
@@ -193,15 +194,15 @@ export class Service {
       buckets.map(async d => {
         const bucket = typeof d === 'object' && d !== null && 'val' in d ? d : { val: d, count: 0 }
         const topic = await resolvers.topic(String(bucket.val))
-        if (topic != null) {
-          if (uids.length && topics[String(bucket.val)]) {
-            topic.matches = topics[String(bucket.val)].matches
-          }
-          topic.countItems = typeof bucket.count === 'number' ? bucket.count : 0
-          return topic
-        } else {
-          return undefined
+        if (topic == null) return
+
+        const { id: topicId, ...topicOther } = topic
+        const internalTopic: InternalTopic = { id: topicId, ...topicOther } satisfies InternalTopic
+        if (uids.length && topics[String(bucket.val)]) {
+          internalTopic.matches = topics[String(bucket.val)].matches
         }
+        internalTopic.contentItemsCount = typeof bucket.count === 'number' ? bucket.count : 0
+        return internalTopic
       })
     )
 
@@ -217,7 +218,7 @@ export class Service {
     }
   }
 
-  async get(id: Id, params?: Params): Promise<Topic> {
+  async get(id: Id, params?: Params): Promise<InternalTopic> {
     const resolvers = buildResolvers(this.app)
 
     return measureTime(
@@ -227,16 +228,26 @@ export class Service {
             if (!topic) {
               throw new NotFound(`Topic with id ${id} not found`)
             }
+            const { id: topicId, ...topicBody } = topic
+
             const cached = await resolvers.topic(String(id))
             if (cached) {
-              if (cached.countItems !== undefined) {
-                topic.countItems = cached.countItems
+              if (cached.contentItemsCount !== undefined) {
+                return {
+                  id: topicId,
+                  ...topicBody,
+                  contentItemsCount: cached.contentItemsCount,
+                } satisfies InternalTopic
               }
-              if (cached.relatedTopics !== undefined) {
-                topic.relatedTopics = cached.relatedTopics
+              if ((cached as any).relatedTopics !== undefined) {
+                return {
+                  id: topicId,
+                  ...topicBody,
+                  relatedTopics: (cached as any).relatedTopics,
+                } satisfies InternalTopic
               }
             }
-            return topic
+            return { id: topicId, ...topicBody } satisfies InternalTopic
           }
         ),
       'topics.get.solr.topics'

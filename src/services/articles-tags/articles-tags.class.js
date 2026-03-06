@@ -10,14 +10,14 @@ import { Service as Neo4jService } from '@/services/neo4j.service.js'
  */
 export class Service extends Neo4jService {
   async create(data, params) {
-    const tagUid = [params.user.uid, shash(`${data.sanitized.tag}`)].join('-')
+    const tagId = [params.user.uid, shash(`${data.sanitized.tag}`)].join('-')
 
-    debug(`create: tag '${tagUid}' by user '${params.user.uid}'`)
+    debug(`create: tag '${tagId}' by user '${params.user.uid}'`)
 
     const result = await this._run(this.queries.merge, {
       user_uid: params.user.uid,
       article_uid: data.sanitized.article_uid,
-      tag_uid: tagUid,
+      tag_uid: tagId,
       tag_name: data.sanitized.tag,
     })
 

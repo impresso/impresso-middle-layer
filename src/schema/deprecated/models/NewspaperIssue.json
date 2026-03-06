@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "title": "Newspaper Issue",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "The unique identifier of the issue"
+    },
+    "cover": {
+      "type": "string",
+      "description": "TODO"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The labels of the issue"
+    },
+    "fresh": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "accessRights": {
+      "type": "string",
+      "description": "TODO: list available options"
+    },
+    "date": {
+      "type": "string",
+      "description": "The date of the issue",
+      "format": "date-time"
+    },
+    "year": {
+      "type": "string",
+      "description": "The year of the issue"
+    }
+  },
+  "required": ["id", "cover", "labels", "fresh", "accessRights"]
+}
