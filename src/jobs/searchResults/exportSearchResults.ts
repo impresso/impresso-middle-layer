@@ -24,11 +24,27 @@ type FlatFields = FlatKeys<ContentItemPublic, 3>
 
 const ExportedFields = [
   'id',
-  'access.copyright',
+  'issueId',
+  'relevanceScore',
   'text.itemType',
-  'meta.sourceMedium',
+  'text.itemTypeLabel',
   'text.title',
   'text.content',
+  'text.contentLength',
+  'text.langCode',
+  'meta.sourceMedium',
+  'meta.date',
+  'meta.countryCode',
+  'meta.partnerId',
+  'meta.partnerTitle',
+  'meta.mediaId',
+  'meta.mediaTitle',
+  'meta.sourceType',
+  'access.copyright',
+  'access.copyrightLabel',
+  'image.pagesCount',
+  'image.isFrontPage',
+  'image.pages',
   'semanticEnrichments.namedEntities.locations',
   'semanticEnrichments.namedEntities.persons',
   'semanticEnrichments.namedEntities.newsagencies',
@@ -38,19 +54,7 @@ const ExportedFields = [
   'semanticEnrichments.mentions.newsagencies',
   'semanticEnrichments.mentions.organisations',
   'semanticEnrichments.topics',
-  'text.contentLength',
-  'image.pagesCount',
-  'text.langCode',
-  'image.isFrontPage',
-  'meta.date',
-  'issueId',
-  'meta.countryCode',
-  'meta.partnerId',
-  'meta.mediaId',
-  'meta.sourceType',
   'semanticEnrichments.ocrQuality',
-  'relevanceScore',
-  'image.pages',
   'semanticEnrichments.collections',
 ] as const satisfies FlatFields[]
 
@@ -207,9 +211,7 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
   const { headers: includeHeaders = !fileExists } = options ?? {}
 
   const columns = Array.from(headerNames) as string[]
-  const flatItems = items.map(item =>
-    Object.fromEntries(columns.map(col => [col, get(item, col)]))
-  )
+  const flatItems = items.map(item => Object.fromEntries(columns.map(col => [col, get(item, col)])))
 
   const csvContent = stringify(flatItems, {
     header: includeHeaders,
