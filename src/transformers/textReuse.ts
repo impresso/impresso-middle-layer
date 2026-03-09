@@ -1,11 +1,12 @@
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
-import { TextReusePassage as TextReusePassageInternal, TextReuseClusterCompound } from '@/models/generated/schemas.js'
-import { TextReusePassage as TextReusePassagePublic, TextReuseCluster } from '@/models/generated/schemasPublic.js'
+import { TextReusePassage as TextReusePassageInternal } from '@/models/generated/deprecated/models.js'
+import { TextReuseClusterCompound } from '@/models/generated/deprecated/models.js'
+import { TextReusePassage as TextReusePassagePublic, TextReuseCluster } from '@/models/generated/canonical.js'
 import { OpenPermissions } from '@/util/bigint.js'
 
 export const transformTextReusePassage = (input: TextReusePassageInternal): TextReusePassagePublic => {
   return {
-    uid: input.id,
+    id: input.id,
     content: input.content,
     contentItemId: input.article.id,
     offset: {
@@ -22,7 +23,7 @@ export const transformTextReusePassage = (input: TextReusePassageInternal): Text
 
 export const transformTextReuseCluster = (input: TextReuseClusterCompound): TextReuseCluster => {
   return {
-    uid: input.cluster?.id!,
+    id: input.cluster?.id!,
     clusterSize: input.cluster?.clusterSize!,
     lexicalOverlap: input.cluster?.lexicalOverlap!,
     textSample: input.textSample,

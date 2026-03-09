@@ -1,7 +1,6 @@
-import { VersionDetails } from '@/models/generated/schemas.js'
-import { VersionDetails as VersionDetailsPublic } from '@/models/generated/schemasPublic.js'
+import { VersionDetails, FullVersionDetails } from '@/models/generated/app/responses.js'
 
-export const transformVersionDetails = (input: VersionDetails): VersionDetailsPublic => {
+export const transformVersionDetails = (input: FullVersionDetails): VersionDetails => {
   return {
     version: input.version,
   }

@@ -18,14 +18,14 @@ class Newspaper {
     endYear = -1,
     name = '',
     startYear = -1,
-    uid = '',
+    id = '',
     labels = ['newspaper'],
     languages = [],
     properties = [],
     stats = {},
   } = {}) {
-    this.uid = String(uid)
-    this.acronym = acronym.length ? String(acronym) : this.uid
+    this.id = String(id)
+    this.acronym = acronym.length ? String(acronym) : this.id
     this.labels = labels
     this.languages = languages.map(d => d.code)
     this.properties = properties
@@ -73,7 +73,7 @@ class Newspaper {
     const newspaper = client.define(
       'newspaper',
       {
-        uid: {
+        id: {
           type: Sequelize.STRING,
           primaryKey: true,
           unique: true,

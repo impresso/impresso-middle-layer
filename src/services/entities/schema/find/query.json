@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/entities/schema/find/query.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "description": "Query params validation for /entities find",
   "type": "object",
   "additionalProperties": false,
@@ -11,7 +10,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["string", "type", "uid"]
+            "enum": ["string", "type", "id"]
           },
           "q": {
             "type": ["string", "array"]
@@ -36,13 +35,21 @@
       "enum": ["relevance", "-relevance", "name", "-name", "count", "-count", "count-mentions", "-count-mentions"]
     },
     "limit": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/limit"
+      "type": "integer",
+      "description": "Limit to this many items",
+      "default": 10,
+      "minimum": 0,
+      "maximum": 10000
     },
     "offset": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/offset"
+      "type": "integer",
+      "description": "Skip this many items",
+      "minimum": 0
     },
     "page": {
-      "$ref": "https://github.com/impresso/impresso-middle-layer/tree/master/src/schema/common/pagination.json#/properties/page"
+      "type": "integer",
+      "description": "DEPRECATED. Display N-th page (using 'limit' as the number of items in the page). Only used in the web app.",
+      "minimum": 1
     }
   }
 }

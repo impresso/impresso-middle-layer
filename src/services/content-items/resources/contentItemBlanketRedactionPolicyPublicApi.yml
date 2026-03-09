@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../../../schema/app/configuration/redactionPolicy.json
+name: content-item-redaction-policy
+items:
+  - jsonPath: $.image.pages.[*].regionCoordinates
+    valueConverterName: remove
+  - jsonPath: $.image.lineBreaks
+    valueConverterName: remove
+  - jsonPath: $.image.paragraphBreaks
+    valueConverterName: remove
+  - jsonPath: $.image.regionBreaks
+    valueConverterName: remove
+  - jsonPath: $.image.isCoordinatesConverted
+    valueConverterName: remove
+  - jsonPath: $.access.accessBitmaps
+    valueConverterName: remove

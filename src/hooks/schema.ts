@@ -2,6 +2,7 @@ import { get } from 'lodash-es'
 import { BadRequest } from '@feathersjs/errors'
 import { validated, formatValidationErrors } from '@/util/json.js'
 import { HookContext } from '@feathersjs/feathers'
+import type { Ajv } from 'ajv'
 
 /**
  * Validates the data at the specified object path against the provided schema URI.
@@ -28,7 +29,7 @@ import { HookContext } from '@feathersjs/feathers'
  * ```
  */
 const validateWithSchema =
-  (schemaUri: string, objectPath: string = 'data') =>
+  (schemaUri: string, ajv: Ajv, objectPath: string = 'data') =>
   (context: HookContext): HookContext => {
     const data = get(context, objectPath)
     if (!data) {
@@ -36,7 +37,7 @@ const validateWithSchema =
       throw new BadRequest('Validation failed', [])
     }
     try {
-      validated(data, schemaUri)
+      validated(data, schemaUri, ajv)
       return context
     } catch (e: any) {
       if (!e.message) {

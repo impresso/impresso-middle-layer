@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { Sequelize } from 'sequelize'
 import sinon from 'sinon'
-import { MediaSource } from '@/models/generated/schemas.js'
+import { MediaSource } from '@/models/generated/canonical.js'
 import { SelectResponse, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { consolidateMediaSources, DBNewspaperDetails, FacetBucket } from '@/useCases/consolidateMediaSources.js'
 
@@ -19,7 +19,7 @@ describe('consolidateMediaSources', () => {
   it('should consolidate media sources correctly', async () => {
     const dbResponse = [
       {
-        uid: 'ZBT',
+        id: 'ZBT',
         name: 'Test Newspaper',
         publishedFromYear: 1900,
         publishedToYear: 2000,
@@ -44,7 +44,7 @@ describe('consolidateMediaSources', () => {
     const result = await consolidateMediaSources(dbClient, solrClient, 'search')
     const expected = [
       {
-        uid: 'ZBT',
+        id: 'ZBT',
         type: 'newspaper',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],
@@ -76,7 +76,7 @@ describe('consolidateMediaSources', () => {
   it('should handle missing articles count in Solr response', async () => {
     const dbResponse = [
       {
-        uid: 'ZBT',
+        id: 'ZBT',
         name: 'Test Newspaper',
         publishedFromYear: 1900,
         publishedToYear: 2000,
@@ -94,7 +94,7 @@ describe('consolidateMediaSources', () => {
     const result = await consolidateMediaSources(dbClient, solrClient, 'search')
     const expected = [
       {
-        uid: 'ZBT',
+        id: 'ZBT',
         type: 'newspaper',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],

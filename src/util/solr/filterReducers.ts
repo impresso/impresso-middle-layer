@@ -2,7 +2,7 @@ import {
   FilterDefinition,
   SolrFiltersConfiguration,
   SolrServerNamespaceConfiguration,
-} from '@/models/generated/common.js'
+} from '@/models/generated/app/configuration.js'
 import { Filter, FilterPrecision } from '@/models/index.js'
 import { SupportedLanguageCodes } from '@/models/solr.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'

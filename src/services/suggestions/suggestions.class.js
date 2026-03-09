@@ -2,7 +2,7 @@
 import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import { SolrNamespaces } from '@/solr.js'
 import Entity from '@/models/entities.model.js'
-import { getNameFromUid } from '@/utils/entity.utils.js'
+import { getNameFromId } from '@/utils/entity.utils.js'
 
 import Debug from 'debug'
 const debug = Debug('impresso/services:suggestions')
@@ -23,15 +23,15 @@ const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 const asEntitySuggestion = doc => {
   // payload shoyld be a string formatted as 'id|type',
   // like 'aida-0001-Testament_(comics)|Person'
-  const [uid, type] = doc.payload.split('|')
+  const [id, type] = doc.payload.split('|')
   const item = new Entity({
-    uid,
-    name: getNameFromUid(uid),
+    id,
+    name: getNameFromId(id),
     type,
   })
   return new Suggestion({
-    q: item.uid,
-    h: getNameFromUid(doc.term),
+    q: item.id,
+    h: getNameFromId(doc.term),
     type: item.type,
     item,
     weight: doc.weight,
@@ -58,7 +58,7 @@ const asTopicSuggestion = doc => {
   const topic = Topic.solrSuggestFactory()(doc)
   // console.log(topic);
   return new Suggestion({
-    q: topic.uid,
+    q: topic.id,
     h: topic.getExcerpt().join(' '),
     type: 'topic',
     item: topic,
@@ -95,8 +95,8 @@ export class Service {
             new Suggestion({
               type: 'newspaper',
               h: d.name,
-              q: d.uid,
-              uid: d.uid,
+              q: d.id,
+              id: d.id,
               item: d,
             })
         )
@@ -125,7 +125,7 @@ export class Service {
         data.map(
           d =>
             new Suggestion({
-              q: d.uid,
+              q: d.id,
               h: d.name,
               type: 'collection',
               item: d,
@@ -205,7 +205,7 @@ export class Service {
       return []
     }
 
-    const articletitles = async () => {}
+    const articletitles = async () => { }
 
     const dateranges = async () => {
       const myears = params.query.q.match(MULTI_YEAR_RANGE)

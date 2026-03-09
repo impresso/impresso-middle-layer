@@ -26,7 +26,7 @@ describe("Newspaper issues and 'Public Domain' contents", function () {
   it('get issue "LCG-1851-12-24-a", Public Domain', async () => {
     const result = await app.service('issues').get('LCG-1851-12-24-a')
     // result should be undefined;
-    assert.strictEqual(result.uid, 'LCG-1851-12-24-a')
+    assert.strictEqual(result.id, 'LCG-1851-12-24-a')
     assert.strictEqual(result.cover, 'LCG-1851-12-24-a-p0001')
     assert.strictEqual(result.accessRights, 'OpenPublic')
     assert.strictEqual(result.pages[3].iiif, 'https://impresso-project.ch/api/proxy/iiif/LCG-1851-12-24-a-p0004')
@@ -34,7 +34,7 @@ describe("Newspaper issues and 'Public Domain' contents", function () {
 
   it('get issue "actionfem-1927-10-15", Closed, no authentication (obfuscate)', async () => {
     const result = await app.service('issues').get('actionfem-1927-10-15-a')
-    assert.strictEqual(result.uid, 'actionfem-1927-10-15-a')
+    assert.strictEqual(result.id, 'actionfem-1927-10-15-a')
     assert.strictEqual(result.cover, 'actionfem-1927-10-15-a-p0001')
     assert.strictEqual(result.accessRights, 'Closed')
     // check iiif;
@@ -48,7 +48,7 @@ describe("Newspaper issues and 'Public Domain' contents", function () {
         uid: 'local-user-not-guest',
       },
     })
-    assert.strictEqual(result.uid, 'actionfem-1927-10-15-a')
+    assert.strictEqual(result.id, 'actionfem-1927-10-15-a')
     assert.strictEqual(result.cover, 'actionfem-1927-10-15-a-p0001')
     assert.strictEqual(result.accessRights, 'Closed')
     // check iiif;
@@ -63,7 +63,7 @@ describe("'OpenPrivate' behaviour", function () {
     const result = await app.service('issues').get('EXP-1857-11-19-a', {
       authenticated: false,
     })
-    assert.strictEqual(result.uid, 'EXP-1857-11-19-a')
+    assert.strictEqual(result.id, 'EXP-1857-11-19-a')
     assert.strictEqual(result.cover, 'EXP-1857-11-19-a-p0001')
     assert.strictEqual(result.accessRights, 'OpenPrivate')
     // check iiif;
@@ -74,7 +74,7 @@ describe("'OpenPrivate' behaviour", function () {
     const result = await app.service('content-items').get('EXP-1857-11-19-a-i0001', {
       authenticated: false,
     })
-    assert.strictEqual(result.issue.uid, 'EXP-1857-11-19-a')
+    assert.strictEqual(result.issue.id, 'EXP-1857-11-19-a')
     assert.strictEqual(result.issue.accessRights, 'OpenPrivate')
     assert.strictEqual(result.content, app.get('accessRights').unauthorizedContent)
     assert.strictEqual(result.obfuscated, true)
@@ -88,7 +88,7 @@ describe("'OpenPrivate' behaviour", function () {
         uid: 'local-user-not-guest',
       },
     })
-    assert.strictEqual(result.issue.uid, 'EXP-1857-11-19-a')
+    assert.strictEqual(result.issue.id, 'EXP-1857-11-19-a')
     assert.strictEqual(result.issue.accessRights, 'OpenPrivate')
     assert.notStrictEqual(result.content, app.get('accessRights').unauthorizedContent)
     assert.strictEqual(result.obfuscated, undefined)

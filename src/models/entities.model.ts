@@ -1,8 +1,8 @@
 import { DataTypes, Sequelize } from 'sequelize'
-import { getNameFromUid, getTypeCodeFromUid, TypeCodeToType, TypeShorthandToType } from '@/utils/entity.utils.js'
+import { getNameFromId, getTypeCodeFromId, TypeCodeToType, TypeShorthandToType } from '@/utils/entity.utils.js'
 
 interface IEntity {
-  uid: string
+  id: string
   name: string
   wikidataId?: string
   dbpediaURL?: string
@@ -13,7 +13,7 @@ interface IEntity {
 }
 
 export default class Entity implements IEntity {
-  uid: string
+  id: string
   name: string
   wikidataId?: string
   dbpediaURL?: string
@@ -23,7 +23,7 @@ export default class Entity implements IEntity {
   countMentions: number = 0
 
   constructor({
-    uid = '',
+    id = '',
     name = '',
     wikidataId = null,
     dbpediaURL = null,
@@ -32,11 +32,11 @@ export default class Entity implements IEntity {
     countItems = -1,
     countMentions = -1,
   } = {}) {
-    this.uid = String(uid)
+    this.id = String(id)
     if (name.length) {
-      this.name = getNameFromUid(name)
+      this.name = getNameFromId(name)
     } else {
-      this.name = getNameFromUid(uid)
+      this.name = getNameFromId(id)
     }
 
     this.type = TypeCodeToType[String(type)]
@@ -60,11 +60,11 @@ export default class Entity implements IEntity {
     }
   }
 
-  static getCached(uid: string) {
+  static getCached(id: string) {
     return new Entity({
-      uid,
-      name: getNameFromUid(uid),
-      type: getTypeCodeFromUid(uid),
+      id,
+      name: getNameFromId(id),
+      type: getTypeCodeFromId(id),
     })
   }
 
@@ -72,7 +72,7 @@ export default class Entity implements IEntity {
     const entity = client.define(
       'entity',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING(255),
           primaryKey: true,
           unique: true,
@@ -116,7 +116,7 @@ export default class Entity implements IEntity {
   static solrFactory() {
     return (doc: Record<string, any>) =>
       new Entity({
-        uid: doc.id,
+        id: doc.id,
         name: (doc.l_s || '').split('_').join(' '),
         type: TypeShorthandToType[doc.t_s?.toLowerCase()] ?? doc.t_s,
         countItems: doc.article_fq_f,

@@ -9,7 +9,7 @@ import {
 } from '@/util/iiif.js'
 
 interface ContentItemPageAttributes {
-  uid: string
+  id: string
   hasCoords: boolean
   hasErrors: boolean
   iiifManifest: string
@@ -18,13 +18,13 @@ interface ContentItemPageAttributes {
 export type ContentItemPageDbModel = ModelDefined<ContentItemPageAttributes, Omit<ContentItemPageAttributes, 'id'>>
 
 export default class ContentItemPage implements ContentItemPageAttributes {
-  uid: string
+  id: string
   hasCoords: boolean
   hasErrors: boolean
   iiifManifest: string
 
-  constructor({ uid, hasCoords, hasErrors, iiifManifest }: ContentItemPageAttributes) {
-    this.uid = uid
+  constructor({ id, hasCoords, hasErrors, iiifManifest }: ContentItemPageAttributes) {
+    this.id = id
     this.hasCoords = hasCoords
     this.hasErrors = hasErrors
     this.iiifManifest = iiifManifest
@@ -34,7 +34,7 @@ export default class ContentItemPage implements ContentItemPageAttributes {
     const page = client.define(
       'page',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING,
           primaryKey: true,
           field: 'id',
@@ -73,7 +73,7 @@ export const getIIIFManifestUrl = (page: ContentItemPage, app: ImpressoApplicati
   const { rewriteRules, baseUrl } = app.get('images')
 
   const originalUrl =
-    (page.iiifManifest?.length ?? 0) === 0 ? getJSONUrl(page.uid, baseUrl) : getManifestJSONUrl(page.iiifManifest)
+    (page.iiifManifest?.length ?? 0) === 0 ? getJSONUrl(page.id, baseUrl) : getManifestJSONUrl(page.iiifManifest)
 
   return sanitizeIiifImageUrl(originalUrl, rewriteRules ?? [])
 }
@@ -90,7 +90,7 @@ export const getIIIFThumbnailUrl = (
 
   const originalUrl =
     (page.iiifManifest?.length ?? 0) === 0
-      ? getThumbnailUrl(page.uid, baseUrl, { dimension })
+      ? getThumbnailUrl(page.id, baseUrl, { dimension })
       : getExternalThumbnailUrl(page.iiifManifest, { dimension })
 
   return sanitizeIiifImageUrl(originalUrl, rewriteRules ?? [])

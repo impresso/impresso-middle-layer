@@ -62,6 +62,6 @@ describe("'issues' service", function () {
       console.log(err)
     })
     assert.ok(result)
-    assert.equal(result.uid, 'GDL-1811-11-22-a')
+    assert.equal(result.id, 'GDL-1811-11-22-a')
   })
 })

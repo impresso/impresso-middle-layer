@@ -3,15 +3,15 @@ import type { MethodParameter, QueryParameter } from '@/util/openapi.js'
 import { getRequestBodyContent, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
 import { REGEX_UIDS } from '@/hooks/params.js'
 
-const parameterUids: QueryParameter = {
+const parameterIds: QueryParameter = {
   in: 'query',
-  name: 'uids',
+  name: 'ids',
   required: false,
   schema: {
     type: 'string',
     pattern: String(REGEX_UIDS).slice(1, -1),
   },
-  description: 'UIDs of collections (comma separated)',
+  description: 'IDs of collections (comma separated)',
 }
 
 const parameterTerm: QueryParameter = {
@@ -49,7 +49,7 @@ const parameterOrderBy: QueryParameter = {
 }
 
 const findParameters: MethodParameter[] = [
-  parameterUids,
+  parameterIds,
   parameterQ,
   parameterOrderBy,
   ...getStandardParameters({ method: 'find' }),
@@ -77,7 +77,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
     },
     get: {
       operationId: 'getCollection',
-      description: 'Get a collection by its UID',
+      description: 'Get a collection by its ID',
       parameters: [
         {
           in: 'path',
@@ -86,7 +86,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
           schema: {
             type: 'string',
           },
-          description: 'UID of the collection',
+          description: 'ID of the collection',
         },
       ],
       responses: getStandardResponses({
@@ -118,7 +118,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
           schema: {
             type: 'string',
           },
-          description: 'UID of the collection',
+          description: 'ID of the collection',
         },
       ],
       requestBody: {
@@ -141,7 +141,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
           schema: {
             type: 'string',
           },
-          description: 'UID of the collection',
+          description: 'ID of the collection',
         },
       ],
       responses: getStandardResponses({

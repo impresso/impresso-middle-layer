@@ -64,7 +64,7 @@ async function getFirstAndLastDocumentDates(solr) {
  */
 async function getNewspaperIndex() {
   return Object.values([]).reduce((index, newspaper) => {
-    index[newspaper.uid] = {
+    index[newspaper.id] = {
       name: newspaper.name,
     }
     return index

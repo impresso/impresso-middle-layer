@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "description": "Details of a wikidata entity  (TODO: add person/location specific fields)",
+  "type": "object",
+  "title": "WikidataEntityDetails",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "labels": {
+      "type": "object",
+      "description": "Labels of the entity. Key is the language code.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "descriptions": {
+      "type": "object",
+      "description": "Labels of the entity. Key is the language code.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "rank": {
+            "type": "string"
+          },
+          "datatype": {
+            "type": "string"
+          }
+        },
+        "required": ["value", "rank", "datatype"]
+      }
+    },
+    "coordinates": {
+      "type": "object",
+      "description": "Coordinates for a location entity.",
+      "properties": {
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        }
+      },
+      "required": ["latitude", "longitude"]
+    },
+    "birthDate": {
+      "type": "string",
+      "description": "Birth date for a person entity.",
+      "format": "date-time"
+    },
+    "deathDate": {
+      "type": "string",
+      "description": "Death date for a person entity.",
+      "format": "date-time"
+    },
+    "birthPlace": {
+      "description": "Birth place entity ID for a person entity.",
+      "$ref": "../../canonical/WikidataLocation.json"
+    },
+    "deathPlace": {
+      "description": "Death place entity ID for a person entity.",
+      "$ref": "../../canonical/WikidataLocation.json"
+    }
+  },
+  "required": ["id", "type", "labels", "descriptions", "images"]
+}

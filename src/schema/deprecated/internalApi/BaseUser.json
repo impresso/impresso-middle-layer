@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "title": "Base User",
+  "required": ["uid", "username"],
+  "properties": {
+    "uid": {
+      "type": "string",
+      "title": "unique identifier for the user",
+      "examples": ["local-dg"],
+      "pattern": "^([a-zA-Z-]+)$"
+    },
+    "username": {
+      "type": "string",
+      "title": "unique username for the user for other humans",
+      "examples": ["daniele.guido"],
+      "pattern": "^([a-z.]+)$"
+    }
+  }
+}

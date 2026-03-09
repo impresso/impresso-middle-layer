@@ -27,7 +27,7 @@ export class Service {
     const cachedImage = await this.app.service('redisClient').client.get(`img:${id}`)
 
     if (cachedImage) {
-      debug('[get] id:', id, 'found uploaded image in REDIS, with hash:', cachedImage.uid)
+      debug('[get] id:', id, 'found uploaded image in REDIS, with hash:', cachedImage.id)
       return new UploadedImage(JSON.parse(cachedImage))
     }
 

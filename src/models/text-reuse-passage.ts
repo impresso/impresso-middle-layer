@@ -1,10 +1,10 @@
-import {
+import type {
   AccessRightFields,
   ArticleFields,
   ContentItemCore,
   ContextualMetadataFields,
   ImageFields,
-} from './generated/solr/contentItem.js'
+} from './generated/external/solr/ContentItem.js'
 import { LanguageCode, TextContentFields } from './solr.js'
 
 const TRPassageCoreFields = [

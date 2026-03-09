@@ -14,7 +14,7 @@ import { NotFound } from '@feathersjs/errors'
 import Debug from 'debug'
 const debug = Debug('impresso/services:articles-suggestions')
 import ArticleTopic from '@/models/articles-topics.model.js'
-import { ContentItemTopic } from '@/models/generated/schemas.js'
+import { ContentItemTopic } from '@/models/generated/deprecated/models.js'
 import { utils } from '@/solr.js'
 const { wrapAll } = utils
 
@@ -90,7 +90,7 @@ export class ArticlesSuggestionsService {
       if (params.query.method === SIM_BY_TOPICS) {
         topicWeight = topicsChoosen
           .reduce((acc, d) => {
-            acc.push(`abs(sub(${d.relevance},payload(topics_dpfs,${d.topicUid})))`)
+            acc.push(`abs(sub(${d.relevance},payload(topics_dpfs,${d.topicId})))`)
             return acc
           }, [] as string[])
           .join(',')
@@ -101,7 +101,7 @@ export class ArticlesSuggestionsService {
         const tw = new Array(params.query.amount * 2)
         for (let i = 0; i < params.query.amount; i += 1) {
           tw[i] = topics[i].relevance
-          tw[i + params.query.amount] = `payload(topics_dpfs,${topics[i].topicUid})`
+          tw[i + params.query.amount] = `payload(topics_dpfs,${topics[i].topicId})`
         }
         topicWeight = `sqedist(${tw.join(',')})`
       }
@@ -131,9 +131,9 @@ export class ArticlesSuggestionsService {
             const article: Article = solrFactory(doc as any as PrintContentItem & IFragmentsAndHighlights)
 
             article.locations = (await Promise.all(
-              article.locations?.map(item => resolvers.location(item.uid)) ?? []
+              article.locations?.map(item => resolvers.location(item.id)) ?? []
             )) as any
-            article.persons = (await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])) as any
+            article.persons = (await Promise.all(article.persons?.map(item => resolvers.person(item.id)) ?? [])) as any
 
             return article as any
           })

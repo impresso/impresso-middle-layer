@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/impresso/impresso-middle-layer/tree/master/src/services/ngram-trends/schema/post/response.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "description": "Response for POST /ngram-trends",
   "type": "object",
   "additionalProperties": false,
@@ -55,8 +54,5 @@
       }
     }
   },
-  "required": [
-    "trends",
-    "domainValues"
-  ]
+  "required": ["trends", "domainValues"]
 }

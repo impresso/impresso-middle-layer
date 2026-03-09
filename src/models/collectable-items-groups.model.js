@@ -1,5 +1,5 @@
 class CollectableItemGroup {
-  constructor ({
+  constructor({
     itemId = '',
     contentType = '',
     collections = [],
@@ -13,7 +13,7 @@ class CollectableItemGroup {
     this.searchQueries = searchQueries;
 
     if (!collections.length && collectionIds.length) {
-      this.collections = collectionIds.map(uid => ({ uid }));
+      this.collections = collectionIds.map(id => ({ id }));
     }
 
     if (latestDateAdded instanceof Date) {
@@ -23,7 +23,7 @@ class CollectableItemGroup {
     }
   }
 
-  getService () {
+  getService() {
     const services = {
       A: 'articles',
       E: 'entities',

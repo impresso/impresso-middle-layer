@@ -1,8 +1,8 @@
-import type { ImpressoProxy } from '@/models/generated/common.ts'
+import type { SocksProxyConfiguration } from '@/models/generated/app/configuration.js'
 
 const SocketConfigurationEnvFileName = 'IMPRESSO_SOCKS_PROXY_CONFIG'
 
-export const getSocksProxyConfiguration = (method = 'env'): ImpressoProxy | undefined => {
+export const getSocksProxyConfiguration = (method = 'env'): SocksProxyConfiguration | undefined => {
   if (method !== 'env') {
     throw new Error('Unsupported method for getting SOCKS proxy configuration')
   }
@@ -12,7 +12,7 @@ export const getSocksProxyConfiguration = (method = 'env'): ImpressoProxy | unde
     return undefined
   }
   try {
-    const socksProxyConfig: ImpressoProxy = JSON.parse(socksProxyConfigString)
+    const socksProxyConfig: SocksProxyConfiguration = JSON.parse(socksProxyConfigString)
     return socksProxyConfig
   } catch (error) {
     console.error('Error parsing SOCKS proxy configuration:', error)
@@ -20,7 +20,7 @@ export const getSocksProxyConfiguration = (method = 'env'): ImpressoProxy | unde
   }
 }
 
-export const shouldUseSocksProxy = (domainOrUri: string, proxyConfig: ImpressoProxy | undefined): boolean => {
+export const shouldUseSocksProxy = (domainOrUri: string, proxyConfig: SocksProxyConfiguration | undefined): boolean => {
   if (!proxyConfig) {
     return false
   }

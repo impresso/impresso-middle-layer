@@ -12,7 +12,7 @@ export const docs: ServiceSwaggerOptions = {
       security: [],
       responses: getStandardResponses({
         method: 'find',
-        schema: 'VersionDetails',
+        schema: 'VersionDetailsShort',
         standardPagination: false,
         authEnabled: false,
         isRateLimited: false,

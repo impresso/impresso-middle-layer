@@ -7,7 +7,7 @@ import {
   SolrServerAuth,
   SolrServerConfiguration,
   SolrServerNamespaceConfiguration,
-} from '@/models/generated/common.js'
+} from '@/models/generated/app/configuration.js'
 import {
   checkResponseStatus,
   defaultFetchOptions,

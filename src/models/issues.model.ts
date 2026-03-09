@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize'
 import Newspaper from '@/models/newspapers.model.js'
-import { NewspaperIssue } from '@/models/generated/schemas.js'
-import { ArticleFields, ContentItemCore, ContextualMetadataFields } from '@/models/generated/solr/contentItem.js'
+import { NewspaperIssue } from '@/models/generated/deprecated/models.js'
+import { ArticleFields, ContentItemCore } from '@/models/generated/external/solr/ContentItem.js'
 
 const ACCESS_RIGHTS_ND = 'NotDefined'
 const ACCESS_RIGHTS_CLOSED = 'Closed'
@@ -14,13 +14,13 @@ interface IIssueOptions {
   pages?: any[]
   cover?: string
   frontPage?: any
-  uid?: string
+  id?: string
   labels?: string[]
   accessRights?: string
 }
 
 class Issue implements Omit<NewspaperIssue, 'date'> {
-  uid: string
+  id: string
   cover: string
   labels: string[]
   frontPage?: any
@@ -36,17 +36,17 @@ class Issue implements Omit<NewspaperIssue, 'date'> {
     pages = [],
     cover = '',
     frontPage = null,
-    uid = '',
+    id = '',
     labels = ['issue'],
     accessRights = ACCESS_RIGHTS_ND,
   }: IIssueOptions = {}) {
-    this.uid = String(uid)
+    this.id = String(id)
     this.cover = cover
     this.labels = labels
     if (frontPage) {
       this.frontPage = frontPage
     }
-    const issueDateFromUid = this.uid.match(/(\d{4})-\d{2}-\d{2}/)
+    const issueDateFromId = this.id.match(/(\d{4})-\d{2}-\d{2}/)
 
     this.fresh = accessRights !== ACCESS_RIGHTS_ND
 
@@ -55,9 +55,9 @@ class Issue implements Omit<NewspaperIssue, 'date'> {
     } else {
       this.accessRights = ACCESS_RIGHTS_CLOSED
     }
-    if (issueDateFromUid) {
-      this.date = new Date(issueDateFromUid[0])
-      this.year = issueDateFromUid[1]
+    if (issueDateFromId) {
+      this.date = new Date(issueDateFromId[0])
+      this.year = issueDateFromId[1]
     }
 
     if (newspaper instanceof Newspaper) {
@@ -78,7 +78,7 @@ class Issue implements Omit<NewspaperIssue, 'date'> {
   static solrFactory() {
     return (doc: ContentItemCore & ArticleFields) => {
       const iss = new Issue({
-        uid: doc.meta_issue_id_s,
+        id: doc.meta_issue_id_s,
         cover: doc.page_id_ss ? doc.page_id_ss[0] : undefined,
         newspaper: doc.meta_journal_s,
       })
@@ -91,13 +91,13 @@ class Issue implements Omit<NewspaperIssue, 'date'> {
     const issue = client.define(
       'issue',
       {
-        uid: {
+        id: {
           type: Sequelize.STRING,
           primaryKey: true,
           field: 'id',
           unique: true,
         },
-        newspaper_uid: {
+        newspaper_id: {
           type: Sequelize.STRING,
           field: 'newspaper_id',
         },

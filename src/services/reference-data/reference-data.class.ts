@@ -1,6 +1,6 @@
 import type { Params } from '@feathersjs/feathers'
 import { stringify } from 'csv-stringify/sync'
-import type { DataProvider, MediaSource } from '@/models/generated/schemas.js'
+import type { DataProvider, MediaSource } from '@/models/generated/canonical.js'
 import type { DataProviders } from '@/services/data-providers/data-providers.class.js'
 import type { MediaSources } from '@/services/media-sources/media-sources.class.js'
 
@@ -52,9 +52,9 @@ export const mapDataProvidersToCsvRows = (providers: Pick<DataProvider, 'id' | '
   }))
 }
 
-export const mapMediaSourcesToCsvRows = (mediaSources: Pick<MediaSource, 'uid' | 'name'>[]): CsvExportRow[] => {
+export const mapMediaSourcesToCsvRows = (mediaSources: Pick<MediaSource, 'id' | 'name'>[]): CsvExportRow[] => {
   return mediaSources.map(mediaSource => ({
-    id: mediaSource.uid,
+    id: mediaSource.id,
     label: mediaSource.name,
   }))
 }

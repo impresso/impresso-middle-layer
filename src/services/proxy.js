@@ -28,20 +28,20 @@ const internalRedirect = ({ res, protectedPath = '/', filepath = '' } = {}) => {
 }
 
 /**
- * Return boolean response if specific issueUid is OpenPublic. This function
+ * Return boolean response if specific issueId is OpenPublic. This function
  * always returns false if an exception is raised during its execution.
  * @param  {String} filepath
  * @param  {Object} sequelizeClient
  * @return
  */
-const isIssueOpenPublic = async (issueUid, sequelizeClient) => {
-  debug('isIssueOpenPublic issueUid:', issueUid, '...')
+const isIssueOpenPublic = async (issueId, sequelizeClient) => {
+  debug('isIssueOpenPublic issueId:', issueId, '...')
   try {
     const result = await sequelizeClient.query('SELECT access_rights FROM issues WHERE id = ? LIMIT 1', {
-      replacements: [issueUid],
+      replacements: [issueId],
       type: QueryTypes.SELECT,
     })
-    debug('isIssueOpenPublic issueUid:', issueUid, '- access_rights:', result[0].access_rights)
+    debug('isIssueOpenPublic issueId:', issueId, '- access_rights:', result[0].access_rights)
     // if there's an error, we put false.
     return result[0].access_rights === ACCESS_RIGHT_OPEN_PUBLIC
   } catch (e) {
@@ -76,9 +76,9 @@ export default function (app) {
       // ```
       if (!accessToken) {
         // check filepath
-        const [contentItemId, issueUid] = filepath.match(/([A-Za-z]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/)
+        const [contentItemId, issueId] = filepath.match(/([A-Za-z]+-\d{4}-\d{2}-\d{2}-[a-z]+)*-p[0-9]+/)
 
-        const isOpenPublic = await isIssueOpenPublic(issueUid, sequelizeClient)
+        const isOpenPublic = await isIssueOpenPublic(issueId, sequelizeClient)
         if (isOpenPublic) {
           debug('no auth found, but contentItemId:', contentItemId, 'is OpenPublic.')
           req.proxyAuthorization = config.iiif.epflsafe.auth

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
+# yaml-language-server: $schema=../../../schema/app/configuration/redactionPolicy.json
 name: content-item-redaction-policy
 items:
   # NOTE: decided to show title and fragment so that guest users can see at least something

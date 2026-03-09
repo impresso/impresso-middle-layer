@@ -8,28 +8,28 @@ import { getRegionCoordinatesFromDocument } from '@/util/solr/index.js'
 import ArticleTopic from '@/models/articles-topics.model.js'
 import CollectableItem from '@/models/collectable-items.model.js'
 import Collection from '@/models/collections.model.js'
-import { ContentItem } from '@/models/generated/schemas.js'
+import { ContentItem } from '@/models/generated/deprecated/models.js'
 import Issue from '@/models/issues.model.js'
 import Newspaper from '@/models/newspapers.model.js'
 import Page from '@/models/pages.model.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
-import { ContentItemTextMatch } from '@/models/generated/schemas/contentItem.js'
+import { ContentItemTextMatch } from '@/models/generated/canonical/contentItem.js'
 
 const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
 
 interface IArticleDPF {
-  uid: string
+  id: string
   relevance: number | string
 }
 
 interface IArticleRegion {
-  pageUid?: string
+  pageId?: string
   g?: any[]
   c?: number[]
 }
 
 interface IBaseArticle {
-  uid?: string
+  id?: string
   type?: string
   title?: string
   excerpt?: string
@@ -73,11 +73,11 @@ interface IArticleOptions extends IBaseArticle {
 }
 
 class ArticleDPF {
-  uid: string
+  id: string
   relevance: number
 
-  constructor({ uid, relevance }: IArticleDPF = { uid: '', relevance: '' }) {
-    this.uid = uid
+  constructor({ id, relevance }: IArticleDPF = { id: '', relevance: '' }) {
+    this.id = id
     this.relevance = typeof relevance === 'string' ? parseFloat(relevance) : relevance
   }
 
@@ -94,7 +94,7 @@ class ArticleDPF {
       .map(d => {
         const parts = d.split('|')
         return new ArticleDPF({
-          uid: parts[0],
+          id: parts[0],
           relevance: parts[1],
         })
       })
@@ -102,13 +102,13 @@ class ArticleDPF {
 }
 
 class ArticleRegion {
-  pageUid: string
+  pageId: string
   coords: number[]
   g: any[] = []
   isEmpty: boolean
 
-  constructor({ pageUid = '', g = [], c = [] }: IArticleRegion = {}) {
-    this.pageUid = String(pageUid)
+  constructor({ pageId = '', g = [], c = [] }: IArticleRegion = {}) {
+    this.pageId = String(pageId)
     this.coords = c
     // TODO: Rendering now happens on the client side,
     // so this field is not used anymore. Consider removing later.
@@ -133,26 +133,26 @@ class Fragment implements ContentItemTextMatch {
 
 class ArticleMatch extends Fragment implements ContentItemTextMatch {
   coords: number[]
-  pageUid: string
+  pageId: string
 
   constructor(
-    { coords = [], fragment = '', pageUid = '' }: ContentItemTextMatch = {
+    { coords = [], fragment = '', pageId = '' }: ContentItemTextMatch = {
       coords: [],
       fragment: '',
-      pageUid: '',
+      pageId: '',
     }
   ) {
     super({ fragment })
     this.coords = coords.map(coord => (typeof coord == 'string' ? parseInt(coord, 10) : coord))
-    this.pageUid = String(pageUid)
+    this.pageId = String(pageId)
   }
 }
 
 /**
  * @deprecated use `content-item` instead.
  */
-export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> {
-  uid: string
+export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'persons' | 'locations'> {
+  id: string
   type: string
   title: string
   size: number
@@ -165,7 +165,7 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
   locations?: ArticleDPF[]
 
   constructor({
-    uid = '',
+    id = '',
     type = '',
     title = '',
     excerpt = '',
@@ -176,7 +176,7 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
     locations = [],
     collections = [],
   }: IBaseArticle = {}) {
-    this.uid = String(uid)
+    this.id = String(id)
     this.type = String(type)
     this.title = String(title).trim()
     this.size = typeof size === 'string' ? parseInt(size, 10) : size
@@ -220,12 +220,12 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
     const fragments = res.fragments || {}
     return doc =>
       new BaseArticle({
-        uid: doc.id,
+        id: doc.id,
         type: doc.item_type_s,
         size: doc.content_length_i,
-        pages: (doc.page_id_ss || []).map(uid => ({
-          uid,
-          num: parseInt(uid.match(/p([0-9]+)$/)?.[1] ?? '', 10),
+        pages: (doc.page_id_ss || []).map(id => ({
+          id,
+          num: parseInt(id.match(/p([0-9]+)$/)?.[1] ?? '', 10),
         })),
         isCC: !!doc.cc_b,
         // eslint-disable-next-line no-use-before-define
@@ -240,9 +240,9 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'id'> 
 
 type ContentItemWithCorrectTypes = Omit<
   ContentItem,
-  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages' | 'topics' | 'id'
+  'issue' | 'date' | 'bitmapExplore' | 'bitmapGetTranscript' | 'bitmapGetImages' | 'topics'
 > & {
-  uid: string
+  id: string
   issue?: Issue
   date?: Date
   bitmapExplore?: bigint
@@ -280,7 +280,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
   copyright?: ContentItem['copyright']
 
   constructor({
-    uid = '',
+    id = '',
     type = '',
     language = '',
     title = '',
@@ -315,7 +315,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     copyright = undefined,
   }: IArticleOptions = {}) {
     super({
-      uid,
+      id,
       type,
       title,
       excerpt,
@@ -344,7 +344,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     if (issue instanceof Issue) {
       this.issue = issue
     } else if (issue) {
-      this.issue = new Issue({ uid: issue })
+      this.issue = new Issue({ id: issue })
     }
 
     this.dataProvider = dataProvider
@@ -352,7 +352,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     if (newspaper instanceof Newspaper) {
       this.newspaper = newspaper
     } else {
-      this.newspaper = new Newspaper({ uid: newspaper })
+      this.newspaper = new Newspaper({ id: newspaper })
     }
 
     this.collections = collections
@@ -408,16 +408,16 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     // which contains an array of coordinates [x,y,w,h]
     // this reduce function returns something like:
     //  const rcs = [
-    //    { page_uid: 'GDL-1900-08-08-a-p0002',
+    //    { page_id: 'GDL-1900-08-08-a-p0002',
     //      c: [ 3433, 1440, 783, 42 ] },
-    //    { page_uid: 'GDL-1900-08-08-a-p0002',
+    //    { page_id: 'GDL-1900-08-08-a-p0002',
     //      c: [ 3433, 1481, 783, 571 ] }
     //  ]
     const rcs = rc.reduce(
       (acc, pag) =>
         acc.concat(
           pag.r.map((reg: any) => ({
-            pageUid: pag.id,
+            pageId: pag.id,
             c: reg,
           }))
         ),
@@ -445,7 +445,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
 
       if (rcs.length < trs.length) {
         // it would never happen.... or not?
-        throw new Error(`article ${this.uid} coordinates corrupted`)
+        throw new Error(`article ${this.id} coordinates corrupted`)
       }
 
       // then, for each region,
@@ -464,13 +464,13 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
 
   static assignIIIF(article: Article, props: string[] = ['regions', 'matches']): Article {
     // get iiif of pages
-    const pagesIndex = lodash.keyBy(article.pages, 'uid') // d => d.iiif);
+    const pagesIndex = lodash.keyBy(article.pages, 'id') // d => d.iiif);
     props.forEach(prop => {
       const a = article as any
       if (Array.isArray(a[prop])) {
         a[prop].forEach((d: any, i) => {
-          if (pagesIndex[a[prop][i].pageUid]) {
-            a[prop][i].iiifFragment = getExternalFragmentUrl(pagesIndex[a[prop][i].pageUid].iiif, {
+          if (pagesIndex[a[prop][i].pageId]) {
+            a[prop][i].iiifFragment = getExternalFragmentUrl(pagesIndex[a[prop][i].pageId].iiif, {
               coordinates: d.coords,
             })
           }
@@ -486,9 +486,9 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
    * which contains an array of coordinates [x,y,w,h]
    * this reduce function returns something like:
    *  const regions = [
-   *    { page_uid: 'GDL-1900-08-08-a-p0002',
+   *    { page_id: 'GDL-1900-08-08-a-p0002',
    *      c: [ 3433, 1440, 783, 42 ] },
-   *    { page_uid: 'GDL-1900-08-08-a-p0002',
+   *    { page_id: 'GDL-1900-08-08-a-p0002',
    *      c: [ 3433, 1481, 783, 571 ] }
    *  ][getPageRegions description]
    * @param  {Array}  regionCoords=[]
@@ -501,7 +501,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
           pag.r.map(
             (reg: any) =>
               new ArticleRegion({
-                pageUid: pag.id,
+                pageId: pag.id,
                 c: reg,
               })
           )
@@ -546,7 +546,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
               match = new ArticleMatch({
                 fragment: fragments[i],
                 coords: pag.t[ii].c,
-                pageUid: pag.id,
+                pageId: pag.id,
               })
               break
             }
@@ -565,7 +565,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
     const article = client.define(
       'article',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING(50),
           primaryKey: true,
           field: 'id',
@@ -669,7 +669,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
       const rc = getRegionCoordinatesFromDocument(doc)
 
       const art = new Article({
-        uid: doc.id,
+        id: doc.id,
         type: doc.item_type_s,
         language: doc.lg_s,
 
@@ -681,10 +681,10 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
         dataProvider: doc.meta_partnerid_s,
 
         newspaper: new Newspaper({
-          uid: doc.meta_journal_s,
+          id: doc.meta_journal_s,
         }),
         issue: new Issue({
-          uid: doc.meta_issue_id_s,
+          id: doc.meta_issue_id_s,
         }),
 
         country: doc.meta_country_code_s,
@@ -694,7 +694,7 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
         pages: Array.isArray(doc.page_id_ss)
           ? doc.page_id_ss.map((d, i) =>
             new Page({
-              uid: d,
+              id: d,
             })
           )
           : [],
@@ -734,8 +734,8 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
         return art
       }
       // get text matches
-      const fragments = res.fragments?.[art.uid]?.[`content_txt_${art.language}`]
-      const highlights = res.highlighting?.[art.uid]?.[`content_txt_${art.language}`]
+      const fragments = res.fragments?.[art.id]?.[`content_txt_${art.language}`]
+      const highlights = res.highlighting?.[art.id]?.[`content_txt_${art.language}`]
       //
       // console.log('fragments!!', res.fragments, '--', fragments);
       // console.log('highlights!!', res.highlighting, '--', highlights);

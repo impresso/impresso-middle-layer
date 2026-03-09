@@ -11,15 +11,38 @@ const { swaggerUI } = swagger
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const schemaBaseDir = path.join(__dirname, '../schema')
 const packageJsonUrl = path.join(__dirname, '../../package.json')
 
 interface SchemaRef {
   $ref: string
 }
 
-const getFilesAsSchemaRefs = (dir: string, prefix: string): Record<string, SchemaRef> => {
+type SchemaRefs = Record<string, SchemaRef>
+
+const resolveSchemaBaseDir = (): string => {
+  const candidates = [
+    path.join(__dirname, '../schema'),
+    path.join(__dirname, '../../src/schema'),
+    path.join(process.cwd(), 'src/schema'),
+    path.join(process.cwd(), 'schema'),
+  ]
+
+  const matchingCandidate = candidates.find(dir => fs.existsSync(path.join(dir, 'canonical')))
+  if (matchingCandidate != null) {
+    return matchingCandidate
+  }
+
+  throw new Error(`Swagger schema directory not found. Checked: ${candidates.join(', ')}`)
+}
+
+const schemaBaseDir = resolveSchemaBaseDir()
+
+const getFilesAsSchemaRefs = (dir: string, prefix: string, required = false): Record<string, SchemaRef> => {
   if (!fs.existsSync(dir)) {
+    if (required) {
+      throw new Error(`Swagger schema directory not found: ${dir}`)
+    }
+
     return {}
   }
 
@@ -37,6 +60,27 @@ const getFilesAsSchemaRefs = (dir: string, prefix: string): Record<string, Schem
       },
       {} as Record<string, SchemaRef>
     )
+}
+
+const ensureRequiredSchemas = (schemas: SchemaRefs): SchemaRefs => {
+  const result = { ...schemas }
+
+  if (result.ContentItem == null) {
+    const contentItemSchemaPath = path.join(schemaBaseDir, 'canonical/contentItem/ContentItem.json')
+    if (fs.existsSync(contentItemSchemaPath)) {
+      result.ContentItem = { $ref: './schema/canonical/contentItem/ContentItem.json' }
+      logger.error('Recovered missing Swagger component schema: ContentItem')
+    }
+  }
+
+  if (result.ContentItem == null) {
+    throw new Error(
+      `Swagger component schema "ContentItem" is missing. ` +
+        `schemaBaseDir=${schemaBaseDir}, availableSchemas=${Object.keys(result).join(', ')}`
+    )
+  }
+
+  return result
 }
 
 function getRedirectPrefix({ req, ctx }: any) {
@@ -76,8 +120,18 @@ export default (app: ImpressoApplication & Application) => {
     return
   }
   logger.info('Public API - swagger middleware is enabled')
+  logger.info(`Swagger schema directory: ${schemaBaseDir}`)
 
   const prefix = app.get('publicApiPrefix')
+  const schemas = ensureRequiredSchemas({
+    // canonical schemas
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical`, './schema/canonical', true),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/contentItem`, './schema/canonical/contentItem', true),
+    // app specific schemas
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app`, './schema/app'),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/responses`, './schema/app/responses'),
+  })
 
   const swaggerItem = swagger({
     openApiVersion: 3,
@@ -93,14 +147,9 @@ export default (app: ImpressoApplication & Application) => {
         },
       },
       components: {
-        schemas: {
-          // shared schemas (shared by both internal and external schemas)
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/shared`, './schema/shared'),
-          // public schemas
-          ...getFilesAsSchemaRefs(`${schemaBaseDir}/schemasPublic`, './schema/schemasPublic'),
-        },
-        requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/requestBodies`, './schema/requestBodies'),
-        responses: getFilesAsSchemaRefs(`${schemaBaseDir}/responses`, './schema/responses'),
+        schemas,
+        requestBodies: getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
+        responses: getFilesAsSchemaRefs(`${schemaBaseDir}/app/responses`, './schema/app/responses'),
         parameters: getFilesAsSchemaRefs(`${schemaBaseDir}/parameters`, './schema/parameters'),
         securitySchemes: {
           BearerAuth: {

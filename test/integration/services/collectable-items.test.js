@@ -38,7 +38,6 @@ describe("'collectable-items' service", function () {
 
   it('setup the test', async () => {
     const result = await generateUser()
-    assert.ok(result.uid, 'should have an uid prop')
     assert.ok(result.id, 'should have an id')
     assert.ok(result.username, 'should have a nice username')
     // enrich the user variable
@@ -57,14 +56,14 @@ describe("'collectable-items' service", function () {
         user,
       }
     )
-    assert.ok(result.uid, 'should have an unique uid')
-    collection.uid = result.uid
+    assert.ok(result.id, 'should have an unique uid')
+    collection.id = result.id
   })
 
   it('create an entry item for the current user', async () => {
     const results = await service.create(
       {
-        collection_uid: collection.uid,
+        collection_id: collection.id,
         items: [
           {
             uid: 'GDL-1967-04-25-a-i0152',
@@ -91,13 +90,13 @@ describe("'collectable-items' service", function () {
     })
     assert.equal(results.total, 1)
     assert.ok(results.data[0].collections.length, 'has at least one collection!')
-    assert.equal(results.data[0].item.uid, 'GDL-1967-04-25-a-i0152', 'item has been resolved')
+    assert.equal(results.data[0].item.id, 'GDL-1967-04-25-a-i0152', 'item has been resolved')
   })
 
   it('find all collectableitems for a given set of item uids', async () => {
     const results = await service.find({
       query: {
-        item_uids: ['GDL-1967-04-25-a-i0152'],
+        item_ids: ['GDL-1967-04-25-a-i0152'],
       },
       authenticated: true,
       user,
@@ -108,7 +107,7 @@ describe("'collectable-items' service", function () {
   it('find all collectableitems for a given set of item uids', async () => {
     const results = await service.find({
       query: {
-        collection_uids: [collection.uid],
+        collection_ids: [collection.id],
         resolve: 'item',
       },
       authenticated: true,
@@ -119,9 +118,9 @@ describe("'collectable-items' service", function () {
   })
 
   it('remove an article from a collection', async () => {
-    const results = await service.remove(collection.uid, {
+    const results = await service.remove(collection.id, {
       query: {
-        collection_uid: collection.uid,
+        collection_id: collection.id,
         items: [
           {
             uid: 'GDL-1967-04-25-a-i0152',

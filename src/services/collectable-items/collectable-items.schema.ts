@@ -1,5 +1,5 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
-import { MethodParameter, getRequestBodyContent, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
+import { MethodParameter, getRequestBodyContent, getStandardResponses } from '@/util/openapi.js'
 import { REGEX_UID } from '@/hooks/params.js'
 
 const commonParameters: MethodParameter[] = [
@@ -32,22 +32,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => {
     multi: ['patch'],
     securities: ['patchMulti', 'create'],
     operations: {
-      patch: {
-        // hide this endpoint from the public API - it's not used
-        // but required for feathersjs
-        // NOTE: If requestBody and responses are not provided,
-        // the `RefParser.bundle` will fail with an error
-        // "MissingPointerError: Token ":id" does not exist."
-        requestBody: {
-          content: getRequestBodyContent('UpdateCollectableItemsRequest'),
-        },
-        responses: getStandardResponses({
-          method: 'patchMulti',
-          schema: 'CollectableItemsUpdatedResponse',
-        }),
-
-        tags: ['not-used'],
-      },
+      patch: false,
       create: {
         operationId: 'addCollectableItemsFromFilters',
         description: 'Add items to a collection from a filtered search result',

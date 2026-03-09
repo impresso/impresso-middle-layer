@@ -1,7 +1,7 @@
 import { JSONPath } from 'jsonpath-plus'
 import { safeParseJson, safeStringifyJson } from '@/util/jsonCodec.js'
 import { sanitizeIiifImageUrl } from '@/util/iiif.js'
-import { ImageUrlRewriteRule } from '@/models/generated/common.js'
+import type { ImageUrlRewriteRule } from '@/models/generated/app/configuration.js'
 /**
  * Represents a redactable object with arbitrary string keys and values.
  * The `symbol` keys are for internal use (like the `AuthorizationBitmapsKey`).
@@ -9,7 +9,7 @@ import { ImageUrlRewriteRule } from '@/models/generated/common.js'
 export type Redactable = Record<string | symbol, any>
 export type ValueConverter = (value: any, rewriteRules?: ImageUrlRewriteRule[]) => any
 
-export type DefaultConvertersNames = 'redact' | 'contextNotAllowedImage' | 'remove' | 'emptyArray'
+export type DefaultConvertersNames = 'redact' | 'contextNotAllowedImage' | 'remove' | 'emptyArray' | 'emptyObject'
 
 export interface RedactionPolicyItem {
   jsonPath: string
@@ -27,6 +27,7 @@ export const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> =
     sanitizeIiifImageUrl('https://impresso-project.ch/assets/images/not-allowed.png', rewriteRules ?? []),
   remove: value => undefined,
   emptyArray: value => [],
+  emptyObject: value => ({}),
 }
 
 /**

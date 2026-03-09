@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ContentItemTopic",
+  "description": "TODO",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "topic": {
+      "$ref": "../../canonical/Topic.json"
+    },
+    "relevance": {
+      "type": "number",
+      "description": "TODO"
+    },
+    "topicId": {
+      "type": "string",
+      "description": "TODO"
+    }
+  },
+  "required": ["relevance"]
+}

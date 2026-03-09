@@ -2,8 +2,8 @@ import User from './users.model'
 import { DataTypes } from 'sequelize'
 
 class UploadedImage {
-  constructor({ uid = '', name = '', checksum = '', signature = '', thumbnail = '', creationDate = new Date() } = {}) {
-    this.uid = String(uid)
+  constructor({ id = '', name = '', checksum = '', signature = '', thumbnail = '', creationDate = new Date() } = {}) {
+    this.id = String(id)
     this.name = String(name)
     this.checksum = String(checksum)
     this.signature = String(signature)
@@ -18,7 +18,7 @@ class UploadedImage {
     const uploadedImage = client.define(
       'uploadedImage',
       {
-        uid: {
+        id: {
           type: DataTypes.STRING(50),
           primaryKey: true,
           unique: true,
@@ -82,7 +82,7 @@ class UploadedImage {
 
     uploadedImage.prototype.toJSON = function () {
       const instance = new UploadedImage({
-        uid: this.uid,
+        id: this.id,
         thumbnail: this.thumbnail,
         creationDate: this.creationDate,
         lastModifiedDate: this.lastModifiedDate,

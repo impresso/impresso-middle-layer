@@ -1,13 +1,14 @@
 import { WellKnownMetadataKeys } from '@/cache.js'
 import { getQueueService } from '@/internalServices/queue.js'
-import type { Admin, AdminPatchRequest } from '@/models/generated/schemasPublic.js'
+import type { AdminPatchRequest } from '@/models/generated/app/requests.js'
+import type { AdminGETResponse } from '@/models/generated/app/responses.js'
 import type { RedisClient } from '@/redis.js'
 import { WikidataCacheKeyPrefix } from '@/services/wikidata.js'
 import { ImpressoApplication } from '@/types.js'
 import { getContentItemsPermissionsDetails } from '@/useCases/getContentItemsPermissionsDetails.js'
 import { Params } from '@feathersjs/feathers'
 
-type FindResponse = Admin & {
+type FindResponse = AdminGETResponse & {
   contentItemsPermissionsDetails: Awaited<ReturnType<typeof getContentItemsPermissionsDetails>>
   imagesPermissionsDetails: Awaited<ReturnType<typeof getContentItemsPermissionsDetails>>
   cacheCounts: CacheCounts
@@ -16,10 +17,10 @@ type FindResponse = Admin & {
 interface FindParams {}
 
 type CacheAction = AdminPatchRequest['action']
-type CacheCounts = NonNullable<Admin['cacheCounts']>
-type WellKnownComputedAt = NonNullable<Admin['wellKnownComputedAt']>
+type CacheCounts = NonNullable<AdminGETResponse['cacheCounts']>
+type WellKnownComputedAt = NonNullable<AdminGETResponse['wellKnownComputedAt']>
 type PatchData = AdminPatchRequest
-type PatchResponse = NonNullable<Admin['patchResult']> & { action: CacheAction }
+type PatchResponse = NonNullable<AdminGETResponse['patchResult']> & { action: CacheAction }
 
 interface IService {
   find(params?: Params<FindParams>): Promise<FindResponse>

@@ -51,7 +51,7 @@ describe("'entities' service", function () {
     assert.strictEqual(entity.name, 'Berlin')
     assert.strictEqual(entity.type, 'location')
     assert.strictEqual(entity.wikidataId, 'Q64')
-    assert.strictEqual(entity.uid, 'aida-0001-54-Berlin')
+    assert.strictEqual(entity.id, 'aida-0001-54-Berlin')
     assert.ok(entity.wikidata.images, 'Entity 1 must contain wikidata as it has wikidata id')
   })
 })

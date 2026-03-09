@@ -1,23 +1,22 @@
 import Entity from '@/models/entities.model.js'
 import Topic from '@/models/topics.model.js'
-import { optionalMediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import { ImpressoApplication } from '@/types.js'
-import { Newspaper as NewspaperInternal } from '@/models/generated/schemas.js'
 import { WellKnownKeys } from '@/cache.js'
 import { getPartnerResolver } from '@/internalServices/facetResolvers/partnerResolver.js'
-import { getNameFromUid } from '@/utils/entity.utils.js'
+import { getNameFromId } from '@/utils/entity.utils.js'
 import {
   Topic as ITopic,
   Year as IYear,
   Entity as IEntity,
   Collection as ICollection,
-  Newspaper as INewspaper,
   Partner as IPartner,
-} from '@/models/generated/schemas.js'
-import { FacetWithLabel } from '@/models/generated/shared.js'
+  MediaSource as IMediaSource,
+} from '@/models/generated/canonical.js'
+import { InternalTopic } from '@/models/generated/deprecated/models.js'
+import { FacetWithLabel } from '@/models/generated/canonical.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 export type CachedFacetType =
-  | 'newspaper'
+  | 'mediaSource'
   | 'topic'
   | 'person'
   | 'location'
@@ -30,12 +29,15 @@ export type CachedFacetType =
   | 'imageTechnique'
   | 'imageCommunicationGoal'
   | 'imageContentType'
-export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | INewspaper | IPartner | FacetWithLabel
+  | 'dataDomain'
+  | 'copyright'
+  | 'contentItemType'
+export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | IMediaSource | IPartner | FacetWithLabel
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
 
 export type ICachedResolvers = {
-  newspaper: IResolver<NewspaperInternal>
+  mediaSource: IResolver<IMediaSource>
   topic: IResolver<ITopic>
   person: IResolver<IEntity>
   location: IResolver<IEntity>
@@ -48,16 +50,61 @@ export type ICachedResolvers = {
   imageTechnique: IResolver<FacetWithLabel>
   imageCommunicationGoal: IResolver<FacetWithLabel>
   imageContentType: IResolver<FacetWithLabel>
+  dataDomain: IResolver<FacetWithLabel>
+  copyright: IResolver<FacetWithLabel>
+  contentItemType: IResolver<FacetWithLabel>
 }
 
 // Record<CachedFacetType, IResolver<T>>
+
+const DataDomainLabels = {
+  pbl: 'Public',
+  prt: 'Private',
+} as const
+
+const CopyrightLabels = {
+  pbl: 'Public domain',
+  und: 'Protected domain: copyright undetermined',
+  nkn: 'Protected domain: no known copyright',
+  euo: 'Protected domain: in copyright - EU orphan work',
+  unk: 'Protected domain: in copyright - unknown rightsholders',
+  in_cpy: 'Protected domain: in copyright',
+} as const
+
+const ContentItemTypeLabels = {
+  ar: 'Article',
+  ad: 'Advertisement',
+  page: 'Page',
+  tb: 'Table',
+  ob: 'Obituary',
+  w: 'Weather',
+  chapter: 'Chapter',
+  chronicle: 'Chronicle',
+  unsegmented: 'Unsegmented',
+  radio_broadcast_episode: 'Radio broadcast episode',
+  radio_bulletin: 'Radio bulletin',
+} as const
+
+const fromLookup =
+  (lookup: Record<string, string>): IResolver<FacetWithLabel> =>
+  async (id: string) => {
+    const label = lookup[id]
+    if (label == null) return undefined
+    return { id, label } satisfies FacetWithLabel
+  }
+
+export const getDataDomainResolver = (): IResolver<FacetWithLabel> => fromLookup(DataDomainLabels)
+
+export const getCopyrightResolver = (): IResolver<FacetWithLabel> => fromLookup(CopyrightLabels)
+
+export const getContentItemTypeResolver = (): IResolver<FacetWithLabel> => fromLookup(ContentItemTypeLabels)
 
 const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection> => {
   const collectionsService = app.service('collections')
   return async (id: string) => {
     const collection = await collectionsService.getInternal(id)
     return {
-      uid: id,
+      id: id,
       title: collection?.name ?? '',
       description: collection?.description ?? '',
       accessLevel: collection?.status == 'PRI' ? 'private' : 'public',
@@ -71,17 +118,40 @@ const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection>
 
 const entityResolver = async (id: string, type: CachedFacetType) =>
   new Entity({
-    uid: id,
+    id,
     type,
-    name: getNameFromUid(id),
+    name: getNameFromId(id),
   }) as any as IEntity
 
 const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
-  return async (id: string) => {
+  const loadTopicsData = async (): Promise<Record<string, ITopic>> => {
     const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
-    const deserialisedTopics: ITopic[] = JSON.parse(result ?? '[]')
+    const deserialisedTopics: InternalTopic[] = JSON.parse(result ?? '[]')
+    const byId = deserialisedTopics.reduce(
+      (acc, topic) => {
+        if (acc[topic.id] == null) {
+          acc[topic.id] = {
+            id: topic.id,
+            language: topic.language,
+            words: topic.words,
+            contentItemsCount: topic.contentItemsCount,
+            model: topic.model,
+          }
+        }
+        return acc
+      },
+      {} as Record<string, ITopic>
+    )
+    return byId
+  }
 
-    const topic = deserialisedTopics.find(t => t.uid === id)
+  const getTopicsData = async (): Promise<Record<string, ITopic>> => {
+    return await loadTopicsData()
+  }
+
+  return async (id: string) => {
+    const topics = await getTopicsData()
+    const topic = topics[id]
     if (!topic) return undefined
     return new Topic(topic as unknown as any) as any as ITopic
   }
@@ -97,12 +167,12 @@ const getYearResolver = (app: ImpressoApplication): IResolver<IYear> => {
   }
 }
 
-const getNewspaperResolver = (app: ImpressoApplication): IResolver<NewspaperInternal> => {
+const getMediaSourceResolver = (app: ImpressoApplication): IResolver<IMediaSource> => {
   const mediaSources = app.service('media-sources')
   return async (id: string) => {
     const lookup = await mediaSources.getLookup()
     const item = lookup[id]
-    return optionalMediaSourceToNewspaper(item)
+    return item
   }
 }
 
@@ -121,7 +191,7 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     person: (id: string) => entityResolver(id, 'person'),
     topic: getTopicResolver(app),
     year: getYearResolver(app),
-    newspaper: getNewspaperResolver(app),
+    mediaSource: getMediaSourceResolver(app),
     partner: getPartnerResolver(app),
     nag: (id: string) => entityResolver(id, 'nag'),
     organisation: (id: string) => entityResolver(id, 'organisation'),
@@ -129,5 +199,8 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     imageTechnique: (id: string) => imageTypeResolver(id, 'type_l1_tp'),
     imageCommunicationGoal: (id: string) => imageTypeResolver(id, 'type_l2_tp'),
     imageContentType: (id: string) => imageTypeResolver(id, 'type_l3_tp'),
+    dataDomain: getDataDomainResolver(),
+    copyright: getCopyrightResolver(),
+    contentItemType: getContentItemTypeResolver(),
   }
 }

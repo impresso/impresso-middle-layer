@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "description": "An entity like location, person, etc",
+  "type": "object",
+  "title": "Entity Details",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier of the entity"
+    },
+    "name": {
+      "type": "string",
+      "description": "Entity name"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["person", "location", "organisation", "newsagency"]
+    },
+    "countItems": {
+      "type": "integer",
+      "description": "TODO"
+    },
+    "countMentions": {
+      "type": "integer",
+      "description": "Number of mentions of this entity in articles"
+    },
+    "wikidataId": {
+      "type": "string",
+      "description": "ID of the entity in wikidata"
+    },
+    "wikidata": {
+      "$ref": "./WikidataEntityDetails.json"
+    }
+  },
+  "required": ["id", "type", "name", "countItems", "countMentions"]
+}

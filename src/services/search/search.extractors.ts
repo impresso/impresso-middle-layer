@@ -7,8 +7,8 @@ import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '@/
 import { ContentItemService } from '@/services/content-items/content-items.class.js'
 import { ImpressoApplication } from '@/types.js'
 import { buildResolvers, CachedFacetType, IResolver } from '@/internalServices/cachedResolvers.js'
-import { ContentItem } from '@/models/generated/schemas/contentItem.js'
-import { SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
+import { ContentItem } from '@/models/generated/canonical/contentItem.js'
+import { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { SolrNamespaces } from '@/solr.js'
 import { Filter } from 'impresso-jscommons'
 
@@ -112,10 +112,10 @@ export async function getItemsFromSolrResponse(
     },
   }
 
-  const articlesIndex = keyBy((await articlesService.findInternal(articlesRequest)).data, 'uid')
+  const articlesIndex = keyBy((await articlesService.findInternal(articlesRequest)).data, 'id')
 
-  return uids.map((uid: string) => {
-    const article = articlesIndex[uid]
+  return uids.map((id: string) => {
+    const article = articlesIndex[id]
     const [matches, regions] = getAricleMatchesAndRegions(article, documentsIndex, fragmentsIndex, highlightingIndex)
     return Article.assignIIIF(assignIn(clone(article), { matches, regions }) as any)
   })

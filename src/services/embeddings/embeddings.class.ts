@@ -3,7 +3,7 @@ import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import { ImpressoApplication } from '@/types.js'
 import { escapeValue } from '@/util/solr/filterReducers.js'
-import { WordMatch } from '@/models/generated/schemasPublic.js'
+import { WordMatch } from '@/models/generated/canonical.js'
 
 export type ValidLanguageCodes = 'de' | 'fr' | 'lb'
 

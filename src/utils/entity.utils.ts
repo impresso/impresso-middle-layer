@@ -2,7 +2,7 @@
  * Entity-related utility functions
  */
 
-import { EntityDetails } from '@/models/generated/schemas.js'
+import { EntityDetails } from '@/models/generated/deprecated/models.js'
 
 export const EntityCodes = {
   50: 'person',
@@ -35,19 +35,19 @@ export const TypeToTypeShorthand: Record<string, string> = Object.entries(TypeSh
 )
 
 /**
- * Extracts the display name from an entity UID
+ * Extracts the display name from an entity ID
  */
-export function getNameFromUid(uid: string): string {
-  if (uid.indexOf('bert-') === 0) {
-    return uid
+export function getNameFromId(id: string): string {
+  if (id.indexOf('bert-') === 0) {
+    return id
       .replace(/^bert-[a-z]+-\d+-/, '')
       .split('_')
       .join(' ')
   }
 
   // Handle formats like "2-50-Kanton_Waadt"
-  if (/^\d+-\d+-/.test(uid)) {
-    return uid
+  if (/^\d+-\d+-/.test(id)) {
+    return id
       .replace(/^\d+-\d+-/, '')
       .replace(/\$([^$]+)\$/g, (m, n: string) => String.fromCharCode(parseInt(n, 16)))
       .split('_')
@@ -55,7 +55,7 @@ export function getNameFromUid(uid: string): string {
   }
 
   // Handle aida formats (both aida-10-50 and aida-0001-50)
-  return uid
+  return id
     .replace(/^aida-\d+-\d+-/, '')
     .replace(/\$([^$]+)\$/g, (m, n: string) => String.fromCharCode(parseInt(n, 16)))
     .split('_')
@@ -63,18 +63,18 @@ export function getNameFromUid(uid: string): string {
 }
 
 /**
- * Extracts the entity type from an entity UID
+ * Extracts the entity type from an entity ID
  */
-export function getTypeCodeFromUid(uid: string): string {
+export function getTypeCodeFromId(id: string): string {
   // Handle formats like "2-50-Kanton_Waadt"
-  if (/^\d+-\d+-/.test(uid)) {
-    return uid.replace(/^\d+-(\d+)-.*/, '$1')
+  if (/^\d+-\d+-/.test(id)) {
+    return id.replace(/^\d+-(\d+)-.*/, '$1')
   }
 
   // Handle aida formats (both aida-10-50 and aida-0001-50)
-  return uid.replace(/^aida-\d+-(\d+)-.*/, '$1')
+  return id.replace(/^aida-\d+-(\d+)-.*/, '$1')
 }
 
-export const getTypeFromUid = (uid: string): string | undefined => {
-  return TypeCodeToType[getTypeCodeFromUid(uid)]
+export const getTypeFromId = (id: string): string | undefined => {
+  return TypeCodeToType[getTypeCodeFromId(id)]
 }
