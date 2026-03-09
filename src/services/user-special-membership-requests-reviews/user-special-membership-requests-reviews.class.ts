@@ -1,4 +1,4 @@
-import { Op, OrderItem, QueryTypes, Sequelize } from 'sequelize'
+import { Op, OrderItem, Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, NullableId, Params } from '@feathersjs/feathers'
@@ -109,23 +109,21 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
       limit,
       offset,
       where: {
-        [Op.or]: [{ reviewerId: reviewerId }, { '$specialMembershipAccess.reviewer_id$': reviewerId }],
-        ...(status ? { status: { [Op.in]: status } } : {}),
-        ...(term
-          ? {
-              [Op.or]: [
+        [Op.and]: [
+          { [Op.or]: [{ reviewerId: reviewerId }, { '$specialMembershipAccess.reviewer_id$': reviewerId }] },
+          ...(status ? [{ status: { [Op.in]: status } }] : []),
+          ...(term
+            ? [
                 {
-                  '$subscriber.email$': { [Op.like]: `%${term.toLowerCase()}%` },
+                  [Op.or]: [
+                    { '$subscriber.email$': { [Op.like]: `%${term.toLowerCase()}%` } },
+                    { '$subscriber.first_name$': { [Op.like]: `%${term.toLowerCase()}%` } },
+                    { '$subscriber.last_name$': { [Op.like]: `%${term.toLowerCase()}%` } },
+                  ],
                 },
-                {
-                  '$subscriber.first_name$': { [Op.like]: `%${term.toLowerCase()}%` },
-                },
-                {
-                  '$subscriber.last_name$': { [Op.like]: `%${term.toLowerCase()}%` },
-                },
-              ],
-            }
-          : {}),
+              ]
+            : []),
+        ],
       },
       order: order_by as OrderItem[],
       include: [
@@ -137,7 +135,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
           ? [
               {
                 association: 'subscriber',
-                attributes: ['email', 'first_name', 'last_name'],
+                attributes: ['email', ['first_name', 'firstname'], ['last_name', 'lastname']],
                 required: true,
               },
             ]
