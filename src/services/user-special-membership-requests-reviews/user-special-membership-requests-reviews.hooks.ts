@@ -33,6 +33,7 @@ export default {
           term: {
             required: false,
             regex: /^[\p{L}\p{N}\s\p{P}]*$/u,
+            max_length: 100,
           },
         },
         'GET',
