@@ -103,7 +103,12 @@ export const getStandardResponses = ({
       headers: { ...defaultHeaders },
     },
     500: {
-      description: 'general error',
+      description: 'Internal Server Error (downstream service error or unhandled error)',
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders },
+    },
+    503: {
+      description: 'Service Unavailable (downstream service is unavailable)',
       content: asApplicationProblemJson(defaultErrorSchema),
       headers: { ...defaultHeaders },
     },
