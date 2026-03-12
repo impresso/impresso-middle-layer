@@ -60,7 +60,7 @@
     "cache-manager": "^6.3.1",
     "celery-node": "^0.5.9",
     "child-process-async": "^1.0.1",
-    "chrono-node": "^2.3.2",
+    "chrono-node": "^2.9.0",
     "cli-color": "^1.4.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.3",
