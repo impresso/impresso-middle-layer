@@ -1,4 +1,4 @@
-import { Op, OrderItem, type Sequelize } from 'sequelize'
+import { Op, OrderItem, Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, NullableId, Params } from '@feathersjs/feathers'
@@ -15,12 +15,15 @@ import { CeleryClient } from '@/celery.js'
 import { logger } from '@/logger.js'
 
 const debug = Debug('impresso/services:user-special-membership-requests-reviews')
+
 export interface FindQuery {
   limit?: number
   offset?: number
   order_by?: OrderItem[]
   status?: string[]
+  term?: string
 }
+
 export interface UserSpecialMembershipRequestParams<Q = FindQuery> extends Params<Q> {
   user?: {
     id: SlimUser['id']
@@ -95,7 +98,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
   }
 
   async find(params?: UserSpecialMembershipRequestParams) {
-    const { limit = 10, offset = 0, order_by = [['dateLastModified', 'DESC']], status } = params?.query ?? {}
+    const { limit = 10, offset = 0, order_by = [['dateLastModified', 'DESC']], status, term } = params?.query ?? {}
     const reviewerId = params?.user?.id
     debug('Finding requests for reviewerId %s with order_by %s', reviewerId, JSON.stringify(order_by))
 
@@ -106,13 +109,39 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
       limit,
       offset,
       where: {
-        [Op.or]: [{ reviewerId: reviewerId }, { '$specialMembershipAccess.reviewer_id$': reviewerId }],
-        ...(params?.query?.status ? { status: { [Op.in]: params.query.status } } : {}),
+        [Op.and]: [
+          { [Op.or]: [{ reviewerId: reviewerId }, { '$specialMembershipAccess.reviewer_id$': reviewerId }] },
+          ...(status ? [{ status: { [Op.in]: status } }] : []),
+          ...(term
+            ? [
+                {
+                  [Op.or]: [
+                    { '$subscriber.email$': { [Op.like]: `%${term.toLowerCase()}%` } },
+                    { '$subscriber.first_name$': { [Op.like]: `%${term.toLowerCase()}%` } },
+                    { '$subscriber.last_name$': { [Op.like]: `%${term.toLowerCase()}%` } },
+                  ],
+                },
+              ]
+            : []),
+        ],
       },
       order: order_by as OrderItem[],
-      include: ['specialMembershipAccess'],
+      include: [
+        {
+          association: 'specialMembershipAccess',
+          required: true,
+        },
+        ...(term
+          ? [
+              {
+                association: 'subscriber',
+                attributes: ['email', ['first_name', 'firstname'], ['last_name', 'lastname']],
+                required: true,
+              },
+            ]
+          : []),
+      ],
     })
-
     // get subscribers basic info
     debug('Found %d requests for reviewerId %s', total, reviewerId)
     const userIds = [...new Set(rows.map(row => row.userId))]

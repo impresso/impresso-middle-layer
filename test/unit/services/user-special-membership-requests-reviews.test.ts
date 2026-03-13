@@ -154,7 +154,7 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
   before(async () => {
     // Setup database once for all tests
     db = setupTestDatabaseRedisCelery(trackers.celeryCalls, trackers.redisCalls, {
-      logging: false,
+      logging: true,
     })
     userModel = User.sequelize(db.sequelize)
     specialMembershipAccessModel = SpecialMembershipAccess.initialize(db.sequelize)
@@ -239,6 +239,23 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
       // Reviewer A is assigned to subscriptions with ids 2, 3, and 5 but only one is pending
       assert.strictEqual(result.data.length, 3)
       assert.strictEqual(result.pagination.total, 3)
+    })
+
+    it('should filter requests by subscriber email using term parameter', async () => {
+      // Create requests assigned to different reviewers
+      await userSpecialMembershipRequestModel.bulkCreate(mockRequestsForReviewerA)
+
+      // Search for requests from user1 by their email
+      const result = await service.find({
+        user: { id: mockReviewerUserA.id },
+        query: { term: 'user1@example.com' },
+      })
+
+      // Only one request (id: 10) is from user1 and visible to reviewer A
+      assert.strictEqual(result.data.length, 1)
+      assert.strictEqual(result.pagination.total, 1)
+      assert.strictEqual(result.data[0].userId, 1)
+      assert.strictEqual(result.data[0].requester.email, 'user1@example.com')
     })
   })
 
