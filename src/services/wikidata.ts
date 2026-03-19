@@ -307,30 +307,32 @@ export const resolveWithCache = async (
     }
   }
 
-  // Fetch missing IDs from API
+  // Fetch missing IDs from API (getManyEntities splits into batches of 50 automatically)
   if (idsToFetch.length > 0) {
     debug(`resolveWithCache: fetching ${idsToFetch.length} entities from API`)
-    const url = wbk.getEntities({ ids: idsToFetch, languages })
+    const urls = wbk.getManyEntities({ ids: idsToFetch, languages })
 
     const client = fetchClient || createFetchClient({})
-    const response = await client.fetch(url, {
-      headers: {
-        'User-Agent': 'Impresso/1.0 (https://impresso-project.ch/app)',
-      },
-    })
+    for (const url of urls) {
+      const response = await client.fetch(url, {
+        headers: {
+          'User-Agent': 'Impresso/1.0 (https://impresso-project.ch/app)',
+        },
+      })
 
-    const data = await response.json()
+      const data = await response.json()
 
-    // Store fetched entities in cache and result
-    for (const id of idsToFetch) {
-      if (data.entities[id]) {
-        const entityData = data.entities[id]
-        result[id] = entityData
+      // Store fetched entities in cache and result
+      for (const id of idsToFetch) {
+        if (data.entities?.[id]) {
+          const entityData = data.entities[id]
+          result[id] = entityData
 
-        if (cache) {
-          const cacheKey = `${WikidataCacheKeyPrefix}${id}`
-          await cache.set(cacheKey, JSON.stringify(entityData))
-          debug(`resolveWithCache: stored ${id} in cache`)
+          if (cache) {
+            const cacheKey = `${WikidataCacheKeyPrefix}${id}`
+            await cache.set(cacheKey, JSON.stringify(entityData))
+            debug(`resolveWithCache: stored ${id} in cache`)
+          }
         }
       }
     }

@@ -1,6 +1,6 @@
 import assert from 'assert'
 import sinon from 'sinon'
-import { resolveWithCache, WikidataCacheKeyPrefix, ICache } from '@/services/wikidata.js'
+import { resolveWithCache, WikidataCacheKeyPrefix, ICache, EntityId } from '@/services/wikidata.js'
 import { RedisArgument } from 'redis'
 
 /**
@@ -252,6 +252,38 @@ describe('wikidata service', () => {
 
       assert.strictEqual(Object.keys(result).length, 0)
       assert.strictEqual(mockClient.fetchStub.callCount, 0, 'API should not be called for empty list')
+    })
+
+    it('splits requests into batches when more than 50 IDs are requested', async () => {
+      const cache = new MemoryCache()
+      const ids = Array.from({ length: 55 }, (_, i) => `Q${i + 1}`) as EntityId[]
+
+      const batch1Entities = Object.fromEntries(ids.slice(0, 50).map(id => [id, { type: 'item', id, labels: {}, descriptions: {}, claims: {} }]))
+      const batch2Entities = Object.fromEntries(ids.slice(50).map(id => [id, { type: 'item', id, labels: {}, descriptions: {}, claims: {} }]))
+
+      mockClient.fetchStub
+        .onFirstCall()
+        .resolves({ json: async () => ({ entities: batch1Entities }) } as Response)
+        .onSecondCall()
+        .resolves({ json: async () => ({ entities: batch2Entities }) } as Response)
+
+      const result = await resolveWithCache(ids, ['en'], cache, mockClient as any)
+
+      assert.strictEqual(Object.keys(result).length, 55)
+      assert.strictEqual(mockClient.fetchStub.callCount, 2, 'Should make 2 API calls for 55 IDs')
+    })
+
+    it('handles API response without entities field gracefully', async () => {
+      const cache = new MemoryCache()
+
+      mockClient.fetchStub.resolves({
+        json: async () => ({ error: { code: 'too-many-ids', info: 'Too many IDs' } }),
+      } as Response)
+
+      const result = await resolveWithCache(['Q5'], ['en'], cache, mockClient as any)
+
+      assert.strictEqual(Object.keys(result).length, 0, 'Should return empty result when entities field is missing')
+      assert.strictEqual(mockClient.fetchStub.callCount, 1)
     })
 
     it('caches each entity individually with correct key pattern', async () => {
