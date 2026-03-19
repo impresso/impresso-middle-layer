@@ -75,12 +75,7 @@ const getAndFindHooks = (index: IndexId) => [
   } as unknown as any),
 
   (context: HookContext) => {
-    const {
-      range_start: rangeStart,
-      range_end: rangeEnd,
-      range_gap: rangeGap,
-      range_include: rangeInclude,
-    } = context.params.query
+    const { rangeStart, rangeEnd, rangeGap, rangeInclude } = context.params.query
     if (['edge', 'all', 'upper'].includes(rangeInclude)) {
       context.params.sanitized.rangeInclude = rangeInclude
     }
@@ -95,9 +90,9 @@ const getAndFindHooks = (index: IndexId) => [
           `Invalid range parameters: rangeStart=${rangeStart}, rangeEnd=${rangeEnd}, rangeGap=${rangeGap}`
         )
       }
-      context.params.sanitized.rangeGap = context.params.query.rangeGap
-      context.params.sanitized.rangeStart = context.params.query.rangeStart
-      context.params.sanitized.rangeEnd = context.params.query.rangeEnd
+      context.params.sanitized.rangeGap = rangeGap
+      context.params.sanitized.rangeStart = rangeStart
+      context.params.sanitized.rangeEnd = rangeEnd
     }
   },
 ]
