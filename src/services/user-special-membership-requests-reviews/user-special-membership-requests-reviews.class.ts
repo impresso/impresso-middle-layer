@@ -135,7 +135,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
           ? [
               {
                 association: 'subscriber',
-                attributes: ['email', ['first_name', 'firstname'], ['last_name', 'lastname']],
+                attributes: ['email', ['first_name', 'firstname'] as [string, string], ['last_name', 'lastname'] as [string, string]],
                 required: true,
               },
             ]
