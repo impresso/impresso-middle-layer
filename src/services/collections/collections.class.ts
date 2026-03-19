@@ -18,6 +18,7 @@ import {
   toPair,
 } from '@/solr/queries/collections.js'
 import { createCollectionId } from '@/models/collections.model.js'
+import { CollectionRemoveResponse } from '@/models/generated/app/responses.js'
 
 export type CollectionsPatch = Partial<Omit<Collection, 'id'>>
 export type CollectionsFindResult = FindResponse<Collection>
@@ -39,7 +40,7 @@ export type ICollectionsService = Omit<
 > & {
   create(data: NewCollectionRequest, params?: CollectionsParams): Promise<Collection>
   patch(id: Id, data: CollectionsPatch, params?: CollectionsParams): Promise<Collection>
-  remove(id: Id, params?: CollectionsParams): Promise<Collection>
+  remove(id: Id, params?: CollectionsParams): Promise<CollectionRemoveResponse>
 
   findByContentItems(
     contentItemsIds: string[],
@@ -214,7 +215,7 @@ export class CollectionsService implements ICollectionsService {
 
     const dbModel = await this.userCollectionDbModel.create({
       id: createCollectionId(params?.user?.uid!),
-      name: data.name,
+      name: data.title,
       description: data.description || '',
       creatorId: userId,
       status,
@@ -280,7 +281,7 @@ export class CollectionsService implements ICollectionsService {
     return { ...collection, totalItems }
   }
 
-  async remove(id: Id, params?: CollectionsParams): Promise<Collection> {
+  async remove(id: Id, params?: CollectionsParams): Promise<CollectionRemoveResponse> {
     const userId = params?.user?.id
 
     if (userId == null) {
@@ -306,12 +307,21 @@ export class CollectionsService implements ICollectionsService {
       lastModifiedDate: new Date(),
     })
 
-    await this.queueService.removeAllCollectionItems({
+    const job = await this.queueService.removeAllCollectionItems({
       collectionId: String(id),
       userId: String(userId),
     })
 
-    return collection
+    return {
+      params: {
+        id: String(id),
+        status: 'DEL',
+      },
+      task: {
+        task_id: job.id,
+        creationDate: new Date(job.timestamp).toISOString(),
+      },
+    }
   }
 
   async findByContentItems(
