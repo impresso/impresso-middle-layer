@@ -40,6 +40,7 @@ export default class userSpecialMembershipRequestModel extends Model<
   declare dateLastModified: CreationOptional<Date>
   declare status: (typeof AvailableStatuses)[number]
   declare changelog: ChangelogEntry[]
+  declare notes: string
   declare specialMembershipAccess?: SpecialMembershipAccess
 
   static initialize(sequelize: Sequelize) {
@@ -82,6 +83,10 @@ export default class userSpecialMembershipRequestModel extends Model<
         },
         changelog: {
           type: DataTypes.JSON,
+          allowNull: false,
+        },
+        notes: {
+          type: DataTypes.TEXT,
           allowNull: false,
         },
       },

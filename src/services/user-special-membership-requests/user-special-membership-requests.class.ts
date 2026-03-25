@@ -90,6 +90,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
           notes: data.notes,
         },
       ],
+      notes: data.notes,
       specialMembershipAccessId: specialMembershipAccess.id,
     })
     if (this.celeryClient)
