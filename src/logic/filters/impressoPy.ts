@@ -91,6 +91,12 @@ const renderPythonValueItem = (item: PythonValueItem): string => {
   return invertedChain.reduce((acc, item) => item.render(acc), '')
 }
 
+const normalizeDateOnly = (value: string): string => {
+  const trimmed = value.trim()
+  const dateMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})/)
+  return dateMatch?.[1] ?? trimmed
+}
+
 const asPythonValue = (filterValue: string | string[], type: FilterType): PythonValueItem => {
   const totalItems = Array.isArray(filterValue) ? filterValue.length : 1
 
@@ -104,9 +110,11 @@ const asPythonValue = (filterValue: string | string[], type: FilterType): Python
   }
   if (DateRangeTypes.includes(type)) {
     const val = Array.isArray(filterValue) ? filterValue : filterValue.split(' TO ')
+    const startDate = normalizeDateOnly(val[0] ?? '')
+    const endDate = normalizeDateOnly(val[1] ?? '')
     return {
       type: 'method',
-      render: () => `DateRange(${JSON.stringify(val[0])}, ${JSON.stringify(val[1])})`,
+      render: () => `DateRange(${JSON.stringify(startDate)}, ${JSON.stringify(endDate)})`,
       totalItems: 1,
     }
   }
