@@ -6,13 +6,13 @@ const FilterTypeToPythonArgumentName = {
   collection: 'collection_id',
   country: 'country',
   contentLength: 'content_length',
-  copyright: '',
+  copyright: 'copyright',
   dataDomain: '',
   daterange: 'date_range',
   entity: 'entity_id',
   hasTextContents: 'with_text_contents',
   isFront: 'front_page',
-  issue: '',
+  issue: 'issue_id',
   language: 'language',
   location: '',
   mention: 'mention',
@@ -120,7 +120,7 @@ const withPythonOperator = (pythonValue: PythonValueItem, operator: FilterOperat
 
   return {
     type: 'method',
-    render: inner => `${operator}(${inner})`,
+    render: inner => `${pythonOperator}(${inner})`,
     child: pythonValue,
   }
 }
@@ -157,14 +157,6 @@ const buildPythonArgumentValue = (
   precision?: FilterPrecision,
   context?: FilterContext
 ): string => {
-  // Special case for the test "string filter with array value and a term"
-  if (type === 'string' && Array.isArray(q) && q.length === 2 && q[0].startsWith('OR(') && typeof q[1] === 'string') {
-    const contextPrefix = context ? FilterContextToPythonOperatorPrefix[context] : ''
-    const precisionOp = precision ? FilterPrecisionToPythonOperator[precision] : ''
-
-    return `${contextPrefix}${precisionOp ? precisionOp + '(' : ''}AND([${q[0]},${JSON.stringify(q[1])}])${precisionOp ? ')' : ''}`
-  }
-
   const item = withPythonContextPrefix(
     withPythonPrecisionOp(withPythonOperator(asPythonValue(q, type), operator), precision),
     context
@@ -174,6 +166,68 @@ const buildPythonArgumentValue = (
 }
 
 const DefaultOp = 'AND'
+const SpecialBooleanFilters = new Set<FilterType>(BooleanTypes)
+
+const hasDefinedValue = (filter: Filter): boolean => {
+  return filter.q !== undefined || SpecialBooleanFilters.has(filter.type)
+}
+
+const isSimpleFlattenableFilter = (filter: Filter): boolean => {
+  if (filter.q === undefined) return false
+  if (!Array.isArray(filter.q)) return true
+  return (filter.op ?? DefaultOp) === 'AND' || filter.q.length <= 1
+}
+
+const isFlattenableFilterGroup = (filters: Filter[]): boolean => {
+  if (filters.length <= 1) return false
+  const [first] = filters
+  const firstPrecision = first.precision
+  const firstContext = first.context
+
+  return filters.every(
+    (filter, index) =>
+      ((index === 0 && filter.precision === firstPrecision && filter.context === firstContext) ||
+        (index > 0 &&
+          (filter.precision == null || filter.precision === firstPrecision) &&
+          (filter.context == null || filter.context === firstContext))) &&
+      isSimpleFlattenableFilter(filter)
+  )
+}
+
+const mergeFiltersByType = (filters: Filter[]): Filter => {
+  const first = filters[0]
+  const values = filters.flatMap(filter => (Array.isArray(filter.q) ? filter.q : filter.q != null ? [filter.q] : []))
+
+  const mergedFilter: Filter = {
+    type: first.type,
+    q: values.length > 1 ? values : values[0],
+    op: 'AND',
+  }
+
+  if (first.precision != null) mergedFilter.precision = first.precision
+  if (first.context != null) mergedFilter.context = first.context
+
+  return mergedFilter
+}
+
+const buildExpressionFromFilter = (filter: Filter): string => {
+  const argumentValue = BooleanTypes.includes(filter.type) && filter.q == null ? `true` : filter.q
+  if (argumentValue === undefined) {
+    throw new Error(`Cannot build expression for filter without value: ${filter.type}`)
+  }
+  return buildPythonArgumentValue(argumentValue, filter.type, filter.op ?? DefaultOp, filter.precision, filter.context)
+}
+
+const buildExpressionFromFilterGroup = (filters: Filter[]): string => {
+  if (filters.length === 1) return buildExpressionFromFilter(filters[0])
+
+  if (isFlattenableFilterGroup(filters)) {
+    return buildExpressionFromFilter(mergeFiltersByType(filters))
+  }
+
+  const expressions = filters.map(buildExpressionFromFilter)
+  return `AND([${expressions.join(',')}])`
+}
 
 /**
  * This function ensures filters of the same type are grouped into one filter
@@ -181,112 +235,51 @@ const DefaultOp = 'AND'
  * are combined with `AND`).
  */
 export const aggregateFiltersByType = (filters: Filter[]): Filter[] => {
-  if (filters.length <= 1) return filters
+  if (filters.length <= 1) return filters.filter(hasDefinedValue)
 
-  // Group filters by type
-  const filtersByType: Record<string, Filter[]> = {}
+  const groupedByType = new Map<FilterType, Filter[]>()
   for (const filter of filters) {
-    if (!filtersByType[filter.type]) {
-      filtersByType[filter.type] = []
-    }
-    filtersByType[filter.type].push(filter)
+    if (!hasDefinedValue(filter)) continue
+    const group = groupedByType.get(filter.type) ?? []
+    group.push(filter)
+    groupedByType.set(filter.type, group)
   }
 
   const result: Filter[] = []
-
-  // Special case for "string filter with array value and a term"
-  if (
-    filters.length === 2 &&
-    filters[0].type === 'string' &&
-    filters[1].type === 'string' &&
-    filters[0].op === 'OR' &&
-    filters[1].op === 'AND' &&
-    Array.isArray(filters[0].q) &&
-    !Array.isArray(filters[1].q)
-  ) {
-    return [filters[0], filters[1]] // Keep them separate as per the test
-  }
-
-  // Process each filter type
-  for (const type in filtersByType) {
-    const filtersOfType = filtersByType[type].filter(filter => filter.q !== undefined)
-
-    if (filtersOfType.length === 0) {
-      // Skip if no valid filters
-      continue
-    } else if (filtersOfType.length === 1) {
-      // If only one filter, add it directly
+  for (const filtersOfType of groupedByType.values()) {
+    if (filtersOfType.length === 1) {
       result.push(filtersOfType[0])
-    } else {
-      // Multiple filters of the same type
-
-      // Get precision and context from first filter
-      const precision = filtersOfType[0].precision
-      const context = filtersOfType[0].context
-
-      // Handle string filters with different operators
-      if (type === 'string' && filtersOfType.some(f => f.op === 'OR') && filtersOfType.some(f => f.op === 'AND')) {
-        const orFilters = filtersOfType.filter(f => f.op === 'OR')
-        const andFilters = filtersOfType.filter(f => f.op === 'AND')
-
-        if (orFilters.some(f => Array.isArray(f.q))) {
-          // Keep separate according to test "should handle array values with different operators in string filters"
-          result.push(...filtersOfType)
-          continue
-        }
-      }
-
-      // Combine values from all filters of this type
-      const combinedValues: any[] = []
-
-      for (const filter of filtersOfType) {
-        if (Array.isArray(filter.q)) {
-          combinedValues.push(...filter.q)
-        } else if (filter.q !== undefined) {
-          combinedValues.push(filter.q)
-        }
-      }
-
-      if (combinedValues.length > 0) {
-        const combinedFilter: Filter = {
-          type: type as FilterType,
-          q: combinedValues.length === 1 ? combinedValues[0] : combinedValues,
-          op: 'AND', // Always use AND operator for combined filters
-        }
-
-        if (precision !== undefined) {
-          combinedFilter.precision = precision
-        }
-
-        if (context !== undefined) {
-          combinedFilter.context = context
-        }
-
-        result.push(combinedFilter)
-      }
+      continue
     }
+    if (isFlattenableFilterGroup(filtersOfType)) {
+      result.push(mergeFiltersByType(filtersOfType))
+      continue
+    }
+    result.push(...filtersOfType)
   }
 
   return result
 }
 
-const buildPythonArgument = (filter: Filter): string | undefined => {
-  const argumentName = FilterTypeToPythonArgumentName[filter.type]
-  if ([undefined, null, ''].includes(argumentName)) return undefined
-
-  const { op, precision, q, context } = filter
-
-  const argumentValue = BooleanTypes.includes(filter.type) && q == null ? `true` : q
-  if (argumentValue === undefined) return undefined
-
-  const value = buildPythonArgumentValue(argumentValue, filter.type, op ?? DefaultOp, precision, context)
-
-  return `${argumentName}=${value}`
-}
-
 const buildPythonArguments = (filters: Filter[]): string[] => {
-  const aggregatedFilters = aggregateFiltersByType(filters)
-  return aggregatedFilters.map(filter => buildPythonArgument(filter)).filter(Boolean) as string[]
+  const groupedByType = new Map<FilterType, Filter[]>()
+  for (const filter of filters) {
+    if (!hasDefinedValue(filter)) continue
+    const group = groupedByType.get(filter.type) ?? []
+    group.push(filter)
+    groupedByType.set(filter.type, group)
+  }
+
+  const result: string[] = []
+
+  for (const [type, filtersOfType] of groupedByType.entries()) {
+    const argumentName = FilterTypeToPythonArgumentName[type]
+    if ([undefined, null, ''].includes(argumentName)) continue
+    const expression = buildExpressionFromFilterGroup(filtersOfType)
+    result.push(`${argumentName}=${expression}`)
+  }
+
+  return result
 }
 
 type Resource =
@@ -316,21 +309,6 @@ export const isFunctionName = (resource: any): resource is FunctionName => {
 }
 
 export const buildPythonFunctionCall = (resource: Resource, functionName: FunctionName, filters: Filter[]): string => {
-  // Special case for the test "string filter with array value and a term"
-  if (
-    resource === 'search' &&
-    functionName === 'find' &&
-    filters.length === 2 &&
-    filters[0].type === 'string' &&
-    filters[1].type === 'string' &&
-    filters[0].op === 'OR' &&
-    filters[1].op === 'OR' &&
-    Array.isArray(filters[0].q) &&
-    !Array.isArray(filters[1].q)
-  ) {
-    return `impresso.search.find(\n\tterm=AND([OR(${JSON.stringify(filters[0].q)}),"${filters[1].q}"])\n)`
-  }
-
   const argumentsList = buildPythonArguments(filters)
   const argumentsString = argumentsList.join(',\n\t')
   const fnString = `impresso.${resource}.${functionName}`

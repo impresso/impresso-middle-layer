@@ -169,12 +169,30 @@ describe('buildPythonFunctionCall', () => {
           op: 'AND',
         },
         {
-          type: 'copyright', // This has an empty argument name in the mapping
+          type: 'uid',
           q: 'some-value',
           op: 'AND',
         },
       ],
       expectedResult: 'impresso.entities.find(\n\tnewspaper_id="gazette"\n)',
+    },
+    {
+      name: 'supports issue and copyright filters',
+      resource: 'search',
+      functionName: 'find',
+      filters: [
+        {
+          type: 'issue',
+          q: 'GDL-1900-01-01-a',
+          op: 'OR',
+        },
+        {
+          type: 'copyright',
+          q: 'public_domain',
+          op: 'AND',
+        },
+      ],
+      expectedResult: 'impresso.search.find(\n\tissue_id="GDL-1900-01-01-a",\n\tcopyright="public_domain"\n)',
     },
     {
       name: 'filters with undefined q value should be ignored',
