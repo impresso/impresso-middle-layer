@@ -31,6 +31,10 @@ export interface BaristaRequest {
         | 'openai/gpt-oss-120b'
       )
     | null
+  /**
+   * Agent type to use.
+   */
+  agentType?: 'react' | 'router' | 'skills'
   /** @description Current query filters for the context, if different from the last set in the conversation. */
   searchQuery?: {
     /**
