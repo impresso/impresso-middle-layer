@@ -1,4 +1,4 @@
-import type { Sequelize } from 'sequelize'
+import { Op, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
@@ -10,6 +10,7 @@ import { SlimUser } from '@/authentication.js'
 export interface FindQuery {
   limit?: number
   offset?: number
+  bitmapPositions?: number[]
 }
 export type FindResult = FindResponse<SpecialMembershipAccess>
 export type ISpecialMembershipAccessService = Omit<
@@ -27,13 +28,22 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
   }
 
   async find(params?: { query?: FindQuery; user?: SlimUser }): Promise<FindResult> {
-    const { limit = 10, offset = 0 } = params?.query ?? {}
+    const { limit = 10, offset = 0, bitmapPositions } = params?.query ?? {}
     const userId = params?.user?.id
+    const where =
+      Array.isArray(bitmapPositions) && bitmapPositions.length > 0
+        ? {
+            bitmapPosition: {
+              [Op.in]: bitmapPositions,
+            },
+          }
+        : undefined
 
     if (!userId || isNaN(userId)) {
       const { rows, count: total } = await this.accessModel.findAndCountAll({
         limit,
         offset,
+        where,
         // include: ['requests'],
       })
       return {
@@ -45,6 +55,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
     const { rows, count: total } = await this.accessModel.findAndCountAll({
       limit,
       offset,
+      where,
       include: {
         model: UserSpecialMembershipRequestModel,
         as: 'requests',
