@@ -1,6 +1,7 @@
 import { strict as assert } from 'assert'
 import { NotFound } from '@feathersjs/errors'
 import { SpecialMembershipAccessService } from '@/services/special-membership-access/special-membership-access.class.js'
+import { validateBitmapPositionsQuery } from '@/services/special-membership-access/special-membership-access.service.js'
 import type { ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
 
 import User from '@/models/users.model.js'
@@ -50,6 +51,28 @@ describe('SpecialMembershipAccessService', () => {
     await db.sequelize.truncate({ cascade: true })
   })
 
+  describe('validateBitmapPositionsQuery', () => {
+    it('should throw BadRequest when bitmapPositions contains non-integer values', async () => {
+      const hook = validateBitmapPositionsQuery()
+
+      await assert.rejects(
+        () =>
+          hook({
+            params: {
+              query: {
+                bitmapPositions: ['2', 'invalid'],
+              },
+            },
+          } as any),
+        (error: any) => {
+          assert.strictEqual(error.code, 400)
+          assert.strictEqual(error.message, '`bitmapPositions` must be an array of integers')
+          return true
+        }
+      )
+    })
+  })
+
   describe('find', () => {
     it('should return empty results when no records exist', async () => {
       const result = await service.find()
@@ -76,6 +99,18 @@ describe('SpecialMembershipAccessService', () => {
       result.data.forEach(record => {
         assert.strictEqual(record.requests?.length, undefined)
       })
+    })
+
+    it('should filter results by bitmap positions when provided', async () => {
+      await SpecialMembershipAccess.bulkCreate(mockData.slice(0, 5))
+
+      const result = await service.find({ query: { bitmapPositions: [2, 4] } })
+
+      assert.strictEqual(result.pagination.total, 2)
+      assert.deepStrictEqual(
+        result.data.map(record => record.bitmapPosition).sort((a, b) => a - b),
+        [2, 4]
+      )
     })
 
     it('should return the request connected for the given user', async () => {
