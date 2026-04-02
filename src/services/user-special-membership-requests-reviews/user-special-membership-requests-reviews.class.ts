@@ -135,7 +135,11 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
           ? [
               {
                 association: 'subscriber',
-                attributes: ['email', ['first_name', 'firstname'] as [string, string], ['last_name', 'lastname'] as [string, string]],
+                attributes: [
+                  'email',
+                  ['first_name', 'firstname'] as [string, string],
+                  ['last_name', 'lastname'] as [string, string],
+                ],
                 required: true,
               },
             ]
@@ -182,7 +186,10 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     }
   }
 
-  async get(id: Id, params?: UserSpecialMembershipRequestParams): Promise<UserSpecialMembershipRequestModel> {
+  async get(
+    id: Id,
+    params?: UserSpecialMembershipRequestParams
+  ): Promise<UserSpecialMembershipRequestModel & { requester?: Requester }> {
     const reviewerId = params?.user?.id
 
     const record = await this.requestModel.findByPk(id, {
@@ -197,7 +204,30 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     if (!record || (!isDirectReviewer && !isSpecialAccessReviewer)) {
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
     }
-    return record.toJSON() as UserSpecialMembershipRequestModel
+
+    const user = await User.sequelize(this.sequelizeClient).findOne({
+      where: {
+        id: record.userId,
+      },
+      include: ['groups', 'profile', 'userBitmap'],
+    })
+
+    const requester = user
+      ? {
+          id: user.get('id') as number,
+          email: user.get('email') as string,
+          firstname: user.get('firstname') as string,
+          lastname: user.get('lastname') as string,
+          groups: (user as any).groups?.map((d: Group) => d.toJSON()),
+          profile: (user as any).profile,
+          bitmap: (user as any).userBitmap ? (user as any).userBitmap.get('bitmap') : undefined,
+        }
+      : undefined
+
+    return {
+      ...(record.toJSON() as UserSpecialMembershipRequestModel),
+      requester,
+    } as UserSpecialMembershipRequestModel & { requester?: Requester }
   }
 
   async patch(

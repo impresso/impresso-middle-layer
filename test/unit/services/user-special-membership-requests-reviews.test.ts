@@ -154,7 +154,7 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
   before(async () => {
     // Setup database once for all tests
     db = setupTestDatabaseRedisCelery(trackers.celeryCalls, trackers.redisCalls, {
-      logging: true,
+      logging: false,
     })
     userModel = User.sequelize(db.sequelize)
     specialMembershipAccessModel = SpecialMembershipAccess.initialize(db.sequelize)
@@ -304,6 +304,32 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
       assert.ok(result)
       assert.strictEqual(result.id, 21)
       assert.strictEqual(result.userId, 1)
+    })
+
+    it('should include requester additional info in get response', async () => {
+      const specialAccessRequest = {
+        id: 24,
+        reviewerId: null,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(specialAccessRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.get(24, {
+        user: { id: mockReviewerUserA.id },
+      })
+
+      assert.ok((result as any).requester)
+      assert.strictEqual((result as any).requester.id, 1)
+      assert.strictEqual((result as any).requester.email, 'user1@example.com')
+      assert.strictEqual((result as any).requester.firstname, 'First 1')
+      assert.strictEqual((result as any).requester.lastname, 'Last 1')
+      assert.ok(Array.isArray((result as any).requester.groups))
+      assert.strictEqual((result as any).requester.groups.length, 1)
     })
 
     it('should throw NotFound when reviewer is not authorized for direct review', async () => {
