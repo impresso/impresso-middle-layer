@@ -219,7 +219,7 @@ const enrichContentItems = async (
 const withIIIF =
   (dbPagesLookup: Dictionary<Dictionary<DBContentItemPage>>, app: ImpressoApplication): ContentItemEnricher =>
   item => {
-    const pages = item.image?.pages ?? []
+    const pages = item.facsimile?.pages ?? []
     if (pages.length === 0) return item
 
     const enrichedPages = pages.map(page => {
@@ -230,8 +230,8 @@ const withIIIF =
 
     return {
       ...item,
-      image: {
-        ...item.image,
+      facsimile: {
+        ...item.facsimile,
         pages: enrichedPages,
       },
     }

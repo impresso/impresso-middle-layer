@@ -395,7 +395,7 @@ export const toContentItem = (
       originalLangCode: doc.lg_orig_s,
       snippet: doc.snippet_plain,
     },
-    image: {
+    facsimile: {
       isCoordinatesConverted: doc.cc_b,
       isFrontPage: doc.front_b,
       lineBreaks: isFullDocument(doc) ? asNumberArray(doc.lb_plain) : [],

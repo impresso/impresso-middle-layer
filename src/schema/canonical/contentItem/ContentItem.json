@@ -26,8 +26,8 @@
     "semanticEnrichments": {
       "$ref": "./ContentItemSemanticEnrichments.json"
     },
-    "image": {
-      "$ref": "./ContentItemImage.json"
+    "facsimile": {
+      "$ref": "./ContentItemFacsimile.json"
     },
     "audio": {
       "$ref": "./ContentItemAudio.json"
