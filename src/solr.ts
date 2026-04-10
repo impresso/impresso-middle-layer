@@ -72,7 +72,10 @@ const defaultRetryOptions: FetchOptions['retryOptions'] = {
   minTimeout: 100,
   timeoutFactor: 3,
   throwOnError: false, // preserve original response
-  statusCodes: [502, 503, 504, 429, 500],
+  statusCodes: [429, 500, 502, 503, 504],
+  // All Solr endpoints use POST (both reads and writes). Solr writes are
+  // idempotent at the API level (add overwrites, delete is safe to repeat).
+  methods: ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE', 'POST'],
 }
 
 export const defaultFetchOptions: FetchOptions = {

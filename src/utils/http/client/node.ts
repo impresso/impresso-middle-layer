@@ -134,6 +134,10 @@ class ConnectionWrapper implements IFetchClient {
       maxTimeout,
       minTimeout,
       errorCodes: mergedErrorCodes,
+      // Status-code retries are handled by the application-level loop in fetch().
+      // Passing statusCodes here would cause RetryAgent to also retry on them,
+      // resulting in maxRetries² attempts.
+      statusCodes: [],
     }
   }
 
@@ -153,16 +157,46 @@ class ConnectionWrapper implements IFetchClient {
         : this._createBaseAgent(requestTimeoutMs)
 
     const theUrl: string = url instanceof Request ? url.url : url.toString()
-    const result = await request(theUrl, {
-      method: init?.method as Dispatcher.HttpMethod,
-      headers: init?.headers as IncomingHttpHeaders,
-      body: body as any,
-      signal: init?.signal,
-      dispatcher: agent,
-      headersTimeout: requestTimeoutMs,
-      bodyTimeout: requestTimeoutMs,
-    })
-    const response = new XResponse(result)
+    const retryStatusCodes = options?.retryOptions?.statusCodes ?? []
+    const maxRetries = options?.retryOptions?.maxRetries ?? 0
+    const minTimeout = options?.retryOptions?.minTimeout ?? 100
+    const maxTimeout = options?.retryOptions?.maxTimeout ?? 1000
+    const timeoutFactor = options?.retryOptions?.timeoutFactor ?? 1
+    // Match undici's own default: only retry idempotent methods unless the caller
+    // explicitly lists methods to retry.
+    const retryMethods = options?.retryOptions?.methods ?? ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE']
+    const method = (init?.method ?? 'GET').toUpperCase()
+    const isRetryableMethod = retryMethods.map(m => m.toUpperCase()).includes(method)
+
+    let attempt = 0
+    let response: XResponse
+
+    do {
+      const result = await request(theUrl, {
+        method: init?.method as Dispatcher.HttpMethod,
+        headers: init?.headers as IncomingHttpHeaders,
+        body: body as any,
+        signal: init?.signal,
+        dispatcher: agent,
+        headersTimeout: requestTimeoutMs,
+        bodyTimeout: requestTimeoutMs,
+      })
+      response = new XResponse(result)
+
+      if (
+        response.ok ||
+        !isRetryableMethod ||
+        retryStatusCodes.length === 0 ||
+        !retryStatusCodes.includes(response.status) ||
+        attempt >= maxRetries
+      )
+        break
+
+      attempt++
+      const delay = Math.min(minTimeout * timeoutFactor ** (attempt - 1), maxTimeout)
+      await new Promise(r => setTimeout(r, delay))
+    } while (true)
+
     if (!response.ok) {
       try {
         // Only call the callback if the method and body are valid
