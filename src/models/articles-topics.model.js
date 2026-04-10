@@ -1,16 +1,16 @@
 export class ArticleTopic {
-  constructor({ topic = null, topicUid = '', article = null, articleUid = '', relevance = 0.0 } = {}) {
+  constructor({ topic = null, topicId = '', article = null, articleId = '', relevance = 0.0 } = {}) {
     if (topic) {
       this.topic = topic
     }
-    if (topicUid) {
-      this.topicUid = String(topicUid)
+    if (topicId) {
+      this.topicId = String(topicId)
     }
     if (article) {
       this.article = article
     }
-    if (articleUid) {
-      this.articleUid = String(articleUid)
+    if (articleId) {
+      this.articleId = String(articleId)
     }
     this.relevance = parseFloat(relevance)
   }
@@ -35,7 +35,7 @@ export class ArticleTopic {
       .map(d => {
         const parts = d.split('|')
         return new ArticleTopic({
-          topicUid: parts[0],
+          topicId: parts[0],
           relevance: parts[1],
         })
       })

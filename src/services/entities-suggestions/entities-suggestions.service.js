@@ -2,6 +2,9 @@
 import { EntitiesSuggestions } from './entities-suggestions.class.js'
 import hooks from './entities-suggestions.hooks.js'
 
+/**
+ * @deprecated Not used anywhere.
+ */
 export default function (app) {
   // Initialize our service with any options it requires
   app.use('/entities-suggestions', new EntitiesSuggestions(app))

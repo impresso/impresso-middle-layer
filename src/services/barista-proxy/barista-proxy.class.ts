@@ -1,6 +1,6 @@
 import type { Params, ServiceMethods } from '@feathersjs/feathers'
 import { BadRequest } from '@feathersjs/errors'
-import { BaristaConfig } from '@/models/generated/common.js'
+import { BaristaConfig } from '@/models/generated/app/configuration.js'
 import type { ImpressoApplication } from '@/types.js'
 import { v4 } from 'uuid'
 import { SlimUser } from '@/authentication.js'
@@ -31,6 +31,10 @@ export interface BaristaRequest {
         | 'openai/gpt-oss-120b'
       )
     | null
+  /**
+   * Agent type to use.
+   */
+  agentType?: 'react' | 'router' | 'skills'
   /** @description Current query filters for the context, if different from the last set in the conversation. */
   searchQuery?: {
     /**

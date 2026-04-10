@@ -115,7 +115,7 @@ interface DownstreamResponse {
   sys_id: string // model id
   text?: string // input text
   ts: string // ISO timestamp
-  nes: DownstreamNes[]
+  nes: DownstreamNes | DownstreamNes[]
 }
 
 export interface ImpressoNerEntity {
@@ -194,7 +194,7 @@ const convertDownstreamResponse = (response: DownstreamResponse, request: Reques
   modelId: response.sys_id,
   text: response.text != null ? response.text : request.text,
   timestamp: response.ts,
-  entities: response.nes.map(convertDownstreamEntity),
+  entities: (Array.isArray(response.nes) ? response.nes : [response.nes]).map(convertDownstreamEntity),
 })
 
 const convertDownstreamEntity = (entity: DownstreamNes): ImpressoNerEntity => ({

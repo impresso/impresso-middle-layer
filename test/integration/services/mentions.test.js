@@ -43,8 +43,8 @@ describe("'mentions' service", function () {
     assert.ok(result.total, 'there are results')
     assert.ok(result.data[0].entityId, 'aida-0001-54-Leipzig')
     assert.ok(result.data[0].type, 'location')
-    assert.ok(result.data[0].articleUid, 'there should be an article attached')
-    assert.ok(result.data[0].article.uid, 'there is an article attached')
+    assert.ok(result.data[0].articleId, 'there should be an article attached')
+    assert.ok(result.data[0].article.id, 'there is an article attached')
   })
 
   it('find mentions for a person', async () => {
@@ -66,9 +66,9 @@ describe("'mentions' service", function () {
     assert.ok(result.total, 'there are results')
     assert.ok(result.data[0].type, 'person')
     assert.ok(result.data[0].ancillary)
-    assert.ok(result.data[0].articleUid, 'there should be an article attached')
+    assert.ok(result.data[0].articleId, 'there should be an article attached')
     if (result.data[0].article) {
-      assert.ok(result.data[0].article.uid, 'there is an article attached')
+      assert.ok(result.data[0].article.id, 'there is an article attached')
     }
   })
 })

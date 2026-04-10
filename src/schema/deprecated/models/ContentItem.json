@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Content Item",
+  "description": "A journal/magazine content item (article, advertisement, etc.)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "The unique identifier of the content item"
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of the content item. NOTE: may be empty."
+    },
+    "title": {
+      "type": "string",
+      "description": "The title of the content item"
+    },
+    "size": {
+      "type": "integer",
+      "description": "The size of the content item in characters"
+    },
+    "nbPages": {
+      "type": "integer",
+      "description": "The number of pages in this content item"
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "$ref": "./Page.json"
+      }
+    },
+    "isCC": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "The excerpt of the content item"
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "$ref": "../../canonical/Entity.json"
+      }
+    },
+    "persons": {
+      "type": "array",
+      "items": {
+        "$ref": "../../canonical/Entity.json"
+      }
+    },
+    "language": {
+      "type": "string",
+      "description": "The language code of the content item"
+    },
+    "issue": {
+      "$ref": "./NewspaperIssue.json"
+    },
+    "matches": {
+      "type": "array",
+      "items": {
+        "$ref": "./ContentItemMatch.json"
+      }
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "$ref": "./ContentItemRegion.json"
+      }
+    },
+    "regionBreaks": {
+      "type": "array",
+      "items": { "type": "integer", "description": "TODO" }
+    },
+    "contentLineBreaks": {
+      "type": "array",
+      "items": { "type": "integer", "description": "TODO" }
+    },
+    "labels": {
+      "type": "array",
+      "description": "TODO",
+      "items": { "type": "string", "enum": ["article"] }
+    },
+    "accessRight": {
+      "type": "string",
+      "enum": ["na", "OpenPrivate", "Closed", "OpenPublic"],
+      "description": "The access rights of the content item. Available in Impresso 1.0 only"
+    },
+    "dataDomain": {
+      "type": "string",
+      "enum": ["pbl", "prt"],
+      "description": "The data domain of the content item ('pbl' for Public Domain, 'prt' for Protected Domain). Available in Impresso 2.0 only"
+    },
+    "copyright": {
+      "type": "string",
+      "enum": ["pbl", "und", "nkn", "euo", "unk", "in_cpy"],
+      "description": "Copyright of the content item. Available in Impresso 2.0 only. pbl: 'Public Domain', und: 'Protected Domain: Copyright undetermined', nkn: 'Protected Domain: No Known Copyright', euo: 'Protected Domain: In copyright - EU Orphan Work', unk: 'Protected Domain: In copyright - Unknown rightsholders', in_cpy: 'Protected Domain: In copyright'."
+    },
+    "isFront": {
+      "type": "boolean",
+      "description": "TODO"
+    },
+    "date": {
+      "oneOf": [
+        { "type": "string", "description": "The date of the content item", "format": "date-time" },
+        { "type": "null" }
+      ]
+    },
+    "year": {
+      "type": "integer",
+      "description": "The year of the content item"
+    },
+    "country": {
+      "type": "string",
+      "description": "The country code of the content item"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "collections": {
+      "anyOf": [
+        { "type": "array", "items": { "type": "string" } },
+        { "type": "array", "items": { "$ref": "../../canonical/Collection.json" } }
+      ]
+    },
+    "newspaper": {
+      "$ref": "./Newspaper.json"
+    },
+    "dataProvider": {
+      "oneOf": [{ "type": "string", "description": "The provider of the content item" }, { "type": "null" }]
+    },
+    "topics": {
+      "type": "array",
+      "items": { "$ref": "./ContentItemTopic.json" }
+    },
+    "content": {
+      "type": "string",
+      "description": "The content of the content item"
+    },
+    "mentions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "person": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": { "type": "integer" }
+            }
+          },
+          "location": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "v": {
+      "type": "string",
+      "description": "TODO"
+    },
+    "bitmapExplore": {
+      "type": "integer",
+      "description": "Access rights bitmap for the UI"
+    },
+    "bitmapGetTranscript": {
+      "type": "integer",
+      "description": "Access rights bitmap for downloading the transcript"
+    },
+    "bitmapGetImages": {
+      "type": "integer",
+      "description": "Access rights bitmap for getting images"
+    }
+  },
+  "required": ["id", "type", "title", "size", "nbPages", "pages", "isCC", "excerpt", "labels", "year"]
+}

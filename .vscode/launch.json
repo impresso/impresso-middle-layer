@@ -2,29 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Bun run: API",
-      "type": "bun",
-      "request": "launch",
-      "runtimeArgs": ["--inspect=9229", "--watch"],
-      "program": "${workspaceFolder}/src/index.ts",
-      "args": [
-        "--env-file=.env"
-      ],
-      "env": {
-        "HOST": "api"
-      }
-    },
-    {
-      "name": "Bun run: Internal API",
-      "type": "bun",
-      "request": "launch",
-      "runtimeArgs": ["--inspect=9229", "--watch"],
-      "program": "${workspaceFolder}/src/index.ts",
-      "args": [
-        "--env-file=.env"
-      ]
-    },
-    {
       "name": "Start internal API",
       "type": "node",
       "request": "launch",
@@ -35,7 +12,10 @@
         "--env-file=.env",
         "--watch"
       ],
-      "console": "integratedTerminal"
+      "restart": false,
+      "autoAttachChildProcesses": true,
+      "console": "internalConsole",
+      "outputCapture": "std"
     },
     {
       "name": "Start public API",
@@ -49,13 +29,33 @@
         "--watch"
       ],
       "env": {"HOST": "api"},
-      "console": "integratedTerminal"
+      "restart": false,
+      "autoAttachChildProcesses": true,
+      "console": "internalConsole",
+      "outputCapture": "std"
     },
     {
-      "name": "Attach",
-      "type": "node",
-      "request": "attach",
-      "port": 9229
+      "name": "🍞 Bun run: API",
+      "type": "bun",
+      "request": "launch",
+      "runtimeArgs": ["--inspect=9229", "--watch"],
+      "program": "${workspaceFolder}/src/index.ts",
+      "args": [
+        "--env-file=.env"
+      ],
+      "env": {
+        "HOST": "api"
+      }
+    },
+    {
+      "name": "🍞 Bun run: Internal API",
+      "type": "bun",
+      "request": "launch",
+      "runtimeArgs": ["--inspect=9229", "--watch"],
+      "program": "${workspaceFolder}/src/index.ts",
+      "args": [
+        "--env-file=.env"
+      ]
     }
   ]
 }

@@ -20,6 +20,7 @@ import impressoNer from './impresso-ner/impresso-ner.service.js'
 import impressoEmbedder from './impresso-embedder/impresso-embedder.service.js'
 import mediaSources from './media-sources/media-sources.service.js'
 import dataProviders from './data-providers/data-providers.service.js'
+import referenceData from './reference-data/reference-data.service.js'
 import topics from './topics/topics.service.js'
 import images from './images/images.service.js'
 import experiments from './experiments/experiments.service.js'
@@ -48,8 +49,8 @@ import textReuseClusterPassages from './text-reuse-cluster-passages/text-reuse-c
 import filtersItems from './filters-items/filters-items.service.js'
 import stats from './stats/stats.service.js'
 import articlesRecommendations from './articles-recommendations/articles-recommendations.service.js'
-import articlesSearch from './articles-search/articles-search.service.js'
-import entitiesSuggestions from './entities-suggestions/entities-suggestions.service.js'
+// import articlesSearch from './articles-search/articles-search.service.js'
+// import entitiesSuggestions from './entities-suggestions/entities-suggestions.service.js'
 import entityMentionsTimeline from './entity-mentions-timeline/entity-mentions-timeline.service.js'
 import subscriptions from './subscriptions/subscriptions.service.js'
 import textReuseConnectedClusters from './text-reuse-connected-clusters/text-reuse-connected-clusters.service.js'
@@ -86,6 +87,7 @@ const publicApiServices = [
   { name: 'impresso-embedder', init: impressoEmbedder },
   { name: 'media-sources', init: mediaSources },
   { name: 'data-providers', init: dataProviders },
+  { name: 'reference-data', init: referenceData },
   { name: 'topics', init: topics },
   { name: 'images', init: images },
   { name: 'experiments', init: experiments },
@@ -121,8 +123,8 @@ const internalApiServices = [
   { name: 'filters-items', init: filtersItems },
   { name: 'stats', init: stats },
   { name: 'articles-recommendations', init: articlesRecommendations },
-  { name: 'articles-search', init: articlesSearch },
-  { name: 'entities-suggestions', init: entitiesSuggestions },
+  // { name: 'articles-search', init: articlesSearch },
+  // { name: 'entities-suggestions', init: entitiesSuggestions },
   { name: 'entity-mentions-timeline', init: entityMentionsTimeline },
   { name: 'subscriptions', init: subscriptions },
   { name: 'text-reuse-connected-clusters', init: textReuseConnectedClusters },

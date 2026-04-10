@@ -155,7 +155,7 @@ describe('filtersToSolr', () => {
       assert.equal(
         query,
         // eslint-ignore-next-line
-        '(content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais" OR content_txt_en:"ministre portugais" OR content_txt_it:"ministre portugais" OR content_txt_es:"ministre portugais" OR content_txt_nl:"ministre portugais" OR content_txt:"ministre portugais") OR (content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien" OR content_txt_en:"ministre italien" OR content_txt_it:"ministre italien" OR content_txt_es:"ministre italien" OR content_txt_nl:"ministre italien" OR content_txt:"ministre italien")'
+        '((content_txt_fr:"ministre portugais" OR content_txt_de:"ministre portugais" OR content_txt_en:"ministre portugais" OR content_txt_it:"ministre portugais" OR content_txt_es:"ministre portugais" OR content_txt_nl:"ministre portugais" OR content_txt:"ministre portugais") OR (content_txt_fr:"ministre italien" OR content_txt_de:"ministre italien" OR content_txt_en:"ministre italien" OR content_txt_it:"ministre italien" OR content_txt_es:"ministre italien" OR content_txt_nl:"ministre italien" OR content_txt:"ministre italien"))'
       )
     })
 
@@ -897,6 +897,40 @@ describe('filtersToQueryAndVariables', () => {
       assert.deepEqual(result.filter, ['meta_journal_s:SGZ'])
     })
   })
+  it('groups OR string terms before AND-ing with other query filters', () => {
+    const filters = [
+      {
+        type: 'hasTextContents',
+      },
+      {
+        op: 'OR',
+        type: 'string',
+        precision: 'exact',
+        q: ['einwanderer', 'auswanderer', 'immigranten'],
+      },
+      {
+        op: 'OR',
+        type: 'location',
+        q: '2-54-Amerika',
+      },
+      {
+        op: 'OR',
+        type: 'daterange',
+        q: '1800-01-01T00:00:00Z TO 1900-01-01T23:59:59Z',
+      },
+      {
+        op: 'OR',
+        type: 'type',
+        q: 'ar',
+      },
+    ] satisfies Filter[]
+
+    const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [])
+    assert.strictEqual(
+      result.query,
+      '((content_txt_fr:"einwanderer" OR content_txt_de:"einwanderer" OR content_txt_en:"einwanderer" OR content_txt_it:"einwanderer" OR content_txt_es:"einwanderer" OR content_txt_nl:"einwanderer" OR content_txt:"einwanderer") OR (content_txt_fr:"auswanderer" OR content_txt_de:"auswanderer" OR content_txt_en:"auswanderer" OR content_txt_it:"auswanderer" OR content_txt_es:"auswanderer" OR content_txt_nl:"auswanderer" OR content_txt:"auswanderer") OR (content_txt_fr:"immigranten" OR content_txt_de:"immigranten" OR content_txt_en:"immigranten" OR content_txt_it:"immigranten" OR content_txt_es:"immigranten" OR content_txt_nl:"immigranten" OR content_txt:"immigranten")) AND filter(loc_entities_dpfs:2-54-Amerika)'
+    )
+  })
   it('handles negations correctly', () => {
     const filters = [
       {
@@ -1057,23 +1091,32 @@ describe('getTopicRelevanceFunction', () => {
 })
 
 describe('getSortParams', () => {
-  it('returns empty object when orderBy is undefined', () => {
+  it('returns stable default sort and empty params when orderBy is undefined', () => {
     const filters: Filter[] = []
     const result = getSortParams(filters)
-    assert.deepStrictEqual(result, {})
+    assert.deepStrictEqual(result, {
+      sort: 'score desc, id asc',
+      params: {},
+    })
   })
 
-  it('returns empty object when orderBy does not contain $topicRelevanceScore', () => {
+  it('returns provided sort and empty params when orderBy does not contain $topicRelevanceScore', () => {
     const filters: Filter[] = []
     const result = getSortParams(filters, 'score desc')
-    assert.deepStrictEqual(result, {})
+    assert.deepStrictEqual(result, {
+      sort: 'score desc',
+      params: {},
+    })
   })
 
   it('sets topicRelevance param when orderBy contains $topicRelevanceScore', () => {
     const filters: Filter[] = [{ type: 'topic', q: 'tm-fr-all-v2.0_tp44_fr' }]
     const result = getSortParams(filters, '$topicRelevanceScore desc')
     assert.deepStrictEqual(result, {
-      topicRelevanceScore: 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))',
+      sort: '$topicRelevanceScore desc',
+      params: {
+        topicRelevanceScore: 'sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))',
+      },
     })
   })
 
@@ -1081,7 +1124,10 @@ describe('getSortParams', () => {
     const filters: Filter[] = [{ type: 'newspaper', q: 'JDG' }]
     const result = getSortParams(filters, '$topicRelevanceScore desc')
     assert.deepStrictEqual(result, {
-      topicRelevanceScore: '0',
+      sort: '$topicRelevanceScore desc',
+      params: {
+        topicRelevanceScore: '0',
+      },
     })
   })
 })

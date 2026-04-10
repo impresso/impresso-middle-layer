@@ -91,7 +91,7 @@ const resolveQueryComponents = () => async (context: HookContext<ImpressoApplica
       if (!Array.isArray(d.q)) {
         d.items = [mediaSourceToNewspaper(mediaSourcesLookup[d.q])]
       } else {
-        d.items = d.q.map((uid: string) => mediaSourceToNewspaper(mediaSourcesLookup[uid]))
+        d.items = d.q.map((id: string) => mediaSourceToNewspaper(mediaSourcesLookup[id]))
       }
     } else if (d.type === 'topic') {
       const resolvers = buildResolvers(context.app)

@@ -4,8 +4,8 @@ import { InferAttributes, Op, Sequelize, WhereOptions } from 'sequelize'
 import { SlimUser } from '@/authentication.js'
 import { QueueService } from '@/internalServices/queue.js'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
-import type { Collection } from '@/models/generated/schemasPublic.js'
-import { NewCollectionRequest } from '@/models/generated/shared.js'
+import type { Collection } from '@/models/generated/canonical.js'
+import { NewCollectionRequest } from '@/models/generated/app/requests.js'
 import UserCollection, { IUserCollection } from '@/models/user-collection.js'
 import type { ImpressoApplication } from '@/types.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
@@ -18,8 +18,9 @@ import {
   toPair,
 } from '@/solr/queries/collections.js'
 import { createCollectionId } from '@/models/collections.model.js'
+import { CollectionRemoveResponse } from '@/models/generated/app/responses.js'
 
-export type CollectionsPatch = Partial<Omit<Collection, 'uid'>>
+export type CollectionsPatch = Partial<Omit<Collection, 'id'>>
 export type CollectionsFindResult = FindResponse<Collection>
 
 export interface CollectionsQuery {
@@ -39,7 +40,7 @@ export type ICollectionsService = Omit<
 > & {
   create(data: NewCollectionRequest, params?: CollectionsParams): Promise<Collection>
   patch(id: Id, data: CollectionsPatch, params?: CollectionsParams): Promise<Collection>
-  remove(id: Id, params?: CollectionsParams): Promise<Collection>
+  remove(id: Id, params?: CollectionsParams): Promise<CollectionRemoveResponse>
 
   findByContentItems(
     contentItemsIds: string[],
@@ -53,7 +54,7 @@ export type ICollectionsService = Omit<
 const dbToCollection = (dbModel: IUserCollection): Collection => {
   if (dbModel.status === 'DEL') throw new Error('Cannot convert deleted collection')
   return {
-    uid: dbModel.id,
+    id: dbModel.id,
     title: dbModel.name,
     description: dbModel.description ?? '',
     accessLevel: dbModel.status === 'PRI' ? 'private' : 'public',
@@ -214,7 +215,7 @@ export class CollectionsService implements ICollectionsService {
 
     const dbModel = await this.userCollectionDbModel.create({
       id: createCollectionId(params?.user?.uid!),
-      name: data.name,
+      name: data.title,
       description: data.description || '',
       creatorId: userId,
       status,
@@ -280,7 +281,7 @@ export class CollectionsService implements ICollectionsService {
     return { ...collection, totalItems }
   }
 
-  async remove(id: Id, params?: CollectionsParams): Promise<Collection> {
+  async remove(id: Id, params?: CollectionsParams): Promise<CollectionRemoveResponse> {
     const userId = params?.user?.id
 
     if (userId == null) {
@@ -306,12 +307,21 @@ export class CollectionsService implements ICollectionsService {
       lastModifiedDate: new Date(),
     })
 
-    await this.queueService.removeAllCollectionItems({
+    const job = await this.queueService.removeAllCollectionItems({
       collectionId: String(id),
       userId: String(userId),
     })
 
-    return collection
+    return {
+      params: {
+        id: String(id),
+        status: 'DEL',
+      },
+      task: {
+        task_id: job.id,
+        creationDate: new Date(job.timestamp).toISOString(),
+      },
+    }
   }
 
   async findByContentItems(

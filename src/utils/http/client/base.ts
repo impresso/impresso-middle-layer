@@ -10,7 +10,12 @@ export interface IFetchClientOptions {
 export interface FetchOptions {
   requestTimeoutMs?: number
   retryOptions?: RetryOptions
-  onUnsuccessfulResponse?: (url: string, method: string, body: Record<string, any>, response: Response) => Promise<void>
+  onUnsuccessfulResponse?: (
+    url: string,
+    method: string,
+    body: Record<string, any> | string | undefined,
+    response: Response
+  ) => Promise<void>
 }
 
 export interface IFetchClient {

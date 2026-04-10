@@ -9,7 +9,7 @@ import type {
   ImageFields,
   SemanticEnrichmentsFields,
   AudioFields,
-} from './generated/solr/contentItem.js'
+} from './generated/external/solr/ContentItem.js'
 import type { LanguageCode, TextContentFields } from './solr.js'
 
 import type {
@@ -19,11 +19,11 @@ import type {
   ContentItemMention,
   ContentItemNamedEntity,
   ContentItemTopic,
-} from './generated/schemas/contentItem.js'
+} from './generated/canonical/contentItem.js'
 import { bigIntToBase64Bytes, OpenPermissions } from '@/util/bigint.js'
 import { asList, asNumberArray, parseDPFS, toPairs } from '@/util/solr/transformers.js'
 import { setDifference } from '@/util/fn.js'
-import { getNameFromUid } from '@/utils/entity.utils.js'
+import { getNameFromId } from '@/utils/entity.utils.js'
 import { IFragmentsAndHighlights } from './articles.model.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
 import { parsePlainsField, WithScore } from '@/util/solr/index.js'
@@ -233,7 +233,7 @@ const parseContentItemEntityDPFS = (dpfs?: string[]): ContentItemNamedEntity[] =
     ([id, count]) => ({
       id,
       count: parseInt(count, 10),
-      label: getNameFromUid(id),
+      label: getNameFromId(id),
     }),
     dpfs
   )
@@ -395,7 +395,7 @@ export const toContentItem = (
       originalLangCode: doc.lg_orig_s,
       snippet: doc.snippet_plain,
     },
-    image: {
+    facsimile: {
       isCoordinatesConverted: doc.cc_b,
       isFrontPage: doc.front_b,
       lineBreaks: isFullDocument(doc) ? asNumberArray(doc.lb_plain) : [],

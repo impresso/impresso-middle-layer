@@ -90,7 +90,7 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
           schema: {
             type: 'string',
           },
-          description: 'UID of the entity',
+          description: 'ID of the entity',
         },
       ],
       responses: getStandardResponses({

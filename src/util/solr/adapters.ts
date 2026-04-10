@@ -25,13 +25,13 @@ export interface SolrGetRequestQueryParams {
   fq?: string
 }
 
-interface FindAllParams {
+export interface FindAllParams {
   q?: string
   limit?: number
   offset?: number
   fq?: string | string[]
   highlight_by?: string
-  highlightProps?: Record<string, string>
+  highlightProps?: Record<string, string | number | boolean>
   vars?: Record<string, string>
   order_by?: string
   facets?: Record<string, SolrFacetQueryParams> | string
@@ -280,7 +280,7 @@ export const resolveAsync = async <T extends { id: string }, K extends string, B
 ) => {
   if (group.items.length == 0) return group
 
-  const ids: string[] = group.items.map((d: any) => d[group.idField || 'uid'])
+  const ids: string[] = group.items.map((d: any) => d[group.idField || 'id'])
   const result = await solr.select<T, K, B>(group.namespace, findByIds(ids, group.Klass.SOLR_FL))
   const actualFactory = factory ?? group.factory ?? group.Klass?.solrFactory
 

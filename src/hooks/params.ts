@@ -343,10 +343,13 @@ const VALIDATE_OPTIONAL_PASSWORD = {
 /*
   Validate data field for POST and GET request.
   Note: it creates context.data.sanitized.
+  if options.applyInPlace is true, it also adds validated params to context.params (for GET) or context.data (for POST).
 */
 const validate =
   // prettier-ignore
-  <T>(validators: ValidationRules<T>, method = 'GET') => async (context: HookContext) => {
+  <T>(validators: ValidationRules<T>, method: 'GET' | 'POST' = 'GET', options?: {
+    applyInPlace?: boolean
+  }) => async (context: HookContext) => {
     if (!validators) {
       return
     }
@@ -360,9 +363,15 @@ const validate =
       } else {
         Object.assign(context.params.sanitized, validated)
       }
+      if (options?.applyInPlace) {
+        Object.assign(context.params.query, context.params.sanitized)
+      }
     } else {
       debug('validate: POST data')
       context.data.sanitized = assignIn({}, context.data.sanitized, _validate(context.data, validators))
+      if (options?.applyInPlace) {
+        Object.assign(context.data, context.data.sanitized)
+      }
     }
   }
 

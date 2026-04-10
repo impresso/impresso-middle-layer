@@ -4,12 +4,36 @@ import { socksDispatcher, SocksProxies } from 'fetch-socks'
 import { createPool, Factory, Pool } from 'generic-pool'
 import type { IncomingHttpHeaders } from 'undici/types/header.d.ts'
 import { SolrServerProxy } from '../../../configuration.js'
-import { logger } from '../../../logger.js'
 import type { FetchOptions, IFetchClient, IFetchClientOptions } from './base.ts'
 
 interface InitHttpPoolOptions extends IFetchClientOptions {
   maxParallelConnections?: number
   acquireTimeoutSec?: number
+}
+
+const DefaultRequestTimeoutMs = 300 * 1000
+const DefaultRetryMaxRetries = 4
+const DefaultRetryTimeoutFactor = 2
+const UndiciDefaultRetryErrorCodes = [
+  'ECONNRESET',
+  'ECONNREFUSED',
+  'ENOTFOUND',
+  'ENETDOWN',
+  'ENETUNREACH',
+  'EHOSTDOWN',
+  'EHOSTUNREACH',
+  'EPIPE',
+  'UND_ERR_SOCKET',
+]
+const HeadersTimeoutRetryErrorCode = 'UND_ERR_HEADERS_TIMEOUT'
+
+function buildDefaultMinTimeout(maxTimeoutMs: number, maxRetries: number, timeoutFactor: number): number {
+  if (maxTimeoutMs <= 0) return 1
+  if (maxRetries <= 1 || timeoutFactor <= 1) return maxTimeoutMs
+
+  const retryStepsBeforeCap = Math.max(maxRetries - 2, 0)
+  const divisor = timeoutFactor ** retryStepsBeforeCap
+  return Math.max(1, Math.floor(maxTimeoutMs / divisor))
 }
 
 function urlSearchParamsToFormData(urlSearchParams: URLSearchParams): FormData {
@@ -68,7 +92,7 @@ class ConnectionWrapper implements IFetchClient {
     this.socksProxyOptions = opts.socksProxy
   }
 
-  _createBaseAgent(): Agent {
+  _createBaseAgent(requestTimeoutMs: number): Agent {
     if (this.socksProxyOptions != null) {
       const proxyConfig: SocksProxies = [
         {
@@ -87,10 +111,33 @@ class ConnectionWrapper implements IFetchClient {
       return socksAgent
     } else {
       return new Agent({
-        headersTimeout: 300 * 1000,
-        connectTimeout: 30 * 1000,
-        bodyTimeout: 300 * 1000,
+        headersTimeout: requestTimeoutMs,
+        connectTimeout: requestTimeoutMs,
+        bodyTimeout: requestTimeoutMs,
       })
+    }
+  }
+
+  _buildRetryOptions(retryOptions: RetryHandler.RetryOptions, requestTimeoutMs: number): RetryHandler.RetryOptions {
+    const mergedErrorCodes = Array.from(
+      new Set([...(retryOptions.errorCodes ?? UndiciDefaultRetryErrorCodes), HeadersTimeoutRetryErrorCode])
+    )
+    const maxRetries = retryOptions.maxRetries ?? DefaultRetryMaxRetries
+    const timeoutFactor = retryOptions.timeoutFactor ?? DefaultRetryTimeoutFactor
+    const maxTimeout = retryOptions.maxTimeout ?? requestTimeoutMs
+    const minTimeout = retryOptions.minTimeout ?? buildDefaultMinTimeout(maxTimeout, maxRetries, timeoutFactor)
+
+    return {
+      ...retryOptions,
+      maxRetries,
+      timeoutFactor,
+      maxTimeout,
+      minTimeout,
+      errorCodes: mergedErrorCodes,
+      // Status-code retries are handled by the application-level loop in fetch().
+      // Passing statusCodes here would cause RetryAgent to also retry on them,
+      // resulting in maxRetries² attempts.
+      statusCodes: [],
     }
   }
 
@@ -99,49 +146,62 @@ class ConnectionWrapper implements IFetchClient {
 
     if (url instanceof Request) throw new Error('Request object not supported by undici')
 
-    const theUrl: string = url instanceof Request ? url.url : url.toString()
+    const requestTimeoutMs = options?.requestTimeoutMs ?? DefaultRequestTimeoutMs
 
     const agent =
       options?.retryOptions != null
-        ? new RetryAgent(this._createBaseAgent(), {
-            ...(options?.retryOptions ?? {}),
-            // see https://github.com/nodejs/undici/discussions/3072
-            errorCodes: ['UND_ERR_HEADERS_TIMEOUT'],
-            retry: (err, ctx, cb) => {
-              const retryCount = ctx.state.counter
-              // Add type assertion to fix the TypeScript error
-              const opts = ctx.opts as { retryOptions?: RetryHandler.RetryOptions }
-              const maxRetries = opts.retryOptions?.maxRetries ?? 0
-              const shouldRetry = retryCount <= maxRetries
+        ? new RetryAgent(
+            this._createBaseAgent(requestTimeoutMs),
+            this._buildRetryOptions(options.retryOptions, requestTimeoutMs)
+          )
+        : this._createBaseAgent(requestTimeoutMs)
 
-              const retryConfig = opts.retryOptions
+    const theUrl: string = url instanceof Request ? url.url : url.toString()
+    const retryStatusCodes = options?.retryOptions?.statusCodes ?? []
+    const maxRetries = options?.retryOptions?.maxRetries ?? 0
+    const minTimeout = options?.retryOptions?.minTimeout ?? 100
+    const maxTimeout = options?.retryOptions?.maxTimeout ?? 1000
+    const timeoutFactor = options?.retryOptions?.timeoutFactor ?? 1
+    // Match undici's own default: only retry idempotent methods unless the caller
+    // explicitly lists methods to retry.
+    const retryMethods = options?.retryOptions?.methods ?? ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE']
+    const method = (init?.method ?? 'GET').toUpperCase()
+    const isRetryableMethod = retryMethods.map(m => m.toUpperCase()).includes(method)
 
-              if (!shouldRetry) {
-                logger.error(`Max retries reached for ${theUrl}. Retry config: ${JSON.stringify(retryConfig)}`)
-                return cb(err)
-              } else {
-                logger.debug(`Retrying request ${retryCount} of ${maxRetries} for ${theUrl}`)
-                cb()
-              }
-            },
-          })
-        : this._createBaseAgent()
+    let attempt = 0
+    let response: XResponse
 
-    const result = await request(theUrl, {
-      method: init?.method as Dispatcher.HttpMethod,
-      headers: init?.headers as IncomingHttpHeaders,
-      body: body as any,
-      dispatcher: agent,
-      headersTimeout: options?.requestTimeoutMs ?? 300 * 1000,
-    })
-    const response = new XResponse(result)
-    await response.text()
+    do {
+      const result = await request(theUrl, {
+        method: init?.method as Dispatcher.HttpMethod,
+        headers: init?.headers as IncomingHttpHeaders,
+        body: body as any,
+        signal: init?.signal,
+        dispatcher: agent,
+        headersTimeout: requestTimeoutMs,
+        bodyTimeout: requestTimeoutMs,
+      })
+      response = new XResponse(result)
+
+      if (
+        response.ok ||
+        !isRetryableMethod ||
+        retryStatusCodes.length === 0 ||
+        !retryStatusCodes.includes(response.status) ||
+        attempt >= maxRetries
+      )
+        break
+
+      attempt++
+      const delay = Math.min(minTimeout * timeoutFactor ** (attempt - 1), maxTimeout)
+      await new Promise(r => setTimeout(r, delay))
+    } while (true)
+
     if (!response.ok) {
       try {
         // Only call the callback if the method and body are valid
         if (options?.onUnsuccessfulResponse && init?.method) {
-          const bodyObj = typeof body === 'object' ? (body as Record<string, any>) : {}
-          options.onUnsuccessfulResponse(theUrl, init.method as string, bodyObj, response)
+          options.onUnsuccessfulResponse(theUrl, init.method as string, body as any, response)
         }
       } catch (error) {
         // do nothing

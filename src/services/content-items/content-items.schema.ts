@@ -69,7 +69,7 @@ export const docs: ServiceSwaggerOptions = {
     // },
     get: {
       operationId: 'getContentItem',
-      description: 'Get a content item by its UID',
+      description: 'Get a content item by its ID',
       parameters: [
         {
           in: 'path',
@@ -78,7 +78,7 @@ export const docs: ServiceSwaggerOptions = {
           schema: {
             type: 'string',
           },
-          description: 'UID of the content item',
+          description: 'ID of the content item',
         },
         ...getParameters,
       ],

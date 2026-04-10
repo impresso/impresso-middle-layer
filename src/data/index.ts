@@ -1,7 +1,7 @@
 import YAML from 'yaml'
 import Debug from 'debug'
 import { readFileSync } from 'fs'
-import { StatsConfiguration } from '@/models/generated/common.js'
+import { StatsConfiguration } from '@/models/generated/app/configuration.js'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 

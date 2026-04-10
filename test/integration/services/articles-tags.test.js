@@ -62,7 +62,7 @@ describe("'articles-tags' service", function () {
     })
     assert.ok(resultAuth.labels)
     // Does contain the tag
-    assert.equal(resultAuth.tags[0].uid, tag.uid)
+    assert.equal(resultAuth.tags[0].id, tag.id)
 
     const result = await app.service('content-items').get('GDL-1902-05-12-a-i0012')
     // SHOULD not contain the tag
@@ -74,7 +74,7 @@ describe("'articles-tags' service", function () {
     const results = await service.remove('GDL-1902-05-12-a-i0012', {
       user,
       query: {
-        tag_uid: tag.uid,
+        tag_uid: tag.id,
       },
     })
     assert.equal(results.info._stats.relationshipsDeleted, 1)

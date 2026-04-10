@@ -13,16 +13,17 @@ const banner = `
 const basePath = './src/schema'
 const outputPath = './src/models/generated'
 const schemaBits = [
-  'schemas',
-  'schemas/contentItem',
-  'schemasPublic',
-  'shared',
-  'parameters',
-  'requestBodies',
-  'responses',
-  'common',
-  'solr',
-  'solr/ContentItem',
+  'canonical',
+  'canonical/contentItem',
+  'app/requests',
+  'app/responses',
+  'app/configuration',
+  'app/models',
+  'external/solr',
+  'external/solr/ContentItem',
+  // deprecated:
+  'deprecated/internalApi',
+  'deprecated/models',
 ]
 const directories = fs
   .readdirSync(basePath, {

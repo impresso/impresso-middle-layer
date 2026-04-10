@@ -6,7 +6,7 @@ export default {
     find: [],
     get: [
       validate({
-        newspaper_uid: {
+        newspaper_id: {
           required: false,
           regex: REGEX_UID,
         },

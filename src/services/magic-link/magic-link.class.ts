@@ -1,4 +1,4 @@
-import { Config } from '@/models/generated/common.js'
+import { CallbackUrlsConfig, Config } from '@/models/generated/app/configuration.js'
 import User from '@/models/users.model.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { Params } from '@feathersjs/feathers'
@@ -37,6 +37,7 @@ export interface CreateResult {
  */
 export class MagicLinkService {
   protected readonly config: Config['magicLink']
+  protected readonly callbackUrl?: CallbackUrlsConfig['magicLink']
   protected readonly sequelizeClient: Sequelize
   protected readonly userModel: ReturnType<typeof User.sequelize>
   protected readonly celeryClient: CeleryClient
@@ -45,12 +46,13 @@ export class MagicLinkService {
 
   constructor(protected readonly app: ImpressoApplication) {
     this.config = app.get('magicLink')
+    this.callbackUrl = app.get('callbackUrls')?.magicLink
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.userModel = User.sequelize(this.sequelizeClient)
     this.celeryClient = app.get('celeryClient') as CeleryClient
     this.redisClient = app.service('redisClient').client as RedisClient
     this.name = 'magicLink'
-    debug('Initialized service %s', this.name)
+    debug('Initialized service %s with callback URL %s', this.name, this.callbackUrl)
   }
 
   /**
@@ -79,7 +81,17 @@ export class MagicLinkService {
     })
     // save user id related to the token into the db
     await this.redisClient.setEx(`magic-link:${token}`, this.config.expiration, String(user.get('id')))
-    debug('[create] Generated magic link token for email:', data.email, 'userId:', user.get('id'), 'token:', token)
+    debug(
+      '[create] Generated magic link token for email:',
+      data.email,
+      'userId:',
+      user.get('id'),
+      'token:',
+      token,
+      'expires in:',
+      this.config.expiration,
+      'seconds'
+    )
     if (!this.celeryClient) {
       debug('[create] No celery client configured, cannot send email to', data.email)
       logger.error('Email service not configured')
@@ -87,12 +99,14 @@ export class MagicLinkService {
     }
     await this.celeryClient
       .run({
-        task: 'impresso.tasks.send_magic_link_email',
+        task: 'impresso.tasks.email_magic_link',
         args: [
           // user email
           user.get('id'),
           // token
           token,
+          // callback
+          this.callbackUrl,
         ],
       })
       .catch((err: Error) => {

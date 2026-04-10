@@ -2,7 +2,7 @@ import {
   FilterDefinition,
   SolrFiltersConfiguration,
   SolrServerNamespaceConfiguration,
-} from '@/models/generated/common.js'
+} from '@/models/generated/app/configuration.js'
 import { Filter, FilterPrecision } from '@/models/index.js'
 import { SupportedLanguageCodes } from '@/models/solr.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
@@ -144,11 +144,10 @@ const reduceStringFiltersToSolr = (filters: Filter[], field: string | string[] |
       }
     }
 
-    if (typeof queryList === 'string') {
-      const ql: string = queryList
-      if (!ql.startsWith('NOT ') && !(ql.startsWith('(') && ql.endsWith(')'))) {
-        return `(${transformedQuery})`
-      }
+    // Keep OR-ed string alternatives grouped when this filter is combined with
+    // other filter types using AND in the final query.
+    if (context !== 'exclude' && queryList.length > 1) {
+      transformedQuery = `(${transformedQuery})`
     }
 
     return transformedQuery

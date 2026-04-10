@@ -3,7 +3,7 @@ import { SolrNamespaces } from '@/solr.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
 import { TypeToTypeShorthand } from '@/utils/entity.utils.js'
-import { SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
+import { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 
 const SolrFields = Object.freeze({
   Id: 'id',

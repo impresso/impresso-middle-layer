@@ -6,7 +6,6 @@ import { SolrMappings } from '@/data/constants.js'
  * @typedef {import('./index.d.ts').Request} Request
  * @typedef {import('./index.d.ts').FacetRequest} FacetRequest
  * @typedef {import('impresso-jscommons').Filter} Filter
- * @typedef {import('impresso-jscommons').Facet} Facet
  */
 
 import { getFacetsFromSolrResponse } from '@/services/search/search.extractors.js'

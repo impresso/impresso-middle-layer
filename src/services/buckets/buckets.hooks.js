@@ -52,7 +52,7 @@ export default {
     create: [
       validate(
         {
-          // request must contain a name - from which we will create a UID
+          // request must contain a name - from which we will create an ID
           name: {
             required: true,
             min_length: 3,
@@ -86,7 +86,7 @@ export default {
       }),
       validate(
         {
-          // request must contain a name - from which we will create a UID
+          // request must contain a name - from which we will create an ID
           name: {
             required: false,
             min_length: 3,

@@ -12,7 +12,7 @@ import { SlimUser } from '@/authentication.js'
 import { asFind, asGet, findAllRequestAdapter, findRequestAdapter, SolrFactory } from '@/util/solr/adapters.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import Page, { withRewrittenIIIF } from '@/models/pages.model.js'
-import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { ICachedResolvers, buildResolvers } from '@/internalServices/cachedResolvers.js'
 import {
   SlimContentItemFieldsNames,
   FullContentItemFieldsNames,
@@ -27,20 +27,24 @@ import {
 } from '@/models/content-item.js'
 import { ClientService, Params } from '@feathersjs/feathers'
 import { FindResponse } from '@/models/common.js'
+
+export interface FindResponseWithCursor<T> extends FindResponse<T> {
+  nextCursorMark?: string
+}
+
 import {
   ContentItem,
   ContentItemPage,
   Collection as ContentItemCollection,
-} from '@/models/generated/schemas/contentItem.js'
+} from '@/models/generated/canonical/contentItem.js'
 import { ContentItemDbModel } from '@/models/content-item.model.js'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '@/models/content-item-page.model.js'
 import { mapRecordValues } from '@/util/fn.js'
 import { NotFound } from '@feathersjs/errors'
-import { Collection, Topic } from '@/models/generated/schemas.js'
-import { WellKnownKeys } from '@/cache.js'
+import { Collection } from '@/models/generated/canonical.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
-import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/solr/contentItem.js'
-import { allContentFields, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
+import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/external/solr/ContentItem.js'
+import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
 import { QueueService } from '@/internalServices/queue.js'
@@ -159,6 +163,7 @@ interface FindQuery {
   include_embeddings?: boolean
   include_transcript?: boolean
   term?: string
+  nextCursorMark?: string
 }
 
 interface AsPublicApiMixin {
@@ -185,85 +190,193 @@ const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: Imp
     ...page,
     iiif: {
       manifestUrl: getIIIFManifestUrl(dbPage, app),
-      thumnbnailUrl: getIIIFThumbnailUrl(dbPage, app),
+      thumbnailUrl: getIIIFThumbnailUrl(dbPage, app),
     },
   }
 }
 
 type Dictionary<T> = Record<string, T>
 
-const withIIIF = (
+type ContentItemEnricher = (item: ContentItem) => ContentItem | Promise<ContentItem>
+
+const enrichContentItems = async (
   contentItems: ContentItem[],
-  dbPagesLookup: Dictionary<Dictionary<DBContentItemPage>>,
-  app: ImpressoApplication
-) => {
-  return contentItems.map(item => {
-    const pages = item.image?.pages ?? []
+  enrichers: ContentItemEnricher[]
+): Promise<ContentItem[]> => {
+  if (contentItems.length === 0 || enrichers.length === 0) return contentItems
+
+  return await Promise.all(
+    contentItems.map(async item => {
+      let enrichedItem = item
+      for (const withEnricher of enrichers) {
+        enrichedItem = await withEnricher(enrichedItem)
+      }
+      return enrichedItem
+    })
+  )
+}
+
+const withIIIF =
+  (dbPagesLookup: Dictionary<Dictionary<DBContentItemPage>>, app: ImpressoApplication): ContentItemEnricher =>
+  item => {
+    const pages = item.facsimile?.pages ?? []
+    if (pages.length === 0) return item
+
     const enrichedPages = pages.map(page => {
       const dbPage = dbPagesLookup[item.id]?.[page.id!]
       if (dbPage) return pageWithIIIF(page, dbPage, app)
       return page
     })
-    if (enrichedPages.length > 0) {
-      return {
-        ...item,
-        image: {
-          ...item.image,
-          pages: enrichedPages,
-        },
-      }
-    }
-    return item
-  })
-}
 
-const withTopics = (contentItems: ContentItem[], topicsLookup: Dictionary<Topic>): ContentItem[] => {
-  return contentItems.map(item => {
+    return {
+      ...item,
+      facsimile: {
+        ...item.facsimile,
+        pages: enrichedPages,
+      },
+    }
+  }
+
+const withTopics =
+  (topicResolver: ICachedResolvers['topic']): ContentItemEnricher =>
+  async item => {
     const topics = item.semanticEnrichments?.topics ?? []
-    const enrichedTopics = topics.map(topic => {
-      const topicDetails = topicsLookup[topic.id]
-      if (topicDetails) {
+    if (topics.length === 0) return item
+
+    let hasTopicPatch = false
+
+    const enrichedTopics = await Promise.all(
+      topics.map(async topic => {
+        if (topic.label != null && topic.languageCode != null) return topic
+
+        const topicDetails = await topicResolver(topic.id)
+        if (topicDetails == null) return topic
+
+        const topicLabel =
+          topic.label ??
+          take(topicDetails.words, 5)
+            .map(word => word.w)
+            .join(' · ')
+
+        const languageCode = topic.languageCode ?? topicDetails.language
+        const hasPatch =
+          (topic.label == null && topicLabel !== '') || (topic.languageCode == null && languageCode != null)
+
+        if (!hasPatch) return topic
+        hasTopicPatch = true
         return {
           ...topic,
-          language: topicDetails.language,
-          label: take(topicDetails.words, 5)
-            .map(word => word.w)
-            .join(' · '),
+          ...(topic.label == null && topicLabel !== '' ? { label: topicLabel } : {}),
+          ...(topic.languageCode == null && languageCode != null ? { languageCode } : {}),
         }
-      }
-      return topic
-    })
+      })
+    )
 
-    if (enrichedTopics.length > 0) {
-      return {
-        ...item,
-        semanticEnrichments: {
-          ...item.semanticEnrichments,
-          topics: enrichedTopics,
-        },
-      }
+    if (!hasTopicPatch) {
+      return item
     }
-    return item
-  })
-}
 
-const withCollections = (contentItems: ContentItem[], collectionsLookup: Dictionary<Collection[]>): ContentItem[] => {
-  if (Object.keys(collectionsLookup).length === 0) return contentItems
+    return {
+      ...item,
+      semanticEnrichments: {
+        ...item.semanticEnrichments,
+        topics: enrichedTopics,
+      },
+    }
+  }
 
-  return contentItems.map(item => {
+const withCollections =
+  (collectionsLookup: Dictionary<Collection[]>): ContentItemEnricher =>
+  item => {
     const collections = collectionsLookup[item.id] ?? []
-    if (collections.length > 0) {
-      return {
-        ...item,
-        semanticEnrichments: {
-          ...item.semanticEnrichments,
-          collections,
-        },
-      }
+    if (collections.length === 0) return item
+
+    return {
+      ...item,
+      semanticEnrichments: {
+        ...item.semanticEnrichments,
+        collections,
+      },
     }
-    return item
-  })
+  }
+
+interface ContentItemMetadataResolvers {
+  mediaSource: ICachedResolvers['mediaSource']
+  partner: ICachedResolvers['partner']
+  dataDomain: ICachedResolvers['dataDomain']
+  copyright: ICachedResolvers['copyright']
+  contentItemType: ICachedResolvers['contentItemType']
 }
+
+const withMetaLabels =
+  ({ mediaSource, partner }: ContentItemMetadataResolvers): ContentItemEnricher =>
+  async item => {
+    const [mediaSourceItem, partnerItem] = await Promise.all([
+      item.meta?.mediaTitle == null && item.meta?.mediaId != null ? mediaSource(item.meta.mediaId) : undefined,
+      item.meta?.partnerTitle == null && item.meta?.partnerId != null ? partner(item.meta.partnerId) : undefined,
+    ])
+    const mediaTitle = mediaSourceItem?.name
+    const partnerTitle = partnerItem?.title
+    const hasMetaPatch =
+      (mediaTitle != null && item.meta?.mediaTitle == null) || (partnerTitle != null && item.meta?.partnerTitle == null)
+    if (!hasMetaPatch || item.meta == null) return item
+
+    return {
+      ...item,
+      meta: {
+        ...item.meta,
+        ...(mediaTitle != null && item.meta.mediaTitle == null ? { mediaTitle } : {}),
+        ...(partnerTitle != null && item.meta.partnerTitle == null ? { partnerTitle } : {}),
+      },
+    }
+  }
+
+const withAccessLabels =
+  ({ dataDomain, copyright }: ContentItemMetadataResolvers): ContentItemEnricher =>
+  async item => {
+    const [dataDomainItem, copyrightItem] = await Promise.all([
+      item.access?.dataDomainLabel == null && item.access?.dataDomain != null
+        ? dataDomain(item.access.dataDomain)
+        : undefined,
+      item.access?.copyrightLabel == null && item.access?.copyright != null
+        ? copyright(item.access.copyright)
+        : undefined,
+    ])
+    const dataDomainLabel = dataDomainItem?.label
+    const copyrightLabel = copyrightItem?.label
+    const hasAccessPatch =
+      (dataDomainLabel != null && item.access?.dataDomainLabel == null) ||
+      (copyrightLabel != null && item.access?.copyrightLabel == null)
+    if (!hasAccessPatch || item.access == null) return item
+
+    return {
+      ...item,
+      access: {
+        ...item.access,
+        ...(dataDomainLabel != null && item.access.dataDomainLabel == null ? { dataDomainLabel } : {}),
+        ...(copyrightLabel != null && item.access.copyrightLabel == null ? { copyrightLabel } : {}),
+      },
+    }
+  }
+
+const withTextLabels =
+  ({ contentItemType }: ContentItemMetadataResolvers): ContentItemEnricher =>
+  async item => {
+    const [itemTypeItem] = await Promise.all([
+      item.text?.itemTypeLabel == null && item.text?.itemType != null ? contentItemType(item.text.itemType) : undefined,
+    ])
+    const itemTypeLabel = itemTypeItem?.label
+    const hasTextPatch = itemTypeLabel != null && item.text?.itemTypeLabel == null
+    if (!hasTextPatch || item.text == null) return item
+
+    return {
+      ...item,
+      text: {
+        ...item.text,
+        ...(itemTypeLabel != null && item.text.itemTypeLabel == null ? { itemTypeLabel } : {}),
+      },
+    }
+  }
 
 export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights, maxScore?: number) => {
   return (doc: AllDocumentFields): ContentItem => {
@@ -288,7 +401,7 @@ export type IContentItemService = Pick<
 export class ContentItemService implements IContentItemService {
   app: ImpressoApplication
   contentItemsDbService: SequelizeService
-  _topicsCache: Topic[] | undefined = undefined
+  _cachedResolvers: ICachedResolvers | undefined = undefined
 
   constructor({ app }: ServiceOptions) {
     this.app = app
@@ -299,30 +412,39 @@ export class ContentItemService implements IContentItemService {
     })
   }
 
-  async getTopics(topicIds: string[]): Promise<Dictionary<Topic>> {
-    if (this._topicsCache === undefined) {
-      const result = await this.app.get('cacheManager').get<string>(WellKnownKeys.Topics)
-      this._topicsCache = JSON.parse(result ?? '[]')
-    }
-    const topics = this._topicsCache?.filter(t => topicIds.includes(t.uid)) ?? []
-    return keyBy(topics, 'uid')
-  }
-
   async getCollections(contentItemIds: string[], user?: SlimUser): Promise<Dictionary<Collection[]>> {
     if (contentItemIds.length === 0 || !user) return {}
 
     return await this.app.service('collections').findByContentItems(contentItemIds, true, user)
   }
 
+  getCachedResolvers(): ICachedResolvers {
+    if (this._cachedResolvers === undefined) {
+      this._cachedResolvers = buildResolvers(this.app)
+    }
+    return this._cachedResolvers
+  }
+
+  getContentItemMetadataResolvers(): ContentItemMetadataResolvers {
+    const resolvers = this.getCachedResolvers()
+    return {
+      mediaSource: resolvers.mediaSource,
+      partner: resolvers.partner,
+      dataDomain: resolvers.dataDomain,
+      copyright: resolvers.copyright,
+      contentItemType: resolvers.contentItemType,
+    }
+  }
+
   get solr(): SimpleSolrClient {
     return this.app?.service('simpleSolrClient')!
   }
 
-  async find(params: FindParams): Promise<FindResponse<ContentItem>> {
+  async find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     return await this._find(params)
   }
 
-  async findInternal(params: FindParams): Promise<FindResponse<ContentItem>> {
+  async findInternal(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     return await this._find(params)
   }
 
@@ -334,22 +456,22 @@ export class ContentItemService implements IContentItemService {
       .find({
         include: 'pages',
         where: {
-          uid: { [Op.in]: contentItemIds },
+          id: { [Op.in]: contentItemIds },
         },
         limit: contentItemIds.length,
         offset: 0,
-        order_by: [['uid', 'DESC']],
+        order_by: [['id', 'DESC']],
       })
-      .then(({ data }) => keyBy(data, 'uid'))
+      .then(({ data }) => keyBy(data, 'id'))
 
     const pagesByIds = mapRecordValues(pagesByContentItemId, ({ pages }, ciId) => {
-      return keyBy(pages, 'uid')
+      return keyBy(pages, 'id')
     })
 
     return pagesByIds
   }
 
-  async _find(params: FindParams): Promise<FindResponse<ContentItem>> {
+  async _find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     const fields = [
       ...[ScoreField],
       // if include embeddings is requested, add those fields
@@ -371,8 +493,12 @@ export class ContentItemService implements IContentItemService {
         }
 
     const request = findRequestAdapter(params)
+    const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], params.query?.order_by)
+    const sort = params.query?.nextCursorMark != null ? ensureIdSort(rawSort) : rawSort
+
     const requestBody = {
       ...request,
+      sort,
       fields: fields.join(','),
       params: {
         ...request.params,
@@ -380,7 +506,8 @@ export class ContentItemService implements IContentItemService {
         // add variables if there are any
         ...((params.query as any)?.['sv'] ?? {}),
         // any sort params
-        ...getSortParams(params.query?.filters ?? [], params.query?.order_by),
+        ...sortParams,
+        ...(params.query?.nextCursorMark != null ? { cursorMark: params.query.nextCursorMark } : {}),
       },
     }
     const results = await this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
@@ -392,26 +519,31 @@ export class ContentItemService implements IContentItemService {
       .map(item => withMatches(item, results))
 
     // get data enrichment items
-    const topicIds = contentItems.flatMap(d => d.semanticEnrichments?.topics?.map(t => t.id) ?? [])
     const contentItemIds = contentItems.map(d => d.id)
 
-    const [topicsLookup, dbPages, collectionsLookup] = await Promise.all([
-      this.getTopics(topicIds),
+    const [dbPages, collectionsLookup] = await Promise.all([
       this._findPages(contentItemIds),
       this.getCollections(contentItemIds, params.user),
     ])
+    const resolvers = this.getCachedResolvers()
+    const metadataResolvers = this.getContentItemMetadataResolvers()
 
-    // add IIIF URLs to the content items pages
-    const enrichedContentItems = withCollections(
-      withTopics(withIIIF(contentItems, dbPages, this.app), topicsLookup),
-      collectionsLookup
-    )
+    const enrichedContentItems = await enrichContentItems(contentItems, [
+      withIIIF(dbPages, this.app),
+      withTopics(resolvers.topic),
+      withCollections(collectionsLookup),
+      withMetaLabels(metadataResolvers),
+      withAccessLabels(metadataResolvers),
+      withTextLabels(metadataResolvers),
+      withAuthorizationBitmaps,
+    ])
 
     return {
-      data: enrichedContentItems.map(withAuthorizationBitmaps),
+      data: enrichedContentItems,
       offset: results.response?.start ?? 0,
       limit: request.limit ?? DefaultLimit,
       total: results.response?.numFound ?? 0,
+      nextCursorMark: results.nextCursorMark,
     }
 
     // if (results.response?.docs?.length)
@@ -430,7 +562,7 @@ export class ContentItemService implements IContentItemService {
     //       ...params,
     //       scope: 'get',
     //       where: {
-    //         uid: { [Op.in]: results.data.map(d => d.uid) },
+    //         uid: { [Op.in]: results.data.map(d => d.id) },
     //       },
     //       limit: results.data.length,
     //       order_by: [['uid', 'DESC']],
@@ -447,7 +579,7 @@ export class ContentItemService implements IContentItemService {
     // const issuesRequest = {
     //   attributes: ['accessRights', 'uid'],
     //   where: {
-    //     uid: { [Op.in]: results.data.map(d => d?.issue?.uid) },
+    //     uid: { [Op.in]: results.data.map(d => d?.issue?.id) },
     //   },
     // }
     // const getRelatedIssuesPromise = measureTime(() => getIssues(issuesRequest, this.app!), 'articles.find.db.issues')
@@ -457,22 +589,22 @@ export class ContentItemService implements IContentItemService {
     //   ([addonsIndex, issuesIndex]) => ({
     //     ...results,
     //     data: results.data.map((article: Article) => {
-    //       if (article?.issue?.uid != null && issuesIndex[article?.issue?.uid]) {
-    //         article.issue.accessRights = issuesIndex[article.issue.uid].accessRights
+    //       if (article?.issue?.id != null && issuesIndex[article?.issue?.id]) {
+    //         article.issue.accessRights = issuesIndex[article.issue.id].accessRights
     //       }
-    //       if (!addonsIndex[article.uid]) {
-    //         debug('[find] no pages for uid', article.uid)
+    //       if (!addonsIndex[article.id]) {
+    //         debug('[find] no pages for uid', article.id)
     //         return article
     //       }
     //       // add pages
-    //       if (addonsIndex[article.uid].pages) {
+    //       if (addonsIndex[article.id].pages) {
     //         // NOTE [RK]: Checking type of object is a quick fix around cached
     //         // sequelized results. When a result is a plain Object instance it means
     //         // it came from cache. Otherwise it is a model instance and it was
     //         // loaded from the database.
     //         // This should be moved to the SequelizeService layer.
     //         const rewriteRules = this.app?.get('images')?.rewriteRules ?? []
-    //         article.pages = addonsIndex[article.uid].pages.map((d: any) =>
+    //         article.pages = addonsIndex[article.id].pages.map((d: any) =>
     //           withRewrittenIIIF(d.constructor === Object ? d : d.toJSON(), rewriteRules)
     //         )
     //       }
@@ -487,8 +619,8 @@ export class ContentItemService implements IContentItemService {
     // const resolvers = buildResolvers(this.app!)
     // result.data = await Promise.all(
     //   result.data.map(async (item: Article) => {
-    //     item.locations = await Promise.all(item.locations?.map(item => resolvers.location(item.uid)) ?? [])
-    //     item.persons = await Promise.all(item.persons?.map(item => resolvers.person(item.uid)) ?? [])
+    //     item.locations = await Promise.all(item.locations?.map(item => resolvers.location(item.id)) ?? [])
+    //     item.persons = await Promise.all(item.persons?.map(item => resolvers.person(item.id)) ?? [])
     //     return item
     //   })
     // )
@@ -524,15 +656,25 @@ export class ContentItemService implements IContentItemService {
 
     if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)
 
-    const topicIds = contentItem.semanticEnrichments?.topics?.map(t => t.id) ?? []
-    const topicsLookup = await this.getTopics(topicIds)
+    const resolvers = this.getCachedResolvers()
+    const metadataResolvers = this.getContentItemMetadataResolvers()
 
-    const enrichedContentItem = withCollections(
-      withTopics(withIIIF([contentItem], dbPagesLookup, this.app), topicsLookup),
-      collectionsLookup
+    const enrichedContentItem = (
+      await enrichContentItems(
+        [contentItem],
+        [
+          withIIIF(dbPagesLookup, this.app),
+          withTopics(resolvers.topic),
+          withCollections(collectionsLookup),
+          withMetaLabels(metadataResolvers),
+          withAccessLabels(metadataResolvers),
+          withTextLabels(metadataResolvers),
+          withAuthorizationBitmaps,
+        ]
+      )
     )?.[0]
 
-    return withAuthorizationBitmaps(enrichedContentItem)
+    return enrichedContentItem
 
     //   return Promise.all([
     //     // we perform a solr request to get
@@ -574,8 +716,8 @@ export class ContentItemService implements IContentItemService {
     //       if (article != null) {
     //         const resolvers = buildResolvers(this.app!)
 
-    //         article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.uid)) ?? [])
-    //         article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.uid)) ?? [])
+    //         article.locations = await Promise.all(article.locations?.map(item => resolvers.location(item.id)) ?? [])
+    //         article.persons = await Promise.all(article.persons?.map(item => resolvers.person(item.id)) ?? [])
 
     //         return Article.assignIIIF(article)
     //       }

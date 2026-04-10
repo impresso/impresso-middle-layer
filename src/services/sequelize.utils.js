@@ -71,14 +71,14 @@ const resolveAsync = async (client, groups) => {
     }
     // loop through group items then store the idx
     g.items.forEach((d, i) => {
-      idxs[d.uid] = i
+      idxs[d.id] = i
     })
 
     debug(
       'resolveAsync:promise for service',
       g.service,
       idxs,
-      g.items.map(d => d.uid)
+      g.items.map(d => d.id)
     )
 
     return (
@@ -86,7 +86,7 @@ const resolveAsync = async (client, groups) => {
         .scope('findAll')
         .findAll({
           where: {
-            uid: g.items.map(d => d.uid),
+            uid: g.items.map(d => d.id),
           },
         })
         // .then((rows) => {
@@ -97,7 +97,7 @@ const resolveAsync = async (client, groups) => {
         .then(records => {
           // add each record to the initial group
           records.forEach(rec => {
-            groups[k].items[idxs[rec.uid]].item = rec
+            groups[k].items[idxs[rec.id]].item = rec
           })
           return records
         })

@@ -1,6 +1,6 @@
 import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
 import { Cache, WellKnownKeys } from '@/cache.js'
-import type { MediaSource } from '@/models/generated/schemas.js'
+import type { MediaSource } from '@/models/generated/canonical.js'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 
@@ -114,7 +114,7 @@ export class MediaSources
     const result = await this.cache.get<string>(WellKnownKeys.MediaSources)
     const deserialisedResult: MediaSource[] = JSON.parse(result ?? '[]')
 
-    const item = deserialisedResult?.find(mediaSource => mediaSource.uid === id)
+    const item = deserialisedResult?.find(mediaSource => mediaSource.id === id)
     return item
   }
 
@@ -127,7 +127,7 @@ export class MediaSources
 
     return results.data.reduce(
       (acc, mediaSource) => {
-        acc[mediaSource.uid] = mediaSource
+        acc[mediaSource.id] = mediaSource
         return acc
       },
       {} as Record<string, MediaSource>

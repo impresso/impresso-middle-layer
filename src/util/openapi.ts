@@ -1,6 +1,6 @@
 import type { JSONSchema7 as JSONSchema } from 'json-schema'
-import baseFindResponse from '@/schema/schemas/BaseFind.json' with { type: 'json' }
-import baseFindResponsePublic from '@/schema/schemasPublic/BaseFind.json' with { type: 'json' }
+import baseFindResponse from '@/schema/deprecated/internalApi/BaseFind.json' with { type: 'json' }
+import baseFindResponsePublic from '@/schema/app/responses/BaseFind.json' with { type: 'json' }
 
 // @ts-ignore
 delete baseFindResponse['$schema']
@@ -103,7 +103,12 @@ export const getStandardResponses = ({
       headers: { ...defaultHeaders },
     },
     500: {
-      description: 'general error',
+      description: 'Internal Server Error (downstream service error or unhandled error)',
+      content: asApplicationProblemJson(defaultErrorSchema),
+      headers: { ...defaultHeaders },
+    },
+    503: {
+      description: 'Service Unavailable (downstream service is unavailable)',
       content: asApplicationProblemJson(defaultErrorSchema),
       headers: { ...defaultHeaders },
     },

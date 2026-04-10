@@ -1,9 +1,6 @@
 import { Params } from '@feathersjs/feathers'
-import {
-  ImpressoEmbeddingResponse,
-  ImpressoImageEmbeddingRequest,
-  ImpressoTextEmbeddingRequest,
-} from '@/models/generated/shared.js'
+import { ImpressoImageEmbeddingRequest, ImpressoTextEmbeddingRequest } from '@/models/generated/app/requests.js'
+import { ImpressoEmbeddingResponse } from '@/models/generated/app/responses.js'
 import { IFetchClient } from '@/utils/http/client/base.js'
 import { createFetchClient } from '@/utils/http/client/index.js'
 import { sendDownstreamRequest } from '@/utils/downstream-service.js'

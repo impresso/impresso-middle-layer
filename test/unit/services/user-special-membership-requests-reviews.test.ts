@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert'
 // Feathers
-import type { TestDatabase } from '../../helpers/database.js'
-import { setupTestDatabase, teardownTestDatabase } from '../../helpers/database.js'
+import type { CeleryCall, RedisSetExCall, TestDatabase } from '../../helpers/database.js'
+import { setupTestDatabaseRedisCelery, teardownTestDatabase } from '../../helpers/database.js'
 // Models
 import UserSpecialMembershipRequest, {
   IUserSpecialMembershipRequestAttributes,
@@ -114,6 +114,31 @@ const mockRequestsForReviewerA = [
       },
     ],
   },
+  {
+    id: 13,
+    reviewerId: null,
+    userId: 3,
+    specialMembershipAccessId: 5,
+    dateCreated: new Date(),
+    dateLastModified: new Date(),
+    status: 'approved',
+    changelog: [
+      {
+        status: 'pending',
+        subscription: 'diamond',
+        date: new Date().toISOString(),
+        reviewer: '',
+        notes: 'Initial request',
+      },
+      {
+        status: 'approved',
+        subscription: 'diamond',
+        date: new Date().toISOString(),
+        reviewer: 'Reviewer First Reviewer Last',
+        notes: 'Approved',
+      },
+    ],
+  },
 ] as IUserSpecialMembershipRequestAttributes[]
 
 describe('UserSpecialMembershipRequestReviewsService', () => {
@@ -121,20 +146,25 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
   let service: UserSpecialMembershipRequestReviewsService
   let userModel: ReturnType<typeof User.sequelize>
   let groupModel: ReturnType<typeof Group.initModel>
+  const trackers = { celeryCalls: [] as CeleryCall[], redisCalls: {} as Record<string, RedisSetExCall> }
+
   let specialMembershipAccessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
   let userSpecialMembershipRequestModel: ReturnType<typeof UserSpecialMembershipRequest.initialize>
 
   before(async () => {
     // Setup database once for all tests
-    db = setupTestDatabase({
+    db = setupTestDatabaseRedisCelery(trackers.celeryCalls, trackers.redisCalls, {
       logging: false,
     })
     userModel = User.sequelize(db.sequelize)
     specialMembershipAccessModel = SpecialMembershipAccess.initialize(db.sequelize)
     userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(db.sequelize)
     groupModel = Group.initModel(db.sequelize)
-    await db.sequelize.sync({ force: true })
 
+    trackers.celeryCalls.length = 0
+    for (const key in trackers.redisCalls) delete trackers.redisCalls[key]
+
+    await db.sequelize.sync({ force: true })
     service = new UserSpecialMembershipRequestReviewsService(db.app)
   })
 
@@ -143,6 +173,8 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
   })
 
   beforeEach(async () => {
+    trackers.celeryCalls.length = 0
+    for (const key in trackers.redisCalls) delete trackers.redisCalls[key]
     // Clear the tables before each test
     await db.sequelize.truncate({ cascade: true })
     // Insert related mock data
@@ -190,10 +222,40 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
 
       const result = await service.find({
         user: { id: mockReviewerUserA.id },
-        query: { status: ['approved'], order_by: '-date' },
+        query: { status: ['approved'], order_by: [['dateLastModified', 'DESC']] },
       })
-      // Reviewer A is assigned to subscriptions with ids 2, 3, and 5
-      assert.strictEqual(result.pagination.total, 0)
+      // Reviewer A is assigned to subscriptions with ids 2, 3, and 5 but only one is approved
+      assert.strictEqual(result.data.length, 1)
+      assert.strictEqual(result.pagination.total, 1)
+    })
+    it('should return PENDING requests assigned to the reviewer, order by -date', async () => {
+      // Create requests assigned to different reviewers
+      await userSpecialMembershipRequestModel.bulkCreate(mockRequestsForReviewerA)
+
+      const result = await service.find({
+        user: { id: mockReviewerUserA.id },
+        query: { status: ['pending'], order_by: [['dateLastModified', 'DESC']] },
+      })
+      // Reviewer A is assigned to subscriptions with ids 2, 3, and 5 but only one is pending
+      assert.strictEqual(result.data.length, 3)
+      assert.strictEqual(result.pagination.total, 3)
+    })
+
+    it('should filter requests by subscriber email using term parameter', async () => {
+      // Create requests assigned to different reviewers
+      await userSpecialMembershipRequestModel.bulkCreate(mockRequestsForReviewerA)
+
+      // Search for requests from user1 by their email
+      const result = await service.find({
+        user: { id: mockReviewerUserA.id },
+        query: { term: 'user1@example.com' },
+      })
+
+      // Only one request (id: 10) is from user1 and visible to reviewer A
+      assert.strictEqual(result.data.length, 1)
+      assert.strictEqual(result.pagination.total, 1)
+      assert.strictEqual(result.data[0].userId, 1)
+      assert.strictEqual(result.data[0].requester.email, 'user1@example.com')
     })
   })
 
@@ -242,6 +304,32 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
       assert.ok(result)
       assert.strictEqual(result.id, 21)
       assert.strictEqual(result.userId, 1)
+    })
+
+    it('should include requester additional info in get response', async () => {
+      const specialAccessRequest = {
+        id: 24,
+        reviewerId: null,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(specialAccessRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.get(24, {
+        user: { id: mockReviewerUserA.id },
+      })
+
+      assert.ok((result as any).requester)
+      assert.strictEqual((result as any).requester.id, 1)
+      assert.strictEqual((result as any).requester.email, 'user1@example.com')
+      assert.strictEqual((result as any).requester.firstname, 'First 1')
+      assert.strictEqual((result as any).requester.lastname, 'Last 1')
+      assert.ok(Array.isArray((result as any).requester.groups))
+      assert.strictEqual((result as any).requester.groups.length, 1)
     })
 
     it('should throw NotFound when reviewer is not authorized for direct review', async () => {
@@ -301,6 +389,190 @@ describe('UserSpecialMembershipRequestReviewsService', () => {
       } catch (error: any) {
         assert.strictEqual(error.code, 404)
       }
+    })
+  })
+
+  describe('patch', () => {
+    it('should update status for direct reviewer', async () => {
+      // Create a request with direct reviewer assignment
+      const directRequest = {
+        id: 30,
+        reviewerId: mockReviewerUserA.id,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.patch(
+        30,
+        { status: 'approved' },
+        {
+          user: { id: mockReviewerUserA.id },
+        }
+      )
+
+      assert.ok(result)
+      assert.strictEqual(result.id, 30)
+      assert.strictEqual(result.status, 'approved')
+      assert.strictEqual(trackers.celeryCalls.length, 1, 'Expected one Celery call after patching request')
+      const celeryCall = trackers.celeryCalls[0]
+      assert.strictEqual(
+        celeryCall.task,
+        'impresso.tasks.userSpecialMembershipRequest_tasks.after_special_membership_request_updated'
+      )
+      assert.ok(Array.isArray(celeryCall.args))
+      assert.strictEqual(celeryCall.args[0], 30)
+    })
+
+    it('should update status for special access reviewer', async () => {
+      // Create a request with special access reviewer
+      const specialAccessRequest = {
+        id: 31,
+        reviewerId: null,
+        userId: 1,
+        specialMembershipAccessId: 2, // Assigned to reviewer A
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(specialAccessRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.patch(
+        31,
+        { status: 'rejected' },
+        {
+          user: { id: mockReviewerUserA.id },
+        }
+      )
+
+      assert.ok(result)
+      assert.strictEqual(result.id, 31)
+      assert.strictEqual(result.status, 'rejected')
+    })
+
+    it('should throw NotFound when reviewer is not authorized to patch', async () => {
+      // Create a request for reviewer B
+      const directRequest = {
+        id: 32,
+        reviewerId: mockReviewerUserB.id,
+        userId: 1,
+        specialMembershipAccessId: 1,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      try {
+        await service.patch(
+          32,
+          { status: 'approved' },
+          {
+            user: { id: mockReviewerUserA.id },
+          }
+        )
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+
+    it('should throw NotFound for non-existent request', async () => {
+      try {
+        await service.patch(
+          9999,
+          { status: 'approved' },
+          {
+            user: { id: mockReviewerUserA.id },
+          }
+        )
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+    it('should not accept patch without id', async () => {
+      try {
+        await service.patch(
+          null as any,
+          { status: 'approved' },
+          {
+            user: { id: mockReviewerUserA.id },
+          }
+        )
+        assert.fail('Should have thrown NotFound')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 404)
+      }
+    })
+
+    it('should reject invalid status values', async () => {
+      // Create a request with direct reviewer assignment
+      const directRequest = {
+        id: 33,
+        reviewerId: mockReviewerUserA.id,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: new Date(),
+        dateLastModified: new Date(),
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      try {
+        await service.patch(
+          33,
+          { status: 'invalid_status' as any },
+          {
+            user: { id: mockReviewerUserA.id },
+          }
+        )
+        assert.fail('Should have thrown BadRequest')
+      } catch (error: any) {
+        assert.strictEqual(error.code, 400)
+        assert.ok(error.message.includes('Invalid status value'))
+      }
+    })
+
+    it('should update dateLastModified when patching', async () => {
+      // Create a request with an old dateLastModified
+      const oldDate = new Date('2020-01-01')
+      const directRequest = {
+        id: 34,
+        reviewerId: mockReviewerUserA.id,
+        userId: 1,
+        specialMembershipAccessId: 2,
+        dateCreated: oldDate,
+        dateLastModified: oldDate,
+        status: 'pending',
+        changelog: [],
+      }
+      await userSpecialMembershipRequestModel.create(directRequest as IUserSpecialMembershipRequestAttributes)
+
+      const result = await service.patch(
+        34,
+        { status: 'approved' },
+        {
+          user: { id: mockReviewerUserA.id },
+        }
+      )
+
+      assert.ok(result)
+      assert.strictEqual(result.status, 'approved')
+      // dateLastModified should be updated to a recent date
+      const dateLastModified = new Date(result.dateLastModified)
+      const now = new Date()
+      const diffInMs = now.getTime() - dateLastModified.getTime()
+      // Should be within last 5 seconds
+      assert.ok(diffInMs < 5000, 'dateLastModified should be updated to current time')
+      assert.ok(dateLastModified > oldDate, 'dateLastModified should be newer than old date')
     })
   })
 })

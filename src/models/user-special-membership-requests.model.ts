@@ -26,6 +26,7 @@ export interface IUserSpecialMembershipRequestAttributes {
   dateLastModified: Date
   status: (typeof AvailableStatuses)[number]
   changelog: ChangelogEntry[]
+  notes?: string | null
 }
 
 export default class userSpecialMembershipRequestModel extends Model<
@@ -40,6 +41,7 @@ export default class userSpecialMembershipRequestModel extends Model<
   declare dateLastModified: CreationOptional<Date>
   declare status: (typeof AvailableStatuses)[number]
   declare changelog: ChangelogEntry[]
+  declare notes: string | null
   declare specialMembershipAccess?: SpecialMembershipAccess
 
   static initialize(sequelize: Sequelize) {
@@ -83,6 +85,11 @@ export default class userSpecialMembershipRequestModel extends Model<
         changelog: {
           type: DataTypes.JSON,
           allowNull: false,
+        },
+        notes: {
+          type: DataTypes.TEXT,
+          allowNull: true,
+          defaultValue: '',
         },
       },
       {

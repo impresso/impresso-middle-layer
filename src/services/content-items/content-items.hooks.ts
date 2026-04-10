@@ -20,7 +20,7 @@ import {
 import { filtersToSolrQuery, termToSolrFilter } from '@/hooks/search.js'
 import { transformResponse, transformResponseDataItem } from '@/hooks/transformation.js'
 import { transformBaseFind } from '@/transformers/base.js'
-import { transformContentItem } from '@/transformers/contentItem.js'
+// import { transformContentItem } from '@/transformers/contentItem.js'
 import { ImpressoApplication } from '@/types.js'
 import { loadYamlFile } from '@/util/yaml.js'
 import { eachFilterValidator } from '@/services/search/search.validators.js'
@@ -31,9 +31,22 @@ import { dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-export const contentItemRedactionPolicyPublicApi = loadYamlFile(
-  `${__dirname}/resources/contentItemRedactionPolicy.yml`
+/**
+ * Redaction policy that removes fields we don't want to expose in the Public API
+ * regardless of the permissions of the user.
+ */
+export const contentItemBlanketRedactionPolicyPublicApi = loadYamlFile(
+  `${__dirname}/resources/contentItemBlanketRedactionPolicyPublicApi.yml`
 ) as RedactionPolicy
+
+/**
+ * Redaction policy that removes fields we don't want to redact in the Public API
+ * when the user has no permissions.
+ */
+export const contentItemUnauthorisedRedactionPolicyPublicApi = loadYamlFile(
+  `${__dirname}/resources/contentItemUnauthorisedRedactionPolicyPublicApi.yml`
+) as RedactionPolicy
+
 export const contentItemRedactionPolicyWebApp = loadYamlFile(
   `${__dirname}/resources/contentItemRedactionPolicyWebApp.yml`
 ) as RedactionPolicy
@@ -41,7 +54,7 @@ export const contentItemRedactionPolicyWebApp = loadYamlFile(
 type OrderBy =
   | 'date'
   | 'relevance'
-  | 'uid'
+  | 'id'
   | 'issue'
   | 'page'
   | 'newspaper'
@@ -54,7 +67,7 @@ type FullOrderBy = OrderBy | ReverseOrderBy
 const OrderByChoices: OrderBy[] = [
   'date',
   'relevance',
-  'uid',
+  'id',
   'issue',
   'page',
   'newspaper',
@@ -69,6 +82,7 @@ interface Params {
   include_embeddings?: boolean
   include_transcript?: boolean
   term?: string
+  nextCursorMark?: string
 }
 
 /**
@@ -123,6 +137,11 @@ export default {
           min_length: 1,
           max_length: 200,
         },
+        nextCursorMark: {
+          required: false,
+          min_length: 1,
+          max_length: 1000,
+        },
       }),
       validateEach('filters', eachFilterValidator, {
         required: false,
@@ -139,10 +158,10 @@ export default {
       ...inPublicApiOrWhen(
         [
           transformResponse(transformBaseFind),
-          transformResponseDataItem(transformContentItem),
+          redactResponseDataItem(contentItemBlanketRedactionPolicyPublicApi),
           // NOTE: Do not check quota in find - transcript is not included
           redactResponseDataItem(
-            contentItemRedactionPolicyPublicApi,
+            contentItemUnauthorisedRedactionPolicyPublicApi,
             unlessHasPermissionAndWithinQuota('getTranscript')
           ),
         ],
@@ -152,8 +171,11 @@ export default {
     ],
     get: [
       ...inPublicApi([
-        transformResponse(transformContentItem),
-        redactResponse(contentItemRedactionPolicyPublicApi, unlessHasPermissionAndWithinQuota('getTranscript', 'uid')),
+        redactResponse(contentItemBlanketRedactionPolicyPublicApi),
+        redactResponse(
+          contentItemUnauthorisedRedactionPolicyPublicApi,
+          unlessHasPermissionAndWithinQuota('getTranscript', 'id')
+        ),
       ]),
       ...inWebAppApi([redactResponse(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
     ],

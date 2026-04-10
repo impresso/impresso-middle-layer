@@ -7,49 +7,60 @@ import { accessSync, createReadStream, createWriteStream, constants as fsConstan
 import { access, appendFile, unlink, writeFile } from 'fs/promises'
 import { Filter } from 'impresso-jscommons'
 import jscommons from 'impresso-jscommons'
+import { get } from 'lodash-es'
 import { basename, dirname, join } from 'path'
 import { v7 as uuidv7 } from 'uuid'
 import { logger } from '@/logger.js'
-import { ContentItem as ContentItemPublic } from '@/models/generated/schemasPublic.js'
+import { ContentItem as ContentItemPublic } from '@/models/generated/canonical/contentItem.js'
 import DBJob from '@/models/jobs.model.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import ZipStream from 'zip-stream'
+import { FlatKeys } from '@/util/types.js'
 
 const { protobuf } = jscommons
 
-type ExportedContentItem = Omit<ContentItemPublic, 'embeddings'>
+type FlatFields = FlatKeys<ContentItemPublic, 3>
 
 const ExportedFields = [
-  'uid',
-  'copyrightStatus',
-  'type',
-  'sourceMedium',
-  'title',
-  'transcript',
-  'entities',
-  'mentions',
-  'topics',
-  'transcriptLength',
-  'totalPages',
-  'languageCode',
-  'isOnFrontPage',
-  'publicationDate',
-  'issueUid',
-  'countryCode',
-  'providerCode',
-  'mediaUid',
-  'mediaType',
-  'hasOLR',
-  'ocrQualityScore',
+  'id',
+  'issueId',
   'relevanceScore',
-  'pageNumbers',
-  'collectionUids',
-] as const satisfies readonly (keyof ExportedContentItem)[]
+  'text.itemType',
+  'text.itemTypeLabel',
+  'text.title',
+  'text.content',
+  'text.contentLength',
+  'text.langCode',
+  'meta.sourceMedium',
+  'meta.date',
+  'meta.countryCode',
+  'meta.partnerId',
+  'meta.partnerTitle',
+  'meta.mediaId',
+  'meta.mediaTitle',
+  'meta.sourceType',
+  'access.copyright',
+  'access.copyrightLabel',
+  'facsimile.pagesCount',
+  'facsimile.isFrontPage',
+  'facsimile.pages',
+  'semanticEnrichments.namedEntities.locations',
+  'semanticEnrichments.namedEntities.persons',
+  'semanticEnrichments.namedEntities.newsagencies',
+  'semanticEnrichments.namedEntities.organisations',
+  'semanticEnrichments.mentions.locations',
+  'semanticEnrichments.mentions.persons',
+  'semanticEnrichments.mentions.newsagencies',
+  'semanticEnrichments.mentions.organisations',
+  'semanticEnrichments.topics',
+  'semanticEnrichments.ocrQuality',
+  'semanticEnrichments.collections',
+] as const satisfies FlatFields[]
 
 // Type check to ensure all fields in ContentItemPublic are included in ExportedFields
-type MissingKeys = Exclude<keyof ExportedContentItem, (typeof ExportedFields)[number]>
-const _ensureComplete: MissingKeys extends never ? true : MissingKeys = true
+// type MissingKeys = Exclude<keyof ExportedContentItem, (typeof ExportedFields)[number]>
+// const _ensureComplete: MissingKeys extends never ? true : MissingKeys = true
 
 /**
  * Creates a unique export ID with date prefix, user hash, and UUID.
@@ -105,6 +116,7 @@ export interface ExportSearchResultsJobData {
     offset: number
     exportId: string
     jobRecordId: number
+    nextCursorMark?: string
   }
 }
 
@@ -180,7 +192,7 @@ const assertWritableFolder = (exportFolder?: string) => {
  */
 export const appendItemsToCSV = async <T extends Record<string, any>>(
   filePath: string,
-  headerNames: readonly (keyof T)[],
+  headerNames: readonly FlatKeys<T, 3>[],
   items: T[],
   options?: { headers?: boolean }
 ): Promise<void> => {
@@ -198,9 +210,12 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
 
   const { headers: includeHeaders = !fileExists } = options ?? {}
 
-  const csvContent = stringify(items, {
+  const columns = Array.from(headerNames) as string[]
+  const flatItems = items.map(item => Object.fromEntries(columns.map(col => [col, get(item, col)])))
+
+  const csvContent = stringify(flatItems, {
     header: includeHeaders,
-    columns: Array.from(headerNames) as string[],
+    columns,
     quoted: true,
     cast: {
       object: (value: any) => {
@@ -336,19 +351,22 @@ export const createJobHandler = (app: ImpressoApplication) => {
     // applies the correct access controls for the user and transforms
     // the data to match the public API schema
     const contentItemsService = app.service('content-items')
+    const query = {
+      filters,
+      limit: PageSize,
+      include_transcript: true,
+      ...(exportContext?.nextCursorMark != null
+        ? { nextCursorMark: exportContext.nextCursorMark }
+        : { nextCursorMark: '*' }),
+    }
     const result = await contentItemsService.find({
-      query: {
-        filters,
-        offset,
-        limit: PageSize,
-        include_transcript: true,
-      },
+      query,
       asPublicApi: true,
     })
-    const {
-      data,
-      pagination: { total },
-    } = result as any as PublicFindResponse<ContentItemPublic>
+    const { data, nextCursorMark, pagination } = result as unknown as PublicFindResponse<ContentItemPublic> & {
+      nextCursorMark?: string
+    }
+    const { total } = pagination
 
     // write the documents to the export store
     logger.info(`📝 Writing ${data.length} documents to export ${exportId} for user ${userId} (offset: ${offset})`)
@@ -376,6 +394,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
           offset: offset + data.length,
           exportId,
           jobRecordId: jobRecord.id,
+          nextCursorMark,
         },
       })
       await publishProgressUpdate(app.service('logs'), userUid, exportId, progressInPercent, jobRecord)

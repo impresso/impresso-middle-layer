@@ -5,7 +5,7 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { filtersToSolr } from '@/util/solr/filterReducers.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
 import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
-import { SolrServerNamespaceConfiguration } from '@/models/generated/common.js'
+import type { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { escapeIdValue } from '@/util/solr/filterBuilders/value.js'
 
 /**
@@ -27,7 +27,7 @@ export type WithScore<T> = T & {
  *
  * TODO: Explain why.
  */
-const NON_FILTERED_FIELDS = ['uid', 'string', 'entity-string', 'topic-string', 'embedding']
+const NON_FILTERED_FIELDS = ['id', 'string', 'entity-string', 'topic-string', 'embedding']
 
 /**
  * Translate DPF filter to appropriate field names
@@ -69,7 +69,7 @@ const wrapAsFilter = (q: string) => {
 
 /**
  * Return Solr query string and referenced variables for a set of filters.
- * @param {Array<object>} filters a list of filters of type `src/schema/search/filter.json`.
+ * @param {Array<object>} filters a list of filters of type `src/schema/canonical/Filter.json`.
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  */
 export function filtersToQueryAndVariables(
@@ -210,15 +210,33 @@ export const getTopicRelevanceFunction = (filters: Filter[]): string => {
  * @param orderBy The orderBy parameter
  * @returns {Record<string, string>} Solr params object
  */
-export const getSortParams = (filters: Filter[], orderBy?: string): Record<string, string> => {
+export const getSortParams = (
+  filters: Filter[],
+  orderBy?: string
+): {
+  sort: string
+  params: Record<string, string>
+} => {
+  const sort = orderBy ?? 'score desc, id asc'
   const params: Record<string, string> = {}
-  if (!orderBy) {
-    return params
-  }
 
-  if (orderBy.includes('$topicRelevanceScore')) {
+  if (sort.includes('$topicRelevanceScore')) {
     params['topicRelevanceScore'] = getTopicRelevanceFunction(filters)
   }
 
-  return params
+  return { sort, params }
+}
+
+/**
+ * Ensures that a Solr sort string includes sorting by the `id` field,
+ * which is required for cursor-based pagination (`cursorMark`) to be stable.
+ * If `id asc` or `id desc` is already present, the sort string is returned unchanged.
+ * Otherwise `, id asc` is appended.
+ *
+ * @param sort The Solr sort string (e.g. `"score desc, date_i desc"`)
+ * @returns The sort string guaranteed to include an `id` sort clause
+ */
+export const ensureIdSort = (sort: string): string => {
+  if (/\bid\s+(asc|desc)\b/i.test(sort)) return sort
+  return sort ? `${sort}, id asc` : 'id asc'
 }

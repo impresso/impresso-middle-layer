@@ -169,12 +169,30 @@ describe('buildPythonFunctionCall', () => {
           op: 'AND',
         },
         {
-          type: 'copyright', // This has an empty argument name in the mapping
+          type: 'uid',
           q: 'some-value',
           op: 'AND',
         },
       ],
       expectedResult: 'impresso.entities.find(\n\tnewspaper_id="gazette"\n)',
+    },
+    {
+      name: 'supports issue and copyright filters',
+      resource: 'search',
+      functionName: 'find',
+      filters: [
+        {
+          type: 'issue',
+          q: 'GDL-1900-01-01-a',
+          op: 'OR',
+        },
+        {
+          type: 'copyright',
+          q: 'public_domain',
+          op: 'AND',
+        },
+      ],
+      expectedResult: 'impresso.search.find(\n\tissue_id="GDL-1900-01-01-a",\n\tcopyright="public_domain"\n)',
     },
     {
       name: 'filters with undefined q value should be ignored',
@@ -205,8 +223,31 @@ describe('buildPythonFunctionCall', () => {
           op: 'AND',
         },
       ],
+      expectedResult: 'impresso.search.find(\n\tdate_range=DateRange("1912-01-01", "1942-10-31")\n)',
+    },
+    {
+      name: 'string filter preserves mixed OR groups',
+      resource: 'search',
+      functionName: 'find',
+      filters: [
+        {
+          type: 'string',
+          q: ['rue', 'avenue'],
+          op: 'OR',
+        },
+        {
+          type: 'string',
+          q: 'restaurant',
+          op: 'AND',
+        },
+        {
+          type: 'string',
+          q: ['luxembourg', 'luxemburg'],
+          op: 'OR',
+        },
+      ],
       expectedResult:
-        'impresso.search.find(\n\tdate_range=DateRange("1912-01-01T00:00:00Z", "1942-10-31T23:59:59Z")\n)',
+        'impresso.search.find(\n\tterm=AND([OR(["rue","avenue"]),"restaurant",OR(["luxembourg","luxemburg"])])\n)',
     },
     {
       name: 'numeric filter',

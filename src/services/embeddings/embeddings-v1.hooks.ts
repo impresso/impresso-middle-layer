@@ -1,6 +1,6 @@
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
-import { WordMatch } from '@/models/generated/schemas.js'
+import { WordMatch } from '@/models/generated/canonical.js'
 
 import { queryWithCommonParams, validate } from '@/hooks/params.js'
 import { v4 } from 'uuid'

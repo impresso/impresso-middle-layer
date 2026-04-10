@@ -1,4 +1,4 @@
-import { Op, type Sequelize } from 'sequelize'
+import { Op, OrderItem, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
@@ -11,6 +11,8 @@ import { CeleryClient } from '@/celery.js'
 export interface FindQuery {
   limit?: number
   offset?: number
+  order_by?: OrderItem[]
+  status?: string[]
 }
 export interface UserSpecialMembershipRequestParams<Q = FindQuery> extends Params<Q> {
   user?: {
@@ -40,7 +42,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
   }
 
   async find(params?: UserSpecialMembershipRequestParams): Promise<FindResult> {
-    const { limit = 10, offset = 0 } = params?.query ?? {}
+    const { limit = 10, offset = 0, order_by = [['dateLastModified', 'DESC']], status } = params?.query ?? {}
     const userId = params?.user?.id
 
     if (userId == null) {
@@ -50,8 +52,8 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     const { rows, count: total } = await this.requestModel.findAndCountAll({
       limit,
       offset,
-      where: { userId },
-      order: [['dateLastModified', 'DESC']],
+      where: { userId, ...(status ? { status: { [Op.in]: status } } : {}) },
+      order: order_by as OrderItem[],
       include: ['specialMembershipAccess'],
     })
 
@@ -88,6 +90,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
           notes: data.notes,
         },
       ],
+      notes: data.notes,
       specialMembershipAccessId: specialMembershipAccess.id,
     })
     if (this.celeryClient)

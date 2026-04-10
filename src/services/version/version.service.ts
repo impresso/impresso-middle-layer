@@ -4,7 +4,7 @@ import { docs } from '@/services/version/version.schema.js'
 import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { transformVersionDetails } from '@/transformers/version.js'
-import { VersionDetails } from '@/models/generated/schemas.js'
+import { FullVersionDetails } from '@/models/generated/app/responses.js'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
@@ -22,7 +22,9 @@ interface PartnerInstitutionDirectoryEntry {
   partner_bitmap_index: number
 }
 
-const toPartnerInstitutions = (entries: PartnerInstitutionDirectoryEntry[]): VersionDetails['partnerInstitutions'] => {
+const toPartnerInstitutions = (
+  entries: PartnerInstitutionDirectoryEntry[]
+): FullVersionDetails['partnerInstitutions'] => {
   return entries.map(entry => ({
     id: entry.partner_institution_id,
     names: entry.partner_institution_names.map(curr => {
@@ -61,7 +63,7 @@ export default function (app: ImpressoApplication) {
         log('branch:', process.env.GIT_BRANCH, 'revision:', process.env.GIT_REVISION, 'version:', process.env.GIT_TAG)
         const mediaSources = app.service('media-sources')
         const lookup = await mediaSources.getLookup()
-        const response: VersionDetails = {
+        const response: FullVersionDetails = {
           solr: {
             endpoints: {},
           },

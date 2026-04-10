@@ -7,7 +7,7 @@ import {
   SolrServerAuth,
   SolrServerConfiguration,
   SolrServerNamespaceConfiguration,
-} from '@/models/generated/common.js'
+} from '@/models/generated/app/configuration.js'
 import {
   checkResponseStatus,
   defaultFetchOptions,
@@ -136,6 +136,8 @@ export interface SelectResponse<T, K extends string, B extends BucketValue> {
       statistics?: any
     }
   }
+
+  nextCursorMark?: string
 }
 
 export interface SuggestEntry {
