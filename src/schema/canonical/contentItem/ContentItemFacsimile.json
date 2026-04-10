@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "type": "object",
-  "description": "Image-related information for digitized content",
+  "description": "Facsimile-related information for digitized content",
   "properties": {
     "pagesCount": {
       "type": "integer",
