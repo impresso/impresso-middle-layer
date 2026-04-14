@@ -2,8 +2,8 @@ import { Op, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
-import { NotFound } from '@feathersjs/errors'
+import SpecialMembershipAccess, { ISpecialMembershipAccessMetadata } from '@/models/special-membership-access.model.js'
+import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
 import { SlimUser } from '@/authentication.js'
 
@@ -17,6 +17,14 @@ export type ISpecialMembershipAccessService = Omit<
   ClientService<SpecialMembershipAccess, any, any, FindResponse<SpecialMembershipAccess>>,
   'create' | 'patch' | 'remove' | 'update'
 >
+
+export interface PatchData {
+  metadata?: ISpecialMembershipAccessMetadata
+}
+
+export interface SpecialMembershipAccessParams extends Params {
+  user?: SlimUser
+}
 
 export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {
   protected readonly sequelizeClient: Sequelize
@@ -76,5 +84,48 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
       throw new NotFound(`SpecialMembershipAccess with id ${id} not found`)
     }
     return record
+  }
+
+  async patch(
+    id: Id | null,
+    data: PatchData,
+    params?: SpecialMembershipAccessParams
+  ): Promise<SpecialMembershipAccess | SpecialMembershipAccess[]> {
+    if (id === null) {
+      throw new BadRequest('Bulk patch is not supported')
+    }
+
+    const reviewerId = params?.user?.id
+
+    if (reviewerId == null) {
+      throw new NotAuthenticated('Authentication required')
+    }
+
+    const payloadKeys = Object.keys(data ?? {})
+    const unsupportedKeys = payloadKeys.filter(key => key !== 'metadata')
+    if (unsupportedKeys.length > 0) {
+      throw new BadRequest('Only `metadata` can be updated')
+    }
+
+    if (data?.metadata === undefined) {
+      throw new BadRequest('`metadata` is required')
+    }
+
+    if (data.metadata === null || typeof data.metadata !== 'object' || Array.isArray(data.metadata)) {
+      throw new BadRequest('`metadata` must be an object')
+    }
+
+    const record = await this.accessModel.findByPk(id)
+    if (!record) {
+      throw new NotFound(`SpecialMembershipAccess with id ${id} not found`)
+    }
+
+    if (record.reviewerId !== reviewerId) {
+      throw new Forbidden('Only the assigned reviewer can update this record')
+    }
+
+    await record.update({ metadata: data.metadata })
+
+    return record.toJSON() as SpecialMembershipAccess
   }
 }
