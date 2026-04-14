@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert'
-import { NotFound } from '@feathersjs/errors'
+import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import { SpecialMembershipAccessService } from '@/services/special-membership-access/special-membership-access.class.js'
 import { validateBitmapPositionsQuery } from '@/services/special-membership-access/special-membership-access.service.js'
 import type { ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
@@ -176,6 +176,138 @@ describe('SpecialMembershipAccessService', () => {
       const result = await service.get('42')
       assert.ok(typeof result === 'object')
       assert.strictEqual(result.id, 42)
+    })
+  })
+
+  describe('patch', () => {
+    it('should reject unauthenticated patch requests', async () => {
+      const created = await SpecialMembershipAccess.create({
+        title: 'Access 1',
+        bitmapPosition: 1,
+        reviewerId: 1,
+      })
+
+      await assert.rejects(
+        () => service.patch(created.id, { metadata: { modality: 'notify_reviewer' } }, {} as any),
+        (error: any) => {
+          assert.ok(error instanceof NotAuthenticated)
+          return true
+        }
+      )
+    })
+
+    it('should reject patch requests from non-reviewers', async () => {
+      const created = await SpecialMembershipAccess.create({
+        title: 'Access 2',
+        bitmapPosition: 2,
+        reviewerId: 1,
+      })
+
+      await assert.rejects(
+        () =>
+          service.patch(created.id, { metadata: { modality: 'notify_reviewer' } }, {
+            user: { uid: '2', bitmap: BigInt(0), groups: [], id: 2, isStaff: false },
+          } as any),
+        (error: any) => {
+          assert.ok(error instanceof Forbidden)
+          return true
+        }
+      )
+    })
+
+    it('should allow the assigned reviewer to patch metadata', async () => {
+      const created = await SpecialMembershipAccess.create({
+        title: 'Access 3',
+        bitmapPosition: 3,
+        reviewerId: 1,
+        metadata: { modality: 'notify_reviewer' },
+      })
+
+      const updated = await service.patch(
+        created.id,
+        { metadata: { modality: 'cc_reviewer', expireDate: '2026-05-01' } },
+        { user: { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false } } as any
+      )
+
+      assert.deepStrictEqual(updated.metadata, { modality: 'cc_reviewer', expireDate: '2026-05-01' })
+      assert.strictEqual(updated.title, 'Access 3')
+      assert.strictEqual(updated.bitmapPosition, 3)
+    })
+
+    it('should reject payload keys other than metadata', async () => {
+      const created = await SpecialMembershipAccess.create({
+        title: 'Access 4',
+        bitmapPosition: 4,
+        reviewerId: 1,
+      })
+
+      await assert.rejects(
+        () =>
+          service.patch(
+            created.id,
+            { metadata: { modality: 'notify_reviewer' }, title: 'not-allowed' } as any,
+            { user: { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false } } as any
+          ),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.match(error.message, /Only `metadata` can be updated/)
+          return true
+        }
+      )
+    })
+
+    it('should reject metadata when missing', async () => {
+      const created = await SpecialMembershipAccess.create({
+        title: 'Access 5',
+        bitmapPosition: 5,
+        reviewerId: 1,
+      })
+
+      await assert.rejects(
+        () =>
+          service.patch(created.id, {}, {
+            user: { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false },
+          } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.match(error.message, /`metadata` is required/)
+          return true
+        }
+      )
+    })
+
+    it('should reject metadata when null', async () => {
+      const created = await SpecialMembershipAccess.create({
+        title: 'Access 6',
+        bitmapPosition: 6,
+        reviewerId: 1,
+      })
+
+      await assert.rejects(
+        () =>
+          service.patch(created.id, { metadata: null as any }, {
+            user: { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false },
+          } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.match(error.message, /`metadata` must be an object/)
+          return true
+        }
+      )
+    })
+
+    it('should return NotFound when record does not exist', async () => {
+      await assert.rejects(
+        () =>
+          service.patch(999, { metadata: { modality: 'notify_reviewer' } }, {
+            user: { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false },
+          } as any),
+        (error: any) => {
+          assert.ok(error instanceof NotFound)
+          assert.ok(error.message.includes('SpecialMembershipAccess with id 999 not found'))
+          return true
+        }
+      )
     })
   })
 })
