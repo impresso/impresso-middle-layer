@@ -1,7 +1,10 @@
 import { strict as assert } from 'assert'
 import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import { SpecialMembershipAccessService } from '@/services/special-membership-access/special-membership-access.class.js'
-import { validateBitmapPositionsQuery } from '@/services/special-membership-access/special-membership-access.service.js'
+import {
+  validateBitmapPositionsQuery,
+  validateReviewerEmailQuery,
+} from '@/services/special-membership-access/special-membership-access.service.js'
 import type { ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
 
 import User from '@/models/users.model.js'
@@ -71,6 +74,25 @@ describe('SpecialMembershipAccessService', () => {
         }
       )
     })
+
+    it('should throw BadRequest when reviewerEmail has invalid format', async () => {
+      const hook = validateReviewerEmailQuery()
+
+      await assert.rejects(
+        () =>
+          hook({
+            params: {
+              query: {
+                reviewerEmail: 'not-an-email',
+              },
+            },
+          } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          return true
+        }
+      )
+    })
   })
 
   describe('find', () => {
@@ -111,6 +133,25 @@ describe('SpecialMembershipAccessService', () => {
         result.data.map(record => record.bitmapPosition).sort((a, b) => a - b),
         [2, 4]
       )
+    })
+
+    it('should filter results by reviewerEmail when provided', async () => {
+      await userModel.bulkCreate(mockUsers as any)
+
+      await SpecialMembershipAccess.bulkCreate([
+        { id: 1, title: 'Access 1', bitmapPosition: 1, reviewerId: 1 },
+        { id: 2, title: 'Access 2', bitmapPosition: 2, reviewerId: 2 },
+        { id: 3, title: 'Access 3', bitmapPosition: 3, reviewerId: 1 },
+      ])
+
+      const result = await service.find({ query: { reviewerEmail: mockUsers[0].email } })
+
+      assert.strictEqual(result.pagination.total, 2)
+      assert.deepStrictEqual(
+        result.data.map(record => record.id).sort((a, b) => a - b),
+        [1, 3]
+      )
+      assert.ok(result.data.every(record => record.reviewerId === 1))
     })
 
     it('should return the request connected for the given user', async () => {

@@ -5,12 +5,14 @@ import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import SpecialMembershipAccess, { ISpecialMembershipAccessMetadata } from '@/models/special-membership-access.model.js'
 import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
+import User from '@/models/users.model.js'
 import { SlimUser } from '@/authentication.js'
 
 export interface FindQuery {
   limit?: number
   offset?: number
   bitmapPositions?: number[]
+  reviewerEmail?: string
 }
 export type FindResult = FindResponse<SpecialMembershipAccess>
 export type ISpecialMembershipAccessService = Omit<
@@ -29,29 +31,49 @@ export interface SpecialMembershipAccessParams extends Params {
 export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {
   protected readonly sequelizeClient: Sequelize
   protected readonly accessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
+  protected readonly userModel: ReturnType<typeof User.sequelize>
 
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.accessModel = SpecialMembershipAccess.initialize(this.sequelizeClient)
+    this.userModel = User.sequelize(this.sequelizeClient)
   }
 
   async find(params?: { query?: FindQuery; user?: SlimUser }): Promise<FindResult> {
-    const { limit = 10, offset = 0, bitmapPositions } = params?.query ?? {}
+    const { limit = 10, offset = 0, bitmapPositions, reviewerEmail } = params?.query ?? {}
     const userId = params?.user?.id
-    const where =
-      Array.isArray(bitmapPositions) && bitmapPositions.length > 0
-        ? {
-            bitmapPosition: {
-              [Op.in]: bitmapPositions,
-            },
-          }
-        : undefined
+    const where: Record<string, any> = {}
+
+    if (Array.isArray(bitmapPositions) && bitmapPositions.length > 0) {
+      where.bitmapPosition = {
+        [Op.in]: bitmapPositions,
+      }
+    }
+
+    if (reviewerEmail) {
+      const reviewer = await this.userModel.findOne({
+        where: {
+          email: reviewerEmail,
+        },
+      })
+
+      if (!reviewer) {
+        return {
+          pagination: { limit, offset, total: 0 },
+          data: [],
+        }
+      }
+
+      where.reviewerId = reviewer.getDataValue('id') as number
+    }
+
+    const normalizedWhere = Object.keys(where).length > 0 ? where : undefined
 
     if (!userId || isNaN(userId)) {
       const { rows, count: total } = await this.accessModel.findAndCountAll({
         limit,
         offset,
-        where,
+        where: normalizedWhere,
         // include: ['requests'],
       })
       return {
@@ -63,7 +85,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
     const { rows, count: total } = await this.accessModel.findAndCountAll({
       limit,
       offset,
-      where,
+      where: normalizedWhere,
       include: {
         model: UserSpecialMembershipRequestModel,
         as: 'requests',

@@ -2,7 +2,7 @@ import { SpecialMembershipAccessService as Service } from '@/services/special-me
 import { ImpressoApplication } from '@/types.js'
 import { HookContext, ServiceOptions } from '@feathersjs/feathers'
 import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
-import { queryWithCommonParams } from '@/hooks/params.js'
+import { queryWithCommonParams, REGEX_EMAIL, validate } from '@/hooks/params.js'
 import { validateWithSchema } from '@/hooks/schema.js'
 import { newAjvInstance } from '@/util/json.js'
 import { BadRequest } from '@feathersjs/errors'
@@ -37,6 +37,14 @@ export const validateBitmapPositionsQuery = () => async (context: HookContext) =
   return context
 }
 
+export const validateReviewerEmailQuery = () =>
+  validate<{ reviewerEmail?: string }>({
+    reviewerEmail: {
+      required: false,
+      regex: REGEX_EMAIL,
+    },
+  })
+
 export default async (app: ImpressoApplication) => {
   app.use('/special-membership-access', new Service(app), {
     events: [],
@@ -47,7 +55,7 @@ export default async (app: ImpressoApplication) => {
       all: [authenticate({ allowUnauthenticated: true })],
     },
     before: {
-      find: [validateBitmapPositionsQuery(), queryWithCommonParams()],
+      find: [validateReviewerEmailQuery(), validateBitmapPositionsQuery(), queryWithCommonParams()],
       patch: [validateWithSchema('request', validationInstance)],
     },
   })
