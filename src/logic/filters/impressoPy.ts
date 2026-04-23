@@ -21,7 +21,6 @@ const FilterTypeToPythonArgumentName = {
   textReuseCluster: 'text_reuse_cluster_id',
   title: 'title',
   topic: 'topic_id',
-  mentionFunction: '',
   month: '',
   year: '',
   nag: '',
@@ -44,6 +43,7 @@ const FilterTypeToPythonArgumentName = {
   imageCommunicationGoal: 'communication_goal',
   imageContentType: 'content_type',
   contentItemId: 'content_item_id',
+  mediaSource: 'media_source_id',
 } satisfies Record<FilterType, string>
 
 const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']
