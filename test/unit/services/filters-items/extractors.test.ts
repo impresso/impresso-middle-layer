@@ -148,7 +148,9 @@ describe('filters-items extractors', () => {
         ['Gazette de Lausanne', 'Journal de Geneve']
       )
     })
+  })
 
+  describe('mediaSourceExtractor', () => {
     it('resolves Fronde from shared fixture dataset', async () => {
       const app = createMockAppWithMediaSources([Fronde, GDL, JDG])
 
