@@ -257,6 +257,20 @@ Test helpers available:
 - Sinon stubs for mocking services and external calls
 - Database fixtures for seeding test data
 
+When creating or editing tests in this repository, use these conventions:
+- Prefer `import { strict as assert } from 'assert'` for new tests.
+- Keep unit tests narrow and local to the code path under test; avoid booting a full app when a partial mock is enough.
+- For service-backed helper functions, mock the smallest `ImpressoApplication` surface required by the dependency path. Example: extractor tests that resolve newspapers only need `app.service('media-sources').getLookup()`.
+- Use `test/helpers/database.ts` only when the behavior under test depends on Sequelize models, Redis, Celery, or richer Feathers app wiring.
+- Keep mock data inline in the test file unless it is shared across multiple suites.
+- Prefer direct assertions on returned objects and observable side effects over snapshot-style assertions.
+- Follow existing Mocha structure with `describe`, `it`, and `before`/`beforeEach` only when setup is reused.
+
+For extractor-style tests specifically:
+- Test pure extractors directly with plain inputs.
+- For async extractors, use a minimal partial app mock and let the real resolver/conversion code run where practical.
+- If you need only one Feathers service in a test, throw on unexpected `app.service(name)` calls so the mock stays honest.
+
 ## Configuration for Different Environments
 
 ### Local Development
