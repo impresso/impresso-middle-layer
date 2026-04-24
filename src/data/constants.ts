@@ -301,7 +301,6 @@ export type TextReuseClusterFacet = Extract<
   | 'textReuseClusterLexicalOverlap'
   | 'textReuseClusterDayDelta'
   | 'daterange'
-  | 'ocrQuality'
 >
 
 const trClustersSolrMappings = {
