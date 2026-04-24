@@ -79,17 +79,7 @@ const getAndFindHooks = (index: IndexId) => [
     if (['edge', 'all', 'upper'].includes(rangeInclude)) {
       context.params.sanitized.rangeInclude = rangeInclude
     }
-    // if they are all provided, verify that they are integer
     if (!isNaN(rangeStart) && !isNaN(rangeEnd) && !isNaN(rangeGap)) {
-      if (
-        !Number.isInteger(Number(rangeStart)) ||
-        !Number.isInteger(Number(rangeEnd)) ||
-        !Number.isInteger(Number(rangeGap))
-      ) {
-        throw new Error(
-          `Invalid range parameters: rangeStart=${rangeStart}, rangeEnd=${rangeEnd}, rangeGap=${rangeGap}`
-        )
-      }
       context.params.sanitized.rangeGap = rangeGap
       context.params.sanitized.rangeStart = rangeStart
       context.params.sanitized.rangeEnd = rangeEnd

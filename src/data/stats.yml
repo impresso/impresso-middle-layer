@@ -44,6 +44,8 @@ indexes:
       numeric:
         contentLength:
           field: content_length_i
+        ocrQuality:
+          field: ocrqa_f
         pagesCount:
           field: nb_pages_i
       # temporal facets that can be used as a domain

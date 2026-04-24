@@ -96,6 +96,7 @@ export type ContentItemFacet = Extract<
   | 'dataDomain'
   | 'copyright'
   | 'collection'
+  | 'ocrQuality'
 >
 
 const searchSolrMappings = {
@@ -271,6 +272,13 @@ const searchSolrMappings = {
       offset: 0,
       numBuckets: true,
     },
+    ocrQuality: {
+      type: 'range',
+      field: 'ocrqa_f',
+      end: 1,
+      start: 0,
+      gap: 0.01,
+    },
   },
   orderBy: {
     date: 'meta_date_dt',
@@ -288,7 +296,11 @@ const searchSolrMappings = {
 
 export type TextReuseClusterFacet = Extract<
   FilterType,
-  'newspaper' | 'textReuseClusterSize' | 'textReuseClusterLexicalOverlap' | 'textReuseClusterDayDelta' | 'daterange'
+  | 'newspaper'
+  | 'textReuseClusterSize'
+  | 'textReuseClusterLexicalOverlap'
+  | 'textReuseClusterDayDelta'
+  | 'daterange'
 >
 
 const trClustersSolrMappings = {
