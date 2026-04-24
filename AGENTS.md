@@ -262,6 +262,7 @@ When creating or editing tests in this repository, use these conventions:
 - Keep unit tests narrow and local to the code path under test; avoid booting a full app when a partial mock is enough.
 - For service-backed helper functions, mock the smallest `ImpressoApplication` surface required by the dependency path. Example: extractor tests that resolve newspapers only need `app.service('media-sources').getLookup()`.
 - Use `test/helpers/database.ts` only when the behavior under test depends on Sequelize models, Redis, Celery, or richer Feathers app wiring.
+- Prefer `setupTestDatabase()` for Sequelize-only slices and `setupTestDatabaseRedisCelery()` when the service under test expects Redis/Celery-flavored app wiring or you want a reusable mocked Feathers app to extend in the test.
 - Keep mock data inline in the test file unless it is shared across multiple suites.
 - Prefer direct assertions on returned objects and observable side effects over snapshot-style assertions.
 - Follow existing Mocha structure with `describe`, `it`, and `before`/`beforeEach` only when setup is reused.
