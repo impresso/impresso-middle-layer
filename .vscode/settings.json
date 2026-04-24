@@ -22,5 +22,6 @@
     "path": "/bin/bash",
     "env": {"COPILOT": "1"}
   },
-  "testing.followRunningTest": false
+  "testing.followRunningTest": false,
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
 }
