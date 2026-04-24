@@ -117,7 +117,7 @@ describe('filters-items extractors', () => {
       assert.deepStrictEqual(result, [{ id: 'abc' }])
     })
 
-    it('returns empty array for empty string', () => {
+    it('wraps an empty string value', () => {
       const result = simpleValueExtractor({ q: '' })
       assert.deepStrictEqual(result, [{ id: '' }])
     })
