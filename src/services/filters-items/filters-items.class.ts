@@ -10,6 +10,7 @@ import {
   floatRangeExtractor,
   simpleValueExtractor,
   getImageTypeExtractor,
+  mediaSourceExtractor,
 } from './extractors.js'
 import { ImpressoApplication } from '@/types.js'
 
@@ -18,6 +19,7 @@ type Extractor = (filter: Filter, app: ImpressoApplication) => Promise<unknown[]
 const ItemsExtractors: Record<string, Extractor> = {
   daterange: daterangeExtractor,
   newspaper: newspaperExtractor,
+  mediaSource: mediaSourceExtractor,
   topic: topicExtractor,
   person: entityExtractor,
   location: entityExtractor,

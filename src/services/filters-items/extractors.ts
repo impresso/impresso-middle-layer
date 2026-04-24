@@ -70,6 +70,13 @@ export const newspaperExtractor = async ({ q = '' }: WithQ, app: ImpressoApplica
   return dataSources.map(optionalMediaSourceToNewspaper)
 }
 
+export const mediaSourceExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) => {
+  const resolvers = buildResolvers(app)
+  const codes = toArray(q)
+  const dataSources = await Promise.all(codes.map(code => resolvers.mediaSource(code.trim())))
+  return dataSources.filter((ds): ds is NonNullable<(typeof dataSources)[number]> => ds != null)
+}
+
 export const topicExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) =>
   resolveItems(q, app, (resolvers, item) => resolvers.topic(item))
 
