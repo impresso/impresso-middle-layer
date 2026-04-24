@@ -21,7 +21,7 @@ describe('FiltersItems hooks', () => {
 
     assert.deepStrictEqual(context.params.filters, filters)
   })
-  it('check with a complex stringfilter', () => {
+  it('checks a complex string filter', () => {
     const serializedFilters: string = 'CgQIARgCCgsYFCoEMC44NSoBMQoOCAEYFSoCMTAqBDg5ODQKDggBEAIYCSoGRnJvbmRl'
     const context = {
       params: {
