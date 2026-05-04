@@ -24,6 +24,7 @@ export interface IUserSpecialMembershipRequestAttributes {
   specialMembershipAccessId: number | null
   dateCreated: Date
   dateLastModified: Date
+  temporaryExpiresAt?: Date | null
   status: (typeof AvailableStatuses)[number]
   changelog: ChangelogEntry[]
   notes?: string | null
@@ -39,6 +40,7 @@ export default class userSpecialMembershipRequestModel extends Model<
   declare specialMembershipAccessId: ForeignKey<SpecialMembershipAccess['id']> | null
   declare dateCreated: CreationOptional<Date>
   declare dateLastModified: CreationOptional<Date>
+  declare temporaryExpiresAt: CreationOptional<Date>
   declare status: (typeof AvailableStatuses)[number]
   declare changelog: ChangelogEntry[]
   declare notes: string | null
@@ -77,6 +79,11 @@ export default class userSpecialMembershipRequestModel extends Model<
           type: DataTypes.DATE,
           allowNull: false,
           field: 'date_last_modified',
+        },
+        temporaryExpiresAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          field: 'temporary_expires_at',
         },
         status: {
           type: DataTypes.STRING,

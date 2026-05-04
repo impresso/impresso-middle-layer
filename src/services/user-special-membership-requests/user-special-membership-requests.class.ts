@@ -64,7 +64,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
   }
 
   async create(
-    data: Partial<UserSpecialMembershipRequestModel> & { notes: string },
+    data: Partial<UserSpecialMembershipRequestModel> & { notes: string; isTemporary?: boolean },
     params: { user: Partial<SlimUser> }
   ): Promise<UserSpecialMembershipRequestModel> {
     if (!data.specialMembershipAccessId) {
@@ -75,6 +75,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     if (!specialMembershipAccess) {
       throw new NotFound(`SpecialMembershipAccess with id ${data.specialMembershipAccessId} not found`)
     }
+    const isTemporary = data.isTemporary === true
     const userRequest = await this.requestModel.create({
       userId: params.user.id!,
       reviewerId: null,

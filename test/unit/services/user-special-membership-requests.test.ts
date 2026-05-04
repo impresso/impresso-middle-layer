@@ -39,6 +39,7 @@ const mockRequests: IUserSpecialMembershipRequestAttributes[] = Array.from({ len
   specialMembershipAccessId: (i % mockSubscriptions.length) + 1, // or set 1/2 if testing relations
   dateCreated: new Date(),
   dateLastModified: new Date(),
+  temporaryExpiresAt: null,
   status: 'pending',
   changelog: [
     {
@@ -81,7 +82,7 @@ describe('UserSpecialMembershipRequestService', () => {
     // Insert related mock data
     await userModel.bulkCreate(mockUsers as any)
     await specialMembershipAccessModel.bulkCreate(mockSubscriptions)
-    await userSpecialMembershipRequestModel.bulkCreate(mockRequests)
+    await userSpecialMembershipRequestModel.bulkCreate(mockRequests as any)
   })
 
   // ---------------------------------------------------------
@@ -192,6 +193,29 @@ describe('UserSpecialMembershipRequestService', () => {
           return true
         }
       )
+    })
+
+    it('shoudl successfully create a temporary request when isTemporary is true', async () => {
+      const now = new Date()
+      const result = await service.create(
+        {
+          specialMembershipAccessId: 2,
+          notes: 'Please approve this temporary access.',
+          isTemporary: true,
+        },
+        { user: { id: 3 } }
+      )
+
+      assert.strictEqual(result.userId, 3)
+      assert.strictEqual(result.specialMembershipAccessId, 2)
+      assert.strictEqual(result.status, 'pending')
+      assert.ok(result.dateCreated >= now)
+      assert.ok(result.dateLastModified >= now)
+      assert.ok(Array.isArray(result.changelog))
+      assert.strictEqual(result.changelog.length, 1)
+      assert.strictEqual(result.changelog[0].status, 'pending')
+      assert.strictEqual(result.changelog[0].subscription, 'silver')
+      assert.strictEqual(result.changelog[0].notes, 'Please approve this temporary access.')
     })
   })
 })
