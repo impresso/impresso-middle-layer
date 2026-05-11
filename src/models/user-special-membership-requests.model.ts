@@ -5,14 +5,25 @@ import SpecialMembershipAccess from './special-membership-access.model.js'
 import User from './users.model.js'
 
 export const StatusPending = 'pending'
+export const StatusRequestingTemporary = 'rtemporary'
 export const StatusApproved = 'approved'
 export const StatusRejected = 'rejected'
-export const AvailableStatuses = [StatusPending, StatusApproved, StatusRejected]
+export const StatusRevoked = 'revoked'
+export const StatusTemporarilyApproved = 'temporary'
+export const AvailableStatuses = [
+  StatusPending,
+  StatusRequestingTemporary,
+  StatusApproved,
+  StatusRejected,
+  StatusTemporarilyApproved,
+  StatusRevoked,
+] as const
 
 interface ChangelogEntry {
   status: (typeof AvailableStatuses)[number]
   subscription: string
   date: string
+  temporary_expires_at?: string | null
   reviewer: string
   notes: string
 }
@@ -84,6 +95,7 @@ export default class userSpecialMembershipRequestModel extends Model<
           type: DataTypes.DATE,
           allowNull: true,
           field: 'temporary_expires_at',
+          defaultValue: null,
         },
         status: {
           type: DataTypes.STRING,

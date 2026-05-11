@@ -2,7 +2,10 @@ import { Op, OrderItem, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
+import UserSpecialMembershipRequestModel, {
+  StatusPending,
+  StatusRequestingTemporary,
+} from '@/models/user-special-membership-requests.model.js'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
@@ -76,15 +79,23 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       throw new NotFound(`SpecialMembershipAccess with id ${data.specialMembershipAccessId} not found`)
     }
     const isTemporary = data.isTemporary === true
+
+    if (isTemporary && !specialMembershipAccess.metadata?.enableTemporaryAutomaticAcceptance) {
+      throw new BadRequest('Temporary automatic acceptance is not enabled for this Special Membership Access')
+    }
     const userRequest = await this.requestModel.create({
       userId: params.user.id!,
       reviewerId: null,
-      status: 'pending',
+      status: isTemporary ? StatusRequestingTemporary : StatusPending,
       dateCreated: now,
       dateLastModified: now,
+      temporaryExpiresAt:
+        isTemporary && specialMembershipAccess.metadata?.revokeAfterDays
+          ? new Date(now.getTime() + specialMembershipAccess.metadata.revokeAfterDays * 24 * 60 * 60 * 1000)
+          : undefined,
       changelog: [
         {
-          status: 'pending',
+          status: isTemporary ? StatusRequestingTemporary : StatusPending,
           subscription: specialMembershipAccess.title,
           date: now.toISOString(),
           reviewer: '',
