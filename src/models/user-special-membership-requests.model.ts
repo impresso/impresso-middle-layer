@@ -51,7 +51,7 @@ export default class userSpecialMembershipRequestModel extends Model<
   declare specialMembershipAccessId: ForeignKey<SpecialMembershipAccess['id']> | null
   declare dateCreated: CreationOptional<Date>
   declare dateLastModified: CreationOptional<Date>
-  declare temporaryExpiresAt: CreationOptional<Date>
+  declare temporaryExpiresAt: CreationOptional<Date> | null
   declare status: (typeof AvailableStatuses)[number]
   declare changelog: ChangelogEntry[]
   declare notes: string | null
