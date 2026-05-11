@@ -4,7 +4,7 @@ import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import UserSpecialMembershipRequestModel, {
   StatusPending,
-  StatusRequestingTemporary,
+  StatusPendingTemporary,
 } from '@/models/user-special-membership-requests.model.js'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
@@ -86,7 +86,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     const userRequest = await this.requestModel.create({
       userId: params.user.id!,
       reviewerId: null,
-      status: isTemporary ? StatusRequestingTemporary : StatusPending,
+      status: isTemporary ? StatusPendingTemporary : StatusPending,
       dateCreated: now,
       dateLastModified: now,
       temporaryExpiresAt:
@@ -95,7 +95,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
           : undefined,
       changelog: [
         {
-          status: isTemporary ? StatusRequestingTemporary : StatusPending,
+          status: isTemporary ? StatusPendingTemporary : StatusPending,
           subscription: specialMembershipAccess.title,
           date: now.toISOString(),
           reviewer: '',

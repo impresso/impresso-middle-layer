@@ -3,6 +3,7 @@ import { BadRequest, NotFound } from '@feathersjs/errors'
 import { UserSpecialMembershipRequestService } from '@/services/user-special-membership-requests/user-special-membership-requests.class.js'
 import UserSpecialMembershipRequest, {
   IUserSpecialMembershipRequestAttributes,
+  StatusPendingTemporary,
 } from '@/models/user-special-membership-requests.model.js'
 
 import User from '@/models/users.model.js'
@@ -228,12 +229,12 @@ describe('UserSpecialMembershipRequestService', () => {
 
       assert.strictEqual(result.userId, 3)
       assert.strictEqual(result.specialMembershipAccessId, 2)
-      assert.strictEqual(result.status, 'rtemporary')
+      assert.strictEqual(result.status, StatusPendingTemporary)
       assert.ok(result.dateCreated >= now)
       assert.ok(result.dateLastModified >= now)
       assert.ok(Array.isArray(result.changelog))
       assert.strictEqual(result.changelog.length, 1)
-      assert.strictEqual(result.changelog[0].status, 'rtemporary')
+      assert.strictEqual(result.changelog[0].status, StatusPendingTemporary)
       assert.strictEqual(result.changelog[0].subscription, 'silver')
       assert.strictEqual(result.changelog[0].notes, 'Please approve this temporary access.')
       assert.ok(result.temporaryExpiresAt instanceof Date)

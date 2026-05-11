@@ -5,14 +5,14 @@ import SpecialMembershipAccess from './special-membership-access.model.js'
 import User from './users.model.js'
 
 export const StatusPending = 'pending'
-export const StatusRequestingTemporary = 'rtemporary'
+export const StatusPendingTemporary = 'pending-t'
 export const StatusApproved = 'approved'
 export const StatusRejected = 'rejected'
 export const StatusRevoked = 'revoked'
 export const StatusTemporarilyApproved = 'temporary'
 export const AvailableStatuses = [
   StatusPending,
-  StatusRequestingTemporary,
+  StatusPendingTemporary,
   StatusApproved,
   StatusRejected,
   StatusTemporarilyApproved,
