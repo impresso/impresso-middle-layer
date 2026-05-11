@@ -4,12 +4,18 @@ import { CreationOptional, DataTypes, ForeignKey, InferAttributes, InferCreation
 import User from '@/models/users.model.js'
 import UserSpecialMembershipRequest from '@/models/user-special-membership-requests.model.js'
 
+export interface SpecialMembershipAccessMetadata {
+  modality: string
+  enableTemporaryAutomaticAcceptance: boolean
+  revokeAfterDays: number | null
+}
+
 export interface ISpecialMembershipAccessAttributes {
   id: number
   reviewerId?: number | null
   title: string
   bitmapPosition: number
-  metadata?: object
+  metadata?: SpecialMembershipAccessMetadata
 }
 
 export default class SpecialMembershipAccess extends Model<
@@ -20,7 +26,7 @@ export default class SpecialMembershipAccess extends Model<
   declare reviewerId: ForeignKey<User['id']> | null
   declare title: string
   declare bitmapPosition: number
-  declare metadata: object | null
+  declare metadata: SpecialMembershipAccessMetadata | null
   // Add this to help TypeScript with associations
   declare requests?: UserSpecialMembershipRequest[]
 
