@@ -5,14 +5,25 @@ import SpecialMembershipAccess from './special-membership-access.model.js'
 import User from './users.model.js'
 
 export const StatusPending = 'pending'
+export const StatusRequestingTemporary = 'rtemporary'
 export const StatusApproved = 'approved'
 export const StatusRejected = 'rejected'
-export const AvailableStatuses = [StatusPending, StatusApproved, StatusRejected]
+export const StatusRevoked = 'revoked'
+export const StatusTemporarilyApproved = 'temporary'
+export const AvailableStatuses = [
+  StatusPending,
+  StatusRequestingTemporary,
+  StatusApproved,
+  StatusRejected,
+  StatusTemporarilyApproved,
+  StatusRevoked,
+] as const
 
 interface ChangelogEntry {
   status: (typeof AvailableStatuses)[number]
   subscription: string
   date: string
+  temporary_expires_at?: string | null
   reviewer: string
   notes: string
 }
@@ -24,6 +35,7 @@ export interface IUserSpecialMembershipRequestAttributes {
   specialMembershipAccessId: number | null
   dateCreated: Date
   dateLastModified: Date
+  temporaryExpiresAt?: Date | null
   status: (typeof AvailableStatuses)[number]
   changelog: ChangelogEntry[]
   notes?: string | null
@@ -39,6 +51,7 @@ export default class userSpecialMembershipRequestModel extends Model<
   declare specialMembershipAccessId: ForeignKey<SpecialMembershipAccess['id']> | null
   declare dateCreated: CreationOptional<Date>
   declare dateLastModified: CreationOptional<Date>
+  declare temporaryExpiresAt: CreationOptional<Date> | null
   declare status: (typeof AvailableStatuses)[number]
   declare changelog: ChangelogEntry[]
   declare notes: string | null
@@ -77,6 +90,12 @@ export default class userSpecialMembershipRequestModel extends Model<
           type: DataTypes.DATE,
           allowNull: false,
           field: 'date_last_modified',
+        },
+        temporaryExpiresAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          field: 'temporary_expires_at',
+          defaultValue: null,
         },
         status: {
           type: DataTypes.STRING,

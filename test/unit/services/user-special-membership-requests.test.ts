@@ -25,8 +25,26 @@ const mockUsers = Array.from({ length: 42 }, (_, i) => ({
 }))
 
 const mockSubscriptions = [
-  { id: 1, title: 'gold', bitmapPosition: 1 },
-  { id: 2, title: 'silver', bitmapPosition: 2 },
+  {
+    id: 1,
+    title: 'gold',
+    bitmapPosition: 1,
+    metadata: {
+      modality: 'manual',
+      enableTemporaryAutomaticAcceptance: false,
+      revokeAfterDays: null,
+    },
+  },
+  {
+    id: 2,
+    title: 'silver',
+    bitmapPosition: 2,
+    metadata: {
+      modality: 'auto',
+      enableTemporaryAutomaticAcceptance: true,
+      revokeAfterDays: 14,
+    },
+  },
   { id: 3, title: 'bronze', bitmapPosition: 3 },
   { id: 4, title: 'platinum', bitmapPosition: 4 },
   { id: 5, title: 'diamond', bitmapPosition: 5 },
@@ -39,6 +57,7 @@ const mockRequests: IUserSpecialMembershipRequestAttributes[] = Array.from({ len
   specialMembershipAccessId: (i % mockSubscriptions.length) + 1, // or set 1/2 if testing relations
   dateCreated: new Date(),
   dateLastModified: new Date(),
+  temporaryExpiresAt: null,
   status: 'pending',
   changelog: [
     {
@@ -81,7 +100,7 @@ describe('UserSpecialMembershipRequestService', () => {
     // Insert related mock data
     await userModel.bulkCreate(mockUsers as any)
     await specialMembershipAccessModel.bulkCreate(mockSubscriptions)
-    await userSpecialMembershipRequestModel.bulkCreate(mockRequests)
+    await userSpecialMembershipRequestModel.bulkCreate(mockRequests as any)
   })
 
   // ---------------------------------------------------------
@@ -143,6 +162,7 @@ describe('UserSpecialMembershipRequestService', () => {
         {
           specialMembershipAccessId: 2,
           notes: 'Please approve my request.',
+          isTemporary: false,
         },
         { user: { id: 3 } }
       )
@@ -157,6 +177,7 @@ describe('UserSpecialMembershipRequestService', () => {
       assert.strictEqual(result.changelog[0].status, 'pending')
       assert.strictEqual(result.changelog[0].subscription, 'silver')
       assert.strictEqual(result.changelog[0].notes, 'Please approve my request.')
+      assert.strictEqual(result.temporaryExpiresAt, null)
     })
 
     it('should throw BadRequest when specialMembershipAccessId is missing', async () => {
@@ -189,6 +210,53 @@ describe('UserSpecialMembershipRequestService', () => {
         (error: any) => {
           assert.ok(error instanceof NotFound)
           assert.strictEqual(error.message, 'SpecialMembershipAccess with id 999 not found')
+          return true
+        }
+      )
+    })
+
+    it('should successfully create a temporary request when isTemporary is true', async () => {
+      const now = new Date()
+      const result = await service.create(
+        {
+          specialMembershipAccessId: 2,
+          notes: 'Please approve this temporary access.',
+          isTemporary: true,
+        },
+        { user: { id: 3 } }
+      )
+
+      assert.strictEqual(result.userId, 3)
+      assert.strictEqual(result.specialMembershipAccessId, 2)
+      assert.strictEqual(result.status, 'rtemporary')
+      assert.ok(result.dateCreated >= now)
+      assert.ok(result.dateLastModified >= now)
+      assert.ok(Array.isArray(result.changelog))
+      assert.strictEqual(result.changelog.length, 1)
+      assert.strictEqual(result.changelog[0].status, 'rtemporary')
+      assert.strictEqual(result.changelog[0].subscription, 'silver')
+      assert.strictEqual(result.changelog[0].notes, 'Please approve this temporary access.')
+      assert.ok(result.temporaryExpiresAt instanceof Date)
+      assert.ok(result.temporaryExpiresAt!.getTime() > now.getTime())
+    })
+
+    it('should throw BadRequest when temporary requests are not enabled for the subscription', async () => {
+      await assert.rejects(
+        async () =>
+          service.create(
+            {
+              specialMembershipAccessId: 1,
+              notes: 'Please approve this temporary access.',
+              isTemporary: true,
+            },
+            { user: { id: 3 } }
+          ),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(
+            error.message,
+            'Temporary automatic acceptance is not enabled for this Special Membership Access'
+          )
           return true
         }
       )
