@@ -1,5 +1,6 @@
 import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
 import { queryWithCommonParams, utils, validate } from '@/hooks/params.js'
+import { AvailableStatuses } from '@/models/user-special-membership-requests.model.js'
 import { OrderItem } from 'sequelize'
 
 interface Params {
@@ -44,6 +45,7 @@ export default {
               const value = Array.isArray(item) ? item[0] : item
               return typeof value === 'string' ? value.trim() : undefined
             },
+            defaultValue: '',
           },
           isTemporary: {
             required: false,
@@ -80,7 +82,7 @@ export default {
           },
           status: {
             required: false,
-            choices: ['pending', 'approved', 'rejected', 'temporary'],
+            choices: AvailableStatuses,
           },
         },
         'GET',

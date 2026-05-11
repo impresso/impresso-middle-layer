@@ -62,5 +62,24 @@ describe('UserSpecialMembershipRequestsService - Hooks', () => {
         }
       )
     })
+
+    it('should reject empty notes when notes is provided', async () => {
+      const context = {
+        data: {
+          specialMembershipAccessId: 2,
+          notes: '   ',
+          isTemporary: false,
+        },
+      } as any
+
+      await assert.rejects(
+        async () => validateCreateHook(context),
+        (error: any) => {
+          assert.strictEqual(error.code, 400)
+          assert.ok(error.data.notes.code.includes('NotValidCustomFunction'))
+          return true
+        }
+      )
+    })
   })
 })
