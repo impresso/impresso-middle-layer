@@ -77,10 +77,11 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
 /**
  * @param {import('../../../models').Filter[]} filters
  * @param {'year' | 'month' | 'day'} timeInterval
+ * @param {FeaturesConfig} featuresConfig
  * @returns {any}
  */
-function unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval = 'year') {
-  const { query, filter, params: variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+function unigramTrendsRequestToTotalTokensSolrQuery(filters, featuresConfig, timeInterval = 'year') {
+  const { query, filter, params: variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
   return {

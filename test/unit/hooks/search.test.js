@@ -19,7 +19,8 @@ describe('test single reducers in search hook', () => {
         },
       ],
       SolrNamespaces.Search,
-      []
+      [],
+      {}
     )
     assert.deepEqual('(lg_s:fr OR lg_s:en)', sq)
   })
@@ -34,7 +35,8 @@ describe('test single reducers in search hook', () => {
         },
       ],
       SolrNamespaces.Search,
-      []
+      [],
+      {}
     )
     // assert.deepEqual('*:* AND NOT ((lg_s:fr OR lg_s:en))', sq);
     assert.deepEqual('NOT (lg_s:fr OR lg_s:en)', sq)
@@ -50,7 +52,8 @@ describe('test single reducers in search hook', () => {
         },
       ],
       SolrNamespaces.Search,
-      []
+      [],
+      {}
     )
     assert.deepEqual(
       sq,
@@ -354,7 +357,7 @@ describe('test filtersToSolrQuery hook', () => {
     )
     assert.deepEqual(context.params.sanitized.sfq, [
       '*:* AND NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T23:59:59Z])' +
-        ' AND (meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z] OR meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T23:59:59Z])',
+      ' AND (meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z] OR meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T23:59:59Z])',
       'meta_journal_s:GDL',
       '(meta_year_i:1957 OR meta_year_i:1958 OR meta_year_i:1954)',
       '(lg_s:fr OR lg_s:de)',

@@ -114,10 +114,13 @@ interface ISolrResponseRangeFacetDetails {
 
 type ISolrResponseFacetDetails = ISolrResponseTermsFacetDetails | ISolrResponseRangeFacetDetails
 
+export type CollectionIndexVersion = 'new' | 'legacy'
+
 interface ServiceOptions {
   app: ImpressoApplication
   name: string
   index: IndexId
+  collectionsIndexVersion: CollectionIndexVersion
 }
 
 const buildFacetsRequest = (
@@ -322,12 +325,14 @@ export class Service {
   name: string
   index: IndexId
   solr: SimpleSolrClient
+  collectionsIndexVersion: CollectionIndexVersion
   _cachedResolvers: ICachedResolvers | undefined = undefined
 
-  constructor({ app, name, index }: ServiceOptions) {
+  constructor({ app, name, index, collectionsIndexVersion }: ServiceOptions) {
     this.app = app
     this.name = name
     this.index = index
+    this.collectionsIndexVersion = collectionsIndexVersion
     this.solr = app.service('simpleSolrClient')
   }
 
@@ -573,7 +578,11 @@ export class Service {
       : sanitizedParams.sfq != null
         ? `filter(${sanitizedParams.sfq})`
         : '*:*'
-    const joinFilter = `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq}${isEmpty(filtersPart) ? '' : ` AND ${filtersPart}`}`
+
+    const joinFilter =
+      this.collectionsIndexVersion === 'legacy'
+        ? `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq}${isEmpty(filtersPart) ? '' : ` AND ${filtersPart}`}`
+        : `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=index checkRouterField=false} ${sanitizedParams.sq}${isEmpty(filtersPart) ? '' : ` AND ${filtersPart}`}`
 
     const collectionsQuery = userId
       ? `col_id_s:${userId}_* OR vis_s:pub` // user collections + public collections

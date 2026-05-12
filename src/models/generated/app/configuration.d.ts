@@ -234,6 +234,10 @@ export interface FeaturesConfig {
     [k: string]: unknown;
   };
   barista?: BaristaConfig;
+  /**
+   * Version of the collections index to use. Can be `new` or `legacy`. The `legacy` version uses Solr's cross-collection join feature which can lead to performance issues, while the `new` version uses Solr's index join feature which is more efficient. The `new` version requires a specific configuration of the collections index (see solrConfiguration.json) and is not compatible with older versions of the collections index.
+   */
+  collectionsIndexVersion?: "new" | "legacy";
   [k: string]: unknown;
 }
 /**

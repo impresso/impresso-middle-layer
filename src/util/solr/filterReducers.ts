@@ -1,4 +1,5 @@
 import {
+  FeaturesConfig,
   FilterDefinition,
   SolrFiltersConfiguration,
   SolrServerNamespaceConfiguration,
@@ -363,7 +364,8 @@ const joinCollectionHandler = (
   filters: Filter[],
   field: string,
   rule: string,
-  solrNamespaces: SolrServerNamespaceConfiguration[]
+  solrNamespaces: SolrServerNamespaceConfiguration[],
+  collectionsIndexVersion?: FeaturesConfig['collectionsIndexVersion']
 ) => {
   const collectionNamespace = solrNamespaces.find(ns => ns.namespaceId === SolrNamespaces.CollectionItems)
   if (collectionNamespace == null) {
@@ -414,6 +416,10 @@ const joinCollectionHandler = (
     collectionIdQuery = orStatement
   } else {
     throw new InvalidArgumentError('At least one collection ID must be provided for "joinCollection" filter')
+  }
+
+  if (collectionsIndexVersion === 'new') {
+    return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex} method=index checkRouterField=false}${collectionIdQuery}`
   }
 
   return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex} method=crossCollection}${collectionIdQuery}`
@@ -546,7 +552,8 @@ interface FilterToSolrResult {
 export const filtersToSolr = (
   filters: Filter[],
   solrNamespace: SolrNamespace,
-  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
+  featuresConfig: FeaturesConfig
 ): FilterToSolrResult => {
   if (filters.length < 1) throw new InvalidArgumentError('At least one filter must be provided')
   const types = [...new Set(filters.map(({ type }) => type))]
@@ -565,7 +572,13 @@ export const filtersToSolr = (
   if (handler == null) throw new InvalidArgumentError(`Could not find handler for rule ${filterRules.rule}`)
 
   return {
-    query: handler(filters, filterRules.field as any, filterRules.rule, solrNamespacesConfiguration),
+    query: handler(
+      filters,
+      filterRules.field as any,
+      filterRules.rule,
+      solrNamespacesConfiguration,
+      featuresConfig.collectionsIndexVersion ?? 'legacy'
+    ),
     destination: filterRules.destination ?? 'query',
   }
 }

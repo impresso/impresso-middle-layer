@@ -81,7 +81,8 @@ export class Service {
         },
       ],
       SolrNamespaces.Search,
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
 
     const contentItems = await this.app.service('content-items').findInternal({

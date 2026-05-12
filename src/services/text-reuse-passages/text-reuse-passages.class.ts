@@ -48,7 +48,8 @@ export class TextReusePassages {
     const { query, filter } = filtersToQueryAndVariables(
       filters,
       this.solr.namespaces.TextReusePassages,
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
     const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
 

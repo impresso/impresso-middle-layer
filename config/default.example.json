@@ -107,5 +107,10 @@
       { "namespaceId": "embeddings_lb", "serverId": "default", "index": "index_embeddings_lb" },
       { "namespaceId": "entities_mentions", "serverId": "default", "index": "mentions_entities_index" }
     ]
+  },
+  "features": {
+    "barista": { "enabled": false, "url": "http://localhost:8042/chat/stream" },
+    "adminEndpoints": { "enabled": false },
+    "collectionsIndexVersion": "legacy"
   }
 }

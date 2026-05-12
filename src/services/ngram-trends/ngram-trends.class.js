@@ -46,13 +46,14 @@ export class NgramTrends {
   setup(app) {
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
+    this.app = app
   }
 
   async create({ ngrams, filters, facets = [] }) {
     const timeInterval = guessTimeIntervalFromFilters(filters)
 
     const requestPayloads = ngrams.map(ngram => unigramTrendsRequestToSolrQuery(ngram, filters, facets, timeInterval))
-    const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, timeInterval)
+    const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, this.app.get('features') ?? {}, timeInterval)
 
     const requests = requestPayloads.map(payload => this.solr.select(SolrNamespaces.Search, { body: payload }))
     const totalsRequest = this.solr.select(SolrNamespaces.Search, { body: totalsRequestPayload })

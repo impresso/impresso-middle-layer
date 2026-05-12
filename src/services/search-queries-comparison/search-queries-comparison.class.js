@@ -37,10 +37,12 @@ const {
  * @param {Filter[]} filters
  * @param {FacetRequest[]} facetsRequests
  * @param {Facet[]} constraintFacets
+ * @param {SolrServerNamespaceConfiguration[]} solrNamespacesConfiguration
+ * @param {FeaturesConfig} featuresConfig
  * @returns {any}
  */
-export function createSolrQuery(filters, facetsRequests, constraintFacets = []) {
-  const { query, filter } = filtersToQueryAndVariables(filters)
+export function createSolrQuery(filters, facetsRequests, constraintFacets = [], solrNamespacesConfiguration = [], featuresConfig = {}) {
+  const { query, filter } = filtersToQueryAndVariables(filters, undefined, solrNamespacesConfiguration, featuresConfig)
 
   const facets = facetsRequests.reduce((acc, { type, offset, limit }) => {
     const facet = SolrMappings.search.facets[type]
@@ -54,7 +56,7 @@ export function createSolrQuery(filters, facetsRequests, constraintFacets = []) 
       // Go through every bucket in the constraint
       return constraintFacet.buckets.reduce((facetAcc, { val }, index) => {
         // Create a Solr query for this bucket's value.
-        const { query: constraintQuery } = filtersToQueryAndVariables([{ type, q: val }])
+        const { query: constraintQuery } = filtersToQueryAndVariables([{ type, q: val }], undefined, solrNamespacesConfiguration, featuresConfig)
         // Create a constrained entry in the query.
         return {
           ...facetAcc,
@@ -172,13 +174,24 @@ export class SearchQueriesComparison {
       mergeFilters(mergedFilters.concat(filters))
     )
 
-    const intersectionSolrQuery = createSolrQuery(intersectionFilters, request.facets)
+    const intersectionSolrQuery = createSolrQuery(
+      intersectionFilters,
+      request.facets,
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
+    )
     const intersectionFacets = await this.solr
       .select(SolrNamespaces.Search, { body: intersectionSolrQuery })
       .then(r => getResponseFacetsFromSolrResponse(r, this.app))
 
     const otherQueries = request.filtersSets.map(filtersSet =>
-      createSolrQuery(filtersSet, request.facets, intersectionFacets)
+      createSolrQuery(
+        filtersSet,
+        request.facets,
+        intersectionFacets,
+        this.app.get('solrConfiguration').namespaces ?? [],
+        this.app.get('features') ?? {}
+      )
     )
 
     const otherQueriesFacets = await Promise.all(
