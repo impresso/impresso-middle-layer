@@ -106,7 +106,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
   })
 
   return {
-    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search),
+    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig),
     limit: 0,
     params: {
       hl: false,
