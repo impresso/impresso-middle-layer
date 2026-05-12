@@ -105,7 +105,8 @@ class Service {
         limit: qp.limit,
         offset: qp.offset,
       },
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
     debug('[find] solr query:', query)
 

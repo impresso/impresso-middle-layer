@@ -8,7 +8,7 @@ import { ContentItemService } from '@/services/content-items/content-items.class
 import { ImpressoApplication } from '@/types.js'
 import { buildResolvers, CachedFacetType, IResolver } from '@/internalServices/cachedResolvers.js'
 import { ContentItem } from '@/models/generated/canonical/contentItem.js'
-import { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
+import { FeaturesConfig, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { SolrNamespaces } from '@/solr.js'
 import { Filter } from 'impresso-jscommons'
 
@@ -87,7 +87,8 @@ export async function getItemsFromSolrResponse(
   response: any,
   articlesService: ContentItemService,
   userInfo: { user?: any; authenticated?: boolean } = {},
-  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
+  featuresConfig: FeaturesConfig
 ) {
   const { user, authenticated } = userInfo
 
@@ -99,7 +100,12 @@ export async function getItemsFromSolrResponse(
   const { fragments: fragmentsIndex, highlighting: highlightingIndex } = response
 
   const filters: Filter[] = [{ type: 'uid', q: uids }]
-  const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, solrNamespacesConfiguration)
+  const { query, filter } = filtersToQueryAndVariables(
+    filters,
+    SolrNamespaces.Search,
+    solrNamespacesConfiguration,
+    featuresConfig
+  )
 
   const articlesRequest = {
     user,

@@ -32,7 +32,7 @@ describe('createSolrQuery', () => {
       },
     }
 
-    const request = createSolrQuery(filters, facetRequests)
+    const request = createSolrQuery(filters, facetRequests, [], [], {})
     assert.deepEqual(request, expectedRequest)
   })
 
@@ -72,7 +72,7 @@ describe('createSolrQuery', () => {
       },
     }
 
-    const request = createSolrQuery(filters, facetRequests, facetConstraints)
+    const request = createSolrQuery(filters, facetRequests, facetConstraints, [], {})
     assert.deepEqual(request, expectedRequest)
   })
 })

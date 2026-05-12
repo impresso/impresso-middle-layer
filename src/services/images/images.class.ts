@@ -64,7 +64,8 @@ export class Images implements ImageService {
     const { query: extraQuery, filter: filterQueryParts } = filtersToQueryAndVariables(
       filters,
       SolrNamespaces.Images,
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
 
     const queryParts: string[] = []

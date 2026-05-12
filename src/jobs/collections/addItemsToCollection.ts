@@ -4,6 +4,7 @@ import type { CollectionItem } from '@/models/generated/external/solr.js'
 import { SolrNamespaces } from '@/solr.js'
 import { ImpressoApplication } from '@/types.js'
 import { BulkAddRequest } from '@/internalServices/simpleSolr.js'
+import { CollectionIndexVersion } from '@/services/search-facets/search-facets.class.js'
 
 export const JobNameAddItemsToCollection = 'addItemsToCollection'
 
@@ -15,13 +16,16 @@ export interface AddItemsToCollectionJobData {
 
 type AddItemsToCollectionJob = Job<AddItemsToCollectionJobData, undefined, typeof JobNameAddItemsToCollection>
 
-const requestToPayload = (data: AddItemsToCollectionJobData): BulkAddRequest<CollectionItem> => {
+const requestToPayload = (
+  data: AddItemsToCollectionJobData,
+  collectionsIndexVersion: CollectionIndexVersion
+): BulkAddRequest<CollectionItem> => {
   const { userId, collectionId, itemIds } = data
   const col_id_s = `${userId}_${collectionId}`
 
   const items: CollectionItem[] = itemIds.map(ci_id_s => {
     return {
-      id: `${col_id_s}|${ci_id_s}`,
+      id: collectionsIndexVersion === 'new' ? `${ci_id_s}!${col_id_s}` : `${col_id_s}|${ci_id_s}`,
       ci_id_s,
       col_id_s,
       vis_s: 'pri',
@@ -46,5 +50,10 @@ export const createJobHandler = (app: ImpressoApplication) => {
 
 export const addItemsToCollection = async (app: ImpressoApplication, jobData: AddItemsToCollectionJobData) => {
   const solrClient = app.service('simpleSolrClient')
-  await solrClient.sendBulkUpdateRequest(SolrNamespaces.CollectionItems, requestToPayload(jobData), true)
+  const collectionsIndexVersion = app.get('features')?.collectionsIndexVersion ?? 'legacy'
+  await solrClient.sendBulkUpdateRequest(
+    SolrNamespaces.CollectionItems,
+    requestToPayload(jobData, collectionsIndexVersion),
+    true
+  )
 }

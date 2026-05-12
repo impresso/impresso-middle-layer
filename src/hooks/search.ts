@@ -4,6 +4,7 @@ import { groupBy } from 'lodash-es'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
 import { HookContext } from '@feathersjs/feathers'
+import { ImpressoApplication } from '@/types.js'
 
 const debug = Debug('impresso/hooks:search')
 
@@ -46,7 +47,7 @@ export const filtersToSolrQuery =
     overrideOrderBy = true,
     prop = 'params',
     solrIndexProvider = (_ctx: any) => SolrNamespaces.Search // eslint-disable-line no-unused-vars
-  } = {}) => async (context: HookContext) => {
+  } = {}) => async (context: HookContext<ImpressoApplication>) => {
     const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`
     if (context.type !== 'before') {
       throw new Error(`${prefix} hook should only be used as a 'before' hook.`)
@@ -68,7 +69,8 @@ export const filtersToSolrQuery =
     const { query, filter: solrFilter, params: vars } = filtersToQueryAndVariables(
       context[prop].sanitized.filters,
       solrIndexProvider(context),
-      context.app.get('solrConfiguration').namespaces
+      context.app.get('solrConfiguration').namespaces ?? [],
+      context.app.get('features') ?? {}
     )
 
     // prepend order by if it is not relevance

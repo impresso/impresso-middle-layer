@@ -217,7 +217,7 @@ describe('unigramTrendsRequestToTotalTokensSolrQuery', () => {
         op: 'OR',
       },
     ]
-    const payload = unigramTrendsRequestToTotalTokensSolrQuery(filters, 'year')
+    const payload = unigramTrendsRequestToTotalTokensSolrQuery(filters, {}, 'year')
     const expectedPayload = {
       query: '*:*',
       filter: ['meta_date_dt:[1849-09-25T00:00:00Z TO 1949-12-31T23:59:59Z]'],

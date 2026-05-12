@@ -30,7 +30,7 @@ export class ArticlesSearch {
   async create({ relevanceContext = [], filters = [], pagination = {} }, params) {
     const items = relevanceContext == null ? [] : relevanceContext
 
-    const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+    const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, {})
     const relevanceScoreVariable = relevanceContextItemsToSolrFormula(items)
 
     const solrQuery = buildSolrQuery(query, filter, relevanceScoreVariable, pagination)
@@ -44,7 +44,7 @@ export class ArticlesSearch {
       authenticated: params.authenticated,
     }
 
-    const resultItems = await getItemsFromSolrResponse(result, this.articlesService, userInfo)
+    const resultItems = await getItemsFromSolrResponse(result, this.articlesService, userInfo, [], {})
 
     return {
       data: resultItems.map(withScore(result)),

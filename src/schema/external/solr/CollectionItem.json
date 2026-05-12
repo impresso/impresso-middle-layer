@@ -6,7 +6,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "description": "The unique identifier for the collection item. Format: <col_id_s>|<ci_id_s>"
+      "description": "The unique identifier for the collection item. Format: <ci_id_s>!<col_id_s> (new) OR <col_id_s>|<ci_id_s> (legacy)"
     },
     "ci_id_s": {
       "type": "string",

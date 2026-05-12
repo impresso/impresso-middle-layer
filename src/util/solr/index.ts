@@ -5,7 +5,7 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { filtersToSolr } from '@/util/solr/filterReducers.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
 import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
-import type { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
+import type { FeaturesConfig, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { escapeIdValue } from '@/util/solr/filterBuilders/value.js'
 
 /**
@@ -76,7 +76,8 @@ export function filtersToQueryAndVariables(
   filters: Filter[],
   solrNamespace: SolrNamespace = SolrNamespaces.Search,
   solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
-  doNotWrapFilters = false
+  featuresConfig: FeaturesConfig,
+  doNotWrapFilters: boolean = false
 ): SolrQueryBase {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
 
@@ -90,7 +91,8 @@ export function filtersToQueryAndVariables(
     const { query: baseSolrQueryFilter, destination } = filtersToSolr(
       filtersGroupedByType[key],
       solrNamespace,
-      solrNamespacesConfiguration
+      solrNamespacesConfiguration,
+      featuresConfig
     )
 
     // We wrap every filter into `filter(...)` except when:

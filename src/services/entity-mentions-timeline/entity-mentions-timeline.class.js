@@ -77,7 +77,7 @@ function getMentionLabelsFromSolrResponse(response) {
   }
 }
 
-function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filters, resolution) {
+function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filters, resolution, featuresConfig) {
   const facet = {
     entity: {
       type: 'terms',
@@ -106,7 +106,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
   })
 
   return {
-    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search),
+    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig),
     limit: 0,
     params: {
       hl: false,
@@ -205,7 +205,7 @@ class EntityMentionsTimeline {
         linkedMentionsPromise,
       ])
 
-      const query = buildSolrQueryForEntity(body.entityId, entity.type, entityMentionLabels, filters, timeResolution)
+      const query = buildSolrQueryForEntity(body.entityId, entity.type, entityMentionLabels, filters, timeResolution, this.app.get('features') ?? {})
 
       const result = await this.solr.select(SolrNamespaces.Search, { body: query })
       return {

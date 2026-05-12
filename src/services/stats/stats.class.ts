@@ -5,7 +5,11 @@ import { SolrFacetQueryParams } from '@/data/types.js'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { SelectRequestBody, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { getWidestInclusiveTimeInterval } from '@/logic/filters/timeInterval.js'
-import { FacetTypeGroup, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
+import {
+  FacetTypeGroup,
+  FeaturesConfig,
+  SolrServerNamespaceConfiguration,
+} from '@/models/generated/app/configuration.js'
 import { ImpressoApplication } from '@/types.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from '@/services/stats/common.js'
@@ -121,14 +125,15 @@ function buildSolrRequest(
   filters: any,
   sort: any,
   groupby: any,
-  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
+  featuresConfig: FeaturesConfig
 ) {
   const facetType = getFacetType(index, facet)
   const domainDetails = getDomainDetails(index, domain, filters)
   if (domainDetails == null) throw new Error(`Domain ${domain} not found in index ${index}`)
   if (facetType == null) throw new Error(`Facet ${facet} not found in index ${index}`)
 
-  const { query, filter } = filtersToQueryAndVariables(filters, index, solrNamespacesConfiguration)
+  const { query, filter } = filtersToQueryAndVariables(filters, index, solrNamespacesConfiguration, featuresConfig)
   // add
   const collapse = groupby ? { fq: `{!collapse field=${groupby}}` } : null
 
@@ -274,7 +279,8 @@ export class Stats {
     const { query, filter } = filtersToQueryAndVariables(
       filters,
       index,
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
     const result = await this.solr.select(index, {
       body: {
@@ -300,7 +306,8 @@ export class Stats {
       filters,
       sort,
       groupby,
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
     debug(
       '[find] index:',

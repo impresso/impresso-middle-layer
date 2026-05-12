@@ -19,6 +19,7 @@ export default async (app: ImpressoApplication) => {
       app,
       index,
       name: `search-facets-${index}`,
+      collectionsIndexVersion: 'new',
     })
     // not exposing find method in public API
     if (isPublicApi) {

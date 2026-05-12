@@ -9,7 +9,8 @@ describe('entities/logic', () => {
         {
           filters: [],
         },
-        []
+        [],
+        {}
       )
 
       assert.deepStrictEqual(result, {
@@ -32,7 +33,8 @@ describe('entities/logic', () => {
         {
           filters,
         },
-        []
+        [],
+        {}
       )
 
       assert.equal(result.query, 'entitySuggest:Einstein*')
@@ -50,7 +52,8 @@ describe('entities/logic', () => {
           filters: [],
           orderBy: 'article_fq_f desc',
         },
-        []
+        [],
+        {}
       )
 
       assert.deepStrictEqual(result, {
@@ -70,7 +73,8 @@ describe('entities/logic', () => {
           filters: [],
           limit: 10,
         },
-        []
+        [],
+        {}
       )
 
       assert.deepStrictEqual(result, {
@@ -90,7 +94,8 @@ describe('entities/logic', () => {
           filters: [],
           offset: 20,
         },
-        []
+        [],
+        {}
       )
 
       assert.deepStrictEqual(result, {
@@ -112,7 +117,8 @@ describe('entities/logic', () => {
           limit: 10,
           offset: 20,
         },
-        []
+        [],
+        {}
       )
 
       assert.deepStrictEqual(result, {

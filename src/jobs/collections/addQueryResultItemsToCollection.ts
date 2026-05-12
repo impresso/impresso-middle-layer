@@ -35,7 +35,8 @@ export const createJobHandler = (app: ImpressoApplication) => {
     const { query, filter, params } = filtersToQueryAndVariables(
       filters,
       solrNamespace,
-      app.get('solrConfiguration').namespaces ?? []
+      app.get('solrConfiguration').namespaces ?? [],
+      app.get('features') ?? {}
     )
 
     const solrClient = app.service('simpleSolrClient')
