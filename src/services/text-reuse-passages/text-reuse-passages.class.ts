@@ -52,9 +52,9 @@ export class TextReusePassages {
       this.app.get('features') ?? {}
     )
     const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
-
+    const queryFilter = Array.isArray(filter) ? filter : filter != null ? [filter] : []
     const fq = `{!collapse field=${params.query?.group_by ? SolrFields[params.query?.group_by] : ''} max=ms(${SolrFields.date})}`
-    const groupby = params.query?.group_by ? { filter: fq } : null
+    const effectiveFilter = params.query?.group_by ? queryFilter.concat(fq) : queryFilter
 
     debug(
       'find q:',
@@ -62,7 +62,7 @@ export class TextReusePassages {
       '- index:',
       this.solr.namespaces.TextReusePassages,
       '- groupby:',
-      groupby
+      params.query?.group_by
       // params.query
     )
 
@@ -72,12 +72,11 @@ export class TextReusePassages {
       .select<AllDocumentFields>(this.solr.namespaces.TextReusePassages, {
         body: {
           query,
-          filter,
+          filter: effectiveFilter,
           fields: fl,
           limit: params.query?.limit,
           offset: params.query?.offset,
           sort: sort ?? undefined,
-          ...groupby,
         },
       })
       .then(({ response }) => {
