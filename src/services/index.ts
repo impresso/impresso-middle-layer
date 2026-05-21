@@ -66,6 +66,7 @@ import specialMembershipAccess from './special-membership-access/special-members
 import userSpecialMembershipRequests from './user-special-membership-requests/user-special-membership-requests.service.js'
 import userSpecialMembershipRequestsReviews from './user-special-membership-requests-reviews/user-special-membership-requests-reviews.service.js'
 import baristaProxy from './barista-proxy/barista-proxy.service.js'
+import baristaConversations from './barista-conversations/barista-conversations.service.js'
 import magicLink from './magic-link/magic-link.service.js'
 /**
  * Some public services are declared here but are only required internally by
@@ -142,7 +143,10 @@ const internalApiServices = [
   { name: 'magic-link', init: magicLink },
 ]
 
-const baristaServices = [{ name: 'barista-proxy', init: baristaProxy }]
+const baristaServices = [
+  { name: 'barista-proxy', init: baristaProxy },
+  { name: 'barista-conversations', init: baristaConversations },
+]
 
 export default (app: ImpressoApplication & ExpressApplication) => {
   const isPublicApi = app.get('isPublicApi')

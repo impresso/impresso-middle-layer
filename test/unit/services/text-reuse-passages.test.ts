@@ -17,12 +17,12 @@ describe('TextReusePassages', () => {
     }
 
     const app: Pick<ImpressoApplication, 'service' | 'get'> = {
-      service(name: string): unknown {
+      service(name: string): any {
         if (name === 'simpleSolrClient') return mockSolr
         if (name === 'media-sources') return { getLookup: async () => ({}) }
         throw new Error(`Unexpected service request: ${name}`)
       },
-      get(name: string): unknown {
+      get(name: string): any {
         if (name === 'solrConfiguration') return { namespaces: {} }
         if (name === 'features') return {}
         return undefined
