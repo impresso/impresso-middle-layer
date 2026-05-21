@@ -6,6 +6,7 @@ import { v4 } from 'uuid'
 import { SlimUser } from '@/authentication.js'
 import { request, Dispatcher } from 'undici'
 import { EventEmitter } from 'stream'
+import BaristaConversation from '@/models/barista-conversations.model.js'
 
 export interface BaristaRequest {
   /**
@@ -133,10 +134,19 @@ interface CreateParams {
 export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, BaristaRequest>, 'create'> {
   private readonly config?: BaristaConfig
   private readonly app: ImpressoApplication
+  private readonly conversationModel: ReturnType<typeof BaristaConversation.initialize>
 
   constructor(app: ImpressoApplication, config?: BaristaConfig) {
     this.app = app
     this.config = config
+    this.conversationModel = BaristaConversation.initialize(app.get('sequelizeClient') as any)
+  }
+
+  private async touchConversation(sessionId: string | null | undefined, userId: number | undefined): Promise<void> {
+    if (!sessionId || userId == null) return
+    await this.conversationModel
+      .update({ dateLastModified: new Date() }, { where: { baristaSessionId: sessionId, userId } })
+      .catch(() => {})
   }
 
   async create(data: BaristaRequest, params?: Params & CreateParams): Promise<BaristaResponse> {
@@ -164,7 +174,7 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
     // Check if the response is a stream
     const contentType = response.headers['content-type']
     if (contentType?.includes('text/event-stream') || contentType == null) {
-      return this.handleStream(response, params)
+      return this.handleStream(response, params, data.sessionId)
     }
 
     // Fallback to JSON response
@@ -173,12 +183,14 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
       chunks.push(chunk)
     }
     const responseData = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+    await this.touchConversation(data.sessionId, params?.user?.id)
     return responseData as BaristaResponse
   }
 
   private async handleStream(
     response: Dispatcher.ResponseData,
-    params?: Params<any> & CreateParams
+    params?: Params<any> & CreateParams,
+    sessionId?: string | null
   ): Promise<BaristaResponse> {
     const decoder = new TextDecoder()
     const messages: any[] = []
@@ -231,6 +243,7 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
         userUid,
       })
 
+      await this.touchConversation(sessionId, params?.user?.id)
       return { messages: [] }
     } catch (error) {
       // Emit error event

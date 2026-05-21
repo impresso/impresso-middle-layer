@@ -505,6 +505,10 @@
         "url": {
           "type": "string",
           "description": "URL of the Barista chat endpoint"
+        },
+        "historyUrl": {
+          "type": "string",
+          "description": "URL of the Barista history endpoint"
         }
       },
       "required": ["url"]

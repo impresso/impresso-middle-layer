@@ -252,6 +252,10 @@ export interface BaristaConfig {
    * URL of the Barista chat endpoint
    */
   url: string;
+  /**
+   * URL of the Barista history endpoint
+   */
+  historyUrl?: string;
   [k: string]: unknown;
 }
 /**
