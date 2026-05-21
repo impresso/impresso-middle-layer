@@ -27,21 +27,25 @@ const TemporalResolution = Object.freeze({
   Day: 'day',
 })
 
-type FacetLabel = 'topic' | 'mediaSource' | 'person' | 'location' | 'language' | 'country' | 'type'
+type FacetLabel = 'newspaper' | 'topic' | 'mediaSource' | 'person' | 'location' | 'language' | 'country' | 'type'
 type LabelExtractor = (id: string) => Promise<string>
 
 const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelExtractor> => {
   const resolvers = buildResolvers(app)
+  const mediaSourceLabelExtractor: LabelExtractor = async (key: string) => {
+    const mediaSource = await resolvers.mediaSource(key)
+    return mediaSource == null ? key : mediaSource.name
+  }
+
   return {
     topic: async (key: string) => {
       const topic = await resolvers.topic(key)
       if (topic == null) return key
       return topic.words?.map(({ w }: any) => w)?.join(', ') ?? ''
     },
-    mediaSource: async (key: string) => {
-      const mediaSource = await resolvers.mediaSource(key)
-      return mediaSource == null ? key : mediaSource.name
-    },
+    /** @deprecated Use `mediaSource` instead. Kept as a backward-compatible alias. */
+    newspaper: mediaSourceLabelExtractor,
+    mediaSource: mediaSourceLabelExtractor,
     person: async (key: string) => {
       const entity = await resolvers.person(key)
       return entity == null ? key : entity.name!
