@@ -163,6 +163,7 @@ const getYearResolver = (app: ImpressoApplication): IResolver<IYear> => {
     const deserialisedYears: Record<number, IYear> = JSON.parse(result ?? '{}')
 
     const year = deserialisedYears[Number(id)]
+    year.id = Number(id)
     return year
   }
 }
