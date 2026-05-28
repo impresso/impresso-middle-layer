@@ -49,6 +49,7 @@
     "@feathersjs/schema": "5.0.44",
     "@feathersjs/socketio": "5.0.44",
     "@iiif/parser": "^2.1.8",
+    "@keyv/compress-brotli": "^2.0.5",
     "@keyv/redis": "5.1.2",
     "ajv": "8.18.0",
     "async": "^2.6.1",

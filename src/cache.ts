@@ -4,6 +4,7 @@ import { Keyv } from 'keyv'
 import type { Configuration } from './configuration.js'
 import { logger } from './logger.js'
 import type { ImpressoApplication } from './types.js'
+import KeyvBrotli from '@keyv/compress-brotli'
 
 export type { Cache } from 'cache-manager'
 
@@ -13,6 +14,7 @@ const buildRedisUri = (config: Configuration['redis']): string => {
 
   return `redis://${host}:${port}`
 }
+const keyvBrotli = new KeyvBrotli()
 
 export default (app: ImpressoApplication) => {
   const config = app.get('redis')
@@ -21,9 +23,12 @@ export default (app: ImpressoApplication) => {
 
   const redisStore = isEnabled
     ? new Keyv({
-        store: new KeyvRedis(buildRedisUri(config), {}),
+        store: new KeyvRedis(buildRedisUri(config), {
+          useUnlink: true,
+        }),
         useKeyPrefix: false,
         namespace: undefined,
+        compression: keyvBrotli,
       })
     : undefined
 

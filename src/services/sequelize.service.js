@@ -150,7 +150,7 @@ export class Service {
       .catch(sequelizeErrorHandler)
   }
 
-  async find(params, ttl = undefined) {
+  async find(params, ttl = 60 * 60 * 24 * 30 * 1000) {  // 30 days cache by default
     const cacheKey = getCacheKeyForReadSqlRequest(params, this.modelName)
     const cacheOptions = ttl != null ? { ttl } : {}
 
@@ -182,7 +182,7 @@ export class Service {
       p.col = `${this.sequelizeKlass.name}.${this.sequelizeKlass.primaryKeys[pk].field}`
     }
 
-    debug(`'find' ${this.name} with params (cached: ${this.cacheReads}):`, p, 'where:', p.where)
+    debug(`'find' ${this.name} with params(cached: ${this.cacheReads}): `, p, 'where:', p.where)
 
     let fn = this.sequelizeKlass
 
@@ -201,7 +201,7 @@ export class Service {
               count: -1,
             }
           }
-          debug(`'find' ${this.name} success, n.results:`, res.count)
+          debug(`'find' ${this.name} success, n.results: `, res.count)
           return res
         })
         .then(res => ({
