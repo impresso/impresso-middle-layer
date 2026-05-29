@@ -150,7 +150,7 @@ export class Service {
       .catch(sequelizeErrorHandler)
   }
 
-  async find(params, ttl = 60 * 60 * 24 * 30 * 1000) {  // 30 days cache by default
+  async find(params, ttl = 60 * 60 * 24 * 30 * 1000) { // 30 days cache by default
     const cacheKey = getCacheKeyForReadSqlRequest(params, this.modelName)
     const cacheOptions = ttl != null ? { ttl } : {}
 
