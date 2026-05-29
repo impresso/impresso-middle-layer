@@ -1,12 +1,15 @@
 import moment from 'moment'
 import { get, mergeWith, toPairs, fromPairs, sortBy, sum } from 'lodash-es'
-import { filtersToQueryAndVariables } from '../../../util/solr'
-import { SolrNamespaces } from '../../../solr'
-import { SupportedLanguageCodes } from '../../../models/solr'
+import { filtersToQueryAndVariables } from '../../../util/solr/index.js'
+import { SolrNamespaces } from '../../../solr.js'
+import { SupportedLanguageCodes } from '../../../models/solr.js'
 
-import { SolrMappings } from '../../../data/constants'
+import { SolrMappings } from '../../../data/constants.js'
+import { FeaturesConfig } from '@/models/generated/app/configuration.js'
+import { Filter } from '@/models/index.js'
+import { SelectResponse } from '@/internalServices/simpleSolr.js'
 
-const Facets = SolrMappings.search.facets
+const Facets = SolrMappings.search.facets as Record<string, unknown>
 
 const TimeIntervalsFilelds = {
   year: 'meta_year_i',
@@ -14,21 +17,46 @@ const TimeIntervalsFilelds = {
   day: 'meta_date_dt',
 }
 
+type TimeInterval = keyof typeof TimeIntervalsFilelds
+
 const TotalTokensCountFacetField = 'ttc'
 const TokensCountField = 'content_length_i'
+
+interface TotalTokensBucket {
+  val: string | number
+  [key: string]: unknown
+}
+
+interface TotalTokensSolrResponse {
+  facets?: Partial<Record<TimeInterval, { buckets: TotalTokensBucket[] }>>
+}
+
+interface SolrPivotEntry {
+  value: string
+  stats?: {
+    stats_fields: Record<string, { sum: number }>
+  }
+}
+
+interface UnigramTrendsSolrResponse {
+  facet_counts?: {
+    facet_pivot?: Record<string, SolrPivotEntry[]>
+  }
+}
 
 // Default facet limit in SOLR is set to 100.
 // We need all data for the stats. -1 means no limit.
 // https://lucene.apache.org/solr/guide/6_6/faceting.html#Faceting-Thefacet.limitParameter
 const DefaultFacetLimit = -1
 
-const getFacetPivotString = (languageCode, timeIntervalField) =>
+const getFacetPivotString = (languageCode: string, timeIntervalField: string) =>
   `{!stats=tf_stats_${languageCode} key=${languageCode}}${timeIntervalField}`
-const getStatsFieldString = (languageCode, unigram) =>
+const getStatsFieldString = (languageCode: string, unigram: string) =>
   `{!tag=tf_stats_${languageCode} key=tf_stats_${languageCode} sum=true func}termfreq(content_txt_${languageCode},'${unigram}')`
 
-const getFacetPivotStringOtherLanguages = timeIntervalField => `{!stats=tf_stats_other key=other}${timeIntervalField}`
-const getStatsFieldStringOtherLanguages = unigram =>
+const getFacetPivotStringOtherLanguages = (timeIntervalField: string) =>
+  `{!stats=tf_stats_other key=other}${timeIntervalField}`
+const getStatsFieldStringOtherLanguages = (unigram: string) =>
   `{!tag=tf_stats_other key=tf_stats_other sum=true func}termfreq(content_txt,'${unigram}')`
 
 /**
@@ -41,8 +69,18 @@ const getStatsFieldStringOtherLanguages = unigram =>
  *
  * @return {object} a POST JSON payload for SOLR search endpoint.
  */
-function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInterval = 'year') {
-  const { query, filter, params: variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search)
+function unigramTrendsRequestToSolrQuery(
+  unigram: string,
+  filters: Filter[],
+  facets: string[] = [],
+  timeInterval: TimeInterval = 'year',
+  featuresConfig: FeaturesConfig
+) {
+  const {
+    query,
+    filter,
+    params: variables,
+  } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
   const facetPivots = SupportedLanguageCodes.map(languageCode =>
@@ -57,14 +95,14 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
     filter,
     limit: 0,
     params: {
-      vars: variables,
+      ...(variables != null ? { vars: variables } : {}),
       facet: true,
       'facet.limit': DefaultFacetLimit,
       'facet.pivot': facetPivots,
       'stats.field': statsFields,
       stats: true,
       'json.facet': JSON.stringify(
-        facets.reduce((acc, facet) => {
+        facets.reduce((acc: Record<string, unknown>, facet) => {
           acc[facet] = Facets[facet]
           return acc
         }, {})
@@ -74,14 +112,16 @@ function unigramTrendsRequestToSolrQuery(unigram, filters, facets = [], timeInte
   }
 }
 
-/**
- * @param {import('../../../models').Filter[]} filters
- * @param {'year' | 'month' | 'day'} timeInterval
- * @param {FeaturesConfig} featuresConfig
- * @returns {any}
- */
-function unigramTrendsRequestToTotalTokensSolrQuery(filters, featuresConfig, timeInterval = 'year') {
-  const { query, filter, params: variables } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig)
+function unigramTrendsRequestToTotalTokensSolrQuery(
+  filters: Filter[],
+  featuresConfig: FeaturesConfig,
+  timeInterval: TimeInterval = 'year'
+) {
+  const {
+    query,
+    filter,
+    params: variables,
+  } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
   return {
@@ -89,12 +129,12 @@ function unigramTrendsRequestToTotalTokensSolrQuery(filters, featuresConfig, tim
     filter,
     limit: 0,
     params: {
-      vars: variables,
+      ...(variables != null ? { vars: variables } : {}),
       hl: false, // disable duplicate field "highlighting"
     },
     facet: {
       [timeInterval]: {
-        type: 'terms',
+        type: 'terms' as const,
         field: timeIntervalField,
         limit: DefaultFacetLimit,
         facet: {
@@ -105,26 +145,29 @@ function unigramTrendsRequestToTotalTokensSolrQuery(filters, featuresConfig, tim
   }
 }
 
-const mergeFn = (dst, src) => (dst || 0) + (src || 0)
+const mergeFn = (dst: number | undefined, src: number | undefined) => (dst || 0) + (src || 0)
 
 /**
  * Convert raw SOLR response to `ngram-trends/schema/post/response.json`.
- * @param {object} solrResponse SOLR trends response
  */
-async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
-  const pivots = get(solrResponse, 'facet_counts.facet_pivot', {})
+async function parseUnigramTrendsResponse(
+  solrResponse: SelectResponse<{}, '', {}>,
+  unigram: string,
+  timeInterval: string
+) {
+  const pivots = get(solrResponse, 'facet_counts.facet_pivot', {}) as Record<string, SolrPivotEntry[]>
   const languageCodes = Object.keys(pivots)
-  const domainToValuesMapping = languageCodes.reduce((acc, languageCode) => {
-    const pivotEntries = pivots[languageCode]
+  const domainToValuesMapping = languageCodes.reduce((acc: Record<string, number>, languageCode) => {
+    const pivotEntries: SolrPivotEntry[] = pivots[languageCode]
     const entries = pivotEntries
-      .map(entry => {
+      .map((entry: SolrPivotEntry) => {
         const key = entry.value
-        const value = get(entry, `stats.stats_fields.tf_stats_${languageCode}.sum`)
-        return [key, value]
+        const value = get(entry, `stats.stats_fields.tf_stats_${languageCode}.sum`) as number
+        return [key, value] as [string, number]
       })
-      .sort((a, b) => {
-        if (a < b) return -1
-        if (a > b) return 1
+      .sort((a: [string, number], b: [string, number]) => {
+        if (a[0] < b[0]) return -1
+        if (a[0] > b[0]) return 1
         return 0
       })
     return mergeWith(acc, fromPairs(entries), mergeFn)
@@ -150,18 +193,16 @@ async function parseUnigramTrendsResponse(solrResponse, unigram, timeInterval) {
   }
 }
 
-/**
- *
- * @param {any} response
- * @returns {{ domain: string, value: number }[]}
- */
-function getNumbersFromTotalTokensResponse(response, timeInterval = 'year') {
+function getNumbersFromTotalTokensResponse(response: TotalTokensSolrResponse, timeInterval: TimeInterval = 'year') {
   const { facets = {} } = response || {}
   const { buckets = [] } = facets[timeInterval] || {}
 
   return buckets
-    .map(({ val, [TotalTokensCountFacetField]: value }) => ({ domain: `${val}`, value }))
-    .sort((a, b) => {
+    .map(({ val, [TotalTokensCountFacetField]: value }: { val: unknown; [key: string]: unknown }) => ({
+      domain: `${val}`,
+      value,
+    }))
+    .sort((a: { domain: string }, b: { domain: string }) => {
       if (a.domain < b.domain) return -1
       if (a.domain > b.domain) return 1
       return 0
@@ -170,10 +211,11 @@ function getNumbersFromTotalTokensResponse(response, timeInterval = 'year') {
 
 const DaterangeFilterValueRegex = /([^\s]+)\s+TO\s+([^\s]+)/
 
-function getTimedeltaInDaterangeFilter(daterangeFilter) {
+function getTimedeltaInDaterangeFilter(daterangeFilter: Filter) {
+  if (daterangeFilter.q == null) return undefined
   const value = Array.isArray(daterangeFilter.q) ? daterangeFilter.q[0] : daterangeFilter.q
   const matches = DaterangeFilterValueRegex.exec(value)
-  if (matches.length !== 3) return undefined
+  if (matches == null || matches.length !== 3) return undefined
   if (daterangeFilter.context === 'exclude') return undefined
 
   const [fromDate, toDate] = [...matches.slice(1)].map(v => moment.utc(v))
@@ -182,11 +224,11 @@ function getTimedeltaInDaterangeFilter(daterangeFilter) {
   return years
 }
 
-function guessTimeIntervalFromFilters(filters = []) {
+function guessTimeIntervalFromFilters(filters: Filter[] = []): TimeInterval {
   const daterangeFilters = filters.filter(({ type }) => type === 'daterange')
   const timedeltas = daterangeFilters
     .map(getTimedeltaInDaterangeFilter)
-    .filter(v => v !== undefined)
+    .filter((v): v is number => v !== undefined)
     .sort()
   const shortestTimedelta = timedeltas[0]
 
