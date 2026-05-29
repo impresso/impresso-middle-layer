@@ -6,13 +6,21 @@ import {
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
 } from '@/services/ngram-trends/logic/solrQuery.js'
+import { type SimpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { type ImpressoApplication } from '@/types.js'
+import { type Filter } from '@/models/index.js'
+import { type FeaturesConfig } from '@/models/generated/app/configuration.js'
 
-function mergeResponses(responses, totalsResponse) {
+type TrendItem = { ngram: string; values: number[]; total: number }
+type UnigramTrendResponse = { trends: TrendItem[]; domainValues: string[]; timeInterval: string }
+type TotalsItem = { domain: string; value: unknown }
+
+function mergeResponses(responses: UnigramTrendResponse[], totalsResponse: TotalsItem[]) {
   const timeIntervals = [...new Set(responses.map(({ timeInterval }) => timeInterval))]
   if (timeIntervals.length > 1) throw new Error(`Conflicting time intervals found: ${timeIntervals.join(', ')}`)
   const timeInterval = timeIntervals[0]
 
-  // Extract domain values (year, month, date), flaten them, create unique list and sort
+  // Extract domain values (year, month, date), flatten them, create unique list and sort
   const commonDomainValues = [...new Set(responses.flatMap(({ domainValues }) => domainValues))].sort()
 
   const mergedTrends = responses.map(({ trends, domainValues }) => {
@@ -26,12 +34,14 @@ function mergeResponses(responses, totalsResponse) {
     return { ngram, values: newValues, total }
   })
 
-  // totals
-  const totalsMap = totalsResponse.reduce((acc, { domain, value }) => ({ ...acc, [domain]: value }), {})
+  const totalsMap = totalsResponse.reduce<Record<string, unknown>>(
+    (acc, { domain, value }) => ({ ...acc, [domain]: value }),
+    {}
+  )
 
   const totals = commonDomainValues.map(domain => {
-    const value = totalsMap[`${domain}`]
-    return value == null ? 0 : value
+    const value = totalsMap[domain]
+    return typeof value === 'number' ? value : 0
   })
 
   return {
@@ -43,17 +53,22 @@ function mergeResponses(responses, totalsResponse) {
 }
 
 export class NgramTrends {
-  setup(app) {
-    /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
+  private solr!: SimpleSolrClient
+  private app!: ImpressoApplication
+
+  setup(app: ImpressoApplication) {
     this.solr = app.service('simpleSolrClient')
     this.app = app
   }
 
-  async create({ ngrams, filters, facets = [] }) {
+  async create({ ngrams, filters, facets = [] }: { ngrams: string[]; filters: Filter[]; facets?: string[] }) {
     const timeInterval = guessTimeIntervalFromFilters(filters)
+    const features = (this.app.get('features') ?? {}) as FeaturesConfig
 
-    const requestPayloads = ngrams.map(ngram => unigramTrendsRequestToSolrQuery(ngram, filters, facets, timeInterval))
-    const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, this.app.get('features') ?? {}, timeInterval)
+    const requestPayloads = ngrams.map(ngram =>
+      unigramTrendsRequestToSolrQuery(ngram, filters, facets, timeInterval, features)
+    )
+    const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, features, timeInterval)
 
     const requests = requestPayloads.map(payload => this.solr.select(SolrNamespaces.Search, { body: payload }))
     const totalsRequest = this.solr.select(SolrNamespaces.Search, { body: totalsRequestPayload })
