@@ -21,6 +21,15 @@ type TimeInterval = keyof typeof TimeIntervalsFilelds
 const TotalTokensCountFacetField = 'ttc'
 const TokensCountField = 'content_length_i'
 
+interface TotalTokensBucket {
+  val: string | number
+  [key: string]: unknown
+}
+
+interface TotalTokensSolrResponse {
+  facets?: Partial<Record<TimeInterval, { buckets: TotalTokensBucket[] }>>
+}
+
 // Default facet limit in SOLR is set to 100.
 // We need all data for the stats. -1 means no limit.
 // https://lucene.apache.org/solr/guide/6_6/faceting.html#Faceting-Thefacet.limitParameter
@@ -173,16 +182,11 @@ async function parseUnigramTrendsResponse(solrResponse: any, unigram: string, ti
   }
 }
 
-/**
- *
- * @param {any} response
- * @returns {{ domain: string, value: number }[]}
- */
-function getNumbersFromTotalTokensResponse(response: any, timeInterval: TimeInterval = 'year') {
+function getNumbersFromTotalTokensResponse(response: TotalTokensSolrResponse, timeInterval: TimeInterval = 'year') {
   const { facets = {} } = response || {}
   const { buckets = [] } = facets[timeInterval] || {}
 
-  return (buckets as any[])
+  return buckets
     .map(({ val, [TotalTokensCountFacetField]: value }: { val: unknown; [key: string]: unknown }) => ({
       domain: `${val}`,
       value,

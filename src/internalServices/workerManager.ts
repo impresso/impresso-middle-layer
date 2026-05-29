@@ -166,7 +166,7 @@ export class WorkerManagerService {
 
   private setupEventListeners(queueName: string, connection: IORedis): void {
     const queueEvents = new QueueEvents(queueName, {
-      connection: connection as any,
+      connection,
     })
 
     queueEvents.on('completed', job => {
