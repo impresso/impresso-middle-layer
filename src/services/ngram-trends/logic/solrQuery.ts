@@ -7,6 +7,7 @@ import { SupportedLanguageCodes } from '../../../models/solr.js'
 import { SolrMappings } from '../../../data/constants.js'
 import { FeaturesConfig } from '@/models/generated/app/configuration.js'
 import { Filter } from '@/models/index.js'
+import { SelectResponse } from '@/internalServices/simpleSolr.js'
 
 const Facets = SolrMappings.search.facets as Record<string, unknown>
 
@@ -28,6 +29,19 @@ interface TotalTokensBucket {
 
 interface TotalTokensSolrResponse {
   facets?: Partial<Record<TimeInterval, { buckets: TotalTokensBucket[] }>>
+}
+
+interface SolrPivotEntry {
+  value: string
+  stats?: {
+    stats_fields: Record<string, { sum: number }>
+  }
+}
+
+interface UnigramTrendsSolrResponse {
+  facet_counts?: {
+    facet_pivot?: Record<string, SolrPivotEntry[]>
+  }
 }
 
 // Default facet limit in SOLR is set to 100.
@@ -98,12 +112,6 @@ function unigramTrendsRequestToSolrQuery(
   }
 }
 
-/**
- * @param {import('../../../models').Filter[]} filters
- * @param {'year' | 'month' | 'day'} timeInterval
- * @param {FeaturesConfig} featuresConfig
- * @returns {any}
- */
 function unigramTrendsRequestToTotalTokensSolrQuery(
   filters: Filter[],
   featuresConfig: FeaturesConfig,
@@ -141,16 +149,19 @@ const mergeFn = (dst: number | undefined, src: number | undefined) => (dst || 0)
 
 /**
  * Convert raw SOLR response to `ngram-trends/schema/post/response.json`.
- * @param {object} solrResponse SOLR trends response
  */
-async function parseUnigramTrendsResponse(solrResponse: any, unigram: string, timeInterval: string) {
-  const pivots = get(solrResponse, 'facet_counts.facet_pivot', {}) as Record<string, any[]>
+async function parseUnigramTrendsResponse(
+  solrResponse: SelectResponse<{}, '', {}>,
+  unigram: string,
+  timeInterval: string
+) {
+  const pivots = get(solrResponse, 'facet_counts.facet_pivot', {}) as Record<string, SolrPivotEntry[]>
   const languageCodes = Object.keys(pivots)
   const domainToValuesMapping = languageCodes.reduce((acc: Record<string, number>, languageCode) => {
-    const pivotEntries: any[] = pivots[languageCode]
+    const pivotEntries: SolrPivotEntry[] = pivots[languageCode]
     const entries = pivotEntries
-      .map((entry: any) => {
-        const key = entry.value as string
+      .map((entry: SolrPivotEntry) => {
+        const key = entry.value
         const value = get(entry, `stats.stats_fields.tf_stats_${languageCode}.sum`) as number
         return [key, value] as [string, number]
       })
