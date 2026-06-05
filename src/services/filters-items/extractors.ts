@@ -107,7 +107,8 @@ export const yearExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication)
 export const collectionExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) => {
   const items = toArray(q)
   try {
-    return await Promise.all(items.map(item => app.service('collections').getInternal(item.trim())))
+    const result = await Promise.all(items.map(item => app.service('collections').getInternal(item.trim())))
+    return result.filter(v => v != null)
   } catch (error: Error | any) {
     if (error.name === 'NotFound') return []
     throw error
