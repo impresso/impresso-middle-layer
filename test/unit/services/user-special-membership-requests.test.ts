@@ -32,7 +32,7 @@ const mockSubscriptions = [
     bitmapPosition: 1,
     metadata: {
       modality: 'manual',
-      enableTemporaryAutomaticAcceptance: false,
+      enableTemporaryAutomaticApproval: false,
       revokeAfterDays: null,
     },
   },
@@ -42,7 +42,7 @@ const mockSubscriptions = [
     bitmapPosition: 2,
     metadata: {
       modality: 'auto',
-      enableTemporaryAutomaticAcceptance: true,
+      enableTemporaryAutomaticApproval: true,
       revokeAfterDays: 14,
     },
   },

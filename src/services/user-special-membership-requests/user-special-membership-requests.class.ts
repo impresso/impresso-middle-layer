@@ -80,7 +80,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     }
     const isTemporary = data.isTemporary === true
 
-    if (isTemporary && !specialMembershipAccess.metadata?.enableTemporaryAutomaticAcceptance) {
+    if (isTemporary && !specialMembershipAccess.metadata?.enableTemporaryAutomaticApproval) {
       throw new BadRequest('Temporary automatic acceptance is not enabled for this Special Membership Access')
     }
     const userRequest = await this.requestModel.create({
