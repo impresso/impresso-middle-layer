@@ -6,8 +6,9 @@ import UserSpecialMembershipRequest from '@/models/user-special-membership-reque
 
 export interface SpecialMembershipAccessMetadata {
   modality: string
-  enableTemporaryAutomaticAcceptance: boolean
+  enableTemporaryAutomaticApproval: boolean
   revokeAfterDays: number | null
+  revokeTemporaryAutomaticApprovalAfterDays: number | null
 }
 
 export interface ISpecialMembershipAccessAttributes {
