@@ -80,9 +80,10 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     }
     const isTemporary = data.isTemporary === true
 
-    if (isTemporary && !specialMembershipAccess.metadata?.enableTemporaryAutomaticAcceptance) {
+    if (isTemporary && !specialMembershipAccess.metadata?.enableTemporaryAutomaticApproval) {
       throw new BadRequest('Temporary automatic acceptance is not enabled for this Special Membership Access')
     }
+
     const userRequest = await this.requestModel.create({
       userId: params.user.id!,
       reviewerId: null,
@@ -90,8 +91,15 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
       dateCreated: now,
       dateLastModified: now,
       temporaryExpiresAt:
-        isTemporary && specialMembershipAccess.metadata?.revokeAfterDays
-          ? new Date(now.getTime() + specialMembershipAccess.metadata.revokeAfterDays * 24 * 60 * 60 * 1000)
+        isTemporary && Number.isFinite(specialMembershipAccess.metadata?.revokeTemporaryAutomaticApprovalAfterDays)
+          ? new Date(
+              now.getTime() +
+                (specialMembershipAccess.metadata?.revokeTemporaryAutomaticApprovalAfterDays as number) *
+                  24 *
+                  60 *
+                  60 *
+                  1000
+            )
           : undefined,
       changelog: [
         {

@@ -3,19 +3,22 @@ import { BadRequest, NotFound } from '@feathersjs/errors'
 import { UserSpecialMembershipRequestService } from '@/services/user-special-membership-requests/user-special-membership-requests.class.js'
 import UserSpecialMembershipRequest, {
   IUserSpecialMembershipRequestAttributes,
+  StatusPending,
   StatusPendingTemporary,
 } from '@/models/user-special-membership-requests.model.js'
 
-import User from '@/models/users.model.js'
-import SpecialMembershipAccess, {
-  ISpecialMembershipAccessAttributes,
-} from '@/models/special-membership-access.model.js'
+import User, { UserAttributes } from '@/models/users.model.js'
+import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
 import type { TestDatabase } from '../../helpers/database.js'
 import { setupTestDatabase, teardownTestDatabase } from '../../helpers/database.js'
+import {
+  mockSpecialMembershipAccesses,
+  MockSubscriptionWithRevokableAfterDays,
+  MockSubscriptionWithRevokableTemporaryAfterDays,
+} from '../../mockData/specialMembershipAccess.js'
+import { generateMockUserSpecialMembershipRequest } from '../../mockData/userSpecialMembershipRequests.js'
 
-// --- Mock Test Data -------------------------------------
-
-const mockUsers = Array.from({ length: 42 }, (_, i) => ({
+const mockUsers = Array.from({ length: 4 }, (_, i) => ({
   uid: `user${i + 1}`,
   id: i + 1,
   username: `local-${i + 1}`,
@@ -23,55 +26,20 @@ const mockUsers = Array.from({ length: 42 }, (_, i) => ({
   lastname: `Last ${i + 1}`,
   email: `user${i + 1}@example.com`,
   password: 'test',
-}))
+})) as UserAttributes[]
 
-const mockSubscriptions = [
-  {
-    id: 1,
-    title: 'gold',
-    bitmapPosition: 1,
-    metadata: {
-      modality: 'manual',
-      enableTemporaryAutomaticAcceptance: false,
-      revokeAfterDays: null,
-    },
-  },
-  {
-    id: 2,
-    title: 'silver',
-    bitmapPosition: 2,
-    metadata: {
-      modality: 'auto',
-      enableTemporaryAutomaticAcceptance: true,
-      revokeAfterDays: 14,
-    },
-  },
-  { id: 3, title: 'bronze', bitmapPosition: 3 },
-  { id: 4, title: 'platinum', bitmapPosition: 4 },
-  { id: 5, title: 'diamond', bitmapPosition: 5 },
-] as ISpecialMembershipAccessAttributes[]
-
-const mockRequests: IUserSpecialMembershipRequestAttributes[] = Array.from({ length: mockUsers.length }, (_, i) => ({
-  id: i + 1,
-  reviewerId: null,
-  userId: i + 1, // must exist in User
-  specialMembershipAccessId: (i % mockSubscriptions.length) + 1, // or set 1/2 if testing relations
-  dateCreated: new Date(),
-  dateLastModified: new Date(),
-  temporaryExpiresAt: null,
-  status: 'pending',
-  changelog: [
-    {
-      status: 'pending',
-      subscription: mockSubscriptions[i % mockSubscriptions.length].title,
-      date: new Date().toISOString(),
-      reviewer: '',
-      notes: 'Initial request',
-    },
-  ],
-}))
-
-// ---------------------------------------------------------
+const mockRequests: IUserSpecialMembershipRequestAttributes[] = [
+  generateMockUserSpecialMembershipRequest(1, mockUsers[0], mockSpecialMembershipAccesses[0], 'Request 1 for user 1'),
+  generateMockUserSpecialMembershipRequest(2, mockUsers[0], mockSpecialMembershipAccesses[1], 'Request 2 for user 1'),
+  generateMockUserSpecialMembershipRequest(3, mockUsers[1], mockSpecialMembershipAccesses[0], 'Request 1 for user 2'),
+  generateMockUserSpecialMembershipRequest(4, mockUsers[2], mockSpecialMembershipAccesses[1], 'Request 1 for user 3'),
+  generateMockUserSpecialMembershipRequest(
+    5,
+    mockUsers[3],
+    MockSubscriptionWithRevokableTemporaryAfterDays,
+    'Request 1 for user 4'
+  ),
+]
 
 describe('UserSpecialMembershipRequestService', () => {
   let db: TestDatabase
@@ -99,14 +67,11 @@ describe('UserSpecialMembershipRequestService', () => {
     // Clear the tables before each test
     await db.sequelize.truncate({ cascade: true })
     // Insert related mock data
-    await userModel.bulkCreate(mockUsers as any)
-    await specialMembershipAccessModel.bulkCreate(mockSubscriptions)
-    await userSpecialMembershipRequestModel.bulkCreate(mockRequests as any)
+    await userModel.bulkCreate(mockUsers as UserAttributes[])
+    await specialMembershipAccessModel.bulkCreate(mockSpecialMembershipAccesses)
+    await userSpecialMembershipRequestModel.bulkCreate(mockRequests)
   })
 
-  // ---------------------------------------------------------
-  // FIND TESTS
-  // ---------------------------------------------------------
   describe('find', () => {
     it('should return empty results when no records exist', async () => {
       const result = await service.find()
@@ -117,20 +82,16 @@ describe('UserSpecialMembershipRequestService', () => {
     })
 
     it('should return paginated results, only for the specified user', async () => {
-      const result = await service.find({ query: { limit: 5, offset: 0 }, user: { id: 15 } })
-
-      assert.strictEqual(result.data.length, 1)
+      const result = await service.find({ query: { limit: 5, offset: 0 }, user: { id: 4 } })
+      assert.strictEqual(result.data.length, 1, 'Expected 1 result, but got ' + result.data.length)
       assert.strictEqual(result.pagination.total, 1)
       // should have the specialMembershipAccess included
       assert.ok(result.data[0].specialMembershipAccess)
-      assert.strictEqual(result.data[0].userId, 15)
-      assert.strictEqual(result.data[0].specialMembershipAccess?.id, 5) // subscription id for user 15
+      assert.strictEqual(result.data[0].userId, 4)
+      assert.strictEqual(result.data[0].specialMembershipAccess?.id, MockSubscriptionWithRevokableTemporaryAfterDays.id) // subscription id for user 4
     })
   })
 
-  // ---------------------------------------------------------
-  // GET TESTS
-  // ---------------------------------------------------------
   describe('get', () => {
     it('should retrieve a record by id', async () => {
       const result = await service.get(1, { user: { id: 1 } })
@@ -220,7 +181,7 @@ describe('UserSpecialMembershipRequestService', () => {
       const now = new Date()
       const result = await service.create(
         {
-          specialMembershipAccessId: 2,
+          specialMembershipAccessId: MockSubscriptionWithRevokableTemporaryAfterDays.id,
           notes: 'Please approve this temporary access.',
           isTemporary: true,
         },
@@ -228,17 +189,52 @@ describe('UserSpecialMembershipRequestService', () => {
       )
 
       assert.strictEqual(result.userId, 3)
-      assert.strictEqual(result.specialMembershipAccessId, 2)
+      assert.strictEqual(result.specialMembershipAccessId, MockSubscriptionWithRevokableTemporaryAfterDays.id)
       assert.strictEqual(result.status, StatusPendingTemporary)
       assert.ok(result.dateCreated >= now)
       assert.ok(result.dateLastModified >= now)
       assert.ok(Array.isArray(result.changelog))
       assert.strictEqual(result.changelog.length, 1)
       assert.strictEqual(result.changelog[0].status, StatusPendingTemporary)
-      assert.strictEqual(result.changelog[0].subscription, 'silver')
+      assert.strictEqual(result.changelog[0].subscription, MockSubscriptionWithRevokableTemporaryAfterDays.title)
       assert.strictEqual(result.changelog[0].notes, 'Please approve this temporary access.')
-      assert.ok(result.temporaryExpiresAt instanceof Date)
+      assert.ok(
+        result.temporaryExpiresAt instanceof Date,
+        'temporaryExpiresAt should be a Date, current value: ' +
+          MockSubscriptionWithRevokableTemporaryAfterDays.metadata?.revokeTemporaryAutomaticApprovalAfterDays
+      )
       assert.ok(result.temporaryExpiresAt!.getTime() > now.getTime())
+    })
+
+    it('should successfully create a request revokable after days when isTemporary is false', async () => {
+      const now = new Date()
+      const result = await service.create(
+        {
+          specialMembershipAccessId: MockSubscriptionWithRevokableAfterDays.id,
+          notes: 'Please approve this temporary access, even if it is not temporary.',
+          isTemporary: false,
+        },
+        { user: { id: 3 } }
+      )
+
+      assert.strictEqual(result.userId, 3)
+      assert.strictEqual(result.specialMembershipAccessId, MockSubscriptionWithRevokableAfterDays.id)
+      assert.strictEqual(result.status, StatusPending)
+      assert.ok(result.dateCreated >= now)
+      assert.ok(result.dateLastModified >= now)
+      assert.ok(Array.isArray(result.changelog))
+      assert.strictEqual(result.changelog.length, 1)
+      assert.strictEqual(result.changelog[0].status, StatusPending)
+      assert.strictEqual(result.changelog[0].subscription, MockSubscriptionWithRevokableAfterDays.title)
+      assert.strictEqual(
+        result.changelog[0].notes,
+        'Please approve this temporary access, even if it is not temporary.'
+      )
+      assert.strictEqual(
+        result.temporaryExpiresAt instanceof Date,
+        false,
+        'temporaryExpiresAt should be null when enableTemporaryAutomaticApproval is false'
+      )
     })
 
     it('should throw BadRequest when temporary requests are not enabled for the subscription', async () => {

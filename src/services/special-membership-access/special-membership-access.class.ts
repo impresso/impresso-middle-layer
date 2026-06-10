@@ -3,9 +3,9 @@ import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
-import { NotFound } from '@feathersjs/errors'
-import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
+import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
+import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
 
 export interface FindQuery {
   limit?: number
@@ -13,10 +13,20 @@ export interface FindQuery {
   bitmapPositions?: number[]
 }
 export type FindResult = FindResponse<SpecialMembershipAccess>
+type SpecialMembershipAccessPatchData = {
+  metadata?: SpecialMembershipAccess['metadata']
+}
+
 export type ISpecialMembershipAccessService = Omit<
   ClientService<SpecialMembershipAccess, any, any, FindResponse<SpecialMembershipAccess>>,
   'create' | 'patch' | 'remove' | 'update'
->
+> & {
+  patch(
+    id: Id | null,
+    data: SpecialMembershipAccessPatchData,
+    params?: Params & { user?: SlimUser }
+  ): Promise<SpecialMembershipAccess>
+}
 
 export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {
   protected readonly sequelizeClient: Sequelize
@@ -75,6 +85,42 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
     if (!record) {
       throw new NotFound(`SpecialMembershipAccess with id ${id} not found`)
     }
+    return record
+  }
+
+  async patch(
+    id: Id | null,
+    data: SpecialMembershipAccessPatchData,
+    params?: Params & { user?: SlimUser }
+  ): Promise<SpecialMembershipAccess> {
+    if (id == null) {
+      throw new NotFound('SpecialMembershipAccess id is required')
+    }
+
+    const allowedKeys = ['metadata']
+    const patchKeys = Object.keys(data)
+    if (patchKeys.length === 0) {
+      throw new BadRequest('metadata is required')
+    }
+    if (patchKeys.some(key => !allowedKeys.includes(key))) {
+      throw new BadRequest('Only metadata can be updated')
+    }
+
+    const userId = params?.user?.id
+    if (userId == null) {
+      throw new NotAuthenticated('Authentication required')
+    }
+
+    const record = await this.accessModel.findByPk(id)
+    if (!record) {
+      throw new NotFound(`SpecialMembershipAccess with id ${id} not found`)
+    }
+
+    if (record.reviewerId !== userId) {
+      throw new Forbidden('Only the reviewer of this item can update its metadata')
+    }
+
+    await record.update({ metadata: data.metadata ?? null })
     return record
   }
 }
