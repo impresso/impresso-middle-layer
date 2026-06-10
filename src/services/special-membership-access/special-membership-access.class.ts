@@ -13,13 +13,19 @@ export interface FindQuery {
   bitmapPositions?: number[]
 }
 export type FindResult = FindResponse<SpecialMembershipAccess>
+type SpecialMembershipAccessPatchData = {
+  metadata?: SpecialMembershipAccess['metadata']
+}
+
 export type ISpecialMembershipAccessService = Omit<
   ClientService<SpecialMembershipAccess, any, any, FindResponse<SpecialMembershipAccess>>,
   'create' | 'patch' | 'remove' | 'update'
->
-
-type SpecialMembershipAccessPatchData = {
-  metadata?: SpecialMembershipAccess['metadata']
+> & {
+  patch(
+    id: Id | null,
+    data: SpecialMembershipAccessPatchData,
+    params?: Params & { user?: SlimUser }
+  ): Promise<SpecialMembershipAccess>
 }
 
 export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {

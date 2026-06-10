@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert'
-import { Forbidden, NotFound } from '@feathersjs/errors'
+import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import { SpecialMembershipAccessService } from '@/services/special-membership-access/special-membership-access.class.js'
 import { validateBitmapPositionsQuery } from '@/services/special-membership-access/special-membership-access.service.js'
 import type { ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
@@ -233,6 +233,60 @@ describe('SpecialMembershipAccessService', () => {
         (error: any) => {
           assert.ok(error instanceof Forbidden)
           assert.strictEqual(error.message, 'Only the reviewer of this item can update its metadata')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when payload is empty', async () => {
+      await SpecialMembershipAccess.create({
+        ...mockData[0],
+        reviewerId: 1,
+        metadata: initialMetadata,
+      })
+
+      await assert.rejects(
+        () => service.patch(1, {}, { user: { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false } }),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, 'metadata is required')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when payload contains unexpected fields', async () => {
+      await SpecialMembershipAccess.create({
+        ...mockData[0],
+        reviewerId: 1,
+        metadata: initialMetadata,
+      })
+
+      await assert.rejects(
+        () =>
+          service.patch(1, { metadata: updatedMetadata, title: 'not allowed' } as any, {
+            user: { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false },
+          }),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, 'Only metadata can be updated')
+          return true
+        }
+      )
+    })
+
+    it('should throw NotAuthenticated when patching without a user', async () => {
+      await SpecialMembershipAccess.create({
+        ...mockData[0],
+        reviewerId: 1,
+        metadata: initialMetadata,
+      })
+
+      await assert.rejects(
+        () => service.patch(1, { metadata: updatedMetadata }),
+        (error: any) => {
+          assert.ok(error instanceof NotAuthenticated)
+          assert.strictEqual(error.message, 'Authentication required')
           return true
         }
       )
