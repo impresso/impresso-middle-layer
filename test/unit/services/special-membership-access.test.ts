@@ -2,7 +2,10 @@ import { strict as assert } from 'assert'
 import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import { SpecialMembershipAccessService } from '@/services/special-membership-access/special-membership-access.class.js'
 import { validateBitmapPositionsQuery } from '@/services/special-membership-access/special-membership-access.service.js'
-import type { ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
+import type {
+  ISpecialMembershipAccessAttributes,
+  SpecialMembershipAccessMetadata,
+} from '@/models/special-membership-access.model.js'
 
 import User from '@/models/users.model.js'
 import { setupTestDatabase, teardownTestDatabase, TestDatabase } from '../../helpers/database.js'
@@ -25,15 +28,15 @@ const mockData: ISpecialMembershipAccessAttributes[] = Array.from({ length: 32 }
   bitmapPosition: i + 1,
 }))
 
-const initialMetadata = {
-  modality: 'original',
+const initialMetadata: SpecialMembershipAccessMetadata = {
+  modality: 'cc_reviewer',
   enableTemporaryAutomaticApproval: false,
   revokeAfterDays: null,
   revokeTemporaryAutomaticApprovalAfterDays: null,
 }
 
-const updatedMetadata = {
-  modality: 'updated',
+const updatedMetadata: SpecialMembershipAccessMetadata = {
+  modality: 'notify_reviewer',
   enableTemporaryAutomaticApproval: true,
   revokeAfterDays: 7,
   revokeTemporaryAutomaticApprovalAfterDays: 14,
