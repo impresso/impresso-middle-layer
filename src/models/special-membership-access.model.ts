@@ -5,10 +5,10 @@ import User from '@/models/users.model.js'
 import UserSpecialMembershipRequest from '@/models/user-special-membership-requests.model.js'
 
 export interface SpecialMembershipAccessMetadata {
-  modality: string
-  enableTemporaryAutomaticApproval: boolean
-  revokeAfterDays: number | null
-  revokeTemporaryAutomaticApprovalAfterDays: number | null
+  modality?: 'cc_reviewer' | 'notify_reviewer'
+  enableTemporaryAutomaticApproval?: boolean
+  revokeAfterDays?: number | null
+  revokeTemporaryAutomaticApprovalAfterDays?: number | null
 }
 
 export interface ISpecialMembershipAccessAttributes {
