@@ -7,6 +7,7 @@ import { SlimUser } from '@/authentication.js'
 import { request, Dispatcher } from 'undici'
 import { EventEmitter } from 'stream'
 import BaristaConversation from '@/models/barista-conversations.model.js'
+import type { RateLimitingResult } from '@/services/internal/rateLimiter/redis.js'
 
 export interface BaristaRequest {
   /**
@@ -129,10 +130,12 @@ export interface BaristaStreamChunk {
   type?: string
   done?: boolean
   error?: string
+  remainingConversations?: number
 }
 
 interface CreateParams {
   user?: SlimUser
+  rateLimitingResult?: RateLimitingResult
 }
 
 export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, BaristaRequest>, 'create'> {
@@ -245,6 +248,9 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
         type: 'done',
         data: [],
         userUid,
+        remainingConversations: params?.rateLimitingResult
+          ? Math.max(0, params.rateLimitingResult.totalTokens - params.rateLimitingResult.usedTokens)
+          : undefined,
       })
 
       await this.touchConversation(sessionId, params?.user?.id)

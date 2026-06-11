@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 const rateLimiterScript = readFileSync(path.join(__dirname, 'lua/leakyBucketRateLimit.lua')).toString()
 const rateLimiterRevertScript = readFileSync(path.join(__dirname, 'lua/leakyBucketTakeToken.lua')).toString()
 
-interface RateLimitingResult {
+export interface RateLimitingResult {
   usedTokens: number
   totalTokens: number
   isAllowed: boolean
@@ -47,10 +47,20 @@ class NullRateLimiter implements IRateLimiter {
 /**
  * Rate limiter configuration section type in the configuration file.
  */
-export interface RateLimiterConfiguration {
+export interface RateLimitPolicy {
   capacity: number
   refillRate: number // requests / second
 }
+
+export interface RateLimiterConfiguration extends RateLimitPolicy {
+  resources?: Record<string, RateLimitPolicy>
+}
+
+export const getRateLimitPolicy = (configuration: RateLimiterConfiguration, resource: string): RateLimitPolicy =>
+  configuration.resources?.[resource] ?? {
+    capacity: configuration.capacity,
+    refillRate: configuration.refillRate,
+  }
 
 /**
  * Redis key for the rate limiter.
@@ -85,18 +95,22 @@ class RateLimiter implements IRateLimiter {
   async allow(userId: string, resource: string): Promise<RateLimitingResult> {
     if (this.rateLimiterScriptSha == null) throw new Error('Rate limiter not initialized')
 
+    const policy = getRateLimitPolicy(this.configuration, resource)
+
     const usedTokens = await this.redisClient.evalSha(this.rateLimiterScriptSha, {
       keys: [getKey(userId, resource)],
-      arguments: [String(this.configuration.capacity), String(this.configuration.refillRate)],
+      arguments: [String(policy.capacity), String(policy.refillRate)],
     })
     return {
       usedTokens: Number(usedTokens) + 1,
-      totalTokens: this.configuration.capacity,
-      isAllowed: Number(usedTokens) < this.configuration.capacity,
+      totalTokens: policy.capacity,
+      isAllowed: Number(usedTokens) < policy.capacity,
     }
   }
   async undo(userId: string, resource: string): Promise<RateLimitingResult> {
     if (this.rateLimiterRevertScriptSha == null) throw new Error('Rate limiter not initialized')
+
+    const policy = getRateLimitPolicy(this.configuration, resource)
 
     const usedTokens = await this.redisClient.evalSha(this.rateLimiterRevertScriptSha, {
       keys: [getKey(userId, resource)],
@@ -104,8 +118,8 @@ class RateLimiter implements IRateLimiter {
 
     return {
       usedTokens: Number(usedTokens) + 1,
-      totalTokens: this.configuration.capacity,
-      isAllowed: Number(usedTokens) < this.configuration.capacity,
+      totalTokens: policy.capacity,
+      isAllowed: Number(usedTokens) < policy.capacity,
     }
   }
 }

@@ -125,6 +125,22 @@ export interface RateLimiterConfig {
    * Refill rate of the rate limiter
    */
   refillRate: number;
+  /**
+   * Per-resource rate limiter overrides
+   */
+  resources?: {
+    [k: string]: RateLimitPolicy;
+  };
+}
+export interface RateLimitPolicy {
+  /**
+   * Capacity of the rate limiter
+   */
+  capacity: number;
+  /**
+   * Refill rate of the rate limiter in requests per second
+   */
+  refillRate: number;
 }
 /**
  * Quota checker configuration
