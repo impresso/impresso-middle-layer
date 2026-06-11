@@ -544,6 +544,10 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable rate limiting for this resource. Overrides the global enabled flag."
+        },
         "capacity": {
           "type": "number",
           "description": "Capacity of the rate limiter"

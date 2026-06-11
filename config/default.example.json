@@ -19,6 +19,7 @@
     "refillRate": 0.016,
     "resources": {
       "barista-proxy": {
+        "enabled": true,
         "capacity": 60,
         "refillRate": 0.016666666666666666
       }

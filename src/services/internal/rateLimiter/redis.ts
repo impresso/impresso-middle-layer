@@ -50,6 +50,7 @@ class NullRateLimiter implements IRateLimiter {
 export interface RateLimitPolicy {
   capacity: number
   refillRate: number // requests / second
+  enabled?: boolean
 }
 
 export interface RateLimiterConfiguration extends RateLimitPolicy {
@@ -61,6 +62,16 @@ export const getRateLimitPolicy = (configuration: RateLimiterConfiguration, reso
     capacity: configuration.capacity,
     refillRate: configuration.refillRate,
   }
+
+// Resource-level `enabled` overrides the global flag; global defaults to false.
+const isResourceEnabled = (configuration: RateLimiterConfiguration, resource: string): boolean => {
+  const resourcePolicy = configuration.resources?.[resource]
+  if (resourcePolicy?.enabled != null) return resourcePolicy.enabled
+  return configuration.enabled ?? false
+}
+
+const hasAnyEnabled = (configuration: RateLimiterConfiguration): boolean =>
+  (configuration.enabled ?? false) || Object.values(configuration.resources ?? {}).some(p => p.enabled === true)
 
 /**
  * Redis key for the rate limiter.
@@ -93,6 +104,7 @@ class RateLimiter implements IRateLimiter {
   }
 
   async allow(userId: string, resource: string): Promise<RateLimitingResult> {
+    if (!isResourceEnabled(this.configuration, resource)) return { usedTokens: 0, totalTokens: 0, isAllowed: true }
     if (this.rateLimiterScriptSha == null) throw new Error('Rate limiter not initialized')
 
     const policy = getRateLimitPolicy(this.configuration, resource)
@@ -108,6 +120,7 @@ class RateLimiter implements IRateLimiter {
     }
   }
   async undo(userId: string, resource: string): Promise<RateLimitingResult> {
+    if (!isResourceEnabled(this.configuration, resource)) return { usedTokens: 0, totalTokens: 0, isAllowed: true }
     if (this.rateLimiterRevertScriptSha == null) throw new Error('Rate limiter not initialized')
 
     const policy = getRateLimitPolicy(this.configuration, resource)
@@ -133,7 +146,7 @@ export default (app: ImpressoApplication) => {
   const rateLimiterConfiguration = app.get('rateLimiter')
   let rateLimiter: IRateLimiter = new NullRateLimiter()
 
-  if (rateLimiterConfiguration?.enabled) {
+  if (rateLimiterConfiguration != null && hasAnyEnabled(rateLimiterConfiguration)) {
     const redisClient = app.service('redisClient').client
 
     if (redisClient == null) {
