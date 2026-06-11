@@ -16,7 +16,13 @@
   "rateLimiter": {
     "enabled": false,
     "capacity": 10,
-    "refillRate": 0.016
+    "refillRate": 0.016,
+    "resources": {
+      "barista-proxy": {
+        "capacity": 60,
+        "refillRate": 0.016666666666666666
+      }
+    }
   },
   "appHooks": {
     "alwaysRequired": false

@@ -528,9 +528,31 @@
         "refillRate": {
           "type": "number",
           "description": "Refill rate of the rate limiter"
+        },
+        "resources": {
+          "type": "object",
+          "description": "Per-resource rate limiter overrides",
+          "additionalProperties": {
+            "$ref": "#/definitions/RateLimitPolicy"
+          }
         }
       },
       "description": "Rate limiter configuration",
+      "required": ["capacity", "refillRate"]
+    },
+    "RateLimitPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "capacity": {
+          "type": "number",
+          "description": "Capacity of the rate limiter"
+        },
+        "refillRate": {
+          "type": "number",
+          "description": "Refill rate of the rate limiter in requests per second"
+        }
+      },
       "required": ["capacity", "refillRate"]
     },
     "QuotaCheckerConfig": {
