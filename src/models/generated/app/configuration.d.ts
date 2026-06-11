@@ -134,6 +134,10 @@ export interface RateLimiterConfig {
 }
 export interface RateLimitPolicy {
   /**
+   * Enable rate limiting for this resource. Overrides the global enabled flag.
+   */
+  enabled?: boolean;
+  /**
    * Capacity of the rate limiter
    */
   capacity: number;
