@@ -10,6 +10,10 @@ import BaristaConversation from '@/models/barista-conversations.model.js'
 
 export interface BaristaRequest {
   /**
+   * A list of prohibited filter types (optional).
+   */
+  prohibitedFilterTypes?: string[] | null
+  /**
    * Additionalinstructions
    * @description Additional instructions to guide the agent's response. This is an extra added in addition to the system prompt.
    */
