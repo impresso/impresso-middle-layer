@@ -66,7 +66,6 @@ const JSONExpansionFields = [
   'pb_plain',
   'rb_plain',
   'rreb_plain',
-  'rrreb_plain' as ExpansionFields, // TODO: Remove the `rrreb_plain` option when the index is fixed. It's a mistake.
   'nag_offset_plain',
   'nem_offset_plain',
 ] satisfies ExpansionFields[]
