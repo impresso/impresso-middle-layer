@@ -166,7 +166,6 @@ export const FullContentItemFieldsNames = [
   ...ContentSemanticEnrichmentsFields,
   ...AudioContentFields,
   ...WildcardTextFields,
-  'rrreb_plain' as IFullContentItemFieldsNames, // TODO: Remove the `rrreb_plain` option when the index is fixed. It's a mistake.
 ] satisfies IFullContentItemFieldsNames[]
 
 export const SlimContentItemFieldsNames = [
@@ -426,10 +425,7 @@ export const toContentItem = (
       records: doc.record_id_ss?.map((recordId: string, idx: number) => {
         const utterancesEndOffsets = asList<number>(isFullDocument(doc) ? doc.ub_plain : undefined) ?? []
 
-        // TODO: Remove the `rrreb_plain` option when the index is fixed. It's a mistake.
-        const audioSegmentsLocators = parseAudioRecordTimecodes(
-          isFullDocument(doc) ? doc.rreb_plain : (doc as any)['rrreb_plain']
-        )
+        const audioSegmentsLocators = parseAudioRecordTimecodes(isFullDocument(doc) ? doc.rreb_plain : undefined)
           .find(r => r.id === recordId)
           ?.t?.map(item => toAudioSegmentLocator(item, utterancesEndOffsets))
 
