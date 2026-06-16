@@ -155,9 +155,10 @@ export default {
   after: {
     find: [
       displayQueryParams(['filters']),
+      transformResponse(transformBaseFind),
+
       ...inPublicApiOrWhen(
         [
-          transformResponse(transformBaseFind),
           redactResponseDataItem(contentItemBlanketRedactionPolicyPublicApi),
           // NOTE: Do not check quota in find - transcript is not included
           redactResponseDataItem(
