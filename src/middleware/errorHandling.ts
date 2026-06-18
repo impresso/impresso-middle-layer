@@ -106,6 +106,14 @@ export default (app: ImpressoApplication & ExpressApplication) => {
             detail: `${err.name}: ${err.message}`,
           } satisfies Problem)
         },
+        429: (err: GeneralError, req: Request, res: Response) => {
+          res.json({
+            type: `${problemUriBase}/rate-limit-exceeded`,
+            title: 'Rate limit exceeded',
+            status: 429,
+            detail: err.message,
+          } satisfies Problem)
+        },
         default: (err: GeneralError, req: Request, res: Response) => {
           // handle all other errors
           logger.error('Error [default]', err)
