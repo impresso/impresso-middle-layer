@@ -4,7 +4,7 @@ import hooks from '@/services/filter-serialization/filter-serialization.hooks.js
 
 describe('FilterSerialization hooks', () => {
   it('validates the create request body', () => {
-    const validateHook = hooks.before.create[1]
+    const validateHook = hooks.before.create[0]
     const context = {
       data: {
         filters: [{ type: 'newspaper', q: 'GDL' } as Filter],
@@ -17,7 +17,7 @@ describe('FilterSerialization hooks', () => {
   })
 
   it('rejects create request body without filters', () => {
-    const validateHook = hooks.before.create[1]
+    const validateHook = hooks.before.create[0]
     const context = {
       data: {},
     } as any
