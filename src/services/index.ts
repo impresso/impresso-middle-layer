@@ -68,6 +68,7 @@ import userSpecialMembershipRequestsReviews from './user-special-membership-requ
 import baristaProxy from './barista-proxy/barista-proxy.service.js'
 import baristaConversations from './barista-conversations/barista-conversations.service.js'
 import magicLink from './magic-link/magic-link.service.js'
+import filterSerialization from './filter-serialization/filter-serialization.service.js'
 /**
  * Some public services are declared here but are only required internally by
  * other services. Whether a service is available publicly or not is determined
@@ -93,6 +94,7 @@ const publicApiServices = [
   { name: 'images', init: images },
   { name: 'experiments', init: experiments },
   { name: 'logs', init: logs },
+  { name: 'filter-serialization', init: filterSerialization },
 ]
 
 const adminServices = [{ name: 'admin', init: admin }]

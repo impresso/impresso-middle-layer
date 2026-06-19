@@ -44,6 +44,9 @@ const FilterTypeToPythonArgumentName = {
   imageContentType: 'content_type',
   contentItemId: 'content_item_id',
   mediaSource: 'media_source_id',
+  permissionExplore: 'permission_explore',
+  permissionGetTranscript: 'permission_transcript',
+  permissionGetImage: 'permission_image',
 } satisfies Record<FilterType, string>
 
 const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']

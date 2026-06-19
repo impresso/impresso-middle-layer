@@ -144,6 +144,15 @@ indexes:
           - "gte-768:gte_multi_v768"
         rule: embeddingKnnSimilarity
         destination: query
+      permissionExplore:
+        field: rights_bm_index_explore_is
+        rule: value
+      permissionGetTranscript:
+        field: rights_bm_index_get_tr_is
+        rule: value
+      permissionGetImage:
+        field: rights_bm_index_get_img_is
+        rule: value
   tr_clusters:
     filters:
       textReuseCluster:
