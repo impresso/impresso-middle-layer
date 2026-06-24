@@ -97,6 +97,9 @@ export type ContentItemFacet = Extract<
   | 'copyright'
   | 'collection'
   | 'ocrQuality'
+  | 'permissionExplore'
+  | 'permissionGetTranscript'
+  | 'permissionGetImage'
 >
 
 const searchSolrMappings = {
@@ -278,6 +281,27 @@ const searchSolrMappings = {
       end: 1,
       start: 0,
       gap: 0.01,
+    },
+    permissionExplore: {
+      type: 'terms',
+      field: 'rights_bm_index_explore_is',
+      limit: 100,
+      offset: 0,
+      numBuckets: true,
+    },
+    permissionGetTranscript: {
+      type: 'terms',
+      field: 'rights_bm_index_get_tr_is',
+      limit: 100,
+      offset: 0,
+      numBuckets: true,
+    },
+    permissionGetImage: {
+      type: 'terms',
+      field: 'rights_bm_index_get_img_is',
+      limit: 100,
+      offset: 0,
+      numBuckets: true,
     },
   },
   orderBy: {
