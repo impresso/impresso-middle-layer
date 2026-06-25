@@ -104,6 +104,25 @@
         "schemaVersion": {
           "type": "string",
           "description": "Version of the data schema used in the index. Optional."
+        },
+        "embeddingModels": {
+          "type": "array",
+          "description": "Optional embedding model to Solr field mapping for this namespace.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "Name of the embedding model"
+              },
+              "field": {
+                "type": "string",
+                "description": "Solr field name corresponding to the embedding model"
+              }
+            },
+            "required": ["model", "field"]
+          }
         }
       },
       "required": ["namespaceId", "serverId", "index"]
