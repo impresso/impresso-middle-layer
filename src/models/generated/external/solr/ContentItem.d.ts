@@ -388,6 +388,10 @@ export interface SemanticEnrichmentsFields {
    * Content item embedding as a vector of floats.
    */
   gte_multi_v768?: number[];
+  /**
+   * Normalized content item embedding as a vector of floats.
+   */
+  gte_multi_v256?: number[];
 }
 
 
