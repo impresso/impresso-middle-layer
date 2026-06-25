@@ -134,7 +134,6 @@ export type FullContentOnlyFieldsType =
   | 'ub_plain'
 
 export type EmbeddingsFieldType = 'gte_multi_v768' | 'gte_multi_v256'
-export type EmbeddingsVectorNameType = 'gte-768' | 'gte-256'
 export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType | EmbeddingsFieldType>
 
 export type IFullContentItemFieldsNames = keyof (AllDocumentFields & IWildcardTextFields)
@@ -324,10 +323,11 @@ const buildAudioFileUrl = (recordId: string, partnerId: string): string => {
  * @returns true if the document is of type AllDocumentFields, false if SlimDocumentFields.
  */
 const isFullDocument = (
-  doc: WithScore<AllDocumentFields | SlimDocumentFields>
+  doc: WithScore<AllDocumentFields | SlimDocumentFields>,
+  embeddingFieldNames: string[]
 ): doc is WithScore<AllDocumentFields> => {
   const isFullContent = FullContentOnlyFields.some(field => field in doc)
-  const isEmbedding = EmbeddingsFields.some(field => field in doc)
+  const isEmbedding = embeddingFieldNames.some(field => field in doc)
   return isFullContent || isEmbedding
 }
 
@@ -348,11 +348,13 @@ export const toContentItem = (
   }: {
     maxScore?: number
     embeddingFields?: {
-      fieldName: EmbeddingsFieldType
-      vectorName: EmbeddingsVectorNameType
+      fieldName: string
+      vectorName: string
     }[]
   } = {}
 ): ContentItem => {
+  const embeddingFieldNames = embeddingFields.map(({ fieldName }) => fieldName)
+  const dynamicDoc = doc as Record<string, unknown>
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
 
@@ -410,10 +412,10 @@ export const toContentItem = (
     facsimile: {
       isCoordinatesConverted: doc.cc_b,
       isFrontPage: doc.front_b,
-      lineBreaks: isFullDocument(doc) ? asNumberArray(doc.lb_plain) : [],
+      lineBreaks: isFullDocument(doc, embeddingFieldNames) ? asNumberArray(doc.lb_plain) : [],
       pagesCount: doc.nb_pages_i,
-      paragraphBreaks: isFullDocument(doc) ? asNumberArray(doc.pb_plain) : [],
-      regionBreaks: isFullDocument(doc) ? asNumberArray(doc.rb_plain) : [],
+      paragraphBreaks: isFullDocument(doc, embeddingFieldNames) ? asNumberArray(doc.pb_plain) : [],
+      regionBreaks: isFullDocument(doc, embeddingFieldNames) ? asNumberArray(doc.rb_plain) : [],
       pages: doc.page_id_ss?.map((pageId: string, idx: number) => {
         return {
           id: pageId,
@@ -427,13 +429,13 @@ export const toContentItem = (
       ...(namedEntities != null ? { namedEntities } : {}),
       ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),
-      ...(isFullDocument(doc)
+      ...(isFullDocument(doc, embeddingFieldNames)
         ? {
             embeddings: embeddingFields
               .map(({ fieldName, vectorName }) => {
-                const value = doc[fieldName]
-                if (value == null) return undefined
-                return vectorToCanonicalEmbedding(value, vectorName)
+                const value = dynamicDoc[fieldName]
+                if (!Array.isArray(value)) return undefined
+                return vectorToCanonicalEmbedding(value as number[], vectorName)
               })
               .filter((v): v is NonNullable<typeof v> => v != null),
           }
@@ -444,9 +446,10 @@ export const toContentItem = (
       startTime: doc.meta_start_time_s,
       recordsCount: doc.nb_record_i,
       records: doc.record_id_ss?.map((recordId: string, idx: number) => {
-        const utterancesEndOffsets = asList<number>(isFullDocument(doc) ? doc.ub_plain : undefined) ?? []
+        const hasFullDocFields = isFullDocument(doc, embeddingFieldNames)
+        const utterancesEndOffsets = asList<number>(hasFullDocFields ? doc.ub_plain : undefined) ?? []
 
-        const audioSegmentsLocators = parseAudioRecordTimecodes(isFullDocument(doc) ? doc.rreb_plain : undefined)
+        const audioSegmentsLocators = parseAudioRecordTimecodes(hasFullDocFields ? doc.rreb_plain : undefined)
           .find(r => r.id === recordId)
           ?.t?.map(item => toAudioSegmentLocator(item, utterancesEndOffsets))
 
