@@ -102,6 +102,7 @@ const ContentSemanticEnrichmentsFields = [
   'nem_offset_plain',
   'nag_offset_plain',
   'gte_multi_v768',
+  'gte_multi_v256',
 ] satisfies (keyof SemanticEnrichmentsFields)[]
 
 const AudioContentFields = [
@@ -132,8 +133,8 @@ export type FullContentOnlyFieldsType =
   | 'rreb_plain'
   | 'ub_plain'
 
-export type EmbeddingsFieldType = 'gte_multi_v768'
-
+export type EmbeddingsFieldType = 'gte_multi_v768' | 'gte_multi_v256'
+export type EmbeddingsVectorNameType = 'gte-768' | 'gte-256'
 export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType | EmbeddingsFieldType>
 
 export type IFullContentItemFieldsNames = keyof (AllDocumentFields & IWildcardTextFields)
@@ -153,7 +154,7 @@ const FullContentOnlyFields = [
  * This is one level above "full content only" fields
  * and only should be fetched when embeddings are needed.
  */
-export const EmbeddingsFields = ['gte_multi_v768'] satisfies EmbeddingsFieldType[]
+export const EmbeddingsFields = ['gte_multi_v768', 'gte_multi_v256'] satisfies EmbeddingsFieldType[]
 
 type ISlimContentItemFieldsNames = Exclude<IFullContentItemFieldsNames, FullContentOnlyFieldsType>
 
@@ -333,12 +334,24 @@ const isFullDocument = (
 /**
  * Converts a Solr document to a ContentItem.
  * @param doc The Solr document to convert.
- * @param opts An optional parameter with optional `maxScore` that should be used as score denominator.
+ * @param opts An optional parameter with optional `maxScore` that should be used as score denominator and embeddingFields
  * @returns The converted ContentItem.
  */
 export const toContentItem = (
   doc: WithScore<AllDocumentFields | SlimDocumentFields>,
-  { maxScore }: { maxScore?: number } = {}
+  {
+    maxScore,
+    embeddingFields = [
+      { fieldName: 'gte_multi_v768', vectorName: 'gte-768' },
+      { fieldName: 'gte_multi_v256', vectorName: 'gte-256' },
+    ],
+  }: {
+    maxScore?: number
+    embeddingFields?: {
+      fieldName: EmbeddingsFieldType
+      vectorName: EmbeddingsVectorNameType
+    }[]
+  } = {}
 ): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
@@ -414,8 +427,16 @@ export const toContentItem = (
       ...(namedEntities != null ? { namedEntities } : {}),
       ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),
-      ...(isFullDocument(doc) && doc.gte_multi_v768 != null
-        ? { embeddings: [vectorToCanonicalEmbedding(doc.gte_multi_v768, 'gte-768')] }
+      ...(isFullDocument(doc)
+        ? {
+            embeddings: embeddingFields
+              .map(({ fieldName, vectorName }) => {
+                const value = doc[fieldName]
+                if (value == null) return undefined
+                return vectorToCanonicalEmbedding(value, vectorName)
+              })
+              .filter((v): v is NonNullable<typeof v> => v != null),
+          }
         : {}),
     },
     audio: {
