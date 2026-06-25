@@ -168,11 +168,28 @@
       }
     ],
     "namespaces": [
-      { "namespaceId": "search", "serverId": "default", "index": "impresso" },
+      {
+        "namespaceId": "search",
+        "serverId": "default",
+        "index": "impresso",
+        "embeddingModels": [
+          { "model": "gte-768", "field": "gte_multi_v768" },
+          { "model": "gte-256", "field": "gte_multi_v256" }
+        ]
+      },
       { "namespaceId": "mentions", "serverId": "default", "index": "impresso_mentions_test" },
       { "namespaceId": "topics", "serverId": "default", "index": "impresso_topics_dev" },
       { "namespaceId": "entities", "serverId": "default", "index": "impresso_entities_dev" },
-      { "namespaceId": "images", "serverId": "default", "index": "impresso_images_dev", "schemaVersion": "v2" },
+      {
+        "namespaceId": "images",
+        "serverId": "default",
+        "index": "impresso_images_dev",
+        "schemaVersion": "v2",
+        "embeddingModels": [
+          { "model": "openclip-768", "field": "openclip_emb_v768" },
+          { "model": "dinov2-1024", "field": "dinov2_emb_v1024" }
+        ]
+      },
       { "namespaceId": "tr_passages", "serverId": "default", "index": "impresso_tr_passages" },
       { "namespaceId": "tr_clusters", "serverId": "default", "index": "impresso_tr_clusters" },
       { "namespaceId": "word_embeddings", "serverId": "default", "index": "impresso_word_emb_dev" },
