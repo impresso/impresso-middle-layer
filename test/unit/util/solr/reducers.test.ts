@@ -819,7 +819,7 @@ describe('filtersToSolr', () => {
       assert.throws(
         () => filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces, {}),
         new InvalidArgumentError(
-          '"embeddingKnnSimilarity" filter rule: unknown model "unsupported-model". Supported models: gte-768'
+          '"embeddingKnnSimilarity" filter rule: unknown model "unsupported-model". Supported models: gte-768, gte-256'
         )
       )
     })
