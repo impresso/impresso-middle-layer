@@ -877,6 +877,44 @@ describe('filtersToSolr', () => {
         `{!knn f=gte_multi_v768 topK=10}[-0.5,-0.30000001192092896,0.20000000298023224,0.4000000059604645]`
       )
     })
+
+    it('uses embedding model mapping from features config when provided', () => {
+      const testVector = createTestVector([0.1, 0.2])
+      const filter = {
+        type: 'embedding',
+        q: `my-search-model:${testVector}`,
+      } satisfies Filter
+
+      const mockSolrNamespacesWithEmbeddingModels = [
+        {
+          namespaceId: 'search',
+          index: 'search-index',
+          serverId: 'mock-server',
+          embeddingModels: [{ model: 'my-search-model', field: 'my_search_emb_v2' }],
+        },
+        {
+          namespaceId: 'images',
+          index: 'images-index',
+          serverId: 'mock-server',
+        },
+      ]
+
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespacesWithEmbeddingModels, {})
+
+      assert.equal(query, `{!knn f=my_search_emb_v2 topK=10}[0.10000000149011612,0.20000000298023224]`)
+    })
+
+    it('falls back to YAML-defined mapping when namespace embedding models are not configured', () => {
+      const testVector = createTestVector([0.25, 0.75])
+      const filter = {
+        type: 'embedding',
+        q: `gte-768:${testVector}`,
+      } satisfies Filter
+
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, mockSolrNamespaces, {})
+
+      assert.equal(query, `{!knn f=gte_multi_v768 topK=10}[0.25,0.75]`)
+    })
   })
 })
 

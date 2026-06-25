@@ -10,6 +10,7 @@ import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { InvalidArgumentError } from '@/util/error.js'
 import { invertRecord } from '@/util/fn.js'
+import { getEmbeddingModelToFieldMap } from '@/util/solr/embeddingModels.js'
 import capitalisedValueFilterBuilder from '@/util/solr/filterBuilders/capitalisedValue.js'
 import { escapeIdValue, idValueBuilder, unescapeIdValue, valueBuilder } from '@/util/solr/filterBuilders/value.js'
 import { readFileSync } from 'fs'
@@ -447,15 +448,16 @@ const _base64ToNumberVector = (base64: string): number[] => {
  * @param filters filters with this type.
  * @param field array of strings in the format "model:solr_field_name", e.g. ["openclip-768:openclip_emb_v768", "dinov2-1024:dinov2_emb_v1024"]
  */
-const embeddingKnnSimilarityHandler = (filters: Filter[], field: string[], rule: string): string => {
-  const modelToFieldMap: Record<string, string> = field.reduce(
-    (map, entry) => {
-      const [model, fieldName] = entry.split(':')
-      map[model] = fieldName
-      return map
-    },
-    {} as Record<string, string>
-  )
+const embeddingKnnSimilarityHandler = (
+  filters: Filter[],
+  field: string[],
+  rule: string,
+  _solrNamespaces: SolrServerNamespaceConfiguration[],
+  _collectionsIndexVersion: FeaturesConfig['collectionsIndexVersion'],
+  solrNamespace: SolrNamespace,
+  _featuresConfig: FeaturesConfig
+): string => {
+  const modelToFieldMap = getEmbeddingModelToFieldMap(_solrNamespaces, solrNamespace, field)
   const items = filters.map(({ q }) => {
     const modelAndVector = Array.isArray(q) ? q[0] : q
     if (Array.isArray(q) && q.length > 1) {
@@ -577,7 +579,9 @@ export const filtersToSolr = (
       filterRules.field as any,
       filterRules.rule,
       solrNamespacesConfiguration,
-      featuresConfig.collectionsIndexVersion ?? 'legacy'
+      featuresConfig.collectionsIndexVersion ?? 'legacy',
+      solrNamespace,
+      featuresConfig
     ),
     destination: filterRules.destination ?? 'query',
   }
