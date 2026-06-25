@@ -15,6 +15,7 @@ import { isTrue } from '@/util/queryParameters.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
+import { getEmbeddingFieldVectorPairs } from '@/util/solr/embeddingModels.js'
 
 const DefaultLimit = 10
 export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024' satisfies keyof ImageDocument
@@ -105,11 +106,18 @@ export class Images implements ImageService {
     })
 
     const mediaSourceLookup = await this.mediaSources.getLookup()
+    const embeddingModelFields = this.getImageEmbeddingFieldsWithModelTag()
 
     return {
       data:
         results?.response?.docs?.map(d =>
-          toImage(d, mediaSourceLookup, this.rewriteRules, isTrue(params?.query?.include_embeddings))
+          toImage(
+            d,
+            mediaSourceLookup,
+            this.rewriteRules,
+            isTrue(params?.query?.include_embeddings),
+            embeddingModelFields
+          )
         ) ?? [],
       pagination: {
         limit,
@@ -123,8 +131,15 @@ export class Images implements ImageService {
     const imageDoc = await this.getImageDocument(String(id))
     if (imageDoc == null) throw new NotFound(`Image with id ${id} not found`)
     const mediaSourceLookup = await this.mediaSources.getLookup()
+    const embeddingModelFields = this.getImageEmbeddingFieldsWithModelTag()
 
-    return toImage(imageDoc, mediaSourceLookup, this.rewriteRules, isTrue(params?.query?.include_embeddings))
+    return toImage(
+      imageDoc,
+      mediaSourceLookup,
+      this.rewriteRules,
+      isTrue(params?.query?.include_embeddings),
+      embeddingModelFields
+    )
   }
 
   async getImageDocument(id: string, fields?: (keyof ImageDocument)[]): Promise<ImageDocument | undefined> {
@@ -133,9 +148,19 @@ export class Images implements ImageService {
     })
     return result
   }
+
+  private getImageEmbeddingFieldsWithModelTag(): [EmbeddingField, string][] {
+    const pairs = getEmbeddingFieldVectorPairs(
+      this.app.get('solrConfiguration').namespaces ?? [],
+      SolrNamespaces.Images
+    )
+    if (pairs.length === 0) return EmbeddingsFieldsWithModelTag
+
+    return pairs.map(({ fieldName, vectorName }) => [fieldName, vectorName])
+  }
 }
 
-type EmbeddingField = keyof Pick<ImageDocument, 'openclip_emb_v768' | 'dinov2_emb_v1024'>
+type EmbeddingField = string
 
 const EmbeddingsFieldsWithModelTag: [EmbeddingField, string][] = [
   ['openclip_emb_v768', 'openclip-768'],
@@ -209,14 +234,18 @@ const toImage = (
   doc: ImageDocument,
   mediaSources: Record<string, MediaSource>,
   rewriteRules: ImageUrlRewriteRule[],
-  includeEmbeddings: boolean
+  includeEmbeddings: boolean,
+  embeddingsFieldsWithModelTag: [EmbeddingField, string][] = EmbeddingsFieldsWithModelTag
 ): Image => {
+  const dynamicDoc = doc as Record<string, unknown>
   const embeddings = includeEmbeddings
-    ? EmbeddingsFieldsWithModelTag.map(([field, modelTag]) => {
-        const value = doc[field]
-        if (value == null) return undefined
-        return vectorToCanonicalEmbedding(value, modelTag)
-      }).filter(v => v != null)
+    ? embeddingsFieldsWithModelTag
+        .map(([field, modelTag]) => {
+          const value = dynamicDoc[field]
+          if (!Array.isArray(value)) return undefined
+          return vectorToCanonicalEmbedding(value as number[], modelTag)
+        })
+        .filter(v => v != null)
     : undefined
 
   const imageTypes = toTypes(doc)
