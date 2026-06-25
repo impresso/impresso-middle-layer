@@ -146,6 +146,7 @@ indexes:
       embedding:
         field:
           - "gte-768:gte_multi_v768"
+          - "gte-256:gte_multi_v256"
         rule: embeddingKnnSimilarity
         destination: query
       permissionExplore:
