@@ -687,7 +687,7 @@ export class ContentItemService implements IContentItemService {
       toContentItemWithMatches(
         result.response as IFragmentsAndHighlights,
         result?.response?.maxScore,
-        this.getSearchEmbeddingFieldVectorPairs()
+        isTrue(params.query?.include_embeddings) ? this.getSearchEmbeddingFieldVectorPairs() : undefined
       )
     ) ?? [])?.[0]
 
