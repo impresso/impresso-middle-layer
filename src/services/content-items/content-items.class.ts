@@ -50,6 +50,8 @@ import { base64BytesToBigInt } from '@/util/bigint.js'
 import { QueueService } from '@/internalServices/queue.js'
 import { Filter } from 'impresso-jscommons'
 import { isTrue } from '@/util/queryParameters.js'
+import { getEmbeddingFieldVectorPairs, getEmbeddingFields } from '@/util/solr/embeddingModels.js'
+import { SolrNamespaces } from '@/solr.js'
 
 const DefaultLimit = 10
 
@@ -85,18 +87,20 @@ const withJsonExpansion = (field: IFullContentItemFieldsNames) => {
 export const FindMethodFields = [...SlimContentItemFieldsNames].map(withJsonExpansion)
 
 /**
- * Fields needed to fetch a list of content items including embeddings.
- */
-const FindMethodFieldsWithEmbeddings = [...SlimContentItemFieldsNames, ...EmbeddingsFields].map(withJsonExpansion)
-
-/**
  * Fields needed to fetch a single content item.
  * All fields are included here.
  */
-const GetMethodFields = [...FullContentItemFieldsNames.filter(f => !EmbeddingsFields.includes(f as any))].map(
-  withJsonExpansion
-)
-const GetMethodFieldsWithEmbeddings = [...FullContentItemFieldsNames].map(withJsonExpansion)
+const GetMethodFields = [...FullContentItemFieldsNames].map(withJsonExpansion)
+
+const withDynamicEmbeddingFields = (fields: string[], embeddingFieldNames: string[]): string[] => {
+  const next = [...fields]
+  embeddingFieldNames.forEach(field => {
+    if (!next.includes(field)) {
+      next.push(field)
+    }
+  })
+  return next
+}
 
 // async function getIssues(request: Record<string, any>, app: ImpressoApplication) {
 //   const sequelize = app.get('sequelizeClient')
@@ -377,9 +381,13 @@ const withTextLabels =
     }
   }
 
-export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights, maxScore?: number) => {
+export const toContentItemWithMatches = (
+  fragmentsAndHighlights: IFragmentsAndHighlights,
+  maxScore?: number,
+  embeddingFields?: Array<{ fieldName: string; vectorName: string }>
+) => {
   return (doc: AllDocumentFields): ContentItem => {
-    const contentItem = toContentItem(doc, { maxScore })
+    const contentItem = toContentItem(doc, { maxScore, embeddingFields })
     const matches = getContentItemMatches(contentItem, doc.pp_plain, fragmentsAndHighlights)
 
     return {
@@ -439,6 +447,24 @@ export class ContentItemService implements IContentItemService {
     return this.app?.service('simpleSolrClient')!
   }
 
+  getSearchEmbeddingFields(): string[] {
+    const configured = getEmbeddingFields(this.app.get('solrConfiguration').namespaces ?? [], SolrNamespaces.Search)
+    return configured.length > 0 ? configured : [...EmbeddingsFields]
+  }
+
+  getSearchEmbeddingFieldVectorPairs(): Array<{ fieldName: string; vectorName: string }> {
+    const configured = getEmbeddingFieldVectorPairs(
+      this.app.get('solrConfiguration').namespaces ?? [],
+      SolrNamespaces.Search
+    )
+    return configured.length > 0
+      ? configured
+      : [
+          { fieldName: 'gte_multi_v768', vectorName: 'gte-768' },
+          { fieldName: 'gte_multi_v256', vectorName: 'gte-256' },
+        ]
+  }
+
   async find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     return await this._find(params)
   }
@@ -471,10 +497,14 @@ export class ContentItemService implements IContentItemService {
   }
 
   async _find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
+    const searchEmbeddingFields = this.getSearchEmbeddingFields()
+    const searchEmbeddingFieldVectorPairs = this.getSearchEmbeddingFieldVectorPairs()
     const fields = [
       ...[ScoreField],
       // if include embeddings is requested, add those fields
-      ...(isTrue(params.query?.include_embeddings) ? FindMethodFieldsWithEmbeddings : FindMethodFields),
+      ...(isTrue(params.query?.include_embeddings)
+        ? withDynamicEmbeddingFields(FindMethodFields, searchEmbeddingFields)
+        : FindMethodFields),
       // if include transcript is requested, add those fields
       ...(isTrue(params.query?.include_transcript) ? ContentTextFields : []),
     ]
@@ -514,7 +544,9 @@ export class ContentItemService implements IContentItemService {
     })
 
     const contentItems = (results.response?.docs ?? ([] as SlimDocumentFields[]))
-      .map(d => toContentItem(d, { maxScore: results.response?.maxScore }))
+      .map(d =>
+        toContentItem(d, { maxScore: results.response?.maxScore, embeddingFields: searchEmbeddingFieldVectorPairs })
+      )
       .map(item => withMatches(item, results))
 
     // get data enrichment items
@@ -634,7 +666,9 @@ export class ContentItemService implements IContentItemService {
       q: `id:${id}`,
       limit: 1,
       offset: 0,
-      fl: isTrue(params.query?.include_embeddings) ? GetMethodFieldsWithEmbeddings : GetMethodFields,
+      fl: isTrue(params.query?.include_embeddings)
+        ? withDynamicEmbeddingFields(GetMethodFields, this.getSearchEmbeddingFields())
+        : GetMethodFields,
     })
 
     const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
@@ -650,7 +684,11 @@ export class ContentItemService implements IContentItemService {
     ])
 
     const contentItem = (result.response?.docs?.map(
-      toContentItemWithMatches(result.response as IFragmentsAndHighlights, result?.response?.maxScore)
+      toContentItemWithMatches(
+        result.response as IFragmentsAndHighlights,
+        result?.response?.maxScore,
+        this.getSearchEmbeddingFieldVectorPairs()
+      )
     ) ?? [])?.[0]
 
     if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)
