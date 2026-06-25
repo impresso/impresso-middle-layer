@@ -126,6 +126,13 @@
       "items": {
         "type": "number"
       }
+    },
+    "gte_multi_v256": {
+      "type": "array",
+      "description": "Normalized content item embedding as a vector of floats.",
+      "items": {
+        "type": "number"
+      }
     }
   },
   "additionalProperties": false
