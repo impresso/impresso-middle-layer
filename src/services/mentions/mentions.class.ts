@@ -1,5 +1,5 @@
 import { Params } from '@feathersjs/feathers'
-import Debug from 'debug'
+import { getLogger } from '@/logger.js'
 import { Op } from 'sequelize'
 import { ImpressoApplication } from '@/types.js'
 import { measureTime } from '@/util/instruments.js'
@@ -10,7 +10,7 @@ import { groupBy } from '@/util/fn.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
 
-const debug = Debug('impresso/services:mentions')
+const logger = getLogger(['impresso', 'services', 'mentions'])
 
 interface ServiceOptions {
   app: ImpressoApplication
@@ -45,7 +45,7 @@ export class Service {
     if (params.sanitized.sequelizeQuery) {
       where[Op.and as any] = params.sanitized.sequelizeQuery
     }
-    debug(`[find] with params.isSafe:${params.isSafe} and params.query:`, params.query, findAllOnly)
+    logger.debug(`[find] with params.isSafe:${params.isSafe} and params.query: ${params.query} ${findAllOnly}`)
     return measureTime(
       () =>
         this.sequelizeService
@@ -55,7 +55,7 @@ export class Service {
             where,
           })
           .then(async res => {
-            debug('[find] success! total:', res.total)
+            logger.debug(`[find] success! total: ${res.total}`)
             res.data = await this._enrichEntityMentions(res.data as EntityMention[])
             return res
           }),

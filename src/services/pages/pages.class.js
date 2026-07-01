@@ -1,6 +1,6 @@
 import Page from '@/models/pages.model.js'
-import debugLib from 'debug'
-const debug = debugLib('impresso/services:pages')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'pages'])
 import { NotFound } from '@feathersjs/errors'
 import initSequelizeService from '@/services/sequelize.service.js'
 import { measureTime } from '@/util/instruments.js'
@@ -33,7 +33,7 @@ export class Service {
         () =>
           this.SequelizeService.get(id, {}).catch(err => {
             if (err.code === 404) {
-              debug(`'get' (WARNING!) no page found using SequelizeService for page id ${id}`)
+              logger.debug(`'get' (WARNING!) no page found using SequelizeService for page id ${id}`)
               return
             }
             throw err
@@ -43,7 +43,7 @@ export class Service {
     ])
 
     if (results[0].response.numFound === 0) {
-      debug(`get: no articles found for page id ${id}`)
+      logger.debug(`get: no articles found for page id ${id}`)
       throw new NotFound()
     }
 

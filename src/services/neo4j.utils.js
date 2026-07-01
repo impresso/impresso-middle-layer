@@ -1,8 +1,8 @@
 import mustache from 'mustache'
+import { getLogger } from '@/logger.js'
 import moment from 'moment'
-import Debug from 'debug'
-const debug = Debug('impresso/services:neo4j.utils')
-const verbose = Debug('verbose:impresso/services:neo4j.utils')
+const logger = getLogger(['impresso', 'services', 'neo4j.utils'])
+const verboseLogger = getLogger(['impresso', 'services', 'neo4j.utils'])
 import { Conflict, BadRequest, BadGateway, Unavailable } from '@feathersjs/errors'
 
 const neo4jToInt = neo4jInteger => (typeof neo4jInteger === 'object' ? neo4jInteger.low : neo4jInteger)
@@ -25,42 +25,42 @@ const neo4jPrepare = (cypherQuery, params) =>
 const neo4jRun = (session, cypherQuery, params, queryname) => {
   const preparedQuery = neo4jPrepare(cypherQuery, params)
 
-  debug('neo4jRun: with cypher query:', queryname || preparedQuery)
+  logger.debug(`neo4jRun: with cypher query: ${queryname || preparedQuery}`)
 
   const queryParams = {
     ...neo4jNow(),
     ...params,
   }
 
-  debug('neo4jRun: with cypher params:', queryParams)
+  logger.debug(`neo4jRun: with cypher params: ${queryParams}`)
 
   return session
     .run(preparedQuery, queryParams)
     .then(res => {
       session.close()
-      debug('neo4jRun: success! n. records:', res.records.length)
+      logger.debug(`neo4jRun: success! n. records: ${res.records.length}`)
       res.queryParams = queryParams
       return res
     })
     .catch(err => {
       if (err.code === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
-        debug(`neo4jRun failed. ConstraintValidationFailed: ${err}`)
+        logger.debug(`neo4jRun failed. ConstraintValidationFailed: ${err}`)
         throw new Conflict('ConstraintValidationFailed')
       } else if (err.code === 'Neo.ClientError.Statement.ParameterMissing') {
-        debug('neo4jRun failed. ParameterMissing:', err)
+        logger.debug(`neo4jRun failed. ParameterMissing: ${err}`)
         throw new BadRequest('ParameterMissing')
       } else if (err.code === 'Neo.ClientError.Statement.SyntaxError') {
-        debug('neo4jRun failed. SyntaxError:', err)
+        logger.debug(`neo4jRun failed. SyntaxError: ${err}`)
         throw new BadGateway('SyntaxError')
       } else if (err.code === 'ServiceUnavailable') {
-        debug('neo4jRun failed. ServiceUnavailable:', err)
+        logger.debug(`neo4jRun failed. ServiceUnavailable: ${err}`)
         throw new Unavailable()
       } else if (err.code === 'Neo.ClientError.Procedure.ProcedureCallFailed') {
-        debug('neo4jRun failed. ProcedureCallFailed:', err)
+        logger.debug(`neo4jRun failed. ProcedureCallFailed: ${err}`)
         throw new BadRequest('ProcedureCallFailed')
       } else {
-        debug('neo4jRun failed. Check error below.')
-        debug(err.code, err)
+        logger.debug('neo4jRun failed. Check error below.')
+        logger.debug(`${err.code} ${err}`)
       }
       throw new BadRequest()
     })
@@ -118,7 +118,7 @@ const neo4jFieldMapper = field => {
   if (field.constructor.name === 'Relationship') {
     return neo4jRelationshipMapper(field)
   }
-  debug('neo4jFieldMapper: unknown neo4j constructor:', field.constructor.name)
+  logger.debug(`neo4jFieldMapper: unknown neo4j constructor: ${field.constructor.name}`)
   return null
 }
 
@@ -126,9 +126,9 @@ const neo4jRecordMapper = record => {
   // OUR cypher output can be a complex json object.
   // console.log(record)
   if (!record._fieldLookup) {
-    debug('neo4jRecordMapper: NO _fieldLookup present, record:', record)
+    logger.debug(`neo4jRecordMapper: NO _fieldLookup present, record: ${record}`)
   } else {
-    verbose('neo4jRecordMapper: _fieldLookup:', record._fieldLookup)
+    verboseLogger.debug(`neo4jRecordMapper: _fieldLookup: ${record._fieldLookup}`)
   }
 
   const results = {}
@@ -145,7 +145,7 @@ const neo4jRecordMapper = record => {
     })
   }
 
-  verbose('neo4jRecordMapper: results expected <Keys>:', keys)
+  verboseLogger.debug(`neo4jRecordMapper: results expected <Keys>: ${keys}`)
   //
 
   if (keys.length === 1) {
@@ -156,12 +156,12 @@ const neo4jRecordMapper = record => {
   const identities = keys.filter(d => d.indexOf('_') !== 0)
 
   if (identities.length !== 1) {
-    verbose('neo4jRecordMapper: more than one items in list <identities>:', identities)
+    verboseLogger.debug(`neo4jRecordMapper: more than one items in list <identities>: ${identities}`)
     // nothing to do, the query is like this.
     return results
   }
 
-  verbose('neo4jRecordMapper: merging fields in remaining <identities> item:', identities)
+  verboseLogger.debug(`neo4jRecordMapper: merging fields in remaining <identities> item: ${identities}`)
 
   // apply related as _links
   const extras = keys.filter(d => d.indexOf('_') === 0)
@@ -174,7 +174,7 @@ const neo4jRecordMapper = record => {
 
 // const neo4jRecords = (res) => {
 //   const _records = {};
-//   debug(`find '${this.name}': neo4j success`, neo4jSummary(res));
+//   logger.debug(`find '${this.name}': neo4j success ${neo4jSummary(res)}`);
 //   for (let rec of res.records) {
 //     rec = neo4jRecordMapper(rec);
 //     _records[rec.uid] = rec;
@@ -234,7 +234,7 @@ const neo4jPathSegmentMapper = segment => ({
 })
 
 const neo4jPathMapper = path => {
-  debug('neo4jPathMapper: n. of segments:', path.segments.length)
+  logger.debug(`neo4jPathMapper: n. of segments: ${path.segments.length}`)
   return {
     type: 'path',
     length: path.length,
@@ -265,7 +265,7 @@ const neo4jToLucene = q => {
     })
     .join(' AND ')
 
-  debug('neo4jToLucene: <natural query>', q, 'to <lucene query>', _q)
+  logger.debug(`neo4jToLucene: <natural query> ${q} to <lucene query> ${_q}`)
   return _q
 }
 

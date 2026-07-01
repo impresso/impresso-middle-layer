@@ -1,16 +1,16 @@
 import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
+import { getLogger } from '@/logger.js'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import { DataProvider } from '@/models/generated/canonical.js'
 import * as path from 'path'
 import * as fs from 'fs'
 import { fileURLToPath } from 'url'
-import debug from 'debug'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const log = debug('impresso/services:data-providers')
+const logger = getLogger(['impresso', 'services', 'data-providers'])
 
 interface PartnerInstitutionDirectoryEntry {
   partner_institution_id: string
@@ -75,10 +75,10 @@ export class DataProviders
         bitmapIndex: entry.partner_bitmap_index,
       }))
 
-      log(`Loaded ${this.dataProviders.length} data providers from directory`)
+      logger.debug(`Loaded ${this.dataProviders.length} data providers from directory`)
     } catch (e) {
       const error = e as Error
-      log(`Error loading data providers: ${error.message}`)
+      logger.debug(`Error loading data providers: ${error.message}`)
       this.dataProviders = []
     }
   }

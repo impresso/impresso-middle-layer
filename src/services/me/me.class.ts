@@ -1,13 +1,12 @@
 import type { Sequelize } from 'sequelize'
 import type { ImpressoApplication } from '@/types.js'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
-import Debug from 'debug'
 import { NotFound, BadRequest } from '@feathersjs/errors'
-const debug = Debug('impresso:services/me')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'me'])
 import User, { Me } from '@/models/users.model.js'
 import Group from '@/models/groups.model.js'
 import Profile from '@/models/profiles.model.js'
-import { logger } from '@/logger.js'
 
 interface Params extends FeathersParams {
   user: {
@@ -50,14 +49,14 @@ export class Service {
     if (!this.sequelizeClient) {
       throw new Error(`[me] Sequelize client not available in ${this.name}`)
     }
-    debug('[find] retrieve user from params query:', params.query)
+    logger.debug(`[find] retrieve user from params query: ${params.query}`)
     const userModel = User.sequelize(this.sequelizeClient)
 
     const user = await userModel.findByPk(params.user.id, {
       include: ['groups', 'profile', 'userBitmap'],
     })
     if (!user) {
-      debug('[find] User not found with id:', params.user.id)
+      logger.debug(`[find] User not found with id: ${params.user.id}`)
       throw new NotFound('User not found')
     }
 
@@ -76,7 +75,7 @@ export class Service {
     if (!this.sequelizeClient) {
       throw new Error(`Sequelize client not available in ${this.name}`)
     }
-    debug(`[patch] (user:${params.user.uid}) - id:`, params.user.id, data)
+    logger.debug(`[patch] (user:${params.user.uid}) - id: ${params.user.id} ${data}`)
     const userModel = User.sequelize(this.sequelizeClient)
     const profileModel = Profile.initModel(this.sequelizeClient)
     const transaction = await this.sequelizeClient.transaction()
@@ -98,9 +97,7 @@ export class Service {
         }
       )
       if (displayName || institutionalUrl || affiliation || pattern) {
-        debug(
-          `[patch] (user:${params.user.uid}) updating profile with displayName: ${displayName}, institutionalUrl: ${institutionalUrl}, affiliation: ${affiliation}, pattern: ${pattern}`
-        )
+        logger.debug(`[patch] (user:${params.user.uid}) updating profile with displayName: ${displayName}, institutionalUrl: ${institutionalUrl}, affiliation: ${affiliation}, pattern: ${pattern}`)
         await profileModel.update(
           {
             displayName,
@@ -118,7 +115,7 @@ export class Service {
       }
       await transaction.commit()
     } catch (error) {
-      debug(`[patch] (user:${params.user.uid}) error:`, error)
+      logger.debug(`[patch] (user:${params.user.uid}) error: ${error}`)
       logger.error(`[patch] (user:${params.user.uid}) error`, { error })
       await transaction.rollback()
       throw new BadRequest('Error updating user.')
@@ -128,7 +125,7 @@ export class Service {
       include: ['groups', 'profile', 'userBitmap'],
     })
     if (!updatedUser) {
-      debug('[patch] User not found with id:', params.user.id)
+      logger.debug(`[patch] User not found with id: ${params.user.id}`)
       throw new NotFound('User not found')
     }
     const response = User.getMe({
@@ -139,7 +136,7 @@ export class Service {
       },
       profile: (updatedUser as any).profile,
     })
-    debug(`[patch] (user:${params.user.uid}) updated user:`, response)
+    logger.debug(`[patch] (user:${params.user.uid}) updated user: ${response}`)
     return response
   }
 }

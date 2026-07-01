@@ -69,7 +69,6 @@
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.5",
     "csv-stringify": "^6.6.0",
-    "debug": "^4.3.4",
     "decypher": "^0.13.0",
     "dotenv": "^16.0.1",
     "express-openapi-validator": "5.5.7",

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
-import Debug from 'debug'
-const debug = Debug('impresso/services:uploaded-images')
-const verbose = Debug('verbose:impresso/services:uploaded-images')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'uploaded-images'])
+const verboseLogger = getLogger(['impresso', 'services', 'uploaded-images'])
 import { Op } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
 import UploadedImage from '@/models/uploaded-images.model.js'
@@ -23,28 +23,28 @@ export class Service {
   }
 
   async get(id, params) {
-    debug(`[get] id: ${id} check REDIS if an image has been uploaded KEY:"img:${id}"`)
+    logger.debug(`[get] id: ${id} check REDIS if an image has been uploaded KEY:"img:${id}"`)
     const cachedImage = await this.app.service('redisClient').client.get(`img:${id}`)
 
     if (cachedImage) {
-      debug('[get] id:', id, 'found uploaded image in REDIS, with hash:', cachedImage.id)
+      logger.debug(`[get] id: ${id} found uploaded image in REDIS, with hash: ${cachedImage.id}`)
       return new UploadedImage(JSON.parse(cachedImage))
     }
 
-    debug('[get] id:', id, 'looking for existing images')
+    logger.debug(`[get] id: ${id} looking for existing images`)
     return this.SequelizeService.get(id, {
       where: {
         [Op.or]: [{ uid: id }, { checksum: id }],
       },
     }).then(result => {
-      debug('get result:', result)
+      logger.debug(`get result: ${result}`)
       return result
     })
   }
 
   create(data, params) {
     const app = this.app
-    debug('create', data)
+    logger.debug(`create ${data}`)
     return new Promise((resolve, reject) => {
       const redisClient = app.service('redisClient').client
 

@@ -3,15 +3,14 @@ import User from '@/models/users.model.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { Params } from '@feathersjs/feathers'
 import { Sequelize } from 'sequelize'
-import Debug from 'debug'
 import { Unavailable } from '@feathersjs/errors'
 import jwt from 'jsonwebtoken'
 import { CeleryClient } from '@/celery.js'
 import { RedisClient } from '@/redis.js'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import { randomUUID } from 'crypto'
 
-const debug = Debug('impresso/services:magic-link')
+const logger = getLogger(['impresso', 'services', 'magic-link'])
 
 export interface CreateData {
   email: string
@@ -52,7 +51,7 @@ export class MagicLinkService {
     this.celeryClient = app.get('celeryClient') as CeleryClient
     this.redisClient = app.service('redisClient').client as RedisClient
     this.name = 'magicLink'
-    debug('Initialized service %s with callback URL %s', this.name, this.callbackUrl)
+    logger.debug(`Initialized service ${this.name} with callback URL ${this.callbackUrl}`)
   }
 
   /**
@@ -70,7 +69,7 @@ export class MagicLinkService {
       },
     })
     if (!user) {
-      debug('[create] User not found <email>:', data.email)
+      logger.debug(`[create] User not found <email>: ${data.email}`)
       return {
         result: 'ok',
       }
@@ -81,19 +80,9 @@ export class MagicLinkService {
     })
     // save user id related to the token into the db
     await this.redisClient.setEx(`magic-link:${token}`, this.config.expiration, String(user.get('id')))
-    debug(
-      '[create] Generated magic link token for email:',
-      data.email,
-      'userId:',
-      user.get('id'),
-      'token:',
-      token,
-      'expires in:',
-      this.config.expiration,
-      'seconds'
-    )
+    logger.debug(`[create] Generated magic link token for email: ${data.email} userId: ${user.get('id')} token: ${token} expires in: ${this.config.expiration} seconds`)
     if (!this.celeryClient) {
-      debug('[create] No celery client configured, cannot send email to', data.email)
+      logger.debug(`[create] No celery client configured, cannot send email to ${data.email}`)
       logger.error('Email service not configured')
       throw new Unavailable('Email service not configured')
     }
@@ -110,7 +99,7 @@ export class MagicLinkService {
         ],
       })
       .catch((err: Error) => {
-        debug('[create] Error sending magic link email to', data.email, 'error:', err)
+        logger.debug(`[create] Error sending magic link email to ${data.email} error: ${err}`)
         logger.error(`Failed to send magic link email to ${data.email}`, err)
         throw new Unavailable('Failed to send email')
       })

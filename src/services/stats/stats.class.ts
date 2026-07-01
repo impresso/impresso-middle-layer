@@ -1,5 +1,5 @@
 import { Id, Params } from '@feathersjs/feathers'
-import Debug from 'debug'
+import { getLogger } from '@/logger.js'
 import { statsConfiguration } from '@/data/index.js'
 import { SolrFacetQueryParams } from '@/data/types.js'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
@@ -14,7 +14,7 @@ import { ImpressoApplication } from '@/types.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from '@/services/stats/common.js'
 
-const debug = Debug('impresso/services:stats')
+const logger = getLogger(['impresso', 'services', 'stats'])
 
 const FacetTypes = Object.freeze({
   Term: 'term',
@@ -268,18 +268,7 @@ export class Stats {
       .map((s: keyof typeof StatsToSolrStatistics) => StatsToSolrStatistics[s])
       .join(' ')}}${field}`
 
-    debug(
-      '[get] index:',
-      index,
-      'field:',
-      field,
-      'stats:',
-      stats,
-      'n.filters:',
-      filters.length,
-      'statsField:',
-      statsField
-    )
+    logger.debug(`[get] index: ${index} field: ${field} stats: ${stats} n.filters: ${filters.length} statsField: ${statsField}`)
     const { query, filter } = filtersToQueryAndVariables(
       filters,
       index,
@@ -294,7 +283,7 @@ export class Stats {
         params: { hl: false, stats: true, 'stats.field': statsField },
       },
     })
-    debug('[get] index:', index, 'stats result', result.stats?.stats_fields?.statistics)
+    logger.debug(`[get] index: ${index} stats result ${result.stats?.stats_fields?.statistics}`)
     return {
       statistics: result.stats?.stats_fields?.statistics,
       total: result.response?.numFound,
@@ -313,26 +302,11 @@ export class Stats {
       this.app.get('solrConfiguration').namespaces ?? [],
       this.app.get('features') ?? {}
     )
-    debug(
-      '[find] index:',
-      index,
-      'groupby:',
-      groupby,
-      'domain:',
-      domain,
-      'stats:',
-      stats,
-      'filters:',
-      filters,
-      'sort:',
-      sort,
-      'facet:',
-      JSON.stringify(request.facet, null, 2)
-    )
+    logger.debug(`[find] index: ${index} groupby: ${groupby} domain: ${domain} stats: ${stats} filters: ${filters} sort: ${sort} facet: ${JSON.stringify(request.facet, null, 2)}`)
     const result = await this.solr.select(index, { body: request })
-    debug('stats result', result.facets)
+    logger.debug(`stats result ${result.facets}`)
     const response: any = await buildResponse(result, facet, index, domain, filters, this.app)
-    debug('stats response', response.query)
+    logger.debug(`stats response ${response.query}`)
     return response
     // return buildResponse(result, facet, index, domain, filters)
   }

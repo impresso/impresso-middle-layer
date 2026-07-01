@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import debugLib from 'debug'
-const debug = debugLib('impresso/services:articles-tags')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'articles-tags'])
 import shash from 'short-hash'
 import { NotImplemented } from '@feathersjs/errors'
 import { Service as Neo4jService } from '@/services/neo4j.service.js'
@@ -12,7 +12,7 @@ export class Service extends Neo4jService {
   async create(data, params) {
     const tagId = [params.user.uid, shash(`${data.sanitized.tag}`)].join('-')
 
-    debug(`create: tag '${tagId}' by user '${params.user.uid}'`)
+    logger.debug(`create: tag '${tagId}' by user '${params.user.uid}'`)
 
     const result = await this._run(this.queries.merge, {
       user_uid: params.user.uid,
@@ -31,7 +31,7 @@ export class Service extends Neo4jService {
       article_uid: id,
       tag_uid: params.query.tag_uid,
     })
-    debug('remove:', id, 'stats:', result.summary.counters._stats)
+    logger.debug(`remove: ${id} stats: ${result.summary.counters._stats}`)
     return this._finalizeRemove(result)
   }
 

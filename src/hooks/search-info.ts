@@ -1,10 +1,10 @@
 import { HookContext } from '@feathersjs/feathers'
+import { getLogger } from '@/logger.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 
-import debugLib from 'debug'
-const debug = debugLib('impresso/hooks:search-info')
+const logger = getLogger(['impresso', 'hooks', 'search-info'])
 
 /**
  * check if there are any params to be added to our beloved facets.
@@ -13,7 +13,7 @@ const debug = debugLib('impresso/hooks:search-info')
  */
 const filtersToSolrFacetQuery = () => async (context: HookContext<ImpressoApplication, AppServices>) => {
   if (!context.params.sanitized.facets) {
-    debug("'filtersToSolrFacetQuery' warning, no facets requested.")
+    logger.debug("'filtersToSolrFacetQuery' warning, no facets requested.")
     return
   }
   if (typeof context.params.sanitized !== 'object') {
@@ -21,12 +21,12 @@ const filtersToSolrFacetQuery = () => async (context: HookContext<ImpressoApplic
   }
   const facets = JSON.parse(context.params.sanitized.facets)
   const facetFields = Object.keys(facets)
-  debug("'filtersToSolrFacetQuery' on facets:", facets)
+  logger.debug(`'filtersToSolrFacetQuery' on facets: ${facets}`)
 
   // prefix facet with user id...
   if (facets.collection) {
     if (context.params && context.params.user) {
-      debug(`'filtersToSolrFacetQuery' on user collection ${context.params.user.uid}`)
+      logger.debug(`'filtersToSolrFacetQuery' on user collection ${context.params.user.uid}`)
       facets.collection.prefix = context.params.user.uid
     }
   }
@@ -39,11 +39,11 @@ const filtersToSolrFacetQuery = () => async (context: HookContext<ImpressoApplic
   facetFields.forEach(key => {
     const filter = context.params.sanitized.facetfilters.find((d: any) => d.name === key)
     if (filter) {
-      debug(`filtersToSolrFacetQuery' on facet ${key}:`, filter)
+      logger.debug(`filtersToSolrFacetQuery' on facet ${key}: ${filter}`)
     }
   })
   // rewrite facets json
-  debug("'filtersToSolrFacetQuery' facets rewritten:", facets)
+  logger.debug(`'filtersToSolrFacetQuery' facets rewritten: ${facets}`)
   context.params.sanitized.facets = JSON.stringify(facets)
 }
 
@@ -51,7 +51,7 @@ const resolveFacets = () => async (context: HookContext<ImpressoApplication, App
   if (context.result && context.result.info && context.result.info.facets) {
     // enrich facets
     if (context.result.info.facets.newspaper) {
-      debug('resolveFacets for newspaper')
+      logger.debug('resolveFacets for newspaper')
       const mediaSourcesLookup = await context.app.service('media-sources').getLookup()
 
       context.result.info.facets.newspaper.buckets = context.result.info.facets.newspaper.buckets.map((d: any) => ({
@@ -62,7 +62,7 @@ const resolveFacets = () => async (context: HookContext<ImpressoApplication, App
     }
 
     if (context.result.info.facets.topic) {
-      debug('resolveFacets for topics')
+      logger.debug('resolveFacets for topics')
       const resolvers = buildResolvers(context.app)
       context.result.info.facets.topic.buckets = await Promise.all(
         context.result.info.facets.newspaper.buckets.map(async (d: any) => ({
@@ -79,7 +79,7 @@ const resolveFacets = () => async (context: HookContext<ImpressoApplication, App
  * @deprecated Not used in live code and may be broken.
  */
 const resolveQueryComponents = () => async (context: HookContext<ImpressoApplication, AppServices>) => {
-  debug('resolveQueryComponents', context.params.sanitized.queryComponents)
+  logger.debug(`resolveQueryComponents ${context.params.sanitized.queryComponents}`)
 
   const mediaSourcesLookup = await context.app.service('media-sources').getLookup()
 
@@ -114,7 +114,7 @@ const resolveQueryComponents = () => async (context: HookContext<ImpressoApplica
         })
         .then((res: any) => res.data)
     } else {
-      debug('cannot resolve for type', d.type, 'item:', d)
+      logger.debug(`cannot resolve for type ${d.type} item: ${d}`)
     }
     context.params.sanitized.queryComponents[i] = d
   }

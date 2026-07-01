@@ -1,11 +1,11 @@
 import Entity from '@/models/entities.model.js'
+import { getLogger } from '@/logger.js'
 import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import type { SolrNamespace } from '@/solr.js'
 import { SolrNamespaces } from '@/solr.js'
 import { getNameFromId } from '@/utils/entity.utils.js'
 
 import { parse as chronoParse } from 'chrono-node'
-import Debug from 'debug'
 import moment from 'moment'
 
 import { toPlainText } from '@/helpers.js'
@@ -29,7 +29,7 @@ import {
 import Topic from '@/models/topics.model.js'
 import type { ImpressoApplication } from '@/types.js'
 
-const debug = Debug('impresso/services:suggestions')
+const logger = getLogger(['impresso', 'services', 'suggestions'])
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 
@@ -266,7 +266,7 @@ export class Service {
   }
 
   async find(params: SuggestionsParams): Promise<{ data: ISuggestion<any>[] }> {
-    debug('[find] params.query.q:', params.query?.q)
+    logger.debug(`[find] params.query.q: ${params.query?.q}`)
 
     const qPlainText = toPlainText(params.query!.q)
 

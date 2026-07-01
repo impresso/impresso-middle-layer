@@ -1,7 +1,7 @@
 /* eslint global-require: "off" */
-import Debug from 'debug'
 import { Model } from 'sequelize'
-const debug = Debug('impresso/services:SequelizeService')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'SequelizeService'])
 import { NotFound } from '@feathersjs/errors'
 // import sequelize from '../sequelize.js'
 import { sequelizeErrorHandler } from './sequelize.utils.js'
@@ -39,11 +39,11 @@ export class Service {
 
           if (this.Model.prototype instanceof Model) {
             this.sequelizeKlass = this.Model.initialize(this.sequelize)
-            debug(`Configuring new style Sequelize service: ${this.name} (model:${this.modelName}) success!`)
+            logger.debug(`Configuring new style Sequelize service: ${this.name} (model:${this.modelName}) success!`)
             isConfigured = true
           } else if (typeof this.Model.sequelize === 'function') {
             this.sequelizeKlass = this.Model.sequelize(this.sequelize, app)
-            debug(`Configuring old style Sequelize service: ${this.name} (model:${this.modelName}) success!`)
+            logger.debug(`Configuring old style Sequelize service: ${this.name} (model:${this.modelName}) success!`)
             isConfigured = true
           }
         }
@@ -58,7 +58,7 @@ export class Service {
     this.cacheReads = cacheReads
     this.cacheManager = app.get('cacheManager')
 
-    debug(`Configuring service: ${this.name} (model:${this.modelName}) success. Caching reads: ${this.cacheReads}`)
+    logger.debug(`Configuring service: ${this.name} (model:${this.modelName}) success. Caching reads: ${this.cacheReads}`)
   }
 
   async bulkCreate(items) {
@@ -91,7 +91,7 @@ export class Service {
     if (params.scope) {
       fn = this.sequelizeKlass.scope(params.scope)
     }
-    debug(`'get' ${this.name} with params:`, params)
+    logger.debug(`'get' ${this.name} with params: ${params}`)
 
     const result = await fn
       .findOne({
@@ -103,7 +103,7 @@ export class Service {
       throw new NotFound()
     }
 
-    debug(`'get' ${this.name} success!`)
+    logger.debug(`'get' ${this.name} success!`)
 
     return result
   }
@@ -124,7 +124,7 @@ export class Service {
         id,
       }
     }
-    debug(`[patch] ${this.name} (model:${this.modelName}) with params:`, params, 'field to update:', Object.keys(data))
+    logger.debug(`[patch] ${this.name} (model:${this.modelName}) with params: ${params} field to update: ${Object.keys(data)}`)
     return this.sequelizeKlass
       .update(
         {
@@ -182,7 +182,7 @@ export class Service {
       p.col = `${this.sequelizeKlass.name}.${this.sequelizeKlass.primaryKeys[pk].field}`
     }
 
-    debug(`'find' ${this.name} with params(cached: ${this.cacheReads}): `, p, 'where:', p.where)
+    logger.debug(`'find' ${this.name} with params(cached: ${this.cacheReads}):  ${p} where: ${p.where}`)
 
     let fn = this.sequelizeKlass
 
@@ -195,13 +195,13 @@ export class Service {
       const dbResultPromise = promise
         .then(res => {
           if (params.findAllOnly) {
-            debug(`'find' ${this.name} success, no count has been asked.`)
+            logger.debug(`'find' ${this.name} success, no count has been asked.`)
             return {
               rows: res,
               count: -1,
             }
           }
-          debug(`'find' ${this.name} success, n.results: `, res.count)
+          logger.debug(`'find' ${this.name} success, n.results:  ${res.count}`)
           return res
         })
         .then(res => ({

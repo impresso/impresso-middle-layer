@@ -1,24 +1,25 @@
-import Debug from 'debug'
-const debug = Debug('impresso/channels')
+import { getLogger } from '@/logger.js'
+
+const logger = getLogger(['impresso', 'channels'])
 
 export default function (app) {
-  debug('preparing channels...')
+  logger.debug('preparing channels...')
   if (typeof app.channel !== 'function') {
     // If no real-time functionality has been configured just return
-    debug('no real-time functionality has been configured!')
+    logger.debug('no real-time functionality has been configured!')
     return
   }
-  debug('channels ready')
+  logger.debug('channels ready')
 
   app.service('logs').publish(payload => {
     // console.log('MESSAGG', payload);
-    debug('log to')
+    logger.debug('log to')
     return app.channel(`logs/${payload.to}`)
   })
 
   app.on('connection', connection => {
     // On a new real-time connection, add it to the anonymous channel
-    debug('new realtime connection!', connection)
+    logger.debug(`new realtime connection! ${connection}`)
     app.channel('anonymous').join(connection)
   })
 
@@ -28,7 +29,7 @@ export default function (app) {
     if (connection && connection.user) {
       // Obtain the logged in user from the connection
       const user = connection.user
-      debug('@login', user.uid)
+      logger.debug(`@login ${user.uid}`)
 
       // The connection is no longer anonymous, remove it
       app.channel('anonymous').leave(connection)
@@ -54,19 +55,19 @@ export default function (app) {
   app.on('logout', (payload, socket) => {
     // }, { socket: { _feathers: connection } }) => {
     if (payload.user) {
-      debug('@logout received for user:', payload.user.username)
+      logger.debug(`@logout received for user: ${payload.user.username}`)
     } else {
-      debug('@logout received, no payload?', payload, socket)
+      logger.debug(`@logout received, no payload? ${payload} ${socket}`)
     }
 
     if (socket.connection) {
       // When logging out, leave all channels before joining anonymous channel
       if (socket.connection.user && socket.connection.user.uid) {
-        debug('@logout (leaving private logs) for user:', socket.connection.user.username)
+        logger.debug(`@logout (leaving private logs) for user: ${socket.connection.user.username}`)
         app.channel(`logs/${socket.connection.user.uid}`).leave(socket.connection)
       }
       app.channel('authenticated').leave(socket.connection)
-      // debug('@logout (reconnecting with anonymous channel) for anonymous user.')
+      // logger.debug('@logout (reconnecting with anonymous channel) for anonymous user.')
       app.channel('anonymous').join(socket.connection)
     }
   })

@@ -1,15 +1,14 @@
 // Application hooks that run for every service
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { hooks } from '@feathersjs/authentication'
 import { BadGateway, BadRequest, Conflict, FeathersError, GeneralError, Unprocessable } from '@feathersjs/errors'
 import { ApplicationHookFunction, HookContext } from '@feathersjs/feathers'
 import { ValidationError } from 'ajv/dist/2019.js'
-import Debug from 'debug'
 
 const { authenticate } = hooks
 
-const debug = Debug('impresso/app.hooks')
+const logger = getLogger(['impresso', 'app.hooks'])
 // import { validateRouteId } from './hooks/params'
 import { SlimUser } from '@/authentication.js'
 import { InvalidArgumentError } from '@/util/error.js'
@@ -42,7 +41,7 @@ const requireAuthentication =
     excludePaths = ['authentication', 'users', 'newspapers'], //
   } = {}) => (context: HookContext) => {
     const allowUnauthenticated = excludePaths.indexOf(context.path) !== -1
-    debug('hook:requireAuthentication', context.path, !allowUnauthenticated)
+    logger.debug(`hook:requireAuthentication ${context.path} ${!allowUnauthenticated}`)
     if (!allowUnauthenticated) {
       return authenticate('jwt')(context)
     }
@@ -116,7 +115,7 @@ export default (
 ) => {
   return (app: ImpressoApplication) => {
     const config = app.get('appHooks')
-    debug('global hooks configuration', config)
+    logger.debug(`global hooks configuration ${config}`)
 
     const beforeAll = config?.alwaysRequired
       ? [

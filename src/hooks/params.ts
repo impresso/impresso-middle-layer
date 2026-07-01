@@ -1,9 +1,9 @@
 import * as errors from '@feathersjs/errors'
-import Debug from 'debug'
-const debug = Debug('impresso/hooks:params')
+import { getLogger } from '@/logger.js'
 import { assignIn } from 'lodash-es'
-import { logger } from '../logger.js'
 import { HookContext } from '@feathersjs/feathers'
+
+const logger = getLogger(['impresso', 'hooks', 'params'])
 
 const toLucene = (query: string, forceFuzzy = true) => {
   // @todo excape chars + - && || ! ( ) { } [ ] ^ " ~ * ? : \
@@ -15,7 +15,7 @@ const toLucene = (query: string, forceFuzzy = true) => {
   // understand \sOR\s and \sAND\s stuff.
   if (query.indexOf(' OR ') !== -1 || query.indexOf(' AND ') !== -1) {
     // this is a real lucene query.
-    debug('toLucene: actual <lucene query>', query)
+    logger.debug(`toLucene: actual <lucene query> ${query}`)
     return query
   }
   // split by quotes.
@@ -59,7 +59,7 @@ const toLucene = (query: string, forceFuzzy = true) => {
       return _dr.join(' AND ')
     })
     .join(' AND ')
-  debug('toLucene: <natural query>', query, 'to <lucene query>', q)
+  logger.debug(`toLucene: <natural query> ${query} to <lucene query> ${q}`)
   return q
 }
 
@@ -206,7 +206,7 @@ const _validateOne = <T>(key: string, item: string | string[] | undefined, rule:
   }
 
   if (Object.keys(_errors).length) {
-    debug('_validateOne: errors:', _errors)
+    logger.debug(`_validateOne: errors: ${_errors}`)
     throw new errors.BadRequest(_errors)
   }
 
@@ -264,7 +264,7 @@ const _validate = <T>(params: Query, rules: ValidationRules<T>) => {
     //   }
   }
   if (Object.keys(_errors).length) {
-    debug('_validate: got errors', _errors)
+    logger.debug(`_validate: got errors ${_errors}`)
     throw new errors.BadRequest(_errors)
   }
   return _params
@@ -353,10 +353,10 @@ const validate =
     if (!validators) {
       return
     }
-    debug('validate: <validators keys>', `${context.path}.${context.method}`, Object.keys(validators))
+    logger.debug(`validate: <validators keys> ${`${context.path}.${context.method}`} ${Object.keys(validators)}`)
 
     if (method === 'GET') {
-      debug('validate: GET data', context.params.query)
+      logger.debug(`validate: GET data ${context.params.query}`)
       const validated = _validate(context.params.query, validators)
       if (!context.params.sanitized) {
         context.params.sanitized = validated
@@ -367,7 +367,7 @@ const validate =
         Object.assign(context.params.query, context.params.sanitized)
       }
     } else {
-      debug('validate: POST data')
+      logger.debug('validate: POST data')
       context.data.sanitized = assignIn({}, context.data.sanitized, _validate(context.data, validators))
       if (options?.applyInPlace) {
         Object.assign(context.data, context.data.sanitized)
@@ -378,11 +378,11 @@ const validate =
 const validateRouteId = () => async (context: HookContext) => {
   if (context.path === 'entities' && context.id) {
     if (!EXTENDED_REGEX_UID.test(String(context.id))) {
-      debug('validateRouteId: context.id not matching EXTENDED_REGEX_UID')
+      logger.debug('validateRouteId: context.id not matching EXTENDED_REGEX_UID')
       throw new errors.BadRequest('route id is not valid (use EXTENDED_REGEX_UID)')
     }
   } else if (context.id && !(REGEX_UID.test(String(context.id)) || REGEX_UIDS.test(String(context.id)))) {
-    debug('validateRouteId: context.id not matching REGEX_UIDS')
+    logger.debug('validateRouteId: context.id not matching REGEX_UIDS')
     throw new errors.BadRequest('route id is not valid (use REGEX_UID)')
   }
 }
@@ -454,11 +454,11 @@ const queryWithCommonParams =
         ...(context.params.sanitized || {}), // add validated params, if any
         ...params,
       }
-      debug(`queryWithCommonParams (replaceQuery:${replaceQuery}), <context.params.query>:`, context.params.query)
+      logger.debug(`queryWithCommonParams (replaceQuery:${replaceQuery}), <context.params.query>: ${context.params.query}`)
     } else {
       destinationObject.sanitized = assignIn({}, destinationObject.sanitized, params)
       const field = method === 'GET' ? 'context.params' : 'context.data'
-      debug(`queryWithCommonParams: appends params to '${field}.sanitized': ${JSON.stringify(params)}`)
+      logger.debug(`queryWithCommonParams: appends params to '${field}.sanitized': ${JSON.stringify(params)}`)
     }
   }
 
@@ -507,16 +507,13 @@ const validateEach = <T>(paramName: string, validators: ValidationRules<T>, opti
         // console.log(_error);
         throw new errors.BadRequest(_error)
       }
-      debug(
-        `validateEach: ${opts.required ? 'required' : 'optional'} ${String(paramName)} not found in '${
+      logger.debug(`validateEach: ${opts.required ? 'required' : 'optional'} ${String(paramName)} not found in '${
           opts.method
-        }' or is not an Array or it is empty. Received:`,
-        toBeValidated
-      )
+        }' or is not an Array or it is empty. Received: ${toBeValidated}`)
       // throw new Error(`The param ${paramName} should exist and be an array.`);
       return
     }
-    debug(`validateEach: '${String(paramName)}' in '${opts.method}'. Received:`, toBeValidated)
+    logger.debug(`validateEach: '${String(paramName)}' in '${opts.method}'. Received: ${toBeValidated}`)
     // _validate(context.query, validators)
     const validated = toBeValidated.map(d => {
       const _d = _validate(d, validators)
@@ -545,7 +542,7 @@ const displayQueryParams =
     if (context.type !== 'after') {
       throw new Error("The 'displayQueryParams' hook should only be used as a 'after' hook.")
     }
-    debug(`displayQueryParams: ${paramNames}`)
+    logger.debug(`displayQueryParams: ${paramNames}`)
     if (!context.result.info) {
       context.result.info = {}
     }
