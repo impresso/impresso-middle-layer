@@ -150,7 +150,7 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
     try {
       await dereferenceSpec(spec)
     } catch (error) {
-      logger.error('Failed to dereference OpenAPI spec', error)
+      logger.error('Failed to dereference OpenAPI spec', { error })
       throw error
     }
   } else {

@@ -3,7 +3,7 @@
  * historical references. Use the proxy from the middleware folder instead.
  */
 
-import logger from 'winston'
+import { logger } from '@/logger.js'
 import debugLib from 'debug'
 const debug = debugLib('verbose:impresso/proxy')
 import { createProxyMiddleware } from 'http-proxy-middleware'

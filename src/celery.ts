@@ -106,7 +106,7 @@ export default (app: ImpressoApplication) => {
       app.set('celeryClient', client)
       logger.info('Celery: configured and enabled.')
     } catch (err) {
-      logger.error('Celery: an error occurred while configuring celery.', err)
+      logger.error('Celery: an error occurred while configuring celery', { error: err })
     }
   }
 }

@@ -1,9 +1,18 @@
-import { createLogger, format, transports } from 'winston';
+import { configure, getConsoleSink, getLogger, getJsonLinesFormatter } from '@logtape/logtape'
+import { getPrettyFormatter } from '@logtape/pretty'
 
-// Configure the Winston logger. For the complete documentation see https://github.com/winstonjs/winston
-export const logger = createLogger({
-  // To see more detailed errors, change this to 'debug'
-  level: 'info',
-  format: format.combine(format.splat(), format.simple()),
-  transports: [new transports.Console()],
-});
+export const logger = getLogger(['app'])
+
+export const initLogger = async () => {
+  const isProd = process.env.NODE_ENV === 'production'
+
+  await configure({
+    sinks: {
+      console: getConsoleSink({
+        // isProd outputs structured JSON. !isProd defaults to pretty terminal output.
+        formatter: isProd ? getJsonLinesFormatter() : getPrettyFormatter(),
+      }),
+    },
+    loggers: [{ category: [], sinks: ['console'], lowestLevel: isProd ? 'info' : 'debug' }],
+  })
+}

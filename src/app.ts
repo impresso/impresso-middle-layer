@@ -26,6 +26,7 @@ import quotaChecker from '@/services/internal/quotaChecker/redis.js'
 import media from '@/services/media.js'
 import { init as imageProxy } from '@/middleware/imageProxy.js'
 import schemas from '@/services/schemas.js'
+import { initLogger } from '@/logger.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import { customJsonMiddleware } from '@/util/express.js'
 import queue from '@/internalServices/queue.js'
@@ -95,7 +96,7 @@ app.configure(services)
 
 app.configure(
   appHooksFactory(
-    [initSequelize, initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs],
+    [initLogger, initSequelize, initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs],
     []
   )
 )

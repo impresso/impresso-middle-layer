@@ -51,6 +51,8 @@
     "@iiif/parser": "^2.1.8",
     "@keyv/compress-brotli": "^2.0.5",
     "@keyv/redis": "5.1.2",
+    "@logtape/logtape": "^2.2.2",
+    "@logtape/pretty": "^2.2.2",
     "ajv": "8.18.0",
     "async": "^2.6.1",
     "aws-sdk": "^2.395.0",
@@ -123,7 +125,6 @@
     "undici": "7.16.0",
     "uuid": "11.0.0",
     "wikibase-sdk": "^11.1.0",
-    "winston": "3.13.0",
     "xml2js": "^0.6.2",
     "yaml": "^2.6.0",
     "zip-stream": "^7.0.0"

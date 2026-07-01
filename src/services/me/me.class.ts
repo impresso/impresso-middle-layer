@@ -119,7 +119,7 @@ export class Service {
       await transaction.commit()
     } catch (error) {
       debug(`[patch] (user:${params.user.uid}) error:`, error)
-      logger.error(`[patch] (user:${params.user.uid}) error:`, error)
+      logger.error(`[patch] (user:${params.user.uid}) error`, { error })
       await transaction.rollback()
       throw new BadRequest('Error updating user.')
     }

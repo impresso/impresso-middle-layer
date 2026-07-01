@@ -90,7 +90,7 @@ class HashedPasswordVerifier extends LocalStrategy {
       )
       debug('_comparePassword: updated login for user, count updated:', affectedCount)
     } catch (err) {
-      logger.error(`Error updating login for user ${user.id}`, err)
+      logger.error(`Error updating login for user ${user.id}`, { error: err })
       debug('_comparePassword: error updating login for user', err)
     }
     return {
@@ -232,7 +232,7 @@ class MagicLinkJWTStrategy extends JWTStrategy {
         await redisClient.del(cacheKey)
         debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
       } catch (deleteErr) {
-        logger.error('[MagicLinkJWTStrategy] Failed to delete magic link token from cache:', deleteErr)
+        logger.error('[MagicLinkJWTStrategy] Failed to delete magic link token from cache', { error: deleteErr })
       }
       // Get user from database
       const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
@@ -261,7 +261,7 @@ class MagicLinkJWTStrategy extends JWTStrategy {
       if (err instanceof NotAuthenticated || err instanceof BadRequest) {
         throw err
       }
-      logger.error('[MagicLinkJWTStrategy] Token verification failed:', err)
+      logger.error('[MagicLinkJWTStrategy] Token verification failed', { error: err })
       throw new NotAuthenticated('Invalid token')
     }
   }

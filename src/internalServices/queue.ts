@@ -278,7 +278,7 @@ export default (app: ImpressoApplication) => {
 
     logger.info('Queue service initialized successfully')
   } catch (error) {
-    logger.error('Failed to initialize queue service:', error)
+    logger.error('Failed to initialize queue service', { error })
     throw error
   }
 }

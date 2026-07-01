@@ -184,7 +184,7 @@ export class ImpressoNerService {
       const responseBody = await response.json()
       return convertDownstreamResponse(responseBody as DownstreamResponse, data)
     } catch (error) {
-      logger.error('Failed to parse downstream response', error)
+      logger.error('Failed to parse downstream response', { error })
       throw new Error('Failed to parse downstream response')
     }
   }

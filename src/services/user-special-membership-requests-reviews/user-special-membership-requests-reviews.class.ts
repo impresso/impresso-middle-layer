@@ -270,7 +270,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
           args: [record.id],
         })
       } catch (err) {
-        logger.error('Error sending after_special_membership_request_updated task:', err)
+        logger.error('Error sending after_special_membership_request_updated task', { error: err })
       }
     }
 

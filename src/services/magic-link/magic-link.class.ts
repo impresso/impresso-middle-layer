@@ -111,7 +111,7 @@ export class MagicLinkService {
       })
       .catch((err: Error) => {
         debug('[create] Error sending magic link email to', data.email, 'error:', err)
-        logger.error('Failed to send magic link email to', data.email, 'error:', err)
+        logger.error(`Failed to send magic link email to ${data.email}`, { error: err })
         throw new Unavailable('Failed to send email')
       })
 

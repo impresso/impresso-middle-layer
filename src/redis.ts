@@ -83,7 +83,7 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
       await client.setup(context.app, 'redisClient')
       logger.info('Redis is active.')
     } catch (err) {
-      logger.error('Error setting up redis:', err)
+      logger.error('Error setting up redis', { error: err })
     }
   } else {
     logger.warn('Redis is not configured. Cannot activate.')
