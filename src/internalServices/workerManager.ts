@@ -255,8 +255,8 @@ export const start = async (context: HookContext<ImpressoApplication & Applicati
   if (service) {
     try {
       await service.start()
-    } catch (err) {
-      logger.error('Error starting worker manager service', { error: err })
+    } catch (error) {
+      logger.error('Error starting worker manager service', { error })
     }
   } else {
     logger.warn('Worker manager service is not configured. Cannot start workers.')

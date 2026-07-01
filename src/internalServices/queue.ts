@@ -16,10 +16,7 @@ import {
   RemoveItemsFromCollectionJobData,
 } from '@/jobs/collections/removeItemsFromCollection.js'
 import { ExportSearchResultsJobData, JobNameExportSearchResults } from '@/jobs/searchResults/exportSearchResults.js'
-import {
-  JobNameRebuildWellKnownCache,
-  RebuildWellKnownCacheJobData,
-} from '@/jobs/rebuildWellKnownCache.js'
+import { JobNameRebuildWellKnownCache, RebuildWellKnownCacheJobData } from '@/jobs/rebuildWellKnownCache.js'
 import {
   DownstreamServiceHealthCheckIntervalMs,
   DownstreamServiceHealthCheckJobData,
@@ -169,9 +166,7 @@ export class QueueService {
     return this.queueMigrateOldCollections.add(JobNameMigrateOldCollections, data)
   }
 
-  async rebuildWellKnownCache(
-    data: RebuildWellKnownCacheJobData
-  ): Promise<BullJob<RebuildWellKnownCacheJobData>> {
+  async rebuildWellKnownCache(data: RebuildWellKnownCacheJobData): Promise<BullJob<RebuildWellKnownCacheJobData>> {
     logger.info(`Queueing job to rebuild well-known caches`)
     return this.queueRebuildWellKnownCache.add(JobNameRebuildWellKnownCache, data)
   }

@@ -89,9 +89,9 @@ class HashedPasswordVerifier extends LocalStrategy {
         }
       )
       debug('_comparePassword: updated login for user, count updated:', affectedCount)
-    } catch (err) {
-      logger.error(`Error updating login for user ${user.id}`, { error: err })
-      debug('_comparePassword: error updating login for user', err)
+    } catch (error) {
+      logger.error(`Error updating login for user ${user.id}`, { error })
+      debug('_comparePassword: error updating login for user', { error })
     }
     return {
       ...user,
@@ -257,11 +257,11 @@ class MagicLinkJWTStrategy extends JWTStrategy {
         authentication: { strategy: this.name },
         [entity]: await this.getEntity(String(user.get('id')), params),
       } as any
-    } catch (err) {
-      if (err instanceof NotAuthenticated || err instanceof BadRequest) {
-        throw err
+    } catch (error) {
+      if (error instanceof NotAuthenticated || error instanceof BadRequest) {
+        throw error
       }
-      logger.error('[MagicLinkJWTStrategy] Token verification failed', { error: err })
+      logger.error('[MagicLinkJWTStrategy] Token verification failed', { error })
       throw new NotAuthenticated('Invalid token')
     }
   }

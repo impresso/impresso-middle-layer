@@ -57,10 +57,11 @@ export default (app: ImpressoApplication & ExpressApplication) => {
           } satisfies Problem)
         },
         500: (err: GeneralError, req: Request, res: Response) => {
+          // Always log unhandled 500s (with stack) before redacting for the
+          // HTTP response. requestId/userId are attached via withContext.
+          logger.error(`Error [500] at ${req.method} ${req.path}`, err)
           if (isProduction) {
             delete err.stack
-          } else {
-            logger.error('Error [500]', err)
           }
           res.json({
             type: `${problemUriBase}/internal-error`,

@@ -67,8 +67,9 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
       // may be intercepted by a firewall and modified.
       const data = { ...error.details, userId: user?.uid }
       ctx.error = new FeathersError(error.message, 'SolrError', 418, 'solr-error', data)
+      // userId is provided automatically via withContext (see src/app.ts).
       logger.error(
-        `SOLR error (userId:${user?.uid}) query params:${error.details.params?.slice(0, 1000)} - message:"${error.message}"`,
+        `SOLR error query params:${error.details.params?.slice(0, 1000)} - message:"${error.message}"`,
         {
           httpError: error.httpError,
           stack: error.stack,
@@ -77,10 +78,15 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
       error = ctx.error
     }
 
+    // Log the full error (including stack) BEFORE the stack is stripped below
+    // for the HTTP response. userId/requestId are attached via withContext.
     if (!excludedStatusCodes.includes(error.code) || !error.code) {
       logger.error(
-        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method} - message:"${error.message}" - stack:`,
-        error
+        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method} - message:"${error.message}"`,
+        {
+          ...error,
+          stack: error.stack,
+        }
       )
     }
     if (error instanceof ValidationError) {

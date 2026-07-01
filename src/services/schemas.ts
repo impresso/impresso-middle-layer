@@ -1,6 +1,11 @@
 import { Application } from '@feathersjs/express'
 import type { Request, Response } from 'express'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
 import { ImpressoApplication } from '@/types.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 /**
  * This service is only available in the public API.
