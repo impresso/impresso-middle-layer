@@ -9,6 +9,7 @@ import initSequelizeService, { Service as SequelizeService } from '@/services/se
 import { measureTime } from '@/util/instruments.js'
 import { asFindAll } from '@/util/solr/adapters.js'
 import { Op, OrderItem, Sequelize, type WhereOptions } from 'sequelize'
+import { PageFilterFields } from './pages.schema.js'
 
 const debug = debugLib('impresso/services:pages')
 
@@ -17,7 +18,7 @@ export interface FindQuery {
   offset?: number
   order_by?: OrderItem[]
   id?: string[]
-  issue_id?: string[]
+  issueId?: string[]
   num?: number[]
   hasCoords?: number[]
   hasErrors?: number[]
@@ -29,12 +30,11 @@ export type FindResult = FindResponse<Page>
 export type IPagesService = Pick<ClientService<Page, unknown, unknown, FindResult>, 'find' | 'get'>
 
 // Maps query keys directly to a sequelize `Op.in` filter on the same-named column.
-const IN_FILTER_KEYS = ['id', 'issue_id', 'num', 'hasCoords', 'hasErrors', 'iiif'] as const
 
 function buildWhere(query: FindQuery | undefined): WhereOptions {
   const conditions: WhereOptions[] = []
 
-  for (const key of IN_FILTER_KEYS) {
+  for (const key of PageFilterFields) {
     const value = query?.[key]
     if (Array.isArray(value) && value.length > 0) {
       conditions.push({ [key]: { [Op.in]: value } })
@@ -43,7 +43,7 @@ function buildWhere(query: FindQuery | undefined): WhereOptions {
 
   if (Array.isArray(query?.mediaSourceId) && query.mediaSourceId.length > 0) {
     conditions.push({
-      issue_id: { [Op.or]: query.mediaSourceId.map(id => ({ [Op.like]: `${id}-%` })) },
+      [Op.or]: query.mediaSourceId.map(id => ({ issueId: { [Op.like]: `${id}-%` } })),
     })
   }
 
@@ -109,10 +109,6 @@ export class PagesService implements IPagesService {
     const where = buildWhere(params?.query)
     const { limit = 10, offset = 0, order_by = [['id', 'ASC']] } = params?.query ?? {}
 
-    const sequelizeParams = {
-      ...(params ?? {}),
-      ...(Object.keys(where).length > 0 ? { where } : {}),
-    }
     const { rows, count: total } = await this.dbModel.findAndCountAll({
       limit,
       offset,

@@ -1,7 +1,7 @@
 import { ServiceSwaggerOptions } from 'feathers-swagger'
 import { getStandardParameters, getStandardResponses, MethodParameter, QueryParameter } from '@/util/openapi.js'
 
-export const PageFilterFields = ['id', 'issue_id', 'num', 'hasCoords', 'hasErrors', 'iiif', 'mediaSourceId'] as const
+export const PageFilterFields = ['id', 'issueId', 'num', 'hasCoords', 'hasErrors', 'iiif', 'mediaSourceId'] as const
 export const BinaryFilterInputValues = ['0', '1', 'true', 'false'] as const
 
 const parameterId: QueryParameter = {

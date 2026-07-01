@@ -2,6 +2,7 @@ import { Sequelize } from 'sequelize'
 import { ImpressoApplication } from '@/types.js'
 import { CeleryClient } from '@/celery.js'
 import { RedisClient } from '@/redis.js'
+import type { CeleryCall, RedisSetExCall } from './database.js'
 
 /**
  * Mutable bag of "get" and "service" handlers being assembled by features.
@@ -40,7 +41,9 @@ export type TestAppFeature<TExtra extends Record<string, any> = Record<string, a
  */
 export function setupTestApp<TFeatures extends TestAppFeature[]>(
   ...features: TFeatures
-): { app: ImpressoApplication; teardown: () => Promise<void> } & UnionToIntersection<ReturnType<TFeatures[number]>> {
+): { app: ImpressoApplication; teardown: () => Promise<void> } & UnionToIntersection<
+  Exclude<ReturnType<TFeatures[number]>, void>
+> {
   const ctx: TestAppContext = {
     getHandlers: {},
     serviceHandlers: {},
