@@ -145,7 +145,7 @@ export default class Page implements IPage {
           field: 'id',
           unique: true,
         },
-        issue_id: {
+        issueId: {
           type: DataTypes.STRING,
           field: 'issue_id',
         },
