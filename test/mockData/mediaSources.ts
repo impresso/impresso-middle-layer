@@ -3,6 +3,7 @@ import { MediaSource } from '@/models/generated/canonical.js'
 export const GDL: MediaSource = {
   id: 'GDL',
   type: 'newspaper',
+  medium: 'print',
   name: 'Gazette de Lausanne',
   languageCodes: ['fr'],
   totals: {
@@ -17,6 +18,7 @@ export const GDL: MediaSource = {
 export const JDG: MediaSource = {
   id: 'JDG',
   type: 'newspaper',
+  medium: 'print',
   name: 'Journal de Geneve',
   publishedPeriodYears: [1826, 1828],
   availableDatesRange: ['1826-01-02', '1828-11-30'],
@@ -32,6 +34,7 @@ export const JDG: MediaSource = {
 export const Fronde: MediaSource = {
   id: 'Fronde',
   type: 'newspaper',
+  medium: 'print',
   name: 'La Fronde',
   publishedPeriodYears: [1872, 1872],
   availableDatesRange: ['1872-03-17T00:00:00.000Z', '1872-12-25T00:00:00.000Z'],

@@ -387,6 +387,7 @@ export class Service {
       case 'location':
       case 'nag':
       case 'organisation':
+      case 'mediaSource':
         return candidate.name
       case 'imageVisualContent':
       case 'imageTechnique':
