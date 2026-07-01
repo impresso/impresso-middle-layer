@@ -21,6 +21,8 @@ describe('consolidateMediaSources', () => {
       {
         id: 'ZBT',
         name: 'Test Newspaper',
+        sourceTypeLabel: 'newspaper',
+        sourceMediumLabel: 'print',
         publishedFromYear: 1900,
         publishedToYear: 2000,
         issueCount: 100,
@@ -46,6 +48,7 @@ describe('consolidateMediaSources', () => {
       {
         id: 'ZBT',
         type: 'newspaper',
+        medium: 'print',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],
         publishedPeriodYears: [1900, 2000],
@@ -78,6 +81,8 @@ describe('consolidateMediaSources', () => {
       {
         id: 'ZBT',
         name: 'Test Newspaper',
+        sourceTypeLabel: 'newspaper',
+        sourceMediumLabel: 'print',
         publishedFromYear: 1900,
         publishedToYear: 2000,
         issueCount: 100,
@@ -96,6 +101,7 @@ describe('consolidateMediaSources', () => {
       {
         id: 'ZBT',
         type: 'newspaper',
+        medium: 'print',
         name: 'Test Newspaper',
         languageCodes: ['en', 'fr'],
         publishedPeriodYears: [1900, 2000],
