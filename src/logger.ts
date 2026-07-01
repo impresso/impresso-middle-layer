@@ -1,6 +1,8 @@
 import { configure, getConsoleSink, getLogger, getJsonLinesFormatter } from '@logtape/logtape'
 import { getPrettyFormatter } from '@logtape/pretty'
 
+export { getLogger } from '@logtape/logtape'
+
 export const logger = getLogger(['app'])
 
 export const initLogger = async () => {
