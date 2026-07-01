@@ -36,8 +36,7 @@
     "bun-run": "bun run --watch src/index.ts",
     "bun-test": "bun test",
     "cli": "node src/admin/cli.js",
-    "generate-types": "node src/scripts/generate-types.js",
-    "convert-media-alias": "node src/scripts/convert-media-alias-jsonl.js"
+    "generate-types": "node src/scripts/generate-types.js"
   },
   "dependencies": {
     "@feathersjs/authentication": "5.0.44",
