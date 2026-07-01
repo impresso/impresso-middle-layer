@@ -8,6 +8,8 @@ import { request, Dispatcher } from 'undici'
 import { EventEmitter } from 'stream'
 import BaristaConversation from '@/models/barista-conversations.model.js'
 import type { RateLimitingResult } from '@/services/internal/rateLimiter/redis.js'
+import { logger } from '@/logger.js'
+import { formatHttpError } from '@/utils/formatHttpError.js'
 
 export interface BaristaRequest {
   /**
@@ -175,6 +177,11 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
     })
 
     if (response.statusCode !== 200) {
+      const httpError = await formatHttpError(response, {
+        url: this.config.url,
+        requestBody: data,
+      })
+      logger.error('Failed to fetch downstream data from barista-proxy', { httpError })
       throw new BadRequest(`Barista returned status code ${response.statusCode}`)
     }
 
@@ -256,6 +263,8 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
       await this.touchConversation(sessionId, params?.user?.id)
       return { messages: [] }
     } catch (error) {
+      const httpError = await formatHttpError(error, { url: this.config?.url })
+      logger.error('Stream reading from barista-proxy failed', { httpError })
       // Emit error event
       eventEmitter.emit('barista-response', {
         type: 'error',

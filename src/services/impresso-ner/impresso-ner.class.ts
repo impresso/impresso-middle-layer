@@ -1,6 +1,7 @@
 import { logger } from '@/logger.js'
 import { createFetchClient } from '@/utils/http/client/index.js'
 import { IFetchClient } from '@/utils/http/client/base.js'
+import { formatHttpError } from '@/utils/formatHttpError.js'
 import { Params } from '@feathersjs/feathers'
 
 export interface RequestPayload {
@@ -169,14 +170,11 @@ export class ImpressoNerService {
     })
 
     if (response.status !== 200) {
-      let bodyText = ''
-      try {
-        bodyText = String(await response.text())
-      } catch {
-        /* ignore */
-      }
-
-      logger.error(`Failed to fetch downstream data. Error (${response.status}): ${bodyText}`)
+      const httpError = await formatHttpError(response, {
+        url,
+        requestBody: JSON.stringify({ data: text }),
+      })
+      logger.error('Failed to fetch downstream data from impresso-ner', { httpError })
       throw new Error('Failed to fetch downstream data')
     }
 
@@ -184,7 +182,11 @@ export class ImpressoNerService {
       const responseBody = await response.json()
       return convertDownstreamResponse(responseBody as DownstreamResponse, data)
     } catch (error) {
-      logger.error('Failed to parse downstream response', { error })
+      const httpError = await formatHttpError(error, {
+        url,
+        requestBody: JSON.stringify({ data: text }),
+      })
+      logger.error('Failed to parse downstream response from impresso-ner', { httpError })
       throw new Error('Failed to parse downstream response')
     }
   }

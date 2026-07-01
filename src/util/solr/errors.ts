@@ -1,3 +1,5 @@
+import type { HttpErrorDetails } from '@/utils/formatHttpError.js'
+
 export interface ParsedSolrErrorDetails {
   /**
    * Codes we support:
@@ -14,11 +16,14 @@ export interface ParsedSolrErrorDetails {
 
 export class SolrError extends Error {
   details: ParsedSolrErrorDetails
+  /** Raw HTTP error details (request URL, body, response status/body) for logging. */
+  httpError?: HttpErrorDetails
 
-  constructor(details: ParsedSolrErrorDetails) {
+  constructor(details: ParsedSolrErrorDetails, httpError?: HttpErrorDetails) {
     super(`SolrError ${details.code}: ${details.message}`)
     this.name = 'SolrError'
     this.details = details
+    this.httpError = httpError
   }
 }
 

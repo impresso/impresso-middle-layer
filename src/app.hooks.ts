@@ -68,7 +68,11 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
       const data = { ...error.details, userId: user?.uid }
       ctx.error = new FeathersError(error.message, 'SolrError', 418, 'solr-error', data)
       logger.error(
-        `SOLR error (userId:${user?.uid}) query params:${error.details.params?.slice(0, 1000)} - message:"${error.message}"`
+        `SOLR error (userId:${user?.uid}) query params:${error.details.params?.slice(0, 1000)} - message:"${error.message}"`,
+        {
+          httpError: error.httpError,
+          stack: error.stack,
+        }
       )
       error = ctx.error
     }
