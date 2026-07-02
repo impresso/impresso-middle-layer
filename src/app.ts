@@ -1,5 +1,8 @@
-import { default as express, Application, static as staticMiddleware } from '@feathersjs/express'
-import { feathers } from '@feathersjs/feathers'
+import { createApp } from './appBuilder.js'
+
+const app = createApp()
+
+import { static as staticMiddleware } from '@feathersjs/express'
 import compress from 'compression'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -9,7 +12,6 @@ import authentication from '@/authentication.js'
 import cache from '@/cache.js'
 import celery, { init as initCelery } from '@/celery.js'
 import channels from '@/channels.js'
-import configuration, { Configuration } from '@/configuration.js'
 import { init as simpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { init as initPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import { startupJobs } from '@/jobs/index.js'
@@ -27,8 +29,7 @@ import quotaChecker, { init as initQuotaChecker } from '@/services/internal/quot
 import media from '@/services/media.js'
 import { init as imageProxy } from '@/middleware/imageProxy.js'
 import schemas from '@/services/schemas.js'
-import { initLogger, withContext } from '@/logger.js'
-import { AppServices, ImpressoApplication } from '@/types.js'
+import { withContext } from '@/logger.js'
 import { customJsonMiddleware } from '@/util/express.js'
 import queue from '@/internalServices/queue.js'
 import queueWorkerManager, { start as startQueueWorkerManager } from '@/internalServices/workerManager.js'
@@ -40,13 +41,11 @@ import { randomUUID } from 'node:crypto'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// @ts-ignore
-const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
-
-app.configure(initLogger)
-
-// Load app configuration
-app.configure(configuration)
+// // @ts-ignore
+// const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
+// // Load app configuration
+// app.configure(configuration)
+// app.configure(initLogger)
 
 // userId is injected later by the authenticateAround hook (src/hooks/authenticate.ts),
 // which wraps the service method in withContext once context.params.user is known.

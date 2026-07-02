@@ -170,7 +170,7 @@ export class WorkerManagerService {
     })
 
     queueEvents.on('completed', job => {
-      logger.info(`[JOB] Job ${job.jobId} completed successfully: ${job.returnvalue}`)
+      logger.info(`[JOB] Job ${job.jobId} completed successfully:`, { returnvalue: job.returnvalue })
     })
 
     queueEvents.on('failed', (job, err) => {

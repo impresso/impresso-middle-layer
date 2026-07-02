@@ -11,12 +11,14 @@ export const DownstreamServiceHealthCheckIntervalMs = 5 * 60 * 1000
 const DownstreamRequestTimeoutMs = 30 * 1000
 const HealthCheckText = 'Barack Obama visited Paris.'
 const DefaultBaseUrl = 'https://impresso-annotation.epfl.ch/api'
+const IiifImageHealthCheckUrl =
+  'https://iiif-impresso.epfl.ch/iiif/3/JDG-1988-11-02-a-p0031/1818,3738,1888,1710/50,/0/default.jpg'
 
 export interface DownstreamServiceHealthCheckJobData {
   requestedBy?: string
 }
 
-type HealthCheckAction = 'ner-nel' | 'embed-text'
+type HealthCheckAction = 'ner-nel' | 'embed-text' | 'iiif-image'
 
 interface DownstreamServiceHealthCheckFailure {
   action: HealthCheckAction
@@ -187,14 +189,63 @@ const checkTextEmbedding = async (
   }
 }
 
+const checkIiifImage = async (
+  client: IFetchClient,
+  url: string,
+  auth?: { user: string; pass: string }
+): Promise<DownstreamServiceHealthCheckFailure | undefined> => {
+  try {
+    const headers: Record<string, string> = {}
+    if (auth != null) {
+      headers.Authorization = `Basic ${Buffer.from(`${auth.user}:${auth.pass}`).toString('base64')}`
+    }
+
+    const response = await client.fetch(
+      url,
+      { method: 'GET', headers },
+      { requestTimeoutMs: DownstreamRequestTimeoutMs }
+    )
+
+    if (response.status !== 200) {
+      const responseBody = await readResponseText(response)
+      return {
+        action: 'iiif-image',
+        timeout: false,
+        errorCode: `HTTP_${response.status}`,
+        details: responseBody,
+      }
+    }
+
+    const contentType = response.headers.get('content-type')
+    if (contentType == null || !contentType.startsWith('image/')) {
+      return {
+        action: 'iiif-image',
+        timeout: false,
+        errorCode: 'INVALID_RESPONSE',
+        details: `Expected an image response, got content-type "${contentType}".`,
+      }
+    }
+  } catch (error) {
+    return toHealthCheckFailureFromError('iiif-image', error)
+  }
+}
+
 export const createJobHandler = (app: ImpressoApplication) => {
   const baseUrl = app.get('impressoNerServiceUrl') ?? DefaultBaseUrl
   const client = createFetchClient({})
-  const checkedActionsDescription = 'ner-nel (/ner-nel/ with named entities), embed-text (/text-embedder/)'
+  const checkedActionsDescription =
+    'ner-nel (/ner-nel/ with named entities), embed-text (/text-embedder/), iiif-image (default IIIF image proxy source)'
+
+  const { defaultSourceId, sources } = app.get('images').proxy
+  const iiifImageSource = sources.find(({ id }) => id === defaultSourceId) ?? sources[0]
 
   return async (job: DownstreamServiceHealthCheckJob): Promise<DownstreamServiceHealthCheckResult> => {
     const failures = (
-      await Promise.all([checkNerNel(client, baseUrl), checkTextEmbedding(client, baseUrl)])
+      await Promise.all([
+        checkNerNel(client, baseUrl),
+        checkTextEmbedding(client, baseUrl),
+        checkIiifImage(client, IiifImageHealthCheckUrl, iiifImageSource?.auth),
+      ])
     ).filter((failure): failure is DownstreamServiceHealthCheckFailure => failure != null)
 
     if (failures.length > 0) {
