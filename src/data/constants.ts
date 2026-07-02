@@ -86,12 +86,14 @@ export type ContentItemFacet = Extract<
   | 'sourceMedium'
   | 'topic'
   | 'newspaper'
+  | 'mediaSource'
   | 'language'
   | 'person'
   | 'location'
   | 'nag'
   | 'organisation'
-  | 'accessRight'
+  // deprecated in Impresso 2.0
+  // | 'accessRight'
   | 'partner'
   | 'dataDomain'
   | 'copyright'
@@ -181,7 +183,17 @@ const searchSolrMappings = {
       offset: 0,
       numBuckets: true,
     },
+    /**
+     * @deprecated removed in Impresso 2.0. New type: mediaSource
+     */
     newspaper: {
+      type: 'terms',
+      field: 'meta_journal_s',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    mediaSource: {
       type: 'terms',
       field: 'meta_journal_s',
       mincount: 1,
@@ -237,14 +249,14 @@ const searchSolrMappings = {
      * @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
      * https://github.com/impresso/impresso-middle-layer/issues/462
      */
-    accessRight: {
-      type: 'terms',
-      field: 'access_right_s',
-      mincount: 0,
-      limit: 10,
-      offset: 0,
-      numBuckets: true,
-    },
+    // accessRight: {
+    //   type: 'terms',
+    //   field: 'access_right_s',
+    //   mincount: 0,
+    //   limit: 10,
+    //   offset: 0,
+    //   numBuckets: true,
+    // },
     partner: {
       type: 'terms',
       field: 'meta_partnerid_s',
@@ -320,11 +332,7 @@ const searchSolrMappings = {
 
 export type TextReuseClusterFacet = Extract<
   FilterType,
-  | 'newspaper'
-  | 'textReuseClusterSize'
-  | 'textReuseClusterLexicalOverlap'
-  | 'textReuseClusterDayDelta'
-  | 'daterange'
+  'newspaper' | 'textReuseClusterSize' | 'textReuseClusterLexicalOverlap' | 'textReuseClusterDayDelta' | 'daterange'
 >
 
 const trClustersSolrMappings = {

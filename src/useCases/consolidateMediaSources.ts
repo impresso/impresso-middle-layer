@@ -10,8 +10,10 @@ SELECT
   n.title as name,
   n.start_year as publishedFromYear,
   n.end_year as publishedToYear,
-  COUNT(DISTINCT i.id) AS issueCount,
-  COUNT(p.id) AS pageCount,
+  me_medium.label as sourceMediumLabel,
+  me_type.label as sourceTypeLabel,
+  (SELECT COUNT(*) FROM issues WHERE newspaper_id = n.id) AS issueCount,
+  (SELECT COUNT(*) FROM pages p JOIN issues i ON p.issue_id = i.id WHERE i.newspaper_id = n.id) AS pageCount,
   (
     SELECT JSON_ARRAYAGG(l.code)
     FROM newspapers_languages AS nl
@@ -30,11 +32,9 @@ SELECT
     JOIN meta_properties mp ON nm.property_id = mp.id
     WHERE nm.newspaper_id=n.id AND nm.value IS NOT NULL
   ) AS properties
-FROM
-    newspapers n
-    LEFT JOIN issues i ON n.id = i.newspaper_id
-    LEFT JOIN pages p ON i.id = p.issue_id
-GROUP BY n.id;
+FROM newspapers n
+LEFT JOIN meta_entities me_medium ON n.source_medium_id = me_medium.id
+LEFT JOIN meta_entities me_type ON n.source_type_id = me_type.id;
 `
 
 interface NewspaperProperty {
@@ -50,6 +50,8 @@ export interface DBNewspaperDetails {
   publishedToYear?: number
   issueCount: number
   pageCount: number
+  sourceMediumLabel: string
+  sourceTypeLabel: string
   languageCodes: string[]
   properties: NewspaperProperty[]
 }
@@ -131,7 +133,8 @@ export const consolidateMediaSources = async (
 
     return {
       id: dbNewspaper.id,
-      type: 'newspaper',
+      type: dbNewspaper.sourceTypeLabel as MediaSource['type'],
+      medium: dbNewspaper.sourceMediumLabel as MediaSource['medium'],
       name: dbNewspaper.name,
       languageCodes: dbNewspaper.languageCodes,
       ...datesRangePart,

@@ -12,7 +12,12 @@
     "type": {
       "type": "string",
       "description": "The type of the media source.",
-      "enum": ["newspaper"]
+      "enum": ["newspaper", "radio_broadcast", "radio_magazine", "radio_schedule", "monograph", "encyclopedia"]
+    },
+    "medium": {
+      "type": "string",
+      "description": "The medium of the media source.",
+      "enum": ["print", "typescript", "audio"]
     },
     "name": {
       "type": "string",
@@ -86,5 +91,5 @@
       }
     }
   },
-  "required": ["id", "type", "name", "languageCodes", "totals"]
+  "required": ["id", "type", "name", "medium", "languageCodes", "totals"]
 }

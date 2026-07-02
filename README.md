@@ -171,6 +171,10 @@ When a schema is updated, the typescript types should be regenerated. This can b
 npm run generate-types
 ```
 
+## Converting media alias JSONL metadata to JSON
+
+Run `npm run convert-media-alias` to convert the `ALL-ALIAS.jsonl` file from `impresso-corpus-metadata` (`../impresso-corpus-metadata/data/gdrive_metadata/ALL-ALIAS.jsonl` by default) into a JSON array, written next to `partner_institutions_directory.json` in `src/services/version/resources/`.
+
 ## Projecting new indexed Solr field
 
 A new indexed Solr field should be added to four places:

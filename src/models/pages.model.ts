@@ -79,7 +79,7 @@ export default class Page implements IPage {
     this.id = String(id)
 
     // "LCE-1864-07-17-a-p0004".match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
-    const match = this.id.match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-p0*([0-9]+)/)
+    const match = this.id.match(/(([^-]*)-\d{4}-\d{2}-\d{2}-[a-z])*-[a-z]0*([0-9]+)/)
     if (!match) {
       throw new Error(`Invalid page ID: ${this.id}`)
     }
@@ -145,7 +145,7 @@ export default class Page implements IPage {
           field: 'id',
           unique: true,
         },
-        issue_id: {
+        issueId: {
           type: DataTypes.STRING,
           field: 'issue_id',
         },
