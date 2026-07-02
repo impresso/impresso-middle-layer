@@ -3,9 +3,8 @@
  * historical references. Use the proxy from the middleware folder instead.
  */
 
-import logger from 'winston'
-import debugLib from 'debug'
-const debug = debugLib('verbose:impresso/proxy')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'proxy'])
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import modifyResponse from 'node-http-proxy-json'
 import nodePath from 'path'
@@ -21,7 +20,7 @@ import { ACCESS_RIGHT_OPEN_PUBLIC } from '../models/articles.model'
  */
 const internalRedirect = ({ res, protectedPath = '/', filepath = '' } = {}) => {
   const protectedFilepath = [protectedPath, filepath].join('/').replace(/\/+/g, '/')
-  debug('internalRedirect to:', protectedFilepath)
+  logger.debug(`internalRedirect to: ${protectedFilepath}`)
   res.set('X-Accel-Redirect', protectedFilepath)
   res.send()
   res.end()
@@ -35,17 +34,17 @@ const internalRedirect = ({ res, protectedPath = '/', filepath = '' } = {}) => {
  * @return
  */
 const isIssueOpenPublic = async (issueId, sequelizeClient) => {
-  debug('isIssueOpenPublic issueId:', issueId, '...')
+  logger.debug(`isIssueOpenPublic issueId: ${issueId} ...`)
   try {
     const result = await sequelizeClient.query('SELECT access_rights FROM issues WHERE id = ? LIMIT 1', {
       replacements: [issueId],
       type: QueryTypes.SELECT,
     })
-    debug('isIssueOpenPublic issueId:', issueId, '- access_rights:', result[0].access_rights)
+    logger.debug(`isIssueOpenPublic issueId: ${issueId} - access_rights: ${result[0].access_rights}`)
     // if there's an error, we put false.
     return result[0].access_rights === ACCESS_RIGHT_OPEN_PUBLIC
   } catch (e) {
-    debug('isIssueOpenPublic exception thrown, discarded.', e)
+    logger.debug(`isIssueOpenPublic exception thrown, discarded. ${e}`)
     return false
   }
 }
@@ -54,7 +53,7 @@ export default function (app) {
   const config = app.get('proxy')
   const proxyhost = app.get('proxy').host
   const sequelizeClient = app.get('sequelizeClient')
-  debug('configuring proxy host:', proxyhost)
+  logger.debug(`configuring proxy host: ${proxyhost}`)
   logger.info('configuring proxy ...')
 
   const proxyPublicAuthorization = config.iiif.epfl.auth
@@ -80,7 +79,7 @@ export default function (app) {
 
         const isOpenPublic = await isIssueOpenPublic(issueId, sequelizeClient)
         if (isOpenPublic) {
-          debug('no auth found, but contentItemId:', contentItemId, 'is OpenPublic.')
+          logger.debug(`no auth found, but contentItemId: ${contentItemId} is OpenPublic.`)
           req.proxyAuthorization = config.iiif.epflsafe.auth
           if (config.iiif.internalOnly && isImage) {
             internalRedirect({
@@ -91,7 +90,7 @@ export default function (app) {
           }
           next()
         } else if (config.iiif.internalOnly && isImage) {
-          debug('proxy: no auth found, try public endpoint directly.')
+          logger.debug('proxy: no auth found, try public endpoint directly.')
           // do nothing, try "public" endpoint with xaccel
           internalRedirect({
             res,
@@ -109,7 +108,7 @@ export default function (app) {
         .service('/authentication')
         .verifyAccessToken(accessToken.replace(/^Bearer /, ''))
         .then(payload => {
-          debug('proxy: auth found, payload OK. <userId>:', payload.userId)
+          logger.debug(`proxy: auth found, payload OK. <userId>: ${payload.userId}`)
           req.proxyAuthorization = config.iiif.epflsafe.auth
           // check authorization level in user service.
           if (config.iiif.internalOnly && isImage) {
@@ -124,7 +123,7 @@ export default function (app) {
           }
         })
         .catch(err => {
-          debug('proxy: auth found, INVALID payload.', err)
+          logger.debug(`proxy: auth found, INVALID payload. ${err}`)
           // x accel for the images
           // do nothing, we're going for the "public" endpoint
           if (config.iiif.internalOnly && isImage) {
@@ -143,9 +142,9 @@ export default function (app) {
       target: config.iiif.epfl.endpoint, // https://dhlabsrv17.epfl.ch/iiif_impresso/"GDL-1900-01-10-a-p0002/full/full/0/default.jpg
       pathRewrite: path => {
         const extension = nodePath.extname(path)
-        debug('proxy: <extension>:', extension)
+        logger.debug(`proxy: <extension>: ${extension}`)
         if (!extension.length) {
-          debug("proxy: rewrite empty extension to 'info.json'")
+          logger.debug("proxy: rewrite empty extension to 'info.json'")
           return nodePath.join(path.replace('/proxy/iiif', '/'), 'info.json')
         }
 
@@ -156,13 +155,13 @@ export default function (app) {
       logProvider: () => logger,
       logLevel: 'info',
       onProxyReq: (proxyReq, req) => {
-        debug('proxy: @onProxyReq <path>', proxyReq.path)
+        logger.debug(`proxy: @onProxyReq <path> ${proxyReq.path}`)
         let credentials
         if (req.proxyAuthorization) {
-          debug('proxy: @onProxyReq using PRIVATE credentials')
+          logger.debug('proxy: @onProxyReq using PRIVATE credentials')
           credentials = Buffer.from(`${req.proxyAuthorization.user}:${req.proxyAuthorization.pass}`).toString('base64')
         } else {
-          debug('proxy: @onProxyReq using PUBLIC credentials.')
+          logger.debug('proxy: @onProxyReq using PUBLIC credentials.')
           credentials = Buffer.from(`${proxyPublicAuthorization.user}:${proxyPublicAuthorization.pass}`).toString(
             'base64'
           )
@@ -170,21 +169,21 @@ export default function (app) {
         proxyReq.setHeader('Authorization', `Basic ${credentials}`)
       },
       onError: (err, req, res) => {
-        debug('proxy: @onError <path>', req.path, err)
+        logger.debug(`proxy: @onError <path> ${req.path} ${err}`)
         res.writeHead(500, {
           'Content-Type': 'text/plain',
         })
         res.end(`Something went wrong. And we are reporting a custom error message. Code: ${err.code}`)
       },
       onProxyRes: (proxyRes, req, res) => {
-        debug('proxy: @onProxyRes <res.statusCode>:', proxyRes.statusCode, proxyRes.headers['content-type'])
+        logger.debug(`proxy: @onProxyRes <res.statusCode>: ${proxyRes.statusCode} ${proxyRes.headers['content-type']}`)
         if (proxyRes.statusCode === 401) {
           res.redirect('/img/notAuthorized.jpg')
         } else if (proxyRes.statusCode === 200 && proxyRes.headers['content-type'] === 'application/json') {
           // modify HOST in every IIIF fields, when needed.
           modifyResponse(res, proxyRes, iiif => {
             if (iiif) {
-              debug('proxy: @onProxyRes modifyResponse', iiif['@id'])
+              logger.debug(`proxy: @onProxyRes modifyResponse ${iiif['@id']}`)
               // modify some information, deeper and deeper...?
               // We probably need just the very first level (for the moment).
               iiif['@id'] = iiif['@id'].replace(/^.*?\/iiif_impresso\//, `${proxyhost}/proxy/iiif/`)

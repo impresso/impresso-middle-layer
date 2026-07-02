@@ -1,4 +1,5 @@
 import { Params } from '@feathersjs/feathers'
+import { getLogger } from '@/logger.js'
 import { pick } from 'lodash-es'
 import { isNumber, SolrMappings } from '@/data/constants.js'
 import { FindResponse } from '@/models/common.js'
@@ -24,10 +25,9 @@ import {
 } from '@/internalServices/simpleSolr.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 
-import Debug from 'debug'
 import { toPair } from '@/solr/queries/collections.js'
 import { CachedFacetType, buildResolvers, ICachedResolvers } from '@/internalServices/cachedResolvers.js'
-const debug = Debug('impresso/services:search-facets')
+const logger = getLogger(['impresso', 'services', 'search-facets'])
 
 type FacetMetadata = any
 
@@ -174,14 +174,7 @@ const buildFacetsRequest = (
     {} satisfies Record<string, SolrFacetQueryParams>
   )
 
-  debug(
-    `[get] "${types.join(', ')}" (${canBeCached ? 'cached' : 'not cached'}):`,
-    `index: ${index}`,
-    'facets:',
-    facets,
-    'group_by',
-    sanitizedParams.group_by || 'none'
-  )
+  logger.debug(`[get] "${types.join(', ')}" (${canBeCached ? 'cached' : 'not cached'}): ${`index: ${index}`} facets: ${facets} group_by ${sanitizedParams.group_by || 'none'}`)
   const query: SelectRequestBody = {
     query: sanitizedParams.sq ?? '*:*',
     facet: facets,

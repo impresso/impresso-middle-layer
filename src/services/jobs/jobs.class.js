@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import debugLib from 'debug'
-const debug = debugLib('impresso/services:jobs')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'jobs'])
 import { BadGateway, NotFound, NotImplemented } from '@feathersjs/errors'
 import initSequelizeService, { Service as SequelizeService } from '@/services/sequelize.service.js'
 import { STATUS_KILLED, STATUS_DONE } from '@/models/jobs.model.js'
@@ -61,7 +61,7 @@ export class Service {
       throw new BadGateway('celery is not ready')
     }
 
-    debug(`create '${this.name}', test task`)
+    logger.debug(`create '${this.name}', test task`)
 
     return client
       .run({
@@ -93,7 +93,7 @@ export class Service {
     const where = {
       creatorId: params.user.id,
     }
-    debug(`[patch] id:${id}, params.user.uid:${params.user.uid}, where:`, where)
+    logger.debug(`[patch] id:${id}, params.user.uid:${params.user.uid}, where: ${where}`)
     return this.sequelizeService.patch(
       id,
       {
@@ -104,7 +104,7 @@ export class Service {
   }
 
   async remove(id, params) {
-    debug(`[remove] id:${id}, params.user.uid:${params.user.uid}`)
+    logger.debug(`[remove] id:${id}, params.user.uid:${params.user.uid}`)
     return this.sequelizeService
       .bulkRemove({
         id,

@@ -1,4 +1,7 @@
+import { getLogger } from '@/logger.js'
 import type { SocksProxyConfiguration } from '@/models/generated/app/configuration.js'
+
+const logger = getLogger(['util', 'socksProxyConfiguration'])
 
 const SocketConfigurationEnvFileName = 'IMPRESSO_SOCKS_PROXY_CONFIG'
 
@@ -15,7 +18,7 @@ export const getSocksProxyConfiguration = (method = 'env'): SocksProxyConfigurat
     const socksProxyConfig: SocksProxyConfiguration = JSON.parse(socksProxyConfigString)
     return socksProxyConfig
   } catch (error) {
-    console.error('Error parsing SOCKS proxy configuration:', error)
+    logger.error('Error parsing SOCKS proxy configuration:', { error })
     return undefined
   }
 }

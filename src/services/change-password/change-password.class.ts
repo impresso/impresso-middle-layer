@@ -1,10 +1,10 @@
 import type { Sequelize } from 'sequelize'
-import initDebug from 'debug'
+import { getLogger } from '@/logger.js'
 import type { ImpressoApplication } from '@/types.js'
 import User from '@/models/users.model.js'
 import { NotAuthenticated, BadRequest } from '@feathersjs/errors'
 
-const debug = initDebug('impresso:services/change-password')
+const logger = getLogger(['impresso', 'services', 'change-password'])
 
 export interface ServiceOptions {
   app: ImpressoApplication
@@ -20,7 +20,7 @@ export class Service {
     this.name = name
 
     this.sequelizeClient = app.get('sequelizeClient')
-    debug('change-password initialized.')
+    logger.debug('change-password initialized.')
   }
 
   async create(
@@ -35,7 +35,7 @@ export class Service {
     if (!this.sequelizeClient) {
       throw new Error('Sequelize client not available')
     }
-    debug('change-password.create', params.user.id)
+    logger.debug(`change-password.create ${params.user.id}`)
     const userSequelize = User.sequelize(this.sequelizeClient)
     const user = await userSequelize.findOne({
       where: {
@@ -63,7 +63,7 @@ export class Service {
         where: { id: params.user.id },
       }
     )
-    debug('change-password.create', updated)
+    logger.debug(`change-password.create ${updated}`)
     return {
       response: 'ok',
     }

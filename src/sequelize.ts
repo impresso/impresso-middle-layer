@@ -1,5 +1,4 @@
-import { logger } from '@/logger.js'
-import Debug from 'debug'
+import { getLogger } from '@/logger.js'
 import { Sequelize, Options, Dialect } from 'sequelize'
 import { SequelizeConfig } from '@/models/generated/app/configuration.js'
 import { ImpressoApplication } from '@/types.js'
@@ -9,8 +8,8 @@ import { getSocksProxyConfiguration, shouldUseSocksProxy } from '@/util/socksPro
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 import { Application } from '@feathersjs/feathers'
 
-const verbose = Debug('verbose:impresso/sequelize')
-const debug = Debug('impresso/sequelize')
+const verboseLogger = getLogger(['impresso', 'sequelize'])
+const logger = getLogger(['impresso', 'sequelize'])
 
 const defaultPoolConfig = {
   max: 30,
@@ -79,8 +78,8 @@ export const getSequelizeClient = (config: SequelizeConfig) => {
     },
 
     logging(str) {
-      verbose('cursor:', config.host, config.port, config.database)
-      verbose(str)
+      verboseLogger.debug(`cursor: ${config.host} ${config.port} ${config.database}`)
+      verboseLogger.debug(str)
     },
   } satisfies Options)
 
@@ -92,7 +91,7 @@ export default async function (app: ImpressoApplication) {
 
   const { client } = getSequelizeClient(config)
 
-  debug(`Sequelize ${config.dialect} database name: ${config.database} ..`)
+  logger.debug(`Sequelize ${config.dialect} database name: ${config.database} ..`)
 
   app.set('sequelizeClient', client)
 }

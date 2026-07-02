@@ -1,9 +1,9 @@
 import { escapeValue } from '@/util/solr/filterReducers.js'
+import { getLogger } from '@/logger.js'
 import { measureTime } from '@/util/instruments.js'
 import { asFindAll } from '@/util/solr/adapters.js'
-import debugModule from 'debug'
 
-const debug = debugModule('impresso/services:embeddings')
+const logger = getLogger(['impresso', 'services', 'embeddings'])
 
 class Service {
   constructor({ app = null, name = '' }) {
@@ -20,7 +20,7 @@ class Service {
     // use en to get embedding vector for the queried word
     //
     // https:// solrdev.dhlab.epfl.ch/solr/impresso_embeddings_de/select?q=word_s:amour&fl=embedding_bv
-    debug('[find] with params', params.query)
+    logger.debug(`[find] with params ${params.query}`)
 
     const bvRequest = {
       q: `word_s:(${escapeValue(params.query.term)})`,

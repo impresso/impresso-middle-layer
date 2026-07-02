@@ -22,10 +22,11 @@ import redis, { init as initRedis } from '@/redis.js'
 import sequelize, { init as initSequelize } from '@/sequelize.js'
 import services from '@/services/index.js'
 import rateLimiter from '@/services/internal/rateLimiter/redis.js'
-import quotaChecker from '@/services/internal/quotaChecker/redis.js'
+import quotaChecker, { init as initQuotaChecker } from '@/services/internal/quotaChecker/redis.js'
 import media from '@/services/media.js'
 import { init as imageProxy } from '@/middleware/imageProxy.js'
 import schemas from '@/services/schemas.js'
+import { initLogger, withContext } from '@/logger.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import { customJsonMiddleware } from '@/util/express.js'
 import queue from '@/internalServices/queue.js'
@@ -33,6 +34,7 @@ import queueWorkerManager, { start as startQueueWorkerManager } from '@/internal
 
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
+import { randomUUID } from 'node:crypto'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -40,8 +42,17 @@ const __dirname = dirname(__filename)
 // @ts-ignore
 const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
 
+app.configure(initLogger)
+
 // Load app configuration
 app.configure(configuration)
+
+// userId is injected later by the authenticateAround hook (src/hooks/authenticate.ts),
+// which wraps the service method in withContext once context.params.user is known.
+app.use((req, res, next) => {
+  const requestId = req.get('x-request-id') || randomUUID()
+  withContext({ requestId }, next)
+})
 
 app.configure(sequelize)
 
@@ -53,6 +64,10 @@ app.configure(cache)
 app.configure(simpleSolrClient)
 
 // Enable security, compression, favicon and body parsing
+// Request context tracking: must be the very first middleware so that every
+// subsequent middleware, Feathers hook and service call (including deep
+// database/solr layers) automatically carries requestId in logs.
+
 app.use(helmet())
 app.use(compress())
 app.use(cookieParser())
@@ -95,7 +110,15 @@ app.configure(services)
 
 app.configure(
   appHooksFactory(
-    [initSequelize, initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs],
+    [
+      initSequelize,
+      initRedis,
+      initQuotaChecker,
+      initCelery,
+      initOpenApiValidator,
+      startQueueWorkerManager,
+      startupJobs,
+    ],
     []
   )
 )

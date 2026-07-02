@@ -1,5 +1,5 @@
-import Debug from 'debug'
-const debug = Debug('impresso/multer')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'multer'])
 import multer from 'multer'
 
 const getMulterClient = config => {
@@ -9,5 +9,5 @@ const getMulterClient = config => {
 export default function (app) {
   const config = app.get('multer')
   app.set('multerClient', getMulterClient(config))
-  debug('Multer is ready!')
+  logger.debug('Multer is ready!')
 }

@@ -1,6 +1,6 @@
 import { NotFound } from '@feathersjs/errors'
+import { getLogger } from '@/logger.js'
 import type { Id, Params } from '@feathersjs/feathers'
-import debugLib from 'debug'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import type { Filter } from '@/models/index.js'
 import { FindResponse } from '@/models/common.js'
@@ -14,7 +14,7 @@ import { asFindAll, asGet } from '@/util/solr/adapters.js'
 import { escapeValue } from '@/util/solr/filterReducers.js'
 import { BucketValue } from '@/internalServices/simpleSolr.js'
 
-const debug = debugLib('impresso/services:topics')
+const logger = getLogger(['impresso', 'services', 'topics'])
 
 export interface FindQuery {
   q?: string
@@ -66,7 +66,7 @@ export class Service {
       // )
       const solrSuggestResponse = await asFindAll<{}, string, string, SolrTopic>(this.solr, 'topics', request)
 
-      debug('[find] params.sanitized.q:', params.sanitized, 'load topic uids...')
+      logger.debug(`[find] params.sanitized.q: ${params.sanitized} load topic uids...`)
       // no ids? return empty stuff
       if (!solrSuggestResponse?.response?.numFound) {
         return {
@@ -130,7 +130,7 @@ export class Service {
       solrQueryParts.push('*:*')
     }
 
-    debug('[find] params.sanitized:', params.sanitized, '- topic uids:', uids.length)
+    logger.debug(`[find] params.sanitized: ${params.sanitized} - topic uids: ${uids.length}`)
 
     const request = {
       q: solrQueryParts.join(' AND '),
@@ -156,10 +156,10 @@ export class Service {
     // )
     const solrResponse = await asFindAll(this.solr, SolrNamespaces.Search, request)
 
-    debug('[find] solrResponse total document matching:', solrResponse?.response?.numFound)
+    logger.debug(`[find] solrResponse total document matching: ${solrResponse?.response?.numFound}`)
     const topicFacet = solrResponse.facets?.topic as { numBuckets?: number; buckets?: any[] } | undefined
     if (!solrResponse?.response?.numFound || !topicFacet) {
-      debug('[find] warning, no topic buckets found.')
+      logger.debug('[find] warning, no topic buckets found.')
       return {
         data: [],
         limit: params.query.limit,
@@ -176,13 +176,13 @@ export class Service {
     let buckets = topicFacet.buckets ?? []
 
     if (uids.length) {
-      debug('[find] filtering out facets, initial total approx:', topicFacet.numBuckets)
+      logger.debug(`[find] filtering out facets, initial total approx: ${topicFacet.numBuckets}`)
       // filter out facets based on their uid.
       buckets = buckets.filter(d => {
         const val = typeof d === 'object' && d !== null && 'value' in d ? d.value : d
         return uids.includes(String(val))
       })
-      debug('[find] new total: ', buckets.length)
+      logger.debug(`[find] new total:  ${buckets.length}`)
       total = buckets.length
       // get only the portion we need.
       buckets = buckets.slice(params.query.offset, params.query.offset + params.query.limit)

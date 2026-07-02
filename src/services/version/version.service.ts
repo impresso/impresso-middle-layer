@@ -1,5 +1,5 @@
-import debug from 'debug'
 import { createSwaggerServiceOptions } from '@/util/feathers.js'
+import { getLogger } from '@/logger.js'
 import { docs } from '@/services/version/version.schema.js'
 import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
@@ -13,7 +13,7 @@ import { dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const log = debug('impresso/services:version')
+const logger = getLogger(['impresso', 'services', 'version'])
 import { getFirstAndLastDocumentDates } from '@/services/version/logic.js'
 
 interface PartnerInstitutionDirectoryEntry {
@@ -45,10 +45,10 @@ export default function (app: ImpressoApplication) {
   try {
     const fileContent = fs.readFileSync(partnerInstitutionDirectoryPath, 'utf8')
     partnerInstitutionDirectory = JSON.parse(fileContent) as PartnerInstitutionDirectoryEntry[]
-    log(`Loaded partner institution directory with ${partnerInstitutionDirectory.length} entries`)
+    logger.debug(`Loaded partner institution directory with ${partnerInstitutionDirectory.length} entries`)
   } catch (e) {
     const error = e as Error
-    log(`Error loading partner institution directory: ${error.message}`)
+    logger.debug(`Error loading partner institution directory: ${error.message}`)
   }
 
   // Initialize our service with any options it requires
@@ -60,7 +60,7 @@ export default function (app: ImpressoApplication) {
         const solr = app.service('simpleSolrClient')
         const isPublicApi = app.get('isPublicApi')
         const [firstDate, lastDate] = await getFirstAndLastDocumentDates(solr)
-        log('branch:', process.env.GIT_BRANCH, 'revision:', process.env.GIT_REVISION, 'version:', process.env.GIT_TAG)
+        logger.debug(`branch: ${process.env.GIT_BRANCH} revision: ${process.env.GIT_REVISION} version: ${process.env.GIT_TAG}`)
         const mediaSources = app.service('media-sources')
         const lookup = await mediaSources.getLookup()
         const response: FullVersionDetails = {

@@ -1,12 +1,12 @@
-import Debug from 'debug'
 import { groupBy } from 'lodash-es'
+import { getLogger } from '@/logger.js'
 
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
 
-const debug = Debug('impresso/hooks:search')
+const logger = getLogger(['impresso', 'hooks', 'search'])
 
 /**
  * Transform a term parameter to a string filter.
@@ -60,7 +60,7 @@ export const filtersToSolrQuery =
     }
     if (!context[prop].sanitized.filters.length && !context[prop].sanitized.q) {
       // nothing is give, wildcard then.
-      debug(`${prefix} with 'solr query': *:*`)
+      logger.debug(`${prefix} with 'solr query': *:*`)
       context[prop].sanitized.sq = '*:*'
       context[prop].sanitized.queryComponents = []
       return
@@ -90,8 +90,8 @@ export const filtersToSolrQuery =
         context[prop].sanitized.order_by = varsOrderBy.join(',')
       }
     }
-    debug(`${prefix} query order_by:`, context[prop].sanitized.order_by)
-    debug(`${prefix} vars =`, vars, context[prop].sanitized)
+    logger.debug(`${prefix} query order_by: ${context[prop].sanitized.order_by}`)
+    logger.debug(`${prefix} vars = ${vars} ${context[prop].sanitized}`)
 
     // context[prop].query.order_by.push()
 
@@ -120,7 +120,7 @@ export const filtersToSolrQuery =
         filters.page
       )
       .filter(d => typeof d !== 'undefined')
-    debug(`${prefix} with 'solr query': ${context[prop].sanitized.sq}`)
+    logger.debug(`${prefix} with 'solr query': ${context[prop].sanitized.sq}`)
   }
 
 /**
@@ -129,14 +129,14 @@ export const filtersToSolrQuery =
  */
 export const filtersToSolrFacetQuery = () => async (context: HookContext) => {
   if (!context.params.sanitized.facets) {
-    debug('[filtersToSolrFacetQuery] WARN no facets requested.')
+    logger.debug('[filtersToSolrFacetQuery] WARN no facets requested.')
     return
   }
   if (typeof context.params.sanitized !== 'object') {
     throw new Error("[filtersToSolrFacetQuery] hook should be used after a 'validate' hook.")
   }
   const facets = JSON.parse(context.params.sanitized.facets)
-  debug('[filtersToSolrFacetQuery] on facets:', facets)
+  logger.debug(`[filtersToSolrFacetQuery] on facets: ${facets}`)
 
   if (!Array.isArray(context.params.sanitized.facetfilters)) {
     context.params.sanitized.facetfilters = []
@@ -145,7 +145,7 @@ export const filtersToSolrFacetQuery = () => async (context: HookContext) => {
   Object.keys(facets).forEach(key => {
     const filter = context.params.sanitized.facetfilters.find((d: any) => d.name === key)
     if (filter) {
-      debug(`[filtersToSolrFacetQuery] on facet ${key}:`, filter)
+      logger.debug(`[filtersToSolrFacetQuery] on facet ${key}: ${filter}`)
     }
   })
 }

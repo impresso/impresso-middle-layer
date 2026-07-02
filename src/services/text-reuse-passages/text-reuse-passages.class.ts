@@ -1,6 +1,6 @@
 import { NotFound } from '@feathersjs/errors'
+import { getLogger } from '@/logger.js'
 import { Params } from '@feathersjs/feathers'
-import Debug from 'debug'
 import { Filter } from 'impresso-jscommons'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { AllDocumentFields } from '@/models/text-reuse-passage.js'
@@ -9,7 +9,7 @@ import { ImpressoApplication } from '@/types.js'
 import { parseOrderBy } from '@/util/queryParameters.js'
 import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 
-const debug = Debug('impresso/services/text-reuse-passages')
+const logger = getLogger(['impresso', 'services', 'text-reuse-passages'])
 
 export const OrderByKeyToField = {
   clusterSize: SolrFields.clusterSize,
@@ -56,15 +56,7 @@ export class TextReusePassages {
     const fq = `{!collapse field=${params.query?.group_by ? SolrFields[params.query?.group_by] : ''} max=ms(${SolrFields.date})}`
     const effectiveFilter = params.query?.group_by ? queryFilter.concat(fq) : queryFilter
 
-    debug(
-      'find q:',
-      query,
-      '- index:',
-      this.solr.namespaces.TextReusePassages,
-      '- groupby:',
-      params.query?.group_by
-      // params.query
-    )
+    logger.debug(`find q: ${query} - index: ${this.solr.namespaces.TextReusePassages} - groupby: ${params.query?.group_by}`)
 
     const mediaSourcesLookup = await this.app.service('media-sources').getLookup()
 
@@ -107,7 +99,7 @@ export class TextReusePassages {
       },
     })
     const textReusePassage = doc != null ? TextReusePassage.fromSolr(doc) : undefined
-    debug('textReusePassages:', textReusePassage)
+    logger.debug(`textReusePassages: ${textReusePassage}`)
     if (textReusePassage == null) return new NotFound(id)
     return textReusePassage
   }

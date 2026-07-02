@@ -1,11 +1,11 @@
 import YAML from 'yaml'
-import Debug from 'debug'
+import { getLogger } from '@/logger.js'
 import { readFileSync } from 'fs'
 import { StatsConfiguration } from '@/models/generated/app/configuration.js'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 
-const debug = Debug('impresso/data')
+const logger = getLogger(['impresso', 'data'])
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -18,13 +18,13 @@ export class DataIndex {
 
   constructor({ name = '' } = {}) {
     this.name = String(name)
-    debug('init index for', this.name)
+    logger.debug(`init index for ${this.name}`)
     try {
       // eslint-disable-next-line global-require, import/no-dynamic-require
       this.values = require(`../../data/${this.name}.json`)
-      debug('init index for', this.name, 'success')
+      logger.debug(`init index for ${this.name} success`)
     } catch (e) {
-      debug('index built FAILED for', this.name, (e as { code: string }).code)
+      logger.debug(`index built FAILED for ${this.name} ${(e as { code: string }).code}`)
     }
   }
 

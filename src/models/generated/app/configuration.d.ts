@@ -35,6 +35,16 @@ export interface Config {
    * If `true`, the app serves a public API. It is `falsee` by default.
    */
   isPublicApi?: boolean;
+  logging?: {
+    /**
+     * Format of the logging output (JSON by default)
+     */
+    format?: "json" | "pretty";
+    /**
+     * Lowest logging level (info by default)
+     */
+    lowestLevel?: "debug" | "info";
+  };
   /**
    * List of available plans
    */

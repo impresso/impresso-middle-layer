@@ -1,11 +1,13 @@
 import { disallow } from 'feathers-hooks-common'
 import { createClient } from 'redis'
 import type { RedisConfiguration } from '@/configuration.js'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
 import { Application } from '@feathersjs/feathers'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
+
+const logger = getLogger(['app', 'redis'])
 
 type RedisClient = ReturnType<typeof createClient>
 
@@ -82,8 +84,8 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
     try {
       await client.setup(context.app, 'redisClient')
       logger.info('Redis is active.')
-    } catch (err) {
-      logger.error('Error setting up redis:', err)
+    } catch (error) {
+      logger.error('Error setting up redis', { error })
     }
   } else {
     logger.warn('Redis is not configured. Cannot activate.')
