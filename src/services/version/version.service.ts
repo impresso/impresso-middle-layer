@@ -5,22 +5,11 @@ import { ImpressoApplication } from '@/types.js'
 import { ServiceOptions } from '@feathersjs/feathers'
 import { transformVersionDetails } from '@/transformers/version.js'
 import { FullVersionDetails } from '@/models/generated/app/responses.js'
-import path from 'path'
-import fs from 'fs'
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+import { getFirstAndLastDocumentDates } from '@/services/version/logic.js'
+import { getPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
+import type { PartnerInstitutionDirectoryEntry } from '@/internalServices/partnerInstitutionsDirectory.js'
 
 const logger = getLogger(['impresso', 'services', 'version'])
-import { getFirstAndLastDocumentDates } from '@/services/version/logic.js'
-
-interface PartnerInstitutionDirectoryEntry {
-  partner_institution_id: string
-  partner_institution_names: { lang: string; name: string }[]
-  partner_bitmap_index: number
-}
 
 const toPartnerInstitutions = (
   entries: PartnerInstitutionDirectoryEntry[]
@@ -38,19 +27,6 @@ const toPartnerInstitutions = (
 }
 
 export default function (app: ImpressoApplication) {
-  // Read partner institution directory into memory
-  const partnerInstitutionDirectoryPath = path.resolve(__dirname, 'resources', 'partner_institutions_directory.json')
-  let partnerInstitutionDirectory: PartnerInstitutionDirectoryEntry[] = []
-
-  try {
-    const fileContent = fs.readFileSync(partnerInstitutionDirectoryPath, 'utf8')
-    partnerInstitutionDirectory = JSON.parse(fileContent) as PartnerInstitutionDirectoryEntry[]
-    logger.debug(`Loaded partner institution directory with ${partnerInstitutionDirectory.length} entries`)
-  } catch (e) {
-    const error = e as Error
-    logger.debug(`Error loading partner institution directory: ${error.message}`)
-  }
-
   // Initialize our service with any options it requires
   app.use(
     '/version',
@@ -79,7 +55,7 @@ export default function (app: ImpressoApplication) {
           documentsDateSpan: { firstDate, lastDate },
           newspapers: lookup as Record<string, Record<string, any>>,
           features: (app.get('features') ?? {}) as Record<string, Record<string, any>>,
-          partnerInstitutions: toPartnerInstitutions(partnerInstitutionDirectory),
+          partnerInstitutions: toPartnerInstitutions(getPartnerInstitutionsDirectory(app)),
         }
 
         if (isPublicApi) {
