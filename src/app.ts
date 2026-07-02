@@ -22,7 +22,7 @@ import redis, { init as initRedis } from '@/redis.js'
 import sequelize, { init as initSequelize } from '@/sequelize.js'
 import services from '@/services/index.js'
 import rateLimiter from '@/services/internal/rateLimiter/redis.js'
-import quotaChecker from '@/services/internal/quotaChecker/redis.js'
+import quotaChecker, { init as initQuotaChecker } from '@/services/internal/quotaChecker/redis.js'
 import media from '@/services/media.js'
 import { init as imageProxy } from '@/middleware/imageProxy.js'
 import schemas from '@/services/schemas.js'
@@ -42,8 +42,17 @@ const __dirname = dirname(__filename)
 // @ts-ignore
 const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
 
+app.configure(initLogger)
+
 // Load app configuration
 app.configure(configuration)
+
+// userId is injected later by the authenticateAround hook (src/hooks/authenticate.ts),
+// which wraps the service method in withContext once context.params.user is known.
+app.use((req, res, next) => {
+  const requestId = req.get('x-request-id') || randomUUID()
+  withContext({ requestId }, next)
+})
 
 app.configure(sequelize)
 
@@ -58,12 +67,6 @@ app.configure(simpleSolrClient)
 // Request context tracking: must be the very first middleware so that every
 // subsequent middleware, Feathers hook and service call (including deep
 // database/solr layers) automatically carries requestId in logs.
-// userId is injected later by the authenticateAround hook (src/hooks/authenticate.ts),
-// which wraps the service method in withContext once context.params.user is known.
-app.use((req, res, next) => {
-  const requestId = req.get('x-request-id') || randomUUID()
-  withContext({ requestId }, next)
-})
 
 app.use(helmet())
 app.use(compress())
@@ -107,7 +110,15 @@ app.configure(services)
 
 app.configure(
   appHooksFactory(
-    [initLogger, initSequelize, initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs],
+    [
+      initSequelize,
+      initRedis,
+      initQuotaChecker,
+      initCelery,
+      initOpenApiValidator,
+      startQueueWorkerManager,
+      startupJobs,
+    ],
     []
   )
 )

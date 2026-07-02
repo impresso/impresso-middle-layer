@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { configure, getConsoleSink, getLogger, getJsonLinesFormatter } from '@logtape/logtape'
+import { configureSync, getConsoleSink, getLogger, getJsonLinesFormatter } from '@logtape/logtape'
 import { getPrettyFormatter } from '@logtape/pretty'
+import { ImpressoApplication } from './types.js'
 
 export { getLogger, withContext } from '@logtape/logtape'
 
@@ -10,18 +11,16 @@ export const logger = getLogger(['app'])
 // to configure() so that withContext() actually propagates properties to logs.
 const contextLocalStorage = new AsyncLocalStorage<Record<string, unknown>>()
 
-export const initLogger = async () => {
+export async function initLogger(app: ImpressoApplication) {
   const isProd = process.env.NODE_ENV === 'production'
 
-  await configure({
+  configureSync({
     sinks: {
       console: getConsoleSink({
         // isProd outputs structured JSON. !isProd defaults to pretty terminal output.
         // In dev, enable `properties: true` so the error object (and any other
         // structured properties) are rendered below each log line.
-        formatter: isProd
-          ? getJsonLinesFormatter()
-          : getPrettyFormatter({ properties: true }),
+        formatter: isProd ? getJsonLinesFormatter() : getPrettyFormatter({ properties: true }),
       }),
     },
     contextLocalStorage,
