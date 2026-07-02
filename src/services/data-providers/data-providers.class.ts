@@ -1,22 +1,8 @@
-import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
-import { getLogger } from '@/logger.js'
+import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import { DataProvider } from '@/models/generated/canonical.js'
-import * as path from 'path'
-import * as fs from 'fs'
-import { fileURLToPath } from 'url'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const logger = getLogger(['impresso', 'services', 'data-providers'])
-
-interface PartnerInstitutionDirectoryEntry {
-  partner_institution_id: string
-  partner_institution_names: { lang: string; name: string }[]
-  partner_bitmap_index: number
-}
+import type { PartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 
 type FindQuery = Pick<FindResponse<unknown>['pagination'], 'limit' | 'offset'> & {
   term?: string
@@ -48,46 +34,25 @@ const newTermFilter = (term?: string) => (provider: DataProvider) => {
 export class DataProviders
   implements Pick<ClientService<DataProvider, unknown, unknown, FindResponse<DataProvider>>, 'find' | 'get'>
 {
-  private dataProviders: DataProvider[] = []
+  constructor(private readonly getDirectory: () => PartnerInstitutionsDirectory) {}
 
-  constructor() {
-    this.loadDataProviders()
-  }
-
-  private loadDataProviders(): void {
-    const partnerInstitutionDirectoryPath = path.resolve(
-      __dirname,
-      '../version/resources',
-      'partner_institutions_directory.json'
-    )
-
-    try {
-      const fileContent = fs.readFileSync(partnerInstitutionDirectoryPath, 'utf8')
-      const rawData = JSON.parse(fileContent) as PartnerInstitutionDirectoryEntry[]
-
-      this.dataProviders = rawData.map(entry => ({
-        id: entry.partner_institution_id,
-        name: entry.partner_institution_names?.[0]?.name ?? '',
-        names: entry.partner_institution_names.map(nameEntry => ({
-          langCode: nameEntry.lang,
-          name: nameEntry.name,
-        })),
-        bitmapIndex: entry.partner_bitmap_index,
-      }))
-
-      logger.debug(`Loaded ${this.dataProviders.length} data providers from directory`)
-    } catch (e) {
-      const error = e as Error
-      logger.debug(`Error loading data providers: ${error.message}`)
-      this.dataProviders = []
-    }
+  private getDataProviders(): DataProvider[] {
+    return this.getDirectory().map(entry => ({
+      id: entry.partner_institution_id,
+      name: entry.partner_institution_names?.[0]?.name ?? '',
+      names: entry.partner_institution_names.map(nameEntry => ({
+        langCode: nameEntry.lang,
+        name: nameEntry.name,
+      })),
+      bitmapIndex: entry.partner_bitmap_index,
+    }))
   }
 
   async find(params?: Params<FindQuery>): Promise<FindResponse<DataProvider>> {
     const { limit = DefaultPageSize, offset = 0, term } = params?.query ?? {}
 
     const termFilter = newTermFilter(term)
-    const filteredResult = this.dataProviders.filter(termFilter)
+    const filteredResult = this.getDataProviders().filter(termFilter)
 
     // Sort by ID for consistency
     const sortedResult = filteredResult.sort((a, b) => a.id.localeCompare(b.id))
@@ -104,7 +69,7 @@ export class DataProviders
   }
 
   async get(id: Id, params?: Params): Promise<DataProvider> {
-    const provider = this.dataProviders.find(p => p.id === id)
+    const provider = this.getDataProviders().find(p => p.id === id)
     if (provider == null) throw new NotFound(`Data provider with id ${id} not found`)
     return provider
   }

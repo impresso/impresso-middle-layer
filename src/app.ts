@@ -11,6 +11,7 @@ import celery, { init as initCelery } from '@/celery.js'
 import channels from '@/channels.js'
 import configuration, { Configuration } from '@/configuration.js'
 import { init as simpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { init as initPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import { startupJobs } from '@/jobs/index.js'
 import middleware from '@/middleware/index.js'
 import errorHandling from '@/middleware/errorHandling.js'
@@ -116,6 +117,7 @@ app.configure(
       initQuotaChecker,
       initCelery,
       initOpenApiValidator,
+      initPartnerInstitutionsDirectory,
       startQueueWorkerManager,
       startupJobs,
     ],
