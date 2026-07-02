@@ -11,6 +11,22 @@
       "type": "boolean",
       "description": "If `true`, the app serves a public API. It is `falsee` by default."
     },
+    "logging": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["json", "pretty"],
+          "description": "Format of the logging output (JSON by default)"
+        },
+        "lowestLevel": {
+          "type": "string",
+          "enum": ["debug", "info"],
+          "description": "Lowest logging level (info by default)"
+        }
+      },
+      "additionalProperties": false
+    },
     "availablePlans": {
       "type": "array",
       "items": {

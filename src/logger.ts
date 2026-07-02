@@ -12,18 +12,17 @@ export const logger = getLogger(['app'])
 const contextLocalStorage = new AsyncLocalStorage<Record<string, unknown>>()
 
 export async function initLogger(app: ImpressoApplication) {
-  const isProd = process.env.NODE_ENV === 'production'
-
   configureSync({
     sinks: {
       console: getConsoleSink({
         // isProd outputs structured JSON. !isProd defaults to pretty terminal output.
         // In dev, enable `properties: true` so the error object (and any other
         // structured properties) are rendered below each log line.
-        formatter: isProd ? getJsonLinesFormatter() : getPrettyFormatter({ properties: true }),
+        formatter:
+          app.get('logging')?.format === 'pretty' ? getPrettyFormatter({ properties: true }) : getJsonLinesFormatter(),
       }),
     },
     contextLocalStorage,
-    loggers: [{ category: [], sinks: ['console'], lowestLevel: isProd ? 'info' : 'debug' }],
+    loggers: [{ category: [], sinks: ['console'], lowestLevel: app.get('logging')?.lowestLevel ?? 'info' }],
   })
 }
