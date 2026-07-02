@@ -1,4 +1,4 @@
-FROM node:20-alpine as builder
+FROM node:24-alpine as builder
 
 WORKDIR /impresso-middle-layer
 
@@ -6,7 +6,7 @@ COPY package-lock.json package.json tsconfig.json ./
 
 RUN npm install
 
-FROM node:20-alpine as runner
+FROM node:24-alpine as runner
 
 ARG GIT_TAG
 ARG GIT_BRANCH
