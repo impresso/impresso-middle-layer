@@ -268,7 +268,9 @@ export class Stats {
       .map((s: keyof typeof StatsToSolrStatistics) => StatsToSolrStatistics[s])
       .join(' ')}}${field}`
 
-    logger.debug(`[get] index: ${index} field: ${field} stats: ${stats} n.filters: ${filters.length} statsField: ${statsField}`)
+    logger.debug(
+      `[get] index: ${index} field: ${field} stats: ${stats} n.filters: ${filters.length} statsField: ${statsField}`
+    )
     const { query, filter } = filtersToQueryAndVariables(
       filters,
       index,
@@ -283,7 +285,6 @@ export class Stats {
         params: { hl: false, stats: true, 'stats.field': statsField },
       },
     })
-    logger.debug(`[get] index: ${index} stats result ${result.stats?.stats_fields?.statistics}`)
     return {
       statistics: result.stats?.stats_fields?.statistics,
       total: result.response?.numFound,
@@ -302,7 +303,9 @@ export class Stats {
       this.app.get('solrConfiguration').namespaces ?? [],
       this.app.get('features') ?? {}
     )
-    logger.debug(`[find] index: ${index} groupby: ${groupby} domain: ${domain} stats: ${stats} filters: ${filters} sort: ${sort} facet: ${JSON.stringify(request.facet, null, 2)}`)
+    logger.debug(
+      `[find] index: ${index} groupby: ${groupby} domain: ${domain} stats: ${stats} filters: ${filters} sort: ${sort} facet: ${JSON.stringify(request.facet, null, 2)}`
+    )
     const result = await this.solr.select(index, { body: request })
     logger.debug(`stats result ${result.facets}`)
     const response: any = await buildResponse(result, facet, index, domain, filters, this.app)
