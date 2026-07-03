@@ -1,5 +1,5 @@
-import Debug from 'debug'
-const debug = Debug('impresso/services:FusionService')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'FusionService'])
 import decypher from 'decypher'
 import { NotFound } from '@feathersjs/errors'
 import neo4j from '@/neo4j.js'
@@ -20,7 +20,7 @@ class FusionService {
     this.sequelizeKlass = this.Klass.sequelize(this.sequelize)
 
     this.name = options.name
-    debug(`Configuring service: ${options.name}`)
+    logger.debug(`Configuring service: ${options.name}`)
   }
 
   async get(id) {
@@ -29,7 +29,7 @@ class FusionService {
     const itemFromSequelize = await this.sequelizeKlass.scope('get').findById(id)
 
     if (!itemFromSequelize) {
-      debug(`get '${this.name}': uid not found <uid>:`, id)
+      logger.debug(`get '${this.name}': uid not found <uid>: ${id}`)
       throw new NotFound()
     }
     const session = this.neo4j.session()
@@ -39,7 +39,7 @@ class FusionService {
       Project: 'impresso',
       uid: itemFromSequelize.uid,
     }).then(res => {
-      debug(`get '${this.name}': neo4j success`, neo4jSummary(res))
+      logger.debug(`get '${this.name}': neo4j success ${neo4jSummary(res)}`)
       if (!Array.isArray(res.records) || !res.records.length) {
         throw new NotFound()
       }
@@ -54,7 +54,7 @@ class FusionService {
   }
 
   async find(params) {
-    debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query:`, params.query)
+    logger.debug(`find '${this.name}': with params.isSafe:${params.isSafe} and params.query: ${params.query}`)
     const session = this.neo4j.session()
     // pure findAll, limit and offset only
     const itemsFromSequelize = await this.sequelizeKlass.scope('findAll').findAll({
@@ -69,7 +69,7 @@ class FusionService {
       uids: itemsFromSequelize.map(d => d.uid),
     }).then(res => {
       const _records = {}
-      debug(`find '${this.name}': neo4j success`, neo4jSummary(res))
+      logger.debug(`find '${this.name}': neo4j success ${neo4jSummary(res)}`)
       res.records.forEach(rec => {
         _records[rec.uid] = neo4jRecordMapper(rec)
       })

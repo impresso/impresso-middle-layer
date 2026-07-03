@@ -1,15 +1,14 @@
 // Application hooks that run for every service
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { hooks } from '@feathersjs/authentication'
 import { BadGateway, BadRequest, Conflict, FeathersError, GeneralError, Unprocessable } from '@feathersjs/errors'
 import { ApplicationHookFunction, HookContext } from '@feathersjs/feathers'
 import { ValidationError } from 'ajv/dist/2019.js'
-import Debug from 'debug'
 
 const { authenticate } = hooks
 
-const debug = Debug('impresso/app.hooks')
+const logger = getLogger(['impresso', 'app.hooks'])
 // import { validateRouteId } from './hooks/params'
 import { SlimUser } from '@/authentication.js'
 import { InvalidArgumentError } from '@/util/error.js'
@@ -42,7 +41,7 @@ const requireAuthentication =
     excludePaths = ['authentication', 'users', 'newspapers'], //
   } = {}) => (context: HookContext) => {
     const allowUnauthenticated = excludePaths.indexOf(context.path) !== -1
-    debug('hook:requireAuthentication', context.path, !allowUnauthenticated)
+    logger.debug(`hook:requireAuthentication ${context.path} ${!allowUnauthenticated}`)
     if (!allowUnauthenticated) {
       return authenticate('jwt')(context)
     }
@@ -67,16 +66,26 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
       // may be intercepted by a firewall and modified.
       const data = { ...error.details, userId: user?.uid }
       ctx.error = new FeathersError(error.message, 'SolrError', 418, 'solr-error', data)
+      // userId is provided automatically via withContext (see src/app.ts).
       logger.error(
-        `SOLR error (userId:${user?.uid}) query params:${error.details.params?.slice(0, 1000)} - message:"${error.message}"`
+        `SOLR error query params:${error.details.params?.slice(0, 1000)} - message:"${error.message}"`,
+        {
+          httpError: error.httpError,
+          stack: error.stack,
+        }
       )
       error = ctx.error
     }
 
+    // Log the full error (including stack) BEFORE the stack is stripped below
+    // for the HTTP response. userId/requestId are attached via withContext.
     if (!excludedStatusCodes.includes(error.code) || !error.code) {
       logger.error(
-        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method} - message:"${error.message}" - stack:`,
-        error
+        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method} - message:"${error.message}"`,
+        {
+          ...error,
+          stack: error.stack,
+        }
       )
     }
     if (error instanceof ValidationError) {
@@ -106,7 +115,7 @@ export default (
 ) => {
   return (app: ImpressoApplication) => {
     const config = app.get('appHooks')
-    debug('global hooks configuration', config)
+    logger.debug(`global hooks configuration ${config}`)
 
     const beforeAll = config?.alwaysRequired
       ? [

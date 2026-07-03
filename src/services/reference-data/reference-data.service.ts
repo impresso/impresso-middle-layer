@@ -4,6 +4,7 @@ import { ServiceOptions } from '@feathersjs/feathers'
 import type { NextFunction, Request, Response } from 'express'
 import { DataProviders } from '@/services/data-providers/data-providers.class.js'
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
+import { getPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import {
   contentItemTypesCsvRowLoader,
   CsvExportService,
@@ -43,7 +44,7 @@ export default (app: ImpressoApplication) => {
   const isPublicApi = app.get('isPublicApi') ?? false
   if (!isPublicApi) return
 
-  const dataProviders = new DataProviders()
+  const dataProviders = new DataProviders(() => getPartnerInstitutionsDirectory(app))
   const mediaSources = new MediaSources(app.get('cacheManager'))
 
   const dataProvidersCsvService = new CsvExportService(newDataProvidersCsvRowLoader(dataProviders))

@@ -1,5 +1,5 @@
-import debugLib from 'debug'
-const debug = debugLib('impresso/neo4j')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'neo4j'])
 import { v1 as neo4j } from 'neo4j-driver'
 
 const getNeo4jClient = config => {
@@ -12,11 +12,11 @@ const getNeo4jClient = config => {
 export default function (app) {
   const config = app.get('neo4j')
   if (!config || !config.host) {
-    debug('Neo4j is not configured.')
+    logger.debug('Neo4j is not configured.')
     return
   }
 
-  debug(`Neo4j configuration found, host:${config.host}, let's see if it works...`)
+  logger.debug(`Neo4j configuration found, host:${config.host}, let's see if it works...`)
 
   const driver = getNeo4jClient(config)
   // create a session
@@ -27,11 +27,11 @@ export default function (app) {
   session
     .run('RETURN 1 + 1')
     .then(res => {
-      debug(`Neo4j is ready! version: ${res.summary.server.version}`)
+      logger.debug(`Neo4j is ready! version: ${res.summary.server.version}`)
       // pass neo4j session to app
     })
     .catch(err => {
-      debug(`Neo4j connection error! ${err.code}`)
+      logger.debug(`Neo4j connection error! ${err.code}`)
     })
 }
 

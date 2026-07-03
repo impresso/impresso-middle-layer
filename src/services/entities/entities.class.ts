@@ -1,4 +1,5 @@
 import { ImpressoApplication } from '@/types.js'
+import { getLogger } from '@/logger.js'
 import { Service as SequelizeService } from '@/services/sequelize.service.js'
 import User from '@/models/users.model.js'
 import { Params } from '@feathersjs/feathers'
@@ -10,8 +11,7 @@ import { SolrNamespaces } from '@/solr.js'
 import Entity, { IEntitySolrHighlighting, suggestField } from '@/models/entities.model.js'
 
 /* eslint-disable no-unused-vars */
-import debugLib from 'debug'
-const debug = debugLib('impresso/services:entities')
+const logger = getLogger(['impresso', 'services', 'entities'])
 import { flow, keyBy, map, compact } from 'lodash-es'
 import { Op } from 'sequelize'
 import { NotFound } from '@feathersjs/errors'
@@ -64,7 +64,7 @@ class Service {
 
   async _find(params: Params<FindQuery> & Sanitized<FindQuery> & WithUser) {
     const qp = params.query!
-    debug('[find] with params:', qp)
+    logger.debug(`[find] with params: ${qp}`)
 
     // split filters into solr and sequelize filters
     const { solrFilters, sequelizeFilters } = sortFindEntitiesFilters(qp.filters)
@@ -87,7 +87,7 @@ class Service {
       constraintIds = records.data.map((d: any) => d.id)
     }
 
-    debug('[find] constraintIds:', constraintIds)
+    logger.debug(`[find] constraintIds: ${constraintIds}`)
 
     // if ids were collected - add them as a filter for solr
     const uidFilter: Filter | undefined =
@@ -108,7 +108,7 @@ class Service {
       this.app.get('solrConfiguration').namespaces ?? [],
       this.app.get('features') ?? {}
     )
-    debug('[find] solr query:', query)
+    logger.debug(`[find] solr query: ${query}`)
 
     const solrResult = await measureTime(
       () => this.solr.select(SolrNamespaces.Entities, { body: query }),
@@ -118,7 +118,7 @@ class Service {
     const factory = Entity.solrFactory()
     const entities = solrResult.response?.docs?.map(factory)
 
-    debug('[find] total entities:', solrResult.response?.numFound)
+    logger.debug(`[find] total entities: ${solrResult.response?.numFound}`)
     // is Empty?
     if (!solrResult.response?.numFound) {
       return {
@@ -177,7 +177,7 @@ class Service {
 
     if (!params.sanitized.resolve) {
       // no need to resolve?
-      debug('[find] completed, no param resolve, then SKIP wikidata.')
+      logger.debug('[find] completed, no param resolve, then SKIP wikidata.')
       return result
     }
 
@@ -186,7 +186,7 @@ class Service {
     // const wkdIds = lodash(sequelizeEntitiesIndex).map('wikidataId').compact().value() as EntityId[]
     const wkdIds = getEntityIds(sequelizeEntitiesIndex) as EntityId[]
 
-    debug('[find] wikidata loading:', wkdIds.length)
+    logger.debug(`[find] wikidata loading: ${wkdIds.length}`)
     const resolvedEntities = await resolveWikidata({
       ids: wkdIds,
       cache: this.app.service('redisClient').client,

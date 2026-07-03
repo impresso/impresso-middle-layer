@@ -1,12 +1,11 @@
 import { keyBy } from 'lodash-es'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import { HookContext } from '@feathersjs/feathers'
 import { Service as SearchFacetService } from '@/services/search-facets/search-facets.class.js'
 import { ImpressoApplication } from '@/types.js'
 import { FindResponse } from '@/models/common.js'
 import { SearchFacet, SearchFacetBucket } from '@/models/generated/deprecated/models.js'
-import debugLib from 'debug'
-const debug = debugLib('impresso/hooks/resolvers')
+const logger = getLogger(['impresso', 'hooks', 'resolvers'])
 
 const supportedMethods = ['get', 'find']
 
@@ -46,7 +45,7 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
 
   if (!ids.length) return
 
-  debug('resolveTextReuseClusters ids:', ids)
+  logger.debug(`resolveTextReuseClusters ids: ${ids}`)
   // get text reuse clusters as dictionary from text-reuse-clusters service
   const index = await context.app
     .service('text-reuse-passages')
@@ -60,14 +59,14 @@ export const resolveTextReuseClusters = () => async (context: HookContext<Impres
       },
     })
     .then(({ data }: { data: any }) => {
-      debug('resolveTextReuseClusters data:', data.length)
+      logger.debug(`resolveTextReuseClusters data: ${data.length}`)
       return keyBy(data, 'textReuseCluster.id')
     })
     .catch((err: Error) => {
       logger.error('hook resolveTextReuseClusters ERROR')
       logger.error(err)
     })
-  debug('resolveTextReuseClusters index keys:', Object.keys(index))
+  logger.debug(`resolveTextReuseClusters index keys: ${Object.keys(index)}`)
 
   items.forEach(d => {
     if (d.type !== 'textReuseCluster') return

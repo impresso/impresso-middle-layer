@@ -1,5 +1,4 @@
 import { keyBy, take } from 'lodash-es'
-import Debug from 'debug'
 import { Op } from 'sequelize'
 
 import { logger } from '@/logger.js'

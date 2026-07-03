@@ -122,7 +122,7 @@ export class WorkerManagerService {
         await worker.close()
         logger.debug(`Worker ${index + 1} stopped successfully`)
       } catch (error) {
-        logger.error(`Error stopping worker ${index + 1}:`, error)
+        logger.error(`Error stopping worker ${index + 1}`, { error })
       }
     })
 
@@ -170,11 +170,11 @@ export class WorkerManagerService {
     })
 
     queueEvents.on('completed', job => {
-      logger.info(`[JOB] Job ${job.jobId} completed successfully: ${job.returnvalue}`)
+      logger.info(`[JOB] Job ${job.jobId} completed successfully:`, { returnvalue: job.returnvalue })
     })
 
     queueEvents.on('failed', (job, err) => {
-      logger.error(`[JOB] Job ${job.jobId} failed: (${job.failedReason})`, err)
+      logger.error(`[JOB] Job ${job.jobId} failed: (${job.failedReason})`, { error: err })
     })
 
     queueEvents.on('active', job => {
@@ -245,7 +245,7 @@ export default (app: ImpressoApplication) => {
 
     logger.info('Worker manager service initialized successfully')
   } catch (error) {
-    logger.error('Failed to initialize worker manager service:', error)
+    logger.error('Failed to initialize worker manager service', { error })
     throw error
   }
 }
@@ -255,8 +255,8 @@ export const start = async (context: HookContext<ImpressoApplication & Applicati
   if (service) {
     try {
       await service.start()
-    } catch (err) {
-      logger.error('Error starting worker manager service:', err)
+    } catch (error) {
+      logger.error('Error starting worker manager service', { error })
     }
   } else {
     logger.warn('Worker manager service is not configured. Cannot start workers.')

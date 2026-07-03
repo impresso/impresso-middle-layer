@@ -1,6 +1,8 @@
 import { SolrServerProxy } from '../../../configuration.js'
-import { logger } from '../../../logger.js'
+import { getLogger } from '../../../logger.js'
 import { FetchOptions, IFetchClient, IFetchClientOptions } from './base.js'
+
+const logger = getLogger(['utils', 'http', 'client', 'bun'])
 
 /**
  * Bun implementation of IFetchClient
@@ -10,7 +12,7 @@ export class BunFetchClient implements IFetchClient {
   private socksProxy?: SolrServerProxy
 
   constructor(options: IFetchClientOptions) {
-    console.log('Using BunFetchClient')
+    logger.info('Using BunFetchClient')
     this.socksProxy = options.socksProxy
   }
 

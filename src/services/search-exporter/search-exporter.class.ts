@@ -1,10 +1,10 @@
 import { Params } from '@feathersjs/feathers'
-import debugLib from 'debug'
+import { getLogger } from '@/logger.js'
 import { Filter } from 'impresso-jscommons'
 import User from '@/models/users.model.js'
 import { ImpressoApplication } from '@/types.js'
 
-const debug = debugLib('impresso/services:search-exporter')
+const logger = getLogger(['impresso', 'services', 'search-exporter'])
 
 interface CreateData {
   taskname: string
@@ -38,10 +38,10 @@ export class Service {
     }
 
     const q = params.query.sfq.map(term => `(${term})`).join(' AND ')
-    debug('[create] from solr query:', q, 'filters:', params.sanitized.filters)
+    logger.debug(`[create] from solr query: ${q} filters: ${params.sanitized.filters}`)
 
     const task = `impresso.tasks.${data.sanitized.taskname}`
-    debug('[create] - task:', task)
+    logger.debug(`[create] - task: ${task}`)
 
     const queueService = this.app.service('queueService')
 

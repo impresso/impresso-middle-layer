@@ -1,11 +1,11 @@
 import type { InferAttributes, Sequelize } from 'sequelize'
-import initDebug from 'debug'
+import { getLogger } from '@/logger.js'
 import type { ImpressoApplication } from '@/types.js'
 import User from '@/models/users.model.js'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import UserChangePlanRequest, { StatusPending } from '@/models/user-change-plan-request.js'
 
-const debug = initDebug('impresso:services/user-change-plan-request')
+const logger = getLogger(['impresso', 'services', 'user-change-plan-request'])
 
 export interface ServiceOptions {
   app: ImpressoApplication
@@ -52,7 +52,7 @@ export class Service {
     this.app = app
     this.name = name
     this.sequelizeClient = app.get('sequelizeClient')
-    debug('Service initialized.')
+    logger.debug('Service initialized.')
   }
 
   /**
@@ -79,7 +79,7 @@ export class Service {
     if (!this.sequelizeClient) {
       throw new Error('Sequelize client not available')
     }
-    debug('[find] plan request for user.pk', params.user.id, params.user)
+    logger.debug(`[find] plan request for user.pk ${params.user.id} ${params.user}`)
     const userChangePlanRequestModel = UserChangePlanRequest.initModel(this.sequelizeClient)
     const userChangePlanRequest = await userChangePlanRequestModel.findOne({
       where: {
@@ -130,7 +130,7 @@ export class Service {
     if (!this.sequelizeClient) {
       throw new Error('Sequelize client not available')
     }
-    debug('[create] plan request for user.pk', params.user.id, 'plan:', data.plan, params.user)
+    logger.debug(`[create] plan request for user.pk ${params.user.id} plan: ${data.plan} ${params.user}`)
     // check if the plan selected is already included in params.user.groups
     if (params.user.groups?.includes(data.plan)) {
       throw new BadRequest('User is already granted access to the requested plan.', { plan: 'Already granted' })
@@ -158,7 +158,7 @@ export class Service {
         args: [params.user.id, data.plan],
       })
       .catch((error: Error) => {
-        debug('[create] error:', error)
+        logger.debug(`[create] error: ${error}`)
         throw error
       })
       .then(() => ({

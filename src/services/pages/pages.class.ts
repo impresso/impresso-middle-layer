@@ -1,6 +1,6 @@
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import { NotFound } from '@feathersjs/errors'
-import debugLib from 'debug'
+import { getLogger } from '@/logger.js'
 import type { PublicFindResponse as FindResponse } from '@/models/common.js'
 import Page from '@/models/pages.model.js'
 import type { ImpressoApplication } from '@/types.js'
@@ -11,7 +11,7 @@ import { asFindAll } from '@/util/solr/adapters.js'
 import { Op, OrderItem, Sequelize, type WhereOptions } from 'sequelize'
 import { PageFilterFields } from './pages.schema.js'
 
-const debug = debugLib('impresso/services:pages')
+const logger = getLogger(['impresso', 'services', 'pages'])
 
 export interface FindQuery {
   limit?: number
@@ -82,7 +82,7 @@ export class PagesService implements IPagesService {
         () =>
           this.sequelizeService.get(id, {}).catch(err => {
             if (err.code === 404) {
-              debug(`'get' (WARNING!) no page found using SequelizeService for page id ${id}`)
+              logger.debug(`'get' (WARNING!) no page found using SequelizeService for page id ${id}`)
               return undefined
             }
             throw err
@@ -93,7 +93,7 @@ export class PagesService implements IPagesService {
 
     const countArticles = solrResult.response?.numFound ?? 0
     if (countArticles === 0) {
-      debug(`get: no articles found for page id ${id}`)
+      logger.debug(`get: no articles found for page id ${id}`)
       throw new NotFound()
     }
 

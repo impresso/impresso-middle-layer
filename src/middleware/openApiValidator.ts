@@ -61,8 +61,13 @@ const installMiddleware = (app: ImpressoApplication & Application) => {
         : {
             removeAdditional: false,
             onError: (err: ValidationError, json: any, req: any) => {
-              const errorMessage = JSON.stringify(err.errors, null, 2)
-              logger.error(`OpenAPI Response validation error: ${errorMessage}`)
+              const errorMessage = JSON.stringify(
+                err.errors.map(item => `${item.message}: ${item.path}`),
+                null,
+                2
+              )
+              const errorMsg = err.message ?? ''
+              logger.warning(`OpenAPI Response validation error (${errorMsg}): ${errorMessage}`)
             },
           },
     validateApiSpec: openApiConfig.validateSpec == false ? false : true,
@@ -150,7 +155,7 @@ export const init = async (context: HookContext<ImpressoApplication & Applicatio
     try {
       await dereferenceSpec(spec)
     } catch (error) {
-      logger.error('Failed to dereference OpenAPI spec', error)
+      logger.error('Failed to dereference OpenAPI spec', { error })
       throw error
     }
   } else {

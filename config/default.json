@@ -1,5 +1,5 @@
 {
-  "$schema": "../src/schema/common/config.json",
+  "$schema": "../src/schema/app/configuration/config.json",
   "availablePlans": ["plan-basic", "plan-educational", "plan-researcher"],
   "openapi": {
     "validateRequests": true,

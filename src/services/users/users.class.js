@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-vars */
 import { nanoid } from 'nanoid'
+import { getLogger } from '@/logger.js'
 import User from '@/models/users.model.js'
 import Group from '@/models/groups.model.js'
 import Profile from '@/models/profiles.model.js'
 import { BadRequest, NotFound, MethodNotAllowed } from '@feathersjs/errors'
 import { Op } from 'sequelize'
-import Debug from 'debug'
-const debug = Debug('impresso/services:users')
+const logger = getLogger(['impresso', 'services', 'users'])
 import { encrypt } from '@/crypto.js'
 import sequelize from '@/sequelize.js'
 import { sequelizeErrorHandler } from '@/services/sequelize.utils.js'
@@ -24,7 +24,7 @@ export class Service {
   }
 
   async get(id, params) {
-    debug('[get] id:', id, 'provider:', params.provider, 'authenticated:', params.authenticated)
+    logger.debug(`[get] id: ${id} provider: ${params.provider} authenticated: ${params.authenticated}`)
     // if it is internal
     if (!params.authenticated && params.provider) {
       throw new MethodNotAllowed('Not allowed')
@@ -49,12 +49,12 @@ export class Service {
       .then(res => res[0])
 
     if (!userModel) {
-      debug('[get] uid not found <uid>:', id)
+      logger.debug(`[get] uid not found <uid>: ${id}`)
       throw new NotFound()
     }
     // const groups = await user.getGroups().then(res => res.map(d => d.toJSON()))
     const groups = userModel.groups?.map(d => d.toJSON())
-    debug('[get] user <uid>:', userModel.profile.uid, '<groups>:', groups, '<bitmap>:', userModel.userBitmap?.bitmap)
+    logger.debug(`[get] user <uid>: ${userModel.profile.uid} <groups>: ${groups} <bitmap>: ${userModel.userBitmap?.bitmap}`)
     return userModel.toJSON({ groups, userBitmap: userModel.userBitmap })
   }
 
@@ -80,14 +80,14 @@ export class Service {
     })
 
     if (existingUser) {
-      debug('[create] user already exists:', existingUser.id)
+      logger.debug(`[create] user already exists: ${existingUser.id}`)
       throw new BadRequest('User with this email address or username already exists')
     } else {
-      debug('[create] new user:', user.username, data.sanitized)
+      logger.debug(`[create] new user: ${user.username} ${data.sanitized}`)
     }
     // create user
     const createdUser = await this.sequelizeKlass.create(user).catch(sequelizeErrorHandler)
-    debug('[create] user created!', createdUser.id)
+    logger.debug(`[create] user created! ${createdUser.id}`)
     // create profile
     const userProfile = await Profile.create({
       uid,
@@ -98,27 +98,27 @@ export class Service {
       institutionalUrl: data.sanitized.institutionalUrl,
       pattern: data.sanitized.pattern,
     }).catch(sequelizeErrorHandler)
-    debug('[create] profile created!', userProfile.toJSON())
+    logger.debug(`[create] profile created! ${userProfile.toJSON()}`)
     // add user to desired groups (they are still not active)
     const [group, created] = await Group.findOrCreate({
       where: { name: data.sanitized.plan },
     })
-    debug(`[create] group ${group.name} created: ${created}`)
+    logger.debug(`[create] group ${group.name} created: ${created}`)
     createdUser.addGroup(group)
 
-    debug(`[create] user with profile: ${user.uid} success`)
-    debug(`[create] user ${user.username} created!`, createdUser.toJSON())
+    logger.debug(`[create] user with profile: ${user.uid} success`)
+    logger.debug(`[create] user ${user.username} created! ${createdUser.toJSON()}`)
 
     const client = this.app.get('celeryClient')
     if (client) {
-      debug(`[create] inform impresso admin to activate this user: ${user.uid}`)
+      logger.debug(`[create] inform impresso admin to activate this user: ${user.uid}`)
       await client
         .run({
           task: 'impresso.tasks.after_user_registered',
           args: [createdUser.id],
         })
         .catch(err => {
-          debug('Error', err)
+          logger.debug(`Error ${err}`)
         })
     }
 
@@ -138,7 +138,7 @@ export class Service {
     // e.g we can change here the picture or the password
     if (data.sanitized.password && params.user.is_staff) {
       // change password directly.
-      debug(`change password requested for user:${id}`)
+      logger.debug(`change password requested for user:${id}`)
       return this._run(this.queries.patch, {
         uid: id,
         ...encrypt(data.sanitized.password),
@@ -165,13 +165,13 @@ export class Service {
         id,
       }
     }
-    debug(`remove: profile for ${user.username}`)
+    logger.debug(`remove: profile for ${user.username}`)
     if (user.profile) {
       await user.profile.destroy()
     }
 
     // no way, should be a cascade...
-    debug(`remove: user ${user.username}`)
+    logger.debug(`remove: user ${user.username}`)
     const results = await Promise.all([
       // remove from mysql
       user.destroy().catch(sequelizeErrorHandler),
@@ -180,9 +180,9 @@ export class Service {
       //   uid: id,
       // }),
     ])
-    debug(`remove: ${user.username} success! User id ${results[0].id}`)
+    logger.debug(`remove: ${user.username} success! User id ${results[0].id}`)
 
-    // debug(`remove: ${user.username} success,
+    // logger.debug(`remove: ${user.username} success,
     //   sequelize: ${results[0]},
     //   neo4j: ${results[1].summary.counters._stats.nodesDeleted}`);
     // return {
@@ -197,7 +197,7 @@ export class Service {
   }
 
   async find(params) {
-    debug('[find] query:', params.query, 'provider:', params.provider)
+    logger.debug(`[find] query: ${params.query} provider: ${params.provider}`)
     let uid
     // if it is internal
     if (params.provider) {

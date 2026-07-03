@@ -1,12 +1,8 @@
 import { IResolver } from '@/internalServices/cachedResolvers.js'
 import { ImpressoApplication } from '@/types.js'
 import { Partner } from '@/models/generated/canonical.js'
-import partnerInstitutionsDirectory from '@/services/version/resources/partner_institutions_directory.json' with { type: 'json' }
-
-interface PartnerInstitutionDirectoryEntry {
-  partner_institution_id: string
-  partner_institution_names: { lang: string; name: string }[]
-}
+import { getPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
+import type { PartnerInstitutionDirectoryEntry } from '@/internalServices/partnerInstitutionsDirectory.js'
 
 // In-memory cache
 let partnersCache: Record<string, Partner> | null = null
@@ -32,9 +28,9 @@ const buildPartnersById = (entries: PartnerInstitutionDirectoryEntry[]): Record<
   )
 }
 
-export const getPartnerResolver = (_app: ImpressoApplication): IResolver<Partner> => {
+export const getPartnerResolver = (app: ImpressoApplication): IResolver<Partner> => {
   const loadPartnersData = async (): Promise<Record<string, Partner>> => {
-    const partners = buildPartnersById(partnerInstitutionsDirectory as PartnerInstitutionDirectoryEntry[])
+    const partners = buildPartnersById(getPartnerInstitutionsDirectory(app))
 
     // Store in memory cache
     partnersCache = partners

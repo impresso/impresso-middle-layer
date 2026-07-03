@@ -1,5 +1,8 @@
-import { default as express, Application, static as staticMiddleware } from '@feathersjs/express'
-import { feathers } from '@feathersjs/feathers'
+import { createApp } from './appBuilder.js'
+
+const app = createApp()
+
+import { static as staticMiddleware } from '@feathersjs/express'
 import compress from 'compression'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -9,8 +12,8 @@ import authentication from '@/authentication.js'
 import cache from '@/cache.js'
 import celery, { init as initCelery } from '@/celery.js'
 import channels from '@/channels.js'
-import configuration, { Configuration } from '@/configuration.js'
 import { init as simpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { init as initPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import { startupJobs } from '@/jobs/index.js'
 import middleware from '@/middleware/index.js'
 import errorHandling from '@/middleware/errorHandling.js'
@@ -22,26 +25,34 @@ import redis, { init as initRedis } from '@/redis.js'
 import sequelize, { init as initSequelize } from '@/sequelize.js'
 import services from '@/services/index.js'
 import rateLimiter from '@/services/internal/rateLimiter/redis.js'
-import quotaChecker from '@/services/internal/quotaChecker/redis.js'
+import quotaChecker, { init as initQuotaChecker } from '@/services/internal/quotaChecker/redis.js'
 import media from '@/services/media.js'
 import { init as imageProxy } from '@/middleware/imageProxy.js'
 import schemas from '@/services/schemas.js'
-import { AppServices, ImpressoApplication } from '@/types.js'
+import { withContext } from '@/logger.js'
 import { customJsonMiddleware } from '@/util/express.js'
 import queue from '@/internalServices/queue.js'
 import queueWorkerManager, { start as startQueueWorkerManager } from '@/internalServices/workerManager.js'
 
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
+import { randomUUID } from 'node:crypto'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// @ts-ignore
-const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
+// // @ts-ignore
+// const app: ImpressoApplication & Application<AppServices, Configuration> = express(feathers())
+// // Load app configuration
+// app.configure(configuration)
+// app.configure(initLogger)
 
-// Load app configuration
-app.configure(configuration)
+// userId is injected later by the authenticateAround hook (src/hooks/authenticate.ts),
+// which wraps the service method in withContext once context.params.user is known.
+app.use((req, res, next) => {
+  const requestId = req.get('x-request-id') || randomUUID()
+  withContext({ requestId }, next)
+})
 
 app.configure(sequelize)
 
@@ -53,6 +64,10 @@ app.configure(cache)
 app.configure(simpleSolrClient)
 
 // Enable security, compression, favicon and body parsing
+// Request context tracking: must be the very first middleware so that every
+// subsequent middleware, Feathers hook and service call (including deep
+// database/solr layers) automatically carries requestId in logs.
+
 app.use(helmet())
 app.use(compress())
 app.use(cookieParser())
@@ -95,7 +110,16 @@ app.configure(services)
 
 app.configure(
   appHooksFactory(
-    [initSequelize, initRedis, initCelery, initOpenApiValidator, startQueueWorkerManager, startupJobs],
+    [
+      initSequelize,
+      initRedis,
+      initQuotaChecker,
+      initCelery,
+      initOpenApiValidator,
+      initPartnerInstitutionsDirectory,
+      startQueueWorkerManager,
+      startupJobs,
+    ],
     []
   )
 )

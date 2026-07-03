@@ -1,4 +1,5 @@
 import { getSolrErrorDetails, SolrError } from '@/util/solr/errors.js'
+import { formatHttpError } from '@/utils/formatHttpError.js'
 import { Cache } from '@/cache.js'
 import { SolrFacetQueryParams } from '@/data/types.js'
 import { logger } from '@/logger.js'
@@ -279,26 +280,33 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
       const responseBodyText = await successfulResponse.text()
       return sanitizeSolrResponse(responseBodyText)
     } catch (e) {
+      const httpError = await formatHttpError(e, { url, requestBody: init?.body })
       try {
         const jsonString = (e as any)?.response?.body
         const resposneBody = JSON.parse(jsonString) as Record<string, any>
         const solrErrorDetails = getSolrErrorDetails(resposneBody)
         if (solrErrorDetails) {
-          throw new SolrError(solrErrorDetails)
+          throw new SolrError(solrErrorDetails, httpError)
         } else {
-          throw new SolrError({
-            code: 500,
-            message: `Unknown Solr error: ${(e as Error).message}`,
-          })
+          throw new SolrError(
+            {
+              code: 500,
+              message: `Unknown Solr error: ${(e as Error).message}`,
+            },
+            httpError
+          )
         }
       } catch (err) {
         if (err instanceof SolrError) {
           throw err
         }
-        throw new SolrError({
-          code: 500,
-          message: `Unknown Solr error: ${(e as Error).message}`,
-        })
+        throw new SolrError(
+          {
+            code: 500,
+            message: `Unknown Solr error: ${(e as Error).message}`,
+          },
+          httpError
+        )
       }
     }
   }

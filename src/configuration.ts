@@ -1,5 +1,6 @@
 import { Cache } from '@/cache.js'
 import { CeleryClient } from '@/celery.js'
+import type { PartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import type { CeleryConfig, Config, RedisConfig, SolrServerProxy } from '@/models/generated/app/configuration.js'
 import configurationSchema from '@/schema/app/configuration/config.json' with { type: 'json' }
 import solrConfigurationSchema from '@/schema/app/configuration/solrConfiguration.json' with { type: 'json' }
@@ -32,6 +33,7 @@ export interface Configuration extends Config {
   sequelizeClient?: Sequelize
   celeryClient?: CeleryClient
   cacheManager: Cache
+  partnerInstitutionsDirectory: PartnerInstitutionsDirectory
   openApiValidatorMiddlewares: any[]
   availablePlans: string[]
 }
