@@ -307,7 +307,7 @@ export class Stats {
       `[find] index: ${index} groupby: ${groupby} domain: ${domain} stats: ${stats} filters: ${filters} sort: ${sort} facet: ${JSON.stringify(request.facet, null, 2)}`
     )
     const result = await this.solr.select(index, { body: request })
-    logger.debug(`stats result ${result.facets}`)
+    logger.debug('stats result', { facets: result.facets })
     const response: any = await buildResponse(result, facet, index, domain, filters, this.app)
     logger.debug(`stats response ${response.query}`)
     return response
