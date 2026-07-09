@@ -1,5 +1,5 @@
-import assert from 'assert'
-import { getSolrErrorDetails } from '@/util/solr/errors.js'
+import { strict as assert } from 'assert'
+import { formatSolrErrorForLogging, getSolrErrorDetails, SolrError } from '@/util/solr/errors.js'
 import solrSuccessfulResponse from './responses/solrSuccessfulResponse.json' with { type: 'json' }
 import solrExceptionUndefinedField from './responses/solrExceptionUndefinedField.json' with { type: 'json' }
 import solrErrorTimeout from './responses/solrErrorTimeout.json' with { type: 'json' }
@@ -175,5 +175,73 @@ describe('getSolrErrorDetails', () => {
     assert.notStrictEqual(result, undefined)
     assert.strictEqual(result?.code, 400)
     assert.strictEqual(result?.message, 'Cannot parse query')
+  })
+})
+
+describe('formatSolrErrorForLogging', () => {
+  it('formats request and shortened response bodies for readable Solr error logs', () => {
+    const longQuery = `{!knn f=gte_multi_v768 topK=30}[${Array.from({ length: 300 }, (_, index) => index / 100).join(',')}]`
+    const error = new SolrError(
+      {
+        code: 500,
+        message: 'Bad Solr day',
+      },
+      {
+        requestUrl: 'https://solr.example.com/content/select',
+        requestBody: JSON.stringify({
+          query: longQuery,
+          filter: ['meta_country_code_s:FR'],
+          fields: 'id,title_txt,content_txt',
+        }),
+        responseStatus: 500,
+        responseBody: JSON.stringify({
+          responseHeader: {
+            status: 500,
+            QTime: 12,
+          },
+          response: {
+            numFound: 2,
+            start: 0,
+            docs: [
+              {
+                id: 'first',
+                content_txt: 'x'.repeat(900),
+              },
+              {
+                id: 'second',
+                content_txt: 'this document should not be logged',
+              },
+            ],
+          },
+          error: {
+            msg: 'undefined field text_reuse',
+            code: 500,
+          },
+        }),
+      }
+    )
+
+    const formatted = formatSolrErrorForLogging(error, {
+      requestLongStringLimit: 120,
+      responseLongStringLimit: 80,
+      responseDocsLimit: 1,
+    })
+
+    assert.match(formatted, /^SOLR error: SolrError 500: Bad Solr day/)
+    assert.match(formatted, /POST body:/)
+    assert.doesNotMatch(formatted, /Request URL:/)
+    assert.match(formatted, /"query": "\{!knn f=gte_multi_v768 topK=30\}/)
+    assert.match(formatted, /\[truncated \d+ chars\]/)
+    assert.match(formatted, /"filter": \[/)
+    assert.match(formatted, /Response status: 500/)
+    assert.match(formatted, /"responseHeader": \{/)
+    assert.match(formatted, /"error": \{/)
+    assert.match(formatted, /undefined field text_reuse/)
+    assert.match(formatted, /"id": "first"/)
+    assert.match(formatted, /"docs_truncated": \{/)
+    assert.match(formatted, /"total": 2/)
+    assert.doesNotMatch(formatted, /"id": "second"/)
+    assert.doesNotMatch(formatted, /this document should not be logged/)
+    assert.equal(formatted.includes(longQuery), false)
   })
 })
