@@ -1,11 +1,16 @@
-import { toBufferBE, toBigIntBE } from 'bigint-buffer'
+const BitmapByteLength = 8
+const Zero = BigInt(0)
 
 export const bigIntToBuffer = (value: bigint): Buffer => {
-  return toBufferBE(value, 8)
+  const buffer = Buffer.alloc(BitmapByteLength)
+  buffer.writeBigUInt64BE(value)
+  return buffer
 }
 
 export const bufferToBigInt = (buffer: Buffer): bigint => {
-  return toBigIntBE(buffer)
+  if (buffer.length === 0) return Zero
+  if (buffer.length === BitmapByteLength) return buffer.readBigUInt64BE()
+  return BigInt(`0x${buffer.toString('hex')}`)
 }
 
 export const bigIntToBase64Bytes = (value: bigint): string => {
@@ -36,8 +41,6 @@ export const bigIntToLongString = (value: bigint): string => {
 export const bitStringToBigInt = (bitString: string): bigint => {
   return BigInt(`0b${bitString}`)
 }
-
-const Zero = BigInt(0)
 
 export const bitmapsAlign = (bitmap: bigint, mask: bigint): boolean => {
   return (bitmap & mask) != Zero
