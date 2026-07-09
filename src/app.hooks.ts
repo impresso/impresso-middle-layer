@@ -12,7 +12,7 @@ const logger = getLogger(['impresso', 'app.hooks'])
 // import { validateRouteId } from './hooks/params'
 import { SlimUser } from '@/authentication.js'
 import { InvalidArgumentError } from '@/util/error.js'
-import { SolrError } from '@/util/solr/errors.js'
+import { formatSolrErrorForLogging, SolrError } from '@/util/solr/errors.js'
 
 const basicParams = () => (context: HookContext) => {
   // do nothing with internal services
@@ -67,13 +67,15 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
       const data = { ...error.details, userId: user?.uid }
       ctx.error = new FeathersError(error.message, 'SolrError', 418, 'solr-error', data)
       // userId is provided automatically via withContext (see src/app.ts).
-      logger.error(
-        `SOLR error query params:${error.details.params?.slice(0, 1000)} - message:"${error.message}"`,
-        {
-          httpError: error.httpError,
-          stack: error.stack,
-        }
-      )
+      logger.error(formatSolrErrorForLogging(error), {
+        solrError: {
+          code: error.details.code,
+          message: error.details.message,
+          requestUrl: error.httpError?.requestUrl,
+          responseStatus: error.httpError?.responseStatus,
+        },
+        stack: error.stack,
+      })
       error = ctx.error
     }
 
