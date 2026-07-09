@@ -77,6 +77,10 @@ indexes:
         field: meta_journal_s
         rule: value
         destination: filter
+      mediaSource:
+        field: meta_journal_s
+        rule: value
+        destination: filter
       topic:
         field: topics_dpfs
         rule: idValue
