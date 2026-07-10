@@ -58,10 +58,16 @@ export const checkResponseStatus = async (res: Response): Promise<Response> => {
   if (res.ok) return res
 
   const error = new Error(new String(res.status).toString())
+  let body = ''
+  try {
+    body = await res.text()
+  } catch {
+    // The response body may already have been consumed by diagnostic logging.
+  }
   // @ts-ignore
   error.response = {
     statusCode: res.status,
-    body: await res.text(),
+    body,
   }
   throw error
 }
@@ -92,7 +98,15 @@ export const defaultFetchOptions: FetchOptions = {
             }
           })()
     const normalizedBody = (serializedBody ?? '').replace(/\r|\n/g, ' ').slice(0, 200)
-    const normalizedResponse = (await response.text()).replace(/\r|\n/g, ' ').slice(0, 200)
+    let responseBody = ''
+    try {
+      responseBody = response.body == null || response.bodyUsed || typeof response.clone !== 'function'
+        ? await response.text()
+        : await response.clone().text()
+    } catch {
+      // Keep Solr logging best-effort so the main error path can preserve context.
+    }
+    const normalizedResponse = responseBody.replace(/\r|\n/g, ' ').slice(0, 200)
 
     logger.error(
       `Request to Solr endpoint ${url} with method ${method} and body ${normalizedBody}[...] failed with status ${response.status} and body: ${normalizedResponse}[...]`
