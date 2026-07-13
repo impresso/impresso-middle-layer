@@ -32,6 +32,17 @@ const createMockAppWithMediaSources = (mediaSources: MediaSource[]): ImpressoApp
         }
       }
 
+      if (name === 'special-membership-access') {
+        return {
+          getLookup: async () => {
+            return {
+              '1': { id: 1, title: 'Access 1', bitmapPosition: 1 },
+              '2': { id: 2, title: 'Access 2', bitmapPosition: 2 },
+            }
+          },
+        }
+      }
+
       throw new Error(`Unexpected service requested in test: ${name}`)
     },
   }) as unknown as ImpressoApplication
