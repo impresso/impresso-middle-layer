@@ -26,8 +26,8 @@ describe('FiltersItems', () => {
       ctx.serviceHandlers['special-membership-access'] = () => ({
         getLookup: async () => {
           return {
-            '1': { id: 1, title: 'Access 1', bitmapPosition: 1 },
-            '2': { id: 2, title: 'Access 2', bitmapPosition: 2 },
+            '1': { id: '1', title: 'Access 1', bitmapPosition: 1 },
+            '2': { id: '2', title: 'Access 2', bitmapPosition: 2 },
           }
         },
       })
