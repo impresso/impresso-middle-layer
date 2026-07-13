@@ -8,9 +8,9 @@ import type {
 } from '@/models/special-membership-access.model.js'
 
 import User from '@/models/users.model.js'
-import { setupTestDatabase, teardownTestDatabase, TestDatabase } from '../../helpers/database.js'
 import UserSpecialMembershipRequest from '@/models/user-special-membership-requests.model.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
+import { setupTestApp, withCacheManager, withDatabase } from '../../../helpers/app.js'
 
 const mockUsers = Array.from({ length: 2 }, (_, i) => ({
   uid: `user${i + 1}`,
@@ -43,7 +43,8 @@ const updatedMetadata: SpecialMembershipAccessMetadata = {
 }
 
 describe('SpecialMembershipAccessService', () => {
-  let db: TestDatabase
+  let testApp: Awaited<ReturnType<typeof setupTestApp<[ReturnType<typeof withDatabase>]>>>
+
   let service: SpecialMembershipAccessService
   let userModel: ReturnType<typeof User.sequelize>
   let specialMembershipAccessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
@@ -55,21 +56,20 @@ describe('SpecialMembershipAccessService', () => {
 
   before(async () => {
     // Setup database once for all tests
-    db = setupTestDatabase()
-    userModel = User.sequelize(db.sequelize)
-    specialMembershipAccessModel = SpecialMembershipAccess.initialize(db.sequelize)
-    userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(db.sequelize)
-    await db.sequelize.sync({ force: true })
-    service = new SpecialMembershipAccessService(db.app)
+    testApp = setupTestApp(withDatabase(), withCacheManager())
+    userModel = User.sequelize(testApp.sequelize)
+    specialMembershipAccessModel = SpecialMembershipAccess.initialize(testApp.sequelize)
+    userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(testApp.sequelize)
+    await testApp.sequelize.sync({ force: true })
+    service = new SpecialMembershipAccessService(testApp.app)
   })
 
   after(async () => {
-    await teardownTestDatabase(db)
+    await testApp.teardown()
   })
 
   beforeEach(async () => {
-    // Clear the tables before each test
-    await db.sequelize.truncate({ cascade: true })
+    await testApp.sequelize.truncate({ cascade: true })
   })
 
   describe('validateBitmapPositionsQuery', () => {
@@ -293,6 +293,60 @@ describe('SpecialMembershipAccessService', () => {
           return true
         }
       )
+    })
+  })
+
+  describe('cache-aware methods', () => {
+    describe('getByBitmapPosition', () => {
+      it('should retrieve a record by bitmap position', async () => {
+        await SpecialMembershipAccess.create(mockData[0])
+
+        const result = await service.getByBitmapPosition(mockData[0].bitmapPosition)
+
+        assert.ok(result)
+        assert.strictEqual(result.bitmapPosition, mockData[0].bitmapPosition)
+        assert.strictEqual(result.title, mockData[0].title)
+      })
+
+      it('should return undefined when record does not exist', async () => {
+        const result = await service.getByBitmapPosition(9999)
+
+        assert.strictEqual(result, undefined)
+      })
+    })
+
+    describe('getLookup', () => {
+      it('should return an empty object when cache is empty', async () => {
+        const result = await service.getLookup()
+
+        assert.deepStrictEqual(result, {})
+      })
+
+      it('should return the cached lookup when available', async () => {
+        const mockLookup = {
+          '1': { id: 1, title: 'Access 1', bitmapPosition: 1 },
+          '2': { id: 2, title: 'Access 2', bitmapPosition: 2 },
+        }
+
+        await testApp.app
+          .get('cacheManager')
+          .set('cache:specialMembershipAccess:byBitmapPosition', JSON.stringify(mockLookup), 60000)
+
+        const result = await service.getLookup()
+
+        assert.deepStrictEqual(result, mockLookup)
+      })
+
+      it('should handle parse errors gracefully and return empty object', async () => {
+        // Set invalid JSON in cache
+        await testApp.app
+          .get('cacheManager')
+          .set('cache:specialMembershipAccess:byBitmapPosition', 'invalid json', 60000)
+
+        const result = await service.getLookup()
+
+        assert.deepStrictEqual(result, {})
+      })
     })
   })
 })
