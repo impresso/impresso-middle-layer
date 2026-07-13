@@ -34,9 +34,7 @@ export type CachedFacetType =
   | 'dataDomain'
   | 'copyright'
   | 'contentItemType'
-  | 'permissionExplore'
-  | 'permissionGetTranscript'
-  | 'permissionGetImage'
+  | 'specialMembershipAccess'
 export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | IMediaSource | IPartner | FacetWithLabel
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
@@ -58,9 +56,7 @@ export type ICachedResolvers = {
   dataDomain: IResolver<FacetWithLabel>
   copyright: IResolver<FacetWithLabel>
   contentItemType: IResolver<FacetWithLabel>
-  permissionExplore: IResolver<SpecialMembershipAccess>
-  permissionGetTranscript: IResolver<SpecialMembershipAccess>
-  permissionGetImage: IResolver<SpecialMembershipAccess>
+  specialMembershipAccess: IResolver<SpecialMembershipAccess>
 }
 
 // Record<CachedFacetType, IResolver<T>>
@@ -227,8 +223,6 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     dataDomain: getDataDomainResolver(),
     copyright: getCopyrightResolver(),
     contentItemType: getContentItemTypeResolver(),
-    permissionExplore: getSpecialMembershipResolver(app),
-    permissionGetTranscript: getSpecialMembershipResolver(app),
-    permissionGetImage: getSpecialMembershipResolver(app),
+    specialMembershipAccess: getSpecialMembershipResolver(app),
   }
 }
