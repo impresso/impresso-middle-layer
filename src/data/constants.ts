@@ -550,12 +550,25 @@ const trPassagesSolrMappings = {
 
 export type ImageFacet = Extract<
   FilterType,
-  'newspaper' | 'year' | 'imageVisualContent' | 'imageTechnique' | 'imageCommunicationGoal' | 'imageContentType'
+  | 'newspaper'
+  | 'year'
+  | 'mediaSource'
+  | 'imageVisualContent'
+  | 'imageTechnique'
+  | 'imageCommunicationGoal'
+  | 'imageContentType'
 >
 
 const imagesSolrMappings = {
   facets: {
     newspaper: {
+      type: 'terms',
+      field: 'meta_journal_s',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    mediaSource: {
       type: 'terms',
       field: 'meta_journal_s',
       mincount: 1,
