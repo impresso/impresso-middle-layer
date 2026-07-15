@@ -90,7 +90,7 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
         bitmapPosition,
       },
     })
-    return record ?? undefined
+    return (record?.toJSON() as SpecialMembershipAccess | undefined) ?? undefined
   }
 
   async getLookup(): Promise<Record<string, SpecialMembershipAccess>> {
