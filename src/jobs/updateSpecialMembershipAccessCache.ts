@@ -5,7 +5,7 @@ import type { ISpecialMembershipAccessAttributes } from '@/models/special-member
 import type { ImpressoApplication } from '@/types.js'
 
 /** 100 days */
-const DefaultTtlSeconds = 60 * 60 * 24 * 100 * 1000
+const DefaultTtl = 60 * 60 * 24 * 100 * 1000
 
 /**
  * Prepare a bitmapPosition-indexed special-membership-access lookup and store it in cache.
@@ -28,12 +28,8 @@ const run = async (app: ImpressoApplication) => {
     {} as Record<string, ISpecialMembershipAccessAttributes>
   )
 
-  await cache.set(
-    WellKnownKeys.SpecialMembershipAccessByBitmapPosition,
-    JSON.stringify(byBitmapPosition),
-    DefaultTtlSeconds
-  )
-  await cache.set(WellKnownMetadataKeys.SpecialMembershipAccessComputedAt, new Date().toISOString(), DefaultTtlSeconds)
+  await cache.set(WellKnownKeys.SpecialMembershipAccessByBitmapPosition, JSON.stringify(byBitmapPosition), DefaultTtl)
+  await cache.set(WellKnownMetadataKeys.SpecialMembershipAccessComputedAt, new Date().toISOString(), DefaultTtl)
 }
 
 export default run

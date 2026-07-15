@@ -1,16 +1,17 @@
 import { strict as assert } from 'assert'
 import type { Filter } from 'impresso-jscommons'
-import { setupTestApp } from '../../../helpers/app.js'
+import { setupTestApp, withDatabase } from '../../../helpers/app.js'
 import { Fronde, JDG } from '../../../mockData/mediaSources.js'
 import { FiltersItems } from '@/services/filters-items/filters-items.class.js'
 import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
+import { type ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
 
 describe('FiltersItems', () => {
   let testApp: ReturnType<typeof setupTestApp>
   let service: FiltersItems
 
   before(() => {
-    testApp = setupTestApp(ctx => {
+    testApp = setupTestApp(withDatabase(), ctx => {
       ctx.serviceHandlers['media-sources'] = () => ({
         getLookup: async () => {
           return [Fronde, JDG].reduce((lookup, mediaSource) => ({ ...lookup, [mediaSource.id]: mediaSource }), {})
@@ -26,8 +27,8 @@ describe('FiltersItems', () => {
       ctx.serviceHandlers['special-membership-access'] = () => ({
         getLookup: async () => {
           return {
-            '1': { id: '1', title: 'Access 1', bitmapPosition: 1 },
-            '2': { id: '2', title: 'Access 2', bitmapPosition: 2 },
+            '1': { id: 1, title: 'Access 1', bitmapPosition: 1 } as ISpecialMembershipAccessAttributes,
+            '2': { id: 2, title: 'Access 2', bitmapPosition: 2 } as ISpecialMembershipAccessAttributes,
           }
         },
       })
@@ -96,7 +97,7 @@ describe('FiltersItems', () => {
 
     assert.strictEqual(result.filtersWithItems.length, 1)
     assert.strictEqual(result.filtersWithItems[0].items.length, 2)
-    assert.strictEqual(result.filtersWithItems[0].items[0].id, '1')
-    assert.strictEqual(result.filtersWithItems[0].items[1].id, '2')
+    assert.strictEqual(result.filtersWithItems[0].items[0].id, 1)
+    assert.strictEqual(result.filtersWithItems[0].items[1].id, 2)
   })
 })

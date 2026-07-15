@@ -16,7 +16,6 @@ import { InternalTopic } from '@/models/generated/deprecated/models.js'
 import { FacetWithLabel } from '@/models/generated/canonical.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
-import type { ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
 export type CachedFacetType =
   | 'mediaSource'
   | 'topic'
@@ -185,8 +184,10 @@ const getSpecialMembershipResolver = (app: ImpressoApplication): IResolver<Speci
   const service = app.service('special-membership-access')
 
   return async (bitmapPosition: string) => {
-    const parsedBitmapPosition = Number(bitmapPosition)
-    if (!Number.isFinite(parsedBitmapPosition)) return undefined
+    const trimmed = bitmapPosition.trim()
+    if (trimmed === '') return undefined
+    const parsedBitmapPosition = Number(trimmed)
+    if (!Number.isInteger(parsedBitmapPosition) || parsedBitmapPosition < 0) return undefined
     const lookup = await service.getLookup()
     const cached = lookup[String(parsedBitmapPosition)]
     if (cached != null) {
