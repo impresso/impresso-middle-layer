@@ -47,10 +47,12 @@ export const WellKnownKeys = Object.freeze({
   MediaSources: 'cache:mediaSources',
   Topics: 'cache:topics',
   Years: 'cache:years',
+  SpecialMembershipAccessByBitmapPosition: 'cache:specialMembershipAccess:byBitmapPosition',
 })
 
 export const WellKnownMetadataKeys = Object.freeze({
   MediaSourcesComputedAt: 'cache:meta:mediaSources:computedAt',
   TopicsComputedAt: 'cache:meta:topics:computedAt',
   YearsComputedAt: 'cache:meta:years:computedAt',
+  SpecialMembershipAccessComputedAt: 'cache:meta:specialMembershipAccess:computedAt',
 })

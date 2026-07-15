@@ -1,4 +1,4 @@
-import { Filter } from 'impresso-jscommons'
+import type { Filter, FilterType } from 'impresso-jscommons'
 import {
   daterangeExtractor,
   newspaperExtractor,
@@ -11,12 +11,13 @@ import {
   simpleValueExtractor,
   getImageTypeExtractor,
   mediaSourceExtractor,
+  specialMembershipAccessExtractor,
 } from './extractors.js'
 import { ImpressoApplication } from '@/types.js'
 
 type Extractor = (filter: Filter, app: ImpressoApplication) => Promise<unknown[]> | unknown[]
 
-const ItemsExtractors: Record<string, Extractor> = {
+const ItemsExtractors: Partial<Record<FilterType, Extractor>> = {
   daterange: daterangeExtractor,
   newspaper: newspaperExtractor,
   mediaSource: mediaSourceExtractor,
@@ -37,6 +38,9 @@ const ItemsExtractors: Record<string, Extractor> = {
   imageTechnique: getImageTypeExtractor('imageTechnique'),
   imageCommunicationGoal: getImageTypeExtractor('imageCommunicationGoal'),
   imageContentType: getImageTypeExtractor('imageContentType'),
+  permissionExplore: specialMembershipAccessExtractor,
+  permissionGetTranscript: specialMembershipAccessExtractor,
+  permissionGetImage: specialMembershipAccessExtractor,
 }
 
 export class FiltersItems {

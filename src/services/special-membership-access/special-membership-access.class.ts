@@ -6,6 +6,7 @@ import SpecialMembershipAccess from '@/models/special-membership-access.model.js
 import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
 import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
+import { Cache, WellKnownKeys } from '@/cache.js'
 
 export interface FindQuery {
   limit?: number
@@ -26,15 +27,17 @@ export type ISpecialMembershipAccessService = Omit<
     data: SpecialMembershipAccessPatchData,
     params?: Params & { user?: SlimUser }
   ): Promise<SpecialMembershipAccess>
+  getByBitmapPosition(bitmapPosition: number): Promise<SpecialMembershipAccess | undefined>
 }
 
 export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {
   protected readonly sequelizeClient: Sequelize
   protected readonly accessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
-
+  protected readonly cacheManager: Cache
   constructor(app: ImpressoApplication) {
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.accessModel = SpecialMembershipAccess.initialize(this.sequelizeClient)
+    this.cacheManager = app.get('cacheManager')
   }
 
   async find(params?: { query?: FindQuery; user?: SlimUser }): Promise<FindResult> {
@@ -80,6 +83,25 @@ export class SpecialMembershipAccessService implements ISpecialMembershipAccessS
       data: rows.map(row => row.toJSON() as SpecialMembershipAccess),
     }
   }
+
+  async getByBitmapPosition(bitmapPosition: number): Promise<SpecialMembershipAccess | undefined> {
+    const record = await this.accessModel.findOne({
+      where: {
+        bitmapPosition,
+      },
+    })
+    return (record?.toJSON() as SpecialMembershipAccess | undefined) ?? undefined
+  }
+
+  async getLookup(): Promise<Record<string, SpecialMembershipAccess>> {
+    try {
+      const result = await this.cacheManager.get<string>(WellKnownKeys.SpecialMembershipAccessByBitmapPosition)
+      return JSON.parse(result ?? '{}') as Record<string, SpecialMembershipAccess>
+    } catch {
+      return {}
+    }
+  }
+
   async get(id: Id, _params?: Params): Promise<SpecialMembershipAccess> {
     const record = await this.accessModel.findByPk(id)
     if (!record) {

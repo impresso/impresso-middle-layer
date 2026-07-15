@@ -120,7 +120,6 @@ export class MediaSources
 
   async getLookup(): Promise<Record<string, MediaSource>> {
     const results = await this.findMediaSources({
-      type: 'newspaper',
       limit: Number.MAX_SAFE_INTEGER,
       offset: 0,
     })
