@@ -2,7 +2,7 @@ import { HookContext } from '@feathersjs/feathers'
 import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
 import { queryWithCommonParams, utils, validate, validateEach } from '@/hooks/params.js'
 import { rateLimit } from '@/hooks/rateLimiter.js'
-import { resolveTextReuseClusters } from '@/hooks/resolvers.js'
+import { resolvePermissions, resolveTextReuseClusters } from '@/hooks/resolvers.js'
 import { filtersToSolrQuery } from '@/hooks/search.js'
 import { ImpressoApplication } from '@/types.js'
 import { eachFilterValidator, paramsValidator } from '@/services/search/search.validators.js'
@@ -113,7 +113,7 @@ export const getHooks = (index: IndexId) => ({
   },
 
   after: {
-    find: [resolveTextReuseClusters()],
-    get: [resolveTextReuseClusters(), ...inPublicApi([transformResponse(transformSearchFacet)])],
+    find: [resolveTextReuseClusters(), resolvePermissions()],
+    get: [resolveTextReuseClusters(), resolvePermissions(), ...inPublicApi([transformResponse(transformSearchFacet)])],
   },
 })
