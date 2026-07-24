@@ -77,6 +77,9 @@ export const mediaSourceExtractor = async ({ q = '' }: WithQ, app: ImpressoAppli
   return dataSources.filter((ds): ds is NonNullable<(typeof dataSources)[number]> => ds != null)
 }
 
+export const specialMembershipAccessExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) =>
+  resolveItems(q, app, (resolvers, item) => resolvers.specialMembershipAccess(item))
+
 export const topicExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) =>
   resolveItems(q, app, (resolvers, item) => resolvers.topic(item))
 

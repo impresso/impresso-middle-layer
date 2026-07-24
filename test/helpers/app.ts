@@ -169,6 +169,41 @@ export function withRedisCelery(): TestAppFeature<{
 }
 
 /**
+ * Feature: mocked cache manager, registered under `cacheManager`.
+ * Provides in-memory cache with TTL expiration.
+ */
+export function withCacheManager(): TestAppFeature<{
+  cacheManager: {
+    get: <T = any>(key: string) => Promise<T | undefined>
+    set: (key: string, value: any, ttl?: number) => Promise<void>
+  }
+}> {
+  return ctx => {
+    const cache = new Map<string, { value: any; expireAt: number }>()
+
+    const cacheManager = {
+      get: async <T = any>(key: string): Promise<T | undefined> => {
+        const entry = cache.get(key)
+        if (!entry) return undefined
+        if (entry.expireAt < Date.now()) {
+          cache.delete(key)
+          return undefined
+        }
+        return entry.value as T
+      },
+      set: async (key: string, value: any, ttl?: number): Promise<void> => {
+        const expireAt = ttl ? Date.now() + ttl : Date.now() + 60000 // default 1 minute
+        cache.set(key, { value, expireAt })
+      },
+    }
+
+    ctx.getHandlers['cacheManager'] = () => cacheManager
+
+    return { cacheManager }
+  }
+}
+
+/**
  * Feature: mocked Solr client, registered as the `simpleSolrClient` service,
  * plus a stub `media-sources` service and `solrConfiguration`/`features` get()
  * handlers. Captured request bodies are exposed via `solrSelectCalls`.

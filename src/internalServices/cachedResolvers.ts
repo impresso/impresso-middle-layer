@@ -15,6 +15,7 @@ import {
 import { InternalTopic } from '@/models/generated/deprecated/models.js'
 import { FacetWithLabel } from '@/models/generated/canonical.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
+import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
 export type CachedFacetType =
   | 'mediaSource'
   | 'topic'
@@ -32,6 +33,7 @@ export type CachedFacetType =
   | 'dataDomain'
   | 'copyright'
   | 'contentItemType'
+  | 'specialMembershipAccess'
 export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | IMediaSource | IPartner | FacetWithLabel
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
@@ -53,6 +55,7 @@ export type ICachedResolvers = {
   dataDomain: IResolver<FacetWithLabel>
   copyright: IResolver<FacetWithLabel>
   contentItemType: IResolver<FacetWithLabel>
+  specialMembershipAccess: IResolver<SpecialMembershipAccess>
 }
 
 // Record<CachedFacetType, IResolver<T>>
@@ -177,6 +180,24 @@ const getMediaSourceResolver = (app: ImpressoApplication): IResolver<IMediaSourc
   }
 }
 
+const getSpecialMembershipResolver = (app: ImpressoApplication): IResolver<SpecialMembershipAccess> => {
+  const service = app.service('special-membership-access')
+
+  return async (bitmapPosition: string) => {
+    const trimmed = bitmapPosition.trim()
+    if (trimmed === '') return undefined
+    const parsedBitmapPosition = Number(trimmed)
+    if (!Number.isInteger(parsedBitmapPosition) || parsedBitmapPosition < 0) return undefined
+    const lookup = await service.getLookup()
+    const cached = lookup[String(parsedBitmapPosition)]
+    if (cached != null) {
+      return cached as unknown as SpecialMembershipAccess
+    }
+    const result = await service.getByBitmapPosition(parsedBitmapPosition)
+    return result
+  }
+}
+
 const imageTypeResolver = async (id: string, field: keyof typeof ImageTypeValueLookup) => {
   const lookup = ImageTypeValueLookup[field]
   return {
@@ -203,5 +224,6 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     dataDomain: getDataDomainResolver(),
     copyright: getCopyrightResolver(),
     contentItemType: getContentItemTypeResolver(),
+    specialMembershipAccess: getSpecialMembershipResolver(app),
   }
 }

@@ -3,6 +3,7 @@ import { logger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
 import updateMediaSourcesCache from '@/jobs/updateMediaSourcesCache.js'
+import updateSpecialMembershipAccessCache from '@/jobs/updateSpecialMembershipAccessCache.js'
 import updateTopicsCache from '@/jobs/updateTopicsCache.js'
 import updateYearsCache from '@/jobs/updateYears.js'
 
@@ -18,9 +19,11 @@ const wellKnownKeys = [
   WellKnownKeys.MediaSources,
   WellKnownKeys.Topics,
   WellKnownKeys.Years,
+  WellKnownKeys.SpecialMembershipAccessByBitmapPosition,
   WellKnownMetadataKeys.MediaSourcesComputedAt,
   WellKnownMetadataKeys.TopicsComputedAt,
   WellKnownMetadataKeys.YearsComputedAt,
+  WellKnownMetadataKeys.SpecialMembershipAccessComputedAt,
 ]
 
 const clearWellKnownCache = async (app: ImpressoApplication) => {
@@ -37,6 +40,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
     await updateMediaSourcesCache(app)
     await updateYearsCache(app)
     await updateTopicsCache(app)
+    await updateSpecialMembershipAccessCache(app)
     logger.info(`➡️ 🧹 Finished job ${job.id} ${job.name} to rebuild well-known caches`)
     return undefined
   }
