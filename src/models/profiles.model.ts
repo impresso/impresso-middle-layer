@@ -10,6 +10,7 @@ export default class Profile extends Model<InferAttributes<Profile>, InferCreati
   declare pattern: string
   declare user_id: number
   declare emailAccepted: boolean
+  declare emailVerified: boolean
   declare maxLoopsAllowed: number
   declare maxParallelJobs: number
   declare institutionalUrl: string
@@ -54,6 +55,11 @@ export default class Profile extends Model<InferAttributes<Profile>, InferCreati
           type: DataTypes.BOOLEAN,
           defaultValue: false,
           field: 'email_accepted',
+        },
+        emailVerified: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+          field: 'email_verified',
         },
         maxLoopsAllowed: {
           type: DataTypes.INTEGER,
