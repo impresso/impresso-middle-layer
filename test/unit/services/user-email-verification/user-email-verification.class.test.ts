@@ -1,0 +1,100 @@
+import { strict as assert } from 'assert'
+import { Service as UsersService } from '@/services/users/users.class.js'
+import { Service as MeService } from '@/services/me/me.class.js'
+import { UserEmailVerificationService } from '@/services/user-email-verification/user-email-verification.class.js'
+import { setupTestApp, withConfig, withDatabase, withDebugLogging, withRedisCelery } from '../../../helpers/app.js'
+import { BadRequest } from '@feathersjs/errors'
+
+describe('UserEmailVerificationService', () => {
+  let testApp: ReturnType<
+    typeof setupTestApp<
+      [
+        ReturnType<typeof withDatabase>,
+        ReturnType<typeof withDebugLogging>,
+        ReturnType<typeof withRedisCelery>,
+        ReturnType<typeof withConfig>,
+      ]
+    >
+  >
+  let service: UserEmailVerificationService
+  let meService: MeService
+  let userService: UsersService
+
+  before(async () => {
+    testApp = setupTestApp(
+      withDatabase(),
+      withDebugLogging(),
+      withRedisCelery(),
+      withConfig('magicLink', {
+        secret: 'test-secret',
+        expiration: 300,
+      })
+    )
+    service = new UserEmailVerificationService(testApp.app)
+    userService = new UsersService({ app: testApp.app, name: 'users' })
+    meService = new MeService({ app: testApp.app, name: 'me' })
+
+    await testApp.sequelize.sync({ force: true })
+  })
+
+  after(async () => {
+    await testApp.teardown()
+  })
+
+  beforeEach(async () => {
+    await testApp.sequelize.truncate({ cascade: true })
+    testApp.celeryRunCalls.length = 0
+    Object.keys(testApp.redisSetExCalls).forEach(key => delete testApp.redisSetExCalls[key])
+  })
+
+  describe('create', () => {
+    it('should create a new user and store the user id in Redis with a key starting with "user-email-verification:"', async () => {
+      const result = await userService.create({
+        username: 'jdoe',
+        firstname: 'Jane',
+        lastname: 'Doe',
+        displayName: 'Jane Doe',
+        email: 'jdoe@example.com',
+        password: 'secret123',
+      })
+
+      // check that the user id is stored in Redis with a key starting with "user-email-verification:"
+      const redisEntries = Object.entries(testApp.redisSetExCalls).map(([key, value]) => ({
+        key,
+        value: value.value,
+        expiration: value.expiration,
+      }))
+      assert.strictEqual(redisEntries.length, 1)
+      assert.strictEqual(redisEntries[0].value, String(result.id))
+      assert.strictEqual(redisEntries[0].expiration, 300)
+
+      // get the key of the redis entry to check that it starts with 'user-email-verification:'
+      const redisKey = Object.keys(testApp.redisSetExCalls)[0]
+      assert.ok(redisKey.startsWith('user-email-verification:'))
+
+      // check that user profile is created and emailVerified is false
+
+      assert.ok(result.profile.uid, 'Profile uid is not set')
+      assert.strictEqual(result.profile.emailVerified, false)
+      // call the service with the token to check that it returns the correct user id
+      const token = redisKey.split(':')[1]
+      const validationResult = await service.create({ token }, {})
+      assert.strictEqual(validationResult.result, 'ok')
+      // call the me service and check the emailVerified is now true
+      const getMeResult = await meService.find({ user: { id: String(result.id), uid: result.uid } })
+      assert.strictEqual(getMeResult.emailVerified, true)
+    })
+
+    it('should fail if the token is invalid', async () => {
+      const invalidToken = 'invalid-token'
+      try {
+        await service.create({ token: invalidToken }, {})
+        assert.fail('Expected error was not thrown')
+      } catch (error) {
+        // error is of type BadRequest
+        assert.ok(error instanceof BadRequest)
+        assert.strictEqual(error.message, 'Invalid or expired token')
+      }
+    })
+  })
+})

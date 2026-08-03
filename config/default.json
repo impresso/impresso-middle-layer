@@ -32,7 +32,8 @@
   },
   "callbackUrls": {
     "passwordReset": "http://localhost:5173/password-reset",
-    "magicLink": "http://localhost:5173/magic-link"
+    "magicLink": "http://localhost:5173/magic-link",
+    "emailVerification": "http://localhost:5173/email-verification"
   },
   "host": "localhost",
   "port": 3030,
