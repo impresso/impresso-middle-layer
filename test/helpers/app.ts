@@ -161,7 +161,10 @@ export function withRedisCelery(): TestAppFeature<{
     ctx.getHandlers['redisClient'] = () => redisClient
     ctx.getHandlers['magicLink'] = () => ({ secret: 'test-magic-link-secret', expiration: 300 })
     ctx.getHandlers['authentication'] = () => ({ secret: 'test-secret-key' })
-    ctx.getHandlers['callbackUrls'] = () => ({ magicLink: 'http://test-callback-url.com/magic-link' })
+    ctx.getHandlers['callbackUrls'] = () => ({
+      magicLink: 'http://test-callback-url.com/magic-link',
+      emailVerification: 'http://test-callback-url.com/email-verification',
+    })
 
     ctx.serviceHandlers['redisClient'] = () => redisClient
 
