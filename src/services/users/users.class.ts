@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import jwt from 'jsonwebtoken'
 import { getLogger } from '@/logger.js'
 import User, { type UserAttributes } from '@/models/users.model.js'
 import Group from '@/models/groups.model.js'
@@ -9,6 +10,9 @@ import { BadRequest, NotFound, MethodNotAllowed } from '@feathersjs/errors'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
 import { Op, type Sequelize } from 'sequelize'
 import { sequelizeErrorHandler } from '@/services/sequelize.utils.js'
+import { RedisClient } from '@/redis.js'
+
+import { Config } from '@/models/generated/app/configuration.js'
 
 const logger = getLogger(['impresso', 'services', 'users'])
 
@@ -71,6 +75,8 @@ export class Service {
   readonly id: string
   readonly sequelizeClient: Sequelize
   readonly sequelizeKlass: ReturnType<typeof User.sequelize>
+  protected readonly magicLinkConfig: Config['magicLink']
+  protected readonly redisClient: RedisClient
 
   constructor({ app, name }: ServiceOptions) {
     const client = app.get('sequelizeClient') as Sequelize | undefined
@@ -79,6 +85,8 @@ export class Service {
     }
 
     this.app = app
+    this.magicLinkConfig = app.get('magicLink') as { secret: string; expiration: number }
+    this.redisClient = app.service('redisClient').client as RedisClient
     this.name = name
     this.id = 'id'
     this.sequelizeClient = client
@@ -157,7 +165,7 @@ export class Service {
       institutionalUrl: sanitized.institutionalUrl ?? '',
       pattern: sanitized.pattern ?? '',
     }).catch(sequelizeErrorHandler)
-    console.log(userProfile.get('uid'))
+
     logger.debug(
       `[create] profile created! id=${userProfile.get('id')} uid=${userProfile.get('uid')} displayName=${userProfile.get('displayName')}`
     )
@@ -171,6 +179,21 @@ export class Service {
     await (createdUser as typeof createdUser & { addGroup: (value: Group) => Promise<unknown> }).addGroup(group)
 
     logger.debug(`[create] user with profile: ${uid} success for user id ${createdUserId} and group ${group.name}`)
+    // Generate a unique token for the user's email verification request, this is not our JWT for auth
+    const token = jwt.sign({ rand: nanoid(8) }, this.magicLinkConfig.secret, {
+      expiresIn: this.magicLinkConfig.expiration,
+    })
+    const callbackUrl = this.app.get('callbackUrls')?.emailVerification
+
+    logger.debug(
+      `Generated email verification link token for user ${uid}: ${token} expires in: ${this.magicLinkConfig.expiration} seconds`
+    )
+    // save user id related to the token into the db
+    await this.redisClient.setEx(
+      `user-email-verification:${token}`,
+      this.magicLinkConfig.expiration,
+      String(createdUserId)
+    )
 
     const celeryClient = this.app.get('celeryClient')
     if (celeryClient) {
@@ -178,7 +201,7 @@ export class Service {
       await celeryClient
         .run({
           task: 'impresso.tasks.after_user_registered',
-          args: [createdUserId],
+          args: [createdUserId, token, callbackUrl],
         })
         .catch((err: Error) => {
           logger.debug(`Error ${err}`)

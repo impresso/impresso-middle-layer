@@ -43,6 +43,7 @@ export interface Me {
   creationDate: Date
   lastLogin: Date | null
   emailAccepted: boolean
+  emailVerified: boolean
   bitmap?: string
   groups: Group[]
   affiliation: string
@@ -140,6 +141,7 @@ export default class User {
       creationDate: user.creationDate as Date,
       lastLogin: user.lastLogin as Date,
       emailAccepted: profile.emailAccepted,
+      emailVerified: profile.emailVerified,
       bitmap: user.bitmap != null ? bigIntToBase64Bytes(user.bitmap) : undefined,
       groups: user.groups,
       affiliation: profile.affiliation || '',
