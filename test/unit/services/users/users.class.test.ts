@@ -1,18 +1,29 @@
 import { strict as assert } from 'assert'
 import { Service as UsersService } from '@/services/users/users.class.js'
 import User from '@/models/users.model.js'
-import { setupTestApp, withDatabase, withDebugLogging, withRedisCelery } from '../../../helpers/app.js'
+import { setupTestApp, withConfig, withDatabase, withRedisCelery } from '../../../helpers/app.js'
+import { CallbackUrlsConfig, Config } from '@/models/generated/app/configuration.js'
 
 describe('UsersService', () => {
   let testApp: ReturnType<
     typeof setupTestApp<
-      [ReturnType<typeof withDatabase>, ReturnType<typeof withDebugLogging>, ReturnType<typeof withRedisCelery>]
+      [ReturnType<typeof withDatabase>, ReturnType<typeof withRedisCelery>, ReturnType<typeof withConfig>]
     >
   >
   let service: UsersService
 
   before(async () => {
-    testApp = setupTestApp(withDatabase(), withDebugLogging(), withRedisCelery())
+    testApp = setupTestApp(
+      withDatabase(),
+      withRedisCelery(),
+      withConfig<Config['magicLink']>('magicLink', {
+        secret: 'test-secret',
+        expiration: 300,
+      }),
+      withConfig<CallbackUrlsConfig>('callbackUrls', {
+        emailVerification: 'http://localhost:5173/magic-link',
+      })
+    )
     service = new UsersService({ app: testApp.app, name: 'users' })
     await testApp.sequelize.sync({ force: true })
   })
@@ -24,9 +35,14 @@ describe('UsersService', () => {
   beforeEach(async () => {
     await testApp.sequelize.truncate({ cascade: true })
     testApp.celeryRunCalls.length = 0
+    Object.keys(testApp.redisSetExCalls).forEach(key => delete testApp.redisSetExCalls[key])
   })
 
   describe('create', () => {
+    it('should check that emailVerification callback is correctly configured', async () => {
+      const callbackUrls = testApp.app.get('callbackUrls') as CallbackUrlsConfig
+      assert.ok(callbackUrls.emailVerification, 'emailVerification callback URL is not configured')
+    })
     it('should create a new user with a profile and the default group', async () => {
       const result = await service.create({
         username: 'jdoe',
@@ -51,7 +67,14 @@ describe('UsersService', () => {
 
       assert.strictEqual(testApp.celeryRunCalls.length, 1)
       assert.strictEqual(testApp.celeryRunCalls[0].task, 'impresso.tasks.after_user_registered')
-      assert.deepStrictEqual(testApp.celeryRunCalls[0].args, [result.id])
+      assert.strictEqual(testApp.celeryRunCalls[0].args[0], result.id)
+      assert.strictEqual(typeof testApp.celeryRunCalls[0].args[1], 'string')
+      assert.strictEqual(testApp.celeryRunCalls[0].args[2], 'http://localhost:5173/magic-link')
+
+      const redisEntries = Object.values(testApp.redisSetExCalls)
+      assert.strictEqual(redisEntries.length, 1)
+      assert.strictEqual(redisEntries[0].value, String(result.id))
+      assert.strictEqual(redisEntries[0].expiration, 300)
     })
 
     it('should create a new user assigned to a custom plan group', async () => {
@@ -78,7 +101,18 @@ describe('UsersService', () => {
 
       assert.strictEqual(testApp.celeryRunCalls.length, 1)
       assert.strictEqual(testApp.celeryRunCalls[0].task, 'impresso.tasks.after_user_registered')
-      assert.deepStrictEqual(testApp.celeryRunCalls[0].args, [result.id])
+      assert.strictEqual(testApp.celeryRunCalls[0].args[0], result.id)
+      assert.strictEqual(typeof testApp.celeryRunCalls[0].args[1], 'string')
+      assert.strictEqual(testApp.celeryRunCalls[0].args[2], 'http://localhost:5173/magic-link')
+
+      const redisEntries = Object.values(testApp.redisSetExCalls)
+      assert.strictEqual(redisEntries.length, 1)
+      assert.strictEqual(redisEntries[0].value, String(result.id))
+      assert.strictEqual(redisEntries[0].expiration, 300)
+
+      // get the key of the redis entry to check that it starts with 'user-email-verification:'
+      const redisKey = Object.keys(testApp.redisSetExCalls)[0]
+      assert.ok(redisKey.startsWith('user-email-verification:'))
     })
   })
 })
