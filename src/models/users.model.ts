@@ -121,10 +121,10 @@ export default class User {
    * which `JSON.stringify` cannot serialize natively, so it is encoded as a
    * base64 string here (same encoding used by `getMe`).
    */
-  toJSON(): Omit<User, 'bitmap' | 'toJSON'> & { bitmap?: string } {
+  toJSON(): Omit<User, 'bitmap' | 'toJSON'> & { bitmap?: BigInt } {
     return {
       ...this,
-      bitmap: this.bitmap != null ? bigIntToBase64Bytes(this.bitmap) : undefined,
+      bitmap: this.bitmap != null ? this.bitmap : undefined,
     }
   }
 
