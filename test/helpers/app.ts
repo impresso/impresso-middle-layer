@@ -2,6 +2,7 @@ import { Sequelize } from 'sequelize'
 import { ImpressoApplication } from '@/types.js'
 import { CeleryClient } from '@/celery.js'
 import { RedisClient } from '@/redis.js'
+import { initLogger } from '@/logger.js'
 import type { CeleryCall, RedisSetExCall } from './database.js'
 
 /**
@@ -165,6 +166,30 @@ export function withRedisCelery(): TestAppFeature<{
     ctx.serviceHandlers['redisClient'] = () => redisClient
 
     return { celeryRunCalls, redisSetExCalls }
+  }
+}
+
+/**
+ * Feature: enables debug-level, pretty-printed LogTape console output for the
+ * duration of the test run, so `logger.debug(...)` calls inside the code under
+ * test (silent by default at the 'info' level) become visible.
+ *
+ * Note: LogTape configuration is process-global (a singleton), so this affects
+ * every logger in the process for the remainder of the test run, not just the
+ * service under test. Prefer running the affected test file in isolation
+ * (e.g. `npx mocha path/to/file.test.ts`) to avoid noisy output bleeding into
+ * unrelated suites, and avoid combining it with other files that also call
+ * this feature in the same run (last one configured wins).
+ */
+export function withDebugLogging(options?: { format?: 'pretty' | 'json' }): TestAppFeature {
+  return ctx => {
+    const loggingConfig = { lowestLevel: 'debug' as const, format: options?.format ?? 'pretty' }
+    ctx.getHandlers['logging'] = () => loggingConfig
+
+    // initLogger is declared async only for API-consistency with app.configure();
+    // its body is fully synchronous (a single configureSync(...) call), so calling
+    // it here without awaiting still takes effect before the feature returns.
+    void initLogger({ get: () => loggingConfig } as unknown as ImpressoApplication)
   }
 }
 

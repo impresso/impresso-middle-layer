@@ -59,6 +59,7 @@ export default class Profile extends Model<InferAttributes<Profile>, InferCreati
         emailVerified: {
           type: DataTypes.BOOLEAN,
           defaultValue: false,
+          allowNull: true,
           field: 'email_verified',
         },
         maxLoopsAllowed: {

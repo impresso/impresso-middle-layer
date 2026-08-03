@@ -115,6 +115,18 @@ export default class User {
     this.bitmap = bitmap ?? BufferUserPlanGuest
   }
 
+  /**
+   * Produces a JSON-safe representation of this user. `bitmap` is a `bigint`,
+   * which `JSON.stringify` cannot serialize natively, so it is encoded as a
+   * base64 string here (same encoding used by `getMe`).
+   */
+  toJSON(): Omit<User, 'bitmap' | 'toJSON'> & { bitmap?: string } {
+    return {
+      ...this,
+      bitmap: this.bitmap != null ? bigIntToBase64Bytes(this.bitmap) : undefined,
+    }
+  }
+
   static getMe({ user, profile }: { user: User; profile: Profile }): Me {
     return {
       firstname: user.firstname,
