@@ -261,3 +261,15 @@ export function withSolr(): TestAppFeature<{
     return { mockSolr, solrSelectCalls }
   }
 }
+
+/**
+ * Feature: mocked configuration, registered under `config`.
+ * Provides a simple key-value store for configuration values.
+ * @param config
+ * @returns
+ */
+export function withConfig<T extends Record<string, any>>(configName: string, config: T): TestAppFeature {
+  return ctx => {
+    ctx.getHandlers[configName] = () => config
+  }
+}
