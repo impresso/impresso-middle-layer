@@ -1,4 +1,3 @@
-import jwt from 'jsonwebtoken'
 import { Config } from '@/models/generated/app/configuration.js'
 import { RedisClient } from '@/redis.js'
 import { ImpressoApplication } from '@/types.js'
@@ -18,7 +17,7 @@ const logger = getLogger(['impresso', 'services', 'user-email-verification'])
  *
  * See also: {@link UserService} for token generation and email delivery.
  * @remarks
- * - Tokens are generated using JWT with a 5-minute expiration window
+ * - Tokens are high-entropy opaque strings with Redis-managed expiration
  *
  */
 export class UserEmailVerificationService {
@@ -39,13 +38,6 @@ export class UserEmailVerificationService {
   }
 
   async create(data: { token: string }, _params: Params): Promise<{ result: string }> {
-    // Verify JWT signature with magic link secret
-    try {
-      jwt.verify(data.token, this.magicLinkConfig.secret)
-    } catch (err) {
-      logger.debug('Invalid token signature, verify failed')
-      throw new BadRequest('Invalid or expired token')
-    }
     const cacheKey = `user-email-verification:${data.token}`
     const tokenData = await this.redisClient.get(cacheKey)
 

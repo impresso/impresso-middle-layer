@@ -71,13 +71,15 @@ describe('UserEmailVerificationService', () => {
       // get the key of the redis entry to check that it starts with 'user-email-verification:'
       const redisKey = Object.keys(testApp.redisSetExCalls)[0]
       assert.ok(redisKey.startsWith('user-email-verification:'))
+      const token = redisKey.split(':')[1]
+      assert.match(token, /^[A-Za-z0-9_-]+$/)
+      assert.ok(token.length >= 43)
 
       // check that user profile is created and emailVerified is false
 
       assert.ok(result.profile.uid, 'Profile uid is not set')
       assert.strictEqual(result.profile.emailVerified, false)
       // call the service with the token to check that it returns the correct user id
-      const token = redisKey.split(':')[1]
       const validationResult = await service.create({ token }, {})
       assert.strictEqual(validationResult.result, 'ok')
       // call the me service and check the emailVerified is now true

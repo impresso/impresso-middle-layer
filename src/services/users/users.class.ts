@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import jwt from 'jsonwebtoken'
+import { randomBytes } from 'crypto'
 import { getLogger } from '@/logger.js'
 import User, { type UserAttributes } from '@/models/users.model.js'
 import Group from '@/models/groups.model.js'
@@ -179,14 +179,12 @@ export class Service {
     await (createdUser as typeof createdUser & { addGroup: (value: Group) => Promise<unknown> }).addGroup(group)
 
     logger.debug(`[create] user with profile: ${uid} success for user id ${createdUserId} and group ${group.name}`)
-    // Generate a unique token for the user's email verification request, this is not our JWT for auth
-    const token = jwt.sign({ rand: nanoid(8) }, this.magicLinkConfig.secret, {
-      expiresIn: this.magicLinkConfig.expiration,
-    })
+    // Generate an opaque high-entropy token for email verification.
+    const token = randomBytes(32).toString('base64url')
     const callbackUrl = this.app.get('callbackUrls')?.emailVerification
 
     logger.debug(
-      `Generated email verification link token for user ${uid}: ${token} expires in: ${this.magicLinkConfig.expiration} seconds`
+      `Generated email verification token for user ${uid}: ${token} expires in: ${this.magicLinkConfig.expiration} seconds`
     )
     // save user id related to the token into the db
     await this.redisClient.setEx(

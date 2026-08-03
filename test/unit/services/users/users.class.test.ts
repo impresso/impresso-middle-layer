@@ -75,6 +75,11 @@ describe('UsersService', () => {
       assert.strictEqual(redisEntries.length, 1)
       assert.strictEqual(redisEntries[0].value, String(result.id))
       assert.strictEqual(redisEntries[0].expiration, 300)
+
+      const redisKey = Object.keys(testApp.redisSetExCalls)[0]
+      const token = redisKey.replace('user-email-verification:', '')
+      assert.match(token, /^[A-Za-z0-9_-]+$/)
+      assert.ok(token.length >= 43)
     })
 
     it('should create a new user assigned to a custom plan group', async () => {
@@ -113,6 +118,9 @@ describe('UsersService', () => {
       // get the key of the redis entry to check that it starts with 'user-email-verification:'
       const redisKey = Object.keys(testApp.redisSetExCalls)[0]
       assert.ok(redisKey.startsWith('user-email-verification:'))
+      const token = redisKey.replace('user-email-verification:', '')
+      assert.match(token, /^[A-Za-z0-9_-]+$/)
+      assert.ok(token.length >= 43)
     })
   })
 })
