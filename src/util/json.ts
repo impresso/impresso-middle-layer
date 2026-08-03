@@ -63,7 +63,11 @@ function formatValidationErrors(errors: (ErrorObject & { dataPath?: string })[] 
         const currentPath = dataPath ? `${dataPath}.${error.params.missingProperty}` : error.params.missingProperty
         return [currentPath, 'missing required property']
       }
-
+      if (error.keyword === 'pattern') {
+        const schemaPath = error.schemaPath?.startsWith('#') ? error.schemaPath?.slice(1) : error.schemaPath
+        const propertyNameFromSchemaPath = schemaPath?.match(/\/properties\/([^/]+)\//)?.[1]
+        return [propertyNameFromSchemaPath, `does not match pattern: ${error.params.pattern}`]
+      }
       if (error.keyword === 'propertyNames') {
         return undefined // this will be covered by next error
       }
