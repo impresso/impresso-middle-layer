@@ -59,19 +59,18 @@ describe('UserEmailVerificationService', () => {
       })
 
       // check that the user id is stored in Redis with a key starting with "user-email-verification:"
-      const redisEntries = Object.entries(testApp.redisSetExCalls).map(([key, value]) => ({
-        key,
-        value: value.value,
-        expiration: value.expiration,
-      }))
-      assert.strictEqual(redisEntries.length, 1)
-      assert.strictEqual(redisEntries[0].value, String(result.id))
-      assert.strictEqual(redisEntries[0].expiration, 300)
+      const verificationKey = Object.keys(testApp.redisSetExCalls).find(
+        key => key.startsWith('user-email-verification:') && key.split(':').length === 2
+      )
+      const activeByUserKey = `user-email-verification:active-by-user:${result.id}`
 
-      // get the key of the redis entry to check that it starts with 'user-email-verification:'
-      const redisKey = Object.keys(testApp.redisSetExCalls)[0]
-      assert.ok(redisKey.startsWith('user-email-verification:'))
-      const token = redisKey.split(':')[1]
+      assert.ok(verificationKey)
+      assert.ok(testApp.redisSetExCalls[activeByUserKey])
+      assert.strictEqual(testApp.redisSetExCalls[verificationKey!].value, String(result.id))
+      assert.strictEqual(testApp.redisSetExCalls[verificationKey!].expiration, 300)
+      assert.strictEqual(testApp.redisSetExCalls[activeByUserKey].expiration, 300)
+
+      const token = verificationKey!.split(':')[1]
       assert.match(token, /^[A-Za-z0-9_-]+$/)
       assert.ok(token.length >= 43)
 
@@ -97,18 +96,21 @@ describe('UserEmailVerificationService', () => {
         password: 'secret123',
       })
 
-      const redisKey = Object.keys(testApp.redisSetExCalls)[0]
+      const redisKey = Object.keys(testApp.redisSetExCalls).find(
+        key => key.startsWith('user-email-verification:') && key.split(':').length === 2
+      )
       const redisClient = testApp.app.service('redisClient').client as {
         get: (key: string) => Promise<string | null>
       }
 
-      assert.ok(redisKey.startsWith('user-email-verification:'))
-      assert.strictEqual(await redisClient.get(redisKey), String(result.id))
+      assert.ok(redisKey)
+      assert.strictEqual(await redisClient.get(redisKey!), String(result.id))
 
-      await service.create({ token: redisKey.split(':')[1] }, {})
+      await service.create({ token: redisKey!.split(':')[1] }, {})
 
-      assert.strictEqual(testApp.redisSetExCalls[redisKey], undefined)
-      assert.strictEqual(await redisClient.get(redisKey), null)
+      assert.strictEqual(testApp.redisSetExCalls[redisKey!], undefined)
+      assert.strictEqual(await redisClient.get(redisKey!), null)
+      assert.strictEqual(await redisClient.get(`user-email-verification:active-by-user:${result.id}`), null)
     })
 
     it('should fail if the token is invalid', async () => {

@@ -71,13 +71,18 @@ describe('UsersService', () => {
       assert.strictEqual(typeof testApp.celeryRunCalls[0].args[1], 'string')
       assert.strictEqual(testApp.celeryRunCalls[0].args[2], 'http://localhost:5173/magic-link')
 
-      const redisEntries = Object.values(testApp.redisSetExCalls)
-      assert.strictEqual(redisEntries.length, 1)
-      assert.strictEqual(redisEntries[0].value, String(result.id))
-      assert.strictEqual(redisEntries[0].expiration, 300)
+      const verificationKey = Object.keys(testApp.redisSetExCalls).find(
+        key => key.startsWith('user-email-verification:') && key.split(':').length === 2
+      )
+      const activeKey = `user-email-verification:active-by-user:${result.id}`
 
-      const redisKey = Object.keys(testApp.redisSetExCalls)[0]
-      const token = redisKey.replace('user-email-verification:', '')
+      assert.ok(verificationKey)
+      assert.ok(testApp.redisSetExCalls[activeKey])
+      assert.strictEqual(testApp.redisSetExCalls[verificationKey!].value, String(result.id))
+      assert.strictEqual(testApp.redisSetExCalls[verificationKey!].expiration, 300)
+      assert.strictEqual(testApp.redisSetExCalls[activeKey].expiration, 300)
+
+      const token = verificationKey!.replace('user-email-verification:', '')
       assert.match(token, /^[A-Za-z0-9_-]+$/)
       assert.ok(token.length >= 43)
     })
@@ -110,15 +115,17 @@ describe('UsersService', () => {
       assert.strictEqual(typeof testApp.celeryRunCalls[0].args[1], 'string')
       assert.strictEqual(testApp.celeryRunCalls[0].args[2], 'http://localhost:5173/magic-link')
 
-      const redisEntries = Object.values(testApp.redisSetExCalls)
-      assert.strictEqual(redisEntries.length, 1)
-      assert.strictEqual(redisEntries[0].value, String(result.id))
-      assert.strictEqual(redisEntries[0].expiration, 300)
+      const verificationKey = Object.keys(testApp.redisSetExCalls).find(
+        key => key.startsWith('user-email-verification:') && key.split(':').length === 2
+      )
+      const activeKey = `user-email-verification:active-by-user:${result.id}`
 
-      // get the key of the redis entry to check that it starts with 'user-email-verification:'
-      const redisKey = Object.keys(testApp.redisSetExCalls)[0]
-      assert.ok(redisKey.startsWith('user-email-verification:'))
-      const token = redisKey.replace('user-email-verification:', '')
+      assert.ok(verificationKey)
+      assert.ok(testApp.redisSetExCalls[activeKey])
+      assert.strictEqual(testApp.redisSetExCalls[verificationKey!].value, String(result.id))
+      assert.strictEqual(testApp.redisSetExCalls[verificationKey!].expiration, 300)
+
+      const token = verificationKey!.replace('user-email-verification:', '')
       assert.match(token, /^[A-Za-z0-9_-]+$/)
       assert.ok(token.length >= 43)
     })
