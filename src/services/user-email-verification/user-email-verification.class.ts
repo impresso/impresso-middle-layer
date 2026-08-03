@@ -75,11 +75,22 @@ export class UserEmailVerificationService {
       throw new BadRequest('Email already verified')
     }
     const shouldUpdateProfile = !profile.get('emailVerified')
-
+    if (!shouldUpdateProfile) {
+      logger.debug('Email already verified for user: ' + profile.user_id)
+      throw new BadRequest('Email already verified')
+    }
     await profile.update({ emailVerified: true }).catch(err => {
       logger.error('Error updating emailVerified: ' + err)
       throw new BadRequest('Invalid or expired token')
     })
+
+    // Delete token from cache (one-time use)
+    try {
+      await this.redisClient.del(cacheKey)
+      logger.debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
+    } catch (deleteErr) {
+      logger.error('[MagicLinkJWTStrategy] Failed to delete magic link token from cache', { error: deleteErr })
+    }
     return { result: 'ok' }
   }
 }

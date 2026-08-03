@@ -85,6 +85,30 @@ describe('UserEmailVerificationService', () => {
       assert.strictEqual(getMeResult.emailVerified, true)
     })
 
+    it('should delete the redis token entry after successful verification', async () => {
+      const result = await userService.create({
+        username: 'jdoe2',
+        firstname: 'Jane',
+        lastname: 'Doe',
+        displayName: 'Jane Doe',
+        email: 'jdoe2@example.com',
+        password: 'secret123',
+      })
+
+      const redisKey = Object.keys(testApp.redisSetExCalls)[0]
+      const redisClient = testApp.app.service('redisClient').client as {
+        get: (key: string) => Promise<string | null>
+      }
+
+      assert.ok(redisKey.startsWith('user-email-verification:'))
+      assert.strictEqual(await redisClient.get(redisKey), String(result.id))
+
+      await service.create({ token: redisKey.split(':')[1] }, {})
+
+      assert.strictEqual(testApp.redisSetExCalls[redisKey], undefined)
+      assert.strictEqual(await redisClient.get(redisKey), null)
+    })
+
     it('should fail if the token is invalid', async () => {
       const invalidToken = 'invalid-token'
       try {
