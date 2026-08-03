@@ -22,6 +22,10 @@
       "barista-proxy": {
         "capacity": 60,
         "refillRate": 0.016666666666666666
+      },
+      "user-email-verification-resend": {
+        "capacity": 2,
+        "refillRate": 0.0011111111111111111
       }
     }
   },
