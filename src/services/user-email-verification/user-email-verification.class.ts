@@ -45,7 +45,7 @@ export class UserEmailVerificationService {
       logger.debug('Token not found in cache or expired')
       throw new BadRequest('Invalid or expired token')
     }
-    logger.debug('user uid: ' + tokenData)
+    logger.debug('Email verification token found in cache')
     // get user by id
     const profile = await this.profileModel
       .findOne({
@@ -58,7 +58,7 @@ export class UserEmailVerificationService {
         throw new BadRequest('Invalid or expired token')
       })
     if (!profile) {
-      logger.debug('Profile not found for token: ' + data.token)
+      logger.debug('Profile not found for email verification token')
       throw new BadRequest('Invalid or expired token')
     }
     // check if emailVerified is already true
@@ -79,9 +79,10 @@ export class UserEmailVerificationService {
     // Delete token from cache (one-time use)
     try {
       await this.redisClient.del(cacheKey)
-      logger.debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
+      await this.redisClient.del(`user-email-verification:active-by-user:${tokenData}`)
+      logger.debug('Deleted email verification token from cache')
     } catch (deleteErr) {
-      logger.error('[MagicLinkJWTStrategy] Failed to delete magic link token from cache', { error: deleteErr })
+      logger.error('Failed to delete email verification token from cache', { error: deleteErr })
     }
     return { result: 'ok' }
   }

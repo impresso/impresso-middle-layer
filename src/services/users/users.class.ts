@@ -184,13 +184,18 @@ export class Service {
     const callbackUrl = this.app.get('callbackUrls')?.emailVerification
 
     logger.debug(
-      `Generated email verification token for user ${uid}: ${token} expires in: ${this.magicLinkConfig.expiration} seconds`
+      `Generated email verification token for user ${uid} (expires in ${this.magicLinkConfig.expiration} seconds)`
     )
     // save user id related to the token into the db
     await this.redisClient.setEx(
       `user-email-verification:${token}`,
       this.magicLinkConfig.expiration,
       String(createdUserId)
+    )
+    await this.redisClient.setEx(
+      `user-email-verification:active-by-user:${createdUserId}`,
+      this.magicLinkConfig.expiration,
+      token
     )
 
     const celeryClient = this.app.get('celeryClient')
