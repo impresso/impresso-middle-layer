@@ -1,4 +1,3 @@
-import { Config } from '@/models/generated/app/configuration.js'
 import { RedisClient } from '@/redis.js'
 import { ImpressoApplication } from '@/types.js'
 import { getLogger } from '@/logger.js'
@@ -21,14 +20,12 @@ const logger = getLogger(['impresso', 'services', 'user-email-verification'])
  *
  */
 export class UserEmailVerificationService {
-  protected readonly magicLinkConfig: Config['magicLink']
   protected readonly redisClient: RedisClient
   protected readonly sequelizeClient: Sequelize
   public readonly name: string
   protected readonly profileModel: ReturnType<typeof Profile.initModel>
 
   constructor(protected readonly app: ImpressoApplication) {
-    this.magicLinkConfig = app.get('magicLink')
     this.redisClient = app.service('redisClient').client as RedisClient
     this.sequelizeClient = app.get('sequelizeClient') as Sequelize
     this.profileModel = Profile.initModel(this.sequelizeClient)
@@ -63,11 +60,6 @@ export class UserEmailVerificationService {
     }
     // check if emailVerified is already true
     if (profile.emailVerified) {
-      logger.debug('Email already verified for user: ' + profile.user_id)
-      throw new BadRequest('Email already verified')
-    }
-    const shouldUpdateProfile = !profile.get('emailVerified')
-    if (!shouldUpdateProfile) {
       logger.debug('Email already verified for user: ' + profile.user_id)
       throw new BadRequest('Email already verified')
     }

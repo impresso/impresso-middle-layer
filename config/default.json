@@ -99,6 +99,9 @@
     "secret": "***********",
     "expiration": 300
   },
+  "emailVerification": {
+    "expiration": 300
+  },
   "media": {
     "host": "http://localhost:3030",
     "path": "/media",

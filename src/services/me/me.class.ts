@@ -60,11 +60,9 @@ export class Service {
       throw new NotFound('User not found')
     }
 
-    const { toJSON, ...userData } = user.get() as any
-
     const response = User.getMe({
       user: {
-        ...userData,
+        ...(user.get() as any),
         bitmap: (user as any).userBitmap?.bitmap,
         groups: (user as any).groups?.map((d: Group) => d.toJSON()),
       },
@@ -132,11 +130,9 @@ export class Service {
       logger.debug(`[patch] User not found with id: ${params.user.id}`)
       throw new NotFound('User not found')
     }
-    const { toJSON, ...updatedUserData } = updatedUser.get() as any
-
     const response = User.getMe({
       user: {
-        ...updatedUserData,
+        ...(updatedUser.get() as any),
         bitmap: (updatedUser as any).userBitmap?.bitmap,
         groups: (updatedUser as any).groups?.map((d: Group) => d.toJSON()),
       } as User,

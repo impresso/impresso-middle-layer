@@ -5,6 +5,7 @@ import Profile from '@/models/profiles.model.js'
 import User from '@/models/users.model.js'
 import { RedisClient } from '@/redis.js'
 import { ImpressoApplication } from '@/types.js'
+import { GeneralError } from '@feathersjs/errors'
 import { Params } from '@feathersjs/feathers'
 import { Sequelize } from 'sequelize'
 
@@ -30,14 +31,14 @@ const RESEND_EMAIL_HASH_WINDOW_SECONDS = 60 * 60
 const RESEND_VERIFICATION_TASK = 'impresso.tasks.resend_user_email_verification'
 
 export class UserEmailVerificationResendService {
-  protected readonly magicLinkConfig: Config['magicLink']
+  protected readonly emailVerificationConfig: Config['emailVerification']
   protected readonly redisClient: RedisClient
   protected readonly userModel: ReturnType<typeof User.sequelize>
   protected readonly profileModel: ReturnType<typeof Profile.initModel>
 
   constructor(protected readonly app: ImpressoApplication) {
     const sequelizeClient = app.get('sequelizeClient') as Sequelize
-    this.magicLinkConfig = app.get('magicLink') as Config['magicLink']
+    this.emailVerificationConfig = app.get('emailVerification') as Config['emailVerification']
     this.redisClient = app.service('redisClient').client as RedisClient
     this.userModel = User.sequelize(sequelizeClient)
     this.profileModel = Profile.initModel(sequelizeClient)
@@ -87,7 +88,7 @@ export class UserEmailVerificationResendService {
     if (activeToken) {
       return {
         result: 'wait',
-        retryAfterSeconds: this.magicLinkConfig.expiration,
+        retryAfterSeconds: this.emailVerificationConfig.expiration,
       }
     }
 
@@ -110,22 +111,33 @@ export class UserEmailVerificationResendService {
     const token = randomBytes(32).toString('base64url')
     const callbackUrl = this.app.get('callbackUrls')?.emailVerification
 
-    await this.redisClient.setEx(`user-email-verification:${token}`, this.magicLinkConfig.expiration, String(userId))
-    await this.redisClient.setEx(activeByUserKey, this.magicLinkConfig.expiration, token)
+    const celeryClient = this.app.get('celeryClient')
+    if (!celeryClient) {
+      logger.error('Celery client not configured; cannot send verification resend email')
+      throw new GeneralError('Verification email service is currently unavailable')
+    }
+
+    try {
+      await celeryClient.run({
+        task: RESEND_VERIFICATION_TASK,
+        args: [userId, token, callbackUrl],
+      })
+    } catch (error) {
+      logger.error('Failed to enqueue verification resend email', { error })
+      throw new GeneralError('Verification email service is currently unavailable')
+    }
+
+    // Only persist the new token and throttle counters once the email has
+    // actually been queued for delivery, so a Celery failure doesn't consume
+    // one of the user's limited resend attempts without ever sending anything.
+    await this.redisClient.setEx(
+      `user-email-verification:${token}`,
+      this.emailVerificationConfig.expiration,
+      String(userId)
+    )
+    await this.redisClient.setEx(activeByUserKey, this.emailVerificationConfig.expiration, token)
     await this.redisClient.setEx(cooldownKey, RESEND_COOLDOWN_SECONDS, '1')
     await this.redisClient.setEx(dailyKey, RESEND_DAILY_WINDOW_SECONDS, String(dailyCount + 1))
-
-    const celeryClient = this.app.get('celeryClient')
-    if (celeryClient) {
-      await celeryClient
-        .run({
-          task: RESEND_VERIFICATION_TASK,
-          args: [userId, token, callbackUrl],
-        })
-        .catch((error: Error) => {
-          logger.error('Failed to enqueue verification resend email', { error })
-        })
-    }
 
     return { result: 'ok' }
   }

@@ -106,6 +106,18 @@
       "additionalProperties": false,
       "description": "Configuration for the magic link service"
     },
+    "emailVerification": {
+      "type": "object",
+      "properties": {
+        "expiration": {
+          "type": "number",
+          "description": "Expiration time for email verification tokens in seconds"
+        }
+      },
+      "required": ["expiration"],
+      "additionalProperties": false,
+      "description": "Configuration for the user email verification service"
+    },
     "media": {
       "$ref": "#/definitions/MediaConfig"
     },

@@ -75,7 +75,7 @@ export class Service {
   readonly id: string
   readonly sequelizeClient: Sequelize
   readonly sequelizeKlass: ReturnType<typeof User.sequelize>
-  protected readonly magicLinkConfig: Config['magicLink']
+  protected readonly emailVerificationConfig: Config['emailVerification']
   protected readonly redisClient: RedisClient
 
   constructor({ app, name }: ServiceOptions) {
@@ -85,7 +85,7 @@ export class Service {
     }
 
     this.app = app
-    this.magicLinkConfig = app.get('magicLink') as { secret: string; expiration: number }
+    this.emailVerificationConfig = app.get('emailVerification') as { expiration: number }
     this.redisClient = app.service('redisClient').client as RedisClient
     this.name = name
     this.id = 'id'
@@ -183,32 +183,33 @@ export class Service {
     const token = randomBytes(32).toString('base64url')
     const callbackUrl = this.app.get('callbackUrls')?.emailVerification
 
-    logger.debug(
-      `Generated email verification token for user ${uid} (expires in ${this.magicLinkConfig.expiration} seconds)`
-    )
-    // save user id related to the token into the db
-    await this.redisClient.setEx(
-      `user-email-verification:${token}`,
-      this.magicLinkConfig.expiration,
-      String(createdUserId)
-    )
-    await this.redisClient.setEx(
-      `user-email-verification:active-by-user:${createdUserId}`,
-      this.magicLinkConfig.expiration,
-      token
-    )
-
     const celeryClient = this.app.get('celeryClient')
     if (celeryClient) {
       logger.debug(`[create] inform impresso admin to activate this user: ${uid}`)
-      await celeryClient
-        .run({
+      try {
+        await celeryClient.run({
           task: 'impresso.tasks.after_user_registered',
           args: [createdUserId, token, callbackUrl],
         })
-        .catch((err: Error) => {
-          logger.debug(`Error ${err}`)
-        })
+        // Only persist the verification token once the email has actually been
+        // queued for delivery. Otherwise a failed enqueue would still leave an
+        // "active token" for this user in Redis, blocking any resend attempt
+        // (see UserEmailVerificationResendService) until the token expires.
+        await this.redisClient.setEx(
+          `user-email-verification:${token}`,
+          this.emailVerificationConfig.expiration,
+          String(createdUserId)
+        )
+        await this.redisClient.setEx(
+          `user-email-verification:active-by-user:${createdUserId}`,
+          this.emailVerificationConfig.expiration,
+          token
+        )
+      } catch (err) {
+        logger.error(`[create] failed to enqueue verification email for user ${uid}`, { error: err })
+      }
+    } else {
+      logger.debug(`[create] celery client not configured; skipping verification email for user ${uid}`)
     }
 
     const createdUserJson = createdUser.toJSON() as unknown as UserAttributes
