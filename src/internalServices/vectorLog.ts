@@ -22,12 +22,13 @@ interface VectorContentItemAccessLogRecord {
   provider_id: string
   impresso_user_id: string
   content_item_id: string
-  timestamp: string
+  /** Unix epoch, milliseconds */
+  timestamp: number
   access_method: AccessMethod
 }
 
 export interface VectorLogService {
-  logContentItemAccess(entry: ContentItemAccessLogEntry): Promise<void>
+  logContentItemAccess(entries: ContentItemAccessLogEntry[]): Promise<void>
 }
 
 export class DefaultVectorLogService implements VectorLogService {
@@ -40,28 +41,32 @@ export class DefaultVectorLogService implements VectorLogService {
     this.enabled = options.enabled ?? true
   }
 
-  async logContentItemAccess(entry: ContentItemAccessLogEntry): Promise<void> {
-    if (!this.enabled) return
+  async logContentItemAccess(entries: ContentItemAccessLogEntry[]): Promise<void> {
+    if (!this.enabled || entries.length === 0) return
 
-    const record: VectorContentItemAccessLogRecord = {
+    // Vector's default `json` decoding codec parses the whole request body as a single
+    // JSON value; a JSON array is accepted and expanded into one event per element.
+    const records: VectorContentItemAccessLogRecord[] = entries.map(entry => ({
       provider_id: entry.providerId,
       impresso_user_id: entry.impressoUserId,
       content_item_id: entry.contentItemId,
-      timestamp: (entry.timestamp ?? new Date()).toISOString(),
+      timestamp: (entry.timestamp ?? new Date()).getTime(),
       access_method: entry.accessMethod,
-    }
+    }))
 
     try {
       const response = await this.client.fetch(this.endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(record),
+        body: JSON.stringify(records),
       })
       if (!response.ok) {
-        logger.warn(`VectorLogService: failed to send log entry (${response.status} ${response.statusText})`)
+        logger.warn(
+          `VectorLogService: failed to send batch of ${entries.length} log entries (${response.status} ${response.statusText})`
+        )
       }
     } catch (error) {
-      logger.warn('VectorLogService: error sending log entry to Vector', { error })
+      logger.warn(`VectorLogService: error sending batch of ${entries.length} log entries to Vector`, { error })
     }
   }
 }

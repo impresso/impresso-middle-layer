@@ -6,6 +6,7 @@ services:
     command: ["--config", "/etc/vector/vector.toml"]
     volumes:
       - ./vector.toml:/etc/vector/vector.toml:ro
+      - ./schemas:/etc/vector/schemas:ro
       - vector_data:/var/lib/vector
     ports:
       - "8686:8686"
