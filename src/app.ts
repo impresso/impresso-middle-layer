@@ -13,6 +13,7 @@ import cache from '@/cache.js'
 import celery, { init as initCelery } from '@/celery.js'
 import channels from '@/channels.js'
 import { init as simpleSolrClient } from '@/internalServices/simpleSolr.js'
+import { init as vectorLogService } from '@/internalServices/vectorLog.js'
 import { init as initPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import { startupJobs } from '@/jobs/index.js'
 import middleware from '@/middleware/index.js'
@@ -62,6 +63,7 @@ app.configure(rateLimiter)
 app.configure(quotaChecker)
 app.configure(cache)
 app.configure(simpleSolrClient)
+app.configure(vectorLogService)
 
 // Enable security, compression, favicon and body parsing
 // Request context tracking: must be the very first middleware so that every

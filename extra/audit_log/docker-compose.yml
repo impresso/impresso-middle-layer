@@ -1,0 +1,32 @@
+services:
+  vector:
+    image: timberio/vector:latest-alpine
+    container_name: audit_log_vector
+    restart: unless-stopped
+    command: ["--config", "/etc/vector/vector.toml"]
+    volumes:
+      - ./vector.toml:/etc/vector/vector.toml:ro
+      - vector_data:/var/lib/vector
+    ports:
+      - "8686:8686"
+      - "18080:8080"
+    depends_on:
+      - minio
+
+  minio:
+    image: minio/minio:latest
+    container_name: audit_log_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+volumes:
+  vector_data:
+  minio_data:

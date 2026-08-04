@@ -109,6 +109,7 @@ export interface Config {
   public?: string;
   multer?: MulterConfig;
   embeddings?: EmbeddingsConfig;
+  auditLogging?: AuditLoggingConfig;
 }
 /**
  * Redis configuration
@@ -572,6 +573,23 @@ export interface TextEmbeddingsConfig {
    * Solr field where the text embeddings vectors of this model are indexed.
    */
   solrField?: "gte_multi_v768" | "gte_multi_v256";
+}
+/**
+ * Configuration for sending content item access log entries to a Vector log aggregator over HTTP
+ */
+export interface AuditLoggingConfig {
+  /**
+   * Enable sending log entries to Vector (enabled by default)
+   */
+  enabled?: boolean;
+  /**
+   * Vector host (default: localhost)
+   */
+  host?: string;
+  /**
+   * Vector port (default: 18080)
+   */
+  port?: number;
 }
 
 

@@ -138,6 +138,9 @@
     },
     "embeddings": {
       "$ref": "#/definitions/EmbeddingsConfig"
+    },
+    "auditLogging": {
+      "$ref": "#/definitions/AuditLoggingConfig"
     }
   },
   "required": ["solrConfiguration", "sequelize", "authentication", "images", "magicLink"],
@@ -606,6 +609,25 @@
         }
       },
       "required": ["capacity", "refillRate"]
+    },
+    "AuditLoggingConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable sending log entries to Vector (enabled by default)"
+        },
+        "host": {
+          "type": "string",
+          "description": "Vector host (default: localhost)"
+        },
+        "port": {
+          "type": "number",
+          "description": "Vector port (default: 18080)"
+        }
+      },
+      "description": "Configuration for sending content item access log entries to a Vector log aggregator over HTTP"
     },
     "QuotaCheckerConfig": {
       "type": "object",

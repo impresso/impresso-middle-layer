@@ -49,6 +49,11 @@
   "redis": {
     "host": "localhost"
   },
+  "auditLogging": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 18080
+  },
   "cache": {
     "enabled": true
   },

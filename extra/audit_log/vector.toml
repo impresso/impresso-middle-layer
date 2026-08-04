@@ -1,0 +1,26 @@
+[sources.audit_events_in]
+type = "http_server"
+address = "0.0.0.0:8080"
+encoding = "json"
+
+# (Optional) Add a transform step to enforce schema or parse timestamps
+
+[sinks.audit_events_out]
+type = "aws_s3"
+inputs = ["audit_events_in"]
+bucket = "audit-logs"
+region = "us-east-1"
+endpoint = "http://minio:9000"
+# MinIO buckets are path-style (bucket in the path, not the host)
+force_path_style = true
+# Partition into one prefix per provider_id, one object per day
+key_prefix = "audit-logs/{{ provider_id }}/%Y-%m-%d/"
+compression = "zstd" # Highly recommended for audit logs
+encoding.codec = "json"
+
+auth.access_key_id = "minioadmin"
+auth.secret_access_key = "minioadmin"
+
+# Batching Abstraction
+batch.max_bytes = 10485760 # Flush when batch hits 10MB
+batch.timeout_secs = 60    # Or flush every 60 seconds (whichever is first)
