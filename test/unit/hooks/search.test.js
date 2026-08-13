@@ -103,13 +103,23 @@ describe('test filtersToSolrQuery hook', () => {
     }
     await filtersToSolrQuery()(context)
     // console.log(context.params.sanitized);
-    assert.equal(
-      context.params.sanitized.sq,
-      '(content_txt_fr:ambassad* OR content_txt_de:ambassad* OR content_txt_en:ambassad* OR content_txt_it:ambassad* OR content_txt_es:ambassad* OR content_txt_nl:ambassad* OR content_txt:ambassad*)'
-    )
+    assert.deepEqual(context.params.sanitized.sq, {
+      bool: {
+        should: [
+          'content_txt_fr:ambassad*',
+          'content_txt_de:ambassad*',
+          'content_txt_en:ambassad*',
+          'content_txt_it:ambassad*',
+          'content_txt_es:ambassad*',
+          'content_txt_nl:ambassad*',
+          'content_txt:ambassad*',
+        ],
+        minimum_should_match: 1,
+      },
+    })
     assert.deepEqual(context.params.sanitized.sfq, [
       'meta_journal_s:GDL',
-      '(meta_year_i:1957 OR meta_year_i:1958 OR meta_year_i:1954)',
+      { bool: { should: ['meta_year_i:1957', 'meta_year_i:1958', 'meta_year_i:1954'], minimum_should_match: 1 } },
       'lg_s:fr',
     ])
     // console.log(context);
@@ -140,10 +150,15 @@ describe('test filtersToSolrQuery hook', () => {
     }
     await filtersToSolrQuery()(context)
 
-    assert.deepEqual(
-      context.params.sanitized.sq,
-      '(content_txt_fr:"accident d\'avion"~1 OR content_txt_de:"accident d\'avion"~1 OR content_txt_en:"accident d\'avion"~1 OR content_txt_it:"accident d\'avion"~1 OR content_txt_es:"accident d\'avion"~1 OR content_txt_nl:"accident d\'avion"~1 OR content_txt:"accident d\'avion"~1) AND (content_txt_fr:(ministre OR portugais) OR content_txt_de:(ministre OR portugais) OR content_txt_en:(ministre OR portugais) OR content_txt_it:(ministre OR portugais) OR content_txt_es:(ministre OR portugais) OR content_txt_nl:(ministre OR portugais) OR content_txt:(ministre OR portugais))'
-    )
+    const fields = ['content_txt_fr', 'content_txt_de', 'content_txt_en', 'content_txt_it', 'content_txt_es', 'content_txt_nl', 'content_txt']
+    assert.deepEqual(context.params.sanitized.sq, {
+      bool: {
+        must: [
+          { bool: { should: fields.map(field => `${field}:"accident d'avion"~1`), minimum_should_match: 1 } },
+          { bool: { should: fields.map(field => `${field}:(ministre OR portugais)`), minimum_should_match: 1 } },
+        ],
+      },
+    })
   })
 
   it('with text context', async () => {
@@ -171,10 +186,20 @@ describe('test filtersToSolrQuery hook', () => {
     }
 
     await filtersToSolrQuery()(context)
-    assert.deepEqual(
-      context.params.sanitized.sq,
-      `(content_txt_fr:\"ministre portugais\" OR content_txt_de:\"ministre portugais\" OR content_txt_en:\"ministre portugais\" OR content_txt_it:\"ministre portugais\" OR content_txt_es:\"ministre portugais\" OR content_txt_nl:\"ministre portugais\" OR content_txt:\"ministre portugais\")`
-    )
+    assert.deepEqual(context.params.sanitized.sq, {
+      bool: {
+        should: [
+          'content_txt_fr:"ministre portugais"',
+          'content_txt_de:"ministre portugais"',
+          'content_txt_en:"ministre portugais"',
+          'content_txt_it:"ministre portugais"',
+          'content_txt_es:"ministre portugais"',
+          'content_txt_nl:"ministre portugais"',
+          'content_txt:"ministre portugais"',
+        ],
+        minimum_should_match: 1,
+      },
+    })
     assert.deepEqual(context.params.sanitized.sfq, [queries.hasTextContents, 'front_b:1'])
   })
 
@@ -202,10 +227,20 @@ describe('test filtersToSolrQuery hook', () => {
     }
 
     await filtersToSolrQuery()(context)
-    assert.deepEqual(
-      context.params.sanitized.sq,
-      `(content_txt_fr:\"ministre portugais\" OR content_txt_de:\"ministre portugais\" OR content_txt_en:\"ministre portugais\" OR content_txt_it:\"ministre portugais\" OR content_txt_es:\"ministre portugais\" OR content_txt_nl:\"ministre portugais\" OR content_txt:\"ministre portugais\")`
-    )
+    assert.deepEqual(context.params.sanitized.sq, {
+      bool: {
+        should: [
+          'content_txt_fr:"ministre portugais"',
+          'content_txt_de:"ministre portugais"',
+          'content_txt_en:"ministre portugais"',
+          'content_txt_it:"ministre portugais"',
+          'content_txt_es:"ministre portugais"',
+          'content_txt_nl:"ministre portugais"',
+          'content_txt:"ministre portugais"',
+        ],
+        minimum_should_match: 1,
+      },
+    })
     assert.deepEqual(context.params.sanitized.sfq, [queries.hasTextContents, 'front_b:1'])
   })
 
@@ -233,10 +268,20 @@ describe('test filtersToSolrQuery hook', () => {
     }
 
     await filtersToSolrQuery()(context)
-    assert.deepEqual(
-      context.params.sanitized.sq,
-      `(content_txt_fr:\"ministre \\\"portugais\" OR content_txt_de:\"ministre \\\"portugais\" OR content_txt_en:\"ministre \\\"portugais\" OR content_txt_it:\"ministre \\\"portugais\" OR content_txt_es:\"ministre \\\"portugais\" OR content_txt_nl:\"ministre \\\"portugais\" OR content_txt:\"ministre \\\"portugais\")`
-    )
+    assert.deepEqual(context.params.sanitized.sq, {
+      bool: {
+        should: [
+          'content_txt_fr:"ministre \\"portugais"',
+          'content_txt_de:"ministre \\"portugais"',
+          'content_txt_en:"ministre \\"portugais"',
+          'content_txt_it:"ministre \\"portugais"',
+          'content_txt_es:"ministre \\"portugais"',
+          'content_txt_nl:"ministre \\"portugais"',
+          'content_txt:"ministre \\"portugais"',
+        ],
+        minimum_should_match: 1,
+      },
+    })
     assert.deepEqual(context.params.sanitized.sfq, [queries.hasTextContents, 'front_b:1'])
   })
 
@@ -264,10 +309,16 @@ describe('test filtersToSolrQuery hook', () => {
     }
 
     await filtersToSolrQuery()(context)
-    assert.deepEqual(
-      context.params.sanitized.sq,
-      `((content_txt_fr:\"ministre portugais\" OR content_txt_de:\"ministre portugais\" OR content_txt_en:\"ministre portugais\" OR content_txt_it:\"ministre portugais\" OR content_txt_es:\"ministre portugais\" OR content_txt_nl:\"ministre portugais\" OR content_txt:\"ministre portugais\") OR (content_txt_fr:\"ministre italien\" OR content_txt_de:\"ministre italien\" OR content_txt_en:\"ministre italien\" OR content_txt_it:\"ministre italien\" OR content_txt_es:\"ministre italien\" OR content_txt_nl:\"ministre italien\" OR content_txt:\"ministre italien\"))`
-    )
+    const fields = ['content_txt_fr', 'content_txt_de', 'content_txt_en', 'content_txt_it', 'content_txt_es', 'content_txt_nl', 'content_txt']
+    assert.deepEqual(context.params.sanitized.sq, {
+      bool: {
+        should: [
+          { bool: { should: fields.map(field => `${field}:"ministre portugais"`), minimum_should_match: 1 } },
+          { bool: { should: fields.map(field => `${field}:"ministre italien"`), minimum_should_match: 1 } },
+        ],
+        minimum_should_match: 1,
+      },
+    })
     assert.deepEqual(context.params.sanitized.sfq, [queries.hasTextContents, 'front_b:1'])
   })
 
@@ -298,7 +349,13 @@ describe('test filtersToSolrQuery hook', () => {
 
     assert.equal(context.params.sanitized.sq, '*:*')
     assert.deepEqual(context.params.sanitized.sfq, [
-      '*:* AND NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T23:59:59Z]) AND meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z]',
+      'meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z]',
+      {
+        bool: {
+          must: ['*:*'],
+          must_not: ['meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T23:59:59Z]'],
+        },
+      },
     ])
   })
 
@@ -351,17 +408,40 @@ describe('test filtersToSolrQuery hook', () => {
       },
     }
     await filtersToSolrQuery()(context)
-    assert.equal(
-      context.params.sanitized.sq,
-      '(content_txt_fr:ambassad* OR content_txt_de:ambassad* OR content_txt_en:ambassad* OR content_txt_it:ambassad* OR content_txt_es:ambassad* OR content_txt_nl:ambassad* OR content_txt:ambassad*)'
-    )
+    assert.deepEqual(context.params.sanitized.sq, {
+      bool: {
+        should: [
+          'content_txt_fr:ambassad*',
+          'content_txt_de:ambassad*',
+          'content_txt_en:ambassad*',
+          'content_txt_it:ambassad*',
+          'content_txt_es:ambassad*',
+          'content_txt_nl:ambassad*',
+          'content_txt:ambassad*',
+        ],
+        minimum_should_match: 1,
+      },
+    })
     assert.deepEqual(context.params.sanitized.sfq, [
-      '*:* AND NOT (meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T23:59:59Z])' +
-      ' AND (meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z] OR meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T23:59:59Z])',
+      {
+        bool: {
+          should: [
+            'meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z]',
+            'meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T23:59:59Z]',
+          ],
+          minimum_should_match: 1,
+        },
+      },
       'meta_journal_s:GDL',
-      '(meta_year_i:1957 OR meta_year_i:1958 OR meta_year_i:1954)',
-      '(lg_s:fr OR lg_s:de)',
+      { bool: { should: ['meta_year_i:1957', 'meta_year_i:1958', 'meta_year_i:1954'], minimum_should_match: 1 } },
+      { bool: { should: ['lg_s:fr', 'lg_s:de'], minimum_should_match: 1 } },
       'item_type_s:ar',
+      {
+        bool: {
+          must: ['*:*'],
+          must_not: ['meta_date_dt:[1952-01-01T00:00:00Z TO 1953-01-01T23:59:59Z]'],
+        },
+      },
     ])
   })
 })

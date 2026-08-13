@@ -3,7 +3,7 @@ import { ImpressoApplication } from '@/types.js'
 import { logger } from '@/logger.js'
 import { SolrNamespace } from '@/solr.js'
 import { Filter } from 'impresso-jscommons'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 
 export const JobNameAddQueryResultItemsToCollection = 'addQueryResultItemsToCollection'
 
@@ -32,7 +32,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
 
     const { filters, solrNamespace } = job.data
 
-    const { query, filter, params } = filtersToQueryAndVariables(
+    const { query, filter, params } = buildSolrQuery(
       filters,
       solrNamespace,
       app.get('solrConfiguration').namespaces ?? [],

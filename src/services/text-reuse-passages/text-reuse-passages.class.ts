@@ -7,7 +7,7 @@ import { AllDocumentFields } from '@/models/text-reuse-passage.js'
 import TextReusePassage, { SolrFields } from '@/models/text-reuse-passages.model.js'
 import { ImpressoApplication } from '@/types.js'
 import { parseOrderBy } from '@/util/queryParameters.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 
 const logger = getLogger(['impresso', 'services', 'text-reuse-passages'])
 
@@ -45,14 +45,14 @@ export class TextReusePassages {
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query?.filters ?? []
     const [orderByField, orderByDescending] = parseOrderBy(params.query?.order_by, OrderByKeyToField)
-    const { query, filter } = filtersToQueryAndVariables(
+    const { query, filter } = buildSolrQuery(
       filters,
       this.solr.namespaces.TextReusePassages,
       this.app.get('solrConfiguration').namespaces ?? [],
       this.app.get('features') ?? {}
     )
     const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
-    const queryFilter = ([] as string[]).concat((filter ?? []) as string[])
+    const queryFilter = [...filter]
     const fq = `{!collapse field=${params.query?.group_by ? SolrFields[params.query?.group_by] : ''} max=ms(${SolrFields.date})}`
     const effectiveFilter = params.query?.group_by ? queryFilter.concat(fq) : queryFilter
 

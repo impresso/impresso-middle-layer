@@ -3,7 +3,8 @@
  */
 import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash-es'
 import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
-import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '@/util/solr/index.js'
+import { getRegionCoordinatesFromDocument } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { ContentItemService } from '@/services/content-items/content-items.class.js'
 import { ImpressoApplication } from '@/types.js'
 import { buildResolvers, CachedFacetType, IResolver } from '@/internalServices/cachedResolvers.js'
@@ -100,7 +101,7 @@ export async function getItemsFromSolrResponse(
   const { fragments: fragmentsIndex, highlighting: highlightingIndex } = response
 
   const filters: Filter[] = [{ type: 'uid', q: uids }]
-  const { query, filter } = filtersToQueryAndVariables(
+  const { query, filter } = buildSolrQuery(
     filters,
     SolrNamespaces.Search,
     solrNamespacesConfiguration,
@@ -113,8 +114,8 @@ export async function getItemsFromSolrResponse(
     query: {
       limit: uids.length,
       filters,
-      sq: query as string,
-      sfq: filter as string[],
+      sq: query,
+      sfq: filter,
     },
   }
 

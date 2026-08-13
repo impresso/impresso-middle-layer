@@ -18,8 +18,8 @@ describe('createSolrQuery', () => {
       params: {
         hl: false,
       },
-      query: 'filter(pers_entities_dpfs:person-a-id)',
-      filter: [],
+      query: '*:*',
+      filter: ['pers_entities_dpfs:person-a-id'],
       facet: {
         person: {
           field: 'pers_entities_dpfs',
@@ -58,16 +58,16 @@ describe('createSolrQuery', () => {
       params: {
         hl: false,
       },
-      query: 'filter(pers_entities_dpfs:person-a-id)',
-      filter: [],
+      query: '*:*',
+      filter: ['pers_entities_dpfs:person-a-id'],
       facet: {
         constrained__person__0: {
           type: 'query',
-          q: 'filter(pers_entities_dpfs:person-b-id)',
+          q: { bool: { must: ['*:*', 'pers_entities_dpfs:person-b-id'] } },
         },
         constrained__person__1: {
           type: 'query',
-          q: 'filter(pers_entities_dpfs:person-c-id)',
+          q: { bool: { must: ['*:*', 'pers_entities_dpfs:person-c-id'] } },
         },
       },
     }

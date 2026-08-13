@@ -7,7 +7,7 @@ import initSequelizeService, { Service as SequelizeService } from '@/services/se
 import { ContentItem, EntityMention } from '@/models/generated/deprecated/models.js'
 import { toTextWrap } from '@/helpers.js'
 import { groupBy } from '@/util/fn.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { SolrNamespaces } from '@/solr.js'
 
 const logger = getLogger(['impresso', 'services', 'mentions'])
@@ -73,7 +73,7 @@ export class Service {
   async _enrichEntityMentions(mentions: EntityMention[]): Promise<EntityMention[]> {
     const contentItemsIds = new Set(mentions.map(d => d.ciId))
 
-    const queryAndVars = filtersToQueryAndVariables(
+    const queryAndVars = buildSolrQuery(
       [
         {
           type: 'uid',
@@ -87,8 +87,8 @@ export class Service {
 
     const contentItems = await this.app.service('content-items').findInternal({
       query: {
-        sq: queryAndVars.query as string,
-        sfq: queryAndVars.filter as string[],
+        sq: queryAndVars.query,
+        sfq: queryAndVars.filter,
       },
     })
     const contentItemsLookup = groupBy(contentItems.data, d => d.id)

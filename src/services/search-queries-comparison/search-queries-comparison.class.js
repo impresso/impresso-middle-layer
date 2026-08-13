@@ -9,7 +9,7 @@ import { SolrMappings } from '@/data/constants.js'
  */
 
 import { getFacetsFromSolrResponse } from '@/services/search/search.extractors.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { SolrNamespaces } from '@/solr.js'
 import jscommons from 'impresso-jscommons'
 
@@ -42,7 +42,7 @@ const {
  * @returns {any}
  */
 export function createSolrQuery(filters, facetsRequests, constraintFacets = [], solrNamespacesConfiguration = [], featuresConfig = {}) {
-  const { query, filter } = filtersToQueryAndVariables(filters, undefined, solrNamespacesConfiguration, featuresConfig)
+  const { query, filter } = buildSolrQuery(filters, SolrNamespaces.Search, solrNamespacesConfiguration, featuresConfig)
 
   const facets = facetsRequests.reduce((acc, { type, offset, limit }) => {
     const facet = SolrMappings.search.facets[type]
@@ -56,13 +56,18 @@ export function createSolrQuery(filters, facetsRequests, constraintFacets = [], 
       // Go through every bucket in the constraint
       return constraintFacet.buckets.reduce((facetAcc, { val }, index) => {
         // Create a Solr query for this bucket's value.
-        const { query: constraintQuery } = filtersToQueryAndVariables([{ type, q: val }], undefined, solrNamespacesConfiguration, featuresConfig)
+        const { query: constraintQuery, filter: constraintFilters } = buildSolrQuery(
+          [{ type, q: val }],
+          SolrNamespaces.Search,
+          solrNamespacesConfiguration,
+          featuresConfig
+        )
         // Create a constrained entry in the query.
         return {
           ...facetAcc,
           [`constrained__${type}__${index}`]: {
             type: 'query',
-            q: constraintQuery,
+            q: constraintFilters.length ? { bool: { must: [constraintQuery, ...constraintFilters] } } : constraintQuery,
           },
         }
       }, acc)
@@ -177,6 +182,7 @@ export class SearchQueriesComparison {
     const intersectionSolrQuery = createSolrQuery(
       intersectionFilters,
       request.facets,
+      [],
       this.app.get('solrConfiguration').namespaces ?? [],
       this.app.get('features') ?? {}
     )

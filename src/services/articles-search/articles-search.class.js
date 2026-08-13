@@ -1,6 +1,6 @@
 import { relevanceContextItemsToSolrFormula, buildSolrQuery, withScore } from './logic.js'
 import { SolrNamespaces } from '@/solr.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery as buildFiltersSolrQuery } from '@/util/solr/queryBuilder.js'
 import { getItemsFromSolrResponse, getTotalFromSolrResponse } from '@/services/search/search.extractors.js'
 
 /**
@@ -13,6 +13,7 @@ import { getItemsFromSolrResponse, getTotalFromSolrResponse } from '@/services/s
 export class ArticlesSearch {
   constructor(options, app) {
     this.options = options || {}
+    this.app = app
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     this.solr = app.service('simpleSolrClient')
     this.articlesService = app.service('content-items')
@@ -30,7 +31,12 @@ export class ArticlesSearch {
   async create({ relevanceContext = [], filters = [], pagination = {} }, params) {
     const items = relevanceContext == null ? [] : relevanceContext
 
-    const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, {})
+    const { query, filter } = buildFiltersSolrQuery(
+      filters,
+      SolrNamespaces.Search,
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
+    )
     const relevanceScoreVariable = relevanceContextItemsToSolrFormula(items)
 
     const solrQuery = buildSolrQuery(query, filter, relevanceScoreVariable, pagination)

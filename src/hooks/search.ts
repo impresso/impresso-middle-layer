@@ -1,7 +1,7 @@
 import { groupBy } from 'lodash-es'
 import { getLogger } from '@/logger.js'
 
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { SolrNamespaces } from '@/solr.js'
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
@@ -66,7 +66,7 @@ export const filtersToSolrQuery =
       return
     }
 
-    const { query, filter: solrFilter, params: vars } = filtersToQueryAndVariables(
+    const { query, filter: solrFilter, params: vars } = buildSolrQuery(
       context[prop].sanitized.filters,
       solrIndexProvider(context),
       context.app.get('solrConfiguration').namespaces ?? [],
@@ -74,7 +74,7 @@ export const filtersToSolrQuery =
     )
 
     // prepend order by if it is not relevance
-    if (overrideOrderBy && Object.keys(vars ?? {}).length) {
+    if (overrideOrderBy && Object.keys(vars).length) {
       // relevance direction
       let direction = 'desc'
       if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {

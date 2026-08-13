@@ -9,6 +9,7 @@ import { measureTime } from '@/util/instruments.js'
 import { ImpressoApplication } from '@/types.js'
 import { SlimUser } from '@/authentication.js'
 import { asFind, asGet, findAllRequestAdapter, findRequestAdapter, SolrFactory } from '@/util/solr/adapters.js'
+import type { SolrQueryNode } from '@/util/solr/queryBuilder.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import Page, { withRewrittenIIIF } from '@/models/pages.model.js'
 import { ICachedResolvers, buildResolvers } from '@/internalServices/cachedResolvers.js'
@@ -148,8 +149,8 @@ interface FindQuery {
   filters?: Filter[]
 
   // things needed by SolService.find
-  sq?: string
-  sfq?: string | string[]
+  sq?: SolrQueryNode
+  sfq?: SolrQueryNode | SolrQueryNode[]
   limit?: number
   offset?: number
   facets?: Record<string, any>
@@ -177,11 +178,15 @@ interface WithUser {
   user?: SlimUser
 }
 
+interface WithOriginalQuery {
+  originalQuery?: Pick<FindQuery, 'order_by'>
+}
+
 interface GetQueryParams {
   include_embeddings?: boolean
 }
 export type GetParams = Params<GetQueryParams> & WithUser & AsPublicApiMixin
-export type FindParams = Params<FindQuery> & WithUser & FindFlExtra & AsPublicApiMixin
+export type FindParams = Params<FindQuery> & WithUser & FindFlExtra & AsPublicApiMixin & WithOriginalQuery
 
 const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: ImpressoApplication): ContentItemPage => {
   return {
@@ -491,7 +496,12 @@ export class ContentItemService implements IContentItemService {
         }
 
     const request = findRequestAdapter(params)
-    const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], params.query?.order_by)
+    // KNN results must keep Solr's similarity score as their default ordering. The
+    // regular API default (`-ocrQuality`) is injected by the validation hook, so
+    // consult the original query to distinguish it from an explicit user choice.
+    const hasExplicitOrderBy = params.originalQuery?.order_by != null
+    const orderBy = hasEmbeddingFilter && !hasExplicitOrderBy ? undefined : params.query?.order_by
+    const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], orderBy)
     const sort = params.query?.nextCursorMark != null ? ensureIdSort(rawSort) : rawSort
 
     const requestBody = {
