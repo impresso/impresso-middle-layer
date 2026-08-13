@@ -1,9 +1,10 @@
-import { SpecialMembershipAccessService as Service } from '@/services/special-membership-access/special-membership-access.class.js'
+import { SpecialMembershipPlansService as Service } from '@/services/special-membership-plans/special-membership-plans.class.js'
 import { ImpressoApplication } from '@/types.js'
 import { HookContext, ServiceOptions } from '@feathersjs/feathers'
 import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
 import { queryWithCommonParams } from '@/hooks/params.js'
 import { BadRequest } from '@feathersjs/errors'
+import { optionsDisabledInPublicApi } from '@/hooks/public-api.js'
 
 export const validateBitmapPositionsQuery = () => async (context: HookContext) => {
   const bitmapPositions = context.params?.query?.bitmapPositions
@@ -34,10 +35,8 @@ export const validateBitmapPositionsQuery = () => async (context: HookContext) =
 }
 
 export default async (app: ImpressoApplication) => {
-  app.use('/special-membership-access', new Service(app), {
-    events: [],
-  } as ServiceOptions)
-  const service = app.service('special-membership-access')
+  app.use('/special-membership-plans', new Service(app), optionsDisabledInPublicApi(app))
+  const service = app.service('special-membership-plans')
   service.hooks({
     around: {
       all: [authenticate({ allowUnauthenticated: true })],

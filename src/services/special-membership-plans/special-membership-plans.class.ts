@@ -18,7 +18,7 @@ type SpecialMembershipAccessPatchData = {
   metadata?: SpecialMembershipAccess['metadata']
 }
 
-export type ISpecialMembershipAccessService = Omit<
+export type ISpecialMembershipPlansService = Omit<
   ClientService<SpecialMembershipAccess, any, any, FindResponse<SpecialMembershipAccess>>,
   'create' | 'patch' | 'remove' | 'update'
 > & {
@@ -30,7 +30,7 @@ export type ISpecialMembershipAccessService = Omit<
   getByBitmapPosition(bitmapPosition: number): Promise<SpecialMembershipAccess | undefined>
 }
 
-export class SpecialMembershipAccessService implements ISpecialMembershipAccessService {
+export class SpecialMembershipPlansService implements ISpecialMembershipPlansService {
   protected readonly sequelizeClient: Sequelize
   protected readonly accessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
   protected readonly cacheManager: Cache

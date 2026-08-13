@@ -181,7 +181,7 @@ const getMediaSourceResolver = (app: ImpressoApplication): IResolver<IMediaSourc
 }
 
 const getSpecialMembershipResolver = (app: ImpressoApplication): IResolver<SpecialMembershipAccess> => {
-  const service = app.service('special-membership-access')
+  const service = app.service('special-membership-plans')
 
   return async (bitmapPosition: string) => {
     const trimmed = bitmapPosition.trim()

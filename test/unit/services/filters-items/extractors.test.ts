@@ -32,7 +32,7 @@ const createMockAppWithMediaSources = (mediaSources: MediaSource[]): ImpressoApp
         }
       }
 
-      if (name === 'special-membership-access') {
+      if (name === 'special-membership-plans') {
         return {
           getLookup: async () => {
             return {
