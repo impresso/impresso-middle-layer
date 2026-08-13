@@ -114,7 +114,7 @@ export async function getItemsFromSolrResponse(
       limit: uids.length,
       filters,
       sq: query as string,
-      sfq: filter,
+      sfq: filter as string[],
     },
   }
 

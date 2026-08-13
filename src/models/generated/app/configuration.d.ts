@@ -682,6 +682,10 @@ export interface FilterDefinition {
    */
   rule: string;
   /**
+   * Whether this filter participates in relevance scoring.
+   */
+  scoring?: boolean;
+  /**
    * Primary application destination of the filter: main query or filters. It's 'query' by default.
    */
   destination?: "query" | "filter";

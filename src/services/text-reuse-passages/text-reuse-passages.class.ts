@@ -52,7 +52,7 @@ export class TextReusePassages {
       this.app.get('features') ?? {}
     )
     const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
-    const queryFilter = ([] as string[]).concat(filter ?? [])
+    const queryFilter = ([] as string[]).concat((filter ?? []) as string[])
     const fq = `{!collapse field=${params.query?.group_by ? SolrFields[params.query?.group_by] : ''} max=ms(${SolrFields.date})}`
     const effectiveFilter = params.query?.group_by ? queryFilter.concat(fq) : queryFilter
 
