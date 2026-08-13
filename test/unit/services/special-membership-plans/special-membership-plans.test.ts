@@ -1,7 +1,7 @@
 import { strict as assert } from 'assert'
 import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
-import { SpecialMembershipAccessService } from '@/services/special-membership-access/special-membership-access.class.js'
-import { validateBitmapPositionsQuery } from '@/services/special-membership-access/special-membership-access.service.js'
+import { SpecialMembershipPlansService } from '@/services/special-membership-plans/special-membership-plans.class.js'
+import { validateBitmapPositionsQuery } from '@/services/special-membership-plans/special-membership-plans.service.js'
 import type {
   ISpecialMembershipAccessAttributes,
   SpecialMembershipAccessMetadata,
@@ -42,10 +42,10 @@ const updatedMetadata: SpecialMembershipAccessMetadata = {
   revokeTemporaryAutomaticApprovalAfterDays: 14,
 }
 
-describe('SpecialMembershipAccessService', () => {
+describe('SpecialMembershipPlansService', () => {
   let testApp: Awaited<ReturnType<typeof setupTestApp<[ReturnType<typeof withDatabase>]>>>
 
-  let service: SpecialMembershipAccessService
+  let service: SpecialMembershipPlansService
   let userModel: ReturnType<typeof User.sequelize>
   let specialMembershipAccessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
   let userSpecialMembershipRequestModel: ReturnType<typeof UserSpecialMembershipRequest.initialize>
@@ -61,7 +61,7 @@ describe('SpecialMembershipAccessService', () => {
     specialMembershipAccessModel = SpecialMembershipAccess.initialize(testApp.sequelize)
     userSpecialMembershipRequestModel = UserSpecialMembershipRequest.initialize(testApp.sequelize)
     await testApp.sequelize.sync({ force: true })
-    service = new SpecialMembershipAccessService(testApp.app)
+    service = new SpecialMembershipPlansService(testApp.app)
   })
 
   after(async () => {
