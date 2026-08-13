@@ -374,7 +374,11 @@ export const toContentItem = (
   return {
     id: doc.id,
     issueId: doc.meta_issue_id_s,
-    ...(doc.score != undefined ? { relevanceScore: doc.score / (maxScore ?? 1) } : {}),
+    // NOTE: Score normalisation is disabled because it may lead to unexpected
+    // interpretation when embedding search method is used.
+    // For more information see https://github.com/impresso/impresso-middle-layer/issues/719
+    // ...(doc.score != undefined ? { relevanceScore: doc.score / (maxScore ?? 1) } : {}),
+    ...(doc.score != undefined ? { relevanceScore: doc.score } : {}),
     meta: {
       sourceType: doc.meta_source_type_s,
       date: doc.meta_date_dt,
