@@ -95,7 +95,7 @@ export type SolrQueryNode =
         to: string
         fromIndex?: string
         method?: 'index' | 'crossCollection' | 'dvWithScore' | 'topLevelDV'
-        checkRouterField?: boolean
+        checkRouterField?: "true" | "false"
         query: string
       }
     }
@@ -394,7 +394,7 @@ Sets `handlesContext: true`. Output:
 } }
 ```
 
-When `featuresConfig.collectionsIndexVersion === 'new'`, emit `"method": "index"` and `"checkRouterField": false`
+When `featuresConfig.collectionsIndexVersion === 'new'`, emit `"method": "index"` and `"checkRouterField": "false"`
 instead. The `collection_items` namespace must be resolvable from `solrNamespaceConfiguration`, otherwise throw
 (§9, E4). At least one collection ID must be present, otherwise throw (§9, E5).
 

@@ -63,17 +63,76 @@ describe('createSolrQuery', () => {
       facet: {
         constrained__person__0: {
           type: 'query',
-          q: { bool: { must: ['*:*', 'pers_entities_dpfs:person-b-id'] } },
+          q: 'pers_entities_dpfs:person-b-id',
         },
         constrained__person__1: {
           type: 'query',
-          q: { bool: { must: ['*:*', 'pers_entities_dpfs:person-c-id'] } },
+          q: 'pers_entities_dpfs:person-c-id',
         },
       },
     }
 
     const request = createSolrQuery(filters, facetRequests, facetConstraints, [], {})
     assert.deepEqual(request, expectedRequest)
+  })
+
+  it('serialises a constraint that is a range query', () => {
+    const filters = /** @type {Filter[]} */[{ type: 'person', q: 'person-a-id' }]
+    const facetRequests = /** @type {FacetRequest[]} */[{ type: 'daterange' }]
+    const facetConstraints = /** @type {Facet[]} */[
+      { type: 'daterange', buckets: [{ val: '1900-01-01 TO 1910-12-31' }] },
+    ]
+
+    const request = createSolrQuery(filters, facetRequests, facetConstraints, [], {})
+    assert.deepEqual(request.facet, {
+      constrained__daterange__0: {
+        type: 'query',
+        q: 'meta_date_dt:[1900-01-01T00:00:00Z TO 1910-12-31T23:59:59Z]',
+      },
+    })
+  })
+
+  it('serialises a constraint that is a join query', () => {
+    const filters = /** @type {Filter[]} */[{ type: 'person', q: 'person-a-id' }]
+    const facetRequests = /** @type {FacetRequest[]} */[{ type: 'collection' }]
+    const facetConstraints = /** @type {Facet[]} */[{ type: 'collection', buckets: [{ val: 'coll-1' }] }]
+    const namespaces = [{ namespaceId: 'collection_items', index: 'collection_items_idx' }]
+
+    const request = createSolrQuery(filters, facetRequests, facetConstraints, namespaces, {})
+    assert.deepEqual(request.facet, {
+      constrained__collection__0: {
+        type: 'query',
+        q: '{!join from=ci_id_s to=id fromIndex=collection_items_idx method=crossCollection}col_id_s:*_coll-1',
+      },
+    })
+  })
+
+  it('mixes constrained and standard facet entries', () => {
+    const filters = /** @type {Filter[]} */[{ type: 'person', q: 'person-a-id' }]
+    const facetRequests = /** @type {FacetRequest[]} */[
+      { type: 'person', limit: 3, offset: 5 },
+      { type: 'language' },
+    ]
+    const facetConstraints = /** @type {Facet[]} */[{ type: 'person', buckets: [{ val: 'person-b-id' }] }]
+
+    const request = createSolrQuery(filters, facetRequests, facetConstraints, [], {})
+    assert.deepEqual(Object.keys(request.facet), ['constrained__person__0', 'language'])
+    assert.equal(request.facet.constrained__person__0.q, 'pers_entities_dpfs:person-b-id')
+    assert.equal(request.facet.language.type, 'terms')
+  })
+
+  it('does not use the JSON query DSL in constrained facet queries', () => {
+    const filters = /** @type {Filter[]} */[{ type: 'person', q: 'person-a-id' }]
+    const facetRequests = /** @type {FacetRequest[]} */[{ type: 'newspaper' }]
+    const facetConstraints = /** @type {Facet[]} */[
+      { type: 'newspaper', buckets: [{ val: 'GDL' }, { val: 'JDG' }] },
+    ]
+
+    const request = createSolrQuery(filters, facetRequests, facetConstraints, [], {})
+    Object.values(request.facet).forEach(entry => {
+      assert.equal(entry.type, 'query')
+      assert.equal(typeof entry.q, 'string')
+    })
   })
 })
 

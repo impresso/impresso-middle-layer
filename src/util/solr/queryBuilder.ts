@@ -24,7 +24,7 @@ export type SolrQueryNode =
         to: string
         fromIndex?: string
         method?: 'index' | 'crossCollection'
-        checkRouterField?: boolean
+        checkRouterField?: 'true' | 'false'
         query: string
       }
     }
@@ -94,6 +94,70 @@ const REGEX_DELIMITER_PATTERN = /^\/|\/$/g
 
 /** A "match anything" wildcard fragment (`.*` / `.+`), optionally escaped, used to split regexes into fragments. */
 const REGEX_WILDCARD_FRAGMENT_PATTERN = /\\?\.[*+]/
+
+// ---------------------------------------------------------------------------
+// Query node serialisation (JSON DSL node -> classic query string)
+// ---------------------------------------------------------------------------
+
+/**
+ * Serialise a query node back to a classic Solr query string.
+ * Needed where the JSON DSL cannot be used, e.g. the subquery of a `join`
+ * node, which only accepts a string.
+ *
+ * @throws InvalidArgumentError for nodes that cannot be represented as a
+ *         classic query string.
+ */
+export function queryNodeToString(node: SolrQueryNode): string {
+  if (typeof node === 'string') return node
+
+  if ('bool' in node) {
+    const bool = (node as { bool: SolrBoolNode }).bool
+
+    if (typeof bool.minimum_should_match === 'number' && bool.minimum_should_match > 1) {
+      throw new InvalidArgumentError(
+        `Cannot serialise a bool query node with minimum_should_match > 1 to a query string`
+      )
+    }
+
+    // Composite children are wrapped in parentheses to preserve precedence.
+    const clause = (child: SolrQueryNode): string => queryNodeToString(child)
+
+    const andClauses = [...(bool.must ?? []).map(clause), ...(bool.must_not ?? []).map(child => `NOT ${clause(child)}`)]
+    const orClauses = (bool.should ?? []).map(clause)
+
+    const parts: string[] = []
+    if (andClauses.length > 0) parts.push(andClauses.join(' AND '))
+    if (orClauses.length > 0) parts.push(orClauses.join(' OR '))
+
+    const totalClauses = andClauses.length + orClauses.length
+    if (totalClauses === 0) {
+      throw new InvalidArgumentError('Cannot serialise an empty bool query node to a query string')
+    }
+    const combined = parts.join(') AND (')
+    return totalClauses > 1 ? `(${combined})` : combined
+  }
+
+  if ('join' in node) {
+    const { from, to, fromIndex, method, checkRouterField, query } = (
+      node as { join: Extract<SolrQueryNode, { join: unknown }>['join'] }
+    ).join
+    const params = [
+      `from=${from}`,
+      `to=${to}`,
+      ...(fromIndex != null ? [`fromIndex=${fromIndex}`] : []),
+      ...(method != null ? [`method=${method}`] : []),
+      ...(checkRouterField != null ? [`checkRouterField=${checkRouterField}`] : []),
+    ]
+    return `{!join ${params.join(' ')}}${query}`
+  }
+
+  if ('knn' in node) {
+    const { f, topK, query } = (node as { knn: { f: string; topK: number; query: string } }).knn
+    return `{!knn f=${f} topK=${topK}}${query}`
+  }
+
+  throw new InvalidArgumentError(`Cannot serialise query node to a query string: ${JSON.stringify(node)}`)
+}
 
 // ---------------------------------------------------------------------------
 // Filter definition registry (loaded from YAML, validated at module load time)
@@ -339,8 +403,7 @@ function buildDateRangeNode(filter: Filter, field: Field): SolrQueryNode {
     }
 
     // Two plain dates form a single [start TO end] range.
-    const isSimpleRange =
-      filter.q.length === 2 && !filter.q[0].includes(' TO ') && !filter.q[1].includes(' TO ')
+    const isSimpleRange = filter.q.length === 2 && !filter.q[0].includes(' TO ') && !filter.q[1].includes(' TO ')
     if (isSimpleRange) {
       const start = expandPartialDate(filter.q[0], 'start')
       const end = expandPartialDate(filter.q[1], 'end')
@@ -426,10 +489,7 @@ function buildRegexNode(filter: Filter, field: Field): SolrQueryNode {
   // Strip the surrounding slashes, then split the pattern on "match anything"
   // wildcards: Solr regex queries cannot contain `.*`/`.+`, so each remaining
   // fragment becomes its own regex clause, all of which must match.
-  const fragments = raw
-    .replace(REGEX_DELIMITER_PATTERN, '')
-    .split(REGEX_WILDCARD_FRAGMENT_PATTERN)
-    .filter(Boolean)
+  const fragments = raw.replace(REGEX_DELIMITER_PATTERN, '').split(REGEX_WILDCARD_FRAGMENT_PATTERN).filter(Boolean)
 
   const fragmentNodes = (fragments.length ? fragments : ['.*']).map(fragment => {
     const fieldNodes = fieldsFor(field).map(solrField => `${solrField}:/${fragment}/`)
@@ -470,7 +530,7 @@ function buildJoinCollectionNode(
       to: field as string,
       fromIndex: namespace.index,
       method: usesNewIndex ? 'index' : 'crossCollection',
-      ...(usesNewIndex ? { checkRouterField: false } : {}),
+      ...(usesNewIndex ? { checkRouterField: 'false' } : {}),
       query: subQuery,
     },
   }
@@ -478,7 +538,7 @@ function buildJoinCollectionNode(
 
 function buildEmbeddingKnnSimilarityNode(filter: Filter, field: Field): SolrQueryNode {
   const source = Array.isArray(filter.q) ? filter.q[0] : filter.q
-  if (!source?.includes(':')) {
+  if (typeof source !== 'string' || !source.includes(':')) {
     throw new InvalidArgumentError(
       `"embeddingKnnSimilarity" filter rule requires "q" to be a string in the format "model:base64_encoded_vector", e.g. "openclip-768:BASE64_ENCODED_VECTOR". Received: ${JSON.stringify(filter.q)}`
     )
@@ -637,9 +697,7 @@ function partitionGroupNodes(
 
   for (const group of groups.values()) {
     const rule = ruleRegistry[group.definition.rule]
-    const nodes = group.filters.map(filter =>
-      buildNode(filter, group, solrNamespaceConfiguration, featuresConfig)
-    )
+    const nodes = group.filters.map(filter => buildNode(filter, group, solrNamespaceConfiguration, featuresConfig))
 
     // Exclusive rules (KNN) become the top-level query on their own.
     if (rule.exclusive) {
@@ -709,9 +767,7 @@ export function buildSolrQuery(
   }
 
   // Excluded clauses are wrapped in a bool query that matches everything except them.
-  const negation = negated.length
-    ? { bool: { must: ['*:*'] as SolrQueryNode[], must_not: negated } }
-    : undefined
+  const negation = negated.length ? { bool: { must: ['*:*'] as SolrQueryNode[], must_not: negated } } : undefined
 
   // With a KNN query, everything (including scoring clauses) becomes a filter,
   // and highlighting is disabled since it is not supported for KNN queries.
