@@ -52,6 +52,8 @@ export const unescapeIdValue = (value: string) => {
   return customUnescape(value.replace(/\$([0-9a-f]{2})\$/gi, '%$1'))
 }
 
+export const escapeValue = (value: string) => value.replace(/[()\\+&|!{}[\]?:;,^]/g, (d: string) => `\\${d}`)
+
 /**
  * Similar to `value` filter builder but uses a different escape function
  * designed to work with IDs. E.g.:

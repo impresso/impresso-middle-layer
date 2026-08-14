@@ -1,9 +1,10 @@
 import assert from 'assert'
-import { filtersToSolr, escapeIdValue, unescapeIdValue } from '@/util/solr/filterReducers.js'
+import { filtersToSolr } from '@/util/solr/filterReducers.js'
 import { SolrNamespaces } from '@/solr.js'
 import { getTopicRelevanceFunction, getSortParams } from '@/util/solr/index.js'
 import { InvalidArgumentError } from '@/util/error.js'
 import { Filter, FilterContext, FilterOperator } from '@/models/index.js'
+import { escapeIdValue, unescapeIdValue } from '@/util/solr/filterBuilders/value.js'
 
 describe('filtersToSolr', () => {
   it('escapes parentheses', () => {
@@ -879,7 +880,6 @@ describe('filtersToSolr', () => {
     })
   })
 })
-
 
 describe('escapeIdValue/unescapeIdValue', () => {
   it('escapes and unescapes', () => {

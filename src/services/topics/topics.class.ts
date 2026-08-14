@@ -11,8 +11,7 @@ import { SolrNamespaces } from '@/solr.js'
 import type { ImpressoApplication } from '@/types.js'
 import { measureTime } from '@/util/instruments.js'
 import { asFindAll, asGet } from '@/util/solr/adapters.js'
-import { escapeValue } from '@/util/solr/filterReducers.js'
-import { BucketValue } from '@/internalServices/simpleSolr.js'
+import { escapeValue } from '@/util/solr/filterBuilders/value.js'
 
 const logger = getLogger(['impresso', 'services', 'topics'])
 
