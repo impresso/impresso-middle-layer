@@ -1,5 +1,5 @@
 import { SelectRequest } from '@/internalServices/simpleSolr.js'
-import { findByIds } from '@/solr/queryBuilders.js'
+import { findByIds } from '@/util/solr/adapters.js'
 import assert from 'node:assert/strict'
 
 describe('queryBuilders', () => {
