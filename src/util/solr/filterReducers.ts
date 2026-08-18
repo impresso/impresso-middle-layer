@@ -12,20 +12,22 @@ import { InvalidArgumentError } from '@/util/error.js'
 import { invertRecord } from '@/util/fn.js'
 import { getEmbeddingModelToFieldMap } from '@/util/solr/embeddingModels.js'
 import capitalisedValueFilterBuilder from '@/util/solr/filterBuilders/capitalisedValue.js'
-import { escapeIdValue, idValueBuilder, unescapeIdValue, valueBuilder } from '@/util/solr/filterBuilders/value.js'
+import {
+  escapeIdValue,
+  escapeValue,
+  idValueBuilder,
+  unescapeIdValue,
+  valueBuilder,
+} from '@/util/solr/filterBuilders/value.js'
 import { readFileSync } from 'fs'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import YAML from 'yaml'
 
-export { escapeIdValue, unescapeIdValue }
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const filtersConfig: SolrFiltersConfiguration = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
-
-export const escapeValue = (value: string) => value.replace(/[()\\+&|!{}[\]?:;,^]/g, (d: string) => `\\${d}`)
 
 const RangeValueRegex = /^\s*\d+\s+TO\s+\d+\s*$/
 
@@ -545,6 +547,7 @@ interface FilterToSolrResult {
 /**
  * Convert a set of filters of the same type to a SOLR query string.
  * Types are defined in `solrFilters.yml` for the corresponding namespace
+ * @deprecated Use `buildSolrQuery` instead.
  *
  * @param {Filter[]} filters list of filters of the same type.
  * @param {string} solrNamespace namespace (index) this filter type belongs to.

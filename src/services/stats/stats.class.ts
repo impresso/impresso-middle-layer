@@ -11,7 +11,7 @@ import {
   SolrServerNamespaceConfiguration,
 } from '@/models/generated/app/configuration.js'
 import { ImpressoApplication } from '@/types.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from '@/services/stats/common.js'
 
 const logger = getLogger(['impresso', 'services', 'stats'])
@@ -137,7 +137,7 @@ function buildSolrRequest(
   if (domainDetails == null) throw new Error(`Domain ${domain} not found in index ${index}`)
   if (facetType == null) throw new Error(`Facet ${facet} not found in index ${index}`)
 
-  const { query, filter } = filtersToQueryAndVariables(filters, index, solrNamespacesConfiguration, featuresConfig)
+  const { query, filter } = buildSolrQuery(filters, index, solrNamespacesConfiguration, featuresConfig)
   // add
   const collapse = groupby ? { fq: `{!collapse field=${groupby}}` } : null
 
@@ -271,7 +271,7 @@ export class Stats {
     logger.debug(
       `[get] index: ${index} field: ${field} stats: ${stats} n.filters: ${filters.length} statsField: ${statsField}`
     )
-    const { query, filter } = filtersToQueryAndVariables(
+    const { query, filter } = buildSolrQuery(
       filters,
       index,
       this.app.get('solrConfiguration').namespaces ?? [],

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schema/common/stats.json
+# yaml-language-server: $schema=../schema/app/configuration/stats.json
 indexes:
   # index ID
   search:
@@ -52,6 +52,7 @@ indexes:
         ocrQuality:
           field: ocrqa_f
         pagesCount:
+          # NOTE: not used
           field: nb_pages_i
       # temporal facets that can be used as a domain
       temporal:
@@ -59,9 +60,11 @@ indexes:
           field: meta_year_i
           limit: 400
         yearAndMonth:
+          # NOTE: not used
           field: meta_yearmonth_s
           limit: 120
         date:
+          # review why not `daterange`
           field: meta_date_dt
           limit: 186
   tr_clusters:

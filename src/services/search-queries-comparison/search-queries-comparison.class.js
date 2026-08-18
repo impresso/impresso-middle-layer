@@ -9,7 +9,7 @@ import { SolrMappings } from '@/data/constants.js'
  */
 
 import { getFacetsFromSolrResponse } from '@/services/search/search.extractors.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery, queryNodeToString } from '@/util/solr/queryBuilder.js'
 import { SolrNamespaces } from '@/solr.js'
 import jscommons from 'impresso-jscommons'
 
@@ -18,6 +18,23 @@ const { logic } = jscommons
 const {
   filter: { mergeFilters },
 } = logic
+
+/** Matches everything: carries no constraint and is dropped when other clauses are present. */
+const MATCH_ALL = '*:*'
+
+/**
+ * Serialise the query and filter nodes of a constraint subquery into a single
+ * classic Solr query string, as expected by the `q` of a "query" type facet.
+ *
+ * @param {import('@/util/solr/queryBuilder.js').SolrQueryNode} query
+ * @param {import('@/util/solr/queryBuilder.js').SolrQueryNode[]} filters
+ * @returns {string}
+ */
+function constraintQueryString(query, filters) {
+  const nodes = [query, ...filters].filter(node => node !== MATCH_ALL)
+  if (nodes.length === 0) return MATCH_ALL
+  return queryNodeToString(nodes.length === 1 ? nodes[0] : { bool: { must: nodes } })
+}
 
 /**
  * Create SOLR query for getting facets.
@@ -42,7 +59,7 @@ const {
  * @returns {any}
  */
 export function createSolrQuery(filters, facetsRequests, constraintFacets = [], solrNamespacesConfiguration = [], featuresConfig = {}) {
-  const { query, filter } = filtersToQueryAndVariables(filters, undefined, solrNamespacesConfiguration, featuresConfig)
+  const { query, filter } = buildSolrQuery(filters, SolrNamespaces.Search, solrNamespacesConfiguration, featuresConfig)
 
   const facets = facetsRequests.reduce((acc, { type, offset, limit }) => {
     const facet = SolrMappings.search.facets[type]
@@ -56,13 +73,20 @@ export function createSolrQuery(filters, facetsRequests, constraintFacets = [], 
       // Go through every bucket in the constraint
       return constraintFacet.buckets.reduce((facetAcc, { val }, index) => {
         // Create a Solr query for this bucket's value.
-        const { query: constraintQuery } = filtersToQueryAndVariables([{ type, q: val }], undefined, solrNamespacesConfiguration, featuresConfig)
+        const { query: constraintQuery, filter: constraintFilters } = buildSolrQuery(
+          [{ type, q: val }],
+          SolrNamespaces.Search,
+          solrNamespacesConfiguration,
+          featuresConfig
+        )
         // Create a constrained entry in the query.
+        // NOTE: the `q` of a "query" facet is a classic query string - it does not
+        // accept the JSON query DSL - so the nodes are serialised to a string here.
         return {
           ...facetAcc,
           [`constrained__${type}__${index}`]: {
             type: 'query',
-            q: constraintQuery,
+            q: constraintQueryString(constraintQuery, constraintFilters),
           },
         }
       }, acc)
@@ -177,6 +201,7 @@ export class SearchQueriesComparison {
     const intersectionSolrQuery = createSolrQuery(
       intersectionFilters,
       request.facets,
+      [],
       this.app.get('solrConfiguration').namespaces ?? [],
       this.app.get('features') ?? {}
     )

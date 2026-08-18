@@ -86,6 +86,9 @@ const ContentItemTypeLabels = {
   unsegmented: 'Unsegmented',
   radio_broadcast_episode: 'Radio broadcast episode',
   radio_bulletin: 'Radio bulletin',
+  dsc: 'Discussion',
+  ent: 'Entertainment',
+  'no-type': 'Unknown type',
 } as const
 
 const fromLookup =

@@ -27,6 +27,7 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 
 import { toPair } from '@/solr/queries/collections.js'
 import { CachedFacetType, buildResolvers, ICachedResolvers } from '@/internalServices/cachedResolvers.js'
+import { queryNodeToString, SolrQueryNode } from '@/util/solr/queryBuilder.js'
 const logger = getLogger(['impresso', 'services', 'search-facets'])
 
 type FacetMetadata = any
@@ -80,9 +81,9 @@ interface SanitizedGetParams {
   rangeInclude?: any
   filters?: Filter[]
   group_by?: string
-  sq?: string
-  sv?: string[]
-  sfq?: string[] | string
+  sq?: SolrQueryNode
+  sv?: Record<string, string>
+  sfq?: SolrQueryNode[]
   facets?: string[]
 }
 
@@ -128,7 +129,7 @@ const buildFacetsRequest = (
   index: IndexId,
   facetsQueryPart: FacetsQueryPart,
   sanitizedParams: SanitizedGetParams,
-  extraFilters?: string[]
+  extraFilters?: SolrQueryNode[]
 ): SelectRequest => {
   if (types.length === 0) throw new Error('No facet types provided')
 
@@ -174,7 +175,11 @@ const buildFacetsRequest = (
     {} satisfies Record<string, SolrFacetQueryParams>
   )
 
-  logger.debug(`[get] "${types.join(', ')}" (${canBeCached ? 'cached' : 'not cached'}): ${`index: ${index}`} facets: ${facets} group_by ${sanitizedParams.group_by || 'none'}`)
+  logger.debug(
+    `[get] "${types.join(', ')}" (${canBeCached ? 'cached' : 'not cached'}): ${`index: ${index}`} facets: ${facets} group_by ${sanitizedParams.group_by || 'none'}`
+  )
+  const filter: SolrQueryNode[] = [...(sanitizedParams.sfq ?? [])]
+
   const query: SelectRequestBody = {
     query: sanitizedParams.sq ?? '*:*',
     facet: facets,
@@ -183,16 +188,14 @@ const buildFacetsRequest = (
     params: {
       hl: false,
     },
-    filter: sanitizedParams.sfq,
+    filter,
   }
   const vars = sanitizedParams.sv as SelectQueryParameters
 
   if (sanitizedParams.group_by) {
-    const filter = query.filter as string[]
     filter.push(`{!collapse field=${sanitizedParams.group_by}}`)
   }
   if (extraFilters != null) {
-    const filter = query.filter as string[]
     filter.push(...extraFilters)
   }
 
@@ -311,6 +314,39 @@ const ContentItemIdFieldInNamespace: Record<SolrNamespaceWithContentItemField, s
   tr_passages: 'ci_id_s',
   collection_items: 'ci_id_s',
   images: 'linked_ci_s',
+}
+
+/**
+ * Build the `join` filter that links the collection-items index to the
+ * content item index, restricting collection items to those matching the
+ * original query and filters.
+ *
+ * The subquery of a JoinQParser only accepts a classic query string, so the
+ * query/filter nodes produced by `buildSolrQuery` are serialised back to a
+ * string with `queryNodeToString`.
+ */
+export const buildCollectionJoinFilter = (
+  contentItemIdField: string,
+  contentItemIndex: string,
+  collectionsIndexVersion: CollectionIndexVersion,
+  query: SolrQueryNode,
+  filters: SolrQueryNode[]
+): SolrQueryNode => {
+  const subQueryParts = [queryNodeToString(query), ...filters.map(node => `filter(${queryNodeToString(node)})`)].filter(
+    part => part.trim() !== ''
+  )
+
+  return {
+    join: {
+      from: contentItemIdField,
+      to: 'ci_id_s',
+      fromIndex: contentItemIndex,
+      ...(collectionsIndexVersion === 'legacy'
+        ? { method: 'crossCollection' as const }
+        : { method: 'index' as const, checkRouterField: 'false' }),
+      query: subQueryParts.length > 0 ? subQueryParts.join(' AND ') : '*:*',
+    },
+  }
 }
 
 export class Service {
@@ -563,20 +599,22 @@ export class Service {
       .get('solrConfiguration')
       ?.namespaces?.find(n => n.namespaceId === contentItemNamespace)?.index
 
+    if (contentItemIndex == null || contentItemIndex === '') {
+      throw new Error(
+        `Cannot get collection facet for index "${index}": no Solr index configured for namespace "${contentItemNamespace}"`
+      )
+    }
+
     const contentItemIdField = ContentItemIdFieldInNamespace[contentItemNamespace]
 
-    const isEmpty = (str: string) => str == null || str.trim() === ''
     // original query goes into the join filter which links the actual index with collection_items
-    const filtersPart = Array.isArray(sanitizedParams.sfq)
-      ? sanitizedParams.sfq?.map(f => `filter(${f})`).join(' AND ')
-      : sanitizedParams.sfq != null
-        ? `filter(${sanitizedParams.sfq})`
-        : '*:*'
-
-    const joinFilter =
-      this.collectionsIndexVersion === 'legacy'
-        ? `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=crossCollection} ${sanitizedParams.sq}${isEmpty(filtersPart) ? '' : ` AND ${filtersPart}`}`
-        : `{!join from=${contentItemIdField} to=ci_id_s fromIndex=${contentItemIndex} method=index checkRouterField=false} ${sanitizedParams.sq}${isEmpty(filtersPart) ? '' : ` AND ${filtersPart}`}`
+    const joinFilter = buildCollectionJoinFilter(
+      contentItemIdField,
+      contentItemIndex,
+      this.collectionsIndexVersion,
+      sanitizedParams.sq ?? '*:*',
+      sanitizedParams.sfq ?? []
+    )
 
     const collectionsQuery = userId
       ? `col_id_s:${userId}_* OR vis_s:pub` // user collections + public collections

@@ -12,7 +12,7 @@ import { SolrNamespaces } from '@/solr.js'
 import { ImpressoApplication } from '@/types.js'
 import { getV3CompatibleIIIFUrl, sanitizeIiifImageUrl } from '@/util/iiif.js'
 import { isTrue } from '@/util/queryParameters.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery, SolrQueryNode } from '@/util/solr/queryBuilder.js'
 import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
 import { getEmbeddingFieldVectorPairs } from '@/util/solr/embeddingModels.js'
@@ -62,14 +62,14 @@ export class Images implements ImageService {
     const filters = params?.query?.filters ?? []
     const sort = params?.query?.order_by != null ? OrderByParamToSolrFieldMap[params?.query?.order_by] : undefined
 
-    const { query: extraQuery, filter: filterQueryParts } = filtersToQueryAndVariables(
+    const { query: extraQuery, filter: filterQueryParts } = buildSolrQuery(
       filters,
       SolrNamespaces.Images,
       this.app.get('solrConfiguration').namespaces ?? [],
       this.app.get('features') ?? {}
     )
 
-    const queryParts: string[] = []
+    const queryParts: SolrQueryNode[] = []
 
     if ((params?.query?.term?.length ?? 0) !== 0) {
       queryParts.push(`caption_txt:${params?.query?.term}`)
@@ -93,11 +93,11 @@ export class Images implements ImageService {
       queryParts.push(`{!knn f=${ImageSimilarityVectorField} topK=${limit}}${JSON.stringify(vector)}`)
     }
 
-    const query = queryParts.length > 0 ? queryParts.join(' AND ') : '*:*'
+    const query = queryParts.length > 0 ? { bool: { must: queryParts } } : '*:*'
 
     const results = await this.solrClient.select<ImageDocument>(SolrNamespaces.Images, {
       body: {
-        query: (extraQuery as string).length > 0 ? `(${query}) AND (${extraQuery})` : query,
+        query: extraQuery === '*:*' ? query : { bool: { must: [query, extraQuery] } },
         filter: filterQueryParts,
         limit,
         offset,
