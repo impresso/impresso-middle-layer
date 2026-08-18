@@ -18,7 +18,7 @@ export interface AccessRightFields {
   /**
    * Copyright status.
    */
-  rights_copyright_s: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
+  rights_copyright_s?: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
   /**
    * Permission for use in exploration.
    */
@@ -150,6 +150,10 @@ export interface ArticleFields {
    * Organization mentions with confidence scores in format 'mention|score'
    */
   org_mention_conf_dpfs?: string[];
+  /**
+   * 256-dimensional vector embeddings for the content
+   */
+  gte_multi_v256?: number[];
   /**
    * 768-dimensional vector embeddings for the content
    */
@@ -385,9 +389,13 @@ export interface SemanticEnrichmentsFields {
    */
   cluster_id_ss?: string[];
   /**
-   * Content item embedding as a vector of floats.
+   * Content item embedding as a vector of floats. This is a 768-dimensional vector.
    */
   gte_multi_v768?: number[];
+  /**
+   * Content item embedding as a vector of floats. This is a 256-dimensional vector.
+   */
+  gte_multi_v256?: number[];
 }
 
 

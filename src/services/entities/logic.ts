@@ -1,6 +1,6 @@
 import { Filter } from 'impresso-jscommons'
 import { SolrNamespaces } from '@/solr.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
 import { TypeToTypeShorthand } from '@/utils/entity.utils.js'
 import { FeaturesConfig, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
@@ -45,7 +45,7 @@ export function buildSearchEntitiesSolrQuery(
   solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
   featuresConfig: FeaturesConfig
 ) {
-  const queryBase = filtersToQueryAndVariables(
+  const queryBase = buildSolrQuery(
     filters.map(rewriteTypes),
     SolrNamespaces.Entities,
     solrNamespacesConfiguration,

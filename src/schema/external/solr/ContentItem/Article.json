@@ -142,6 +142,13 @@
       },
       "description": "Organization mentions with confidence scores in format 'mention|score'"
     },
+    "gte_multi_v256": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "256-dimensional vector embeddings for the content"
+    },
     "gte_multi_v768": {
       "type": "array",
       "items": {
@@ -180,7 +187,7 @@
       "loc_mention_conf_dpfs": ["Simplon|41.93", "Bern|94.31", "Schweiz|89.15", "Kanton St. Gal « len|90.04"],
       "org_mentions": ["gr. Rath zu Luzern"],
       "org_mention_conf_dpfs": ["gr. Rath zu Luzern|73.77"],
-      "gte_multi_v768": [],
+      "gte_multi_v256": [],
       "pp_plain": "[]",
       "_version_": 1833530242983002112
     }

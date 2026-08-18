@@ -9,7 +9,18 @@ import {
   SelectResponse,
   SimpleSolrClient,
 } from '@/internalServices/simpleSolr.js'
-import { findByIds } from '@/solr/queryBuilders.js'
+import { SolrQueryNode } from '@/util/solr/queryBuilder.js'
+
+export const findByIds = (ids: string[], fields?: string[]): SelectRequest => {
+  if (ids.length == 0) throw new Error(`${findByIds.name}: list of IDs cannot be empty`)
+  return {
+    body: {
+      query: `id:${ids.join(' OR id:')}`,
+      ...((fields?.length ?? 0) > 0 ? { fields: fields?.join(',') } : {}),
+      limit: ids.length,
+    },
+  }
+}
 
 export type SolrFactory<T, K extends string, B extends BucketValue, O> = (
   response: SelectResponse<T, K, B>
@@ -26,10 +37,10 @@ export interface SolrGetRequestQueryParams {
 }
 
 export interface FindAllParams {
-  q?: string
+  q?: SolrQueryNode
   limit?: number
   offset?: number
-  fq?: string | string[]
+  fq?: SolrQueryNode | SolrQueryNode[]
   highlight_by?: string
   highlightProps?: Record<string, string | number | boolean>
   vars?: Record<string, string>
@@ -84,13 +95,16 @@ export const findAllRequestAdapter = (params: FindAllParams): SelectRequestBody 
 
   const fields = Array.isArray(params.fl) ? params.fl.join(',') : params.fl
 
-  let filter = undefined
+  let filter: SelectRequestBody['filter']
   if (collapse != null && params.fq != null) {
-    filter = `${collapse} AND ${params.fq}`
+    filter =
+      typeof params.fq === 'string'
+        ? `${collapse} AND ${params.fq}`
+        : [collapse, ...(Array.isArray(params.fq) ? params.fq : [params.fq])]
   } else if (collapse != null) {
     filter = collapse
   } else if (params.fq != null) {
-    filter = params.fq
+    filter = typeof params.fq === 'string' ? params.fq : Array.isArray(params.fq) ? params.fq : [params.fq]
   }
 
   const request: SelectRequestBody = {
@@ -163,12 +177,12 @@ export const asFindAll = async <T, K extends string, B extends BucketValue, O>(
 }
 
 interface FindParams {
-  q?: string
-  fq?: string
+  q?: SolrQueryNode
+  fq?: SolrQueryNode
   query?: {
-    sq?: string
+    sq?: SolrQueryNode
     term?: string
-    sfq?: string | string[]
+    sfq?: SolrQueryNode | SolrQueryNode[]
     facets?: Record<string, SolrFacetQueryParams>
     order_by?: string
     highlight_by?: string

@@ -682,9 +682,14 @@ export interface FilterDefinition {
    */
   rule: string;
   /**
-   * Primary application destination of the filter: main query or filters. It's 'query' by default.
+   * @deprecated
+   * DEPRECATED and ignored. Superseded by `scoring`.
    */
   destination?: "query" | "filter";
+  /**
+   * Whether this filter participates in relevance scoring.
+   */
+  scoring?: boolean;
 }
 
 

@@ -1,9 +1,10 @@
 import assert from 'assert'
-import { filtersToSolr, escapeIdValue, unescapeIdValue } from '@/util/solr/filterReducers.js'
+import { filtersToSolr } from '@/util/solr/filterReducers.js'
 import { SolrNamespaces } from '@/solr.js'
-import { filtersToQueryAndVariables, getTopicRelevanceFunction, getSortParams } from '@/util/solr/index.js'
+import { getTopicRelevanceFunction, getSortParams } from '@/util/solr/index.js'
 import { InvalidArgumentError } from '@/util/error.js'
 import { Filter, FilterContext, FilterOperator } from '@/models/index.js'
+import { escapeIdValue, unescapeIdValue } from '@/util/solr/filterBuilders/value.js'
 
 describe('filtersToSolr', () => {
   it('escapes parentheses', () => {
@@ -877,84 +878,6 @@ describe('filtersToSolr', () => {
         `{!knn f=gte_multi_v768 topK=10}[-0.5,-0.30000001192092896,0.20000000298023224,0.4000000059604645]`
       )
     })
-  })
-})
-
-describe('filtersToQueryAndVariables', () => {
-  describe('handles compound filters', () => {
-    it('two with one negation', () => {
-      const filters = [
-        { context: 'include', op: 'OR', type: 'newspaper', q: 'SGZ' },
-        {
-          context: 'exclude',
-          op: 'OR',
-          type: 'topic',
-          q: 'tm-de-all-v2.0_tp23_de',
-        },
-      ] satisfies Filter[]
-      const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], {})
-      assert.strictEqual(result.query, 'NOT filter(topics_dpfs:tm-de-all-v2.0_tp23_de)')
-      assert.deepEqual(result.filter, ['meta_journal_s:SGZ'])
-    })
-  })
-  it('groups OR string terms before AND-ing with other query filters', () => {
-    const filters = [
-      {
-        type: 'hasTextContents',
-      },
-      {
-        op: 'OR',
-        type: 'string',
-        precision: 'exact',
-        q: ['einwanderer', 'auswanderer', 'immigranten'],
-      },
-      {
-        op: 'OR',
-        type: 'location',
-        q: '2-54-Amerika',
-      },
-      {
-        op: 'OR',
-        type: 'daterange',
-        q: '1800-01-01T00:00:00Z TO 1900-01-01T23:59:59Z',
-      },
-      {
-        op: 'OR',
-        type: 'type',
-        q: 'ar',
-      },
-    ] satisfies Filter[]
-
-    const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], {})
-    assert.strictEqual(
-      result.query,
-      '((content_txt_fr:"einwanderer" OR content_txt_de:"einwanderer" OR content_txt_en:"einwanderer" OR content_txt_it:"einwanderer" OR content_txt_es:"einwanderer" OR content_txt_nl:"einwanderer" OR content_txt:"einwanderer") OR (content_txt_fr:"auswanderer" OR content_txt_de:"auswanderer" OR content_txt_en:"auswanderer" OR content_txt_it:"auswanderer" OR content_txt_es:"auswanderer" OR content_txt_nl:"auswanderer" OR content_txt:"auswanderer") OR (content_txt_fr:"immigranten" OR content_txt_de:"immigranten" OR content_txt_en:"immigranten" OR content_txt_it:"immigranten" OR content_txt_es:"immigranten" OR content_txt_nl:"immigranten" OR content_txt:"immigranten")) AND filter(loc_entities_dpfs:2-54-Amerika)'
-    )
-  })
-  it('handles negations correctly', () => {
-    const filters = [
-      {
-        type: 'string',
-        op: 'OR',
-        q: ['chat'],
-        precision: 'exact',
-      },
-      {
-        type: 'string',
-        op: 'OR',
-        q: ['pet', 'pets'],
-        precision: 'exact',
-        context: 'exclude',
-      },
-      {
-        type: 'hasTextContents',
-      },
-    ] satisfies Filter[]
-    const result = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], {})
-    assert.strictEqual(
-      result.query,
-      '(content_txt_fr:"chat" OR content_txt_de:"chat" OR content_txt_en:"chat" OR content_txt_it:"chat" OR content_txt_es:"chat" OR content_txt_nl:"chat" OR content_txt:"chat") AND NOT (content_txt_fr:"pet" OR content_txt_de:"pet" OR content_txt_en:"pet" OR content_txt_it:"pet" OR content_txt_es:"pet" OR content_txt_nl:"pet" OR content_txt:"pet") OR (content_txt_fr:"pets" OR content_txt_de:"pets" OR content_txt_en:"pets" OR content_txt_it:"pets" OR content_txt_es:"pets" OR content_txt_nl:"pets" OR content_txt:"pets")'
-    )
   })
 })
 

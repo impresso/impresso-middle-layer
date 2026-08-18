@@ -1,6 +1,6 @@
 import { get } from 'lodash-es'
 import { SolrNamespaces } from '@/solr.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 
 /**
  * @typedef {import('@/models/index.js').Filter} Filter
@@ -106,7 +106,7 @@ function buildSolrQueryForEntity(entityId, entityType, entityMentionLabels, filt
   })
 
   return {
-    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig),
+    ...buildSolrQuery(filters, SolrNamespaces.Search, [], featuresConfig),
     limit: 0,
     params: {
       hl: false,
@@ -139,7 +139,7 @@ function buildSolrQueryForMention(mentionLabel, mentionType, filters, resolution
   }
 
   return {
-    ...filtersToQueryAndVariables(filters, SolrNamespaces.Search),
+    ...buildSolrQuery(filters, SolrNamespaces.Search, [], featuresConfig),
     limit: 0,
     params: {
       hl: false,

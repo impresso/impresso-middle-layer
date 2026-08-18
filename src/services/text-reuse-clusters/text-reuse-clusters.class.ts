@@ -11,7 +11,7 @@ import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { getToSelect } from '@/util/solr/adapters.js'
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
 import { OpenPermissions } from '@/util/bigint.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { Filter } from '@/models/index.js'
 
 import { mapValues, groupBy, clone, get } from 'lodash-es'
@@ -144,7 +144,7 @@ export class TextReuseClusters {
   async find(params: Params<FindQueyParameters>): Promise<FindTextReuseClustersResponse> {
     const { text, offset = 0, limit = 10, order_by: orderBy } = params.query ?? {}
     const { filters }: Pick<FindQueyParameters, 'filters'> = (params as any).sanitized ?? {}
-    const { query: extraQuery, filter: filterQueryParts } = filtersToQueryAndVariables(
+    const { query: extraQuery, filter: filterQueryParts } = buildSolrQuery(
       filters as Filter[],
       SolrNamespaces.TextReusePassages,
       this.app.get('solrConfiguration').namespaces ?? [],
@@ -159,13 +159,13 @@ export class TextReuseClusters {
       orderByDescending
     )
 
-    const fullQuery = (extraQuery as string).length > 0 ? `(${query.q}) AND (${extraQuery})` : query.q
+    const fullQuery = extraQuery === '*:*' ? query.q : { bool: { must: [query.q, extraQuery] } }
 
     const [clusterIdsAndTextAndPermissions, info] = await this.solr
       .select(SolrNamespaces.TextReusePassages, {
         body: {
           query: fullQuery,
-          filter: filterQueryParts as string[],
+          filter: filterQueryParts,
           limit: query.rows,
           offset: query.start,
           sort: query.sort,

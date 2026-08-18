@@ -21,6 +21,7 @@ import { createSha256Hash } from '@/util/crypto.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
 import { serialize } from '@/util/serialize.js'
 import { notCachingCollectionItemsStrategyBuilder } from '@/util/solr/cacheControl.js'
+import type { SolrQueryNode } from '@/util/solr/queryBuilder.js'
 import { removeNullAndUndefined } from '@/util/fn.js'
 import { safeParseJson, safeStringifyJson } from '@/util/jsonCodec.js'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from '@/util/socksProxyConfiguration.js'
@@ -31,8 +32,8 @@ const DefaultSuggesterDictonary = 'm_suggester_infix'
 const EmptyJsonRequestBody = '{}'
 
 export interface SelectRequestBody {
-  query: string | Record<string, unknown>
-  filter?: string | string[]
+  query: SolrQueryNode
+  filter?: string | string[] | SolrQueryNode[]
   limit?: number
   offset?: number
   facet?: Record<string, SolrFacetQueryParams>

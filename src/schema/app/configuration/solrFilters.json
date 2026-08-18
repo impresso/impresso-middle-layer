@@ -74,7 +74,13 @@
         "destination": {
           "type": "string",
           "enum": ["query", "filter"],
-          "description": "Primary application destination of the filter: main query or filters. It's 'query' by default."
+          "deprecated": true,
+          "description": "DEPRECATED and ignored. Superseded by `scoring`."
+        },
+        "scoring": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this filter participates in relevance scoring."
         }
       },
       "required": ["field", "rule"],

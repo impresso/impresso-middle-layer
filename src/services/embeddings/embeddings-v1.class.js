@@ -1,4 +1,4 @@
-import { escapeValue } from '@/util/solr/filterReducers.js'
+import { escapeValue } from '@/util/solr/filterBuilders/value.js'
 import { getLogger } from '@/logger.js'
 import { measureTime } from '@/util/instruments.js'
 import { asFindAll } from '@/util/solr/adapters.js'
