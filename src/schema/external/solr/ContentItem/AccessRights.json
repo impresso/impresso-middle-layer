@@ -42,7 +42,6 @@
   "additionalProperties": false,
   "required": [
     "rights_data_domain_s",
-    "rights_copyright_s",
     "rights_perm_use_explore_plain",
     "rights_perm_use_get_tr_plain",
     "rights_perm_use_get_img_plain",

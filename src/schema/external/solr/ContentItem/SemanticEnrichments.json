@@ -122,7 +122,14 @@
     },
     "gte_multi_v768": {
       "type": "array",
-      "description": "Content item embedding as a vector of floats.",
+      "description": "Content item embedding as a vector of floats. This is a 768-dimensional vector.",
+      "items": {
+        "type": "number"
+      }
+    },
+    "gte_multi_v256": {
+      "type": "array",
+      "description": "Content item embedding as a vector of floats. This is a 256-dimensional vector.",
       "items": {
         "type": "number"
       }

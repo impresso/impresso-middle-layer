@@ -102,6 +102,7 @@ const ContentSemanticEnrichmentsFields = [
   'nem_offset_plain',
   'nag_offset_plain',
   'gte_multi_v768',
+  'gte_multi_v256',
 ] satisfies (keyof SemanticEnrichmentsFields)[]
 
 const AudioContentFields = [
@@ -374,7 +375,7 @@ export const toContentItem = (
       partnerId: doc.meta_partnerid_s,
     },
     access: {
-      copyright: doc.rights_copyright_s,
+      copyright: doc.rights_copyright_s ?? 'und',
       dataDomain: doc.rights_data_domain_s,
       accessBitmaps: {
         explore: bigIntToBase64Bytes(BigInt(doc.rights_bm_explore_l ?? OpenPermissions)),
