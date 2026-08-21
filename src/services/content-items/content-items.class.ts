@@ -48,6 +48,7 @@ import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreF
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
 import { QueueService } from '@/internalServices/queue.js'
+import { AccessMethod, ContentItemAccessLogEntry, getVectorLogService } from '@/internalServices/vectorLog.js'
 import { Filter } from 'impresso-jscommons'
 import { isTrue } from '@/util/queryParameters.js'
 
@@ -443,6 +444,30 @@ export class ContentItemService implements IContentItemService {
     return this.app?.service('simpleSolrClient')!
   }
 
+  /**
+   * Fire-and-forget audit log of content item access, keyed by the content item's
+   * data provider, so providers can audit/report usage of their content.
+   */
+  logContentItemAccess(items: ContentItem[], params: WithUser): void {
+    const impressoUserId = params.user?.uid
+    if (items.length === 0 || impressoUserId == null) return
+
+    const accessMethod: AccessMethod = this.app.get('isPublicApi') === true ? 'api' : 'web'
+    const timestamp = new Date()
+
+    const entries: ContentItemAccessLogEntry[] = items.map(item => ({
+      providerId: item.meta?.partnerId ?? 'UNK',
+      impressoUserId,
+      contentItemId: item.id,
+      accessMethod,
+      timestamp,
+    }))
+
+    getVectorLogService(this.app)
+      .logContentItemAccess(entries)
+      .catch(error => logger.warn('Failed to log content item access to Vector', { error }))
+  }
+
   async find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     return await this._find(params)
   }
@@ -547,6 +572,8 @@ export class ContentItemService implements IContentItemService {
       withTextLabels(metadataResolvers),
       withAuthorizationBitmaps,
     ])
+
+    this.logContentItemAccess(enrichedContentItems, params)
 
     return {
       data: enrichedContentItems,
@@ -683,6 +710,8 @@ export class ContentItemService implements IContentItemService {
         ]
       )
     )?.[0]
+
+    this.logContentItemAccess([enrichedContentItem], params)
 
     return enrichedContentItem
 
