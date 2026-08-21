@@ -1931,7 +1931,7 @@ cases:
           "q": "unsupported-model:zczMPc3MTD4="
         }
       ]
-    expectedError: "\"embeddingKnnSimilarity\" filter rule: unknown model \"unsupported-model\". Supported models: gte-768"
+    expectedError: "\"embeddingKnnSimilarity\" filter rule: unknown model \"unsupported-model\". Supported models: gte-768, gte-256"
 
   - group: "embeddingKnnSimilarity"
     name: "throws error when model is not supported in images index"

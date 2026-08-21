@@ -522,8 +522,10 @@ export class ContentItemService implements IContentItemService {
       body: requestBody,
     })
 
+    const embeddingsConfig = this.app.get('embeddings')
+
     const contentItems = (results.response?.docs ?? ([] as SlimDocumentFields[]))
-      .map(d => toContentItem(d, { maxScore: results.response?.maxScore }))
+      .map(d => toContentItem(d, { maxScore: results.response?.maxScore }, embeddingsConfig))
       .map(item => withMatches(item, results))
 
     // get data enrichment items

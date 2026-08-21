@@ -135,10 +135,42 @@
     },
     "multer": {
       "$ref": "#/definitions/MulterConfig"
+    },
+    "embeddings": {
+      "$ref": "#/definitions/EmbeddingsConfig"
     }
   },
   "required": ["solrConfiguration", "sequelize", "authentication", "images", "magicLink"],
   "definitions": {
+    "TextEmbeddingsConfig": {
+      "type": "object",
+      "description": "Configuration of the text embeddings model used in content items.",
+      "additionalProperties": false,
+      "properties": {
+        "tag": {
+          "type": "string",
+          "enum": ["gte-768", "gte-256"],
+          "default": "gte-768",
+          "description": "Tag of the text embeddings model, as used in the `embedding` filter (`<tag>:<base64 vector>`)."
+        },
+        "solrField": {
+          "type": "string",
+          "enum": ["gte_multi_v768", "gte_multi_v256"],
+          "default": "gte_multi_v768",
+          "description": "Solr field where the text embeddings vectors of this model are indexed."
+        }
+      }
+    },
+    "EmbeddingsConfig": {
+      "type": "object",
+      "description": "Configuration of the embeddings models used by the app.",
+      "additionalProperties": false,
+      "properties": {
+        "textEmbeddings": {
+          "$ref": "#/definitions/TextEmbeddingsConfig"
+        }
+      }
+    },
     "ImageUrlRewriteRule": {
       "type": "object",
       "properties": {

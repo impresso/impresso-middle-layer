@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import { ContentItemService } from '@/services/content-items/content-items.class.js'
 
+// The service reads `embeddings` config; leaving it unset exercises the defaults.
+const appGet = (key: string) => {
+  if (key === 'embeddings') return undefined
+  throw new Error(`Unexpected app.get('${key}') in test`)
+}
+
 describe('ContentItemService._find', () => {
   it('uses similarity score when an embedding search has no explicit order_by', async () => {
     let requestBody: Record<string, unknown> | undefined
@@ -12,7 +18,7 @@ describe('ContentItemService._find', () => {
       },
     }
     const service = Object.create(ContentItemService.prototype) as any
-    service.app = { service: () => solr }
+    service.app = { service: () => solr, get: appGet }
     service._findPages = async () => ({})
     service.getCollections = async () => ({})
     service.getCachedResolvers = () => ({ topic: async () => undefined })
@@ -44,7 +50,7 @@ describe('ContentItemService._find', () => {
       },
     }
     const service = Object.create(ContentItemService.prototype) as any
-    service.app = { service: () => solr }
+    service.app = { service: () => solr, get: appGet }
     service._findPages = async () => ({})
     service.getCollections = async () => ({})
     service.getCachedResolvers = () => ({ topic: async () => undefined })

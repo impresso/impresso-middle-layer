@@ -1,5 +1,6 @@
 import { Application, ApplicationHookContext, NextFunction } from '@feathersjs/feathers'
 import { Schema, Validator } from '@feathersjs/schema'
+import type { Config, TextEmbeddingsConfig } from '@/models/generated/app/configuration.js'
 import config from 'config'
 
 /**
@@ -165,4 +166,38 @@ export function feathersConfigurationLoader(schema?: Schema<any> | Validator) {
 
     return config
   }
+}
+
+/**
+ * Default text embeddings configuration used when `embeddings` or
+ * `embeddings.textEmbeddings` is not set in the config file.
+ */
+export const DefaultTextEmbeddingsConfig = {
+  tag: 'gte-768',
+  solrField: 'gte_multi_v768',
+} satisfies Required<TextEmbeddingsConfig>
+
+/**
+ * Returns the text embeddings configuration, falling back to
+ * `DefaultTextEmbeddingsConfig` for values that are not set.
+ */
+export function getTextEmbeddingsConfig(app: Application<any, Config>): Required<TextEmbeddingsConfig> {
+  const { tag, solrField } = app.get('embeddings')?.textEmbeddings ?? {}
+  return {
+    tag: tag ?? DefaultTextEmbeddingsConfig.tag,
+    solrField: solrField ?? DefaultTextEmbeddingsConfig.solrField,
+  }
+}
+
+const TextEmbeddingsDimensions = {
+  'gte-768': 768,
+  'gte-256': 256,
+} satisfies Record<NonNullable<TextEmbeddingsConfig['tag']>, number>
+
+/**
+ * Returns the number of dimensions of the vectors produced by the text
+ * embeddings model `tag`, or `undefined` if the tag is not set or unknown.
+ */
+export function getTextEmbeddingsDimensions(tag?: TextEmbeddingsConfig['tag']): number | undefined {
+  return tag != null ? TextEmbeddingsDimensions[tag] : undefined
 }
