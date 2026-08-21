@@ -28,6 +28,8 @@ import { IFragmentsAndHighlights } from './articles.model.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
 import { parsePlainsField, WithScore } from '@/util/solr/index.js'
 import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
+import { EmbeddingsConfig } from './generated/app/configuration.js'
+import { DefaultTextEmbeddingsConfig } from '@/util/configuration.js'
 
 const ContentItemCoreFields = [
   'id',
@@ -133,7 +135,7 @@ export type FullContentOnlyFieldsType =
   | 'rreb_plain'
   | 'ub_plain'
 
-export type EmbeddingsFieldType = 'gte_multi_v768'
+export type EmbeddingsFieldType = 'gte_multi_v768' | 'gte_multi_v256'
 
 export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType | EmbeddingsFieldType>
 
@@ -154,7 +156,7 @@ const FullContentOnlyFields = [
  * This is one level above "full content only" fields
  * and only should be fetched when embeddings are needed.
  */
-export const EmbeddingsFields = ['gte_multi_v768'] satisfies EmbeddingsFieldType[]
+export const EmbeddingsFields = ['gte_multi_v768', 'gte_multi_v256'] satisfies EmbeddingsFieldType[]
 
 type ISlimContentItemFieldsNames = Exclude<IFullContentItemFieldsNames, FullContentOnlyFieldsType>
 
@@ -339,7 +341,8 @@ const isFullDocument = (
  */
 export const toContentItem = (
   doc: WithScore<AllDocumentFields | SlimDocumentFields>,
-  { maxScore }: { maxScore?: number } = {}
+  { maxScore }: { maxScore?: number } = {},
+  embeddingsConfig?: EmbeddingsConfig
 ): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
@@ -356,6 +359,9 @@ export const toContentItem = (
     organisations: parseContentItemMentionDPFS(doc.org_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.org)),
     newsagencies: parseContentItemMentionDPFS(doc.nag_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.nag)),
   })
+
+  const embeddingsField = embeddingsConfig?.textEmbeddings?.solrField ?? DefaultTextEmbeddingsConfig.solrField
+  const embeddingsTag = embeddingsConfig?.textEmbeddings?.tag ?? DefaultTextEmbeddingsConfig.tag
 
   return {
     id: doc.id,
@@ -419,8 +425,8 @@ export const toContentItem = (
       ...(namedEntities != null ? { namedEntities } : {}),
       ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),
-      ...(isFullDocument(doc) && doc.gte_multi_v768 != null
-        ? { embeddings: [vectorToCanonicalEmbedding(doc.gte_multi_v768, 'gte-768')] }
+      ...(isFullDocument(doc) && doc[embeddingsField] != null
+        ? { embeddings: [vectorToCanonicalEmbedding(doc[embeddingsField], embeddingsTag)] }
         : {}),
     },
     audio: {

@@ -40,6 +40,12 @@
   "features": {
     "textReuse": { "enabled": true }
   },
+  "embeddings": {
+    "textEmbeddings": {
+      "tag": "gte-768",
+      "solrField": "gte_multi_v768"
+    }
+  },
   "redis": {
     "host": "localhost"
   },

@@ -108,6 +108,7 @@ export interface Config {
    */
   public?: string;
   multer?: MulterConfig;
+  embeddings?: EmbeddingsConfig;
 }
 /**
  * Redis configuration
@@ -552,6 +553,25 @@ export interface MulterConfig {
    */
   dest: string;
   [k: string]: unknown;
+}
+/**
+ * Configuration of the embeddings models used by the app.
+ */
+export interface EmbeddingsConfig {
+  textEmbeddings?: TextEmbeddingsConfig;
+}
+/**
+ * Configuration of the text embeddings model used in content items.
+ */
+export interface TextEmbeddingsConfig {
+  /**
+   * Tag of the text embeddings model, as used in the `embedding` filter (`<tag>:<base64 vector>`).
+   */
+  tag?: "gte-768" | "gte-256";
+  /**
+   * Solr field where the text embeddings vectors of this model are indexed.
+   */
+  solrField?: "gte_multi_v768" | "gte_multi_v256";
 }
 
 
