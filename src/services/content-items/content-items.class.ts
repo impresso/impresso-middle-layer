@@ -524,7 +524,10 @@ export class ContentItemService implements IContentItemService {
     // KNN results must keep Solr's similarity score as their default ordering. The
     // regular API default (`-ocrQuality`) is injected by the validation hook, so
     // consult the original query to distinguish it from an explicit user choice.
-    const hasExplicitOrderBy = params.originalQuery?.order_by != null
+    // The check for `relevance` is to get around the use of highlights for relevance scoring
+    // Highlighting is not compatible with KNN and it is disabled when KNN is used.
+    const hasExplicitOrderBy =
+      params.originalQuery?.order_by != null && !params.originalQuery?.order_by?.includes('relevance')
     const orderBy = hasEmbeddingFilter && !hasExplicitOrderBy ? undefined : params.query?.order_by
     const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], orderBy)
     const sort = params.query?.nextCursorMark != null ? ensureIdSort(rawSort) : rawSort
