@@ -10,29 +10,67 @@
     },
     "itemType": {
       "type": "string",
-      "enum": [
-        "ar",
-        "article",
-        "ad",
-        "advertisement",
-        "page",
-        "tb",
-        "ob",
-        "w",
-        "ch",
-        "chapter",
-        "death_notice",
-        "chronicle",
-        "unsegmented",
-        "radio_broadcast_episode",
-        "radio_bulletin",
-        "rbe",
-        "rb",
-        "dsc",
-        "discussion",
-        "ent",
-        "entertainment",
-        "no-type"
+      "oneOf": [
+        {
+          "const": "ar",
+          "title": "Article",
+          "description": "Editorial article forming a coherent textual unit."
+        },
+        {
+          "const": "ad",
+          "title": "Advertisement",
+          "description": "Commercial or classified advertising content."
+        },
+        {
+          "const": "img",
+          "title": "Image",
+          "description": "Standalone visual content such as a photograph, illustration, or graphic."
+        },
+        {
+          "const": "tb",
+          "title": "Table",
+          "description": "Tabular content presenting structured data or listings."
+        },
+        {
+          "const": "ob",
+          "title": "Obituary",
+          "description": "Notice reporting a death, often including biographical information."
+        },
+        {
+          "const": "w",
+          "title": "Weather",
+          "description": "Weather report or meteorological information."
+        },
+        {
+          "const": "ch",
+          "title": "Chronicle",
+          "description": "Broadcast chronicle reporting events in a factual or narrative form."
+        },
+        {
+          "const": "rb",
+          "title": "Radio Broadcast",
+          "description": "Content item originating from a radio broadcast."
+        },
+        {
+          "const": "rbe",
+          "title": "Radio Broadcast Episode",
+          "description": "An individual episode or segment of a radio broadcast."
+        },
+        {
+          "const": "no-type",
+          "title": "No Type Provided",
+          "description": "Content item with no specific type provided."
+        },
+        {
+          "const": "dsc",
+          "title": "Discussion",
+          "description": "Radio Broadcast discussion or talk show content item."
+        },
+        {
+          "const": "ent",
+          "title": "Entretien",
+          "description": "Radio Broadcast interview content item."
+        }
       ],
       "description": "Type of content item, e.g., article, section."
     },
