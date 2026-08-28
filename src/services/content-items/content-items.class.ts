@@ -678,7 +678,9 @@ export class ContentItemService implements IContentItemService {
       fl: isTrue(params.query?.include_embeddings) ? GetMethodFieldsWithEmbeddings : GetMethodFields,
     })
 
-    const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
+    // `get` requests the full field list (`GetMethodFields`), so the documents come
+    // back with the full content only fields that `SlimDocumentFields` omits.
+    const solrRequest = this.solr.select<AllDocumentFields>(this.solr.namespaces.Search, {
       body: request,
     })
     const dbPagesRequest = this._findPages([id])

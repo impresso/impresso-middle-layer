@@ -1,6 +1,6 @@
 import { Job } from 'bullmq'
 import { logger } from '@/logger.js'
-import type { CollectionItem } from '@/models/generated/external/solr.js'
+import type { CollectionItem } from '@/models/consolidated/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
 import { ImpressoApplication } from '@/types.js'
 import { BulkAddRequest } from '@/internalServices/simpleSolr.js'

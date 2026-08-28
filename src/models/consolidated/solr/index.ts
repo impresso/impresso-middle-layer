@@ -67,3 +67,27 @@ export type TextReusePassageFields = Sealed<
       page_regions_plains?: string[]
     }
 >
+
+/**
+ * A single item in a user collection. Maps collection to content item.
+ * TODO: Remove when generated from a JSON schema
+ */
+export interface CollectionItem {
+  /**
+   * The unique identifier for the collection item. Format: <ci_id_s>!<col_id_s> (new) OR <col_id_s>|<ci_id_s> (legacy)
+   */
+  id?: string
+  /**
+   * The unique identifier for the content item. Located in the main or text reuse passages index.
+   */
+  ci_id_s?: string
+  /**
+   * The unique identifier for the collection. Format: <user_id>_<collection_id>
+   */
+  col_id_s?: string
+  /**
+   * The visibility status of the collection item. `pub` for public, `pri` for private
+   */
+  vis_s?: 'pub' | 'pri'
+  _version_?: number
+}

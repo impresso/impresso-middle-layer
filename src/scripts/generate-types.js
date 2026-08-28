@@ -19,8 +19,8 @@ const schemaBits = [
   'app/responses',
   'app/configuration',
   // 'app/models',
-  'external/solr',
-  'external/solr/ContentItem',
+  // 'external/solr',
+  // 'external/solr/ContentItem',
   // deprecated:
   'deprecated/internalApi',
   'deprecated/models',
