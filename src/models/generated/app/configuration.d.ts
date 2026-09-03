@@ -117,6 +117,8 @@ export interface Config {
    */
   public?: string;
   multer?: MulterConfig;
+  embeddings?: EmbeddingsConfig;
+  auditLogging?: AuditLoggingConfig;
 }
 /**
  * Redis configuration
@@ -563,6 +565,42 @@ export interface MulterConfig {
   dest: string;
   [k: string]: unknown;
 }
+/**
+ * Configuration of the embeddings models used by the app.
+ */
+export interface EmbeddingsConfig {
+  textEmbeddings?: TextEmbeddingsConfig;
+}
+/**
+ * Configuration of the text embeddings model used in content items.
+ */
+export interface TextEmbeddingsConfig {
+  /**
+   * Tag of the text embeddings model, as used in the `embedding` filter (`<tag>:<base64 vector>`).
+   */
+  tag?: "gte-768" | "gte-256";
+  /**
+   * Solr field where the text embeddings vectors of this model are indexed.
+   */
+  solrField?: "gte_multi_v768" | "gte_multi_v256";
+}
+/**
+ * Configuration for sending content item access log entries to a Vector log aggregator over HTTP
+ */
+export interface AuditLoggingConfig {
+  /**
+   * Enable sending log entries to Vector (enabled by default)
+   */
+  enabled?: boolean;
+  /**
+   * Vector host (default: localhost)
+   */
+  host?: string;
+  /**
+   * Vector port (default: 18080)
+   */
+  port?: number;
+}
 
 
 export interface RedactionPolicy {
@@ -692,9 +730,14 @@ export interface FilterDefinition {
    */
   rule: string;
   /**
-   * Primary application destination of the filter: main query or filters. It's 'query' by default.
+   * @deprecated
+   * DEPRECATED and ignored. Superseded by `scoring`.
    */
   destination?: "query" | "filter";
+  /**
+   * Whether this filter participates in relevance scoring.
+   */
+  scoring?: boolean;
 }
 
 

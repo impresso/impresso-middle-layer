@@ -45,8 +45,19 @@
   "features": {
     "textReuse": { "enabled": true }
   },
+  "embeddings": {
+    "textEmbeddings": {
+      "tag": "gte-768",
+      "solrField": "gte_multi_v768"
+    }
+  },
   "redis": {
     "host": "localhost"
+  },
+  "auditLogging": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 18080
   },
   "cache": {
     "enabled": true

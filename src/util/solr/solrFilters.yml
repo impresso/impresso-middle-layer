@@ -26,6 +26,7 @@ indexes:
         # field prefix, will be expanded to supported languages
         field: { prefix: content_txt_ }
         rule: string
+        scoring: true
       title:
         field: { prefix: title_txt_ }
         rule: string
@@ -130,9 +131,11 @@ indexes:
       topic-string:
         field: topic_suggest
         rule: string
+        scoring: true
       entity-string:
         field: entitySuggest
         rule: string
+        scoring: true
       entity-type:
         field: t_s
         rule: value
@@ -146,7 +149,9 @@ indexes:
       embedding:
         field:
           - "gte-768:gte_multi_v768"
+          - "gte-256:gte_multi_v256"
         rule: embeddingKnnSimilarity
+        scoring: true
         destination: query
       permissionExplore:
         field: rights_bm_index_explore_is
@@ -185,6 +190,7 @@ indexes:
       id:
         field: id
         rule: value
+        scoring: true
         destination: filter
       contentItemId:
         field: ci_id_s
@@ -205,6 +211,7 @@ indexes:
         # field prefix, will be expanded to supported languages
         field: { prefix: content_txt_ }
         rule: string
+        scoring: true
       textReuseClusterSize:
         field: cluster_size_l
         rule: numericRange
@@ -270,6 +277,7 @@ indexes:
       string:
         field: entitySuggest
         rule: openEndedString
+        scoring: true
       type:
         field: t_s
         rule: value
@@ -304,11 +312,13 @@ indexes:
       title:
         field: caption_txt
         rule: string
+        scoring: true
       embedding:
         field:
           - "openclip-768:openclip_emb_v768"
           - "dinov2-1024:dinov2_emb_v1024"
         rule: embeddingKnnSimilarity
+        scoring: true
         destination: query
       imageVisualContent:
         field: type_l0_tp

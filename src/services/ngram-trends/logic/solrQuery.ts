@@ -1,6 +1,6 @@
 import moment from 'moment'
 import { get, mergeWith, toPairs, fromPairs, sortBy, sum } from 'lodash-es'
-import { filtersToQueryAndVariables } from '../../../util/solr/index.js'
+import { buildSolrQuery } from '../../../util/solr/queryBuilder.js'
 import { SolrNamespaces } from '../../../solr.js'
 import { SupportedLanguageCodes } from '../../../models/solr.js'
 
@@ -80,7 +80,7 @@ function unigramTrendsRequestToSolrQuery(
     query,
     filter,
     params: variables,
-  } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig)
+  } = buildSolrQuery(filters ?? [], SolrNamespaces.Search, [], featuresConfig)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
   const facetPivots = SupportedLanguageCodes.map(languageCode =>
@@ -95,7 +95,7 @@ function unigramTrendsRequestToSolrQuery(
     filter,
     limit: 0,
     params: {
-      ...(variables != null ? { vars: variables } : {}),
+      ...variables,
       facet: true,
       'facet.limit': DefaultFacetLimit,
       'facet.pivot': facetPivots,
@@ -121,7 +121,7 @@ function unigramTrendsRequestToTotalTokensSolrQuery(
     query,
     filter,
     params: variables,
-  } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, [], featuresConfig)
+  } = buildSolrQuery(filters, SolrNamespaces.Search, [], featuresConfig)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
   return {
@@ -129,7 +129,7 @@ function unigramTrendsRequestToTotalTokensSolrQuery(
     filter,
     limit: 0,
     params: {
-      ...(variables != null ? { vars: variables } : {}),
+      ...variables,
       hl: false, // disable duplicate field "highlighting"
     },
     facet: {

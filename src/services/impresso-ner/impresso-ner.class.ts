@@ -221,7 +221,7 @@ const convertDownstreamEntity = (entity: DownstreamNes): ImpressoNerEntity => ({
   ...(entity.name != null ? { name: entity.name } : {}),
 })
 
-const sanitizeType = (type: NerType): NerType => {
-  if (type === 'UNK') return 'unk'
+const sanitizeType = (type: NerType | null | undefined | ''): NerType => {
+  if (type === 'UNK' || type == null || type === '') return 'unk'
   return type
 }

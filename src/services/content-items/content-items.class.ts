@@ -9,6 +9,7 @@ import { measureTime } from '@/util/instruments.js'
 import { ImpressoApplication } from '@/types.js'
 import { SlimUser } from '@/authentication.js'
 import { asFind, asGet, findAllRequestAdapter, findRequestAdapter, SolrFactory } from '@/util/solr/adapters.js'
+import type { SolrQueryNode } from '@/util/solr/queryBuilder.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import Page, { withRewrittenIIIF } from '@/models/pages.model.js'
 import { ICachedResolvers, buildResolvers } from '@/internalServices/cachedResolvers.js'
@@ -47,6 +48,7 @@ import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreF
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
 import { QueueService } from '@/internalServices/queue.js'
+import { AccessMethod, ContentItemAccessLogEntry, getVectorLogService } from '@/internalServices/vectorLog.js'
 import { Filter } from 'impresso-jscommons'
 import { isTrue } from '@/util/queryParameters.js'
 
@@ -148,8 +150,8 @@ interface FindQuery {
   filters?: Filter[]
 
   // things needed by SolService.find
-  sq?: string
-  sfq?: string | string[]
+  sq?: SolrQueryNode
+  sfq?: SolrQueryNode | SolrQueryNode[]
   limit?: number
   offset?: number
   facets?: Record<string, any>
@@ -177,11 +179,15 @@ interface WithUser {
   user?: SlimUser
 }
 
+interface WithOriginalQuery {
+  originalQuery?: Pick<FindQuery, 'order_by'>
+}
+
 interface GetQueryParams {
   include_embeddings?: boolean
 }
 export type GetParams = Params<GetQueryParams> & WithUser & AsPublicApiMixin
-export type FindParams = Params<FindQuery> & WithUser & FindFlExtra & AsPublicApiMixin
+export type FindParams = Params<FindQuery> & WithUser & FindFlExtra & AsPublicApiMixin & WithOriginalQuery
 
 const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: ImpressoApplication): ContentItemPage => {
   return {
@@ -438,6 +444,30 @@ export class ContentItemService implements IContentItemService {
     return this.app?.service('simpleSolrClient')!
   }
 
+  /**
+   * Fire-and-forget audit log of content item access, keyed by the content item's
+   * data provider, so providers can audit/report usage of their content.
+   */
+  logContentItemAccess(items: ContentItem[], params: WithUser): void {
+    const impressoUserId = params.user?.uid
+    if (items.length === 0 || impressoUserId == null) return
+
+    const accessMethod: AccessMethod = this.app.get('isPublicApi') === true ? 'api' : 'web'
+    const timestamp = new Date()
+
+    const entries: ContentItemAccessLogEntry[] = items.map(item => ({
+      providerId: item.meta?.partnerId ?? 'UNK',
+      impressoUserId,
+      contentItemId: item.id,
+      accessMethod,
+      timestamp,
+    }))
+
+    getVectorLogService(this.app)
+      .logContentItemAccess(entries)
+      .catch(error => logger.warn('Failed to log content item access to Vector', { error }))
+  }
+
   async find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     return await this._find(params)
   }
@@ -491,7 +521,15 @@ export class ContentItemService implements IContentItemService {
         }
 
     const request = findRequestAdapter(params)
-    const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], params.query?.order_by)
+    // KNN results must keep Solr's similarity score as their default ordering. The
+    // regular API default (`-ocrQuality`) is injected by the validation hook, so
+    // consult the original query to distinguish it from an explicit user choice.
+    // The check for `relevance` is to get around the use of highlights for relevance scoring
+    // Highlighting is not compatible with KNN and it is disabled when KNN is used.
+    const hasExplicitOrderBy =
+      params.originalQuery?.order_by != null && !params.originalQuery?.order_by?.includes('relevance')
+    const orderBy = hasEmbeddingFilter && !hasExplicitOrderBy ? undefined : params.query?.order_by
+    const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], orderBy)
     const sort = params.query?.nextCursorMark != null ? ensureIdSort(rawSort) : rawSort
 
     const requestBody = {
@@ -512,8 +550,10 @@ export class ContentItemService implements IContentItemService {
       body: requestBody,
     })
 
+    const embeddingsConfig = this.app.get('embeddings')
+
     const contentItems = (results.response?.docs ?? ([] as SlimDocumentFields[]))
-      .map(d => toContentItem(d, { maxScore: results.response?.maxScore }))
+      .map(d => toContentItem(d, { maxScore: results.response?.maxScore }, embeddingsConfig))
       .map(item => withMatches(item, results))
 
     // get data enrichment items
@@ -535,6 +575,8 @@ export class ContentItemService implements IContentItemService {
       withTextLabels(metadataResolvers),
       withAuthorizationBitmaps,
     ])
+
+    this.logContentItemAccess(enrichedContentItems, params)
 
     return {
       data: enrichedContentItems,
@@ -671,6 +713,8 @@ export class ContentItemService implements IContentItemService {
         ]
       )
     )?.[0]
+
+    this.logContentItemAccess([enrichedContentItem], params)
 
     return enrichedContentItem
 

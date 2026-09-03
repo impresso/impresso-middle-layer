@@ -86,6 +86,9 @@ const ContentItemTypeLabels = {
   unsegmented: 'Unsegmented',
   radio_broadcast_episode: 'Radio broadcast episode',
   radio_bulletin: 'Radio bulletin',
+  dsc: 'Discussion',
+  ent: 'Entertainment',
+  'no-type': 'Unknown type',
 } as const
 
 const fromLookup =
@@ -181,7 +184,7 @@ const getMediaSourceResolver = (app: ImpressoApplication): IResolver<IMediaSourc
 }
 
 const getSpecialMembershipResolver = (app: ImpressoApplication): IResolver<SpecialMembershipAccess> => {
-  const service = app.service('special-membership-access')
+  const service = app.service('special-membership-plans')
 
   return async (bitmapPosition: string) => {
     const trimmed = bitmapPosition.trim()

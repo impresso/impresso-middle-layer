@@ -62,7 +62,7 @@ import userRequests from './user-requests/user-requests.service.js'
 import newspapers from './newspapers/newspapers.service.js'
 import feedbackCollector from './feedback-collector/feedback-collector.service.js'
 import datalabSupport from './datalab-support/datalab-support.service.js'
-import specialMembershipAccess from './special-membership-access/special-membership-access.service.js'
+import specialMembershipPlans from './special-membership-plans/special-membership-plans.service.js'
 import userSpecialMembershipRequests from './user-special-membership-requests/user-special-membership-requests.service.js'
 import userSpecialMembershipRequestsReviews from './user-special-membership-requests-reviews/user-special-membership-requests-reviews.service.js'
 import baristaProxy from './barista-proxy/barista-proxy.service.js'
@@ -97,6 +97,7 @@ const publicApiServices = [
   { name: 'experiments', init: experiments },
   { name: 'logs', init: logs },
   { name: 'filter-serialization', init: filterSerialization },
+  { name: 'special-membership-plans', init: specialMembershipPlans },
 ]
 
 const adminServices = [{ name: 'admin', init: admin }]
@@ -141,7 +142,6 @@ const internalApiServices = [
   { name: 'newspapers', init: newspapers },
   { name: 'feedback-collector', init: feedbackCollector },
   { name: 'datalab-support', init: datalabSupport },
-  { name: 'special-membership-access', init: specialMembershipAccess },
   { name: 'user-special-membership-requests', init: userSpecialMembershipRequests },
   { name: 'user-special-membership-requests-reviews', init: userSpecialMembershipRequestsReviews },
   { name: 'magic-link', init: magicLink },

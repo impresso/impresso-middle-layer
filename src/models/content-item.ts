@@ -28,6 +28,8 @@ import { IFragmentsAndHighlights } from './articles.model.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
 import { parsePlainsField, WithScore } from '@/util/solr/index.js'
 import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
+import { EmbeddingsConfig } from './generated/app/configuration.js'
+import { DefaultTextEmbeddingsConfig } from '@/util/configuration.js'
 
 const ContentItemCoreFields = [
   'id',
@@ -102,6 +104,7 @@ const ContentSemanticEnrichmentsFields = [
   'nem_offset_plain',
   'nag_offset_plain',
   'gte_multi_v768',
+  'gte_multi_v256',
 ] satisfies (keyof SemanticEnrichmentsFields)[]
 
 const AudioContentFields = [
@@ -132,7 +135,7 @@ export type FullContentOnlyFieldsType =
   | 'rreb_plain'
   | 'ub_plain'
 
-export type EmbeddingsFieldType = 'gte_multi_v768'
+export type EmbeddingsFieldType = 'gte_multi_v768' | 'gte_multi_v256'
 
 export type SlimDocumentFields = Omit<AllDocumentFields, FullContentOnlyFieldsType | EmbeddingsFieldType>
 
@@ -153,7 +156,7 @@ const FullContentOnlyFields = [
  * This is one level above "full content only" fields
  * and only should be fetched when embeddings are needed.
  */
-export const EmbeddingsFields = ['gte_multi_v768'] satisfies EmbeddingsFieldType[]
+export const EmbeddingsFields = ['gte_multi_v768', 'gte_multi_v256'] satisfies EmbeddingsFieldType[]
 
 type ISlimContentItemFieldsNames = Exclude<IFullContentItemFieldsNames, FullContentOnlyFieldsType>
 
@@ -338,7 +341,8 @@ const isFullDocument = (
  */
 export const toContentItem = (
   doc: WithScore<AllDocumentFields | SlimDocumentFields>,
-  { maxScore }: { maxScore?: number } = {}
+  { maxScore }: { maxScore?: number } = {},
+  embeddingsConfig?: EmbeddingsConfig
 ): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
   const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
@@ -356,10 +360,17 @@ export const toContentItem = (
     newsagencies: parseContentItemMentionDPFS(doc.nag_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.nag)),
   })
 
+  const embeddingsField = embeddingsConfig?.textEmbeddings?.solrField ?? DefaultTextEmbeddingsConfig.solrField
+  const embeddingsTag = embeddingsConfig?.textEmbeddings?.tag ?? DefaultTextEmbeddingsConfig.tag
+
   return {
     id: doc.id,
     issueId: doc.meta_issue_id_s,
-    ...(doc.score != undefined ? { relevanceScore: doc.score / (maxScore ?? 1) } : {}),
+    // NOTE: Score normalisation is disabled because it may lead to unexpected
+    // interpretation when embedding search method is used.
+    // For more information see https://github.com/impresso/impresso-middle-layer/issues/719
+    // ...(doc.score != undefined ? { relevanceScore: doc.score / (maxScore ?? 1) } : {}),
+    ...(doc.score != undefined ? { relevanceScore: doc.score } : {}),
     meta: {
       sourceType: doc.meta_source_type_s,
       date: doc.meta_date_dt,
@@ -370,7 +381,7 @@ export const toContentItem = (
       partnerId: doc.meta_partnerid_s,
     },
     access: {
-      copyright: doc.rights_copyright_s,
+      copyright: doc.rights_copyright_s ?? 'und',
       dataDomain: doc.rights_data_domain_s,
       accessBitmaps: {
         explore: bigIntToBase64Bytes(BigInt(doc.rights_bm_explore_l ?? OpenPermissions)),
@@ -414,8 +425,8 @@ export const toContentItem = (
       ...(namedEntities != null ? { namedEntities } : {}),
       ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),
-      ...(isFullDocument(doc) && doc.gte_multi_v768 != null
-        ? { embeddings: [vectorToCanonicalEmbedding(doc.gte_multi_v768, 'gte-768')] }
+      ...(isFullDocument(doc) && doc[embeddingsField] != null
+        ? { embeddings: [vectorToCanonicalEmbedding(doc[embeddingsField], embeddingsTag)] }
         : {}),
     },
     audio: {

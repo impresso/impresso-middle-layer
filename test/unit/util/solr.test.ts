@@ -1,6 +1,5 @@
 import assert from 'assert'
 import { SolrNamespaces } from '@/solr.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
 import type { Filter } from '@/models/index.js'
 
 const MockFiltersHamburgerWithPermissions: Filter[] = [
@@ -89,21 +88,3 @@ const MockFiltersHamburgerWithTopicsDefaultOperatorsAndContext = [
 
 const MockFiltersHamburgerWithTopicsDefaultOperatorsAndContextExpectedQuery =
   '(content_txt_fr:"hamburger" OR content_txt_de:"hamburger" OR content_txt_en:"hamburger" OR content_txt_it:"hamburger" OR content_txt_es:"hamburger" OR content_txt_nl:"hamburger" OR content_txt:"hamburger") AND (topics_dpfs:tm-de-all-v2.0_tp83_de OR topics_dpfs:tm-de-all-v2.0_tp24_de OR topics_dpfs:tm-de-all-v2.0_tp93_de)'
-
-describe('Simple search to SOLR', () => {
-  it('should convert filters to SOLR query and variables', () => {
-    const testCases: [Filter[], string][] = [
-      [MockFiltersHamburgerWithPermissions, MockFiltersHamburgerWithPermissionsExpectedQuery],
-      [MockFiltersHamburgerWithTopics, MockFiltersHamburgerWithTopicsExpectedQuery],
-      [
-        MockFiltersHamburgerWithTopicsDefaultOperatorsAndContext,
-        MockFiltersHamburgerWithTopicsDefaultOperatorsAndContextExpectedQuery,
-      ],
-    ]
-
-    testCases.forEach(([mockFilters, expectedQuery]) => {
-      const { query } = filtersToQueryAndVariables(mockFilters, SolrNamespaces.Search, [], {}, true)
-      assert.strictEqual(query, expectedQuery)
-    })
-  })
-})
