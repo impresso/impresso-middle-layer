@@ -47,7 +47,7 @@
     "institutionalUrl": {
       "type": "string",
       "description": "user institutional URL, e.g. university, institution, company",
-      "pattern": "^(https?:\\/\\/)?([\\w\\-]+\\.)+[\\w\\-]+(\\/[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*)?$",
+      "pattern": "^(https?://)?([\\w\\-]+\\.)+[\\w\\-]+(/[\\w\\-._~:/?#[\\]@!$&'()*+,;=]*)?$",
       "maxLength": 200
     }
   },

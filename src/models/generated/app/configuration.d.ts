@@ -90,6 +90,15 @@ export interface Config {
      */
     expiration: number;
   };
+  /**
+   * Configuration for the user email verification service
+   */
+  emailVerification: {
+    /**
+     * Expiration time for email verification tokens in seconds
+     */
+    expiration: number;
+  };
   media?: MediaConfig;
   solrConfiguration: SolrConfiguration;
   recommender?: RecommenderConfig;
@@ -546,6 +555,7 @@ export interface ImageUrlRewriteRule {
 export interface CallbackUrlsConfig {
   passwordReset?: string;
   magicLink?: string;
+  emailVerification?: string;
   [k: string]: unknown;
 }
 export interface MulterConfig {

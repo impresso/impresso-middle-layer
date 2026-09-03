@@ -69,6 +69,8 @@ import baristaProxy from './barista-proxy/barista-proxy.service.js'
 import baristaConversations from './barista-conversations/barista-conversations.service.js'
 import magicLink from './magic-link/magic-link.service.js'
 import filterSerialization from './filter-serialization/filter-serialization.service.js'
+import userEmailVerification from './user-email-verification/user-email-verification.service.js'
+import userEmailVerificationResend from './user-email-verification-resend/user-email-verification-resend.service.js'
 /**
  * Some public services are declared here but are only required internally by
  * other services. Whether a service is available publicly or not is determined
@@ -143,6 +145,8 @@ const internalApiServices = [
   { name: 'user-special-membership-requests', init: userSpecialMembershipRequests },
   { name: 'user-special-membership-requests-reviews', init: userSpecialMembershipRequestsReviews },
   { name: 'magic-link', init: magicLink },
+  { name: 'user-email-verification', init: userEmailVerification },
+  { name: 'user-email-verification-resend', init: userEmailVerificationResend },
 ]
 
 const baristaServices = [

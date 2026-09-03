@@ -14,18 +14,43 @@ import { hooks } from '@feathersjs/authentication-local'
 
 const { protect } = hooks
 
+const trimOptionalString = (item: string | string[] | undefined) => (typeof item === 'string' ? item.trim() : undefined)
+
+interface FindData {
+  uid?: string
+  email?: string
+  githubId?: string
+}
+
+interface CreateData {
+  username?: string
+  firstname?: string
+  lastname?: string
+  displayName?: string
+  plan?: string
+  affiliation?: string
+  institutionalUrl?: string
+  pattern?: string
+  email?: string
+  password?: string
+}
+
+interface PatchData {
+  password?: string
+}
+
 export default {
   around: {
-    get: [authenticate('jwt')],
-    find: [authenticate('jwt')],
-    update: [authenticate('jwt')],
-    patch: [authenticate('jwt')],
-    remove: [authenticate('jwt')],
+    get: [authenticate()],
+    find: [authenticate()],
+    update: [authenticate()],
+    patch: [authenticate()],
+    remove: [authenticate()],
   },
   before: {
     all: [],
     find: [
-      validate({
+      validate<FindData>({
         ...VALIDATE_OPTIONAL_UID,
         ...VALIDATE_OPTIONAL_EMAIL,
         ...VALIDATE_OPTIONAL_GITHUB_ID,
@@ -33,7 +58,7 @@ export default {
       queryWithCommonParams(),
     ],
     create: [
-      validate(
+      validate<CreateData>(
         {
           username: {
             required: true,
@@ -54,22 +79,20 @@ export default {
           },
           plan: {
             required: false,
-            // align to configuration AvailablePlansConfiguration choices
             choices: ['plan-basic', 'plan-educational', 'plan-researcher'],
-            default: 'plan-basic',
+            defaultValue: 'plan-basic',
           },
           affiliation: {
             required: false,
             max_length: 255,
             regex: /^[\p{L}\p{N}\s\-().,'&/]+$/u,
-            transform: d => d.trim(),
+            transform: trimOptionalString,
           },
           institutionalUrl: {
             required: false,
             max_length: 200,
-            // /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/
             regex: /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-._~:/?#[\]@!$&'()*+,;=]*)?$/,
-            transform: d => d.trim(),
+            transform: trimOptionalString,
           },
           pattern: {
             required: false,
@@ -77,19 +100,13 @@ export default {
           },
           ...VALIDATE_EMAIL,
           ...VALIDATE_PASSWORD,
-          // ...VALIDATE_OPTIONAL_GITHUB_ID,
         },
         'POST'
       ),
     ],
-    update: [
-      // hashPassword(),
-    ],
+    update: [],
     patch: [
-      // hashPassword(),
-      //
-
-      validate(
+      validate<PatchData>(
         {
           ...VALIDATE_OPTIONAL_PASSWORD,
         },
@@ -97,14 +114,8 @@ export default {
       ),
     ],
   },
-
   after: {
-    all: [
-      // Make sure the password field is never sent to the client
-      // Always must be the last hook
-      protect('password'),
-      protect('salt'),
-    ],
+    all: [protect('password'), protect('salt')],
     find: [],
     get: [],
     create: [],
@@ -112,7 +123,6 @@ export default {
     patch: [],
     remove: [],
   },
-
   error: {
     all: [],
     find: [],
