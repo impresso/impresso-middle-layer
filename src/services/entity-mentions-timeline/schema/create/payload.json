@@ -7,7 +7,7 @@
     "filters": {
       "type": "array",
       "items": {
-        "$ref": "../../../../schema/canonical/Filter.json"
+        "$ref": "../../../../schema/entities/Filter.json"
       }
     },
     "entityId": {

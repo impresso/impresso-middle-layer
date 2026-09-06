@@ -68,11 +68,11 @@
     },
     "birthPlace": {
       "description": "Birth place entity ID for a person entity.",
-      "$ref": "../../canonical/WikidataLocation.json"
+      "$ref": "../../entities/WikidataLocation.json"
     },
     "deathPlace": {
       "description": "Death place entity ID for a person entity.",
-      "$ref": "../../canonical/WikidataLocation.json"
+      "$ref": "../../entities/WikidataLocation.json"
     }
   },
   "required": ["id", "type", "labels", "descriptions", "images"]

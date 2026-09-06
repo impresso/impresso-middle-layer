@@ -13,8 +13,8 @@ const banner = `
 const basePath = './src/schema'
 const outputPath = './src/models/generated'
 const schemaBits = [
-  'canonical',
-  'canonical/contentItem',
+  'entities',
+  'entities/contentItem',
   'app/requests',
   'app/responses',
   'app/configuration',

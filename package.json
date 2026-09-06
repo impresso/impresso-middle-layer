@@ -36,8 +36,9 @@
     "bun-run": "bun run --watch src/index.ts",
     "bun-test": "bun test",
     "cli": "node src/admin/cli.js",
-    "generate-types": "node src/scripts/generate-types.js",
-    "generate-types-from-schemas-repo": "node src/scripts/generate-types-from-schemas-repo.js"
+    "generate-internal-types": "node src/scripts/generate-types.js",
+    "generate-types-from-schemas-repo": "node src/scripts/generate-types-from-schemas-repo.js",
+    "generate-types": "npm run generate-internal-types && npm run generate-types-from-schemas-repo"
   },
   "dependencies": {
     "@feathersjs/authentication": "5.0.44",

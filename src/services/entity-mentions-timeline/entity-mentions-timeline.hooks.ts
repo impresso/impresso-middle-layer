@@ -2,7 +2,7 @@ import { validateWithSchema } from '@/hooks/schema.js'
 import { newAjvInstance } from '@/util/json.js'
 
 const validationInstance = newAjvInstance([
-  ['schema/canonical/Filter.json', 'schema/canonical/Filter.json'],
+  ['schema/entities/Filter.json', 'schema/entities/Filter.json'],
   ['services/entity-mentions-timeline/schema/create/payload.json', 'request'],
   ['services/entity-mentions-timeline/schema/create/response.json', 'response'],
 ])

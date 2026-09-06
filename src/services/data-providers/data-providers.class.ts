@@ -1,7 +1,7 @@
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
-import { DataProvider } from '@/models/generated/canonical.js'
+import { DataProvider } from '@/models/generated/entities.js'
 import type { PartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 
 type FindQuery = Pick<FindResponse<unknown>['pagination'], 'limit' | 'offset'> & {

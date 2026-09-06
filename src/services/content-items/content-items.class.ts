@@ -36,12 +36,12 @@ import {
   ContentItem,
   ContentItemPage,
   Collection as ContentItemCollection,
-} from '@/models/generated/canonical/contentItem.js'
+} from '@/models/generated/entities/contentItem.js'
 import { ContentItemDbModel } from '@/models/content-item.model.js'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '@/models/content-item-page.model.js'
 import { mapRecordValues } from '@/util/fn.js'
 import { NotFound } from '@feathersjs/errors'
-import { Collection } from '@/models/generated/canonical.js'
+import { Collection } from '@/models/generated/entities.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
 import { AudioFields, PaperFields, SemanticEnrichmentsFields } from '@/models/consolidated/solr/index.js'
 import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'

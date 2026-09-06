@@ -119,7 +119,7 @@
     },
     "mediaSource": {
       "$allOf": [
-        { "$ref": "../../canonical/MediaSource.json" },
+        { "$ref": "../../entities/MediaSource.json" },
         {
           "type": "object",
           "properties": {

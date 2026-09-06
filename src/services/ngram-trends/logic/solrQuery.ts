@@ -64,7 +64,7 @@ const getStatsFieldStringOtherLanguages = (unigram: string) =>
  * The query is a JSON payload to be send as a POST request.
  *
  * @param {string} unigram unigram to get trends for.
- * @param {object[]} filters a list of filters of type `src/schema/canonical/Filter.json`.
+ * @param {object[]} filters a list of filters of type `src/schema/entities/Filter.json`.
  * @param {string[]} facets a list of facets to extract alongside trend.
  *
  * @return {object} a POST JSON payload for SOLR search endpoint.
@@ -76,11 +76,7 @@ function unigramTrendsRequestToSolrQuery(
   timeInterval: TimeInterval = 'year',
   featuresConfig: FeaturesConfig
 ) {
-  const {
-    query,
-    filter,
-    params: variables,
-  } = buildSolrQuery(filters ?? [], SolrNamespaces.Search, [], featuresConfig)
+  const { query, filter, params: variables } = buildSolrQuery(filters ?? [], SolrNamespaces.Search, [], featuresConfig)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
   const facetPivots = SupportedLanguageCodes.map(languageCode =>
@@ -117,11 +113,7 @@ function unigramTrendsRequestToTotalTokensSolrQuery(
   featuresConfig: FeaturesConfig,
   timeInterval: TimeInterval = 'year'
 ) {
-  const {
-    query,
-    filter,
-    params: variables,
-  } = buildSolrQuery(filters, SolrNamespaces.Search, [], featuresConfig)
+  const { query, filter, params: variables } = buildSolrQuery(filters, SolrNamespaces.Search, [], featuresConfig)
   const timeIntervalField = TimeIntervalsFilelds[timeInterval]
 
   return {
