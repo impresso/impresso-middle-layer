@@ -68,7 +68,7 @@ describe('UserSpecialMembershipRequestService', () => {
     await db.sequelize.truncate({ cascade: true })
     // Insert related mock data
     await userModel.bulkCreate(mockUsers as UserAttributes[])
-    await specialMembershipAccessModel.bulkCreate(mockSpecialMembershipAccesses)
+    await specialMembershipAccessModel.bulkCreate(mockSpecialMembershipAccesses as any)
     await userSpecialMembershipRequestModel.bulkCreate(mockRequests)
   })
 

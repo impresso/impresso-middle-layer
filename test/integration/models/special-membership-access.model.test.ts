@@ -34,9 +34,9 @@ describe('Available Datasets for Subscription along with their bitmap positions'
   after(closeConnection)
 
   it('should return the list of available datasets', async () => {
-    const subscriptionDatasetModel = SpecialMembershipAccess.initialize(sequelizeClient!)
+    const specialMembershipAccessModel = SpecialMembershipAccess.initialize(sequelizeClient!)
 
-    await subscriptionDatasetModel
+    await specialMembershipAccessModel
       .findAll()
       .then(data => {
         console.log(`Datasets found: ${data.length}`)
