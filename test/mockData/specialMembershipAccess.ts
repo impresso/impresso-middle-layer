@@ -3,6 +3,9 @@ import type { ISpecialMembershipAccessAttributes } from '@/models/special-member
 export const MockSubscriptionGoldWithCCReviewer: ISpecialMembershipAccessAttributes = {
   id: 1,
   title: 'gold',
+  fullname: 'Gold Partner Institution',
+  countryCode: 'CH',
+  dataProviderAlias: 'gold-partner',
   bitmapPosition: 1,
   metadata: {
     modality: 'cc_reviewer',
@@ -14,6 +17,9 @@ export const MockSubscriptionGoldWithCCReviewer: ISpecialMembershipAccessAttribu
 export const MockSubscriptionSilverWithAutoApproval: ISpecialMembershipAccessAttributes = {
   id: 2,
   title: 'silver',
+  fullname: 'Silver Partner Institution',
+  countryCode: 'FR',
+  dataProviderAlias: 'silver-partner',
   bitmapPosition: 2,
   metadata: {
     modality: 'notify_reviewer',
@@ -23,9 +29,30 @@ export const MockSubscriptionSilverWithAutoApproval: ISpecialMembershipAccessAtt
 }
 
 export const MockSubscriptionsBronzePlatinumDiamond: ISpecialMembershipAccessAttributes[] = [
-  { id: 3, title: 'bronze', bitmapPosition: 3 },
-  { id: 4, title: 'platinum', bitmapPosition: 4 },
-  { id: 5, title: 'diamond', bitmapPosition: 5 },
+  {
+    id: 3,
+    title: 'bronze',
+    fullname: 'Bronze Partner Institution',
+    countryCode: 'DE',
+    dataProviderAlias: 'bronze-partner',
+    bitmapPosition: 3,
+  },
+  {
+    id: 4,
+    title: 'platinum',
+    fullname: 'Platinum Partner Institution',
+    countryCode: 'IT',
+    dataProviderAlias: 'platinum-partner',
+    bitmapPosition: 4,
+  },
+  {
+    id: 5,
+    title: 'diamond',
+    fullname: 'Diamond Partner Institution',
+    countryCode: 'LU',
+    dataProviderAlias: 'diamond-partner',
+    bitmapPosition: 5,
+  },
 ]
 
 /**
@@ -35,6 +62,9 @@ export const MockSubscriptionsBronzePlatinumDiamond: ISpecialMembershipAccessAtt
 export const MockSubscriptionWithRevokableAfterDays: ISpecialMembershipAccessAttributes = {
   id: 6,
   title: 'revokable',
+  fullname: 'Revokable Partner Institution',
+  countryCode: 'CH',
+  dataProviderAlias: 'revokable-partner',
   bitmapPosition: 6,
   metadata: {
     modality: 'cc_reviewer',
@@ -49,6 +79,9 @@ export const MockSubscriptionWithRevokableAfterDays: ISpecialMembershipAccessAtt
 export const MockSubscriptionWithRevokableTemporaryAfterDays: ISpecialMembershipAccessAttributes = {
   id: 7,
   title: 'revokable-temporary',
+  fullname: 'Revokable Temporary Partner Institution',
+  countryCode: 'CH',
+  dataProviderAlias: 'revokable-temporary-partner',
   bitmapPosition: 7,
   metadata: {
     modality: 'cc_reviewer',

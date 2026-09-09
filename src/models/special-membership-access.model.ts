@@ -15,6 +15,9 @@ export interface ISpecialMembershipAccessAttributes {
   id: number
   reviewerId?: number | null
   title: string
+  fullname?: string | null
+  countryCode?: string | null
+  dataProviderAlias?: string | null
   bitmapPosition: number
   metadata?: SpecialMembershipAccessMetadata
 }
@@ -26,6 +29,9 @@ export default class SpecialMembershipAccess extends Model<
   declare id: CreationOptional<number>
   declare reviewerId: ForeignKey<User['id']> | null
   declare title: string
+  declare fullname: string | null
+  declare countryCode: string | null
+  declare dataProviderAlias: string | null
   declare bitmapPosition: number
   declare metadata: SpecialMembershipAccessMetadata | null
   // Add this to help TypeScript with associations
@@ -49,6 +55,21 @@ export default class SpecialMembershipAccess extends Model<
           type: DataTypes.STRING,
           allowNull: false,
           field: 'name',
+        },
+        fullname: {
+          type: DataTypes.STRING,
+          allowNull: true,
+          field: 'fullname',
+        },
+        countryCode: {
+          type: DataTypes.STRING,
+          allowNull: true,
+          field: 'country_code',
+        },
+        dataProviderAlias: {
+          type: DataTypes.STRING,
+          allowNull: true,
+          field: 'data_provider_alias',
         },
         bitmapPosition: {
           type: DataTypes.INTEGER,
