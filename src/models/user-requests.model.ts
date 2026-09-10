@@ -1,5 +1,5 @@
 import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
-import SpecialMembershipAccess, { type ISpecialMembershipAccessAttributes } from './special-membership-access.model.js'
+import SubscriptionDataset, { type SubscriptionDatasetAttributes } from './subscription-datasets.model.js'
 import User from './users.model.js'
 
 export const StatusPending = 'pending'
@@ -81,7 +81,7 @@ export class ChangelogEntry {
  * @property {number} id
  * @property {number} reviewerId
  * @property {number} subscriberId
- * @property {ISpecialMembershipAccessAttributes} subscription
+ * @property {SubscriptionDatasetAttributes} subscription
  * @property {Date} dateCreated
  * @property {Date} dateLastModified
  * @property {typeof AvailableStatuses[number]} status
@@ -91,7 +91,7 @@ export interface UserRequestAttributes {
   id: number
   reviewerId: number | null
   subscriberId: number
-  subscription: ISpecialMembershipAccessAttributes | null
+  subscription: SubscriptionDatasetAttributes | null
   dateCreated: Date
   dateLastModified: Date
   status: (typeof AvailableStatuses)[number]
@@ -105,7 +105,7 @@ export default class UserRequest {
   id: number
   reviewerId: number | null
   subscriberId: number
-  subscription: ISpecialMembershipAccessAttributes | null
+  subscription: SubscriptionDatasetAttributes | null
   dateCreated: Date
   dateLastModified: Date
   status: (typeof AvailableStatuses)[number]
@@ -179,7 +179,7 @@ export default class UserRequest {
         tableName: 'impresso_userspecialmembershiprequest',
       }
     )
-    userRequest.belongsTo(SpecialMembershipAccess.initialize(client), {
+    userRequest.belongsTo(SubscriptionDataset.sequelize(client), {
       foreignKey: 'subscriptionId',
       as: 'subscription',
     })

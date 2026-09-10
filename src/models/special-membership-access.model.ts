@@ -38,13 +38,6 @@ export default class SpecialMembershipAccess extends Model<
   declare requests?: UserSpecialMembershipRequest[]
 
   static initialize(sequelize: Sequelize) {
-    const existingModel = sequelize.models.SpecialMembershipAccess as
-      | ReturnType<typeof SpecialMembershipAccess.init>
-      | undefined
-    if (existingModel) {
-      return existingModel
-    }
-
     const model = SpecialMembershipAccess.init(
       {
         id: {

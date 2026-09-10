@@ -1,4 +1,5 @@
 import { DataTypes, ModelDefined, Sequelize } from 'sequelize'
+import SubscriptionDataset, { type SubscriptionDatasetAttributes } from '@/models/subscription-datasets.model.js'
 import { bigIntToBuffer, bufferToBigInt } from '@/util/bigint.js'
 
 export interface UserBitmapAttributes {
@@ -6,6 +7,7 @@ export interface UserBitmapAttributes {
   user_id: number
   bitmap: bigint
   dateAcceptedTerms: Date | null
+  subscriptionDatasets?: SubscriptionDatasetAttributes[]
 }
 
 // Define the creation attributes for the Group model
@@ -21,15 +23,40 @@ export default class UserBitmap {
   user_id: number
   bitmap: bigint
   dateAcceptedTerms: Date | null
+  subscriptionDatasets?: SubscriptionDatasetAttributes[]
 
-  constructor({ id = 0, user_id = 0, bitmap = BufferUserPlanGuest, dateAcceptedTerms = null }: UserBitmapAttributes) {
+  constructor({
+    id = 0,
+    user_id = 0,
+    bitmap = BufferUserPlanGuest,
+    dateAcceptedTerms = null,
+    subscriptionDatasets = [],
+  }: UserBitmapAttributes) {
     this.id = id
     this.user_id = user_id
     this.bitmap = bitmap
     this.dateAcceptedTerms = dateAcceptedTerms
+    this.subscriptionDatasets = subscriptionDatasets
   }
 
   static sequelize(client: Sequelize) {
+    const subscriptionDataset = SubscriptionDataset.sequelize(client)
+    const userBitmapSubscriptionDataset = client.define(
+      'userBitmapSubscriptionDataset',
+      {
+        userBitmapId: {
+          type: DataTypes.INTEGER,
+          field: 'userbitmap_id',
+        },
+        subscriptionDatasetId: {
+          type: DataTypes.INTEGER,
+          field: 'datasetbitmapposition_id',
+        },
+      },
+      {
+        tableName: 'impresso_userbitmap_subscriptions',
+      }
+    )
     const userBitmap: ModelDefined<UserBitmapAttributes, UserBitmapCreationAttributes> = client.define(
       'userBitmap',
       {
@@ -65,11 +92,29 @@ export default class UserBitmap {
       },
       {
         tableName: 'impresso_userbitmap',
+        defaultScope: {
+          include: [
+            {
+              model: subscriptionDataset,
+              as: 'subscriptionDatasets',
+            },
+          ],
+        },
       }
     )
+    userBitmap.belongsToMany(subscriptionDataset, {
+      through: userBitmapSubscriptionDataset,
+      foreignKey: 'userBitmapId',
+      otherKey: 'subscriptionDatasetId',
+      as: 'subscriptionDatasets',
+    })
 
     userBitmap.prototype.toJSON = function () {
-      return new UserBitmap(this.get() as UserBitmapAttributes)
+      const userBitmap = this.get() as UserBitmapAttributes
+      return new UserBitmap({
+        ...userBitmap,
+        subscriptionDatasets: (userBitmap.subscriptionDatasets ?? []).map((dataset: any) => dataset.toJSON()),
+      })
     }
 
     return userBitmap

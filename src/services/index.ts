@@ -52,6 +52,7 @@ import articlesRecommendations from './articles-recommendations/articles-recomme
 // import articlesSearch from './articles-search/articles-search.service.js'
 // import entitiesSuggestions from './entities-suggestions/entities-suggestions.service.js'
 import entityMentionsTimeline from './entity-mentions-timeline/entity-mentions-timeline.service.js'
+import subscriptions from './subscriptions/subscriptions.service.js'
 import textReuseConnectedClusters from './text-reuse-connected-clusters/text-reuse-connected-clusters.service.js'
 import passwordReset from './password-reset/password-reset.service.js'
 import changePassword from './change-password/change-password.service.js'
@@ -131,6 +132,7 @@ const internalApiServices = [
   // { name: 'articles-search', init: articlesSearch },
   // { name: 'entities-suggestions', init: entitiesSuggestions },
   { name: 'entity-mentions-timeline', init: entityMentionsTimeline },
+  { name: 'subscriptions', init: subscriptions },
   { name: 'text-reuse-connected-clusters', init: textReuseConnectedClusters },
   { name: 'password-reset', init: passwordReset },
   { name: 'change-password', init: changePassword },

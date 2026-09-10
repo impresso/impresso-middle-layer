@@ -110,11 +110,12 @@ describe('Test the connection with the DB', async () => {
     assert.ok(expected.test(binaryString), 'The binary string contains invalid characters')
   })
 
-  it('should get user bitmap by user id', async () => {
+  it('should get user subscription through its bitmap', async () => {
     const userBitmapModel = UserBitmap.sequelize(sequelizeClient)
 
     userBitmapModel.findOne({ where: { user_id: userId } }).then(userBitmap => {
-      assert.notEqual(userBitmap, null, 'The user bitmap is null')
+      const userBitmapa = userBitmap as any as UserBitmap
+      logger(`User subscriptions:\n - ${userBitmapa.subscriptionDatasets?.map(d => d.name).join('\n - ')}`)
     })
   })
 })
