@@ -24,6 +24,9 @@ services:
   socks-proxy:
     image: kroniak/ssh-client
     restart: always
+    profiles:
+      # Only active when running `docker-compose --profile socks-proxy up`
+      - socks-proxy
     volumes:
       - ./docker/config/ssh:/root/.ssh
     ports:
