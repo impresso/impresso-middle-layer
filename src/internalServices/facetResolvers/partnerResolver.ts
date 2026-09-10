@@ -1,6 +1,6 @@
 import { IResolver } from '@/internalServices/cachedResolvers.js'
 import { ImpressoApplication } from '@/types.js'
-import { Partner } from '@/models/generated/canonical.js'
+import { Partner } from '@/models/generated/entities.js'
 import { getPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import type { PartnerInstitutionDirectoryEntry } from '@/internalServices/partnerInstitutionsDirectory.js'
 

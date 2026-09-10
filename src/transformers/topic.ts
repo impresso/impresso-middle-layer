@@ -1,5 +1,5 @@
 import { InternalTopic } from '@/models/generated/deprecated/models.js'
-import { Topic as TopicPublic } from '@/models/generated/canonical.js'
+import { Topic as TopicPublic } from '@/models/generated/entities.js'
 
 export const transformTopic = (input: InternalTopic): TopicPublic => {
   const { id, language, contentItemsCount, words, model } = input

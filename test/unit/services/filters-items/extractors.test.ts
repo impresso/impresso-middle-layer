@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert'
-import type { MediaSource } from '@/models/generated/canonical.js'
+import type { MediaSource } from '@/models/generated/entities.js'
 import type { ImpressoApplication } from '@/types.js'
 import {
   daterangeExtractor,

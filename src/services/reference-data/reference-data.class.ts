@@ -1,6 +1,6 @@
 import type { Params } from '@feathersjs/feathers'
 import { stringify } from 'csv-stringify/sync'
-import type { DataProvider, MediaSource } from '@/models/generated/canonical.js'
+import type { DataProvider, MediaSource } from '@/models/generated/entities.js'
 import type { DataProviders } from '@/services/data-providers/data-providers.class.js'
 import type { MediaSources } from '@/services/media-sources/media-sources.class.js'
 
@@ -11,7 +11,7 @@ export interface CsvExportRow {
 
 export type CsvExportRowLoader = () => Promise<CsvExportRow[]>
 
-// types partially mentioned here: https://github.com/impresso/impresso-schemas/blob/master/json/canonical/issue.schema.json#L326-L336
+// types partially mentioned here: https://github.com/impresso/impresso-schemas/blob/master/json/entities/issue.schema.json#L326-L336
 // TODO: reference a more complete source
 const ContentItemTypeExpansions: Record<string, string> = {
   ad: 'advertisement',

@@ -36,14 +36,14 @@ import {
   ContentItem,
   ContentItemPage,
   Collection as ContentItemCollection,
-} from '@/models/generated/canonical/contentItem.js'
+} from '@/models/generated/entities/contentItem.js'
 import { ContentItemDbModel } from '@/models/content-item.model.js'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '@/models/content-item-page.model.js'
 import { mapRecordValues } from '@/util/fn.js'
 import { NotFound } from '@feathersjs/errors'
-import { Collection } from '@/models/generated/canonical.js'
+import { Collection } from '@/models/generated/entities.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
-import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/external/solr/ContentItem.js'
+import { AudioFields, PaperFields, SemanticEnrichmentsFields } from '@/models/consolidated/solr/index.js'
 import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
@@ -58,7 +58,7 @@ const DefaultLimit = 10
  * The fields below must be expanded to object from JSON.
  */
 type ExpansionFields =
-  | keyof Pick<ImageFields, 'pp_plain' | 'lb_plain' | 'pb_plain' | 'rb_plain'>
+  | keyof Pick<PaperFields, 'pp_plain' | 'lb_plain' | 'pb_plain' | 'rb_plain'>
   | keyof Pick<AudioFields, 'rreb_plain'>
   | keyof Pick<SemanticEnrichmentsFields, 'nem_offset_plain' | 'nag_offset_plain'>
 const JSONExpansionFields = [
@@ -678,7 +678,9 @@ export class ContentItemService implements IContentItemService {
       fl: isTrue(params.query?.include_embeddings) ? GetMethodFieldsWithEmbeddings : GetMethodFields,
     })
 
-    const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
+    // `get` requests the full field list (`GetMethodFields`), so the documents come
+    // back with the full content only fields that `SlimDocumentFields` omits.
+    const solrRequest = this.solr.select<AllDocumentFields>(this.solr.namespaces.Search, {
       body: request,
     })
     const dbPagesRequest = this._findPages([id])

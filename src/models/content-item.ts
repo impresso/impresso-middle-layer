@@ -2,15 +2,25 @@
  * Solr Content Item Model
  */
 
+// import type {
+//   AccessRightFields,
+//   ContentItemCore,
+//   ContextualMetadataFields,
+//   ImageFields,
+//   SemanticEnrichmentsFields,
+//   AudioFields,
+// } from './generated/external/solr/ContentItem.js'
+
 import type {
   AccessRightFields,
-  ContentItemCore,
+  CoreFields as ContentItemCore,
   ContextualMetadataFields,
-  ImageFields,
+  PaperFields as ImageFields,
   SemanticEnrichmentsFields,
   AudioFields,
-} from './generated/external/solr/ContentItem.js'
-import type { LanguageCode, TextContentFields } from './solr.js'
+} from './consolidated/solr/index.js'
+
+import type { LanguageCode, TextContentFieldsWithLanguageSpecificFields as TextContentFields } from './solr.js'
 
 import type {
   ContentItem,
@@ -19,7 +29,7 @@ import type {
   ContentItemMention,
   ContentItemNamedEntity,
   ContentItemTopic,
-} from './generated/canonical/contentItem.js'
+} from './generated/entities/contentItem.js'
 import { bigIntToBase64Bytes, OpenPermissions } from '@/util/bigint.js'
 import { asList, asNumberArray, parseDPFS, toPairs } from '@/util/solr/transformers.js'
 import { setDifference } from '@/util/fn.js'
@@ -230,14 +240,14 @@ const parseMentionsOffsets = (field?: MentionsOffsets[] | string[]): MentionsOff
   }, {} as MentionsOffsets)
 }
 
-const parseContentItemEntityDPFS = (dpfs?: string[]): ContentItemNamedEntity[] => {
+const parseContentItemEntityDPFS = (dpfs?: string[] | null): ContentItemNamedEntity[] => {
   return parseDPFS(
     ([id, count]) => ({
       id,
       count: parseInt(count, 10),
       label: getNameFromId(id),
     }),
-    dpfs
+    dpfs ?? undefined
   )
 }
 
@@ -252,14 +262,14 @@ const parseContentItemTopicDPFS = (dpfs?: string[]): Pick<ContentItemTopic, 'id'
 }
 
 const parseContentItemMentionDPFS = (
-  dpfs?: string[]
+  dpfs?: string[] | null
 ): Pick<ContentItemMention, 'surfaceForm' | 'mentionConfidence'>[] => {
   return parseDPFS(
     ([id, count]) => ({
       surfaceForm: id,
       mentionConfidence: parseFloat(count),
     }),
-    dpfs
+    dpfs ?? undefined
   )
 }
 
@@ -421,7 +431,7 @@ export const toContentItem = (
       }),
     },
     semanticEnrichments: {
-      ocrQuality: doc.ocrqa_f,
+      ocrQuality: doc.ocrqa_f == null ? undefined : doc.ocrqa_f,
       ...(namedEntities != null ? { namedEntities } : {}),
       ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),

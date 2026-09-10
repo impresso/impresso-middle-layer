@@ -6,8 +6,8 @@ import { Filter } from '@/models/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { PublicFindResponse } from '@/models/common.js'
 import { ImageUrlRewriteRule } from '@/models/generated/app/configuration.js'
-import { Image, MediaSource } from '@/models/generated/canonical.js'
-import type { Image as ImageDocument } from '@/models/generated/external/solr.js'
+import { Image, MediaSource } from '@/models/generated/entities.js'
+import type { Image as ImageDocument } from '@/models/consolidated/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
 import { ImpressoApplication } from '@/types.js'
 import { getV3CompatibleIIIFUrl, sanitizeIiifImageUrl } from '@/util/iiif.js'
@@ -225,9 +225,9 @@ const toImage = (
     id: doc.id!,
     ...(doc.linked_ci_s != null ? { contentItemId: doc.linked_ci_s } : {}),
     issueId: doc.meta_issue_id_s!,
-    previewUrl: getV3CompatibleIIIFUrl(sanitizeIiifImageUrl(doc.iiif_link_s! ?? doc.iiif_url_s!, rewriteRules))!,
+    previewUrl: getV3CompatibleIIIFUrl(sanitizeIiifImageUrl(doc.iiif_url_s, rewriteRules))!,
     date: doc.meta_date_dt!,
-    ...(doc.caption_txt != null ? { caption: doc.caption_txt.join('\n') } : {}),
+    ...(doc.caption_txt != null ? { caption: doc.caption_txt?.join('\n') } : {}),
     ...(doc.page_nb_is != null ? { pageNumbers: doc.page_nb_is } : {}),
     mediaSourceRef: {
       id: doc.meta_journal_s!,

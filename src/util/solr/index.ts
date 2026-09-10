@@ -71,7 +71,7 @@ const wrapAsFilter = (q: string) => {
  * Return Solr query string and referenced variables for a set of filters.
  * @deprecated Use `buildSolrQuery` instead.
  *
- * @param {Array<object>} filters a list of filters of type `src/schema/canonical/Filter.json`.
+ * @param {Array<object>} filters a list of filters of type `src/schema/entities/Filter.json`.
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  */
 export function filtersToQueryAndVariables(
