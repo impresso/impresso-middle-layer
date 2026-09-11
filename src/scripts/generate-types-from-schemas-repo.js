@@ -1,10 +1,10 @@
 /**
- * Generates TypeScript types from JSON schemas hosted in the
- * https://github.com/impresso/impresso-schemas repository.
+ * Generates TypeScript types from the JSON schemas in the local
+ * `impresso-schemas` git submodule.
  *
- * Schemas are downloaded from a given branch into a temporary mirror that
+ * Schemas are read from the submodule and copied into a temporary mirror that
  * preserves the repository directory layout, so relative `$ref`s between
- * schema files keep resolving. Every referenced schema is fetched
+ * schema files keep resolving. Every referenced schema is mirrored
  * recursively, not only the ones explicitly listed.
  *
  * Usage: node src/scripts/generate-types-from-schemas-repo.js
@@ -12,25 +12,28 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { compileFromFile } from 'json-schema-to-typescript'
 
-const REPO = 'impresso/impresso-schemas'
+/**
+ * Root of the local `impresso-schemas` git submodule, resolved relative to this
+ * script so the generator works from any working directory.
+ */
+const SCHEMAS_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../..',
+  'impresso-schemas'
+)
 
 const banner = `
 /* eslint-disable */
 /**
- * This file was automatically generated from the ${REPO} repository
- * by src/scripts/generate-types-from-schemas-repo.js.
+ * This file was automatically generated from the local impresso-schemas
+ * submodule by src/scripts/generate-types-from-schemas-repo.js.
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run \`npm run generate-types-from-schemas-repo\` to regenerate this file.
  */
 `
-
-const rawUrl = (branch, filePath) =>
-  `https://raw.githubusercontent.com/${REPO}/${encodeURIComponent(branch)}/${filePath
-    .split('/')
-    .map(encodeURIComponent)
-    .join('/')}`
 
 /**
  * Base URL the schemas publish themselves under (GitHub Pages). It mirrors the
@@ -90,30 +93,28 @@ const rewriteRefs = (node, fromFilePath, refs) => {
 }
 
 /**
- * Download `filePath` and everything it references (transitively) into `targetDir`,
- * keeping the repository directory layout.
+ * Copy `filePath` and everything it references (transitively) from the local
+ * `impresso-schemas` submodule into `targetDir`, keeping the repository layout.
  *
- * @param {string} branch
+ * @param {string} schemasRoot path of the local schemas repository
  * @param {string} filePath repo relative path
  * @param {string} targetDir
- * @param {Set<string>} downloaded paths already fetched, mutated in place
+ * @param {Set<string>} mirrored paths already copied, mutated in place
  */
-async function downloadSchema(branch, filePath, targetDir, downloaded) {
-  if (downloaded.has(filePath)) return
-  downloaded.add(filePath)
+async function mirrorSchema(schemasRoot, filePath, targetDir, mirrored) {
+  if (mirrored.has(filePath)) return
+  mirrored.add(filePath)
 
-  const url = rawUrl(branch, filePath)
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Could not download ${url}: ${response.status} ${response.statusText}`)
+  const sourcePath = path.join(schemasRoot, filePath)
+  if (!fs.existsSync(sourcePath)) {
+    throw new Error(`Could not find ${sourcePath} in the impresso-schemas submodule`)
   }
-  const content = await response.text()
 
   let schema
   try {
-    schema = JSON.parse(content)
+    schema = JSON.parse(fs.readFileSync(sourcePath, 'utf8'))
   } catch (e) {
-    throw new Error(`Could not parse ${url} as JSON: ${e.message}`)
+    throw new Error(`Could not parse ${sourcePath} as JSON: ${e.message}`)
   }
 
   const refs = new Set()
@@ -124,7 +125,7 @@ async function downloadSchema(branch, filePath, targetDir, downloaded) {
   fs.writeFileSync(localPath, JSON.stringify(rewritten, null, 2))
 
   for (const ref of refs) {
-    await downloadSchema(branch, ref, targetDir, downloaded)
+    await mirrorSchema(schemasRoot, ref, targetDir, mirrored)
   }
 }
 
@@ -233,21 +234,21 @@ const mergeDeclarations = tsContents => {
 
 /**
  * Generate a single TypeScript declaration file out of a set of JSON schemas
- * taken from a branch of the impresso-schemas repository.
+ * taken from the local impresso-schemas submodule.
  *
- * @param {string} branch branch (or tag / commit ref) of the schemas repository
+ * @param {string} schemasRoot path of the local schemas repository
  * @param {string[]} files schema paths relative to the root of the schemas repository
  * @param {string} destinationFile path of the `.d.ts` file to write
  */
-export async function generateTypes(branch, files, destinationFile) {
+export async function generateTypes(schemasRoot, files, destinationFile) {
   // eslint-disable-next-line no-console
-  console.log(`Generating ${destinationFile} from ${files.length} schema(s) of ${REPO}@${branch}...`)
+  console.log(`Generating ${destinationFile} from ${files.length} schema(s) of the local impresso-schemas submodule...`)
 
   const targetDir = fs.mkdtempSync(path.join(os.tmpdir(), 'impresso-schemas-'))
   try {
-    const downloaded = new Set()
+    const mirrored = new Set()
     for (const file of files) {
-      await downloadSchema(branch, file, targetDir, downloaded)
+      await mirrorSchema(schemasRoot, file, targetDir, mirrored)
     }
 
     const tsContents = []
@@ -263,17 +264,15 @@ export async function generateTypes(branch, files, destinationFile) {
     fs.mkdirSync(path.dirname(destinationFile), { recursive: true })
     fs.writeFileSync(destinationFile, [banner, mergeDeclarations(tsContents)].join('\n\n'))
     // eslint-disable-next-line no-console
-    console.log(`  wrote ${destinationFile} (${downloaded.size} schema file(s) downloaded)`)
+    console.log(`  wrote ${destinationFile} (${mirrored.size} schema file(s) copied)`)
   } finally {
     fs.rmSync(targetDir, { recursive: true, force: true })
   }
 }
 
 async function generateAll() {
-  const branch = '86-organize-json-schemas-by-data-phase'
-
   await generateTypes(
-    branch,
+    SCHEMAS_ROOT,
     [
       'json/impresso-2/solr-indexing/content-item/content-item.part.access-rights.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.text.paper.v1.schema.json',
@@ -288,7 +287,7 @@ async function generateAll() {
   )
 
   await generateTypes(
-    branch,
+    SCHEMAS_ROOT,
     [
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.topics.v1.schema.json',
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.part.tr-passages.v1.schema.json',

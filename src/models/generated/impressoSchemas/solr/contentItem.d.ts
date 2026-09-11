@@ -1,8 +1,8 @@
 
 /* eslint-disable */
 /**
- * This file was automatically generated from the impresso/impresso-schemas repository
- * by src/scripts/generate-types-from-schemas-repo.js.
+ * This file was automatically generated from the local impresso-schemas
+ * submodule by src/scripts/generate-types-from-schemas-repo.js.
  * DO NOT MODIFY IT BY HAND. Instead, modify the source JSONSchema file,
  * and run `npm run generate-types-from-schemas-repo` to regenerate this file.
  */
