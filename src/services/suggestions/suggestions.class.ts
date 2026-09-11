@@ -14,7 +14,7 @@ import type { Params } from '@feathersjs/feathers'
 
 import type { SlimUser } from '@/authentication.js'
 import type { SuggestEntry } from '@/internalServices/simpleSolr.js'
-import { Collection } from '@/models/generated/entities.js'
+import { Collection } from '@/models/generated/app/entities.js'
 import { Newspaper as INewspaper } from '@/models/generated/deprecated/models.js'
 import Mention from '@/models/mentions.model.js'
 import {

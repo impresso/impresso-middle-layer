@@ -210,7 +210,7 @@ export interface WikidataPerson {
    */
   labels?: {
     /**
-     * Description of the person in a specific language
+     * Label of the person in a specific language
      */
     [k: string]: string;
   };
@@ -251,7 +251,7 @@ export interface WikidataLocation {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };
@@ -292,7 +292,7 @@ export interface WikidataLocation1 {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };
@@ -333,7 +333,7 @@ export interface WikidataLocation2 {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };
@@ -400,7 +400,7 @@ export interface Filter {
   context?: "include" | "exclude";
   op?: "AND" | "OR";
   /**
-   * Possible values are in 'impresso-jscomons Filter.type'
+   * Possible values are in 'impresso-jscommons Filter.type'
    */
   type: string;
   precision?: "fuzzy" | "soft" | "exact" | "partial";
@@ -489,6 +489,51 @@ export interface Image {
    * Precomputed embeddings for the image in the format: <model_type>:<base64_embedding_vector>.
    */
   embeddings?: string[];
+  access: ContentItemAccessRights;
+}
+/**
+ * Access rights information
+ */
+export interface ContentItemAccessRights {
+  /**
+   * Rights data domain. (e.g., 'pbl' for public, 'prt' for private)
+   */
+  dataDomain: "pbl" | "prt";
+  /**
+   * Human-readable label for the dataDomain code.
+   */
+  dataDomainLabel?: string;
+  /**
+   * Copyright status.
+   */
+  copyright: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
+  /**
+   * Human-readable label for the copyright code.
+   */
+  copyrightLabel?: string;
+  accessBitmaps?: ContentItemAccessBitmaps;
+  [k: string]: unknown;
+}
+/**
+ * Access bitmaps for different functionalities.
+ */
+export interface ContentItemAccessBitmaps {
+  /**
+   * Bitmap for explore access. As bytes.
+   */
+  explore?: string;
+  /**
+   * Bitmap for get transcript access. As bytes.
+   */
+  getTranscript?: string;
+  /**
+   * Bitmap for get images access. As bytes.
+   */
+  getImages?: string;
+  /**
+   * Bitmap for get audio access. As bytes.
+   */
+  getAudio?: string;
 }
 
 
@@ -646,7 +691,7 @@ export interface MediaSource {
    */
   publishedPeriodYears?: [number, number];
   /**
-   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.  Is not defined if there are no content items for this source.
+   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the content items.  Is not defined if there are no content items for this source.
    *
    * @minItems 2
    * @maxItems 2
@@ -666,20 +711,21 @@ export interface MediaSource {
      */
     pages?: number;
   };
-  properties?: {
-    /**
-     * The unique identifier of the property.
-     */
-    id: string;
-    /**
-     * The name of the property.
-     */
-    label: string;
-    /**
-     * The value of the property.
-     */
-    value: string;
-  }[];
+  properties?: MediaSourceProperty[];
+}
+export interface MediaSourceProperty {
+  /**
+   * The unique identifier of the property.
+   */
+  id: string;
+  /**
+   * The name of the property.
+   */
+  label: string;
+  /**
+   * The value of the property.
+   */
+  value: string;
 }
 
 
@@ -752,7 +798,7 @@ export interface MediaSource {
    */
   publishedPeriodYears?: [number, number];
   /**
-   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.  Is not defined if there are no content items for this source.
+   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the content items.  Is not defined if there are no content items for this source.
    *
    * @minItems 2
    * @maxItems 2
@@ -772,20 +818,21 @@ export interface MediaSource {
      */
     pages?: number;
   };
-  properties?: {
-    /**
-     * The unique identifier of the property.
-     */
-    id: string;
-    /**
-     * The name of the property.
-     */
-    label: string;
-    /**
-     * The value of the property.
-     */
-    value: string;
-  }[];
+  properties?: MediaSourceProperty[];
+}
+export interface MediaSourceProperty {
+  /**
+   * The unique identifier of the property.
+   */
+  id: string;
+  /**
+   * The name of the property.
+   */
+  label: string;
+  /**
+   * The value of the property.
+   */
+  value: string;
 }
 /**
  * Collection details.
@@ -1097,7 +1144,7 @@ export interface WikidataLocation {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };
@@ -1140,7 +1187,7 @@ export interface WikidataPerson {
    */
   labels?: {
     /**
-     * Description of the person in a specific language
+     * Label of the person in a specific language
      */
     [k: string]: string;
   };
@@ -1181,7 +1228,7 @@ export interface WikidataLocation {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };
@@ -1222,7 +1269,7 @@ export interface WikidataLocation1 {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };

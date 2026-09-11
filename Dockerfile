@@ -4,6 +4,8 @@ WORKDIR /impresso-middle-layer
 
 COPY package-lock.json package.json tsconfig.json ./
 
+COPY impresso-schemas ./impresso-schemas
+
 RUN npm install
 
 FROM node:24-alpine AS runner
@@ -19,6 +21,8 @@ COPY package-lock.json package.json tsconfig.json ./
 COPY --from=builder /impresso-middle-layer/node_modules/ ./node_modules/
 
 COPY src ./src
+
+COPY impresso-schemas ./impresso-schemas
 
 COPY public ./public
 

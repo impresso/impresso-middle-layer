@@ -3,7 +3,7 @@ import { newAjvInstance } from '@/util/json.js'
 import { authenticate } from '@/hooks/authenticate.js'
 
 const validationInstance = newAjvInstance([
-  ['schema/entities/Filter.json', 'schema/entities/Filter.json'],
+  ['schema/app/entities/Filter.json', 'schema/app/entities/Filter.json'],
   ['services/articles-search/schema/create/payload.json', 'request'],
 ])
 

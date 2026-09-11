@@ -93,7 +93,7 @@ export interface Config {
   /**
    * Configuration for the user email verification service
    */
-  emailVerification: {
+  emailVerification?: {
     /**
      * Expiration time for email verification tokens in seconds
      */

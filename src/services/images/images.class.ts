@@ -6,7 +6,7 @@ import { Filter } from '@/models/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { PublicFindResponse } from '@/models/common.js'
 import { ImageUrlRewriteRule } from '@/models/generated/app/configuration.js'
-import { Image, MediaSource } from '@/models/generated/entities.js'
+import { Image, MediaSource } from '@/models/generated/app/entities.js'
 import type { Image as ImageDocument } from '@/models/consolidated/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
 import { ImpressoApplication } from '@/types.js'
@@ -15,6 +15,7 @@ import { isTrue } from '@/util/queryParameters.js'
 import { buildSolrQuery, SolrQueryNode } from '@/util/solr/queryBuilder.js'
 import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
+import { bigIntToBase64Bytes, OpenPermissions } from '@/util/bigint.js'
 
 const DefaultLimit = 10
 export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024' satisfies keyof ImageDocument
@@ -205,6 +206,14 @@ const toTypes = (doc: ImageDocument): Image['imageTypes'] => {
   return Object.keys(types).length > 0 ? types : undefined
 }
 
+const toDataDomain = (value: string | undefined): Image['access']['dataDomain'] =>
+  value === 'pbl' || value === 'prt' ? value : 'prt'
+
+const toCopyright = (value: string | undefined): Image['access']['copyright'] =>
+  value === 'pbl' || value === 'und' || value === 'nkn' || value === 'euo' || value === 'unk' || value === 'in_cpy'
+    ? value
+    : 'und'
+
 const toImage = (
   doc: ImageDocument,
   mediaSources: Record<string, MediaSource>,
@@ -242,5 +251,14 @@ const toImage = (
       getImages: BigInt(doc.rights_bm_get_img_l ?? 0),
       getTranscript: BigInt(doc.rights_bm_get_tr_l ?? 0),
     } satisfies AuthorizationBitmapsDTO,
+    access: {
+      copyright: toCopyright(doc.rights_copyright_s),
+      dataDomain: toDataDomain(doc.rights_data_domain_s),
+      accessBitmaps: {
+        explore: bigIntToBase64Bytes(BigInt(doc.rights_bm_explore_l ?? OpenPermissions)),
+        getTranscript: bigIntToBase64Bytes(BigInt(doc.rights_bm_get_tr_l ?? OpenPermissions)),
+        getImages: bigIntToBase64Bytes(BigInt(doc.rights_bm_get_img_l ?? OpenPermissions)),
+      },
+    },
   } satisfies Image
 }

@@ -1,7 +1,7 @@
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { TextReusePassage as TextReusePassageInternal } from '@/models/generated/deprecated/models.js'
 import { TextReuseClusterCompound } from '@/models/generated/deprecated/models.js'
-import { TextReusePassage as TextReusePassagePublic, TextReuseCluster } from '@/models/generated/entities.js'
+import { TextReusePassage as TextReusePassagePublic, TextReuseCluster } from '@/models/generated/app/entities.js'
 import { OpenPermissions } from '@/util/bigint.js'
 
 export const transformTextReusePassage = (input: TextReusePassageInternal): TextReusePassagePublic => {

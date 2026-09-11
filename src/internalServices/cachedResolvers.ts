@@ -11,9 +11,9 @@ import {
   Collection as ICollection,
   Partner as IPartner,
   MediaSource as IMediaSource,
-} from '@/models/generated/entities.js'
+} from '@/models/generated/app/entities.js'
 import { InternalTopic } from '@/models/generated/deprecated/models.js'
-import { FacetWithLabel } from '@/models/generated/entities.js'
+import { FacetWithLabel } from '@/models/generated/app/entities.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
 export type CachedFacetType =

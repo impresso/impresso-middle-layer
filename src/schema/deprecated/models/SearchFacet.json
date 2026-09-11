@@ -18,7 +18,7 @@
       "oneOf": [
         {
           "type": "array",
-          "items": { "$ref": "../../entities/SearchFacetBucket.json" }
+          "items": { "$ref": "../../app/entities/SearchFacetBucket.json" }
         },
         {
           "type": "array",

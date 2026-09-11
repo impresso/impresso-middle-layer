@@ -1,5 +1,5 @@
 import { findIndex, take } from 'lodash-es'
-import { Topic as ITopic, TopicWord as ITopicWord } from '@/models/generated/entities.js'
+import { Topic as ITopic, TopicWord as ITopicWord } from '@/models/generated/app/entities.js'
 import type { Topic as ISolrTopic } from '@/models/consolidated/solr/index.js'
 
 class TopicWord implements ITopicWord {

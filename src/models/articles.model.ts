@@ -13,7 +13,7 @@ import Issue from '@/models/issues.model.js'
 import Newspaper from '@/models/newspapers.model.js'
 import Page from '@/models/pages.model.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
-import { ContentItemTextMatch } from '@/models/generated/entities/contentItem.js'
+import { ContentItemTextMatch } from '@/models/generated/app/entities/contentItem.js'
 
 const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
 

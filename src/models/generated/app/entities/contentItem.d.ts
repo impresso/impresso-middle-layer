@@ -94,7 +94,7 @@ export interface ContentItemMeta {
   /**
    * Media title alias. Usually a 3 letter code of the media title (newspaper, radio station, etc.).
    */
-  mediaId?: string;
+  mediaId: string;
   /**
    * Human-readable title of the media source identified by mediaId.
    */
@@ -441,17 +441,23 @@ export interface ContentItemAudioRecord {
   audioFileUrl?: string;
 }
 /**
- * Content item audio locator. Links location of a segement in text with location in audio.
+ * Content item audio locator. Links location of a segment in text with location in audio.
  */
 export interface ContentItemAudioLocator {
   /**
    * Represents the start offset and the length of the audio segment in seconds.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  timeCode?: number[];
+  timeCode?: [number, number];
   /**
    * Represents the character offset and length of the audio segment in the content item text.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  textLocation?: number[];
+  textLocation?: [number, number];
   /**
    * Represents the index of the utterance in the audio file this audio segment belongs to. May not be provided if no utterance information is available.
    */
@@ -616,17 +622,23 @@ export interface ContentItemAudioRecord {
   audioFileUrl?: string;
 }
 /**
- * Content item audio locator. Links location of a segement in text with location in audio.
+ * Content item audio locator. Links location of a segment in text with location in audio.
  */
 export interface ContentItemAudioLocator {
   /**
    * Represents the start offset and the length of the audio segment in seconds.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  timeCode?: number[];
+  timeCode?: [number, number];
   /**
    * Represents the character offset and length of the audio segment in the content item text.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  textLocation?: number[];
+  textLocation?: [number, number];
   /**
    * Represents the index of the utterance in the audio file this audio segment belongs to. May not be provided if no utterance information is available.
    */
@@ -635,17 +647,23 @@ export interface ContentItemAudioLocator {
 
 
 /**
- * Content item audio locator. Links location of a segement in text with location in audio.
+ * Content item audio locator. Links location of a segment in text with location in audio.
  */
 export interface ContentItemAudioLocator {
   /**
    * Represents the start offset and the length of the audio segment in seconds.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  timeCode?: number[];
+  timeCode?: [number, number];
   /**
    * Represents the character offset and length of the audio segment in the content item text.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  textLocation?: number[];
+  textLocation?: [number, number];
   /**
    * Represents the index of the utterance in the audio file this audio segment belongs to. May not be provided if no utterance information is available.
    */
@@ -675,17 +693,23 @@ export interface ContentItemAudioRecord {
   audioFileUrl?: string;
 }
 /**
- * Content item audio locator. Links location of a segement in text with location in audio.
+ * Content item audio locator. Links location of a segment in text with location in audio.
  */
 export interface ContentItemAudioLocator {
   /**
    * Represents the start offset and the length of the audio segment in seconds.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  timeCode?: number[];
+  timeCode?: [number, number];
   /**
    * Represents the character offset and length of the audio segment in the content item text.
+   *
+   * @minItems 2
+   * @maxItems 2
    */
-  textLocation?: number[];
+  textLocation?: [number, number];
   /**
    * Represents the index of the utterance in the audio file this audio segment belongs to. May not be provided if no utterance information is available.
    */
@@ -798,7 +822,7 @@ export interface ContentItemMeta {
   /**
    * Media title alias. Usually a 3 letter code of the media title (newspaper, radio station, etc.).
    */
-  mediaId?: string;
+  mediaId: string;
   /**
    * Human-readable title of the media source identified by mediaId.
    */

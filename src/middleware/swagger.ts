@@ -27,7 +27,7 @@ const resolveSchemaBaseDir = (): string => {
     path.join(process.cwd(), 'schema'),
   ]
 
-  const matchingCandidate = candidates.find(dir => fs.existsSync(path.join(dir, 'entities')))
+  const matchingCandidate = candidates.find(dir => fs.existsSync(path.join(dir, 'app', 'entities')))
   if (matchingCandidate != null) {
     return matchingCandidate
   }
@@ -65,9 +65,9 @@ const ensureRequiredSchemas = (schemas: SchemaRefs): SchemaRefs => {
   const result = { ...schemas }
 
   if (result.ContentItem == null) {
-    const contentItemSchemaPath = path.join(schemaBaseDir, 'entities/contentItem/ContentItem.json')
+    const contentItemSchemaPath = path.join(schemaBaseDir, 'app/entities/contentItem/ContentItem.json')
     if (fs.existsSync(contentItemSchemaPath)) {
-      result.ContentItem = { $ref: './schema/entities/contentItem/ContentItem.json' }
+      result.ContentItem = { $ref: './schema/app/entities/contentItem/ContentItem.json' }
       logger.error('Recovered missing Swagger component schema: ContentItem')
     }
   }
@@ -124,8 +124,8 @@ export default (app: ImpressoApplication & Application) => {
   const prefix = app.get('publicApiPrefix')
   const schemas = ensureRequiredSchemas({
     // canonical schemas
-    ...getFilesAsSchemaRefs(`${schemaBaseDir}/entities`, './schema/entities', true),
-    ...getFilesAsSchemaRefs(`${schemaBaseDir}/entities/contentItem`, './schema/entities/contentItem', true),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/entities`, './schema/app/entities', true),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/entities/contentItem`, './schema/app/entities/contentItem', true),
     // app specific schemas
     ...getFilesAsSchemaRefs(`${schemaBaseDir}/app`, './schema/app'),
     ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),
