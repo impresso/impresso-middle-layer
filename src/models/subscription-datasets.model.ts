@@ -4,9 +4,6 @@ export interface SubscriptionDatasetAttributes {
   id: number
   reviewerId?: number | null
   name: string
-  fullname?: string | null
-  countryCode?: string | null
-  dataProviderAlias?: string | null
   bitmapPosition: number
   fullname?: string | null
   countryCode?: string | null
