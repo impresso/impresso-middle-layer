@@ -73,6 +73,10 @@ export class WorkerManagerService {
     const connectionOptions: any = {
       host: this.redisConfig.host || 'localhost',
       port: this.redisConfig.port || 6379,
+      // Pin RESP2: BullMQ 6.x reads XREAD replies in RESP2 shape and crashes
+      // (QueueEvents "Cannot read properties of undefined (reading 'length')")
+      // under ioredis 6's RESP3-by-default protocol.
+      protocol: 2,
     }
     logger.info('Starting worker manager with redis:', this.redisConfig)
 
