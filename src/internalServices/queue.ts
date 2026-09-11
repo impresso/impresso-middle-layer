@@ -175,13 +175,17 @@ export class QueueService {
     data: DownstreamServiceHealthCheckJobData
   ): Promise<BullJob<DownstreamServiceHealthCheckJobData>> {
     logger.info('Scheduling periodic downstream service health check (every 5 minutes)')
-    return this.queueDownstreamServiceHealthCheck.add(JobNameDownstreamServiceHealthCheck, data, {
-      jobId: DownstreamServiceHealthCheckJobId,
-      repeat: {
+    return this.queueDownstreamServiceHealthCheck.upsertJobScheduler(
+      DownstreamServiceHealthCheckJobId,
+      {
         every: DownstreamServiceHealthCheckIntervalMs,
         immediately: true,
       },
-    })
+      {
+        name: JobNameDownstreamServiceHealthCheck,
+        data,
+      }
+    )
   }
 
   /**
