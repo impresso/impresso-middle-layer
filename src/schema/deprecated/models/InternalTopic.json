@@ -88,11 +88,11 @@
     },
     "excerpt": {
       "type": "array",
-      "items": { "$ref": "../../entities/TopicWord.json" }
+      "items": { "$ref": "../../app/entities/TopicWord.json" }
     },
     "words": {
       "type": "array",
-      "items": { "$ref": "../../entities/TopicWord.json" },
+      "items": { "$ref": "../../app/entities/TopicWord.json" },
       "description": "Top N words associated with the topic"
     },
     "model": {

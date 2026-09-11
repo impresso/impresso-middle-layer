@@ -64,7 +64,7 @@ const getStatsFieldStringOtherLanguages = (unigram: string) =>
  * The query is a JSON payload to be send as a POST request.
  *
  * @param {string} unigram unigram to get trends for.
- * @param {object[]} filters a list of filters of type `src/schema/entities/Filter.json`.
+ * @param {object[]} filters a list of filters of type `src/schema/app/entities/Filter.json`.
  * @param {string[]} facets a list of facets to extract alongside trend.
  *
  * @return {object} a POST JSON payload for SOLR search endpoint.

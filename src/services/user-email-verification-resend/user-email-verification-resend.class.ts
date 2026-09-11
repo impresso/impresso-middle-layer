@@ -88,7 +88,7 @@ export class UserEmailVerificationResendService {
     if (activeToken) {
       return {
         result: 'wait',
-        retryAfterSeconds: this.emailVerificationConfig.expiration,
+        retryAfterSeconds: this.emailVerificationConfig?.expiration ?? 0,
       }
     }
 
@@ -132,10 +132,10 @@ export class UserEmailVerificationResendService {
     // one of the user's limited resend attempts without ever sending anything.
     await this.redisClient.setEx(
       `user-email-verification:${token}`,
-      this.emailVerificationConfig.expiration,
+      this.emailVerificationConfig?.expiration ?? 0,
       String(userId)
     )
-    await this.redisClient.setEx(activeByUserKey, this.emailVerificationConfig.expiration, token)
+    await this.redisClient.setEx(activeByUserKey, this.emailVerificationConfig?.expiration ?? 0, token)
     await this.redisClient.setEx(cooldownKey, RESEND_COOLDOWN_SECONDS, '1')
     await this.redisClient.setEx(dailyKey, RESEND_DAILY_WINDOW_SECONDS, String(dailyCount + 1))
 

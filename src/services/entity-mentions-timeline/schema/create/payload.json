@@ -7,7 +7,7 @@
     "filters": {
       "type": "array",
       "items": {
-        "$ref": "../../../../schema/entities/Filter.json"
+        "$ref": "../../../../schema/app/entities/Filter.json"
       }
     },
     "entityId": {

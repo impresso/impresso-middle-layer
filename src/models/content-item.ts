@@ -29,7 +29,7 @@ import type {
   ContentItemMention,
   ContentItemNamedEntity,
   ContentItemTopic,
-} from './generated/entities/contentItem.js'
+} from './generated/app/entities/contentItem.js'
 import { bigIntToBase64Bytes, OpenPermissions } from '@/util/bigint.js'
 import { asList, asNumberArray, parseDPFS, toPairs } from '@/util/solr/transformers.js'
 import { setDifference } from '@/util/fn.js'

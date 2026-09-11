@@ -197,12 +197,12 @@ export class Service {
         // (see UserEmailVerificationResendService) until the token expires.
         await this.redisClient.setEx(
           `user-email-verification:${token}`,
-          this.emailVerificationConfig.expiration,
+          this.emailVerificationConfig?.expiration ?? 0,
           String(createdUserId)
         )
         await this.redisClient.setEx(
           `user-email-verification:active-by-user:${createdUserId}`,
-          this.emailVerificationConfig.expiration,
+          this.emailVerificationConfig?.expiration ?? 0,
           token
         )
       } catch (err) {

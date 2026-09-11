@@ -1,4 +1,4 @@
-import { MediaSource } from '@/models/generated/entities.js'
+import { MediaSource } from '@/models/generated/app/entities.js'
 
 export const GDL: MediaSource = {
   id: 'GDL',

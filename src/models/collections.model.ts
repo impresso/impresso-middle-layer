@@ -1,6 +1,6 @@
 import User from '@/models/users.model.js'
 import { nanoid } from 'nanoid'
-import { Collection as ICollection } from '@/models/generated/entities.js'
+import { Collection as ICollection } from '@/models/generated/app/entities.js'
 import { ModelDefined, Sequelize } from 'sequelize'
 
 import { DataTypes } from 'sequelize'

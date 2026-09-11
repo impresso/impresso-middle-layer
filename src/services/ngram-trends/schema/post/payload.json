@@ -16,7 +16,7 @@
     "filters": {
       "type": "array",
       "items": {
-        "$ref": "../../../../schema/entities/Filter.json"
+        "$ref": "../../../../schema/app/entities/Filter.json"
       },
       "description": "A list of standard filters excluding filter types: string, regex"
     },
