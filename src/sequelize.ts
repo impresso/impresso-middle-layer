@@ -3,7 +3,7 @@ import { Sequelize, Options, Dialect } from 'sequelize'
 import { SequelizeConfig } from '@/models/generated/app/configuration.js'
 import { ImpressoApplication } from '@/types.js'
 import { ConnectionOptions } from 'mysql2'
-import SocksConnection from '@/util/socks.js'
+import newSocksConnection from '@/util/socks.js'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from '@/util/socksProxyConfiguration.js'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 import { Application } from '@feathersjs/feathers'
@@ -27,7 +27,7 @@ export const getSequelizeClient = (config: SequelizeConfig) => {
           `Using SOCKS proxy (${socksProxyOptions?.host}:${socksProxyOptions?.port}) for a new DB connection to ${config.host}`
         )
 
-        return new SocksConnection(
+        return newSocksConnection(
           {
             host: config.host,
             port: config.port,

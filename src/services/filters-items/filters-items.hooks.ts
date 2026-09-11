@@ -1,7 +1,6 @@
-import jscommons, { Filter } from 'impresso-jscommons'
+import { protobuf, Filter } from 'impresso-jscommons'
 import { BadRequest } from '@feathersjs/errors'
 import type { HookContext } from '@feathersjs/feathers'
-const { protobuf } = jscommons
 
 const getDeserializedFilters = ({
   params: {
