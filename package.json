@@ -90,7 +90,7 @@
     "graphology-metrics": "^2.4.2",
     "helmet": "^8.3.0",
     "http-proxy-middleware": "^4.2.0",
-    "impresso-jscommons": "github:impresso/impresso-jscommons#v1.16.0",
+    "impresso-jscommons": "github:impresso/impresso-jscommons#v1.17.0",
     "ioredis": "6.0.0",
     "json-bigint": "github:sidorares/json-bigint#8208aa1352eba252b60756672ab7c17f300d6ccd",
     "json2csv": "^6.0.0-alpha.2",

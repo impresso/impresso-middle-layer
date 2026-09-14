@@ -489,7 +489,7 @@ export interface Image {
    * Precomputed embeddings for the image in the format: <model_type>:<base64_embedding_vector>.
    */
   embeddings?: string[];
-  access: ContentItemAccessRights;
+  access?: ContentItemAccessRights;
 }
 /**
  * Access rights information

@@ -306,6 +306,10 @@ indexes:
         field: front_b
         rule: boolean
         destination: filter
+      pageNumber:
+        field: page_nb_is
+        rule: value
+        destination: filter
       daterange:
         field: meta_date_dt
         rule: dateRange

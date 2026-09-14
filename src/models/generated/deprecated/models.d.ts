@@ -49,7 +49,13 @@ export interface ContentItem {
   issue?: NewspaperIssue;
   matches?: ContentItemMatch[];
   regions?: ContentItemRegion[];
+  /**
+   * Items: TODO
+   */
   regionBreaks?: number[];
+  /**
+   * Items: TODO
+   */
   contentLineBreaks?: number[];
   /**
    * TODO
@@ -1171,6 +1177,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Time code in seconds
    */
   timeCode?: [number, number];
   /**
@@ -1178,6 +1186,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Text location in characters
    */
   textLocation?: [number, number];
   /**
@@ -1967,6 +1977,9 @@ export interface TextReuseClusterDetails {
      * Number of buckets
      */
     numBuckets?: number;
+    /**
+     * Items: TODO: define bucket fields
+     */
     buckets?: {
       [k: string]: unknown;
     }[];
@@ -1991,6 +2004,9 @@ export interface TextReuseClusterDetails {
      * Number of buckets
      */
     numBuckets?: number;
+    /**
+     * Items: TODO: define bucket fields
+     */
     buckets?: {
       [k: string]: unknown;
     }[];
@@ -2044,6 +2060,9 @@ export interface TextReusePassage {
    * Title of the content item (article) where this passage was found
    */
   title: string;
+  /**
+   * Items: Details of the connected clusters
+   */
   connectedClusters?: {
     /**
      * ID of the connected cluster

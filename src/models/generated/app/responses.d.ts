@@ -250,6 +250,9 @@ export interface TextReuseClusterDetails {
      * Number of buckets
      */
     numBuckets?: number;
+    /**
+     * Items: TODO: define bucket fields
+     */
     buckets?: {
       [k: string]: unknown;
     }[];

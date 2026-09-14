@@ -27,12 +27,7 @@ export type InCopyright = "prt";
  * Copyright status of the content.
  */
 export type CopyrightStatus = (
-  | PublicDomain1
-  | CopyrightUndetermined
-  | NoKnownCopyright
-  | EUOrphanWork
-  | UnknownRightsholders
-  | InCopyright1
+  PublicDomain1 | CopyrightUndetermined | NoKnownCopyright | EUOrphanWork | UnknownRightsholders | InCopyright1
 ) &
   string;
 
@@ -600,12 +595,7 @@ export interface ContentItemCoreFieldsPartOfComposedSchema {
    * Type of the media source. Should be a value from impresso-essentials.utils SourceType enum.
    */
   meta_source_type_s:
-    | "newspaper"
-    | "radio_broadcast"
-    | "radio_magazine"
-    | "radio_schedule"
-    | "monograph"
-    | "encyclopedia";
+    "newspaper" | "radio_broadcast" | "radio_magazine" | "radio_schedule" | "monograph" | "encyclopedia";
   /**
    * Medium of the source (audio for audio radio broadcasts, print for newspapers, typescript for digitised radio bulletin typescripts).
    */

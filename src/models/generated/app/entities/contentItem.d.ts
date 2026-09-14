@@ -449,6 +449,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Time code in seconds
    */
   timeCode?: [number, number];
   /**
@@ -456,6 +458,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Text location in characters
    */
   textLocation?: [number, number];
   /**
@@ -630,6 +634,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Time code in seconds
    */
   timeCode?: [number, number];
   /**
@@ -637,6 +643,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Text location in characters
    */
   textLocation?: [number, number];
   /**
@@ -655,6 +663,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Time code in seconds
    */
   timeCode?: [number, number];
   /**
@@ -662,6 +672,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Text location in characters
    */
   textLocation?: [number, number];
   /**
@@ -701,6 +713,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Time code in seconds
    */
   timeCode?: [number, number];
   /**
@@ -708,6 +722,8 @@ export interface ContentItemAudioLocator {
    *
    * @minItems 2
    * @maxItems 2
+   *
+   * Items: Text location in characters
    */
   textLocation?: [number, number];
   /**
