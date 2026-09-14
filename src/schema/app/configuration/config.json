@@ -155,7 +155,7 @@
       "$ref": "#/definitions/AuditLoggingConfig"
     }
   },
-  "required": ["solrConfiguration", "sequelize", "authentication", "images", "magicLink"],
+  "required": ["solrConfiguration", "sequelize", "authentication", "images", "magicLink", "emailVerification"],
   "definitions": {
     "TextEmbeddingsConfig": {
       "type": "object",

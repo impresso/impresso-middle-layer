@@ -14,6 +14,9 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 export const imageRedactionPolicy: RedactionPolicy = loadYamlFile(`${__dirname}/resources/imageRedactionPolicy.yml`)
+export const imageRedactionPolicyPublicApi: RedactionPolicy = loadYamlFile(
+  `${__dirname}/resources/imageRedactionPolicyPublicApi.yml`
+)
 
 export default {
   around: {
@@ -24,11 +27,14 @@ export default {
   },
   after: {
     find: [
-      ...inPublicApi([redactResponseDataItem(imageRedactionPolicy, unlessHasPermission('getTranscript'))]),
+      ...inPublicApi([
+        redactResponseDataItem(imageRedactionPolicyPublicApi),
+        redactResponseDataItem(imageRedactionPolicy, unlessHasPermission('getTranscript')),
+      ]),
       ...inWebAppApi([redactResponseDataItem(imageRedactionPolicy, unlessHasPermission('explore'))]),
     ],
     get: [
-      ...inPublicApi([redactResponse(imageRedactionPolicy, unlessHasPermission('getTranscript'))]),
+      ...inPublicApi([redactResponse(imageRedactionPolicyPublicApi, unlessHasPermission('getTranscript'))]),
       ...inWebAppApi([redactResponse(imageRedactionPolicy, unlessHasPermission('explore'))]),
     ],
   },

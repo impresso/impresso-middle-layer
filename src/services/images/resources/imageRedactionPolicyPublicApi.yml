@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../schema/common/redactionPolicy.json
+name: image-redaction-policy
+items:
+  - jsonPath: $.caption
+    valueConverterName: redact
+  - jsonPath: $.previewUrl
+    valueConverterName: contextNotAllowedImage
+  - jsonPath: $.access.accessBitmaps
+    valueConverterName: remove
+  
