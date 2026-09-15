@@ -47,6 +47,7 @@ const FilterTypeToPythonArgumentName = {
   permissionExplore: 'permission_explore',
   permissionGetTranscript: 'permission_transcript',
   permissionGetImage: 'permission_image',
+  pageNumber: '',
 } satisfies Record<FilterType, string>
 
 const BooleanTypes: FilterType[] = ['hasTextContents', 'isFront']

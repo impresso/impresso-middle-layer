@@ -206,10 +206,10 @@ const toTypes = (doc: ImageDocument): Image['imageTypes'] => {
   return Object.keys(types).length > 0 ? types : undefined
 }
 
-const toDataDomain = (value: string | undefined): Image['access']['dataDomain'] =>
+const toDataDomain = (value: string | undefined): NonNullable<Image['access']>['dataDomain'] =>
   value === 'pbl' || value === 'prt' ? value : 'prt'
 
-const toCopyright = (value: string | undefined): Image['access']['copyright'] =>
+const toCopyright = (value: string | undefined): NonNullable<Image['access']>['copyright'] =>
   value === 'pbl' || value === 'und' || value === 'nkn' || value === 'euo' || value === 'unk' || value === 'in_cpy'
     ? value
     : 'und'
