@@ -51,6 +51,7 @@ import { QueueService } from '@/internalServices/queue.js'
 import { AccessMethod, ContentItemAccessLogEntry, getVectorLogService } from '@/internalServices/vectorLog.js'
 import { Filter } from 'impresso-jscommons'
 import { isTrue } from '@/util/queryParameters.js'
+import { EmbeddingsConfig } from '@/models/generated/app/configuration.js'
 
 const DefaultLimit = 10
 
@@ -382,9 +383,13 @@ const withTextLabels =
     }
   }
 
-export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights, maxScore?: number) => {
+export const toContentItemWithMatches = (
+  fragmentsAndHighlights: IFragmentsAndHighlights,
+  maxScore?: number,
+  embedingsConfig?: EmbeddingsConfig
+) => {
   return (doc: AllDocumentFields): ContentItem => {
-    const contentItem = toContentItem(doc, { maxScore })
+    const contentItem = toContentItem(doc, { maxScore }, embedingsConfig)
     const matches = getContentItemMatches(contentItem, doc.pp_plain, fragmentsAndHighlights)
 
     return {
@@ -693,7 +698,11 @@ export class ContentItemService implements IContentItemService {
     ])
 
     const contentItem = (result.response?.docs?.map(
-      toContentItemWithMatches(result.response as IFragmentsAndHighlights, result?.response?.maxScore)
+      toContentItemWithMatches(
+        result.response as IFragmentsAndHighlights,
+        result?.response?.maxScore,
+        this.app.get('embeddings')
+      )
     ) ?? [])?.[0]
 
     if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)
