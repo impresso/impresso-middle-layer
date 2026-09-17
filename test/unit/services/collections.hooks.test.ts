@@ -1,0 +1,55 @@
+import { strict as assert } from 'assert'
+import collectionsHooks from '@/services/collections/collections.hooks.js'
+
+describe('CollectionsService - Hooks', () => {
+  describe('validate - find hook', () => {
+    let validateHook: any
+
+    beforeEach(() => {
+      validateHook = collectionsHooks.before.find[0]
+    })
+
+    it('accepts valid order_by values', async () => {
+      const context = {
+        params: { query: { order_by: ['-date'] } },
+      } as any
+
+      await validateHook(context)
+      assert.deepStrictEqual(context.params.query.order_by, [['lastModifiedDate', 'DESC']])
+    })
+
+    it('accepts ascending order_by values', async () => {
+      const context = {
+        params: { query: { order_by: ['date'] } },
+      } as any
+
+      await validateHook(context)
+      assert.deepStrictEqual(context.params.query.order_by, [['lastModifiedDate', 'ASC']])
+    })
+
+    it('accepts valid term values', async () => {
+      const context = {
+        params: { query: { term: 'archive' } },
+      } as any
+
+      await validateHook(context)
+      assert.strictEqual(context.params.query.term, 'archive')
+    })
+
+    it('rejects overly long term values', async () => {
+      const context = {
+        params: { query: { term: 'x'.repeat(201) } },
+      } as any
+
+      await assert.rejects(async () => validateHook(context), /NotValidLength|term/)
+    })
+
+    it('rejects unsupported order_by values', async () => {
+      const context = {
+        params: { query: { order_by: ['size'] } },
+      } as any
+
+      await assert.rejects(async () => validateHook(context), /NotInArray|order_by/)
+    })
+  })
+})
