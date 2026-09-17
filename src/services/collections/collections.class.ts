@@ -1,6 +1,6 @@
 import { NotAuthenticated, NotFound } from '@feathersjs/errors'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import { InferAttributes, Op, Sequelize, WhereOptions } from 'sequelize'
+import { InferAttributes, Op, OrderItem, Sequelize, WhereOptions } from 'sequelize'
 import { SlimUser } from '@/authentication.js'
 import { QueueService } from '@/internalServices/queue.js'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
@@ -28,6 +28,7 @@ export interface CollectionsQuery {
   limit?: number
   offset?: number
   includePublic?: boolean
+  order_by?: OrderItem[]
 }
 
 export interface CollectionsParams<Q = CollectionsQuery> extends Params<Q> {
@@ -94,7 +95,7 @@ export class CollectionsService implements ICollectionsService {
   }
 
   async find(params: CollectionsParams): Promise<CollectionsFindResult> {
-    const { limit = 10, offset = 0, term = '', includePublic = false } = params?.query ?? {}
+    const { limit = 10, offset = 0, term = '', includePublic = false, order_by } = params?.query ?? {}
     const userId = params?.user?.id
 
     if (userId == null) {
@@ -129,7 +130,7 @@ export class CollectionsService implements ICollectionsService {
       where,
       limit,
       offset,
-      order: [['lastModifiedDate', 'DESC']],
+      order: order_by ?? [['lastModifiedDate', 'DESC']],
     })
 
     // Get collection counts from Solr
