@@ -12,6 +12,7 @@ import type { ImpressoApplication } from '@/types.js'
 import { measureTime } from '@/util/instruments.js'
 import { asFindAll, asGet } from '@/util/solr/adapters.js'
 import { escapeValue } from '@/util/solr/filterBuilders/value.js'
+import { queryNodeToString, SolrQueryNode } from '@/util/solr/queryBuilder.js'
 
 const logger = getLogger(['impresso', 'services', 'topics'])
 
@@ -25,7 +26,7 @@ export interface FindQuery {
 export interface SanitizedParams {
   q?: string
   filters: Filter[]
-  sq?: string
+  sq?: SolrQueryNode
   sv?: string
 }
 
@@ -122,8 +123,8 @@ export class Service {
     if (uids.length) {
       solrQueryParts.push(['(', uids.map(d => `topics_dpfs:${d}`).join(' OR '), ')'].join(''))
     }
-    if (params.sanitized.filters.length) {
-      solrQueryParts.push(`(${params.sanitized.sq})`)
+    if (params.sanitized.sq) {
+      solrQueryParts.push(`(${queryNodeToString(params.sanitized.sq)})`)
     }
     if (!solrQueryParts.length) {
       solrQueryParts.push('*:*')
