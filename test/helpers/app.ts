@@ -3,6 +3,7 @@ import { ImpressoApplication } from '@/types.js'
 import { CeleryClient } from '@/celery.js'
 import { RedisClient } from '@/redis.js'
 import { initLogger } from '@/logger.js'
+import type { QueueService } from '@/internalServices/queue.js'
 import type { CeleryCall, RedisSetExCall } from './database.js'
 
 /**
@@ -170,6 +171,55 @@ export function withRedisCelery(): TestAppFeature<{
     ctx.serviceHandlers['redisClient'] = () => redisClient
 
     return { celeryRunCalls, redisSetExCalls }
+  }
+}
+
+type QueueServiceMethod =
+  | 'addItemsToCollection'
+  | 'removeItemsFromCollection'
+  | 'removeAllCollectionItems'
+  | 'addQueryResultItemsToCollection'
+  | 'exportSearchResults'
+  | 'migrateOldCollections'
+  | 'rebuildWellKnownCache'
+  | 'scheduleDownstreamServiceHealthCheck'
+
+export type QueueServiceCall = {
+  method: QueueServiceMethod
+  data: unknown
+}
+
+/**
+ * Feature: mocked BullMQ queue service, registered as `queueService`.
+ * Submitted jobs are captured in call order through `queueServiceCalls`.
+ */
+export function withQueueService(): TestAppFeature<{
+  queueService: Pick<QueueService, QueueServiceMethod>
+  queueServiceCalls: QueueServiceCall[]
+}> {
+  return ctx => {
+    const queueServiceCalls: QueueServiceCall[] = []
+    const queueService = {} as Pick<QueueService, QueueServiceMethod>
+
+    for (const method of [
+      'addItemsToCollection',
+      'removeItemsFromCollection',
+      'removeAllCollectionItems',
+      'addQueryResultItemsToCollection',
+      'exportSearchResults',
+      'migrateOldCollections',
+      'rebuildWellKnownCache',
+      'scheduleDownstreamServiceHealthCheck',
+    ] as const) {
+      queueService[method] = async (data: never) => {
+        queueServiceCalls.push({ method, data })
+        return { id: String(queueServiceCalls.length), data } as any
+      }
+    }
+
+    ctx.serviceHandlers['queueService'] = () => queueService
+
+    return { queueService, queueServiceCalls }
   }
 }
 
