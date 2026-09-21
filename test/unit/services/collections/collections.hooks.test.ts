@@ -15,7 +15,7 @@ describe('CollectionsService - Hooks', () => {
       } as any
 
       validateHook(context)
-      assert.deepStrictEqual(context.params.query.order_by, [['lastModifiedDate', 'DESC']])
+      assert.strictEqual(context.params.query.order_by, '-date')
     })
 
     it('accepts ascending order_by values', async () => {
@@ -24,7 +24,16 @@ describe('CollectionsService - Hooks', () => {
       } as any
 
       validateHook(context)
-      assert.deepStrictEqual(context.params.query.order_by, [['lastModifiedDate', 'ASC']])
+      assert.strictEqual(context.params.query.order_by, 'date')
+    })
+
+    it('accepts creationDate order_by values', async () => {
+      const context = {
+        params: { query: { order_by: ['creationDate'] } },
+      } as any
+
+      validateHook(context)
+      assert.strictEqual(context.params.query.order_by, 'creationDate')
     })
 
     it('accepts valid term values', async () => {

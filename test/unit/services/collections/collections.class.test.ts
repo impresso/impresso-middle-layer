@@ -52,7 +52,17 @@ const mockCollectionForUser2 = {
   lastModifiedDate: new Date('2026-08-03T00:00:00Z'),
 }
 
-const mockCollections = [mockCollectionForUser1, mockCollectionForUser2]
+const mockCollectionForUser1b = {
+  id: 'coll3',
+  creatorId: mockUser1.id,
+  name: 'Collection 3',
+  description: 'Description for collection 3',
+  status: 'PRI',
+  creationDate: new Date('2026-03-01T00:00:00Z'),
+  lastModifiedDate: new Date('2026-08-04T00:00:00Z'),
+}
+
+const mockCollections = [mockCollectionForUser1, mockCollectionForUser2, mockCollectionForUser1b]
 
 describe('CollectionsService', () => {
   let testApp: ReturnType<
@@ -139,6 +149,29 @@ describe('CollectionsService', () => {
     it('returns an empty result when no user is authenticated', async () => {
       const result = await service.find({ query: {} } as any)
       assert.deepStrictEqual(result, { data: [], pagination: { limit: 10, offset: 0, total: 0 } })
+    })
+
+    it('orders results by creationDate when order_by is set', async () => {
+      await userModel.create(mockUser1 as any)
+      await userCollectionModel.bulkCreate([mockCollectionForUser1 as any, mockCollectionForUser1b as any])
+      const slimUser = { id: mockUser1.id, uid: mockUser1.uid } as any
+
+      testApp.mockSolr.select = async () => ({
+        response: { docs: [], numFound: 0 },
+        facets: { collections: { buckets: [] } },
+      })
+
+      // creationDate ascending: collection 1 (2026-01-01) then collection 3 (2026-03-01)
+      const resultAsc = await service.find({ query: { order_by: 'creationDate' }, user: slimUser })
+      assert.strictEqual(resultAsc.data.length, 2)
+      assert.strictEqual(resultAsc.data[0].id, mockCollectionForUser1.id)
+      assert.strictEqual(resultAsc.data[1].id, mockCollectionForUser1b.id)
+
+      // creationDate descending: collection 3 (2026-03-01) then collection 1 (2026-01-01)
+      const resultDesc = await service.find({ query: { order_by: '-creationDate' }, user: slimUser })
+      assert.strictEqual(resultDesc.data.length, 2)
+      assert.strictEqual(resultDesc.data[0].id, mockCollectionForUser1b.id)
+      assert.strictEqual(resultDesc.data[1].id, mockCollectionForUser1.id)
     })
   })
 })

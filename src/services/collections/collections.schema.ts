@@ -43,7 +43,7 @@ const parameterOrderBy: QueryParameter = {
   schema: {
     type: 'string',
     default: '-date',
-    enum: ['-date', 'date'],
+    enum: ['-date', 'date', '-creationDate', 'creationDate'],
   },
   description: 'Sort order',
 }

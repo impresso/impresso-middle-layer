@@ -1,7 +1,7 @@
 import { HookOptions } from '@feathersjs/feathers'
 import { inPublicApi } from '@/hooks/appMode.js'
 import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
-import { queryWithCommonParams, utils, validate } from '@/hooks/params.js'
+import { queryWithCommonParams, validate } from '@/hooks/params.js'
 import { rateLimit } from '@/hooks/rateLimiter.js'
 import { transformResponse, transformResponseDataItem } from '@/hooks/transformation.js'
 import { transformCollection } from '@/transformers/collection.js'
@@ -18,16 +18,9 @@ export default {
         {
           order_by: {
             required: false,
-            choices: ['-date', 'date'],
+            choices: ['-date', 'date', '-creationDate', 'creationDate'],
             defaultValue: '-date',
-            transform: d => {
-              if (!d) return undefined
-              const value = Array.isArray(d) ? d[0] : d
-              return utils.translate(value, {
-                '-date': [['lastModifiedDate', 'DESC']],
-                date: [['lastModifiedDate', 'ASC']],
-              })
-            },
+            transform: d => (Array.isArray(d) ? d[0] : d) as CollectionsQuery['order_by'],
           },
           term: {
             required: false,

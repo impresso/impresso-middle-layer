@@ -28,7 +28,7 @@ export interface CollectionsQuery {
   limit?: number
   offset?: number
   includePublic?: boolean
-  order_by?: OrderItem[]
+  order_by?: '-date' | 'date' | '-creationDate' | 'creationDate'
 }
 
 export interface CollectionsParams<Q = CollectionsQuery> extends Params<Q> {
@@ -66,6 +66,19 @@ const dbToCollection = (dbModel: IUserCollection): Collection => {
 
 interface CollectionIdPairWithCount extends CollectionIdPair {
   count: number
+}
+
+const orderByToSequelizeOrder = (orderBy: CollectionsQuery['order_by']): OrderItem[] => {
+  switch (orderBy) {
+    case 'date':
+      return [['lastModifiedDate', 'ASC']]
+    case 'creationDate':
+      return [['creationDate', 'ASC']]
+    case '-creationDate':
+      return [['creationDate', 'DESC']]
+    default:
+      return [['lastModifiedDate', 'DESC']]
+  }
 }
 
 export class CollectionsService implements ICollectionsService {
@@ -130,7 +143,7 @@ export class CollectionsService implements ICollectionsService {
       where,
       limit,
       offset,
-      order: order_by ?? [['lastModifiedDate', 'DESC']],
+      order: orderByToSequelizeOrder(order_by),
     })
 
     // Get collection counts from Solr
