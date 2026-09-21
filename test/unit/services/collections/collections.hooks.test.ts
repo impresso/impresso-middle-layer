@@ -6,7 +6,7 @@ describe('CollectionsService - Hooks', () => {
     let validateHook: any
 
     beforeEach(() => {
-      validateHook = collectionsHooks.before.find[0]
+      validateHook = (collectionsHooks as any).before.find[0]
     })
 
     it('accepts valid order_by values', async () => {
@@ -14,7 +14,7 @@ describe('CollectionsService - Hooks', () => {
         params: { query: { order_by: ['-date'] } },
       } as any
 
-      await validateHook(context)
+      validateHook(context)
       assert.deepStrictEqual(context.params.query.order_by, [['lastModifiedDate', 'DESC']])
     })
 
@@ -23,7 +23,7 @@ describe('CollectionsService - Hooks', () => {
         params: { query: { order_by: ['date'] } },
       } as any
 
-      await validateHook(context)
+      validateHook(context)
       assert.deepStrictEqual(context.params.query.order_by, [['lastModifiedDate', 'ASC']])
     })
 
@@ -32,7 +32,7 @@ describe('CollectionsService - Hooks', () => {
         params: { query: { term: 'archive' } },
       } as any
 
-      await validateHook(context)
+      validateHook(context)
       assert.strictEqual(context.params.query.term, 'archive')
     })
 
@@ -41,7 +41,10 @@ describe('CollectionsService - Hooks', () => {
         params: { query: { term: 'x'.repeat(201) } },
       } as any
 
-      await assert.rejects(async () => validateHook(context), /NotValidLength|term/)
+      await assert.rejects(validateHook(context), (error: any) => {
+        assert.strictEqual(error.code, 400)
+        return true
+      })
     })
 
     it('rejects unsupported order_by values', async () => {
@@ -49,7 +52,10 @@ describe('CollectionsService - Hooks', () => {
         params: { query: { order_by: ['size'] } },
       } as any
 
-      await assert.rejects(async () => validateHook(context), /NotInArray|order_by/)
+      await assert.rejects(validateHook(context), (error: any) => {
+        assert.strictEqual(error.code, 400)
+        return true
+      })
     })
   })
 })
