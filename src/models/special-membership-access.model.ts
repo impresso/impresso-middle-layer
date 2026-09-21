@@ -9,6 +9,8 @@ export interface SpecialMembershipAccessMetadata {
   enableTemporaryAutomaticApproval?: boolean
   revokeAfterDays?: number | null
   revokeTemporaryAutomaticApprovalAfterDays?: number | null
+  emailExtraMessageHtml?: string | null
+  emailExtraMessageText?: string | null
 }
 
 export interface ISpecialMembershipAccessAttributes {
