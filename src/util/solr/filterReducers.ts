@@ -1,4 +1,5 @@
 import {
+  FeaturesConfig,
   FilterDefinition,
   SolrFiltersConfiguration,
   SolrServerNamespaceConfiguration,
@@ -10,20 +11,22 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { InvalidArgumentError } from '@/util/error.js'
 import { invertRecord } from '@/util/fn.js'
 import capitalisedValueFilterBuilder from '@/util/solr/filterBuilders/capitalisedValue.js'
-import { escapeIdValue, idValueBuilder, unescapeIdValue, valueBuilder } from '@/util/solr/filterBuilders/value.js'
+import {
+  escapeIdValue,
+  escapeValue,
+  idValueBuilder,
+  unescapeIdValue,
+  valueBuilder,
+} from '@/util/solr/filterBuilders/value.js'
 import { readFileSync } from 'fs'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import YAML from 'yaml'
 
-export { escapeIdValue, unescapeIdValue }
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const filtersConfig: SolrFiltersConfiguration = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
-
-export const escapeValue = (value: string) => value.replace(/[()\\+&|!{}[\]?:;,^]/g, (d: string) => `\\${d}`)
 
 const RangeValueRegex = /^\s*\d+\s+TO\s+\d+\s*$/
 
@@ -363,7 +366,8 @@ const joinCollectionHandler = (
   filters: Filter[],
   field: string,
   rule: string,
-  solrNamespaces: SolrServerNamespaceConfiguration[]
+  solrNamespaces: SolrServerNamespaceConfiguration[],
+  collectionsIndexVersion?: FeaturesConfig['collectionsIndexVersion']
 ) => {
   const collectionNamespace = solrNamespaces.find(ns => ns.namespaceId === SolrNamespaces.CollectionItems)
   if (collectionNamespace == null) {
@@ -414,6 +418,10 @@ const joinCollectionHandler = (
     collectionIdQuery = orStatement
   } else {
     throw new InvalidArgumentError('At least one collection ID must be provided for "joinCollection" filter')
+  }
+
+  if (collectionsIndexVersion === 'new') {
+    return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex} method=index checkRouterField=false}${collectionIdQuery}`
   }
 
   return `{!join from=ci_id_s to=${field} fromIndex=${collectionItemsIndex} method=crossCollection}${collectionIdQuery}`
@@ -537,6 +545,7 @@ interface FilterToSolrResult {
 /**
  * Convert a set of filters of the same type to a SOLR query string.
  * Types are defined in `solrFilters.yml` for the corresponding namespace
+ * @deprecated Use `buildSolrQuery` instead.
  *
  * @param {Filter[]} filters list of filters of the same type.
  * @param {string} solrNamespace namespace (index) this filter type belongs to.
@@ -546,7 +555,8 @@ interface FilterToSolrResult {
 export const filtersToSolr = (
   filters: Filter[],
   solrNamespace: SolrNamespace,
-  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
+  featuresConfig: FeaturesConfig
 ): FilterToSolrResult => {
   if (filters.length < 1) throw new InvalidArgumentError('At least one filter must be provided')
   const types = [...new Set(filters.map(({ type }) => type))]
@@ -565,7 +575,13 @@ export const filtersToSolr = (
   if (handler == null) throw new InvalidArgumentError(`Could not find handler for rule ${filterRules.rule}`)
 
   return {
-    query: handler(filters, filterRules.field as any, filterRules.rule, solrNamespacesConfiguration),
+    query: handler(
+      filters,
+      filterRules.field as any,
+      filterRules.rule,
+      solrNamespacesConfiguration,
+      featuresConfig.collectionsIndexVersion ?? 'legacy'
+    ),
     destination: filterRules.destination ?? 'query',
   }
 }

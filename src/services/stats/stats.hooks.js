@@ -1,13 +1,11 @@
-import Debug from 'debug'
-const debug = Debug('impresso/services:stats.hooks')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'stats.hooks'])
 import assert from 'assert'
 import { BadRequest } from '@feathersjs/errors'
-import jscommons from 'impresso-jscommons'
+import { protobuf } from 'impresso-jscommons'
 
 import { statsConfiguration } from '@/data/index.js'
 import { TimeDomain, SupportedStats, DefaultStats } from '@/services/stats/common.js'
-
-const { protobuf } = jscommons
 
 const SupportedIndexes = Object.freeze(Object.keys(statsConfiguration.indexes))
 const SupportedFacetsByIndex = SupportedIndexes.reduce((acc, index) => {
@@ -62,7 +60,7 @@ function parseAndValidateQueryParameters(context) {
   )
 
   const filters = deserializeFilters(serializedFilters)
-  debug('[hooks.before.find] filters:', filters)
+  logger.debug(`[hooks.before.find] filters: ${filters}`)
 
   context.params.request = {
     facet,
@@ -77,12 +75,12 @@ function parseAndValidateQueryParameters(context) {
 
 /** validate index against supportedIndex */
 const validateIndex = context => {
-  debug('[hooks.before] validateIndex', context.params)
+  logger.debug(`[hooks.before] validateIndex ${context.params}`)
   const { index } = context.params.query
   if (!SupportedIndexes.includes(index)) {
     throw new BadRequest(`Invalid index: ${index}. Must be one of: ${SupportedIndexes}`)
   }
-  debug('[hooks.before] validateIndex', '- index:', index)
+  logger.debug(`[hooks.before] validateIndex - index: ${index}`)
 }
 
 /**
@@ -90,7 +88,7 @@ const validateIndex = context => {
  * @param {Object} context
  */
 const validateStats = context => {
-  debug('[hooks.before] validateStats')
+  logger.debug('[hooks.before] validateStats')
   const { stats } = context.params.query
 
   if (stats) {
@@ -101,7 +99,7 @@ const validateStats = context => {
   } else {
     context.params.query.stats = DefaultStats
   }
-  debug('[hooks.before] validateStats', '- stats:', stats)
+  logger.debug(`[hooks.before] validateStats - stats: ${stats}`)
 }
 
 /**
@@ -110,7 +108,7 @@ const validateStats = context => {
  * @param {Object} context
  */
 const validateGroupByAfterIndex = context => {
-  debug('[hooks.before] validateIndexAndGroupby', context.params)
+  logger.debug(`[hooks.before] validateIndexAndGroupby ${context.params}`)
   const { index, groupby } = context.params.query
 
   if (groupby) {
@@ -122,7 +120,7 @@ const validateGroupByAfterIndex = context => {
     // translate groupby to solr field
     context.params.query.groupby = statsConfiguration.indexes[index].facets.term[groupby].field
   }
-  debug('[hooks.before] validateIndexAndGroupby', '- index:', index, '- groupby:', context.params.query.groupby)
+  logger.debug(`[hooks.before] validateIndexAndGroupby - index: ${index} - groupby: ${context.params.query.groupby}`)
 }
 
 export default {

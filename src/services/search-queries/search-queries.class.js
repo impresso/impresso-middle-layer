@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import Debug from 'debug'
-const debug = Debug('impresso/services:search-queries')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'search-queries'])
 import SequelizeService from '@/services/sequelize.service.js'
 import SearchQuery from '@/models/search-queries.model.js'
 
@@ -15,31 +15,31 @@ export class SearchQueries {
       app,
       name: this.name,
     })
-    debug('[setup] completed')
+    logger.debug('[setup] completed')
   }
 
   async find(params) {
-    debug('[find] ...')
+    logger.debug('[find] ...')
     return this.sequelizeService.find(params).then(res => {
-      debug('[find] success', res.total)
+      logger.debug(`[find] success ${res.total}`)
       return res
     })
   }
 
   async get(id, params) {
-    debug(`[get] id:${id} - params.user.uid: ${params.user.uid}`)
+    logger.debug(`[get] id:${id} - params.user.uid: ${params.user.uid}`)
     const item = await this.sequelizeService.get(id, {
       where: {
         uid: id,
         creatorId: params.user.id,
       },
     })
-    debug(`[get] id:${item.id} SUCCESS`)
+    logger.debug(`[get] id:${item.id} SUCCESS`)
     return item.toJSON()
   }
 
   async create(data, params) {
-    debug('[create] params.user.uid:', params.user.uid, data)
+    logger.debug(`[create] params.user.uid: ${params.user.uid} ${data}`)
     const searchQuery = new SearchQuery({
       ...data,
       creator: params.user,
@@ -60,7 +60,7 @@ export class SearchQueries {
   }
 
   async remove(id, params) {
-    debug(`[remove] id: ${id} - params.user.uid: ${params.user.uid}`)
+    logger.debug(`[remove] id: ${id} - params.user.uid: ${params.user.uid}`)
     return this.sequelizeService
       .bulkRemove({
         uid: id,

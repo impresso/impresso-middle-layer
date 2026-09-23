@@ -1,8 +1,11 @@
+import { getLogger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { loadFacetRanges } from '@/useCases/loadFacetRanges.js'
 import { writeFile, access, constants, stat } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+const logger = getLogger(['jobs', 'updateFacetRanges'])
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -39,17 +42,17 @@ const run = async (app: ImpressoApplication, reload: boolean = false) => {
   // Check cache first
   const exists = await cacheExists()
   if (exists && !reload) {
-    console.log('Facet ranges data found in cache, skipping update.')
+    logger.info('Facet ranges data found in cache, skipping update.')
     return
   }
 
-  console.log('Updating facet ranges data...')
+  logger.info('Updating facet ranges data...')
   try {
     const ranges = await loadFacetRanges(solrClient)
     await writeCache(ranges)
-    console.log(`Successfully updated and cached facet ranges data.`)
+    logger.info('Successfully updated and cached facet ranges data.')
   } catch (error) {
-    console.error('Error updating facet ranges data:', error)
+    logger.error('Error updating facet ranges data:', { error })
     // Decide if the error should be re-thrown or handled
   }
 }

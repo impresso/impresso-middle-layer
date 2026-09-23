@@ -5,7 +5,7 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { filtersToSolr } from '@/util/solr/filterReducers.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
 import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
-import type { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
+import type { FeaturesConfig, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { escapeIdValue } from '@/util/solr/filterBuilders/value.js'
 
 /**
@@ -69,14 +69,17 @@ const wrapAsFilter = (q: string) => {
 
 /**
  * Return Solr query string and referenced variables for a set of filters.
- * @param {Array<object>} filters a list of filters of type `src/schema/canonical/Filter.json`.
+ * @deprecated Use `buildSolrQuery` instead.
+ *
+ * @param {Array<object>} filters a list of filters of type `src/schema/app/entities/Filter.json`.
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  */
 export function filtersToQueryAndVariables(
   filters: Filter[],
   solrNamespace: SolrNamespace = SolrNamespaces.Search,
   solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
-  doNotWrapFilters = false
+  featuresConfig: FeaturesConfig,
+  doNotWrapFilters: boolean = false
 ): SolrQueryBase {
   assert.ok(Object.values(SolrNamespaces).includes(solrNamespace), `Unknown Solr namespace: ${solrNamespace}`)
 
@@ -90,7 +93,8 @@ export function filtersToQueryAndVariables(
     const { query: baseSolrQueryFilter, destination } = filtersToSolr(
       filtersGroupedByType[key],
       solrNamespace,
-      solrNamespacesConfiguration
+      solrNamespacesConfiguration,
+      featuresConfig
     )
 
     // We wrap every filter into `filter(...)` except when:

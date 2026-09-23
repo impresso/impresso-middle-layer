@@ -2,7 +2,6 @@ import { Op, OrderItem, Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, NullableId, Params } from '@feathersjs/feathers'
-import Debug from 'debug'
 import UserSpecialMembershipRequestModel, {
   AvailableStatuses,
 } from '@/models/user-special-membership-requests.model.js'
@@ -12,9 +11,9 @@ import User from '@/models/users.model.js'
 import Group from '@/models/groups.model.js'
 import Profile from '@/models/profiles.model.js'
 import { CeleryClient } from '@/celery.js'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 
-const debug = Debug('impresso/services:user-special-membership-requests-reviews')
+const logger = getLogger(['impresso', 'services', 'user-special-membership-requests-reviews'])
 
 export interface FindQuery {
   limit?: number
@@ -94,13 +93,13 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     this.celeryClient = app.get('celeryClient') as CeleryClient
     this.requestModel = UserSpecialMembershipRequestModel.initialize(this.sequelizeClient)
     this.name = 'user-special-membership-requests-reviews'
-    debug('Initialized service %s', this.name)
+    logger.debug(`Initialized service ${this.name}`)
   }
 
   async find(params?: UserSpecialMembershipRequestParams) {
     const { limit = 10, offset = 0, order_by = [['dateLastModified', 'DESC']], status, term } = params?.query ?? {}
     const reviewerId = params?.user?.id
-    debug('Finding requests for reviewerId %s with order_by %s', reviewerId, JSON.stringify(order_by))
+    logger.debug(`Finding requests for reviewerId ${reviewerId} with order_by ${JSON.stringify(order_by)}`)
 
     if (reviewerId == null) {
       return { data: [], pagination: { limit, offset, total: 0 } }
@@ -147,7 +146,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
       ],
     })
     // get subscribers basic info
-    debug('Found %d requests for reviewerId %s', total, reviewerId)
+    logger.debug(`Found ${total} requests for reviewerId ${reviewerId}`)
     const userIds = [...new Set(rows.map(row => row.userId))]
 
     const users = await User.sequelize(this.sequelizeClient).findAll({
@@ -161,7 +160,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     // perfect! now join the user info into the requests
     const requesterMap = users.reduce(
       (acc, user) => {
-        debug('Mapping user id %d', user.get('id'))
+        logger.debug(`Mapping user id ${user.get('id')}`)
         acc[user.get('id') as number] = {
           id: user.get('id') as number,
           email: user.get('email') as string,
@@ -236,7 +235,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     params?: UserSpecialMembershipRequestParams
   ): Promise<UserSpecialMembershipRequestModel> {
     const reviewerId = params?.user?.id
-    debug('Patching request %s by reviewer %s', id, reviewerId)
+    logger.debug(`Patching request ${id} by reviewer ${reviewerId}`)
     if (id == null) {
       throw new NotFound('UserSpecialMembershipRequest id is required')
     }
@@ -261,7 +260,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
 
     const updateData = { ...data, dateLastModified: new Date() }
     await record.update(updateData)
-    debug('Updated request %s', id)
+    logger.debug(`Updated request ${id}`)
 
     if (this.celeryClient) {
       try {
@@ -270,7 +269,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
           args: [record.id],
         })
       } catch (err) {
-        logger.error('Error sending after_special_membership_request_updated task:', err)
+        logger.error('Error sending after_special_membership_request_updated task', { error: err })
       }
     }
 

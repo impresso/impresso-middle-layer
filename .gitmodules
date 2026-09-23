@@ -1,0 +1,4 @@
+[submodule "impresso-schemas"]
+	path = impresso-schemas
+	url = https://github.com/impresso/impresso-schemas.git
+	branch = 86-organize-json-schemas-by-data-phase

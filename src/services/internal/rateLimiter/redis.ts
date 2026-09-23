@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 const rateLimiterScript = readFileSync(path.join(__dirname, 'lua/leakyBucketRateLimit.lua')).toString()
 const rateLimiterRevertScript = readFileSync(path.join(__dirname, 'lua/leakyBucketTakeToken.lua')).toString()
 
-interface RateLimitingResult {
+export interface RateLimitingResult {
   usedTokens: number
   totalTokens: number
   isAllowed: boolean
@@ -47,10 +47,31 @@ class NullRateLimiter implements IRateLimiter {
 /**
  * Rate limiter configuration section type in the configuration file.
  */
-export interface RateLimiterConfiguration {
+export interface RateLimitPolicy {
   capacity: number
   refillRate: number // requests / second
+  enabled?: boolean
 }
+
+export interface RateLimiterConfiguration extends RateLimitPolicy {
+  resources?: Record<string, RateLimitPolicy>
+}
+
+export const getRateLimitPolicy = (configuration: RateLimiterConfiguration, resource: string): RateLimitPolicy =>
+  configuration.resources?.[resource] ?? {
+    capacity: configuration.capacity,
+    refillRate: configuration.refillRate,
+  }
+
+// Resource-level `enabled` overrides the global flag; global defaults to false.
+const isResourceEnabled = (configuration: RateLimiterConfiguration, resource: string): boolean => {
+  const resourcePolicy = configuration.resources?.[resource]
+  if (resourcePolicy?.enabled != null) return resourcePolicy.enabled
+  return configuration.enabled ?? false
+}
+
+const hasAnyEnabled = (configuration: RateLimiterConfiguration): boolean =>
+  (configuration.enabled ?? false) || Object.values(configuration.resources ?? {}).some(p => p.enabled === true)
 
 /**
  * Redis key for the rate limiter.
@@ -83,20 +104,26 @@ class RateLimiter implements IRateLimiter {
   }
 
   async allow(userId: string, resource: string): Promise<RateLimitingResult> {
+    if (!isResourceEnabled(this.configuration, resource)) return { usedTokens: 0, totalTokens: 0, isAllowed: true }
     if (this.rateLimiterScriptSha == null) throw new Error('Rate limiter not initialized')
+
+    const policy = getRateLimitPolicy(this.configuration, resource)
 
     const usedTokens = await this.redisClient.evalSha(this.rateLimiterScriptSha, {
       keys: [getKey(userId, resource)],
-      arguments: [String(this.configuration.capacity), String(this.configuration.refillRate)],
+      arguments: [String(policy.capacity), String(policy.refillRate)],
     })
     return {
       usedTokens: Number(usedTokens) + 1,
-      totalTokens: this.configuration.capacity,
-      isAllowed: Number(usedTokens) < this.configuration.capacity,
+      totalTokens: policy.capacity,
+      isAllowed: Number(usedTokens) < policy.capacity,
     }
   }
   async undo(userId: string, resource: string): Promise<RateLimitingResult> {
+    if (!isResourceEnabled(this.configuration, resource)) return { usedTokens: 0, totalTokens: 0, isAllowed: true }
     if (this.rateLimiterRevertScriptSha == null) throw new Error('Rate limiter not initialized')
+
+    const policy = getRateLimitPolicy(this.configuration, resource)
 
     const usedTokens = await this.redisClient.evalSha(this.rateLimiterRevertScriptSha, {
       keys: [getKey(userId, resource)],
@@ -104,8 +131,8 @@ class RateLimiter implements IRateLimiter {
 
     return {
       usedTokens: Number(usedTokens) + 1,
-      totalTokens: this.configuration.capacity,
-      isAllowed: Number(usedTokens) < this.configuration.capacity,
+      totalTokens: policy.capacity,
+      isAllowed: Number(usedTokens) < policy.capacity,
     }
   }
 }
@@ -119,7 +146,7 @@ export default (app: ImpressoApplication) => {
   const rateLimiterConfiguration = app.get('rateLimiter')
   let rateLimiter: IRateLimiter = new NullRateLimiter()
 
-  if (rateLimiterConfiguration?.enabled) {
+  if (rateLimiterConfiguration != null && hasAnyEnabled(rateLimiterConfiguration)) {
     const redisClient = app.service('redisClient').client
 
     if (redisClient == null) {

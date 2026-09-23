@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { getLogger } from '@/logger.js'
 import { asFindAll } from '@/util/solr/adapters.js'
 import { WellKnownKeys } from '@/cache.js'
 
-import debugLib from 'debug'
-const debug = debugLib('impresso/services:topics-graph')
+const logger = getLogger(['impresso', 'services', 'topics-graph'])
 import { min, max } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
 import Topic from '@/models/topics.model.js'
@@ -42,7 +42,7 @@ export class TopicsGraph {
   }
 
   async get(id, params) {
-    debug('[get] query:', params.sanitized)
+    logger.debug(`[get] query: ${params.sanitized}`)
     const resolvers = buildResolvers(this.app)
     const topic = resolvers.topic(id)
     if (!topic.id.length) {
@@ -98,7 +98,7 @@ export class TopicsGraph {
   }
 
   async find(params) {
-    debug('[find] params:', params.sanitized)
+    logger.debug(`[find] params: ${params.sanitized}`)
     // consider only topic ids given as filters
     let restrictToIds = []
     const nodesIndex = {}
@@ -130,7 +130,7 @@ export class TopicsGraph {
       /** @type {import('../../models/generated/schemas').Topic[]} */
       const deserialisedTopics = JSON.parse(result ?? '[]').map(d => new Topic(d))
 
-      debug('[find] no filters, return all topics, n.', deserialisedTopics.length)
+      logger.debug(`[find] no filters, return all topics, n. ${deserialisedTopics.length}`)
       deserialisedTopics.forEach(topic => {
         const source = getOrCreateNode(toNode(topic), { forceUpdate: true })
         topic.relatedTopics.forEach((linked, i) => {
@@ -175,7 +175,7 @@ export class TopicsGraph {
         .reduce((acc, d) => acc.concat(d.q), [])
         // unique values only
         .filter((value, index, self) => self.indexOf(value) === index)
-      debug('[find] n of restrictToIds:', restrictToIds.length)
+      logger.debug(`[find] n of restrictToIds: ${restrictToIds.length}`)
       // initial set of nodes
       await Promise.all(
         restrictToIds.map(async d => {

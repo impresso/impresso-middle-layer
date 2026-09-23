@@ -1,11 +1,10 @@
-import { logger } from '@/logger.js'
-import Debug from 'debug'
+import { getLogger } from '@/logger.js'
 import { Conflict, BadRequest, BadGateway } from '@feathersjs/errors'
 import { Op } from 'sequelize'
 import Newspapers from '@/models/newspapers.model.js'
 import Collection from '@/models/user-collection.js'
 
-const debug = Debug('verbose:impresso/services:sequelize.utils')
+const logger = getLogger(['impresso', 'services', 'sequelize.utils'])
 
 const models = {
   collections: Collection,
@@ -36,16 +35,16 @@ const whereReducer = (sum, clause) => {
 
 const sequelizeErrorHandler = err => {
   if (err.name === 'SequelizeUniqueConstraintError') {
-    debug(`sequelize failed. ConstraintValidationFailed: ${err}`)
+    logger.debug(`sequelize failed. ConstraintValidationFailed: ${err}`)
     throw new Conflict(`ConstraintValidationFailed: ${err.errors.map(d => d.message)}`)
   } else if (err.name === 'SequelizeConnectionRefusedError') {
     throw new BadGateway('SequelizeConnectionRefusedError')
   } else if (err.name === 'SequelizeConnectionError') {
-    debug('Connection error. SequelizeConnectionError:', err)
+    logger.debug(`Connection error. SequelizeConnectionError: ${err}`)
     throw new BadGateway('SequelizeConnectionError')
   } else if (err.name) {
-    debug('sequelize failed. Check error below.')
-    debug(err.name)
+    logger.debug('sequelize failed. Check error below.')
+    logger.debug(err.name)
     logger.error(err)
     throw new BadGateway(err.name)
   }
@@ -59,7 +58,7 @@ const sequelizeErrorHandler = err => {
  * @return {object} object resolved
  */
 const resolveAsync = async (client, groups) => {
-  debug('resolveAsync: ', groups)
+  logger.debug(`resolveAsync:  ${groups}`)
 
   const promises = groups.map((g, k) => {
     const klass = models[g.service].sequelize(client)
@@ -74,12 +73,7 @@ const resolveAsync = async (client, groups) => {
       idxs[d.id] = i
     })
 
-    debug(
-      'resolveAsync:promise for service',
-      g.service,
-      idxs,
-      g.items.map(d => d.id)
-    )
+    logger.debug(`resolveAsync:promise for service ${g.service} ${idxs} ${g.items.map(d => d.id)}`)
 
     return (
       klass
@@ -105,7 +99,7 @@ const resolveAsync = async (client, groups) => {
   })
 
   await Promise.all(promises).catch(err => {
-    debug('resolveAsync:promise.all throw error', err)
+    logger.debug(`resolveAsync:promise.all throw error ${err}`)
   })
   return groups
 }

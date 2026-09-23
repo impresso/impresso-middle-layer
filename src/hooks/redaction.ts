@@ -1,4 +1,5 @@
 import { HookContext, HookFunction } from '@feathersjs/feathers'
+import { getLogger } from '@/logger.js'
 import { FindResponse } from '@/models/common.js'
 import { ImpressoApplication } from '@/types.js'
 import { Redactable, RedactionPolicy, redactObject } from '@/util/redaction.js'
@@ -6,6 +7,8 @@ import { SlimUser } from '@/authentication.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey, isAuthorizationBitmapsDTO } from '@/models/authorization.js'
 import { BufferUserPlanGuest } from '@/models/user-bitmap.model.js'
 import { OpenPermissions, bitmapsAlign as bitmapsAlignCheck } from '@/util/bigint.js'
+
+const logger = getLogger(['hooks', 'redaction'])
 
 export type RedactCondition = (context: HookContext<ImpressoApplication>, redactable?: Redactable) => boolean
 export type AsyncRedactCondition = (
@@ -204,7 +207,7 @@ export const unlessHasPermissionAndWithinQuota = (
       }
     } catch (error) {
       // Log the error but don't block access on quota check failure
-      console.error('Error checking quota:', error)
+      logger.error('Error checking quota:', { error })
     }
 
     // If we can't determine quota status, allow access

@@ -24,18 +24,28 @@ local current_time_sec = redis.call("TIME")[1]
 local items = hgetall(key)
 
 local tokens = tonumber(items['tokens'] or 0)
-local last_refreshed_sec = items['last_refreshed_sec'] or current_time_sec
+local last_refreshed_sec = tonumber(items['last_refreshed_sec'] or current_time_sec)
 
 -- Calculate elapsed time and potential token refill
 local elapsed_sec = current_time_sec - last_refreshed_sec
 local leak_amount = math.floor(elapsed_sec * rate)
 local remaining_tokens = math.max(0, tokens - leak_amount)
 
+-- Preserve fractional refill time between requests. Reset the clock when the
+-- bucket is empty so a future request cannot consume refill time accumulated
+-- while there were no tokens to leak.
+local next_refreshed_sec = last_refreshed_sec
+if remaining_tokens == 0 then
+  next_refreshed_sec = current_time_sec
+elseif leak_amount > 0 then
+  next_refreshed_sec = last_refreshed_sec + math.floor(leak_amount / rate)
+end
+
 -- new tokens is remaining + 1 (used now)
 local new_tokens = math.min(remaining_tokens + 1, capacity)
 
 -- Update hash with new tokens and timestamp
-redis.call('HSET', key, 'tokens', new_tokens, 'last_refreshed_sec', current_time_sec)
+redis.call('HSET', key, 'tokens', new_tokens, 'last_refreshed_sec', next_refreshed_sec)
 
 -- Allow request if there is space for new tokens
 -- return remaining_tokens < capacity

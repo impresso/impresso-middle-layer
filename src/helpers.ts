@@ -1,8 +1,8 @@
 import truncatise from 'truncatise'
-import Debug from 'debug'
+import { getLogger } from '@/logger.js'
 
-const debug = Debug('impresso/helpers')
-const verbose = Debug('verbose:impresso/helpers')
+const logger = getLogger(['impresso', 'helpers'])
+const verboseLogger = getLogger(['impresso', 'helpers'])
 
 interface Token {
   id?: string
@@ -26,7 +26,7 @@ const hasOverlaps = (a: Token, b: Token) => !(a.r <= b.l || a.l >= b.r)
  *
  */
 const annotate = (tokens: Token[], text: string, left: number, right: number, attr = 'ref') => {
-  debug(`annotate: ${attr}=${text} (${left}, ${right})`)
+  logger.debug(`annotate: ${attr}=${text} (${left}, ${right})`)
   for (let i = 0, l = tokens.length; i < l; i += 1) {
     // is included, continue on the next line
 
@@ -97,7 +97,7 @@ const sliceAtSplitpoints = (text: string, splitpoints: number[], origin = 0) => 
     ]
     // throw new Error('sliceAtIndices: the list of splitpoints is empty!');
   }
-  verbose(`sliceAtIndices: text length of ${text.length} chars with ${splitpoints.length} splitpoints`)
+  verboseLogger.debug(`sliceAtIndices: text length of ${text.length} chars with ${splitpoints.length} splitpoints`)
 
   // initialize chunks with first splitpoint
   const chunks = [
@@ -205,9 +205,7 @@ const render = (tokens: Token[]) => {
  * @param {Array} otherThresholds optional, rest
  */
 const toHierarchy = (chunks: any[], thresholds: number[], ...otherThresholds: number[][]) => {
-  debug(
-    `toHierarchy: from ${chunks.length} chunks, ${thresholds.length} initital threshold, ${otherThresholds.length} additional lists of nodes`
-  )
+  logger.debug(`toHierarchy: from ${chunks.length} chunks, ${thresholds.length} initital threshold, ${otherThresholds.length} additional lists of nodes`)
 
   let clusters = seek(chunks, thresholds)
   // recursively with remaining nodes, if any.
@@ -215,7 +213,7 @@ const toHierarchy = (chunks: any[], thresholds: number[], ...otherThresholds: nu
     clusters = seek(clusters as any, threshold)
   })
 
-  debug('toHierarchy: done.')
+  logger.debug('toHierarchy: done.')
   return clusters
 }
 

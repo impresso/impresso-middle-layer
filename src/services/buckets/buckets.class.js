@@ -1,5 +1,5 @@
-import debugLib from 'debug'
-const debug = debugLib('impresso/services:buckets')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'buckets'])
 import slugify from 'slugify'
 import lodash from 'lodash-es'
 import { NotImplemented } from '@feathersjs/errors'
@@ -25,11 +25,11 @@ export class Service extends Neo4jService {
 
     // only staff can create buckets with specific uid
     if (params.user.is_staff && data.sanitized.bucket_uid) {
-      debug(`create: staff user required bucket uid: "${data.sanitized.bucket_uid}"`)
+      logger.debug(`create: staff user required bucket uid: "${data.sanitized.bucket_uid}"`)
       queryParams.bucket_uid = data.sanitized.bucket_uid
     }
 
-    debug(`${this.name} create: `, queryParams)
+    logger.debug(`${this.name} create:  ${queryParams}`)
     return this._run(this.queries.create, queryParams).then(this._finalizeCreateOne)
   }
 
@@ -75,7 +75,7 @@ export class Service extends Neo4jService {
       groups[d.labels[0]].uids.push(d.uid)
     })
 
-    debug(`${this.name} get:users`, params.user)
+    logger.debug(`${this.name} get:users ${params.user}`)
     // if articles
     return Promise.all(
       lodash(groups)

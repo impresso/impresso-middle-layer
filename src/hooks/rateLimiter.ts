@@ -35,6 +35,7 @@ export const rateLimitCheck = (resource: string) => async (context: HookContext<
     throw new TooManyRequests('Rate limit exceeded')
   }
   context.rateLimitingResult = result
+  context.params.rateLimitingResult = result
 }
 
 /**
@@ -84,6 +85,7 @@ export const rollbackRateLimit = (resource: string) => async (context: HookConte
 
   const result = await rateLimiter.undo(userId, resource)
   context.rateLimitingResult = result
+  context.params.rateLimitingResult = result
 }
 
 /**

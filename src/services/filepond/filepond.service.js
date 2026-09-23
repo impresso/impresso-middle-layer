@@ -1,7 +1,7 @@
 // Initializes the `filepond` service on path `/filepond`
 import md5File from 'md5-file'
-import Debug from 'debug'
-const verbose = Debug('verbose:impresso/services:filepond')
+import { getLogger } from '@/logger.js'
+const verboseLogger = getLogger(['impresso', 'services', 'filepond'])
 import createService from './filepond.class.js'
 
 export default function (app) {
@@ -15,17 +15,17 @@ export default function (app) {
         req.feathers.checksum = md5File.sync(req.file.path)
         req.feathers.file = req.file
 
-        verbose('/filepond - uploaded file checksum:', req.feathers.checksum)
+        verboseLogger.debug(`/filepond - uploaded file checksum: ${req.feathers.checksum}`)
 
         app
           .service('redisClient')
           .client.get(`img:${req.feathers.checksum}`)
           .then(image => {
             if (image) {
-              verbose('/filepond, found image with the checksum', req.feathers.checksum)
+              verboseLogger.debug(`/filepond, found image with the checksum ${req.feathers.checksum}`)
               res.send(req.feathers.checksum)
             } else {
-              verbose('/filepond, we did not find any image with the checksum')
+              verboseLogger.debug('/filepond, we did not find any image with the checksum')
               next()
             }
           })
@@ -39,7 +39,7 @@ export default function (app) {
         //     checksum: req.feathers.checksum,
         //   },
         // }).then((result) => {
-        //   verbose('/filepond - file found with checksum:', result.total);
+        //   verboseLogger.debug(`/filepond - file found with checksum: ${result.total}`);
         //   if (result.total) {
         //     res.format({
         //       'text/plain': function () {

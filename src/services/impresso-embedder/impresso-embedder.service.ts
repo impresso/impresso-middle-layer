@@ -7,6 +7,7 @@ import { imageEmbedderDocs, textEmbedderDocs } from './impresso-embedder.schema.
 
 export default (app: ImpressoApplication) => {
   const baseUrl = app.get('impressoNerServiceUrl') ?? 'https://impresso-annotation.epfl.ch/api'
+  const embeddingsConfig = app.get('embeddings')
   const imageService = new ImpressoImageEmbeddingService({ baseUrl })
 
   app.use('/tools/embedder/image', imageService, {
@@ -16,7 +17,7 @@ export default (app: ImpressoApplication) => {
   } as ServiceOptions)
   app.service('/tools/embedder/image').hooks(hooks)
 
-  const textService = new ImpressoTextEmbeddingService({ baseUrl })
+  const textService = new ImpressoTextEmbeddingService({ baseUrl, embeddingsConfig })
 
   app.use('/tools/embedder/text', textService, {
     events: [],

@@ -2,7 +2,7 @@ import { HookContext } from '@feathersjs/feathers'
 import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
 import { queryWithCommonParams, utils, validate, validateEach } from '@/hooks/params.js'
 import { rateLimit } from '@/hooks/rateLimiter.js'
-import { resolveTextReuseClusters } from '@/hooks/resolvers.js'
+import { resolvePermissions, resolveTextReuseClusters } from '@/hooks/resolvers.js'
 import { filtersToSolrQuery } from '@/hooks/search.js'
 import { ImpressoApplication } from '@/types.js'
 import { eachFilterValidator, paramsValidator } from '@/services/search/search.validators.js'
@@ -79,17 +79,7 @@ const getAndFindHooks = (index: IndexId) => [
     if (['edge', 'all', 'upper'].includes(rangeInclude)) {
       context.params.sanitized.rangeInclude = rangeInclude
     }
-    // if they are all provided, verify that they are integer
     if (!isNaN(rangeStart) && !isNaN(rangeEnd) && !isNaN(rangeGap)) {
-      if (
-        !Number.isInteger(Number(rangeStart)) ||
-        !Number.isInteger(Number(rangeEnd)) ||
-        !Number.isInteger(Number(rangeGap))
-      ) {
-        throw new Error(
-          `Invalid range parameters: rangeStart=${rangeStart}, rangeEnd=${rangeEnd}, rangeGap=${rangeGap}`
-        )
-      }
       context.params.sanitized.rangeGap = rangeGap
       context.params.sanitized.rangeStart = rangeStart
       context.params.sanitized.rangeEnd = rangeEnd
@@ -123,7 +113,7 @@ export const getHooks = (index: IndexId) => ({
   },
 
   after: {
-    find: [resolveTextReuseClusters()],
-    get: [resolveTextReuseClusters(), ...inPublicApi([transformResponse(transformSearchFacet)])],
+    find: [resolveTextReuseClusters(), resolvePermissions()],
+    get: [resolveTextReuseClusters(), resolvePermissions(), ...inPublicApi([transformResponse(transformSearchFacet)])],
   },
 })

@@ -47,12 +47,31 @@ function urlSearchParamsToFormData(urlSearchParams: URLSearchParams): FormData {
   return formData
 }
 
+function incomingHttpHeadersToHeaders(headers: IncomingHttpHeaders): Headers {
+  const result = new Headers()
+
+  for (const [name, value] of Object.entries(headers)) {
+    if (value == null) continue
+
+    if (Array.isArray(value)) {
+      value.forEach(item => result.append(name, item))
+    } else {
+      result.append(name, value)
+    }
+  }
+
+  return result
+}
+
 export class XResponse extends Response {
   data: Dispatcher.ResponseData
   _text?: string
 
   constructor(data: Dispatcher.ResponseData) {
-    super()
+    super(null, {
+      status: data.statusCode,
+      headers: incomingHttpHeadersToHeaders(data.headers),
+    })
     this.data = data
   }
 

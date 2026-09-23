@@ -30,7 +30,7 @@ export const sendDownstreamRequest = async <R extends { [key: string]: any }, T>
     const responseBody = await response.json()
     return responseConverter(responseBody)
   } catch (error) {
-    logger.error('Failed to parse downstream response', error)
+    logger.error('Failed to parse downstream response', { error })
     throw new Error('Failed to parse downstream response')
   }
 }

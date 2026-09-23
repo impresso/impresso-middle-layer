@@ -1,10 +1,12 @@
 import axios from 'axios'
-import debug from 'debug'
+import { getLogger } from '@/logger.js'
+
+const logger = getLogger(['impresso', 'services', 'articles-recommendations'])
 
 class ArticlesRecommendations {
   constructor({ recommenderServiceUrl }) {
     this.recommenderServiceUrl = recommenderServiceUrl
-    debug('recommenderServiceUrl', this.recommenderServiceUrl)
+    logger.debug('recommenderServiceUrl', this.recommenderServiceUrl)
   }
 
   /**
@@ -18,7 +20,7 @@ class ArticlesRecommendations {
         headers: { 'Content-Type': 'application/json' },
       })
       .catch(error => {
-        debug('error', error)
+        logger.debug('error', { error })
         throw error
       })
     return res.data

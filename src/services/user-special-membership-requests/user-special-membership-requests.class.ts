@@ -2,7 +2,10 @@ import { Op, OrderItem, type Sequelize } from 'sequelize'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
+import UserSpecialMembershipRequestModel, {
+  StatusPending,
+  StatusPendingTemporary,
+} from '@/models/user-special-membership-requests.model.js'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 import { SlimUser } from '@/authentication.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
@@ -64,7 +67,7 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
   }
 
   async create(
-    data: Partial<UserSpecialMembershipRequestModel> & { notes: string },
+    data: Partial<UserSpecialMembershipRequestModel> & { notes: string; isTemporary?: boolean },
     params: { user: Partial<SlimUser> }
   ): Promise<UserSpecialMembershipRequestModel> {
     if (!data.specialMembershipAccessId) {
@@ -75,15 +78,32 @@ export class UserSpecialMembershipRequestService implements IUserSpecialMembersh
     if (!specialMembershipAccess) {
       throw new NotFound(`SpecialMembershipAccess with id ${data.specialMembershipAccessId} not found`)
     }
+    const isTemporary = data.isTemporary === true
+
+    if (isTemporary && !specialMembershipAccess.metadata?.enableTemporaryAutomaticApproval) {
+      throw new BadRequest('Temporary automatic acceptance is not enabled for this Special Membership Access')
+    }
+
     const userRequest = await this.requestModel.create({
       userId: params.user.id!,
       reviewerId: null,
-      status: 'pending',
+      status: isTemporary ? StatusPendingTemporary : StatusPending,
       dateCreated: now,
       dateLastModified: now,
+      temporaryExpiresAt:
+        isTemporary && Number.isFinite(specialMembershipAccess.metadata?.revokeTemporaryAutomaticApprovalAfterDays)
+          ? new Date(
+              now.getTime() +
+                (specialMembershipAccess.metadata?.revokeTemporaryAutomaticApprovalAfterDays as number) *
+                  24 *
+                  60 *
+                  60 *
+                  1000
+            )
+          : undefined,
       changelog: [
         {
-          status: 'pending',
+          status: isTemporary ? StatusPendingTemporary : StatusPending,
           subscription: specialMembershipAccess.title,
           date: now.toISOString(),
           reviewer: '',

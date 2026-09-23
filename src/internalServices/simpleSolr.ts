@@ -1,4 +1,5 @@
 import { getSolrErrorDetails, SolrError } from '@/util/solr/errors.js'
+import { formatHttpError } from '@/utils/formatHttpError.js'
 import { Cache } from '@/cache.js'
 import { SolrFacetQueryParams } from '@/data/types.js'
 import { logger } from '@/logger.js'
@@ -20,6 +21,7 @@ import { createSha256Hash } from '@/util/crypto.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
 import { serialize } from '@/util/serialize.js'
 import { notCachingCollectionItemsStrategyBuilder } from '@/util/solr/cacheControl.js'
+import type { SolrQueryNode } from '@/util/solr/queryBuilder.js'
 import { removeNullAndUndefined } from '@/util/fn.js'
 import { safeParseJson, safeStringifyJson } from '@/util/jsonCodec.js'
 import { getSocksProxyConfiguration, shouldUseSocksProxy } from '@/util/socksProxyConfiguration.js'
@@ -27,10 +29,11 @@ import { IFetchClient } from '@/utils/http/client/base.js'
 import { createFetchClient } from '@/utils/http/client/index.js'
 
 const DefaultSuggesterDictonary = 'm_suggester_infix'
+const EmptyJsonRequestBody = '{}'
 
 export interface SelectRequestBody {
-  query: string | Record<string, unknown>
-  filter?: string | string[]
+  query: SolrQueryNode
+  filter?: string | string[] | SolrQueryNode[]
   limit?: number
   offset?: number
   facet?: Record<string, SolrFacetQueryParams>
@@ -224,6 +227,10 @@ const buildAuthHeader = (auth?: SolrServerAuth): Record<string, string> => {
   }
 }
 
+const buildJsonRequestBody = (body: unknown): string => {
+  return safeStringifyJson(removeNullAndUndefined(body)) ?? EmptyJsonRequestBody
+}
+
 class DefaultSimpleSolrClient implements SimpleSolrClient {
   namespaces = SolrNamespaces
 
@@ -279,26 +286,37 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
       const responseBodyText = await successfulResponse.text()
       return sanitizeSolrResponse(responseBodyText)
     } catch (e) {
+      const httpError = await formatHttpError(e, { url, requestBody: init?.body })
       try {
-        const jsonString = (e as any)?.response?.body
-        const resposneBody = JSON.parse(jsonString) as Record<string, any>
-        const solrErrorDetails = getSolrErrorDetails(resposneBody)
+        const jsonString = httpError.responseBody
+        if (jsonString == null || jsonString.length === 0) {
+          throw new Error('Empty Solr response body')
+        }
+
+        const responseBody = JSON.parse(jsonString) as Record<string, any>
+        const solrErrorDetails = getSolrErrorDetails(responseBody)
         if (solrErrorDetails) {
-          throw new SolrError(solrErrorDetails)
+          throw new SolrError(solrErrorDetails, httpError)
         } else {
-          throw new SolrError({
-            code: 500,
-            message: `Unknown Solr error: ${(e as Error).message}`,
-          })
+          throw new SolrError(
+            {
+              code: 500,
+              message: `Unknown Solr error: ${(e as Error).message}`,
+            },
+            httpError
+          )
         }
       } catch (err) {
         if (err instanceof SolrError) {
           throw err
         }
-        throw new SolrError({
-          code: 500,
-          message: `Unknown Solr error: ${(e as Error).message}`,
-        })
+        throw new SolrError(
+          {
+            code: 500,
+            message: `Unknown Solr error: ${(e as Error).message}`,
+          },
+          httpError
+        )
       }
     }
   }
@@ -349,7 +367,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
         ...buildAuthHeader(auth),
         'Content-Type': 'application/json',
       }),
-      body: safeStringifyJson(removeNullAndUndefined(request.body)),
+      body: buildJsonRequestBody(request.body),
     }
 
     const responseBody = await this.fetch(client, url, init)
@@ -367,7 +385,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
       ? ({ ...request, commit: commit ? {} : undefined } satisfies SolrBulkAddRequest<T>)
       : ({ ...request, commit: commit ? {} : undefined } satisfies SolrBulkDeleteRequest)
 
-    const body = safeStringifyJson(removeNullAndUndefined(solrRequest))
+    const body = buildJsonRequestBody(solrRequest)
 
     const url = `${baseUrl}/${namespace.index}/update/json`
     const init: RequestInit = {
@@ -399,7 +417,7 @@ class DefaultSimpleSolrClient implements SimpleSolrClient {
         ...buildAuthHeader(auth),
         'Content-Type': 'application/json',
       }),
-      body: safeStringifyJson(removeNullAndUndefined(solrRequest)),
+      body: buildJsonRequestBody(solrRequest),
     }
 
     const responseBody = await this.fetch(client, url, init)

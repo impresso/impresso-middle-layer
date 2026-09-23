@@ -2,7 +2,7 @@ import { ImpressoApplication } from '@/types.js'
 import { HookContext } from '@feathersjs/feathers'
 
 import { BaseFindResponse } from '@/models/generated/app/responses.js'
-import { Collection, Entity, FacetWithLabel, MediaSource, SearchFacetBucket } from '@/models/generated/canonical.js'
+import { Collection, Entity, FacetWithLabel, MediaSource, SearchFacetBucket } from '@/models/generated/app/entities.js'
 import {
   SearchFacet,
   SearchFacetBucket as SearchFacetBucketInternal,

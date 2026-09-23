@@ -2,15 +2,14 @@ import { Application } from '@feathersjs/feathers'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 import { createClient } from 'celery-node'
 import { Redis } from 'ioredis'
-import debugModule from 'debug'
 import { CeleryConfig } from '@/configuration.js'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import Job from '@/models/jobs.model.js'
 import type { LogData } from '@/services/logs/logs.class.js'
 import { ImpressoApplication } from '@/types.js'
 import { AsyncResult } from 'celery-node/dist/app/result.js'
 
-const debug = debugModule('impresso/celery')
+const logger = getLogger(['impresso', 'celery'])
 
 export const JobStatusTranslations: Record<string, string> = {
   REA: 'A new job has been created',
@@ -28,7 +27,7 @@ const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
 
   backend.redis.on('connect', () => {
     backend.redis.psubscribe('celery-task-meta-*', () => {
-      debug('Subscribed to celery tasks')
+      logger.debug('Subscribed to celery tasks')
     })
 
     if (app.get('isPublicApi')) {
@@ -42,7 +41,7 @@ const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
 
       if (result && typeof result === 'object') {
         if (result.job) {
-          debug(`@message related to job: ${result.job.id}, send to: ${result.channel}`, result, result.progress)
+          logger.debug(`@message related to job: ${result.job.id}, send to: ${result.channel} ${result} ${result.progress}`)
           app.service('logs').create({
             tasktype: result.job.type,
             taskname: result.taskname,
@@ -64,14 +63,14 @@ const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
             }),
           } as LogData)
         } else {
-          debug('@message from unknown origin, cannot propagate:', result)
+          logger.debug(`@message from unknown origin, cannot propagate: ${result}`)
         }
       }
     })
   })
 
   const run = async ({ task = 'impresso.tasks.echo', args = ['this is a test'] } = {}) => {
-    debug(`run celery task ${task}`)
+    logger.debug(`run celery task ${task}`)
     const celeryTask = client.createTask(task)
     return celeryTask.applyAsync(args)
 
@@ -80,12 +79,12 @@ const getCeleryClient = (config: CeleryConfig, app: ImpressoApplication) => {
     // return result
     //   .get()
     //   .then(data => {
-    //     debug('Celery task retrieved!', data)
+    //     logger.debug(`Celery task retrieved! ${data}`)
     //     console.log(data)
     //   })
     //   .catch(err => {
     //     console.error(err)
-    //     debug(`Error! ${err}`, err)
+    //     logger.debug(`Error! ${err} ${err}`)
     //   })
   }
 
@@ -105,8 +104,8 @@ export default (app: ImpressoApplication) => {
       const client = getCeleryClient(config, app)()
       app.set('celeryClient', client)
       logger.info('Celery: configured and enabled.')
-    } catch (err) {
-      logger.error('Celery: an error occurred while configuring celery.', err)
+    } catch (error) {
+      logger.error('Celery: an error occurred while configuring celery', { error })
     }
   }
 }

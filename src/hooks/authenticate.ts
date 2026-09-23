@@ -2,6 +2,7 @@ import { hooks } from '@feathersjs/authentication'
 import { NotAuthenticated } from '@feathersjs/errors'
 import type { HookContext, NextFunction } from '@feathersjs/feathers'
 import type { ImpressoApplication } from '@/types.js'
+import { withContext } from '@/logger.js'
 /**
  * A wrapper around authenticate hook from featherjs
  * to enabe allowUnauthenticate again ...
@@ -50,5 +51,13 @@ export const authenticateAround =
     const doAllowUnauthenticated = isPublicApi ? false : allowUnauthenticated
 
     await authenticate(strategy, { allowUnauthenticated: doAllowUnauthenticated })(context)
-    await next()
+
+    // After authentication, context.params.user is populated (if authenticated).
+    // Wrap the remaining hook chain + service method in withContext so that all
+    // downstream logs automatically carry the userId. The requestId set by the
+    // Express middleware (src/app.ts) is preserved — withContext merges contexts.
+    const userId = (context.params?.user as { uid?: string } | undefined)?.uid
+    await withContext(userId != null ? { userId } : {}, async () => {
+      await next()
+    })
   }

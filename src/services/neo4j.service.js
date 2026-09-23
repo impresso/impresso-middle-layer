@@ -2,9 +2,9 @@
   Load neo4j driver according to current configuration
 */
 import { v1 as neo4j } from 'neo4j-driver'
+import { getLogger } from '@/logger.js'
 import decypher from 'decypher'
-import Debug from 'debug'
-const debug = Debug('impresso/services:Neo4jService')
+const logger = getLogger(['impresso', 'services', 'Neo4jService'])
 import errors from '@feathersjs/errors'
 import { neo4jRecordMapper, neo4jRun, neo4jToInt } from './neo4j.utils.js'
 
@@ -22,7 +22,7 @@ class Neo4jService {
       this.app = options.app
     }
 
-    debug(`Configuring neo4j service: ${this.options.name}`)
+    logger.debug(`Configuring neo4j service: ${this.options.name}`)
 
     // really don't know what they are :(
     this._id = options.idField || options.id || 'id'
@@ -118,11 +118,11 @@ class Neo4jService {
     // console.log(res.records, res.records[0])
     let count
 
-    debug('_finalize: resultAvailableAfter', neo4jToInt(res.summary.resultAvailableAfter), 'ms')
+    logger.debug(`_finalize: resultAvailableAfter ${neo4jToInt(res.summary.resultAvailableAfter)} ms`)
     if (Array.isArray(res.records)) {
       if (res.records.length) {
         const record = res.records[0]
-        debug('_finalize: record._fieldLookup:', record._fieldLookup)
+        logger.debug(`_finalize: record._fieldLookup: ${record._fieldLookup}`)
         if (record._fieldLookup) {
           const countidx = record._fieldLookup._total
 
@@ -141,7 +141,7 @@ class Neo4jService {
     }
 
     if (typeof count !== 'undefined') {
-      debug('_finalize: count property has been found, <count>:', count)
+      logger.debug(`_finalize: count property has been found, <count>: ${count}`)
 
       return Neo4jService.wrap(
         res.records.map(neo4jRecordMapper),
@@ -151,17 +151,17 @@ class Neo4jService {
         // res.summary.counters._stats
       )
     }
-    debug('_finalize: no count has been found.')
+    logger.debug('_finalize: no count has been found.')
     return res.records.map(neo4jRecordMapper)
   }
 
   async find(params) {
-    debug(`find: with params.isSafe:${params.isSafe} and params.query:`, params.query)
+    logger.debug(`find: with params.isSafe:${params.isSafe} and params.query: ${params.query}`)
     return this._run(this.queries.find, params.isSafe ? params.query : params.sanitized).then(this._finalize)
   }
 
   async get(id, params) {
-    debug(`get: ${this.name} with id:${id} and params.isSafe:${params.isSafe} and params.query:`, params.query)
+    logger.debug(`get: ${this.name} with id:${id} and params.isSafe:${params.isSafe} and params.query: ${params.query}`)
     const uids = id.split(',')
 
     // query params
@@ -217,14 +217,14 @@ class Neo4jService {
     } else if (!params.user.uid) {
       throw new errors.NotAuthenticated()
     }
-    debug(`remove: ${this.name} with id: ${id}`, id)
+    logger.debug(`remove: ${this.name} with id: ${id} ${id}`)
 
     return this._run(this.queries.remove, {
       uid: id,
       ...(params.isSafe ? params.query : params.sanitized),
       _exec_user_uid: params.user.uid,
     }).then(res => {
-      debug('remove: neo4j response', res)
+      logger.debug(`remove: neo4j response ${res}`)
       // console.log(res.summary.counters);
       // if(!records.length) {
       //   throw new errors.NotFound()

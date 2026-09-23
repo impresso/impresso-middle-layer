@@ -2,10 +2,14 @@ import * as path from 'path'
 import { fileURLToPath } from 'url'
 import { disallow } from 'feathers-hooks-common'
 import { readFileSync } from 'fs'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import { RedisClient } from '@/redis.js'
 import type { ImpressoApplication } from '@/types.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
+import { Application } from '@feathersjs/feathers'
+import { HookContext, NextFunction } from '@feathersjs/hooks'
+
+const logger = getLogger(['app', 'quotaChecker'])
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -241,4 +245,19 @@ export default (app: ImpressoApplication) => {
       all: disallow('external'),
     },
   })
+}
+
+export const init = async (context: HookContext<ImpressoApplication & Application>, next: NextFunction) => {
+  const checker = context.app.service('quotaChecker')
+  if (checker) {
+    try {
+      ;(await checker.setup(context.app, 'quotaChecker')) as QuotaChecker
+      logger.info('Quota checker is active.')
+    } catch (error) {
+      logger.error('Error setting up quota checker', { error })
+    }
+  } else {
+    logger.warn('Quota checker is not configured. Cannot activate.')
+  }
+  await next()
 }

@@ -27,7 +27,7 @@ const resolveSchemaBaseDir = (): string => {
     path.join(process.cwd(), 'schema'),
   ]
 
-  const matchingCandidate = candidates.find(dir => fs.existsSync(path.join(dir, 'canonical')))
+  const matchingCandidate = candidates.find(dir => fs.existsSync(path.join(dir, 'app', 'entities')))
   if (matchingCandidate != null) {
     return matchingCandidate
   }
@@ -42,7 +42,6 @@ const getFilesAsSchemaRefs = (dir: string, prefix: string, required = false): Re
     if (required) {
       throw new Error(`Swagger schema directory not found: ${dir}`)
     }
-
     return {}
   }
 
@@ -66,9 +65,9 @@ const ensureRequiredSchemas = (schemas: SchemaRefs): SchemaRefs => {
   const result = { ...schemas }
 
   if (result.ContentItem == null) {
-    const contentItemSchemaPath = path.join(schemaBaseDir, 'canonical/contentItem/ContentItem.json')
+    const contentItemSchemaPath = path.join(schemaBaseDir, 'app/entities/contentItem/ContentItem.json')
     if (fs.existsSync(contentItemSchemaPath)) {
-      result.ContentItem = { $ref: './schema/canonical/contentItem/ContentItem.json' }
+      result.ContentItem = { $ref: './schema/app/entities/contentItem/ContentItem.json' }
       logger.error('Recovered missing Swagger component schema: ContentItem')
     }
   }
@@ -125,8 +124,8 @@ export default (app: ImpressoApplication & Application) => {
   const prefix = app.get('publicApiPrefix')
   const schemas = ensureRequiredSchemas({
     // canonical schemas
-    ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical`, './schema/canonical', true),
-    ...getFilesAsSchemaRefs(`${schemaBaseDir}/canonical/contentItem`, './schema/canonical/contentItem', true),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/entities`, './schema/app/entities', true),
+    ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/entities/contentItem`, './schema/app/entities/contentItem', true),
     // app specific schemas
     ...getFilesAsSchemaRefs(`${schemaBaseDir}/app`, './schema/app'),
     ...getFilesAsSchemaRefs(`${schemaBaseDir}/app/requests`, './schema/app/requests'),

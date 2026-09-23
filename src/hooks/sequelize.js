@@ -1,7 +1,7 @@
 import lodash from 'lodash-es'
-import debugLib from 'debug'
-const debug = debugLib('impresso/hooks:sequelize')
-const verbose = debugLib('verbose:impresso/hooks:sequelize')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'hooks', 'sequelize'])
+const verboseLogger = getLogger(['impresso', 'hooks', 'sequelize'])
 import { Op } from 'sequelize'
 /**
  * reduceFiltersToSequelizeQuery
@@ -12,7 +12,7 @@ import { Op } from 'sequelize'
  * @return {Array}              Array of sequelize `where` objects
  */
 const reduceFiltersToSequelizeQuery = (name, filters = []) => {
-  verbose(`'reduceFiltersToSequelizeQuery' treating group: ${name}, ${filters.length} elements`)
+  verboseLogger.debug(`'reduceFiltersToSequelizeQuery' treating group: ${name}, ${filters.length} elements`)
   if (name === 'entity') {
     return {
       [Op.and]: filters.reduce((acc, filter) => {
@@ -35,14 +35,14 @@ export const filtersToSequelizeQuery = () => async context => {
   }
   // go out
   if (!Array.isArray(context.params.sanitized.filters)) {
-    debug("'filtersToSequelizeQuery': no filters found in params.query, skip hook.")
+    logger.debug("'filtersToSequelizeQuery': no filters found in params.query, skip hook.")
     return
   }
 
   const groups = lodash.groupBy(context.params.sanitized.filters, 'type')
   const types = Object.keys(groups)
   const results = []
-  debug("'filtersToSequelizeQuery' types found in filters:", types)
+  logger.debug(`'filtersToSequelizeQuery' types found in filters: ${types}`)
 
   // group filters by type, then concat with [Op.and]
   types.forEach(i => {

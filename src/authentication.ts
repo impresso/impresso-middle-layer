@@ -6,11 +6,10 @@ import {
   JWTStrategy,
   JwtVerifyOptions,
 } from '@feathersjs/authentication'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 import { NotAuthenticated, BadRequest } from '@feathersjs/errors'
 import { ServiceOptions } from '@feathersjs/feathers'
-import initDebug from 'debug'
 import swagger from 'feathers-swagger'
 import User from '@/models/users.model.js'
 import { docs } from '@/services/authentication/authentication.schema.js'
@@ -24,8 +23,8 @@ import Group from './models/groups.model.js'
 
 const { createSwaggerServiceOptions } = swagger
 
-const debug = initDebug('impresso/authentication')
-debug('initialising authentication')
+const logger = getLogger(['impresso', 'authentication'])
+logger.debug('initialising authentication')
 /**
  * Using base64 for the bitmap to keep the size
  * of the JWT token as small as possible.
@@ -62,7 +61,7 @@ class HashedPasswordVerifier extends LocalStrategy {
   }
   async comparePassword(user: User, password: string) {
     if (!(user instanceof User)) {
-      debug('_comparePassword: user is not valid', user)
+      logger.debug(`_comparePassword: user is not valid ${user}`)
       throw new NotAuthenticated('Login incorrect')
     }
     const isValid = User.comparePassword({
@@ -72,7 +71,7 @@ class HashedPasswordVerifier extends LocalStrategy {
     if (!isValid) {
       throw new NotAuthenticated('Login incorrect')
     }
-    debug('_comparePassword: password is valid. user: ', user.id)
+    logger.debug(`_comparePassword: password is valid. user:  ${user.id}`)
     // update user lastLogin
     // get current app sequelize
     const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
@@ -88,10 +87,10 @@ class HashedPasswordVerifier extends LocalStrategy {
           },
         }
       )
-      debug('_comparePassword: updated login for user, count updated:', affectedCount)
-    } catch (err) {
-      logger.error(`Error updating login for user ${user.id}`, err)
-      debug('_comparePassword: error updating login for user', err)
+      logger.debug(`_comparePassword: updated login for user, count updated: ${affectedCount}`)
+    } catch (error) {
+      logger.error(`Error updating login for user ${user.id}`, { error })
+      logger.debug(`_comparePassword: error updating login for user ${{ error }}`)
     }
     return {
       ...user,
@@ -139,7 +138,7 @@ class NoDBJWTStrategy extends JWTStrategy {
       isStaff: payload.isStaff ?? false,
       groups: payload.groups ?? [],
     }
-    debug('[NoDBJWTStrategy] Authenticated user:', slimUser)
+    logger.debug(`[NoDBJWTStrategy] Authenticated user: ${slimUser}`)
     return {
       ...result,
       [entity]: slimUser,
@@ -211,7 +210,7 @@ class MagicLinkJWTStrategy extends JWTStrategy {
       throw new NotAuthenticated('Magic link not configured')
     }
 
-    debug('[MagicLinkJWTStrategy] Verifying magic link token', accessToken)
+    logger.debug(`[MagicLinkJWTStrategy] Verifying magic link token ${accessToken}`)
 
     try {
       // Verify JWT signature with magic link secret
@@ -222,17 +221,17 @@ class MagicLinkJWTStrategy extends JWTStrategy {
       const tokenData = await redisClient.get(cacheKey)
 
       if (!tokenData) {
-        debug('[MagicLinkJWTStrategy] Token not found in cache or expired')
+        logger.debug('[MagicLinkJWTStrategy] Token not found in cache or expired')
         throw new BadRequest('Invalid or expired token')
       }
 
-      debug('[MagicLinkJWTStrategy] Token exists, looking up user by tokenData:', tokenData)
+      logger.debug(`[MagicLinkJWTStrategy] Token exists, looking up user by tokenData: ${tokenData}`)
       // Delete token from cache (one-time use)
       try {
         await redisClient.del(cacheKey)
-        debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
+        logger.debug('[MagicLinkJWTStrategy] Deleted magic link token from cache')
       } catch (deleteErr) {
-        logger.error('[MagicLinkJWTStrategy] Failed to delete magic link token from cache:', deleteErr)
+        logger.error('[MagicLinkJWTStrategy] Failed to delete magic link token from cache', { error: deleteErr })
       }
       // Get user from database
       const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
@@ -245,11 +244,11 @@ class MagicLinkJWTStrategy extends JWTStrategy {
       })
 
       if (!user) {
-        debug('[MagicLinkJWTStrategy] User not found for id stored in redis:', tokenData)
+        logger.debug(`[MagicLinkJWTStrategy] User not found for id stored in redis: ${tokenData}`)
         throw new NotAuthenticated('User not found')
       }
 
-      debug('[MagicLinkJWTStrategy] User found:', user.get('email'), 'id:', user.get('id'))
+      logger.debug(`[MagicLinkJWTStrategy] User found: ${user.get('email')} id: ${user.get('id')}`)
 
       const { entity } = this.configuration
 
@@ -257,11 +256,11 @@ class MagicLinkJWTStrategy extends JWTStrategy {
         authentication: { strategy: this.name },
         [entity]: await this.getEntity(String(user.get('id')), params),
       } as any
-    } catch (err) {
-      if (err instanceof NotAuthenticated || err instanceof BadRequest) {
-        throw err
+    } catch (error) {
+      if (error instanceof NotAuthenticated || error instanceof BadRequest) {
+        throw error
       }
-      logger.error('[MagicLinkJWTStrategy] Token verification failed:', err)
+      logger.error('[MagicLinkJWTStrategy] Token verification failed', { error })
       throw new NotAuthenticated('Invalid token')
     }
   }

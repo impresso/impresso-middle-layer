@@ -11,10 +11,11 @@ import {
   Collection as ICollection,
   Partner as IPartner,
   MediaSource as IMediaSource,
-} from '@/models/generated/canonical.js'
+} from '@/models/generated/app/entities.js'
 import { InternalTopic } from '@/models/generated/deprecated/models.js'
-import { FacetWithLabel } from '@/models/generated/canonical.js'
+import { FacetWithLabel } from '@/models/generated/app/entities.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
+import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
 export type CachedFacetType =
   | 'mediaSource'
   | 'topic'
@@ -32,6 +33,7 @@ export type CachedFacetType =
   | 'dataDomain'
   | 'copyright'
   | 'contentItemType'
+  | 'specialMembershipAccess'
 export type CachedFacetTypes = ITopic | IYear | IEntity | ICollection | IMediaSource | IPartner | FacetWithLabel
 
 export type IResolver<T> = (id: string) => Promise<T | undefined>
@@ -53,6 +55,7 @@ export type ICachedResolvers = {
   dataDomain: IResolver<FacetWithLabel>
   copyright: IResolver<FacetWithLabel>
   contentItemType: IResolver<FacetWithLabel>
+  specialMembershipAccess: IResolver<SpecialMembershipAccess>
 }
 
 // Record<CachedFacetType, IResolver<T>>
@@ -83,6 +86,9 @@ const ContentItemTypeLabels = {
   unsegmented: 'Unsegmented',
   radio_broadcast_episode: 'Radio broadcast episode',
   radio_bulletin: 'Radio bulletin',
+  dsc: 'Discussion',
+  ent: 'Entertainment',
+  'no-type': 'Unknown type',
 } as const
 
 const fromLookup =
@@ -163,6 +169,7 @@ const getYearResolver = (app: ImpressoApplication): IResolver<IYear> => {
     const deserialisedYears: Record<number, IYear> = JSON.parse(result ?? '{}')
 
     const year = deserialisedYears[Number(id)]
+    year.id = Number(id)
     return year
   }
 }
@@ -173,6 +180,24 @@ const getMediaSourceResolver = (app: ImpressoApplication): IResolver<IMediaSourc
     const lookup = await mediaSources.getLookup()
     const item = lookup[id]
     return item
+  }
+}
+
+const getSpecialMembershipResolver = (app: ImpressoApplication): IResolver<SpecialMembershipAccess> => {
+  const service = app.service('special-membership-plans')
+
+  return async (bitmapPosition: string) => {
+    const trimmed = bitmapPosition.trim()
+    if (trimmed === '') return undefined
+    const parsedBitmapPosition = Number(trimmed)
+    if (!Number.isInteger(parsedBitmapPosition) || parsedBitmapPosition < 0) return undefined
+    const lookup = await service.getLookup()
+    const cached = lookup[String(parsedBitmapPosition)]
+    if (cached != null) {
+      return cached as unknown as SpecialMembershipAccess
+    }
+    const result = await service.getByBitmapPosition(parsedBitmapPosition)
+    return result
   }
 }
 
@@ -202,5 +227,6 @@ export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
     dataDomain: getDataDomainResolver(),
     copyright: getCopyrightResolver(),
     contentItemType: getContentItemTypeResolver(),
+    specialMembershipAccess: getSpecialMembershipResolver(app),
   }
 }

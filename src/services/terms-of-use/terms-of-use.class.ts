@@ -1,10 +1,10 @@
 import type { Sequelize } from 'sequelize'
+import { getLogger } from '@/logger.js'
 import type { ImpressoApplication } from '@/types.js'
 import UserBitmap, { BufferUserPlanAuthUser } from '@/models/user-bitmap.model.js'
 import User from '@/models/users.model.js'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
-import Debug from 'debug'
-const debug = Debug('impresso/services:terms-of-use')
+const logger = getLogger(['impresso', 'services', 'terms-of-use'])
 
 interface Params extends FeathersParams {
   user: {
@@ -54,7 +54,7 @@ export class Service {
       where: { user_id: params.user.id },
     })
     if (created) {
-      debug('find() User bitmap found:', result.toJSON(), 'created:', created, 'user pk:', params.user.uid)
+      logger.debug(`find() User bitmap found: ${result.toJSON()} created: ${created} user pk: ${params.user.uid}`)
     }
     return result.toJSON()
   }
@@ -65,7 +65,7 @@ export class Service {
     }
     const model = UserBitmap.sequelize(this.sequelizeClient as Sequelize)
     // when user accepts terms of use, update the dateAcceptedTerms field
-    debug('Updating user bitmap with terms of use acceptance, user uid:', params.user.uid)
+    logger.debug(`Updating user bitmap with terms of use acceptance, user uid: ${params.user.uid}`)
     const [result, created] = await model.findOrCreate({
       where: { user_id: params.user.id },
       defaults: {
@@ -76,14 +76,14 @@ export class Service {
       },
     })
     if (!created) {
-      debug('patch() user bitmap for user pk:', params.user.id, 'already exists, update dateAcceptedTerms.')
+      logger.debug(`patch() user bitmap for user pk: ${params.user.id} already exists, update dateAcceptedTerms.`)
       await result.update({
         dateAcceptedTerms: new Date(),
       })
       // get the bitmap from celery
       const client = this.app.get('celeryClient')
       if (client) {
-        debug('Updating user bitmap with terms of use acceptance using Celery')
+        logger.debug('Updating user bitmap with terms of use acceptance using Celery')
         await client.run({
           task: 'impresso.tasks.update_user_bitmap_task',
           args: [

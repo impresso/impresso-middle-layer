@@ -1,17 +1,17 @@
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
+import { getLogger } from '@/logger.js'
 import { resolveAsync } from '@/util/solr/adapters.js'
-import debug from 'debug'
 import Topic from '@/models/topics.model.js'
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
 import ArticleTopic from '@/models/articles-topics.model.js'
 import Article from '@/models/articles.model.js'
 
-const debugLogger = debug('impresso/hooks/resolvers:articles')
+const debugLogger = getLogger(['impresso', 'hooks', 'resolvers', 'articles'])
 
 const resolveTopics = () => async (context: HookContext<ImpressoApplication>) => {
   if (!context.result) {
-    debugLogger('resolveTopics: no "context.result" found')
+    debugLogger.debug('resolveTopics: no "context.result" found')
   } else if (context.result.data && context.result.data.length) {
     const resolvers = buildResolvers(context.app)
 
@@ -30,7 +30,7 @@ const resolveTopics = () => async (context: HookContext<ImpressoApplication>) =>
       })
     )
   } else if (context.result.topics && context.result.topics.length) {
-    debugLogger(`resolveTopics: "context.result.topics" found with ${context.result.topics.length} topics`)
+    debugLogger.debug(`resolveTopics: "context.result.topics" found with ${context.result.topics.length} topics`)
 
     /** @type {import('../../internalServices/simpleSolr').SimpleSolrClient} */
     const solr = context.app.service('simpleSolrClient')

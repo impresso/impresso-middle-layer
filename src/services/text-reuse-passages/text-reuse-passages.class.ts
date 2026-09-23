@@ -1,15 +1,15 @@
 import { NotFound } from '@feathersjs/errors'
+import { getLogger } from '@/logger.js'
 import { Params } from '@feathersjs/feathers'
-import Debug from 'debug'
 import { Filter } from 'impresso-jscommons'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { AllDocumentFields } from '@/models/text-reuse-passage.js'
 import TextReusePassage, { SolrFields } from '@/models/text-reuse-passages.model.js'
 import { ImpressoApplication } from '@/types.js'
 import { parseOrderBy } from '@/util/queryParameters.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 
-const debug = Debug('impresso/services/text-reuse-passages')
+const logger = getLogger(['impresso', 'services', 'text-reuse-passages'])
 
 export const OrderByKeyToField = {
   clusterSize: SolrFields.clusterSize,
@@ -45,25 +45,18 @@ export class TextReusePassages {
     const fl = '*' // Object.values(TextReuseCluster.SolrFields).join(',')
     const filters = params.query?.filters ?? []
     const [orderByField, orderByDescending] = parseOrderBy(params.query?.order_by, OrderByKeyToField)
-    const { query, filter } = filtersToQueryAndVariables(
+    const { query, filter } = buildSolrQuery(
       filters,
       this.solr.namespaces.TextReusePassages,
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
     const sort = orderByField ? `${orderByField} ${orderByDescending ? 'desc' : 'asc'}, id asc` : null
-
+    const queryFilter = [...filter]
     const fq = `{!collapse field=${params.query?.group_by ? SolrFields[params.query?.group_by] : ''} max=ms(${SolrFields.date})}`
-    const groupby = params.query?.group_by ? { filter: fq } : null
+    const effectiveFilter = params.query?.group_by ? queryFilter.concat(fq) : queryFilter
 
-    debug(
-      'find q:',
-      query,
-      '- index:',
-      this.solr.namespaces.TextReusePassages,
-      '- groupby:',
-      groupby
-      // params.query
-    )
+    logger.debug(`find q: ${query} - index: ${this.solr.namespaces.TextReusePassages} - groupby: ${params.query?.group_by}`)
 
     const mediaSourcesLookup = await this.app.service('media-sources').getLookup()
 
@@ -71,12 +64,11 @@ export class TextReusePassages {
       .select<AllDocumentFields>(this.solr.namespaces.TextReusePassages, {
         body: {
           query,
-          filter,
+          filter: effectiveFilter,
           fields: fl,
           limit: params.query?.limit,
           offset: params.query?.offset,
           sort: sort ?? undefined,
-          ...groupby,
         },
       })
       .then(({ response }) => {
@@ -107,7 +99,7 @@ export class TextReusePassages {
       },
     })
     const textReusePassage = doc != null ? TextReusePassage.fromSolr(doc) : undefined
-    debug('textReusePassages:', textReusePassage)
+    logger.debug(`textReusePassages: ${textReusePassage}`)
     if (textReusePassage == null) return new NotFound(id)
     return textReusePassage
   }

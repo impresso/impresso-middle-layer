@@ -1,9 +1,9 @@
 import axios from 'axios'
+import { getLogger } from '@/logger.js'
 import FormData from 'form-data'
 import path from 'path'
 import sharp from 'sharp'
-import debugModule from 'debug'
-const debug = debugModule('impresso/services:filepond')
+const logger = getLogger(['impresso', 'services', 'filepond'])
 
 async function executeImageUploadRequest(url, modelId, filename, buffer) {
   const formData = new FormData()
@@ -32,9 +32,9 @@ export class Service {
 
   async create(data, params) {
     const file = path.join(this.app.get('multer').dest, params.file.filename)
-    debug('[create] filepath:', file)
+    logger.debug(`[create] filepath: ${file}`)
     const url = this.app.get('images').visualSignature.endpoint
-    debug('[create] visualSignature service url:', url)
+    logger.debug(`[create] visualSignature service url: ${url}`)
     // Promise: process image
     const fingerprintPromise = this.processImage(file).then(imageBuffer =>
       executeImageUploadRequest(url, 'InceptionResNetV2', params.file.filename, imageBuffer)
@@ -53,7 +53,7 @@ export class Service {
       thumbnail,
     }))
 
-    debug('[create] add to REDIS image - uid:', image.id, '- checksum', image.checksum)
+    logger.debug(`[create] add to REDIS image - uid: ${image.id} - checksum ${image.checksum}`)
     await this.app.service('redisClient').client.set(`img:${image.checksum}`, JSON.stringify(image))
 
     return image

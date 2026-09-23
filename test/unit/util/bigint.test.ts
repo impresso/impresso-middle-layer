@@ -1,4 +1,12 @@
-import { bigIntToBitString, bigIntToBuffer, bigIntToLongString, bitmapsAlign, bufferToBigInt } from '@/util/bigint.js'
+import {
+  base64BytesToBigInt,
+  bigIntToBase64Bytes,
+  bigIntToBitString,
+  bigIntToBuffer,
+  bigIntToLongString,
+  bitmapsAlign,
+  bufferToBigInt,
+} from '@/util/bigint.js'
 import assert from 'assert'
 
 const testBigInts: [bigint, string][] = [
@@ -7,6 +15,16 @@ const testBigInts: [bigint, string][] = [
   [BigInt('0b' + '1' + [...Array(63)].map(() => '0').join('')), 'gAAAAAAAAAA='],
   [BigInt('0b' + '1' + [...Array(62)].map(() => '0').join('') + '1'), 'gAAAAAAAAAE='],
   [BigInt('0b' + [...Array(64)].map(() => '1').join('')), '//////////8='],
+]
+
+const bigEndianBufferCases: [string, bigint][] = [
+  ['', BigInt(0)],
+  ['00', BigInt(0)],
+  ['01', BigInt(1)],
+  ['0001', BigInt(1)],
+  ['0000000000000001', BigInt(1)],
+  ['010000000000000000', BigInt('0x010000000000000000')],
+  ['ffffffffffffffffff', BigInt('0xffffffffffffffffff')],
 ]
 
 describe('bigint utils', () => {
@@ -21,6 +39,25 @@ describe('bigint utils', () => {
       const bigint2 = bufferToBigInt(buffer)
       assert.strictEqual(bigint, bigint2)
     })
+  })
+
+  it('decodes arbitrary-width big-endian buffers', () => {
+    bigEndianBufferCases.forEach(([hexRepresentation, bigint]) => {
+      const buffer = Buffer.from(hexRepresentation, 'hex')
+      assert.strictEqual(bufferToBigInt(buffer), bigint, `buffer: ${hexRepresentation}`)
+    })
+  })
+
+  it('round-trips base64 byte helpers', () => {
+    testBigInts.forEach(([bigint, base64Representation]) => {
+      assert.strictEqual(bigIntToBase64Bytes(bigint), base64Representation)
+      assert.strictEqual(base64BytesToBigInt(base64Representation), bigint)
+    })
+  })
+
+  it('rejects values outside the unsigned 64-bit buffer range', () => {
+    assert.throws(() => bigIntToBuffer(BigInt(-1)), RangeError)
+    assert.throws(() => bigIntToBuffer(BigInt('0x10000000000000000')), RangeError)
   })
 
   it('should represent bigint as a bit string', () => {

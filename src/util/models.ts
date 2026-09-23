@@ -1,5 +1,5 @@
 import { FilterTypes } from '@/data/constants.js'
-import type { Filter } from '@/models/generated/canonical.js'
+import type { Filter } from '@/models/generated/app/entities.js'
 import { FilterType, Filter as JSCommonsFilter } from 'impresso-jscommons'
 
 const isFilterType = (value: any): value is FilterType => {

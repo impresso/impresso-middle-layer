@@ -1,13 +1,23 @@
+// import type {} from // ContentItemCore,
+// AccessRightFields,
+// ArticleFields,
+// AudioFields,
+// ContextualMetadataFields,
+// ImageFields,
+// SemanticEnrichmentsFields,
+// TextContentFields as TextContentFieldsGenerated,
+// './generated/external/solr/ContentItem.js'
+
 import type {
-  ContentItemCore,
+  CoreFields as ContentItemCore,
   AccessRightFields,
-  ArticleFields,
+  TextFields,
   AudioFields,
   ContextualMetadataFields,
-  ImageFields,
+  PaperFields,
   SemanticEnrichmentsFields,
-  TextContentFields as TextContentFieldsGenerated,
-} from './generated/external/solr/ContentItem.js'
+  // TextContentFields as TextContentFieldsGenerated,
+} from './consolidated/solr/index.js'
 
 /**
  * IMPORTANT: This field should be kept in sync with the ingestion code.
@@ -34,23 +44,23 @@ type LanguageSpecificFields = {
   [K in `content_txt_${LanguageCode}`]: string
 }
 
-export type TextContentFields = TextContentFieldsGenerated & LanguageSpecificFields
+export type TextContentFieldsWithLanguageSpecificFields = TextFields & LanguageSpecificFields
 
 export type ContentItemCoreFieldsNames = keyof ContentItemCore
 export type AccessRightFieldsNames = keyof AccessRightFields
-export type ArticleFieldsNames = keyof ArticleFields
+export type ArticleFieldsNames = keyof TextFields
 export type AudioFieldsNames = keyof AudioFields
 export type ContextualMetadataFieldsNames = keyof ContextualMetadataFields
-export type ImageFieldsNames = keyof ImageFields
+export type ImageFieldsNames = keyof PaperFields
 export type SemanticEnrichmentsFieldsNames = keyof SemanticEnrichmentsFields
-export type TextContentFieldsNames = keyof TextContentFields
+export type TextContentFieldsNames = keyof TextFields
 
 /**
  * A composite model used in the old code to refer
  * to an "article" content item.
  */
-export type PrintContentItem = ArticleFields &
-  TextContentFields &
+export type PrintContentItem = PaperFields &
+  TextContentFieldsWithLanguageSpecificFields &
   SemanticEnrichmentsFields &
   ContentItemCore &
   AccessRightFields &

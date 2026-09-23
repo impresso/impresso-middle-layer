@@ -1,6 +1,9 @@
 import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
+import { getLogger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
 import { prepareAvailableYearBuckets } from '@/useCases/prepareAvailableYearBuckets.js' // Import the use case
+
+const logger = getLogger(['jobs', 'updateYears'])
 
 /** 100 days */
 const DefaultTtlMilliSeconds = 60 * 60 * 24 * 100 * 1000
@@ -15,20 +18,20 @@ const run = async (app: ImpressoApplication) => {
   // Check cache first
   const cached = await cache.get(WellKnownKeys.Years)
   if (cached != null) {
-    console.log('Years data found in cache, skipping update.')
+    logger.info('Years data found in cache, skipping update.')
     return
   }
 
-  console.log('Updating years data...')
+  logger.info('Updating years data...')
   try {
     // Use the imported function from the use case
     const years = await prepareAvailableYearBuckets(solrClient)
 
     await cache.set(WellKnownKeys.Years, JSON.stringify(years), DefaultTtlMilliSeconds)
     await cache.set(WellKnownMetadataKeys.YearsComputedAt, new Date().toISOString(), DefaultTtlMilliSeconds)
-    console.log(`Successfully updated and cached years data for ${Object.keys(years).length} years.`)
+    logger.info(`Successfully updated and cached years data for ${Object.keys(years).length} years.`)
   } catch (error) {
-    console.error('Error updating years data:', error)
+    logger.error('Error updating years data:', { error })
     // Decide if the error should be re-thrown or handled
   }
 }

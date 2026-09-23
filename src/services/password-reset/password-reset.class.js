@@ -1,9 +1,8 @@
 import User from '@/models/users.model.js'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import jwt from 'jsonwebtoken'
 import { NotImplemented, BadRequest, NotFound } from '@feathersjs/errors'
-import debugLib from 'debug'
-const debug = debugLib('impresso/services:password-reset')
+const logger = getLogger(['impresso', 'services', 'password-reset'])
 
 /**
  * PasswordReset class for handling password reset functionality.
@@ -50,7 +49,7 @@ class PasswordReset {
    */
   async create(data) {
     const { email } = data
-    debug(`[${this.name}] method: create for email: ${email}`)
+    logger.debug(`[${this.name}] method: create for email: ${email}`)
     const client = this.app.get('celeryClient')
     if (!client) {
       return NotImplemented()
@@ -61,7 +60,7 @@ class PasswordReset {
       },
     })
     if (!user) {
-      debug('[get] uid not found <uid>:', data.email)
+      logger.debug(`[get] uid not found <uid>: ${data.email}`)
       return {
         response: 'ok',
         callbackUrl: this.callbackUrl,
@@ -124,7 +123,7 @@ class PasswordReset {
         },
       })
       if (!user) {
-        debug('[patch] uid not found <uid>:', email)
+        logger.debug(`[patch] uid not found <uid>: ${email}`)
         throw new BadRequest('Invalid token')
       }
       // Update the user's password
@@ -138,7 +137,7 @@ class PasswordReset {
         }
       )
 
-      debug(`[patch] (user:${user.id}) success! Result:`, result)
+      logger.debug(`[patch] (user:${user.id}) success! Result: ${result}`)
       return {
         response: 'ok',
       }

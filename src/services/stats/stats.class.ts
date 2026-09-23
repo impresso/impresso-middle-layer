@@ -1,16 +1,20 @@
 import { Id, Params } from '@feathersjs/feathers'
-import Debug from 'debug'
+import { getLogger } from '@/logger.js'
 import { statsConfiguration } from '@/data/index.js'
 import { SolrFacetQueryParams } from '@/data/types.js'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { SelectRequestBody, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { getWidestInclusiveTimeInterval } from '@/logic/filters/timeInterval.js'
-import { FacetTypeGroup, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
+import {
+  FacetTypeGroup,
+  FeaturesConfig,
+  SolrServerNamespaceConfiguration,
+} from '@/models/generated/app/configuration.js'
 import { ImpressoApplication } from '@/types.js'
-import { filtersToQueryAndVariables } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { StatsToSolrFunction, StatsToSolrStatistics, TimeDomain } from '@/services/stats/common.js'
 
-const debug = Debug('impresso/services:stats')
+const logger = getLogger(['impresso', 'services', 'stats'])
 
 const FacetTypes = Object.freeze({
   Term: 'term',
@@ -23,21 +27,25 @@ const TemporalResolution = Object.freeze({
   Day: 'day',
 })
 
-type FacetLabel = 'topic' | 'mediaSource' | 'person' | 'location' | 'language' | 'country' | 'type'
+type FacetLabel = 'newspaper' | 'topic' | 'mediaSource' | 'person' | 'location' | 'language' | 'country' | 'type'
 type LabelExtractor = (id: string) => Promise<string>
 
 const getFacetLabelCache = (app: ImpressoApplication): Record<FacetLabel, LabelExtractor> => {
   const resolvers = buildResolvers(app)
+  const mediaSourceLabelExtractor: LabelExtractor = async (key: string) => {
+    const mediaSource = await resolvers.mediaSource(key)
+    return mediaSource == null ? key : mediaSource.name
+  }
+
   return {
     topic: async (key: string) => {
       const topic = await resolvers.topic(key)
       if (topic == null) return key
       return topic.words?.map(({ w }: any) => w)?.join(', ') ?? ''
     },
-    mediaSource: async (key: string) => {
-      const mediaSource = await resolvers.mediaSource(key)
-      return mediaSource == null ? key : mediaSource.name
-    },
+    /** @deprecated Use `mediaSource` instead. Kept as a backward-compatible alias. */
+    newspaper: mediaSourceLabelExtractor,
+    mediaSource: mediaSourceLabelExtractor,
     person: async (key: string) => {
       const entity = await resolvers.person(key)
       return entity == null ? key : entity.name!
@@ -121,14 +129,15 @@ function buildSolrRequest(
   filters: any,
   sort: any,
   groupby: any,
-  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
+  featuresConfig: FeaturesConfig
 ) {
   const facetType = getFacetType(index, facet)
   const domainDetails = getDomainDetails(index, domain, filters)
   if (domainDetails == null) throw new Error(`Domain ${domain} not found in index ${index}`)
   if (facetType == null) throw new Error(`Facet ${facet} not found in index ${index}`)
 
-  const { query, filter } = filtersToQueryAndVariables(filters, index, solrNamespacesConfiguration)
+  const { query, filter } = buildSolrQuery(filters, index, solrNamespacesConfiguration, featuresConfig)
   // add
   const collapse = groupby ? { fq: `{!collapse field=${groupby}}` } : null
 
@@ -259,22 +268,14 @@ export class Stats {
       .map((s: keyof typeof StatsToSolrStatistics) => StatsToSolrStatistics[s])
       .join(' ')}}${field}`
 
-    debug(
-      '[get] index:',
-      index,
-      'field:',
-      field,
-      'stats:',
-      stats,
-      'n.filters:',
-      filters.length,
-      'statsField:',
-      statsField
+    logger.debug(
+      `[get] index: ${index} field: ${field} stats: ${stats} n.filters: ${filters.length} statsField: ${statsField}`
     )
-    const { query, filter } = filtersToQueryAndVariables(
+    const { query, filter } = buildSolrQuery(
       filters,
       index,
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
     const result = await this.solr.select(index, {
       body: {
@@ -284,7 +285,6 @@ export class Stats {
         params: { hl: false, stats: true, 'stats.field': statsField },
       },
     })
-    debug('[get] index:', index, 'stats result', result.stats?.stats_fields?.statistics)
     return {
       statistics: result.stats?.stats_fields?.statistics,
       total: result.response?.numFound,
@@ -300,28 +300,16 @@ export class Stats {
       filters,
       sort,
       groupby,
-      this.app.get('solrConfiguration').namespaces ?? []
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
     )
-    debug(
-      '[find] index:',
-      index,
-      'groupby:',
-      groupby,
-      'domain:',
-      domain,
-      'stats:',
-      stats,
-      'filters:',
-      filters,
-      'sort:',
-      sort,
-      'facet:',
-      JSON.stringify(request.facet, null, 2)
+    logger.debug(
+      `[find] index: ${index} groupby: ${groupby} domain: ${domain} stats: ${stats} filters: ${filters} sort: ${sort} facet: ${JSON.stringify(request.facet, null, 2)}`
     )
     const result = await this.solr.select(index, { body: request })
-    debug('stats result', result.facets)
+    logger.debug('stats result', { facets: result.facets })
     const response: any = await buildResponse(result, facet, index, domain, filters, this.app)
-    debug('stats response', response.query)
+    logger.debug(`stats response ${response.query}`)
     return response
     // return buildResponse(result, facet, index, domain, filters)
   }

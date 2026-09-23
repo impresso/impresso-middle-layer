@@ -35,6 +35,16 @@ export interface Config {
    * If `true`, the app serves a public API. It is `falsee` by default.
    */
   isPublicApi?: boolean;
+  logging?: {
+    /**
+     * Format of the logging output (JSON by default)
+     */
+    format?: "json" | "pretty";
+    /**
+     * Lowest logging level (info by default)
+     */
+    lowestLevel?: "debug" | "info";
+  };
   /**
    * List of available plans
    */
@@ -80,6 +90,15 @@ export interface Config {
      */
     expiration: number;
   };
+  /**
+   * Configuration for the user email verification service
+   */
+  emailVerification: {
+    /**
+     * Expiration time for email verification tokens in seconds
+     */
+    expiration: number;
+  };
   media?: MediaConfig;
   solrConfiguration: SolrConfiguration;
   recommender?: RecommenderConfig;
@@ -98,6 +117,8 @@ export interface Config {
    */
   public?: string;
   multer?: MulterConfig;
+  embeddings?: EmbeddingsConfig;
+  auditLogging?: AuditLoggingConfig;
 }
 /**
  * Redis configuration
@@ -123,6 +144,26 @@ export interface RateLimiterConfig {
   capacity: number;
   /**
    * Refill rate of the rate limiter
+   */
+  refillRate: number;
+  /**
+   * Per-resource rate limiter overrides
+   */
+  resources?: {
+    [k: string]: RateLimitPolicy;
+  };
+}
+export interface RateLimitPolicy {
+  /**
+   * Enable rate limiting for this resource. Overrides the global enabled flag.
+   */
+  enabled?: boolean;
+  /**
+   * Capacity of the rate limiter
+   */
+  capacity: number;
+  /**
+   * Refill rate of the rate limiter in requests per second
    */
   refillRate: number;
 }
@@ -234,6 +275,10 @@ export interface FeaturesConfig {
     [k: string]: unknown;
   };
   barista?: BaristaConfig;
+  /**
+   * Version of the collections index to use. Can be `new` or `legacy`. The `legacy` version uses Solr's cross-collection join feature which can lead to performance issues, while the `new` version uses Solr's index join feature which is more efficient. The `new` version requires a specific configuration of the collections index (see solrConfiguration.json) and is not compatible with older versions of the collections index.
+   */
+  collectionsIndexVersion?: "new" | "legacy";
   [k: string]: unknown;
 }
 /**
@@ -248,6 +293,10 @@ export interface BaristaConfig {
    * URL of the Barista chat endpoint
    */
   url: string;
+  /**
+   * URL of the Barista history endpoint
+   */
+  historyUrl?: string;
   [k: string]: unknown;
 }
 /**
@@ -506,6 +555,7 @@ export interface ImageUrlRewriteRule {
 export interface CallbackUrlsConfig {
   passwordReset?: string;
   magicLink?: string;
+  emailVerification?: string;
   [k: string]: unknown;
 }
 export interface MulterConfig {
@@ -514,6 +564,42 @@ export interface MulterConfig {
    */
   dest: string;
   [k: string]: unknown;
+}
+/**
+ * Configuration of the embeddings models used by the app.
+ */
+export interface EmbeddingsConfig {
+  textEmbeddings?: TextEmbeddingsConfig;
+}
+/**
+ * Configuration of the text embeddings model used in content items.
+ */
+export interface TextEmbeddingsConfig {
+  /**
+   * Tag of the text embeddings model, as used in the `embedding` filter (`<tag>:<base64 vector>`).
+   */
+  tag?: "gte-768" | "gte-256";
+  /**
+   * Solr field where the text embeddings vectors of this model are indexed.
+   */
+  solrField?: "gte_multi_v768" | "gte_multi_v256";
+}
+/**
+ * Configuration for sending content item access log entries to a Vector log aggregator over HTTP
+ */
+export interface AuditLoggingConfig {
+  /**
+   * Enable sending log entries to Vector (enabled by default)
+   */
+  enabled?: boolean;
+  /**
+   * Vector host (default: localhost)
+   */
+  host?: string;
+  /**
+   * Vector port (default: 18080)
+   */
+  port?: number;
 }
 
 
@@ -644,9 +730,14 @@ export interface FilterDefinition {
    */
   rule: string;
   /**
-   * Primary application destination of the filter: main query or filters. It's 'query' by default.
+   * @deprecated
+   * DEPRECATED and ignored. Superseded by `scoring`.
    */
   destination?: "query" | "filter";
+  /**
+   * Whether this filter participates in relevance scoring.
+   */
+  scoring?: boolean;
 }
 
 

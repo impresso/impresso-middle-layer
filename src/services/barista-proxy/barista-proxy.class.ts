@@ -6,8 +6,16 @@ import { v4 } from 'uuid'
 import { SlimUser } from '@/authentication.js'
 import { request, Dispatcher } from 'undici'
 import { EventEmitter } from 'stream'
+import BaristaConversation from '@/models/barista-conversations.model.js'
+import type { RateLimitingResult } from '@/services/internal/rateLimiter/redis.js'
+import { logger } from '@/logger.js'
+import { formatHttpError } from '@/utils/formatHttpError.js'
 
 export interface BaristaRequest {
+  /**
+   * A list of prohibited filter types (optional).
+   */
+  prohibitedFilterTypes?: string[] | null
   /**
    * Additionalinstructions
    * @description Additional instructions to guide the agent's response. This is an extra added in addition to the system prompt.
@@ -124,19 +132,30 @@ export interface BaristaStreamChunk {
   type?: string
   done?: boolean
   error?: string
+  remainingConversations?: number
 }
 
 interface CreateParams {
   user?: SlimUser
+  rateLimitingResult?: RateLimitingResult
 }
 
 export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, BaristaRequest>, 'create'> {
   private readonly config?: BaristaConfig
   private readonly app: ImpressoApplication
+  private readonly conversationModel: ReturnType<typeof BaristaConversation.initialize>
 
   constructor(app: ImpressoApplication, config?: BaristaConfig) {
     this.app = app
     this.config = config
+    this.conversationModel = BaristaConversation.initialize(app.get('sequelizeClient') as any)
+  }
+
+  private async touchConversation(sessionId: string | null | undefined, userId: number | undefined): Promise<void> {
+    if (!sessionId || userId == null) return
+    await this.conversationModel
+      .update({ dateLastModified: new Date() }, { where: { baristaSessionId: sessionId, userId } })
+      .catch(() => {})
   }
 
   async create(data: BaristaRequest, params?: Params & CreateParams): Promise<BaristaResponse> {
@@ -158,13 +177,18 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
     })
 
     if (response.statusCode !== 200) {
+      const httpError = await formatHttpError(response, {
+        url: this.config.url,
+        requestBody: data,
+      })
+      logger.error('Failed to fetch downstream data from barista-proxy', { httpError })
       throw new BadRequest(`Barista returned status code ${response.statusCode}`)
     }
 
     // Check if the response is a stream
     const contentType = response.headers['content-type']
     if (contentType?.includes('text/event-stream') || contentType == null) {
-      return this.handleStream(response, params)
+      return this.handleStream(response, params, data.sessionId)
     }
 
     // Fallback to JSON response
@@ -173,12 +197,14 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
       chunks.push(chunk)
     }
     const responseData = JSON.parse(Buffer.concat(chunks).toString('utf8'))
+    await this.touchConversation(data.sessionId, params?.user?.id)
     return responseData as BaristaResponse
   }
 
   private async handleStream(
     response: Dispatcher.ResponseData,
-    params?: Params<any> & CreateParams
+    params?: Params<any> & CreateParams,
+    sessionId?: string | null
   ): Promise<BaristaResponse> {
     const decoder = new TextDecoder()
     const messages: any[] = []
@@ -229,10 +255,16 @@ export class BaristaProxy implements Pick<ServiceMethods<BaristaResponse, Barist
         type: 'done',
         data: [],
         userUid,
+        remainingConversations: params?.rateLimitingResult
+          ? Math.max(0, params.rateLimitingResult.totalTokens - params.rateLimitingResult.usedTokens)
+          : undefined,
       })
 
+      await this.touchConversation(sessionId, params?.user?.id)
       return { messages: [] }
     } catch (error) {
+      const httpError = await formatHttpError(error, { url: this.config?.url })
+      logger.error('Stream reading from barista-proxy failed', { httpError })
       // Emit error event
       eventEmitter.emit('barista-response', {
         type: 'error',

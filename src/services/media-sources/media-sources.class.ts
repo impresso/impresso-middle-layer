@@ -1,6 +1,6 @@
 import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
 import { Cache, WellKnownKeys } from '@/cache.js'
-import type { MediaSource } from '@/models/generated/canonical.js'
+import type { MediaSource } from '@/models/generated/app/entities.js'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
 
@@ -120,7 +120,6 @@ export class MediaSources
 
   async getLookup(): Promise<Record<string, MediaSource>> {
     const results = await this.findMediaSources({
-      type: 'newspaper',
       limit: Number.MAX_SAFE_INTEGER,
       offset: 0,
     })

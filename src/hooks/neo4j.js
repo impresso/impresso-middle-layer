@@ -1,6 +1,6 @@
 import { BadRequest } from '@feathersjs/errors'
-import Debug from 'debug'
-const debug = Debug('impresso/hooks:neo4j')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'hooks', 'neo4j'])
 import { neo4jToInt } from '../services/neo4j.utils'
 
 const normalizeTimeline = () => async context => {
@@ -17,30 +17,30 @@ const parseJsonProperty = name => async () => {
   //     w: neo4jToInt(record._fields[1]),
   //   }
   // })
-  debug(`parseJsonProperty: <${name}> parsed correctly.`)
+  logger.debug(`parseJsonProperty: <${name}> parsed correctly.`)
 }
 
 const raiseErrorIfEmpty =
   (explanation = {}) =>
     async context => {
       if (Array.isArray(context.result) && !context.result.length) {
-        debug('raiseErrorIfEmpty: apparently context.result is empty!', context.result)
+        logger.debug(`raiseErrorIfEmpty: apparently context.result is empty! ${context.result}`)
         throw new BadRequest('empty context.result', explanation)
       } else {
-        debug('raiseErrorIfEmpty: context.result ok, proceed.')
+        logger.debug('raiseErrorIfEmpty: context.result ok, proceed.')
       }
     }
 
 const normalizeEmptyRecords = () => async context => {
   // only when empty array are given
   if (Array.isArray(context.result) && !context.result.length) {
-    debug('normalizeEmptyRecords: apparently context.result is empty!', context.result)
+    logger.debug(`normalizeEmptyRecords: apparently context.result is empty! ${context.result}`)
     context.result = {
       count: 0,
       records: [],
     }
   } else {
-    debug('normalizeEmptyRecords: context.result ok, proceed.')
+    logger.debug('normalizeEmptyRecords: context.result ok, proceed.')
   }
 }
 

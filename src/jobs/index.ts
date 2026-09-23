@@ -3,6 +3,7 @@ import { logger } from '@/logger.js'
 import type { ImpressoApplication } from '@/types.js'
 import updateFacetRangesCache from '@/jobs/updateFacetRanges.js'
 import updateMediaSourcesCache from '@/jobs/updateMediaSourcesCache.js'
+import updateSpecialMembershipAccessCache from '@/jobs/updateSpecialMembershipAccessCache.js'
 import updateTopicsCache from '@/jobs/updateTopicsCache.js'
 import updateYearsCache from '@/jobs/updateYears.js'
 import { getQueueService } from '@/internalServices/queue.js'
@@ -24,6 +25,9 @@ export const startupJobs = async (context: HookContext<ImpressoApplication>, nex
     updateYearsCache(context.app)
       .then(() => logger.info('Years cache updated.'))
       .catch(e => logger.error('Error updating years cache:', e)),
+    updateSpecialMembershipAccessCache(context.app)
+      .then(() => logger.info('Special membership access cache updated.'))
+      .catch(e => logger.error('Error updating special membership access cache:', e)),
     updateFacetRangesCache(context.app)
       .then(() => logger.info('Facet ranges cache updated.'))
       .catch(e => logger.error('Error updating facet ranges cache:', e)),

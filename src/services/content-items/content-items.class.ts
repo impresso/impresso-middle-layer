@@ -1,5 +1,4 @@
 import { keyBy, take } from 'lodash-es'
-import Debug from 'debug'
 import { Op } from 'sequelize'
 
 import { logger } from '@/logger.js'
@@ -10,6 +9,7 @@ import { measureTime } from '@/util/instruments.js'
 import { ImpressoApplication } from '@/types.js'
 import { SlimUser } from '@/authentication.js'
 import { asFind, asGet, findAllRequestAdapter, findRequestAdapter, SolrFactory } from '@/util/solr/adapters.js'
+import type { SolrQueryNode } from '@/util/solr/queryBuilder.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import Page, { withRewrittenIIIF } from '@/models/pages.model.js'
 import { ICachedResolvers, buildResolvers } from '@/internalServices/cachedResolvers.js'
@@ -36,20 +36,22 @@ import {
   ContentItem,
   ContentItemPage,
   Collection as ContentItemCollection,
-} from '@/models/generated/canonical/contentItem.js'
+} from '@/models/generated/app/entities/contentItem.js'
 import { ContentItemDbModel } from '@/models/content-item.model.js'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '@/models/content-item-page.model.js'
 import { mapRecordValues } from '@/util/fn.js'
 import { NotFound } from '@feathersjs/errors'
-import { Collection } from '@/models/generated/canonical.js'
+import { Collection } from '@/models/generated/app/entities.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
-import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/external/solr/ContentItem.js'
+import { AudioFields, PaperFields, SemanticEnrichmentsFields } from '@/models/consolidated/solr/index.js'
 import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
 import { QueueService } from '@/internalServices/queue.js'
+import { AccessMethod, ContentItemAccessLogEntry, getVectorLogService } from '@/internalServices/vectorLog.js'
 import { Filter } from 'impresso-jscommons'
 import { isTrue } from '@/util/queryParameters.js'
+import { EmbeddingsConfig } from '@/models/generated/app/configuration.js'
 
 const DefaultLimit = 10
 
@@ -57,7 +59,7 @@ const DefaultLimit = 10
  * The fields below must be expanded to object from JSON.
  */
 type ExpansionFields =
-  | keyof Pick<ImageFields, 'pp_plain' | 'lb_plain' | 'pb_plain' | 'rb_plain'>
+  | keyof Pick<PaperFields, 'pp_plain' | 'lb_plain' | 'pb_plain' | 'rb_plain'>
   | keyof Pick<AudioFields, 'rreb_plain'>
   | keyof Pick<SemanticEnrichmentsFields, 'nem_offset_plain' | 'nag_offset_plain'>
 const JSONExpansionFields = [
@@ -66,7 +68,6 @@ const JSONExpansionFields = [
   'pb_plain',
   'rb_plain',
   'rreb_plain',
-  'rrreb_plain' as ExpansionFields, // TODO: Remove the `rrreb_plain` option when the index is fixed. It's a mistake.
   'nag_offset_plain',
   'nem_offset_plain',
 ] satisfies ExpansionFields[]
@@ -150,8 +151,8 @@ interface FindQuery {
   filters?: Filter[]
 
   // things needed by SolService.find
-  sq?: string
-  sfq?: string | string[]
+  sq?: SolrQueryNode
+  sfq?: SolrQueryNode | SolrQueryNode[]
   limit?: number
   offset?: number
   facets?: Record<string, any>
@@ -179,11 +180,15 @@ interface WithUser {
   user?: SlimUser
 }
 
+interface WithOriginalQuery {
+  originalQuery?: Pick<FindQuery, 'order_by'>
+}
+
 interface GetQueryParams {
   include_embeddings?: boolean
 }
 export type GetParams = Params<GetQueryParams> & WithUser & AsPublicApiMixin
-export type FindParams = Params<FindQuery> & WithUser & FindFlExtra & AsPublicApiMixin
+export type FindParams = Params<FindQuery> & WithUser & FindFlExtra & AsPublicApiMixin & WithOriginalQuery
 
 const pageWithIIIF = (page: ContentItemPage, dbPage: DBContentItemPage, app: ImpressoApplication): ContentItemPage => {
   return {
@@ -378,9 +383,13 @@ const withTextLabels =
     }
   }
 
-export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights, maxScore?: number) => {
+export const toContentItemWithMatches = (
+  fragmentsAndHighlights: IFragmentsAndHighlights,
+  maxScore?: number,
+  embedingsConfig?: EmbeddingsConfig
+) => {
   return (doc: AllDocumentFields): ContentItem => {
-    const contentItem = toContentItem(doc, { maxScore })
+    const contentItem = toContentItem(doc, { maxScore }, embedingsConfig)
     const matches = getContentItemMatches(contentItem, doc.pp_plain, fragmentsAndHighlights)
 
     return {
@@ -440,6 +449,30 @@ export class ContentItemService implements IContentItemService {
     return this.app?.service('simpleSolrClient')!
   }
 
+  /**
+   * Fire-and-forget audit log of content item access, keyed by the content item's
+   * data provider, so providers can audit/report usage of their content.
+   */
+  logContentItemAccess(items: ContentItem[], params: WithUser): void {
+    const impressoUserId = params.user?.uid
+    if (items.length === 0 || impressoUserId == null) return
+
+    const accessMethod: AccessMethod = this.app.get('isPublicApi') === true ? 'api' : 'web'
+    const timestamp = new Date()
+
+    const entries: ContentItemAccessLogEntry[] = items.map(item => ({
+      providerId: item.meta?.partnerId ?? 'UNK',
+      impressoUserId,
+      contentItemId: item.id,
+      accessMethod,
+      timestamp,
+    }))
+
+    getVectorLogService(this.app)
+      .logContentItemAccess(entries)
+      .catch(error => logger.warn('Failed to log content item access to Vector', { error }))
+  }
+
   async find(params: FindParams): Promise<FindResponseWithCursor<ContentItem>> {
     return await this._find(params)
   }
@@ -493,7 +526,15 @@ export class ContentItemService implements IContentItemService {
         }
 
     const request = findRequestAdapter(params)
-    const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], params.query?.order_by)
+    // KNN results must keep Solr's similarity score as their default ordering. The
+    // regular API default (`-ocrQuality`) is injected by the validation hook, so
+    // consult the original query to distinguish it from an explicit user choice.
+    // The check for `relevance` is to get around the use of highlights for relevance scoring
+    // Highlighting is not compatible with KNN and it is disabled when KNN is used.
+    const hasExplicitOrderBy =
+      params.originalQuery?.order_by != null && !params.originalQuery?.order_by?.includes('relevance')
+    const orderBy = hasEmbeddingFilter && !hasExplicitOrderBy ? undefined : params.query?.order_by
+    const { sort: rawSort, params: sortParams } = getSortParams(params.query?.filters ?? [], orderBy)
     const sort = params.query?.nextCursorMark != null ? ensureIdSort(rawSort) : rawSort
 
     const requestBody = {
@@ -514,8 +555,10 @@ export class ContentItemService implements IContentItemService {
       body: requestBody,
     })
 
+    const embeddingsConfig = this.app.get('embeddings')
+
     const contentItems = (results.response?.docs ?? ([] as SlimDocumentFields[]))
-      .map(d => toContentItem(d, { maxScore: results.response?.maxScore }))
+      .map(d => toContentItem(d, { maxScore: results.response?.maxScore }, embeddingsConfig))
       .map(item => withMatches(item, results))
 
     // get data enrichment items
@@ -537,6 +580,8 @@ export class ContentItemService implements IContentItemService {
       withTextLabels(metadataResolvers),
       withAuthorizationBitmaps,
     ])
+
+    this.logContentItemAccess(enrichedContentItems, params)
 
     return {
       data: enrichedContentItems,
@@ -638,7 +683,9 @@ export class ContentItemService implements IContentItemService {
       fl: isTrue(params.query?.include_embeddings) ? GetMethodFieldsWithEmbeddings : GetMethodFields,
     })
 
-    const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
+    // `get` requests the full field list (`GetMethodFields`), so the documents come
+    // back with the full content only fields that `SlimDocumentFields` omits.
+    const solrRequest = this.solr.select<AllDocumentFields>(this.solr.namespaces.Search, {
       body: request,
     })
     const dbPagesRequest = this._findPages([id])
@@ -651,7 +698,11 @@ export class ContentItemService implements IContentItemService {
     ])
 
     const contentItem = (result.response?.docs?.map(
-      toContentItemWithMatches(result.response as IFragmentsAndHighlights, result?.response?.maxScore)
+      toContentItemWithMatches(
+        result.response as IFragmentsAndHighlights,
+        result?.response?.maxScore,
+        this.app.get('embeddings')
+      )
     ) ?? [])?.[0]
 
     if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)
@@ -673,6 +724,8 @@ export class ContentItemService implements IContentItemService {
         ]
       )
     )?.[0]
+
+    this.logContentItemAccess([enrichedContentItem], params)
 
     return enrichedContentItem
 

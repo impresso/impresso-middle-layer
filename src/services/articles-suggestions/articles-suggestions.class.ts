@@ -2,7 +2,7 @@
 import { SelectRequest, SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { SolrNamespaces } from '@/solr.js'
 import { asFindAll } from '@/util/solr/adapters.js'
-import { logger } from '@/logger.js'
+import { getLogger } from '@/logger.js'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { ImpressoApplication } from '@/types.js'
 import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
@@ -11,8 +11,7 @@ import { PrintContentItem } from '@/models/solr.js'
 
 import { take } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
-import Debug from 'debug'
-const debug = Debug('impresso/services:articles-suggestions')
+const logger = getLogger(['impresso', 'services', 'articles-suggestions'])
 import ArticleTopic from '@/models/articles-topics.model.js'
 import { ContentItemTopic } from '@/models/generated/deprecated/models.js'
 import { utils } from '@/solr.js'
@@ -39,7 +38,7 @@ export class ArticlesSuggestionsService {
 
   async get(id: string, params: any) {
     if ([SIM_BY_TOPICS_SQEDIST, SIM_BY_TOPICS].indexOf(params.query.method) !== -1) {
-      debug(`get(${id}) method: ${params.query.method} load topics ...`)
+      logger.debug(`get(${id}) method: ${params.query.method} load topics ...`)
       // const topics = await measureTime(
       //   () =>
       //     this.solrClient
@@ -85,7 +84,7 @@ export class ArticlesSuggestionsService {
         params.query.amount
       )
 
-      debug(`get(${id}) method: ${params.query.method} topics loaded: `, topicsChoosen)
+      logger.debug(`get(${id}) method: ${params.query.method} topics loaded:  ${topicsChoosen}`)
 
       if (params.query.method === SIM_BY_TOPICS) {
         topicWeight = topicsChoosen
@@ -106,7 +105,7 @@ export class ArticlesSuggestionsService {
         topicWeight = `sqedist(${tw.join(',')})`
       }
 
-      debug(`get(${id}) method: ${params.query.method} topics loaded, get articles using fn topicWeight`, topicWeight)
+      logger.debug(`get(${id}) method: ${params.query.method} topics loaded, get articles using fn topicWeight ${topicWeight}`)
 
       const requestBody: SelectRequest['body'] = {
         query: '*:*',

@@ -1,10 +1,10 @@
 import type { Sequelize } from 'sequelize'
+import { getLogger } from '@/logger.js'
 import type { ImpressoApplication } from '@/types.js'
 import type { Params as FeathersParams } from '@feathersjs/feathers'
-import Debug from 'debug'
 import UserRequest from '@/models/user-requests.model.js'
 
-const debug = Debug('impresso/services:user-requests')
+const logger = getLogger(['impresso', 'services', 'user-requests'])
 
 export interface FindQueryParams extends FeathersParams {
   query: {
@@ -46,7 +46,7 @@ export class Service {
     this.app = app
     this.name = name
     this.sequelizeClient = app.get('sequelizeClient')
-    debug('Service initialized')
+    logger.debug('Service initialized')
   }
 
   async find(params: FindQueryParams) {

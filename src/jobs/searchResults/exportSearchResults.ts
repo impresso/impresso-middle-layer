@@ -6,19 +6,17 @@ import { stringify } from 'csv-stringify/sync'
 import { accessSync, createReadStream, createWriteStream, constants as fsConstants } from 'fs'
 import { access, appendFile, unlink, writeFile } from 'fs/promises'
 import { Filter } from 'impresso-jscommons'
-import jscommons from 'impresso-jscommons'
+import { protobuf } from 'impresso-jscommons'
 import { get } from 'lodash-es'
 import { basename, dirname, join } from 'path'
 import { v7 as uuidv7 } from 'uuid'
 import { logger } from '@/logger.js'
-import { ContentItem as ContentItemPublic } from '@/models/generated/canonical/contentItem.js'
+import { ContentItem as ContentItemPublic } from '@/models/generated/app/entities/contentItem.js'
 import DBJob from '@/models/jobs.model.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import ZipStream from 'zip-stream'
 import { FlatKeys } from '@/util/types.js'
-
-const { protobuf } = jscommons
 
 type FlatFields = FlatKeys<ContentItemPublic, 3>
 

@@ -1,8 +1,11 @@
 import { get } from 'lodash-es'
 import { BadRequest } from '@feathersjs/errors'
+import { getLogger } from '@/logger.js'
 import { validated, formatValidationErrors } from '@/util/json.js'
 import { HookContext } from '@feathersjs/feathers'
 import type { Ajv } from 'ajv'
+
+const logger = getLogger(['hooks', 'schema'])
 
 /**
  * Validates the data at the specified object path against the provided schema URI.
@@ -33,7 +36,7 @@ const validateWithSchema =
   (context: HookContext): HookContext => {
     const data = get(context, objectPath)
     if (!data) {
-      console.error(`Validation failed: objectPath "${objectPath}" is missing in context`)
+      logger.error(`Validation failed: objectPath "${objectPath}" is missing in context`)
       throw new BadRequest('Validation failed', [])
     }
     try {
@@ -41,11 +44,11 @@ const validateWithSchema =
       return context
     } catch (e: any) {
       if (!e.message) {
-        console.error(e)
+        logger.error(e)
         throw new BadRequest('Validation failed', e)
       }
-      console.error(e)
-      console.error(JSON.stringify(data))
+      logger.error(e)
+      logger.error('Validation data', data)
       throw new BadRequest(e.message, formatValidationErrors(e.errors))
     }
   }

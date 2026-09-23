@@ -3,12 +3,13 @@
  */
 import { keyBy, isEmpty, assignIn, clone, isUndefined, fromPairs } from 'lodash-es'
 import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
-import { filtersToQueryAndVariables, getRegionCoordinatesFromDocument } from '@/util/solr/index.js'
+import { getRegionCoordinatesFromDocument } from '@/util/solr/index.js'
+import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { ContentItemService } from '@/services/content-items/content-items.class.js'
 import { ImpressoApplication } from '@/types.js'
 import { buildResolvers, CachedFacetType, IResolver } from '@/internalServices/cachedResolvers.js'
-import { ContentItem } from '@/models/generated/canonical/contentItem.js'
-import { SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
+import { ContentItem } from '@/models/generated/app/entities/contentItem.js'
+import { FeaturesConfig, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
 import { SolrNamespaces } from '@/solr.js'
 import { Filter } from 'impresso-jscommons'
 
@@ -87,7 +88,8 @@ export async function getItemsFromSolrResponse(
   response: any,
   articlesService: ContentItemService,
   userInfo: { user?: any; authenticated?: boolean } = {},
-  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[]
+  solrNamespacesConfiguration: SolrServerNamespaceConfiguration[],
+  featuresConfig: FeaturesConfig
 ) {
   const { user, authenticated } = userInfo
 
@@ -99,7 +101,7 @@ export async function getItemsFromSolrResponse(
   const { fragments: fragmentsIndex, highlighting: highlightingIndex } = response
 
   const filters: Filter[] = [{ type: 'uid', q: uids }]
-  const { query, filter } = filtersToQueryAndVariables(filters, SolrNamespaces.Search, solrNamespacesConfiguration)
+  const { query, filter } = buildSolrQuery(filters, SolrNamespaces.Search, solrNamespacesConfiguration, featuresConfig)
 
   const articlesRequest = {
     user,
@@ -107,7 +109,7 @@ export async function getItemsFromSolrResponse(
     query: {
       limit: uids.length,
       filters,
-      sq: query as string,
+      sq: query,
       sfq: filter,
     },
   }

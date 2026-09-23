@@ -82,7 +82,7 @@ const getHits = (graph: Graph): ReturnType<typeof hits> | { hubs: undefined; aut
   try {
     return hits(graph, { normalize: false })
   } catch (error) {
-    logger.warn('Error calculating HITS: %s', (error as Error).message)
+    logger.warn(`Error calculating HITS: ${(error as Error).message}`)
     return { hubs: undefined, authorities: undefined }
   }
 }
@@ -173,7 +173,7 @@ export const prepareTopics = async (solrClient: SimpleSolrClient): Promise<Inter
   let hasMorePages = true
   const topics = []
   while (hasMorePages) {
-    logger.info('Getting %d topics with offset %d, %d topics already collected', pageSize, offset, topics.length)
+    logger.info(`Getting ${pageSize} topics with offset ${offset}, ${topics.length} topics already collected`)
     const topicsPage = await prepareTopicsPage(solrClient, offset, pageSize)
     topics.push(...topicsPage)
     offset += pageSize
@@ -182,7 +182,7 @@ export const prepareTopics = async (solrClient: SimpleSolrClient): Promise<Inter
     }
   }
 
-  logger.info('Finished collecting topics. %d topics collected', topics.length)
+  logger.info(`Finished collecting topics. ${topics.length} topics collected`)
 
   const fullTtopics = withGraphPositions(topics)
   logger.info('Added graph metrics')
@@ -196,7 +196,7 @@ const prepareTopicsPage = async (
   pageSize: number
 ): Promise<InternalTopic[]> => {
   const topicsStubs = await getTopicsPage(solrClient, offset, pageSize)
-  logger.info('Found %d topics', topicsStubs.length)
+  logger.info(`Found ${topicsStubs.length} topics`)
 
   const topicsStubsWithRelatedTopics = await withRelatedTopics(solrClient, topicsStubs)
   logger.info('Found weights and averages for related topics')
@@ -265,8 +265,7 @@ const withRelatedTopics = async (
   })
 
   logger.info(
-    'Found %d related topics',
-    topicsStubsWithRelatedTopics.map(t => t.relatedTopics.length).reduce((sum, i) => sum + i, 0)
+    `Found ${topicsStubsWithRelatedTopics.map(t => t.relatedTopics.length).reduce((sum, i) => sum + i, 0)} related topics`
   )
 
   const topicsGroupsIds = topicsStubsWithRelatedTopics.map(topic => ({

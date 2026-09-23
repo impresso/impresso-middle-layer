@@ -1,0 +1,2237 @@
+# Parametrised test cases for `buildSolrQuery` (src/util/solr/queryBuilder.ts).
+#
+# These cases are translated from the legacy string-based tests of the
+# deprecated `filtersToSolr` builder (test/unit/util/solr/reducers.test.ts)
+# to the Solr JSON Query DSL produced by `buildSolrQuery`.
+#
+# Translation notes (structural differences between the two builders):
+#  - `filtersToSolr` returned a single query string for filters of one type.
+#    `buildSolrQuery` returns a `{ query, filter, params }` body: filters with
+#    `scoring: true` in solrFilters.yml (content "string", entities "string",
+#    "embedding") become the `query`; everything else becomes entries of the
+#    `filter` array and `query` defaults to '*:*'.
+#  - OR combinations become `{ bool: { should: [...], minimum_should_match: 1 } }`,
+#    AND combinations become `{ bool: { must: [...] } }`.
+#  - Excluded (context: exclude) clauses become
+#    `{ bool: { must: ['*:*'], must_not: [...] } }` in the `filter` array.
+#  - "{!join ...}" and "{!knn ...}" parser syntax become `join` / `knn` DSL nodes.
+#
+# Known behaviour changes vs the legacy builder (marked with [CHANGED]):
+#  - "imageTypeValueOrLabel" no longer maps human-readable labels to Solr values
+#    (e.g. "Image" is not converted to "image").
+#  - "dateRange" no longer validates malformed strings: "foo bar" is passed
+#    through instead of throwing.
+#  - "string" with an empty array (or array of empty strings) produces an empty
+#    `should` clause instead of wildcard field clauses.
+#  - Only one "embedding" (KNN) filter is allowed per request; the legacy
+#    builder ANDed multiple KNN clauses.
+#
+# Case fields:
+#   group:          describe block name
+#   name:           test name
+#   namespace:      Solr namespace (index id)
+#   filters:        list of impresso filters
+#   solrNamespaces: (optional) mocked Solr server namespace configuration
+#   features:       (optional) features config
+#   options:        (optional) BuildSolrQueryOptions
+#   expected:       expected { query, filter, params } body (mutually exclusive with expectedError)
+#   expectedError:  expected InvalidArgumentError message (mutually exclusive with expected)
+
+cases:
+  - group: "openEndedString"
+    name: "escapes parentheses"
+    namespace: "entities"
+    filters:
+      [
+        {
+          "type": "string",
+          "q": "H. Allen Smith (represen"
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "bool": {
+            "must": [
+              "entitySuggest:H.",
+              "entitySuggest:Allen",
+              "entitySuggest:Smith",
+              "entitySuggest:represen*"
+            ]
+          }
+        },
+        "filter": [],
+        "params": {}
+      }
+
+  - group: "openEndedString"
+    name: "with string"
+    namespace: "entities"
+    filters:
+      [
+        {
+          "type": "string",
+          "q": "Jacques Chira"
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "bool": {
+            "must": [
+              "entitySuggest:Jacques",
+              "entitySuggest:Chira*"
+            ]
+          }
+        },
+        "filter": [],
+        "params": {}
+      }
+
+  - group: "openEndedString"
+    name: "with unigram (trailing space)"
+    namespace: "entities"
+    filters:
+      [
+        {
+          "type": "string",
+          "q": "Jacques "
+        }
+      ]
+    expected:
+      {
+        "query": "entitySuggest:Jacques*",
+        "filter": [],
+        "params": {}
+      }
+
+  - group: "openEndedString"
+    name: "with array"
+    namespace: "entities"
+    filters:
+      [
+        {
+          "type": "string",
+          "q": [
+            "Jacques Chirac",
+            "Foo Bar"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "bool": {
+            "should": [
+              {
+                "bool": {
+                  "must": [
+                    "entitySuggest:Jacques",
+                    "entitySuggest:Chirac*"
+                  ]
+                }
+              },
+              {
+                "bool": {
+                  "must": [
+                    "entitySuggest:Foo",
+                    "entitySuggest:Bar*"
+                  ]
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        "filter": [],
+        "params": {}
+      }
+
+  - group: "general"
+    name: "throws an error for an unknown filter type"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "booomooo",
+          "q": ""
+        }
+      ]
+    expectedError: "Unknown filter type \"booomooo\" in namespace \"search\""
+
+  - group: "minLengthOne"
+    name: "handles \"minLengthOne\" filter"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "hasTextContents"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "content_length_i:[1 TO *]"
+        ],
+        "params": {}
+      }
+
+  - group: "numericRange"
+    name: "with string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "ocrQuality",
+          "q": "1 TO 10"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "ocrqa_f:[1 TO 10]"
+        ],
+        "params": {}
+      }
+
+  - group: "numericRange"
+    name: "with array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "ocrQuality",
+          "q": [
+            "2",
+            "20"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "ocrqa_f:[2 TO 20]"
+        ],
+        "params": {}
+      }
+
+  - group: "numericRange"
+    name: "throws an error with malformed string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "ocrQuality",
+          "q": "foo bar"
+        }
+      ]
+    expectedError: "\"numericRange\" filter rule: unknown value encountered in \"q\": foo bar"
+
+  - group: "numericRange"
+    name: "with no value"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "ocrQuality"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "ocrqa_f:*"
+        ],
+        "params": {}
+      }
+
+  - group: "numericRange"
+    name: "throws an error with empty array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "ocrQuality",
+          "q": []
+        }
+      ]
+    expectedError: "\"numericRange\" filter rule: unknown values encountered in \"q\": "
+
+  - group: "boolean"
+    name: "handles \"boolean\" filter"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "isFront"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "front_b:1"
+        ],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "title with string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "title",
+          "q": "moo"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "title_txt_fr:moo",
+                "title_txt_de:moo",
+                "title_txt_en:moo",
+                "title_txt_it:moo",
+                "title_txt_es:moo",
+                "title_txt_nl:moo",
+                "title_txt:moo"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "title with array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "title",
+          "q": [
+            "foo"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "title_txt_fr:foo",
+                "title_txt_de:foo",
+                "title_txt_en:foo",
+                "title_txt_it:foo",
+                "title_txt_es:foo",
+                "title_txt_nl:foo",
+                "title_txt:foo"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "with text context exact by quotes"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "string",
+          "context": "include",
+          "q": "\"ministre portugais\""
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "bool": {
+            "should": [
+              "content_txt_fr:\"ministre portugais\"",
+              "content_txt_de:\"ministre portugais\"",
+              "content_txt_en:\"ministre portugais\"",
+              "content_txt_it:\"ministre portugais\"",
+              "content_txt_es:\"ministre portugais\"",
+              "content_txt_nl:\"ministre portugais\"",
+              "content_txt:\"ministre portugais\""
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        "filter": [],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "with text context escaped wrong quotes"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "string",
+          "context": "include",
+          "q": "\"ministre \"portugais\""
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "bool": {
+            "should": [
+              "content_txt_fr:\"ministre \\\"portugais\"",
+              "content_txt_de:\"ministre \\\"portugais\"",
+              "content_txt_en:\"ministre \\\"portugais\"",
+              "content_txt_it:\"ministre \\\"portugais\"",
+              "content_txt_es:\"ministre \\\"portugais\"",
+              "content_txt_nl:\"ministre \\\"portugais\"",
+              "content_txt:\"ministre \\\"portugais\""
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        "filter": [],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "with text context with multiple content"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "string",
+          "context": "include",
+          "q": [
+            "\"ministre portugais\"",
+            "\"ministre italien\""
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "bool": {
+            "should": [
+              {
+                "bool": {
+                  "should": [
+                    "content_txt_fr:\"ministre portugais\"",
+                    "content_txt_de:\"ministre portugais\"",
+                    "content_txt_en:\"ministre portugais\"",
+                    "content_txt_it:\"ministre portugais\"",
+                    "content_txt_es:\"ministre portugais\"",
+                    "content_txt_nl:\"ministre portugais\"",
+                    "content_txt:\"ministre portugais\""
+                  ],
+                  "minimum_should_match": 1
+                }
+              },
+              {
+                "bool": {
+                  "should": [
+                    "content_txt_fr:\"ministre italien\"",
+                    "content_txt_de:\"ministre italien\"",
+                    "content_txt_en:\"ministre italien\"",
+                    "content_txt_it:\"ministre italien\"",
+                    "content_txt_es:\"ministre italien\"",
+                    "content_txt_nl:\"ministre italien\"",
+                    "content_txt:\"ministre italien\""
+                  ],
+                  "minimum_should_match": 1
+                }
+              }
+            ],
+            "minimum_should_match": 1
+          }
+        },
+        "filter": [],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "title with no value"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "title"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "title_txt_fr:*",
+                "title_txt_de:*",
+                "title_txt_en:*",
+                "title_txt_it:*",
+                "title_txt_es:*",
+                "title_txt_nl:*",
+                "title_txt:*"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "title with empty string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "title",
+          "q": ""
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "title_txt_fr:*",
+                "title_txt_de:*",
+                "title_txt_en:*",
+                "title_txt_it:*",
+                "title_txt_es:*",
+                "title_txt_nl:*",
+                "title_txt:*"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "title with empty array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "title",
+          "op": "OR",
+          "q": [],
+          "precision": "exact"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "string"
+    name: "title with array of empty strings"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "title",
+          "op": "OR",
+          "q": [
+            "",
+            ""
+          ],
+          "precision": "exact"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with year string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": "1918 TO 2018"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_date_dt:[1918-01-01T00:00:00Z TO 2018-01-01T23:59:59Z]"
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with year-month string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": "1918-02 TO 2018-03"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_date_dt:[1918-02-01T00:00:00Z TO 2018-03-01T23:59:59Z]"
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with ISO datetime string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": "1857-01-01T00:00:00Z TO 2014-12-31T23:59:59"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]"
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with ISO date string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": "1857-01-01 TO 2014-12-31"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59Z]"
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with ISO dates string in array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": [
+            "1857-01-01T00:00:00Z TO 2014-12-31T23:59:59"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_date_dt:[1857-01-01T00:00:00Z TO 2014-12-31T23:59:59]"
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with multiple ISO date strings in array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": [
+            "1950-01-01T00:00:00Z TO 1958-01-01T00:00:00Z",
+            "1945-01-01T00:00:00Z TO 1946-01-01T00:00:00Z"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "meta_date_dt:[1950-01-01T00:00:00Z TO 1958-01-01T23:59:59Z]",
+                "meta_date_dt:[1945-01-01T00:00:00Z TO 1946-01-01T23:59:59Z]"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with array of two plain years"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": [
+            "1918",
+            "2018"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_date_dt:[1918-01-01T00:00:00Z TO 2018-01-01T23:59:59Z]"
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with no value"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_date_dt:*"
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "with malformed string (passed through, no validation)"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": "foo bar"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_date_dt:[foo bar]"
+        ],
+        "params": {}
+      }
+
+  - group: "dateRange"
+    name: "throws an error with empty array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "daterange",
+          "q": []
+        }
+      ]
+    expectedError: "\"dateRange\" filter rule: array \"q\" must have exactly 2 elements: "
+
+  - group: "value"
+    name: "language with string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "language",
+          "q": "en"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "lg_s:en"
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "language with no value"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "language"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "lg_s:*"
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "language with array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "language",
+          "q": [
+            "en",
+            "fr"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "lg_s:en",
+                "lg_s:fr"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "mention with multiple fields"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "mention",
+          "q": [
+            "ab",
+            "cd"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                {
+                  "bool": {
+                    "should": [
+                      "pers_mentions:ab",
+                      "loc_mentions:ab"
+                    ],
+                    "minimum_should_match": 1
+                  }
+                },
+                {
+                  "bool": {
+                    "should": [
+                      "pers_mentions:cd",
+                      "loc_mentions:cd"
+                    ],
+                    "minimum_should_match": 1
+                  }
+                }
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "entity with AND operator over multiple fields"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "entity",
+          "q": [
+            "e-a",
+            "e-b"
+          ],
+          "op": "AND"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                {
+                  "bool": {
+                    "should": [
+                      "pers_entities_dpfs:e-a",
+                      "loc_entities_dpfs:e-a"
+                    ],
+                    "minimum_should_match": 1
+                  }
+                },
+                {
+                  "bool": {
+                    "should": [
+                      "pers_entities_dpfs:e-b",
+                      "loc_entities_dpfs:e-b"
+                    ],
+                    "minimum_should_match": 1
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "mention with empty array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "mention",
+          "q": []
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "pers_mentions:*",
+                "loc_mentions:*"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "language with empty string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "language",
+          "q": ""
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "lg_s:*"
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "negated single"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "language",
+          "q": "en",
+          "context": "exclude"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                "*:*"
+              ],
+              "must_not": [
+                "lg_s:en"
+              ]
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "negated single OR (topic, idValue rule)"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "topic",
+          "q": "tm-de-all-v2.0_tp23_de",
+          "context": "exclude",
+          "op": "OR"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                "*:*"
+              ],
+              "must_not": [
+                "topics_dpfs:tm-de-all-v2.0_tp23_de"
+              ]
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "negated double"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "language",
+          "q": [
+            "en",
+            "de"
+          ],
+          "context": "exclude"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                "*:*"
+              ],
+              "must_not": [
+                {
+                  "bool": {
+                    "should": [
+                      "lg_s:en",
+                      "lg_s:de"
+                    ],
+                    "minimum_should_match": 1
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value"
+    name: "escapes IDs (person, idValue rule)"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "person",
+          "q": "aida-0001-50-Poseidon_(film)"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "pers_entities_dpfs:aida-0001-50-Poseidon_$28$film$29$"
+        ],
+        "params": {}
+      }
+
+  - group: "regex"
+    name: "with string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "regex",
+          "q": "moo"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "content_txt_fr:/moo/",
+                "content_txt_de:/moo/",
+                "content_txt_en:/moo/",
+                "content_txt_it:/moo/",
+                "content_txt_es:/moo/",
+                "content_txt_nl:/moo/",
+                "content_txt:/moo/"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "regex"
+    name: "with array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "regex",
+          "q": [
+            "foo"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "content_txt_fr:/foo/",
+                "content_txt_de:/foo/",
+                "content_txt_en:/foo/",
+                "content_txt_it:/foo/",
+                "content_txt_es:/foo/",
+                "content_txt_nl:/foo/",
+                "content_txt:/foo/"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "regex"
+    name: "with no value"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "regex"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "content_txt_fr:/.*/",
+                "content_txt_de:/.*/",
+                "content_txt_en:/.*/",
+                "content_txt_it:/.*/",
+                "content_txt_es:/.*/",
+                "content_txt_nl:/.*/",
+                "content_txt:/.*/"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "regex"
+    name: "with empty string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "regex",
+          "q": ""
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "content_txt_fr:/.*/",
+                "content_txt_de:/.*/",
+                "content_txt_en:/.*/",
+                "content_txt_it:/.*/",
+                "content_txt_es:/.*/",
+                "content_txt_nl:/.*/",
+                "content_txt:/.*/"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "regex"
+    name: "with empty array"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "regex",
+          "q": []
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "content_txt_fr:/.*/",
+                "content_txt_de:/.*/",
+                "content_txt_en:/.*/",
+                "content_txt_it:/.*/",
+                "content_txt_es:/.*/",
+                "content_txt_nl:/.*/",
+                "content_txt:/.*/"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value (entities \"type\")"
+    name: "with string"
+    namespace: "entities"
+    filters:
+      [
+        {
+          "type": "type",
+          "q": "person"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "t_s:person"
+        ],
+        "params": {}
+      }
+
+  - group: "value (entities \"type\")"
+    name: "with array"
+    namespace: "entities"
+    filters:
+      [
+        {
+          "type": "type",
+          "q": [
+            "person",
+            "location"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "t_s:person",
+                "t_s:location"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "value (entities \"type\")"
+    name: "with no value"
+    namespace: "entities"
+    filters:
+      [
+        {
+          "type": "type"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "t_s:*"
+        ],
+        "params": {}
+      }
+
+  - group: "value (entities \"type\")"
+    name: "with empty array"
+    namespace: "entities"
+    filters:
+      [
+        {
+          "type": "type",
+          "q": []
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "t_s:*"
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "with single collection ID (include)"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": "col-123",
+          "context": "include"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "join": {
+              "from": "ci_id_s",
+              "to": "id",
+              "fromIndex": "collection-items",
+              "method": "crossCollection",
+              "query": "col_id_s:*_col-123"
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "with multiple collection IDs (include, OR)"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": [
+            "col-123",
+            "col-456"
+          ],
+          "context": "include",
+          "op": "OR"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "join": {
+              "from": "ci_id_s",
+              "to": "id",
+              "fromIndex": "collection-items",
+              "method": "crossCollection",
+              "query": "col_id_s:*_col-123 OR col_id_s:*_col-456"
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "with multiple collection IDs (include, AND)"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": [
+            "col-123",
+            "col-456"
+          ],
+          "context": "include",
+          "op": "AND"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "join": {
+              "from": "ci_id_s",
+              "to": "id",
+              "fromIndex": "collection-items",
+              "method": "crossCollection",
+              "query": "col_id_s:*_col-123 AND col_id_s:*_col-456"
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "with single collection ID (exclude)"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": "col-123",
+          "context": "exclude"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "join": {
+              "from": "ci_id_s",
+              "to": "id",
+              "fromIndex": "collection-items",
+              "method": "crossCollection",
+              "query": "NOT col_id_s:*_col-123"
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "with multiple collection IDs (exclude, OR)"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": [
+            "col-123",
+            "col-456"
+          ],
+          "context": "exclude",
+          "op": "OR"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "join": {
+              "from": "ci_id_s",
+              "to": "id",
+              "fromIndex": "collection-items",
+              "method": "crossCollection",
+              "query": "NOT col_id_s:*_col-123 OR NOT col_id_s:*_col-456"
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "with collection ID containing special characters"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": "col_(special)",
+          "context": "include"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "join": {
+              "from": "ci_id_s",
+              "to": "id",
+              "fromIndex": "collection-items",
+              "method": "crossCollection",
+              "query": "col_id_s:*_col_(special)"
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "throws error when collection-items namespace not found"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": "col-123",
+          "context": "include"
+        }
+      ]
+    expectedError: "Could not find Solr namespace configuration for \"collection_items\" required for \"joinCollection\" filter"
+
+  - group: "joinCollection"
+    name: "throws error when no collection IDs provided"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "context": "include"
+        }
+      ]
+    expectedError: "At least one collection ID must be provided for \"joinCollection\" filter"
+
+  - group: "joinCollection"
+    name: "with mixed include and exclude filters"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": "col-include",
+          "context": "include",
+          "op": "AND"
+        },
+        {
+          "type": "collection",
+          "q": "col-exclude",
+          "context": "exclude",
+          "op": "AND"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                {
+                  "join": {
+                    "from": "ci_id_s",
+                    "to": "id",
+                    "fromIndex": "collection-items",
+                    "method": "crossCollection",
+                    "query": "col_id_s:*_col-include"
+                  }
+                },
+                {
+                  "join": {
+                    "from": "ci_id_s",
+                    "to": "id",
+                    "fromIndex": "collection-items",
+                    "method": "crossCollection",
+                    "query": "NOT col_id_s:*_col-exclude"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "with complex mixed AND/OR operations"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": [
+            "col-and-1",
+            "col-and-2"
+          ],
+          "context": "include",
+          "op": "AND"
+        },
+        {
+          "type": "collection",
+          "q": [
+            "col-or-1",
+            "col-or-2"
+          ],
+          "context": "include",
+          "op": "OR"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                {
+                  "join": {
+                    "from": "ci_id_s",
+                    "to": "id",
+                    "fromIndex": "collection-items",
+                    "method": "crossCollection",
+                    "query": "col_id_s:*_col-and-1 AND col_id_s:*_col-and-2"
+                  }
+                },
+                {
+                  "join": {
+                    "from": "ci_id_s",
+                    "to": "id",
+                    "fromIndex": "collection-items",
+                    "method": "crossCollection",
+                    "query": "col_id_s:*_col-or-1 OR col_id_s:*_col-or-2"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "joinCollection"
+    name: "with single collection ID (include, new collections index)"
+    namespace: "search"
+    solrNamespaces:
+      - namespaceId: collection_items
+        index: collection-items
+        serverId: mock-server
+    features:
+      collectionsIndexVersion: new
+    filters:
+      [
+        {
+          "type": "collection",
+          "q": "col-123",
+          "context": "include"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "join": {
+              "from": "ci_id_s",
+              "to": "id",
+              "fromIndex": "collection-items",
+              "method": "index",
+              "checkRouterField": "false",
+              "query": "col_id_s:*_col-123"
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "embeddingKnnSimilarity"
+    name: "with single embedding vector for search index"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "gte-768:zczMPc3MTD6amZk+zczMPg=="
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "knn": {
+            "f": "gte_multi_v768",
+            "topK": 10,
+            "query": "[0.10000000149011612,0.20000000298023224,0.30000001192092896,0.4000000059604645]"
+          }
+        },
+        "filter": [],
+        "params": {
+          "hl": false
+        }
+      }
+
+  - group: "embeddingKnnSimilarity"
+    name: "with single embedding vector for images index"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "openclip-768:AAAAP5qZGT8zMzM/zcxMPw=="
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "knn": {
+            "f": "openclip_emb_v768",
+            "topK": 10,
+            "query": "[0.5,0.6000000238418579,0.699999988079071,0.800000011920929]"
+          }
+        },
+        "filter": [],
+        "params": {
+          "hl": false
+        }
+      }
+
+  - group: "embeddingKnnSimilarity"
+    name: "with embedding vector in array format"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": [
+            "gte-768:AACAPwAAAEAAAEBA"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "knn": {
+            "f": "gte_multi_v768",
+            "topK": 10,
+            "query": "[1,2,3]"
+          }
+        },
+        "filter": [],
+        "params": {
+          "hl": false
+        }
+      }
+
+  - group: "embeddingKnnSimilarity"
+    name: "with empty vector (single float)"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "gte-768:AAAAAA=="
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "knn": {
+            "f": "gte_multi_v768",
+            "topK": 10,
+            "query": "[0]"
+          }
+        },
+        "filter": [],
+        "params": {
+          "hl": false
+        }
+      }
+
+  - group: "embeddingKnnSimilarity"
+    name: "with negative values in vector"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "gte-768:AAAAv5qZmb7NzEw+zczMPg=="
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "knn": {
+            "f": "gte_multi_v768",
+            "topK": 10,
+            "query": "[-0.5,-0.30000001192092896,0.20000000298023224,0.4000000059604645]"
+          }
+        },
+        "filter": [],
+        "params": {
+          "hl": false
+        }
+      }
+
+  - group: "embeddingKnnSimilarity"
+    name: "with explicit topK suffix"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "gte-768:AACAPwAAAEAAAEBA:100"
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "knn": {
+            "f": "gte_multi_v768",
+            "topK": 100,
+            "query": "[1,2,3]"
+          }
+        },
+        "filter": [],
+        "params": {
+          "hl": false
+        }
+      }
+
+  - group: "embeddingKnnSimilarity"
+    name: "throws error with multiple embedding vectors"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "openclip-768:zczMPc3MTD4="
+        },
+        {
+          "type": "embedding",
+          "q": "dinov2-1024:zczMPs3MTD4="
+        }
+      ]
+    expectedError: "Only one \"embedding\" filter is supported per request; received 2"
+
+  - group: "embeddingKnnSimilarity"
+    name: "throws error when q is not a string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": 123
+        }
+      ]
+    expectedError: "\"embeddingKnnSimilarity\" filter rule requires \"q\" to be a string in the format \"model:base64_encoded_vector\", e.g. \"openclip-768:BASE64_ENCODED_VECTOR\". Received: 123"
+
+  - group: "embeddingKnnSimilarity"
+    name: "throws error when q does not contain colon separator"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "invalid-format"
+        }
+      ]
+    expectedError: "\"embeddingKnnSimilarity\" filter rule requires \"q\" to be a string in the format \"model:base64_encoded_vector\", e.g. \"openclip-768:BASE64_ENCODED_VECTOR\". Received: \"invalid-format\""
+
+  - group: "embeddingKnnSimilarity"
+    name: "throws error when model is not supported"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "unsupported-model:zczMPc3MTD4="
+        }
+      ]
+    expectedError: "\"embeddingKnnSimilarity\" filter rule: unknown model \"unsupported-model\". Supported models: gte-768, gte-256"
+
+  - group: "embeddingKnnSimilarity"
+    name: "throws error when model is not supported in images index"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "gte-768:zczMPc3MTD4="
+        }
+      ]
+    expectedError: "\"embeddingKnnSimilarity\" filter rule: unknown model \"gte-768\". Supported models: openclip-768, dinov2-1024"
+
+  - group: "imageTypeValueOrLabel"
+    name: "with label value (not mapped to Solr value)"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "imageVisualContent",
+          "q": "Image"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "type_l0_tp:Image"
+        ],
+        "params": {}
+      }
+
+  - group: "imageTypeValueOrLabel"
+    name: "with Solr value (raw)"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "imageVisualContent",
+          "q": "image"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "type_l0_tp:image"
+        ],
+        "params": {}
+      }
+
+  - group: "imageTypeValueOrLabel"
+    name: "with array of labels"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "imageVisualContent",
+          "q": [
+            "Image",
+            "Not an Image"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "type_l0_tp:Image",
+                "type_l0_tp:Not an Image"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "imageTypeValueOrLabel"
+    name: "with mixed labels and Solr values"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "imageVisualContent",
+          "q": [
+            "Image",
+            "not_image"
+          ]
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "should": [
+                "type_l0_tp:Image",
+                "type_l0_tp:not_image"
+              ],
+              "minimum_should_match": 1
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "imageTypeValueOrLabel"
+    name: "with AND operator"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "imageVisualContent",
+          "q": [
+            "Image",
+            "Not an Image"
+          ],
+          "op": "AND"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                "type_l0_tp:Image",
+                "type_l0_tp:Not an Image"
+              ]
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "imageTypeValueOrLabel"
+    name: "with exclude context"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "imageVisualContent",
+          "q": "Image",
+          "context": "exclude"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                "*:*"
+              ],
+              "must_not": [
+                "type_l0_tp:Image"
+              ]
+            }
+          }
+        ],
+        "params": {}
+      }
+
+  - group: "imageTypeValueOrLabel"
+    name: "with no value"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "imageVisualContent"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "type_l0_tp:*"
+        ],
+        "params": {}
+      }
+
+  - group: "imageTypeValueOrLabel"
+    name: "with empty array"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "imageVisualContent",
+          "q": []
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "type_l0_tp:*"
+        ],
+        "params": {}
+      }
+
+  - group: "topicRelevanceScore"
+    name: "sets topicRelevanceScore param when orderBy references it"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "topic",
+          "q": "tm-fr-all-v2.0_tp44_fr"
+        }
+      ]
+    options:
+      orderBy: $topicRelevanceScore desc
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "topics_dpfs:tm-fr-all-v2.0_tp44_fr"
+        ],
+        "params": {
+          "topicRelevanceScore": "sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr))"
+        }
+      }
+
+  - group: "topicRelevanceScore"
+    name: "sums payloads of multiple topic filters"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "topic",
+          "q": "tm-fr-all-v2.0_tp44_fr"
+        },
+        {
+          "type": "topic",
+          "q": "tm-fr-all-v2.0_tp52_fr"
+        }
+      ]
+    options:
+      orderBy: $topicRelevanceScore desc
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "topics_dpfs:tm-fr-all-v2.0_tp44_fr",
+          "topics_dpfs:tm-fr-all-v2.0_tp52_fr"
+        ],
+        "params": {
+          "topicRelevanceScore": "sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr),payload(topics_dpfs,tm-fr-all-v2.0_tp52_fr))"
+        }
+      }
+
+  - group: "topicRelevanceScore"
+    name: "defaults topicRelevanceScore to \"0\" when no topic filters are present"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "newspaper",
+          "q": "JDG"
+        }
+      ]
+    options:
+      orderBy: $topicRelevanceScore desc
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "meta_journal_s:JDG"
+        ],
+        "params": {
+          "topicRelevanceScore": "0"
+        }
+      }
+
+  - group: "topicRelevanceScore"
+    name: "escapes topic IDs in the relevance function"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "topic",
+          "q": "tm-fr-all-v2.0_tp44_fr_(test)"
+        }
+      ]
+    options:
+      orderBy: $topicRelevanceScore desc
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "topics_dpfs:tm-fr-all-v2.0_tp44_fr_$28$test$29$"
+        ],
+        "params": {
+          "topicRelevanceScore": "sum(payload(topics_dpfs,tm-fr-all-v2.0_tp44_fr_$28$test$29$))"
+        }
+      }

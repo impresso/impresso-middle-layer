@@ -13,14 +13,11 @@ This means that schemas in `schemas` directory *must not use definitions section
 
 ## Folder structure
 
-- canonical/ - representation of Impresso domain entities as they served by the public API. 
+- entities/ - representation of Impresso domain entities as they served by the public API. 
 - app/ - app specific schemas (configuration, non-public request/responses, etc)
   - requests/ - API requests
   - responses/ - API responses
   - configuration/ - various configuration files schemas
-  - models/ - models used in the app but not exposed outside in any form
-- external/ - schemas of external services Impresso Middle Layer talks to
-  - solr/ - Solr schemas
 - deprecated/ - all old schemas that are being phased out.
   - internalApi/ - schemas used in the internal API
   - publicApi/ - schemas used in the old version of public API

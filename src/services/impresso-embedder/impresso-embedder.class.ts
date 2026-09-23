@@ -1,12 +1,14 @@
-import { Params } from '@feathersjs/feathers'
 import { ImpressoImageEmbeddingRequest, ImpressoTextEmbeddingRequest } from '@/models/generated/app/requests.js'
 import { ImpressoEmbeddingResponse } from '@/models/generated/app/responses.js'
 import { IFetchClient } from '@/utils/http/client/base.js'
 import { createFetchClient } from '@/utils/http/client/index.js'
 import { sendDownstreamRequest } from '@/utils/downstream-service.js'
+import { EmbeddingsConfig, TextEmbeddingsConfig } from '@/models/generated/app/configuration.js'
+import { DefaultTextEmbeddingsConfig, getTextEmbeddingsDimensions } from '@/util/configuration.js'
 
 interface TextDownstreamRequest {
   data: string
+  vector_dimensions?: number
 }
 
 interface ImageDownstreamRequest {
@@ -21,8 +23,16 @@ const imageToDownstreamImageRequest = (data: ImpressoImageEmbeddingRequest): Ima
   bytes: data.bytes,
 })
 
-const textToDownstreamTextRequest = (data: ImpressoTextEmbeddingRequest): TextDownstreamRequest => ({
+const textToDownstreamTextRequest = (
+  data: ImpressoTextEmbeddingRequest,
+  embeddingTag?: TextEmbeddingsConfig['tag']
+): TextDownstreamRequest => ({
   data: data.text,
+  ...(embeddingTag != undefined
+    ? {
+        vector_dimensions: getTextEmbeddingsDimensions(embeddingTag),
+      }
+    : {}),
 })
 
 const numberVectorToBase64 = (vector: number[]): string => {
@@ -64,9 +74,11 @@ export class ImpressoImageEmbeddingService {
 
 export class ImpressoTextEmbeddingService {
   private readonly client: IFetchClient
+  private readonly embeddingsConfig?: EmbeddingsConfig
 
-  constructor(public options: { baseUrl: string }) {
+  constructor(public options: { baseUrl: string; embeddingsConfig?: EmbeddingsConfig }) {
     this.client = createFetchClient({})
+    this.embeddingsConfig = options.embeddingsConfig
   }
 
   async create(data: ImpressoTextEmbeddingRequest): Promise<ImpressoEmbeddingResponse> {
@@ -76,8 +88,9 @@ export class ImpressoTextEmbeddingService {
       return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder('openclip-768'))
     } else if (data.searchTarget === 'text') {
       const url = `${this.options.baseUrl}/text-embedder/`
-      const body = textToDownstreamTextRequest(data)
-      return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder('gte-768'))
+      const modelTag = this.embeddingsConfig?.textEmbeddings?.tag ?? DefaultTextEmbeddingsConfig.tag
+      const body = textToDownstreamTextRequest(data, modelTag)
+      return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder(modelTag))
     } else {
       throw new Error(`Unknown search target: ${data.searchTarget}`)
     }

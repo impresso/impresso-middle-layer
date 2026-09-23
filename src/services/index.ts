@@ -62,11 +62,15 @@ import userRequests from './user-requests/user-requests.service.js'
 import newspapers from './newspapers/newspapers.service.js'
 import feedbackCollector from './feedback-collector/feedback-collector.service.js'
 import datalabSupport from './datalab-support/datalab-support.service.js'
-import specialMembershipAccess from './special-membership-access/special-membership-access.service.js'
+import specialMembershipPlans from './special-membership-plans/special-membership-plans.service.js'
 import userSpecialMembershipRequests from './user-special-membership-requests/user-special-membership-requests.service.js'
 import userSpecialMembershipRequestsReviews from './user-special-membership-requests-reviews/user-special-membership-requests-reviews.service.js'
 import baristaProxy from './barista-proxy/barista-proxy.service.js'
+import baristaConversations from './barista-conversations/barista-conversations.service.js'
 import magicLink from './magic-link/magic-link.service.js'
+import filterSerialization from './filter-serialization/filter-serialization.service.js'
+import userEmailVerification from './user-email-verification/user-email-verification.service.js'
+import userEmailVerificationResend from './user-email-verification-resend/user-email-verification-resend.service.js'
 /**
  * Some public services are declared here but are only required internally by
  * other services. Whether a service is available publicly or not is determined
@@ -92,6 +96,8 @@ const publicApiServices = [
   { name: 'images', init: images },
   { name: 'experiments', init: experiments },
   { name: 'logs', init: logs },
+  { name: 'filter-serialization', init: filterSerialization },
+  { name: 'special-membership-plans', init: specialMembershipPlans },
 ]
 
 const adminServices = [{ name: 'admin', init: admin }]
@@ -136,13 +142,17 @@ const internalApiServices = [
   { name: 'newspapers', init: newspapers },
   { name: 'feedback-collector', init: feedbackCollector },
   { name: 'datalab-support', init: datalabSupport },
-  { name: 'special-membership-access', init: specialMembershipAccess },
   { name: 'user-special-membership-requests', init: userSpecialMembershipRequests },
   { name: 'user-special-membership-requests-reviews', init: userSpecialMembershipRequestsReviews },
   { name: 'magic-link', init: magicLink },
+  { name: 'user-email-verification', init: userEmailVerification },
+  { name: 'user-email-verification-resend', init: userEmailVerificationResend },
 ]
 
-const baristaServices = [{ name: 'barista-proxy', init: baristaProxy }]
+const baristaServices = [
+  { name: 'barista-proxy', init: baristaProxy },
+  { name: 'barista-conversations', init: baristaConversations },
+]
 
 export default (app: ImpressoApplication & ExpressApplication) => {
   const isPublicApi = app.get('isPublicApi')

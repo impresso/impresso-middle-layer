@@ -1,5 +1,6 @@
-import Debug from 'debug'
-const debug = Debug('impresso/services:logs')
+import { getLogger } from '@/logger.js'
+
+const logger = getLogger(['impresso', 'services', 'logs'])
 
 export type LogData = {
   tasktype: string //  'TES',
@@ -22,7 +23,7 @@ export type LogData = {
  */
 export class Service {
   async create(data: LogData): Promise<any> {
-    debug('Creating log entry for', data)
+    logger.debug(`Creating log entry for ${data}`)
     return {
       ...data,
       from: data.from || 'unknown',

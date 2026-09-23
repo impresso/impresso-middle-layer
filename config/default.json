@@ -1,5 +1,5 @@
 {
-  "$schema": "../src/schema/common/config.json",
+  "$schema": "../src/schema/app/configuration/config.json",
   "availablePlans": ["plan-basic", "plan-educational", "plan-researcher"],
   "openapi": {
     "validateRequests": true,
@@ -17,7 +17,17 @@
   "rateLimiter": {
     "enabled": false,
     "capacity": 10,
-    "refillRate": 0.016
+    "refillRate": 0.016,
+    "resources": {
+      "barista-proxy": {
+        "capacity": 60,
+        "refillRate": 0.016666666666666666
+      },
+      "user-email-verification-resend": {
+        "capacity": 2,
+        "refillRate": 0.0011111111111111111
+      }
+    }
   },
   "quotaChecker": {
     "enabled": true,
@@ -26,7 +36,8 @@
   },
   "callbackUrls": {
     "passwordReset": "http://localhost:5173/password-reset",
-    "magicLink": "http://localhost:5173/magic-link"
+    "magicLink": "http://localhost:5173/magic-link",
+    "emailVerification": "http://localhost:5173/email-verification"
   },
   "host": "localhost",
   "port": 3030,
@@ -34,8 +45,19 @@
   "features": {
     "textReuse": { "enabled": true }
   },
+  "embeddings": {
+    "textEmbeddings": {
+      "tag": "gte-768",
+      "solrField": "gte_multi_v768"
+    }
+  },
   "redis": {
     "host": "localhost"
+  },
+  "auditLogging": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 18080
   },
   "cache": {
     "enabled": true
@@ -86,6 +108,9 @@
   },
   "magicLink": {
     "secret": "***********",
+    "expiration": 300
+  },
+  "emailVerification": {
     "expiration": 300
   },
   "media": {

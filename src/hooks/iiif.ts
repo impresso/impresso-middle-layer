@@ -1,10 +1,10 @@
 import type { HookContext } from '@feathersjs/feathers'
-import Debug from 'debug'
+import { getLogger } from '@/logger.js'
 import type { ImpressoApplication } from '@/types.js'
 
 type ProxyConfig = any
 
-const debug = Debug('impresso/hooks:iiif')
+const logger = getLogger(['impresso', 'hooks', 'iiif'])
 
 /**
  * @deprecated Not used in any working code.
@@ -63,12 +63,10 @@ const assignIIIF =
       return _d
     }
     if (context.method === 'find' && context.result.data && context.result.data.length) {
-      debug(
-        `proxy: <n. results>: ${context.result.data.length} <host>: ${proxyConfig.host}, <keys>: ${resultProperties}`
-      )
+      logger.debug(`proxy: <n. results>: ${context.result.data.length} <host>: ${proxyConfig.host}, <keys>: ${resultProperties}`)
       context.result.data = context.result.data.map(_recursiveReplace)
     } else if (context.method === 'get' && typeof context.result.uid !== 'undefined') {
-      debug(`proxy: <uid>: ${context.result.uid} <host>: ${proxyConfig.host}, <keys>: ${resultProperties}`)
+      logger.debug(`proxy: <uid>: ${context.result.uid} <host>: ${proxyConfig.host}, <keys>: ${resultProperties}`)
       context.result = _recursiveReplace(context.result)
     }
   }

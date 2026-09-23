@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import debugLib from 'debug'
-const debug = debugLib('impresso/services/bucket-items')
+import { getLogger } from '@/logger.js'
+const logger = getLogger(['impresso', 'services', 'bucket-items'])
 import { NotImplemented } from '@feathersjs/errors'
 import lodash from 'lodash-es'
 import { Service as Neo4jService } from '@/services/neo4j.service.js'
@@ -67,7 +67,7 @@ export class Service extends Neo4jService {
         uid: d.uid,
       }
     })
-    debug('find: <uids>:', uids)
+    logger.debug(`find: <uids>: ${uids}`)
     // if articles
     return Promise.all(
       lodash(groups)
@@ -101,7 +101,7 @@ export class Service extends Neo4jService {
       bucket_uid: id,
       items: params.query.items,
     })
-    debug('remove:', id, 'stats:', result.summary.counters._stats)
+    logger.debug(`remove: ${id} stats: ${result.summary.counters._stats}`)
     return this._finalizeCreate(result)
   }
 }

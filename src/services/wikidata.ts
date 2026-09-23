@@ -3,8 +3,8 @@
  * https://doc.wikimedia.org/Wikibase/master/js/rest-api/
  */
 
-import Debug from 'debug'
 import { get, uniq } from 'lodash-es'
+import { getLogger } from '@/logger.js'
 import type { Entities, Entity, EntityId } from 'wikibase-sdk' with { 'resolution-mode': 'import' }
 // import { WBK } from 'wikibase-sdk'
 import { RedisClient } from '@/redis.js'
@@ -27,7 +27,7 @@ const importWBK = async () => {
   return wbk
 }
 
-const debug = Debug('impresso/services:wikidata')
+const logger = getLogger(['impresso', 'services', 'wikidata'])
 
 const IS_INSTANCE_OF = 'P31'
 const IS_HUMAN = 'Q5'
@@ -96,7 +96,7 @@ class NamedEntity implements INamedEntity {
 
   resolvePendings(entities: Record<string, Entity>) {
     // console.log('RESOLVE', entities, this.getPendings());
-    debug(`resolvePendings for ${this.id}`)
+    logger.debug(`resolvePendings for ${this.id}`)
     this.getPendings().forEach(id => {
       if (entities[id]) {
         this._pendings[id].forEach(property => {
@@ -221,7 +221,7 @@ class Human extends NamedEntity {
 
 const getNamedEntityClass = (entity: { claims: any }) => {
   const iof = get(entity.claims, `${IS_INSTANCE_OF}[0]mainsnak.datavalue.value.id`)
-  debug('getNamedEntityClass: iof', iof)
+  logger.debug(`getNamedEntityClass: iof ${iof}`)
   if (iof === IS_HUMAN) {
     return Human
   }
@@ -289,7 +289,7 @@ export const resolveWithCache = async (
       if (cache) {
         const cached = await cache.get(cacheKey)
         if (cached) {
-          debug(`resolveWithCache: cache hit for ${id}`)
+          logger.debug(`resolveWithCache: cache hit for ${id}`)
           return { id, cached: JSON.parse(cached), found: true }
         }
       }
@@ -309,7 +309,7 @@ export const resolveWithCache = async (
 
   // Fetch missing IDs from API (getManyEntities splits into batches of 50 automatically)
   if (idsToFetch.length > 0) {
-    debug(`resolveWithCache: fetching ${idsToFetch.length} entities from API`)
+    logger.debug(`resolveWithCache: fetching ${idsToFetch.length} entities from API`)
     const urls = wbk.getManyEntities({ ids: idsToFetch, languages })
 
     const client = fetchClient || createFetchClient({})
@@ -331,7 +331,7 @@ export const resolveWithCache = async (
           if (cache) {
             const cacheKey = `${WikidataCacheKeyPrefix}${id}`
             await cache.set(cacheKey, JSON.stringify(entityData))
-            debug(`resolveWithCache: stored ${id} in cache`)
+            logger.debug(`resolveWithCache: stored ${id} in cache`)
           }
         }
       }

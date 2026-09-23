@@ -1,5 +1,9 @@
 import { EntityDetails } from '@/models/generated/deprecated/models.js'
-import { EntityDetails as EntityDetailsPublic, WikidataPerson, WikidataLocation } from '@/models/generated/canonical.js'
+import {
+  EntityDetails as EntityDetailsPublic,
+  WikidataPerson,
+  WikidataLocation,
+} from '@/models/generated/app/entities.js'
 
 const transformDateTimeISO = (input?: any): string | undefined => {
   if (input === undefined) {

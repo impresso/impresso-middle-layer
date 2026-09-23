@@ -16,10 +16,7 @@ import {
   RemoveItemsFromCollectionJobData,
 } from '@/jobs/collections/removeItemsFromCollection.js'
 import { ExportSearchResultsJobData, JobNameExportSearchResults } from '@/jobs/searchResults/exportSearchResults.js'
-import {
-  JobNameRebuildWellKnownCache,
-  RebuildWellKnownCacheJobData,
-} from '@/jobs/rebuildWellKnownCache.js'
+import { JobNameRebuildWellKnownCache, RebuildWellKnownCacheJobData } from '@/jobs/rebuildWellKnownCache.js'
 import {
   DownstreamServiceHealthCheckIntervalMs,
   DownstreamServiceHealthCheckJobData,
@@ -56,6 +53,10 @@ export class QueueService {
     const connectionOptions: any = {
       host: this.redisConfig.host || 'localhost',
       port: this.redisConfig.port || 6379,
+      // Pin RESP2: BullMQ 6.x reads XREAD replies in RESP2 shape and crashes
+      // (QueueEvents "Cannot read properties of undefined (reading 'length')")
+      // under ioredis 6's RESP3-by-default protocol.
+      protocol: 2,
     }
     logger.info('Starting queue service with redis:', this.redisConfig)
 
@@ -169,9 +170,7 @@ export class QueueService {
     return this.queueMigrateOldCollections.add(JobNameMigrateOldCollections, data)
   }
 
-  async rebuildWellKnownCache(
-    data: RebuildWellKnownCacheJobData
-  ): Promise<BullJob<RebuildWellKnownCacheJobData>> {
+  async rebuildWellKnownCache(data: RebuildWellKnownCacheJobData): Promise<BullJob<RebuildWellKnownCacheJobData>> {
     logger.info(`Queueing job to rebuild well-known caches`)
     return this.queueRebuildWellKnownCache.add(JobNameRebuildWellKnownCache, data)
   }
@@ -180,13 +179,16 @@ export class QueueService {
     data: DownstreamServiceHealthCheckJobData
   ): Promise<BullJob<DownstreamServiceHealthCheckJobData>> {
     logger.info('Scheduling periodic downstream service health check (every 5 minutes)')
-    return this.queueDownstreamServiceHealthCheck.add(JobNameDownstreamServiceHealthCheck, data, {
-      jobId: DownstreamServiceHealthCheckJobId,
-      repeat: {
+    return this.queueDownstreamServiceHealthCheck.upsertJobScheduler(
+      DownstreamServiceHealthCheckJobId,
+      {
         every: DownstreamServiceHealthCheckIntervalMs,
-        immediately: true,
       },
-    })
+      {
+        name: JobNameDownstreamServiceHealthCheck,
+        data,
+      }
+    )
   }
 
   /**
@@ -278,7 +280,7 @@ export default (app: ImpressoApplication) => {
 
     logger.info('Queue service initialized successfully')
   } catch (error) {
-    logger.error('Failed to initialize queue service:', error)
+    logger.error('Failed to initialize queue service', { error })
     throw error
   }
 }

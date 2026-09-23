@@ -1,11 +1,21 @@
+// import type {
+//   AccessRightFields,
+//   ArticleFields,
+//   ContentItemCore,
+//   ContextualMetadataFields,
+//   ImageFields,
+// } from './generated/external/solr/ContentItem.js'
+
 import type {
   AccessRightFields,
-  ArticleFields,
-  ContentItemCore,
+  TextFields as ArticleFields,
+  CoreFields as ContentItemCore,
   ContextualMetadataFields,
-  ImageFields,
-} from './generated/external/solr/ContentItem.js'
-import { LanguageCode, TextContentFields } from './solr.js'
+  PaperFields as ImageFields,
+  TextReusePassageFields,
+} from './consolidated/solr/index.js'
+
+import { LanguageCode, TextContentFieldsWithLanguageSpecificFields as TextContentFields } from './solr.js'
 
 const TRPassageCoreFields = [
   'id',
@@ -54,7 +64,7 @@ const TRPassageArticleFields = [
   'page_nb_is',
   'page_regions_plains',
   'cluster_size_l',
-] satisfies (keyof ArticleFields)[]
+] satisfies (keyof TextReusePassageFields)[]
 
 export interface IClusterFields {
   connected_clusters_ss?: string[]
@@ -82,5 +92,5 @@ export type AllDocumentFields = Pick<ContentItemCore, (typeof TRPassageCoreField
   Pick<TextContentFields, (typeof TRPassageTextFields)[0]> &
   Pick<TextContentFields, `title_txt_${LanguageCode}` | `content_txt_${LanguageCode}`> &
   Pick<ImageFields, (typeof TRPassageImageFields)[0]> &
-  Pick<ArticleFields, (typeof TRPassageArticleFields)[0]> &
+  Pick<TextReusePassageFields, (typeof TRPassageArticleFields)[0]> &
   Pick<IClusterFields, (typeof TRPassageClusterFields)[0]>

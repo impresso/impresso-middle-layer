@@ -1,11 +1,9 @@
 import assert from 'assert'
 import { FilterType } from 'impresso-jscommons'
-import jscommons from 'impresso-jscommons'
+import { constants } from 'impresso-jscommons'
 
 import { SolrFacetQueryParams, SolrRangeFacetQueryParams } from '@/data/types.js'
 import { DataIndex } from '@/data/index.js'
-
-const { constants } = jscommons
 
 const facetRanges = new DataIndex({ name: 'facetRanges' })
 
@@ -86,16 +84,22 @@ export type ContentItemFacet = Extract<
   | 'sourceMedium'
   | 'topic'
   | 'newspaper'
+  | 'mediaSource'
   | 'language'
   | 'person'
   | 'location'
   | 'nag'
   | 'organisation'
-  | 'accessRight'
+  // deprecated in Impresso 2.0
+  // | 'accessRight'
   | 'partner'
   | 'dataDomain'
   | 'copyright'
   | 'collection'
+  | 'ocrQuality'
+  | 'permissionExplore'
+  | 'permissionGetTranscript'
+  | 'permissionGetImage'
 >
 
 const searchSolrMappings = {
@@ -177,7 +181,17 @@ const searchSolrMappings = {
       offset: 0,
       numBuckets: true,
     },
+    /**
+     * @deprecated removed in Impresso 2.0. New type: mediaSource
+     */
     newspaper: {
+      type: 'terms',
+      field: 'meta_journal_s',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    mediaSource: {
       type: 'terms',
       field: 'meta_journal_s',
       mincount: 1,
@@ -233,14 +247,14 @@ const searchSolrMappings = {
      * @deprecated removed in Impresso 2.0. New field: rights_data_domain_s
      * https://github.com/impresso/impresso-middle-layer/issues/462
      */
-    accessRight: {
-      type: 'terms',
-      field: 'access_right_s',
-      mincount: 0,
-      limit: 10,
-      offset: 0,
-      numBuckets: true,
-    },
+    // accessRight: {
+    //   type: 'terms',
+    //   field: 'access_right_s',
+    //   mincount: 0,
+    //   limit: 10,
+    //   offset: 0,
+    //   numBuckets: true,
+    // },
     partner: {
       type: 'terms',
       field: 'meta_partnerid_s',
@@ -268,6 +282,34 @@ const searchSolrMappings = {
       field: 'rights_copyright_s',
       mincount: 0,
       limit: 10,
+      offset: 0,
+      numBuckets: true,
+    },
+    ocrQuality: {
+      type: 'range',
+      field: 'ocrqa_f',
+      end: 1,
+      start: 0,
+      gap: 0.01,
+    },
+    permissionExplore: {
+      type: 'terms',
+      field: 'rights_bm_index_explore_is',
+      limit: 100,
+      offset: 0,
+      numBuckets: true,
+    },
+    permissionGetTranscript: {
+      type: 'terms',
+      field: 'rights_bm_index_get_tr_is',
+      limit: 100,
+      offset: 0,
+      numBuckets: true,
+    },
+    permissionGetImage: {
+      type: 'terms',
+      field: 'rights_bm_index_get_img_is',
+      limit: 100,
       offset: 0,
       numBuckets: true,
     },
@@ -506,12 +548,25 @@ const trPassagesSolrMappings = {
 
 export type ImageFacet = Extract<
   FilterType,
-  'newspaper' | 'year' | 'imageVisualContent' | 'imageTechnique' | 'imageCommunicationGoal' | 'imageContentType'
+  | 'newspaper'
+  | 'year'
+  | 'mediaSource'
+  | 'imageVisualContent'
+  | 'imageTechnique'
+  | 'imageCommunicationGoal'
+  | 'imageContentType'
 >
 
 const imagesSolrMappings = {
   facets: {
     newspaper: {
+      type: 'terms',
+      field: 'meta_journal_s',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    mediaSource: {
       type: 'terms',
       field: 'meta_journal_s',
       mincount: 1,

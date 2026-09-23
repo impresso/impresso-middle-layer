@@ -29,3 +29,4 @@ development.json
 docker/*
 
 dist
+.codebase-memory
