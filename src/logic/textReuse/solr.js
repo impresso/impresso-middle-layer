@@ -295,7 +295,7 @@ function buildSolrRequestForExtraClusterDetails(clusterId, { from, to } = {}) {
     query: `${PassageFields.ClusterId}:${clusterId}`,
     limit: 0,
     facet: {
-      newspaper: { ...SolrMappings.tr_passages.facets.newspaper, limit: undefined },
+      mediaSource: { ...SolrMappings.tr_passages.facets.mediaSource, limit: undefined },
       type: { ...SolrMappings.tr_passages.facets.type, limit: undefined },
       date,
     },
