@@ -245,6 +245,17 @@ IMPRESSO_SOCKS_PROXY_CONFIG='{ "host": "localhost", "port": 1080, "domains": ["d
 
 ```
 
+## Downloading audit logs as a parnter institution
+
+To get the zip archive with *parquet* files run:
+
+```bash
+curl -X 'GET' \
+  'http://localhost:3030/partner-audit-logs/BNL?year=2026&month=08' \
+  -H 'accept: application/zip' \
+  -H 'Authorization: Bearer <token>
+```
+
 ## Help
 
 For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).

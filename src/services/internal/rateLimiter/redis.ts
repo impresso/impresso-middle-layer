@@ -6,12 +6,16 @@ import { logger } from '@/logger.js'
 import { RedisClient } from '@/redis.js'
 import type { ImpressoApplication } from '@/types.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
+import { retryOnLoadingError } from '@/util/redisRetries.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const rateLimiterScript = readFileSync(path.join(__dirname, 'lua/leakyBucketRateLimit.lua')).toString()
 const rateLimiterRevertScript = readFileSync(path.join(__dirname, 'lua/leakyBucketTakeToken.lua')).toString()
+
+const requestRetryOptions = { maxWaitMs: 2000, initialDelayMs: 100, maxDelayMs: 500 }
+const setupRetryOptions = { maxWaitMs: 60000, initialDelayMs: 500, maxDelayMs: 5000 }
 
 export interface RateLimitingResult {
   usedTokens: number
@@ -83,7 +87,7 @@ const getKey = (userId: string, resource: string) => `RL:${userId}:${resource}`
  * It uses a leaky bucket algorithm to limit the rate of requests.
  * See the lua scripts for more details.
  */
-class RateLimiter implements IRateLimiter {
+export class RateLimiter implements IRateLimiter {
   initialized: boolean
   redisClient: RedisClient
   configuration: RateLimiterConfiguration
@@ -99,40 +103,68 @@ class RateLimiter implements IRateLimiter {
   async setup(app: ImpressoApplication, path: string) {
     if (this.initialized) return
 
-    this.rateLimiterScriptSha = await this.redisClient.scriptLoad(rateLimiterScript)
-    this.rateLimiterRevertScriptSha = await this.redisClient.scriptLoad(rateLimiterRevertScript)
+    this.rateLimiterScriptSha = await retryOnLoadingError(() => this.redisClient.scriptLoad(rateLimiterScript), setupRetryOptions)
+    this.rateLimiterRevertScriptSha = await retryOnLoadingError(
+      () => this.redisClient.scriptLoad(rateLimiterRevertScript),
+      setupRetryOptions
+    )
+    this.initialized = true
   }
 
   async allow(userId: string, resource: string): Promise<RateLimitingResult> {
     if (!isResourceEnabled(this.configuration, resource)) return { usedTokens: 0, totalTokens: 0, isAllowed: true }
-    if (this.rateLimiterScriptSha == null) throw new Error('Rate limiter not initialized')
+    const scriptSha = this.rateLimiterScriptSha
+    if (scriptSha == null) throw new Error('Rate limiter not initialized')
 
     const policy = getRateLimitPolicy(this.configuration, resource)
 
-    const usedTokens = await this.redisClient.evalSha(this.rateLimiterScriptSha, {
-      keys: [getKey(userId, resource)],
-      arguments: [String(policy.capacity), String(policy.refillRate)],
-    })
-    return {
-      usedTokens: Number(usedTokens) + 1,
-      totalTokens: policy.capacity,
-      isAllowed: Number(usedTokens) < policy.capacity,
+    try {
+      const usedTokens = Number(
+        await retryOnLoadingError(
+          () =>
+            this.redisClient.evalSha(scriptSha, {
+              keys: [getKey(userId, resource)],
+              arguments: [String(policy.capacity), String(policy.refillRate)],
+            }),
+          requestRetryOptions
+        )
+      )
+      return {
+        usedTokens: usedTokens + 1,
+        totalTokens: policy.capacity,
+        isAllowed: usedTokens < policy.capacity,
+      }
+    } catch (error) {
+      logger.error(`Rate limiter is unavailable, allowing request for user ${userId} on ${resource}`, { error })
+      return { usedTokens: 0, totalTokens: 0, isAllowed: true }
     }
   }
   async undo(userId: string, resource: string): Promise<RateLimitingResult> {
     if (!isResourceEnabled(this.configuration, resource)) return { usedTokens: 0, totalTokens: 0, isAllowed: true }
-    if (this.rateLimiterRevertScriptSha == null) throw new Error('Rate limiter not initialized')
+    const scriptSha = this.rateLimiterRevertScriptSha
+    if (scriptSha == null) throw new Error('Rate limiter not initialized')
 
     const policy = getRateLimitPolicy(this.configuration, resource)
 
-    const usedTokens = await this.redisClient.evalSha(this.rateLimiterRevertScriptSha, {
-      keys: [getKey(userId, resource)],
-    })
+    try {
+      const usedTokens = Number(
+        await retryOnLoadingError(
+          () =>
+            this.redisClient.evalSha(scriptSha, {
+              keys: [getKey(userId, resource)],
+            }),
+          requestRetryOptions
+        )
+      )
 
-    return {
-      usedTokens: Number(usedTokens) + 1,
-      totalTokens: policy.capacity,
-      isAllowed: Number(usedTokens) < policy.capacity,
+      return {
+        usedTokens: usedTokens + 1,
+        totalTokens: policy.capacity,
+        isAllowed: usedTokens < policy.capacity,
+      }
+    } catch (error) {
+      logger.warn(`Cannot revert the rate limit token for user ${userId} on ${resource}`, { error })
+      return { usedTokens: 0, totalTokens: 0, isAllowed: true }
     }
   }
 }

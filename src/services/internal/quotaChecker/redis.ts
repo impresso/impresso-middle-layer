@@ -6,6 +6,7 @@ import { getLogger } from '@/logger.js'
 import { RedisClient } from '@/redis.js'
 import type { ImpressoApplication } from '@/types.js'
 import { ensureServiceIsFeathersCompatible } from '@/util/feathers.js'
+import { retryOnLoadingError } from '@/util/redisRetries.js'
 import { Application } from '@feathersjs/feathers'
 import { HookContext, NextFunction } from '@feathersjs/hooks'
 
@@ -15,6 +16,9 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const quotaCheckScript = readFileSync(path.join(__dirname, 'lua/quotaCheck.lua')).toString()
+
+const requestRetryOptions = { maxWaitMs: 2000, initialDelayMs: 100, maxDelayMs: 500 }
+const setupRetryOptions = { maxWaitMs: 60000, initialDelayMs: 500, maxDelayMs: 5000 }
 
 /**
  * Result from a quota check operation.
@@ -137,25 +141,30 @@ export class QuotaChecker implements IQuotaChecker {
   async setup(app: ImpressoApplication, path: string) {
     if (this.initialized) return
 
-    this.quotaCheckScriptSha = await this.redisClient.scriptLoad(quotaCheckScript)
+    this.quotaCheckScriptSha = await retryOnLoadingError(() => this.redisClient.scriptLoad(quotaCheckScript), setupRetryOptions)
     this.initialized = true
   }
 
   async check(userId: string, docId: string): Promise<QuotaCheckResult> {
-    if (this.quotaCheckScriptSha == null) throw new Error('Quota checker not initialized')
+    const scriptSha = this.quotaCheckScriptSha
+    if (scriptSha == null) throw new Error('Quota checker not initialized')
 
     const currentTimestamp = Math.floor(Date.now() / 1000)
 
     // Execute the Lua script
-    const result = (await this.redisClient.evalSha(this.quotaCheckScriptSha, {
-      keys: [getBloomKey(userId), getCountKey(userId), getFirstAccessKey(userId)],
-      arguments: [
-        docId,
-        String(this.configuration.quotaLimit),
-        String(currentTimestamp),
-        String(this.configuration.windowSeconds),
-      ],
-    })) as number[]
+    const result = (await retryOnLoadingError(
+      () =>
+        this.redisClient.evalSha(scriptSha, {
+          keys: [getBloomKey(userId), getCountKey(userId), getFirstAccessKey(userId)],
+          arguments: [
+            docId,
+            String(this.configuration.quotaLimit),
+            String(currentTimestamp),
+            String(this.configuration.windowSeconds),
+          ],
+        }),
+      requestRetryOptions
+    )) as number[]
 
     // Parse the Lua script response
     const [allowed, count, wasCounted, windowStart, secondsUntilReset] = result
@@ -175,8 +184,11 @@ export class QuotaChecker implements IQuotaChecker {
     const currentTimestamp = Math.floor(Date.now() / 1000)
 
     // Get the count and first access timestamp
-    const countStr = await this.redisClient.get(getCountKey(userId))
-    const firstAccessStr = await this.redisClient.get(getFirstAccessKey(userId))
+    const countStr = await retryOnLoadingError(() => this.redisClient.get(getCountKey(userId)), requestRetryOptions)
+    const firstAccessStr = await retryOnLoadingError(
+      () => this.redisClient.get(getFirstAccessKey(userId)),
+      requestRetryOptions
+    )
 
     const count = countStr ? Number(countStr) : 0
     const firstAccess = firstAccessStr ? Number(firstAccessStr) : 0
