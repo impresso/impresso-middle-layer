@@ -640,9 +640,44 @@
         "port": {
           "type": "number",
           "description": "Vector port (default: 18080)"
+        },
+        "storage": {
+          "$ref": "#/definitions/AuditLogStorageConfig"
         }
       },
       "description": "Configuration for sending content item access log entries to a Vector log aggregator over HTTP"
+    },
+    "AuditLogStorageConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "S3-compatible endpoint URL, e.g. http://minio:9000"
+        },
+        "bucket": {
+          "type": "string",
+          "description": "Bucket where the Vector audit logs are stored"
+        },
+        "region": {
+          "type": "string",
+          "description": "AWS region of the storage (default: us-east-1)"
+        },
+        "accessKeyId": {
+          "type": "string",
+          "description": "S3 access key id"
+        },
+        "secretAccessKey": {
+          "type": "string",
+          "description": "S3 secret access key"
+        },
+        "keyPrefix": {
+          "type": "string",
+          "description": "Root prefix of the audit log objects, must match the `key_prefix` of the Vector S3 sink including any environment tag segment, e.g. `audit-logs/prod` (default: audit-logs)"
+        }
+      },
+      "required": ["endpoint", "bucket", "accessKeyId", "secretAccessKey"],
+      "description": "S3-compatible storage where the Vector audit log sink writes Parquet objects"
     },
     "QuotaCheckerConfig": {
       "type": "object",

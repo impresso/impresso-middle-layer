@@ -196,9 +196,7 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
     })
     const isDirectReviewer = record && record.reviewerId === reviewerId
     const isSpecialAccessReviewer =
-      record &&
-      (record as any).specialMembershipAccess &&
-      (record as any).specialMembershipAccess.reviewerId === reviewerId
+      record && record.specialMembershipAccess && record.specialMembershipAccess.reviewerId === reviewerId
 
     if (!record || (!isDirectReviewer && !isSpecialAccessReviewer)) {
       throw new NotFound(`UserSpecialMembershipRequest with id ${id} not found`)
@@ -213,10 +211,10 @@ export class UserSpecialMembershipRequestReviewsService implements IUserSpecialM
 
     const requester = user
       ? {
-          id: user.get('id') as number,
-          email: user.get('email') as string,
-          firstname: user.get('firstname') as string,
-          lastname: user.get('lastname') as string,
+          id: user.get('id'),
+          email: user.get('email'),
+          firstname: user.get('firstname'),
+          lastname: user.get('lastname'),
           groups: (user as any).groups?.map((d: Group) => d.toJSON()),
           profile: (user as any).profile,
           bitmap: (user as any).userBitmap ? (user as any).userBitmap.get('bitmap') : undefined,

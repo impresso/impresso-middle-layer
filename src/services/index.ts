@@ -69,6 +69,7 @@ import baristaProxy from './barista-proxy/barista-proxy.service.js'
 import baristaConversations from './barista-conversations/barista-conversations.service.js'
 import magicLink from './magic-link/magic-link.service.js'
 import filterSerialization from './filter-serialization/filter-serialization.service.js'
+import partnerAuditLogs from './partner-audit-logs/partner-audit-logs.service.js'
 import userEmailVerification from './user-email-verification/user-email-verification.service.js'
 import userEmailVerificationResend from './user-email-verification-resend/user-email-verification-resend.service.js'
 /**
@@ -97,6 +98,7 @@ const publicApiServices = [
   { name: 'experiments', init: experiments },
   { name: 'logs', init: logs },
   { name: 'filter-serialization', init: filterSerialization },
+  { name: 'partner-audit-logs', init: partnerAuditLogs },
   { name: 'special-membership-plans', init: specialMembershipPlans },
 ]
 

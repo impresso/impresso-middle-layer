@@ -600,6 +600,36 @@ export interface AuditLoggingConfig {
    * Vector port (default: 18080)
    */
   port?: number;
+  storage?: AuditLogStorageConfig;
+}
+/**
+ * S3-compatible storage where the Vector audit log sink writes Parquet objects
+ */
+export interface AuditLogStorageConfig {
+  /**
+   * S3-compatible endpoint URL, e.g. http://minio:9000
+   */
+  endpoint: string;
+  /**
+   * Bucket where the Vector audit logs are stored
+   */
+  bucket: string;
+  /**
+   * AWS region of the storage (default: us-east-1)
+   */
+  region?: string;
+  /**
+   * S3 access key id
+   */
+  accessKeyId: string;
+  /**
+   * S3 secret access key
+   */
+  secretAccessKey: string;
+  /**
+   * Root prefix of the audit log objects, must match the `key_prefix` of the Vector S3 sink (default: audit-logs)
+   */
+  keyPrefix?: string;
 }
 
 
