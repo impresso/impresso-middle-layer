@@ -121,5 +121,4 @@ export const resolvePermissions = () => async (context: HookContext<ImpressoAppl
       }
     })
   })
-  console.log('text', context.result)
 }
