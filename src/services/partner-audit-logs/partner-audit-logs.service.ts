@@ -1,6 +1,7 @@
 import { createReadStream } from 'node:fs'
 import type { NextFunction, Request, Response } from 'express'
 import type { ServiceOptions } from '@feathersjs/feathers'
+import type { ServiceSwaggerOptions } from 'feathers-swagger'
 import { createSwaggerServiceOptions } from '@/util/feathers.js'
 import {
   PartnerAuditLogsService,
@@ -37,16 +38,26 @@ const sendArchiveResponse = (_req: Request, res: Response, next: NextFunction) =
  * Content item access log downloads for data providers.
  *
  * The service is available in both the internal and the public API, but in
- * the public API it is intentionally not documented (no `docs` option), so
- * it does not appear in the public swagger.json.
+ * the public API it must not appear in swagger.json. Simply omitting the
+ * `docs` option is not enough: feathers-swagger would auto-generate a spec
+ * entry referencing a non-existent `partner-audit-logs` component schema
+ * and break the OpenAPI validation at startup. The explicit
+ * `operations: { get: false }` suppresses the generated entry instead.
  */
 export default function (app: ImpressoApplication) {
   const isPublicApi = app.get('isPublicApi') ?? false
 
+  const hideFromSwagger = true // flip in dev if needed
+
+  const docs: ServiceSwaggerOptions =
+    isPublicApi && hideFromSwagger
+      ? { operations: { get: false } }
+      : createSwaggerServiceOptions({ schemas: {}, docs: getDocs() })
+
   app.use('/partner-audit-logs', new PartnerAuditLogsService(app), {
     events: [],
     express: { after: [sendArchiveResponse] },
-    ...(!isPublicApi ? { docs: createSwaggerServiceOptions({ schemas: {}, docs: getDocs() }) } : {}),
+    docs,
   } as ServiceOptions)
 
   app.service('partner-audit-logs').hooks(hooks)
