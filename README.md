@@ -250,10 +250,10 @@ IMPRESSO_SOCKS_PROXY_CONFIG='{ "host": "localhost", "port": 1080, "domains": ["d
 To get the zip archive with *parquet* files run:
 
 ```bash
-curl -X 'GET' \
+curl -X 'GET' -O -J \
   'http://localhost:3030/partner-audit-logs/BNL?year=2026&month=08' \
   -H 'accept: application/zip' \
-  -H 'Authorization: Bearer <token>
+  -H 'Authorization: Bearer <token>'
 ```
 
 ## Help
