@@ -27,6 +27,14 @@ interface VectorContentItemAccessLogRecord {
   access_method: AccessMethod
 }
 
+const toVectorRecord = (entry: ContentItemAccessLogEntry): VectorContentItemAccessLogRecord => ({
+  provider_id: entry.providerId,
+  impresso_user_id: entry.impressoUserId,
+  content_item_id: entry.contentItemId,
+  timestamp: (entry.timestamp ?? new Date()).getTime(),
+  access_method: entry.accessMethod,
+})
+
 export interface VectorLogService {
   logContentItemAccess(entries: ContentItemAccessLogEntry[]): Promise<void>
 }
@@ -46,13 +54,7 @@ export class DefaultVectorLogService implements VectorLogService {
 
     // Vector's default `json` decoding codec parses the whole request body as a single
     // JSON value; a JSON array is accepted and expanded into one event per element.
-    const records: VectorContentItemAccessLogRecord[] = entries.map(entry => ({
-      provider_id: entry.providerId,
-      impresso_user_id: entry.impressoUserId,
-      content_item_id: entry.contentItemId,
-      timestamp: (entry.timestamp ?? new Date()).getTime(),
-      access_method: entry.accessMethod,
-    }))
+    const records = entries.map(toVectorRecord)
 
     try {
       const response = await this.client.fetch(this.endpoint, {
