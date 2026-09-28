@@ -1,7 +1,10 @@
-import { logger } from '../../logger'
+import { logger } from '../../logger.js'
 import assert from 'assert'
 import { get, omitBy, isUndefined } from 'lodash-es'
-import { SolrMappings } from '../../data/constants'
+import { SolrMappings } from '../../data/constants.js'
+import type { SolrFacetQueryParams, SolrRangeFacetQueryParams, SolrTermsFacetQueryParams } from '../../data/types.js'
+import type { Bucket, SelectRequestBody, SelectResponse } from '../../internalServices/simpleSolr.js'
+import type { SolrGetRequestQueryParams } from '../../util/solr/adapters.js'
 
 const PassageFields = {
   Id: 'id',
@@ -25,7 +28,7 @@ const PassageFields = {
   // Bitmap permissions fields in passage documents.
   PermissionsBitmapExplore: 'rights_bm_explore_l',
   PermissionsBitmapGetTranscript: 'rights_bm_get_tr_l',
-}
+} as const
 
 const ClusterFields = {
   Id: 'id',
@@ -35,21 +38,57 @@ const ClusterFields = {
   MaxDate: 'max_date_dt',
   ClusterSize: 'cluster_size_l',
   ContentItemsIds: 'passages_ss',
-}
+} as const
 
 /**
  * We assume there cannot be more than this many passages in an article.
  */
 const DefaultPassagesLimit = 100
 
+type SolrDoc = Record<string, any>
+type SolrSelectResponse = SelectResponse<SolrDoc, string, Bucket>
+
+export interface Passage {
+  id?: string
+  clusterId?: string
+  articleId?: string
+  offsetStart?: number
+  offsetEnd?: number
+  content?: string
+  title?: string
+  journalId?: string
+  language?: string
+  date?: string
+  pageNumbers?: number[]
+  pageRegions?: number[][]
+}
+
+export interface Cluster {
+  id?: string
+  lexicalOverlap?: number
+  clusterSize?: number
+  timeCoverage: { from?: string; to?: string }
+}
+
+export interface ClusterIdAndTextAndPermission {
+  id: string
+  text: string
+  permissionBitmapExplore?: number
+  permissionBitmapGetTranscript?: number
+}
+
+export interface FacetResult {
+  type: string
+  numBuckets: number
+  buckets: Bucket[]
+}
+
 /**
  * Get Solr query parameters for requesting text passages for an article.
- * @param {string} articleId article ID
- * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
  */
-function getTextReusePassagesRequestForArticle(articleId, fields = undefined) {
+function getTextReusePassagesRequestForArticle(articleId: string, fields?: string[]): SolrGetRequestQueryParams {
   assert.ok(typeof articleId === 'string' && articleId.length > 0, 'Article ID is required')
-  const request = {
+  const request: SolrGetRequestQueryParams = {
     q: `${PassageFields.ContentItemId}:${articleId}`,
     hl: false,
     rows: DefaultPassagesLimit,
@@ -59,7 +98,7 @@ function getTextReusePassagesRequestForArticle(articleId, fields = undefined) {
   return request
 }
 
-const DefaultClusterFields = [
+const DefaultClusterFields: string[] = [
   ClusterFields.Id,
   ClusterFields.LexicalOverlap,
   ClusterFields.MinDate,
@@ -67,7 +106,7 @@ const DefaultClusterFields = [
   ClusterFields.ClusterSize,
 ]
 
-const getOneOfFieldsValues = (doc, fields) =>
+const getOneOfFieldsValues = (doc: SolrDoc, fields: readonly string[]): any =>
   fields.reduce((pickedItem, field) => {
     if (pickedItem != null) return pickedItem
     return doc[field]
@@ -75,10 +114,11 @@ const getOneOfFieldsValues = (doc, fields) =>
 
 /**
  * Get Solr query parameters for requesting clusters by their Ids.
- * @param {string[]} clusterIds Ids of clusters
- * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
  */
-function getTextReuseClustersRequestForIds(clusterIds, fields = DefaultClusterFields) {
+function getTextReuseClustersRequestForIds(
+  clusterIds: string[],
+  fields = DefaultClusterFields
+): SolrGetRequestQueryParams {
   assert.ok(Array.isArray(clusterIds) && clusterIds.length > 0, 'At least one cluster Id is required')
   return {
     q: clusterIds.map(clusterId => `${ClusterFields.Id}:${clusterId}`).join(' OR '),
@@ -88,12 +128,12 @@ function getTextReuseClustersRequestForIds(clusterIds, fields = DefaultClusterFi
   }
 }
 
-function parsePageRegions(pageRegionsPlainText) {
+function parsePageRegions(pageRegionsPlainText: string[] | undefined): number[][] | undefined {
   if (pageRegionsPlainText == null) return undefined
   return pageRegionsPlainText.map(region => region.split(',').map(v => parseInt(v, 10)))
 }
 
-function convertSolrPassageDocToPassage(doc) {
+function convertSolrPassageDocToPassage(doc: SolrDoc): Passage {
   const [offsetStart, offsetEnd] = [get(doc, PassageFields.OffsetStart), get(doc, PassageFields.OffsetEnd)]
 
   return omitBy(
@@ -120,16 +160,16 @@ function convertSolrPassageDocToPassage(doc) {
       pageRegions: parsePageRegions(get(doc, PassageFields.PageRegions)),
     },
     isUndefined
-  )
+  ) as Passage
 }
 
-function convertPassagesSolrResponseToPassages(solrResponse) {
+function convertPassagesSolrResponseToPassages(solrResponse: SolrSelectResponse): Passage[] {
   return get(solrResponse, 'response.docs', []).map(convertSolrPassageDocToPassage)
 }
 
-const getDateFromISODateString = date => date.split('T')[0]
+const getDateFromISODateString = (date: string): string => date.split('T')[0]
 
-function convertSolrClusterToCluster(doc) {
+function convertSolrClusterToCluster(doc: SolrDoc): Cluster {
   return {
     id: get(doc, ClusterFields.Id),
     lexicalOverlap: get(doc, ClusterFields.LexicalOverlap),
@@ -141,22 +181,26 @@ function convertSolrClusterToCluster(doc) {
   }
 }
 
-function convertClustersSolrResponseToClusters(solrResponse) {
+function convertClustersSolrResponseToClusters(solrResponse: SolrSelectResponse): Cluster[] {
   return get(solrResponse, 'response.docs', []).map(convertSolrClusterToCluster)
 }
 
-const buildContentSearchStatement = text =>
+const buildContentSearchStatement = (text: string): string =>
   [PassageFields.ContentTextFR, PassageFields.ContentTextDE, PassageFields.ContentTextEN]
     .map(field => `${field}:"${text}"`)
     .join(' OR ')
 
 /**
  * Build a GET request to find cluster IDs of passages that contain `text`.
- * @param {string} text a text snippet
- * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
  */
-function getTextReusePassagesClusterIdsSearchRequestForText(text, offset, limit, orderBy, orderByDescending) {
-  const request = {
+function getTextReusePassagesClusterIdsSearchRequestForText(
+  text: string,
+  offset?: number,
+  limit?: number,
+  orderBy?: string | boolean | null,
+  orderByDescending?: boolean
+): SolrGetRequestQueryParams {
+  const request: SolrGetRequestQueryParams = {
     q: text ? buildContentSearchStatement(text) : '*:*',
     hl: false,
     fl: [
@@ -174,21 +218,19 @@ function getTextReusePassagesClusterIdsSearchRequestForText(text, offset, limit,
 }
 
 /**
- * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
+ * @return {SolrGetRequestQueryParams & { limit?: number }}
  */
-function getLatestTextReusePassageForClusterIdRequest(clusterIdOrClusterIds) {
-  const clusterId = Array.isArray(clusterIdOrClusterIds) ? undefined : clusterIdOrClusterIds
-  const clusterIds = Array.isArray(clusterIdOrClusterIds) ? clusterIdOrClusterIds : undefined
+function getLatestTextReusePassageForClusterIdRequest(
+  clusterIdOrClusterIds: string | string[]
+): SolrGetRequestQueryParams & { limit?: number } {
+  const q = Array.isArray(clusterIdOrClusterIds)
+    ? clusterIdOrClusterIds.map(id => `${PassageFields.ClusterId}:${id}`).join(' OR ')
+    : `${PassageFields.ClusterId}:"${clusterIdOrClusterIds}"`
 
-  const q =
-    clusterId != null
-      ? `${PassageFields.ClusterId}:"${clusterId}"`
-      : clusterIds.map(id => `${PassageFields.ClusterId}:${id}`).join(' OR ')
-
-  const request = {
+  const request: SolrGetRequestQueryParams & { limit?: number } = {
     q,
     hl: false,
-    limit: clusterId != null ? 1 : clusterIds.length,
+    limit: Array.isArray(clusterIdOrClusterIds) ? clusterIdOrClusterIds.length : 1,
     fl: [
       PassageFields.ClusterId,
       PassageFields.ContentTextFR,
@@ -200,8 +242,10 @@ function getLatestTextReusePassageForClusterIdRequest(clusterIdOrClusterIds) {
   return request
 }
 
-function getClusterIdsTextAndPermissionsFromPassagesSolrResponse(solrResponse) {
-  return get(solrResponse, 'response.docs', []).map(doc => ({
+function getClusterIdsTextAndPermissionsFromPassagesSolrResponse(
+  solrResponse: SolrSelectResponse
+): ClusterIdAndTextAndPermission[] {
+  return get(solrResponse, 'response.docs', []).map((doc: SolrDoc) => ({
     id: doc[PassageFields.ClusterId],
     text: getOneOfFieldsValues(doc, [
       PassageFields.ContentTextFR,
@@ -213,37 +257,45 @@ function getClusterIdsTextAndPermissionsFromPassagesSolrResponse(solrResponse) {
   }))
 }
 
-function getPaginationInfoFromPassagesSolrResponse(solrResponse) {
-  if (typeof get(solrResponse, 'responseHeader.params.json') === 'string') {
+function getPaginationInfoFromPassagesSolrResponse(solrResponse: SolrSelectResponse): {
+  limit: number
+  offset: number
+  total: number
+} {
+  const json = get(solrResponse, 'responseHeader.params.json')
+  if (typeof json === 'string') {
     try {
-      const { offset, limit } = JSON.parse(solrResponse.responseHeader.params.json)
+      const { offset, limit } = JSON.parse(json)
       return {
         limit: typeof limit === 'number' ? limit : 10,
         offset: typeof offset === 'number' ? offset : 0,
-        total: get(solrResponse, 'response.numFound'),
+        total: get(solrResponse, 'response.numFound') as number,
       }
     } catch (e) {
-      logger.warning(e)
+      logger.warn(e as Error)
       return {
         limit: 10,
         offset: 0,
-        total: get(solrResponse, 'response.numFound'),
+        total: get(solrResponse, 'response.numFound') as number,
       }
     }
   } else {
     return {
       limit: parseInt(get(solrResponse, 'responseHeader.params.rows', '10'), 10),
       offset: parseInt(get(solrResponse, 'responseHeader.params.start', '0'), 10),
-      total: get(solrResponse, 'response.numFound'),
+      total: get(solrResponse, 'response.numFound') as number,
     }
   }
 }
 
-/**
- * @return {import('../../util/solr/adapters').SolrGetRequestQueryParams}
- */
-function getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderBy, orderByDescending) {
-  const request = {
+function getTextReuseClusterPassagesRequest(
+  clusterId: string,
+  offset?: number,
+  limit?: number,
+  orderBy?: string | boolean | null,
+  orderByDescending?: boolean
+): SolrGetRequestQueryParams {
+  const request: SolrGetRequestQueryParams = {
     q: `${PassageFields.ClusterId}:"${clusterId}"`,
     hl: false,
   }
@@ -254,13 +306,12 @@ function getTextReuseClusterPassagesRequest(clusterId, offset, limit, orderBy, o
 }
 
 /**
- *
  * @param {string} from ISO date
  * @param {string} to ISO date
  * @returns {string} either 'year', 'month' or 'day'
  */
-function getTimelineResolution(from, to) {
-  const diffMs = new Date(to).getTime() - new Date(from).getTime()
+function getTimelineResolution(from?: string, to?: string): 'year' | 'month' | 'day' {
+  const diffMs = new Date(to as string).getTime() - new Date(from as string).getTime()
   const diffDays = diffMs / (1000 * 60 * 60 * 24)
 
   if (diffDays <= 31) return 'day'
@@ -268,24 +319,27 @@ function getTimelineResolution(from, to) {
   return 'year'
 }
 
-const asISOTime = (date, eod) => {
+const asISOTime = (date: string | undefined, eod?: boolean): string => {
   if (eod) return `${date}T23:59:59Z`
   return `${date}T00:00:00Z`
 }
 
-/**
- * @param {string} clusterId
- * @param {{ from: string, to: string }} timeSpan
- */
-function buildSolrRequestForExtraClusterDetails(clusterId, { from, to } = {}) {
+function buildSolrRequestForExtraClusterDetails(
+  clusterId: string,
+  { from, to }: { from?: string; to?: string } = {}
+): SelectRequestBody {
   const timeResolution = getTimelineResolution(from, to)
-  let date = { ...SolrMappings.tr_passages.facets.year }
-  if (timeResolution === 'month') date = { ...SolrMappings.tr_passages.facets.yearmonth }
+  let date: SolrFacetQueryParams = { ...(SolrMappings.tr_passages.facets.year as SolrTermsFacetQueryParams) }
+  if (timeResolution === 'month') {
+    const yearmonthFacet = (SolrMappings.tr_passages.facets as Record<string, SolrFacetQueryParams | undefined>)
+      .yearmonth
+    date = { ...(yearmonthFacet as SolrTermsFacetQueryParams) }
+  }
   if (timeResolution === 'day') {
     // "daterange" is a "range" facet. To speed up the query we constrain it by
     // actual timespan.
     date = {
-      ...SolrMappings.tr_passages.facets.daterange,
+      ...(SolrMappings.tr_passages.facets.daterange as SolrRangeFacetQueryParams),
       start: asISOTime(from),
       end: asISOTime(to, true),
     }
@@ -295,15 +349,15 @@ function buildSolrRequestForExtraClusterDetails(clusterId, { from, to } = {}) {
     query: `${PassageFields.ClusterId}:${clusterId}`,
     limit: 0,
     facet: {
-      mediaSource: { ...SolrMappings.tr_passages.facets.mediaSource, limit: undefined },
-      type: { ...SolrMappings.tr_passages.facets.type, limit: undefined },
+      mediaSource: { ...(SolrMappings.tr_passages.facets.mediaSource as SolrTermsFacetQueryParams), limit: undefined },
+      type: { ...(SolrMappings.tr_passages.facets.type as SolrTermsFacetQueryParams), limit: undefined },
       date,
     },
   }
 }
 
-function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
-  const facetsObject = get(solrResponse, 'facets', {})
+function getFacetsFromExtraClusterDetailsResponse(solrResponse: SolrSelectResponse): FacetResult[] {
+  const facetsObject = get(solrResponse, 'facets', {}) as Record<string, { numBuckets?: number; buckets?: Bucket[] }>
   const facetsIds = Object.keys(facetsObject).filter(key => key !== 'count')
 
   const facets = facetsIds.map(id => {
@@ -311,8 +365,11 @@ function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
 
     return {
       type: id,
-      numBuckets: facetObject.numBuckets >= 0 ? facetObject.numBuckets : facetObject.buckets.length,
-      buckets: facetObject.buckets,
+      numBuckets:
+        facetObject.numBuckets != null && facetObject.numBuckets >= 0
+          ? facetObject.numBuckets
+          : (facetObject.buckets ?? []).length,
+      buckets: facetObject.buckets ?? [],
     }
   })
   return facets
@@ -320,18 +377,15 @@ function getFacetsFromExtraClusterDetailsResponse(solrResponse) {
 
 /**
  * @param {string} clusterId cluster ID
- * @param {number} limit
- * @param {number} offset
- * @return {import('../../internalServices/simpleSolr').SelectRequestBody}
  */
-function buildConnectedClustersRequest(clusterId, limit = 10, offset = 0) {
-  const request = {
+function buildConnectedClustersRequest(clusterId: string, limit = 10, offset = 0): SelectRequestBody {
+  const request: SelectRequestBody = {
     query: `${PassageFields.ClusterId}:${clusterId}`,
     limit: 0,
     params: { hl: false },
     facet: {
       connectedClusters: {
-        ...SolrMappings.tr_passages.facets.connectedClusters,
+        ...(SolrMappings.tr_passages.facets.connectedClusters as SolrTermsFacetQueryParams),
         limit,
         offset,
       },
@@ -344,26 +398,25 @@ function buildConnectedClustersRequest(clusterId, limit = 10, offset = 0) {
  * @param {Record<string, any>} response
  * @returns {{ clustersIds: string[], total: number }}
  */
-function parseConnectedClustersResponse(response) {
-  const buckets = get(response, 'facets.connectedClusters.buckets', [])
-  const clustersIds = buckets.map(bucket => bucket.val)
-  const total = get(response, 'facets.connectedClusters.numBuckets', 0)
+function parseConnectedClustersResponse(response: SolrSelectResponse): { clustersIds: string[]; total: number } {
+  const buckets = get(response, 'facets.connectedClusters.buckets', []) as Bucket[]
+  const clustersIds = buckets.map(bucket => bucket.val as string)
+  const total = get(response, 'facets.connectedClusters.numBuckets', 0) as number
 
   return { clustersIds, total }
 }
 
 /**
  * @param {string} clusterId cluster ID
- * @return {import('../../internalServices/simpleSolr').SelectRequestBody}
  */
-function buildConnectedClustersCountRequest(clusterId) {
-  const request = {
+function buildConnectedClustersCountRequest(clusterId: string): SelectRequestBody {
+  const request: SelectRequestBody = {
     query: `${PassageFields.ClusterId}:${clusterId}`,
     limit: 0,
     params: { hl: false },
     facet: {
       connectedClusters: {
-        ...SolrMappings.tr_passages.facets.connectedClusters,
+        ...(SolrMappings.tr_passages.facets.connectedClusters as SolrTermsFacetQueryParams),
         limit: 0,
         offset: 0,
       },
@@ -376,8 +429,8 @@ function buildConnectedClustersCountRequest(clusterId) {
  * @param {Record<string, any>} response
  * @returns {number}
  */
-function parseConnectedClustersCountResponse(response) {
-  return get(response, 'facets.connectedClusters.numBuckets', 0)
+function parseConnectedClustersCountResponse(response: SolrSelectResponse): number {
+  return get(response, 'facets.connectedClusters.numBuckets', 0) as number
 }
 
 export {
