@@ -42,7 +42,7 @@ describe('parseYearMonth', () => {
 
   it('rejects missing or invalid query parameters', () => {
     assert.throws(() => parseYearMonth(undefined), BadRequest)
-    assert.throws(() => parseYearMonth(null), BadRequest)
+    assert.throws(() => parseYearMonth(null as any), BadRequest)
     assert.throws(() => parseYearMonth({}), BadRequest)
     assert.throws(() => parseYearMonth({ month: 8 }), BadRequest)
     assert.throws(() => parseYearMonth({ year: 2026 }), BadRequest)
