@@ -14,7 +14,7 @@ export default {
   },
   before: {
     find: [
-      validate<Pick<CollectionsQuery, 'order_by' | 'term'>>(
+      validate<Pick<CollectionsQuery, 'order_by' | 'term' | 'includePublic'>>(
         {
           order_by: {
             required: false,
@@ -26,6 +26,11 @@ export default {
             required: false,
             min_length: 1,
             max_length: 200,
+          },
+          includePublic: {
+            required: false,
+            // REST query params arrive as strings
+            transform: d => String(d) === 'true',
           },
         },
         'GET',
