@@ -179,6 +179,7 @@ type QueueServiceMethod =
   | 'addItemsToCollection'
   | 'removeItemsFromCollection'
   | 'removeAllCollectionItems'
+  | 'updateCollectionItemsVisibility'
   | 'addQueryResultItemsToCollection'
   | 'exportSearchResults'
   | 'migrateOldCollections'
@@ -206,6 +207,7 @@ export function withQueueService(): TestAppFeature<{
       'addItemsToCollection',
       'removeItemsFromCollection',
       'removeAllCollectionItems',
+      'updateCollectionItemsVisibility',
       'addQueryResultItemsToCollection',
       'exportSearchResults',
       'migrateOldCollections',

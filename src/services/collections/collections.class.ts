@@ -8,6 +8,7 @@ import type { Collection } from '@/models/generated/app/entities.js'
 import { NewCollectionRequest } from '@/models/generated/app/requests.js'
 import UserCollection, { IUserCollection } from '@/models/user-collection.js'
 import type { ImpressoApplication } from '@/types.js'
+import { logger } from '@/logger.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { SolrNamespaces } from '@/solr.js'
 import {
@@ -259,6 +260,8 @@ export class CollectionsService implements ICollectionsService {
       throw new NotFound('Collection not found')
     }
 
+    const previousStatus = dbModel.status
+
     const updateData: Partial<IUserCollection> = {
       lastModifiedDate: new Date(),
     }
@@ -275,9 +278,28 @@ export class CollectionsService implements ICollectionsService {
       updateData.status = data.accessLevel === 'public' ? 'PUB' : 'PRI'
     }
 
-    // TODO: publish a job to update all items in the collection if accessLevel changed
-
+    // Persist the new status before propagating it to Solr items, so a failed
+    // DB write cannot leave public Solr items behind a private collection.
     await dbModel.update(updateData)
+
+    const newStatus = updateData.status
+    if (newStatus !== undefined && newStatus !== previousStatus) {
+      try {
+        await this.queueService.updateCollectionItemsVisibility({
+          userId: String(userId),
+          collectionId: String(id),
+          visibility: newStatus === 'PUB' ? 'pub' : 'pri',
+        })
+      } catch (error) {
+        // Best-effort: the new status is persisted, so a queue outage must not
+        // 500 the request. Log loudly: Solr items visibility is now stale until
+        // the access level is changed again.
+        logger.error(
+          `Failed to queue visibility update job for collection ${id} (user ${userId}, status ${previousStatus} → ${newStatus}); Solr items visibility is stale`,
+          { error }
+        )
+      }
+    }
 
     const collection = dbToCollection(dbModel)
 
