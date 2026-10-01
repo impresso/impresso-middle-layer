@@ -1,10 +1,10 @@
-import { BadRequest } from '@feathersjs/errors'
+import { BadRequest, Forbidden } from '@feathersjs/errors'
 import type { Id, Params } from '@feathersjs/feathers'
+import type { Sequelize } from 'sequelize'
+import type { SlimUser } from '@/authentication.js'
 import { getAuditLogStorage } from '@/internalServices/auditLogStorage.js'
-import {
-  createAuditLogArchive,
-  type PartnerAuditLogArchive,
-} from '@/services/partner-audit-logs/auditLogArchive.js'
+import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
+import { createAuditLogArchive, type PartnerAuditLogArchive } from '@/services/partner-audit-logs/auditLogArchive.js'
 import type { ImpressoApplication } from '@/types.js'
 
 const MinYear = 1970
@@ -33,7 +33,11 @@ export const parseYearMonth = (query: PartnerAuditLogQuery | undefined): { year:
 const sanitizeFilenamePart = (value: string): string => value.replace(/[^A-Za-z0-9._-]+/g, '-')
 
 export class PartnerAuditLogsService {
-  constructor(private readonly app: ImpressoApplication) {}
+  private readonly accessModel: ReturnType<typeof SpecialMembershipAccess.initialize>
+
+  constructor(private readonly app: ImpressoApplication) {
+    this.accessModel = SpecialMembershipAccess.initialize(app.get('sequelizeClient') as Sequelize)
+  }
 
   /**
    * Download the audit log of a data provider for a single year-month as a
@@ -41,9 +45,23 @@ export class PartnerAuditLogsService {
    * archive is written to a temporary file; when called over HTTP it is
    * streamed to the client and removed afterwards.
    */
-  async get(id: Id, params?: Params & { query?: PartnerAuditLogQuery }): Promise<PartnerAuditLogArchive> {
+  async get(
+    id: Id,
+    params?: Params & { query?: PartnerAuditLogQuery; user?: SlimUser }
+  ): Promise<PartnerAuditLogArchive> {
     const providerId = String(id)
     const { year, month } = parseYearMonth(params?.query)
+    const user = params?.user
+    const accessPlan = user?.isStaff
+      ? true
+      : user
+        ? await this.accessModel.findOne({
+            attributes: ['id'],
+            where: { reviewerId: user.id, dataProviderAlias: providerId },
+          })
+        : null
+
+    if (!accessPlan) throw new Forbidden('User is not authorized to access partner audit logs')
 
     const storage = getAuditLogStorage(this.app)
     const keys = await storage.listYearMonthKeys(providerId, year, month)
