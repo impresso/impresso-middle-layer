@@ -24,6 +24,10 @@ import {
   createJobHandler as removeItemsToCollectionJobHandler,
 } from '@/jobs/collections/removeItemsFromCollection.js'
 import {
+  JobNameUpdateCollectionItemsVisibility,
+  createJobHandler as updateCollectionItemsVisibilityJobHandler,
+} from '@/jobs/collections/updateCollectionItemsVisibility.js'
+import {
   createJobHandler as exportSearchResultsJobHandler,
   JobNameExportSearchResults,
 } from '@/jobs/searchResults/exportSearchResults.js'
@@ -234,6 +238,7 @@ export default (app: ImpressoApplication) => {
       [JobNameAddItemsToCollection, createAddItemsToCollectionJobHandler(app), 1],
       [JobNameRemoveItemsFromCollection, removeItemsToCollectionJobHandler(app), 1],
       [JobNameRemoveAllCollectionItems, removeAllCollectionItemsJobHandler(app), 1],
+      [JobNameUpdateCollectionItemsVisibility, updateCollectionItemsVisibilityJobHandler(app), 1],
       [JobNameAddQueryResultItemsToCollection, createAddQueryResultItemsToCollectionJobHandler(app), 1],
       [JobNameExportSearchResults, exportSearchResultsJobHandler(app), 1],
       [JobNameRebuildWellKnownCache, rebuildWellKnownCacheJobHandler(app), 1],
