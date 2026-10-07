@@ -43,12 +43,7 @@ interface SuggestionQuery {
 type SuggestionsParams = Params<SuggestionQuery> & { user?: SlimUser }
 
 const asMentionSuggestion = (doc: SuggestEntry): ISuggestion<Mention> => {
-  // payload for mention contains type only
-  const item = new Mention({
-    name: doc.term.replace(/<[^>]*>/g, ''),
-    frequence: doc.weight,
-    type: doc.payload,
-  })
+  const item = Mention.solrFactory()(doc)
   return new Suggestion({
     q: item.name,
     h: doc.term,
@@ -238,7 +233,13 @@ export class Service {
   }
 
   async suggestMentions({ q }: { q: string }) {
-    return await this.suggestItem(q, SolrNamespaces.Mentions, asMentionSuggestion)
+    if (!q.trim()) return []
+    const result = await this.solr.suggest(SolrNamespaces.Mentions, {
+      q,
+      count: 3,
+      dictionary: 'm_suggester_infix',
+    })
+    return (result.suggestions ?? []).map(asMentionSuggestion)
   }
 
   async suggestTopics({ q }: { q: string }) {

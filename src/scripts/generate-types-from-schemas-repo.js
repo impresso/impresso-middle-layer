@@ -291,6 +291,8 @@ async function generateAll() {
     [
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.topics.v1.schema.json',
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.entities.v3.schema.json',
+      'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.mentions.v3.schema.json',
+      'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.mentions-mediasources.v1.schema.json',
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.part.tr-passages.v1.schema.json',
     ],
     './src/models/generated/impressoSchemas/solr/semanticEnrichment.d.ts'

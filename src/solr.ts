@@ -13,7 +13,6 @@ export type SolrNamespace =
   | 'embeddings_fr'
   | 'embeddings_lb'
   | 'word_embeddings'
-  | 'entities_mentions'
   | 'collection_items'
   | 'subdoc_embeddings_experiment'
   | 'entity_profiles'
@@ -30,7 +29,6 @@ export const SolrNamespaces = Object.freeze({
   EmbeddingsFR: 'embeddings_fr',
   EmbeddingsLB: 'embeddings_lb',
   WordEmbeddings: 'word_embeddings',
-  EntitiesMentions: 'entities_mentions',
   CollectionItems: 'collection_items',
   SubdocEmbeddingsExperiment: 'subdoc_embeddings_experiment',
   EntityProfiles: 'entity_profiles',
