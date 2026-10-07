@@ -1,6 +1,6 @@
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { ImpressoApplication } from '@/types.js'
-import { getTypeFromId } from '@/utils/entity.utils.js'
+import { findEntitiesByIds } from '@/services/entities/lookup.js'
 import { optionalMediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 
 type QParam = string | string[]
@@ -86,23 +86,14 @@ export const topicExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication
 /**
  * Extract generic entity items (person or location) based on their ID, which encodes the type as a prefix. For example, "person-123" or "location-456".
  */
-export const entityExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) =>
-  resolveItems(q, app, (resolvers, item) => {
-    const type = getTypeFromId(item)
-    if (type === 'person') {
-      return resolvers.person(item)
-    }
-    if (type === 'location') {
-      return resolvers.location(item)
-    }
-    if (type === 'nag') {
-      return resolvers.nag(item)
-    }
-    if (type === 'organisation') {
-      return resolvers.organisation(item)
-    }
-    return resolvers.location(item)
+export const entityExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) => {
+  const ids = toArray(q).map(id => id.trim())
+  const entities = new Map((await findEntitiesByIds(app, ids)).map(entity => [entity.id, entity]))
+  return ids.flatMap(id => {
+    const entity = entities.get(id)
+    return entity == null ? [] : [entity]
   })
+}
 
 export const yearExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) =>
   resolveItems(q, app, (resolvers, item) => resolvers.year(item))

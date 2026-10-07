@@ -547,7 +547,7 @@ export interface EntityDetails {
    * Entity name
    */
   name: string;
-  type: "person" | "location" | "organisation" | "newsagency";
+  type: "person" | "location" | "organisation" | "newsagency" | "radiostation";
   /**
    * TODO
    */

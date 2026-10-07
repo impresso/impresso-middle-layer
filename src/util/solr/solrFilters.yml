@@ -283,15 +283,15 @@ indexes:
         rule: openEndedString
         scoring: true
       type:
-        field: t_s
+        field: ner_entity_type_s
         rule: value
         destination: filter
       uid:
         field: id
-        rule: idValue
+        rule: value
       wikidataId:
-        field: na
-        rule: noop
+        field: id
+        rule: value
   images:
     filters:
       newspaper:

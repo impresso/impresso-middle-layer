@@ -94,9 +94,10 @@ export class SearchFacet implements ISearchFacet {
     app: ImpressoApplication
   ): Promise<SearchFacet> {
     const numBucketsValue = typeof numBuckets === 'string' ? parseInt(numBuckets, 10) : numBuckets
+    const resolvers = buildResolvers(app)
     const bucketsValue = gap
       ? buckets.map(d => new SearchFacetRangeBucket({ ...d, min, max, gap }))
-      : await Promise.all(buckets.map(async d => await SearchFacetBucket.build({ type, ...d }, buildResolvers(app))))
+      : await Promise.all(buckets.map(async d => await SearchFacetBucket.build({ type, ...d }, resolvers)))
 
     return new SearchFacet(type, bucketsValue, numBucketsValue, gap as any, max as any, min as any)
   }

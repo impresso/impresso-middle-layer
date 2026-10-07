@@ -2,16 +2,9 @@ import { Filter } from 'impresso-jscommons'
 import { SolrNamespaces } from '@/solr.js'
 import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
 import { SelectRequestBody } from '@/internalServices/simpleSolr.js'
-import { TypeToTypeShorthand } from '@/utils/entity.utils.js'
+import { SOLR_FL } from '@/models/entities.model.js'
+import { EntityTypeAliases } from '@/utils/entity.utils.js'
 import { FeaturesConfig, SolrServerNamespaceConfiguration } from '@/models/generated/app/configuration.js'
-
-const SolrFields = Object.freeze({
-  Id: 'id',
-  Label: 'l_s',
-  Type: 't_s',
-  AritcleFrequency: 'article_fq_f',
-  MentionFrequency: 'mention_fq_f',
-})
 
 /**
  * Entity type tag changed in Solr with the new schema.
@@ -26,9 +19,9 @@ const rewriteTypes = (filter: Filter) => {
   let newType = type
 
   if (typeof type === 'string') {
-    newType = TypeToTypeShorthand[type] ?? type
+    newType = EntityTypeAliases[type.toLowerCase()] ?? type
   } else if (Array.isArray(type)) {
-    newType = type.map(t => TypeToTypeShorthand[t] ?? t)
+    newType = type.map(t => EntityTypeAliases[t.toLowerCase()] ?? t)
   }
   return { ...filter, q: newType }
 }
@@ -54,14 +47,10 @@ export function buildSearchEntitiesSolrQuery(
   const request: SelectRequestBody = {
     ...queryBase,
     params: {
+      ...queryBase.params,
       hl: true,
-      fl: [
-        SolrFields.Id,
-        SolrFields.Label,
-        SolrFields.Type,
-        SolrFields.AritcleFrequency,
-        SolrFields.MentionFrequency,
-      ].join(', '),
+      'hl.fl': 'entitySuggest',
+      fl: SOLR_FL.join(', '),
     },
   }
 
