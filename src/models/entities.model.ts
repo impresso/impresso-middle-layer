@@ -1,126 +1,35 @@
-import { DataTypes, Sequelize } from 'sequelize'
-import { getNameFromId, getTypeCodeFromId, TypeCodeToType, TypeShorthandToType } from '@/utils/entity.utils.js'
+import type { EntitySolrDocumentV3 } from '@/models/generated/impressoSchemas/solr/semanticEnrichment.js'
+import type { EntityDetails } from '@/models/generated/deprecated/models.js'
+import { TypeShorthandToType } from '@/utils/entity.utils.js'
 
-interface IEntity {
+export default class Entity implements EntityDetails {
   id: string
   name: string
   wikidataId?: string
-  dbpediaURL?: string
-  impressoId?: string
-  type: string
+  type: EntityDetails['type']
   countItems: number
   countMentions: number
-}
+  matches?: string[]
+  wikidata?: EntityDetails['wikidata']
 
-export default class Entity implements IEntity {
-  id: string
-  name: string
-  wikidataId?: string
-  dbpediaURL?: string
-  impressoId?: string
-  type: string
-  countItems: number = 0
-  countMentions: number = 0
-
-  constructor({
-    id = '',
-    name = '',
-    wikidataId = null,
-    dbpediaURL = null,
-    impressoId = null,
-    type = 'entity',
-    countItems = -1,
-    countMentions = -1,
-  } = {}) {
-    this.id = String(id)
-    if (name.length) {
-      this.name = getNameFromId(name)
-    } else {
-      this.name = getNameFromId(id)
-    }
-
-    this.type = TypeCodeToType[String(type)]
-    if (!this.type) {
-      this.type = String(type).toLowerCase()
-    }
-    if (wikidataId) {
-      this.wikidataId = wikidataId
-    }
-    if (dbpediaURL) {
-      this.dbpediaURL = dbpediaURL
-    }
-    if (impressoId) {
-      this.impressoId = impressoId
-    }
-    if (countItems !== -1) {
-      this.countItems = parseInt(String(countItems ?? 0), 10)
-    }
-    if (countMentions !== -1) {
-      this.countMentions = parseInt(String(countMentions ?? 0), 10)
-    }
-  }
-
-  static getCached(id: string) {
-    return new Entity({
-      id,
-      name: getNameFromId(id),
-      type: getTypeCodeFromId(id),
-    })
-  }
-
-  static sequelize(client: Sequelize, { tableName = 'entities' } = {}) {
-    const entity = client.define(
-      'entity',
-      {
-        id: {
-          type: DataTypes.STRING(255),
-          primaryKey: true,
-          unique: true,
-          field: 'id',
-        },
-        name: {
-          type: DataTypes.STRING(255),
-          field: 'master_label',
-        },
-        wikidataId: {
-          type: DataTypes.STRING(20),
-          field: 'wkd_id',
-        },
-        dbpediaURL: {
-          type: DataTypes.STRING(255),
-          field: 'dbp_url',
-        },
-        impressoId: {
-          type: DataTypes.STRING(255),
-          field: 'imp_id',
-        },
-        type: {
-          type: DataTypes.SMALLINT,
-          field: 'type_id',
-        },
-      },
-      {
-        tableName,
-      }
-    )
-
-    entity.prototype.toJSON = function () {
-      return new Entity({
-        ...this.get(),
-      })
-    }
-
-    return entity
+  constructor({ id, name, type, wikidataId, countItems, countMentions }: EntityDetails) {
+    this.id = id
+    this.name = name
+    this.type = type
+    this.countItems = countItems
+    this.countMentions = countMentions
+    if (wikidataId != null) this.wikidataId = wikidataId
   }
 
   static solrFactory() {
-    return (doc: Record<string, any>) =>
+    return (doc: EntitySolrDocumentV3) =>
       new Entity({
         id: doc.id,
-        name: (doc.l_s || '').split('_').join(' '),
-        type: TypeShorthandToType[doc.t_s?.toLowerCase()] ?? doc.t_s,
-        countItems: doc.article_fq_f,
-        countMentions: doc.mention_fq_f,
+        name: doc.default_label_s,
+        type: TypeShorthandToType[doc.ner_entity_type_s],
+        wikidataId: doc.id,
+        countItems: doc.content_item_count_l,
+        countMentions: doc.mention_count_l ?? 0,
       })
   }
 }
@@ -129,19 +38,13 @@ export type SuggestField = 'entitySuggest'
 export const suggestField: SuggestField = 'entitySuggest'
 
 export interface IEntitySolrHighlighting {
-  id: string
-  l_s: string
-  article_fq_f: number
-  mention_fq_f: number
-  t_s: string
-  [suggestField]: string[]
+  entitySuggest?: string[]
 }
 
-export const SOLR_FL: (keyof IEntitySolrHighlighting)[] = [
+export const SOLR_FL = [
   'id',
-  'l_s',
-  'article_fq_f',
-  'mention_fq_f',
-  't_s',
-  suggestField,
-]
+  'default_label_s',
+  'ner_entity_type_s',
+  'content_item_count_l',
+  'mention_count_l',
+] satisfies (keyof EntitySolrDocumentV3)[]

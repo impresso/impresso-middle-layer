@@ -72,6 +72,72 @@ export interface TopicSolrDocument {
 }
 
 /**
+ * Schema for entity documents produced by the v3 importers and according to the new representation  (Impresso Project). The entity document is a Solr document containing frequency and identifier fields, and it is the canonical representation of an entity in the Impresso Project. [CODEX please complete]
+ */
+export interface EntitySolrDocumentV3 {
+  /**
+   * Unique Wikidata identifier of the entity.
+   */
+  id: string;
+  /**
+   * TODO
+   */
+  default_label_s: string;
+  /**
+   * TODO
+   */
+  label_fr_s: string;
+  /**
+   * TODO
+   */
+  label_de_s: string;
+  /**
+   * TODO
+   */
+  label_en_s: string;
+  /**
+   * TODO
+   */
+  label_other_s: string;
+  /**
+   * Optional Solr suggester field documenting the labels exposed for entity auto-completion. It is populated by Solr configuration and may be absent from submitted documents.
+   */
+  entitySuggest?: string[];
+  /**
+   * One NER type selected by the importer as the most frequent predicted type among accepted occurrences linked to this QID. Tie resolution is importer-defined; this field records one selected type and does not use a mixed value.
+   */
+  ner_entity_type_s: "pers" | "loc" | "org" | "pressagency" | "radiostation";
+  /**
+   * Number of distinct content items containing at least one accepted occurrence linked to this QID. Former field name was article_fq_f.
+   */
+  content_item_count_l: number;
+  /**
+   * Number of accepted mention occurrences linked to this QID across the indexed population. Former field name was mention_fq_f.
+   */
+  mention_count_l?: number;
+  /**
+   * number of accepted mention occurrences linked to this QID across the indexed population, with NER type `pers`
+   */
+  ner_type_pers_count_l?: number;
+  /**
+   * number of accepted mention occurrences linked to this QID across the indexed population, with NER type `loc`
+   */
+  ner_type_loc_count_l?: number;
+  /**
+   * number of accepted mention occurrences linked to this QID across the indexed population, with NER type `org`
+   */
+  ner_type_org_count_l?: number;
+  /**
+   * number of accepted mention occurrences linked to this QID across the indexed population, with NER type `pressagency`
+   */
+  ner_type_pressagency_count_l?: number;
+  /**
+   * number of accepted mention occurrences linked to this QID across the indexed population, with NER type `radiostation`
+   */
+  ner_type_radiostation_count_l?: number;
+}
+
+/**
  * Start character offset (index) of the TR passage, relative to the content item transcript.
  */
 export type StartOffsetOfTRPassage = number;

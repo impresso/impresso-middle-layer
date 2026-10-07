@@ -21,7 +21,7 @@ import { compileFromFile } from 'json-schema-to-typescript'
  */
 const SCHEMAS_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../../..',
+  '../..',
   'impresso-schemas'
 )
 
@@ -290,6 +290,7 @@ async function generateAll() {
     SCHEMAS_ROOT,
     [
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.topics.v1.schema.json',
+      'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.entities.v3.schema.json',
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.part.tr-passages.v1.schema.json',
     ],
     './src/models/generated/impressoSchemas/solr/semanticEnrichment.d.ts'

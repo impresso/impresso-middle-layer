@@ -1,9 +1,8 @@
-import Entity from '@/models/entities.model.js'
+import { createEntityResolver } from '@/services/entities/lookup.js'
 import Topic from '@/models/topics.model.js'
 import { ImpressoApplication } from '@/types.js'
 import { WellKnownKeys } from '@/cache.js'
 import { getPartnerResolver } from '@/internalServices/facetResolvers/partnerResolver.js'
-import { getNameFromId } from '@/utils/entity.utils.js'
 import {
   Topic as ITopic,
   Year as IYear,
@@ -122,13 +121,6 @@ const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection>
   }
 }
 
-const entityResolver = async (id: string, type: CachedFacetType) =>
-  new Entity({
-    id,
-    type,
-    name: getNameFromId(id),
-  }) as any as IEntity
-
 const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
   const loadTopicsData = async (): Promise<Record<string, ITopic>> => {
     const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
@@ -210,16 +202,21 @@ const imageTypeResolver = async (id: string, field: keyof typeof ImageTypeValueL
 }
 
 export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
+  const resolveEntity = createEntityResolver(app)
+  const entityResolver: IResolver<IEntity> = async id => {
+    const entity = await resolveEntity(id)
+    return entity == null ? undefined : { ...entity, relevance: 0 }
+  }
   return {
     collection: getCollectionResolver(app),
-    location: (id: string) => entityResolver(id, 'location'),
-    person: (id: string) => entityResolver(id, 'person'),
+    location: entityResolver,
+    person: entityResolver,
     topic: getTopicResolver(app),
     year: getYearResolver(app),
     mediaSource: getMediaSourceResolver(app),
     partner: getPartnerResolver(app),
-    nag: (id: string) => entityResolver(id, 'nag'),
-    organisation: (id: string) => entityResolver(id, 'organisation'),
+    nag: entityResolver,
+    organisation: entityResolver,
     imageVisualContent: (id: string) => imageTypeResolver(id, 'type_l0_tp'),
     imageTechnique: (id: string) => imageTypeResolver(id, 'type_l1_tp'),
     imageCommunicationGoal: (id: string) => imageTypeResolver(id, 'type_l2_tp'),

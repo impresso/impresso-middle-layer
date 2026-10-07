@@ -12,12 +12,12 @@ import { inPublicApi } from '@/hooks/appMode.js'
 const orderByMap = {
   relevance: 'score ASC',
   '-relevance': 'score DESC',
-  name: 'l_s ASC,article_fq_f DESC',
-  '-name': 'l_s DESC,article_fq_f DESC',
-  count: 'article_fq_f ASC,mention_fq_f ASC',
-  '-count': 'article_fq_f DESC,mention_fq_f DESC',
-  'count-mentions': 'mention_fq_f ASC,article_fq_f ASC',
-  '-count-mentions': 'mention_fq_f DESC,article_fq_f DESC',
+  name: 'default_label_s ASC,content_item_count_l DESC',
+  '-name': 'default_label_s DESC,content_item_count_l DESC',
+  count: 'content_item_count_l ASC,def(mention_count_l,0) ASC',
+  '-count': 'content_item_count_l DESC,def(mention_count_l,0) DESC',
+  'count-mentions': 'def(mention_count_l,0) ASC,content_item_count_l ASC',
+  '-count-mentions': 'def(mention_count_l,0) DESC,content_item_count_l DESC',
 }
 
 export const orderByValues = Object.keys(orderByMap)
@@ -76,7 +76,7 @@ const findAndGetParamsHooks = [
   ),
   termToSolrFilter(),
   filtersToSolrQuery({
-    solrIndexProvider: () => SolrNamespaces.Entities as any,
+    solrIndexProvider: () => SolrNamespaces.Entities,
   }),
   queryWithCommonParams(),
 ]

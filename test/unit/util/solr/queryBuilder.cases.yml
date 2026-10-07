@@ -1275,7 +1275,7 @@ cases:
       {
         "query": "*:*",
         "filter": [
-          "t_s:person"
+          "ner_entity_type_s:person"
         ],
         "params": {}
       }
@@ -1300,8 +1300,8 @@ cases:
           {
             "bool": {
               "should": [
-                "t_s:person",
-                "t_s:location"
+                "ner_entity_type_s:person",
+                "ner_entity_type_s:location"
               ],
               "minimum_should_match": 1
             }
@@ -1323,7 +1323,7 @@ cases:
       {
         "query": "*:*",
         "filter": [
-          "t_s:*"
+          "ner_entity_type_s:*"
         ],
         "params": {}
       }
@@ -1342,7 +1342,7 @@ cases:
       {
         "query": "*:*",
         "filter": [
-          "t_s:*"
+          "ner_entity_type_s:*"
         ],
         "params": {}
       }

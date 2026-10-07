@@ -1,4 +1,4 @@
-import assert from 'assert'
+import { strict as assert } from 'assert'
 import { buildSearchEntitiesSolrQuery } from '@/services/entities/logic.js'
 import type { Filter } from 'impresso-jscommons'
 
@@ -18,7 +18,8 @@ describe('entities/logic', () => {
         filter: [],
         params: {
           hl: true,
-          fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
+          'hl.fl': 'entitySuggest',
+          fl: 'id, default_label_s, ner_entity_type_s, content_item_count_l, mention_count_l',
         },
       })
     })
@@ -38,11 +39,12 @@ describe('entities/logic', () => {
       )
 
       assert.equal(result.query, 'entitySuggest:Einstein*')
-      assert.deepEqual(result.filter, ['t_s:pers'])
+      assert.deepEqual(result.filter, ['ner_entity_type_s:pers'])
       assert.ok((result.query as string).length > 0)
       assert.deepStrictEqual(result.params, {
         hl: true,
-        fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
+        'hl.fl': 'entitySuggest',
+        fl: 'id, default_label_s, ner_entity_type_s, content_item_count_l, mention_count_l',
       })
     })
 
@@ -50,7 +52,7 @@ describe('entities/logic', () => {
       const result = buildSearchEntitiesSolrQuery(
         {
           filters: [],
-          orderBy: 'article_fq_f desc',
+          orderBy: 'content_item_count_l desc',
         },
         [],
         {}
@@ -61,9 +63,10 @@ describe('entities/logic', () => {
         filter: [],
         params: {
           hl: true,
-          fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
+          'hl.fl': 'entitySuggest',
+          fl: 'id, default_label_s, ner_entity_type_s, content_item_count_l, mention_count_l',
         },
-        sort: 'article_fq_f desc',
+        sort: 'content_item_count_l desc',
       })
     })
 
@@ -82,7 +85,8 @@ describe('entities/logic', () => {
         filter: [],
         params: {
           hl: true,
-          fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
+          'hl.fl': 'entitySuggest',
+          fl: 'id, default_label_s, ner_entity_type_s, content_item_count_l, mention_count_l',
         },
         limit: 10,
       })
@@ -103,7 +107,8 @@ describe('entities/logic', () => {
         filter: [],
         params: {
           hl: true,
-          fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
+          'hl.fl': 'entitySuggest',
+          fl: 'id, default_label_s, ner_entity_type_s, content_item_count_l, mention_count_l',
         },
         offset: 20,
       })
@@ -113,7 +118,7 @@ describe('entities/logic', () => {
       const result = buildSearchEntitiesSolrQuery(
         {
           filters: [],
-          orderBy: 'article_fq_f desc',
+          orderBy: 'content_item_count_l desc',
           limit: 10,
           offset: 20,
         },
@@ -126,9 +131,10 @@ describe('entities/logic', () => {
         filter: [],
         params: {
           hl: true,
-          fl: 'id, l_s, t_s, article_fq_f, mention_fq_f',
+          'hl.fl': 'entitySuggest',
+          fl: 'id, default_label_s, ner_entity_type_s, content_item_count_l, mention_count_l',
         },
-        sort: 'article_fq_f desc',
+        sort: 'content_item_count_l desc',
         limit: 10,
         offset: 20,
       })

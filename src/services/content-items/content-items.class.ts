@@ -2,6 +2,8 @@ import { keyBy, take } from 'lodash-es'
 import { Op } from 'sequelize'
 
 import { logger } from '@/logger.js'
+import { findEntitiesByIds } from '@/services/entities/lookup.js'
+import type Entity from '@/models/entities.model.js'
 import initSequelizeService, { Service as SequelizeService } from '@/services/sequelize.service.js'
 import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
 import Issue from '@/models/issues.model.js'
@@ -290,6 +292,34 @@ const withTopics =
     }
   }
 
+export const withEntityLabels =
+  (lookup: Map<string, Entity>): ContentItemEnricher =>
+  item => {
+    const entities = item.semanticEnrichments?.namedEntities
+    if (entities == null) return item
+    return {
+      ...item,
+      semanticEnrichments: {
+        ...item.semanticEnrichments,
+        namedEntities: Object.fromEntries(
+          Object.entries(entities).map(([type, values]) => [
+            type,
+            values?.map(entity => ({ ...entity, label: lookup.get(entity.id ?? '')?.name ?? entity.label })),
+          ])
+        ),
+      },
+    }
+  }
+
+const getEntityLabels = async (app: ImpressoApplication, items: ContentItem[]): Promise<Map<string, Entity>> => {
+  const ids = items.flatMap(item =>
+    Object.values(item.semanticEnrichments?.namedEntities ?? {}).flatMap(
+      entities => entities?.flatMap(entity => (entity.id == null ? [] : [entity.id])) ?? []
+    )
+  )
+  return new Map((await findEntitiesByIds(app, ids)).map(entity => [entity.id, entity]))
+}
+
 const withCollections =
   (collectionsLookup: Dictionary<Collection[]>): ContentItemEnricher =>
   item => {
@@ -564,15 +594,17 @@ export class ContentItemService implements IContentItemService {
     // get data enrichment items
     const contentItemIds = contentItems.map(d => d.id)
 
-    const [dbPages, collectionsLookup] = await Promise.all([
+    const [dbPages, collectionsLookup, entityLabels] = await Promise.all([
       this._findPages(contentItemIds),
       this.getCollections(contentItemIds, params.user),
+      getEntityLabels(this.app, contentItems),
     ])
     const resolvers = this.getCachedResolvers()
     const metadataResolvers = this.getContentItemMetadataResolvers()
 
     const enrichedContentItems = await enrichContentItems(contentItems, [
       withIIIF(dbPages, this.app),
+      withEntityLabels(entityLabels),
       withTopics(resolvers.topic),
       withCollections(collectionsLookup),
       withMetaLabels(metadataResolvers),
@@ -710,11 +742,13 @@ export class ContentItemService implements IContentItemService {
     const resolvers = this.getCachedResolvers()
     const metadataResolvers = this.getContentItemMetadataResolvers()
 
+    const entityLabels = await getEntityLabels(this.app, [contentItem])
     const enrichedContentItem = (
       await enrichContentItems(
         [contentItem],
         [
           withIIIF(dbPagesLookup, this.app),
+          withEntityLabels(entityLabels),
           withTopics(resolvers.topic),
           withCollections(collectionsLookup),
           withMetaLabels(metadataResolvers),

@@ -2,7 +2,7 @@ import { groupBy } from 'lodash-es'
 import { getLogger } from '@/logger.js'
 
 import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
-import { SolrNamespaces } from '@/solr.js'
+import { SolrNamespaces, type SolrNamespace } from '@/solr.js'
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
 
@@ -46,7 +46,7 @@ export const filtersToSolrQuery =
   ({
     overrideOrderBy = true,
     prop = 'params',
-    solrIndexProvider = (_ctx: any) => SolrNamespaces.Search // eslint-disable-line no-unused-vars
+    solrIndexProvider = (_ctx: HookContext<ImpressoApplication>): SolrNamespace => SolrNamespaces.Search // eslint-disable-line no-unused-vars
   } = {}) => async (context: HookContext<ImpressoApplication>) => {
     const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`
     if (context.type !== 'before') {

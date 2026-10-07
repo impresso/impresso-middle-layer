@@ -19,10 +19,11 @@ export const TypeCodeToType = Object.entries(EntityCodes).reduce(
   {} as Record<string, EntityDetails['type']>
 )
 
-export const TypeShorthandToType: Record<string, string> = {
+export const TypeShorthandToType: Record<string, EntityDetails['type']> = {
   pers: 'person',
   loc: 'location',
-  nag: 'newsagency',
+  pressagency: 'newsagency',
+  radiostation: 'radiostation',
   org: 'organisation',
 }
 
@@ -77,4 +78,11 @@ export function getTypeCodeFromId(id: string): string {
 
 export const getTypeFromId = (id: string): string | undefined => {
   return TypeCodeToType[getTypeCodeFromId(id)]
+}
+
+/** Maps route aliases to the v3 entity type values. */
+export const EntityTypeAliases: Record<string, string> = {
+  ...TypeToTypeShorthand,
+  organization: 'org',
+  nag: 'pressagency',
 }

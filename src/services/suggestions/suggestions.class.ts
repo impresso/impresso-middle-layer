@@ -3,7 +3,10 @@ import { getLogger } from '@/logger.js'
 import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import type { SolrNamespace } from '@/solr.js'
 import { SolrNamespaces } from '@/solr.js'
-import { getNameFromId } from '@/utils/entity.utils.js'
+import { EntityTypeAliases } from '@/utils/entity.utils.js'
+import { buildSearchEntitiesSolrQuery } from '@/services/entities/logic.js'
+import type { EntitySolrDocumentV3 } from '@/models/generated/impressoSchemas/solr/semanticEnrichment.js'
+import { getEntitySuggestionCountField } from './util.js'
 
 import { parse as chronoParse } from 'chrono-node'
 import moment from 'moment'
@@ -11,6 +14,7 @@ import moment from 'moment'
 import { toPlainText } from '@/helpers.js'
 import { NotFound } from '@feathersjs/errors'
 import type { Params } from '@feathersjs/feathers'
+import type { Filter } from 'impresso-jscommons'
 
 import type { SlimUser } from '@/authentication.js'
 import type { SuggestEntry } from '@/internalServices/simpleSolr.js'
@@ -24,7 +28,6 @@ import {
   isSuggestion,
   ISuggestion,
   Suggestion,
-  SuggestionType,
 } from '@/models/suggestions.model.js'
 import Topic from '@/models/topics.model.js'
 import type { ImpressoApplication } from '@/types.js'
@@ -38,24 +41,6 @@ interface SuggestionQuery {
 }
 
 type SuggestionsParams = Params<SuggestionQuery> & { user?: SlimUser }
-
-const asEntitySuggestion = (doc: SuggestEntry): ISuggestion<Entity> => {
-  // payload should be a string formatted as 'id|type',
-  // like 'aida-0001-Testament_(comics)|Person'
-  const [id, type] = doc.payload.split('|')
-  const item = new Entity({
-    id,
-    name: getNameFromId(id),
-    type,
-  })
-  return new Suggestion({
-    q: item.id,
-    h: getNameFromId(doc.term),
-    type: item.type as SuggestionType,
-    item,
-    weight: doc.weight,
-  })
-}
 
 const asMentionSuggestion = (doc: SuggestEntry): ISuggestion<Mention> => {
   // payload for mention contains type only
@@ -221,8 +206,35 @@ export class Service {
     return (result.suggestions ?? []).map(builder)
   }
 
-  async suggestEntities({ q }: { q: string }) {
-    return await this.suggestItem(q, SolrNamespaces.Entities, asEntitySuggestion)
+  async suggestEntities({ q, type }: { q: string; type?: string }): Promise<ISuggestion<Entity>[]> {
+    if (!q.trim()) return []
+    const solrType = type == null || type === 'entity' ? undefined : (EntityTypeAliases[type] ?? type)
+    const countField = getEntitySuggestionCountField(solrType)
+    const filters: Filter[] = [{ type: 'string', q }]
+    if (solrType != null) filters.push({ type: 'type', q: solrType })
+    const query = buildSearchEntitiesSolrQuery(
+      {
+        filters,
+        limit: 3,
+        offset: 0,
+        orderBy: `def(${countField},0) DESC,def(mention_count_l,0) DESC,id ASC`,
+      },
+      this.app.get('solrConfiguration').namespaces ?? [],
+      this.app.get('features') ?? {}
+    )
+    query.params = { ...query.params, fl: `${query.params?.fl},${countField}` }
+    const result = await this.solr.select<EntitySolrDocumentV3>(SolrNamespaces.Entities, { body: query })
+    return (result.response?.docs ?? []).map(doc => {
+      const item = Entity.solrFactory()(doc)
+      const type = item.type
+      return new Suggestion({
+        q: item.id,
+        h: result.highlighting?.[item.id]?.entitySuggest?.[0] ?? item.name,
+        type,
+        item,
+        weight: doc[countField] ?? 0,
+      })
+    })
   }
 
   async suggestMentions({ q }: { q: string }) {
@@ -253,8 +265,12 @@ export class Service {
       case 'entity':
       case 'organization':
       case 'nag':
+      case 'organisation':
+      case 'newsagency':
+      case 'radiostation':
         return this.suggestEntities({
           q: toPlainText(params.query!.q),
+          type,
         })
       case 'mention':
         return this.suggestMentions({
@@ -288,10 +304,9 @@ export class Service {
       this.suggestMentions({
         q: qPlainText,
       }),
-      // reenable when solr is fixed
-      // this.suggestEntities({
-      //   q: qPlainText,
-      // }),
+      this.suggestEntities({
+        q: qPlainText,
+      }),
     ])
 
     return {

@@ -2,6 +2,11 @@ import { ContentItemFacet } from '@/data/constants.js'
 
 export type SuggestionType =
   | Extract<ContentItemFacet, 'person' | 'location' | 'organization' | 'nag' | 'topic' | 'collection'>
+  | 'person'
+  | 'location'
+  | 'organisation'
+  | 'newsagency'
+  | 'radiostation'
   | 'mention'
   | 'newspaper'
 

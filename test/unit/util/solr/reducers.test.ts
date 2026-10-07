@@ -478,7 +478,7 @@ describe('filtersToSolr', () => {
         type: 'type',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, 't_s:person')
+      assert.equal(query, 'ner_entity_type_s:person')
     })
 
     it('with array', () => {
@@ -487,7 +487,7 @@ describe('filtersToSolr', () => {
         type: 'type',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, '(t_s:person OR t_s:location)')
+      assert.equal(query, '(ner_entity_type_s:person OR ner_entity_type_s:location)')
     })
 
     it('with no value', () => {
@@ -495,7 +495,7 @@ describe('filtersToSolr', () => {
         type: 'type',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, 't_s:*')
+      assert.equal(query, 'ner_entity_type_s:*')
     })
 
     it('with empty array', () => {
@@ -504,7 +504,7 @@ describe('filtersToSolr', () => {
         type: 'type',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, 't_s:*')
+      assert.equal(query, 'ner_entity_type_s:*')
     })
   })
 
