@@ -111,8 +111,7 @@
       { "namespaceId": "tr_clusters", "serverId": "default", "index": "tr_clusters_index" },
       { "namespaceId": "embeddings_de", "serverId": "default", "index": "index_embeddings_de" },
       { "namespaceId": "embeddings_fr", "serverId": "default", "index": "index_embeddings_fr" },
-      { "namespaceId": "embeddings_lb", "serverId": "default", "index": "index_embeddings_lb" },
-      { "namespaceId": "entities_mentions", "serverId": "default", "index": "mentions_entities_index" }
+      { "namespaceId": "embeddings_lb", "serverId": "default", "index": "index_embeddings_lb" }
     ]
   },
   "features": {

@@ -34,7 +34,6 @@ import articlesTimelines from './articles-timelines/articles-timelines.service.j
 import jobs from './jobs/jobs.service.js'
 import articlesSuggestions from './articles-suggestions/articles-suggestions.service.js'
 import uploadedImages from './uploaded-images/uploaded-images.service.js'
-import mentions from './mentions/mentions.service.js'
 import filepond from './filepond/filepond.service.js'
 import embeddings from './embeddings/embeddings.service.js'
 import tableOfContents from './table-of-contents/table-of-contents.service.js'
@@ -51,7 +50,6 @@ import stats from './stats/stats.service.js'
 import articlesRecommendations from './articles-recommendations/articles-recommendations.service.js'
 // import articlesSearch from './articles-search/articles-search.service.js'
 // import entitiesSuggestions from './entities-suggestions/entities-suggestions.service.js'
-import entityMentionsTimeline from './entity-mentions-timeline/entity-mentions-timeline.service.js'
 import subscriptions from './subscriptions/subscriptions.service.js'
 import textReuseConnectedClusters from './text-reuse-connected-clusters/text-reuse-connected-clusters.service.js'
 import passwordReset from './password-reset/password-reset.service.js'
@@ -116,7 +114,6 @@ const internalApiServices = [
   { name: 'jobs', init: jobs },
   { name: 'articles-suggestions', init: articlesSuggestions },
   { name: 'uploaded-images', init: uploadedImages },
-  { name: 'mentions', init: mentions },
   { name: 'filepond', init: filepond },
   { name: 'embeddings', init: embeddings },
   { name: 'table-of-contents', init: tableOfContents },
@@ -133,7 +130,6 @@ const internalApiServices = [
   { name: 'articles-recommendations', init: articlesRecommendations },
   // { name: 'articles-search', init: articlesSearch },
   // { name: 'entities-suggestions', init: entitiesSuggestions },
-  { name: 'entity-mentions-timeline', init: entityMentionsTimeline },
   { name: 'subscriptions', init: subscriptions },
   { name: 'text-reuse-connected-clusters', init: textReuseConnectedClusters },
   { name: 'password-reset', init: passwordReset },
