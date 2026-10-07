@@ -13,6 +13,7 @@ import Issue from '@/models/issues.model.js'
 import Newspaper from '@/models/newspapers.model.js'
 import Page from '@/models/pages.model.js'
 import { LanguageCode, PrintContentItem, SupportedLanguageCodes } from '@/models/solr.js'
+import { getArticleMentionOffsets } from '@/util/solr/entityMentions.js'
 import { ContentItemTextMatch } from '@/models/generated/app/entities/contentItem.js'
 
 const ACCESS_RIGHT_NOT_SPECIFIED = 'na'
@@ -88,7 +89,8 @@ class ArticleDPF {
     // console.log('solrDPFsFactory', dpfs);
     // eslint-disable-next-line max-len
     // dpfs = [ 'aida-0001-54-Paris|1 aida-0001-54-Pleven|1 aida-0001-54-Maurice_Bowra|1 aida-0001-54-China|1 aida-0001-54-Moscow|1 ' ]
-    return dpfs[0]
+    return dpfs
+      .join(' ')
       .trim()
       .split(' ')
       .map(d => {
@@ -230,8 +232,8 @@ export class BaseArticle implements Omit<ContentItem, 'labels' | 'year' | 'perso
         isCC: !!doc.cc_b,
         // eslint-disable-next-line no-use-before-define
         title: Article.getUncertainField(doc, 'title'),
-        persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs ?? []),
-        locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs ?? []),
+        persons: ArticleDPF.solrDPFsFactory(doc.pers_entity_ids_dpfs ?? []),
+        locations: ArticleDPF.solrDPFsFactory(doc.loc_entity_ids_dpfs ?? []),
         // collections: doc.ucoll_ss,
         excerpt: doc.snippet_plain || lodash.get(fragments[doc.id], 'nd[0]', ''),
       })
@@ -714,10 +716,10 @@ export class Article extends BaseArticle implements ContentItemWithCorrectTypes 
          * https://github.com/impresso/impresso-middle-layer/issues/462
          */
         accessRight: ACCESS_RIGHT_NOT_SPECIFIED,
-        mentions: typeof doc.nem_offset_plain === 'string' ? JSON.parse(doc.nem_offset_plain) : doc.nem_offset_plain,
+        mentions: getArticleMentionOffsets(doc),
         topics: ArticleTopic.solrDPFsFactory(doc.topics_dpfs ?? []),
-        persons: ArticleDPF.solrDPFsFactory(doc.pers_entities_dpfs ?? []),
-        locations: ArticleDPF.solrDPFsFactory(doc.loc_entities_dpfs ?? []),
+        persons: ArticleDPF.solrDPFsFactory(doc.pers_entity_ids_dpfs ?? []),
+        locations: ArticleDPF.solrDPFsFactory(doc.loc_entity_ids_dpfs ?? []),
         // collections: doc.ucoll_ss ?? [],
         // permissions bitmaps
         // if it's not defined, set max permissions for compatibility

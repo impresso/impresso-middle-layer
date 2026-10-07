@@ -8,53 +8,61 @@
 
 
 /**
- * Editorial article forming a coherent textual unit.
+ * Full page of content, in the case of OCR-only data. Later becomes 'None' or 'No-type'.
  */
-export type Article = "ar";
+export type Page = "page";
+/**
+ * Textual unit(s) corresponding to a journalistic editorial unit.
+ */
+export type Article = "ar" | "article";
 /**
  * Commercial or classified advertising content.
  */
 export type Advertisement = "ad";
 /**
- * Standalone visual content such as a photograph, illustration, or graphic.
+ * Standalone visual content.
  */
-export type Image = "img";
+export type Image = "img" | "image";
 /**
  * Tabular content presenting structured data or listings.
  */
-export type Table = "tb";
+export type Table = "tb" | "table";
 /**
  * Notice reporting a death, often including biographical information.
  */
-export type Obituary = "ob";
+export type Obituary = "ob" | "death_notice";
 /**
  * Weather report or meteorological information.
  */
-export type Weather = "w";
+export type Weather = "w" | "weather";
 /**
  * Broadcast chronicle reporting events in a factual or narrative form.
  */
-export type Chronicle = "ch";
+export type Chronicle = "ch" | "chronicle";
 /**
- * Content item originating from a radio broadcast.
+ * Content item originating from a radio bulletin.
  */
-export type RadioBroadcast = "rb";
+export type RadioBulletin = "radio_bulletin" | "rb";
 /**
  * An individual episode or segment of a radio broadcast.
  */
-export type RadioBroadcastEpisode = "rbe";
+export type RadioBroadcastEpisode = "rbe" | "radio_broadcast_episode";
 /**
- * Content item with no specific type provided.
+ * Content item with no specific type provided (short version).
  */
 export type NoTypeProvided = "no-type";
 /**
  * Radio Broadcast discussion or talk show content item.
  */
-export type Discussion = "dsc";
+export type Discussion = "dsc" | "discussion";
 /**
- * Radio Broadcast interview content item.
+ * Radio Broadcast entertainment content item.
  */
-export type Entretien = "ent";
+export type Entertainment = "ent" | "entertainment";
+/**
+ * TO BE REFINED.
+ */
+export type Chapter = "chapter";
 
 /**
  * Unified schema for media content items in the Impresso project, with modular field groups.
@@ -129,9 +137,10 @@ export interface ContentItemText {
    */
   documentType?: "p" | "ci";
   /**
-   * Type of content item, e.g., article, section.
+   * Type of content item.
    */
   itemType?: (
+    | Page
     | Article
     | Advertisement
     | Image
@@ -139,11 +148,12 @@ export interface ContentItemText {
     | Obituary
     | Weather
     | Chronicle
-    | RadioBroadcast
+    | RadioBulletin
     | RadioBroadcastEpisode
     | NoTypeProvided
     | Discussion
-    | Entretien
+    | Entertainment
+    | Chapter
   ) &
     string;
   /**
@@ -213,6 +223,7 @@ export interface ContentItemSemanticEnrichments {
     locations?: ContentItemNamedEntity[];
     organisations?: ContentItemNamedEntity[];
     newsagencies?: ContentItemNamedEntity[];
+    radiostations?: ContentItemNamedEntity[];
   };
   /**
    * List of mentions in the content item per type.
@@ -222,6 +233,7 @@ export interface ContentItemSemanticEnrichments {
     locations?: ContentItemMention[];
     organisations?: ContentItemMention[];
     newsagencies?: ContentItemMention[];
+    radiostations?: ContentItemMention[];
   };
   /**
    * List of topics assigned to the content item.
@@ -949,6 +961,7 @@ export interface ContentItemSemanticEnrichments {
     locations?: ContentItemNamedEntity[];
     organisations?: ContentItemNamedEntity[];
     newsagencies?: ContentItemNamedEntity[];
+    radiostations?: ContentItemNamedEntity[];
   };
   /**
    * List of mentions in the content item per type.
@@ -958,6 +971,7 @@ export interface ContentItemSemanticEnrichments {
     locations?: ContentItemMention[];
     organisations?: ContentItemMention[];
     newsagencies?: ContentItemMention[];
+    radiostations?: ContentItemMention[];
   };
   /**
    * List of topics assigned to the content item.
@@ -1071,53 +1085,61 @@ export interface Collection {
 
 
 /**
- * Editorial article forming a coherent textual unit.
+ * Full page of content, in the case of OCR-only data. Later becomes 'None' or 'No-type'.
  */
-export type Article = "ar";
+export type Page = "page";
+/**
+ * Textual unit(s) corresponding to a journalistic editorial unit.
+ */
+export type Article = "ar" | "article";
 /**
  * Commercial or classified advertising content.
  */
 export type Advertisement = "ad";
 /**
- * Standalone visual content such as a photograph, illustration, or graphic.
+ * Standalone visual content.
  */
-export type Image = "img";
+export type Image = "img" | "image";
 /**
  * Tabular content presenting structured data or listings.
  */
-export type Table = "tb";
+export type Table = "tb" | "table";
 /**
  * Notice reporting a death, often including biographical information.
  */
-export type Obituary = "ob";
+export type Obituary = "ob" | "death_notice";
 /**
  * Weather report or meteorological information.
  */
-export type Weather = "w";
+export type Weather = "w" | "weather";
 /**
  * Broadcast chronicle reporting events in a factual or narrative form.
  */
-export type Chronicle = "ch";
+export type Chronicle = "ch" | "chronicle";
 /**
- * Content item originating from a radio broadcast.
+ * Content item originating from a radio bulletin.
  */
-export type RadioBroadcast = "rb";
+export type RadioBulletin = "radio_bulletin" | "rb";
 /**
  * An individual episode or segment of a radio broadcast.
  */
-export type RadioBroadcastEpisode = "rbe";
+export type RadioBroadcastEpisode = "rbe" | "radio_broadcast_episode";
 /**
- * Content item with no specific type provided.
+ * Content item with no specific type provided (short version).
  */
 export type NoTypeProvided = "no-type";
 /**
  * Radio Broadcast discussion or talk show content item.
  */
-export type Discussion = "dsc";
+export type Discussion = "dsc" | "discussion";
 /**
- * Radio Broadcast interview content item.
+ * Radio Broadcast entertainment content item.
  */
-export type Entretien = "ent";
+export type Entertainment = "ent" | "entertainment";
+/**
+ * TO BE REFINED.
+ */
+export type Chapter = "chapter";
 
 /**
  * Textual content details
@@ -1128,9 +1150,10 @@ export interface ContentItemText {
    */
   documentType?: "p" | "ci";
   /**
-   * Type of content item, e.g., article, section.
+   * Type of content item.
    */
   itemType?: (
+    | Page
     | Article
     | Advertisement
     | Image
@@ -1138,11 +1161,12 @@ export interface ContentItemText {
     | Obituary
     | Weather
     | Chronicle
-    | RadioBroadcast
+    | RadioBulletin
     | RadioBroadcastEpisode
     | NoTypeProvided
     | Discussion
-    | Entretien
+    | Entertainment
+    | Chapter
   ) &
     string;
   /**

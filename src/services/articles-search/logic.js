@@ -16,8 +16,8 @@ const RelevanceContextItemTypes = Object.freeze({
 /** @type {{ [key: string]: string }} */
 const ContextTypeSolrFields = Object.freeze({
   timeRange: 'meta_year_i',
-  locations: 'loc_entities_dpfs',
-  persons: 'pers_entities_dpfs',
+  locations: 'loc_entity_ids_dpfs',
+  persons: 'pers_entity_ids_dpfs',
   topics: 'topics_dpfs',
   textReuseClusters: 'cluster_id_ss',
 })

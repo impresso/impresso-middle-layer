@@ -17,8 +17,8 @@ const BaseArticleTocFields = [
   'title_txt_fr',
   'title_txt_de',
   'title_txt_en',
-  'pers_entities_dpfs',
-  'loc_entities_dpfs',
+  'pers_entity_ids_dpfs',
+  'loc_entity_ids_dpfs',
   // 'ucoll_ss',
   'snippet_plain',
 ]
@@ -61,7 +61,7 @@ export class Service {
       facets: {
         person: {
           type: 'terms',
-          field: 'pers_entities_dpfs',
+          field: 'pers_entity_ids_dpfs',
           mincount: 1,
           limit: 5,
           offset: 0,
@@ -69,7 +69,7 @@ export class Service {
         },
         location: {
           type: 'terms',
-          field: 'loc_entities_dpfs',
+          field: 'loc_entity_ids_dpfs',
           mincount: 1,
           limit: 5,
           offset: 0,

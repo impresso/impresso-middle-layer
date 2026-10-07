@@ -57,7 +57,7 @@ export const escapeValue = (value: string) => value.replace(/[()\\+&|!{}[\]?:;,^
 /**
  * Similar to `value` filter builder but uses a different escape function
  * designed to work with IDs. E.g.:
- * `aida-0001-50-Poseidon_(film)` -> `pers_entities_dpfs:aida-0001-50-Poseidon_$28$film$29$`
+ * `aida-0001-50-Poseidon_(film)` -> `pers_entity_ids_dpfs:aida-0001-50-Poseidon_$28$film$29$`
  */
 export const idValueBuilder: FilterBuilderFn = (filters: Filter[], filterField: FilterField, ruleName: string) => {
   return baseFilterBuilderFn(

@@ -107,22 +107,36 @@ indexes:
         destination: filter
       mention:
         # multiple fields per one filter
-        field: [pers_mentions, loc_mentions]
+        field:
+          [
+            pers_mention_ner_conf_dpfs,
+            loc_mention_ner_conf_dpfs,
+            org_mention_ner_conf_dpfs,
+            pressagency_mention_ner_conf_dpfs,
+            radiostation_mention_ner_conf_dpfs,
+          ]
         rule: value
       entity:
-        field: [pers_entities_dpfs, loc_entities_dpfs]
+        field:
+          [
+            pers_entity_ids_dpfs,
+            loc_entity_ids_dpfs,
+            org_entity_ids_dpfs,
+            pressagency_entity_ids_dpfs,
+            radiostation_entity_ids_dpfs,
+          ]
         rule: idValue
       person:
-        field: pers_entities_dpfs
+        field: pers_entity_ids_dpfs
         rule: idValue
       location:
-        field: loc_entities_dpfs
+        field: loc_entity_ids_dpfs
         rule: idValue
       nag:
-        field: nag_entities_dpfs
+        field: pressagency_entity_ids_dpfs
         rule: idValue
       organisation:
-        field: org_entities_dpfs
+        field: org_entity_ids_dpfs
         rule: idValue
       topicmodel:
         field: tp_model_s
@@ -148,8 +162,8 @@ indexes:
         destination: filter
       embedding:
         field:
-          - "gte-768:gte_multi_v768"
-          - "gte-256:gte_multi_v256"
+          - 'gte-768:gte_multi_v768'
+          - 'gte-256:gte_multi_v256'
         rule: embeddingKnnSimilarity
         scoring: true
         destination: query
@@ -323,8 +337,8 @@ indexes:
         scoring: true
       embedding:
         field:
-          - "openclip-768:openclip_emb_v768"
-          - "dinov2-1024:dinov2_emb_v1024"
+          - 'openclip-768:openclip_emb_v768'
+          - 'dinov2-1024:dinov2_emb_v1024'
         rule: embeddingKnnSimilarity
         scoring: true
         destination: query

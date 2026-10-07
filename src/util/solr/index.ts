@@ -34,8 +34,8 @@ const NON_FILTERED_FIELDS = ['id', 'string', 'entity-string', 'topic-string', 'e
  */
 const SOLR_FILTER_DPF: Record<string, string> = {
   topic: 'topics_dpfs',
-  person: 'pers_entities_dpfs',
-  location: 'loc_entities_dpfs',
+  person: 'pers_entity_ids_dpfs',
+  location: 'loc_entity_ids_dpfs',
 }
 
 const reduceFiltersToVars = (filters: Filter[]) =>
