@@ -277,11 +277,13 @@ async function generateAll() {
       'json/impresso-2/solr-indexing/content-item/content-item.part.access-rights.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.text.paper.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.text.transcript.v1.schema.json',
-      'json/impresso-2/solr-indexing/content-item/content-item.part.text.semantic-enrichments.v1.schema.json',
+      'json/impresso-2/solr-indexing/content-item/content-item.part.text.semantic-enrichments.v2.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.text.audio.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.contextual-metadata.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.core.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.root.image.v1.schema.json',
+      'json/impresso-2/solr-indexing/content-item/content-item.root.audio.v2.schema.json',
+      'json/impresso-2/solr-indexing/content-item/content-item.root.paper.v2.schema.json',
     ],
     './src/models/generated/impressoSchemas/solr/contentItem.d.ts'
   )

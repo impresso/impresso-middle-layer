@@ -26,7 +26,6 @@ import type {
   ContentItem,
   ContentItemAudioRecord,
   ContentItemAudioLocator,
-  ContentItemMention,
   ContentItemNamedEntity,
   ContentItemTopic,
 } from './generated/app/entities/contentItem.js'
@@ -40,6 +39,7 @@ import { parsePlainsField, WithScore } from '@/util/solr/index.js'
 import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
 import { EmbeddingsConfig } from './generated/app/configuration.js'
 import { DefaultTextEmbeddingsConfig } from '@/util/configuration.js'
+import { EntityMentionFields, getContentItemMentions } from '@/util/solr/entityMentions.js'
 
 const ContentItemCoreFields = [
   'id',
@@ -102,17 +102,8 @@ const ContentItemImageFields = [
 
 const ContentSemanticEnrichmentsFields = [
   'ocrqa_f',
-  'pers_entities_dpfs',
-  'loc_entities_dpfs',
-  'nag_entities_dpfs',
-  'org_entities_dpfs',
+  ...EntityMentionFields,
   'topics_dpfs',
-  'pers_mention_conf_dpfs',
-  'loc_mention_conf_dpfs',
-  'org_mention_conf_dpfs',
-  'nag_mention_conf_dpfs',
-  'nem_offset_plain',
-  'nag_offset_plain',
   'gte_multi_v768',
   'gte_multi_v256',
 ] satisfies (keyof SemanticEnrichmentsFields)[]
@@ -192,12 +183,6 @@ interface PageRegionCoordintates {
   c: XYWH[] // coordinates of the regions on the page:
 }
 
-type MentionTag = 'pers' | 'loc' | 'org' | 'nag'
-
-type MentionsOffsets = {
-  [key in MentionTag]?: number[][]
-}
-
 interface AudioRecordTimecode {
   s: number // start character offset
   l: number // length of the record section in characters
@@ -232,14 +217,6 @@ const parseAudioRecordTimecodes = (field?: string | AudioRecordTimecodes[]): Aud
   return field as AudioRecordTimecodes[]
 }
 
-const parseMentionsOffsets = (field?: MentionsOffsets[] | string[]): MentionsOffsets => {
-  if (!field) return {}
-  const offsets: MentionsOffsets[] = typeof field === 'string' ? JSON.parse(field) : field
-  return offsets.reduce((acc, item) => {
-    return { ...acc, item }
-  }, {} as MentionsOffsets)
-}
-
 const parseContentItemEntityDPFS = (dpfs?: string[] | null): ContentItemNamedEntity[] => {
   return parseDPFS(
     ([id, count]) => ({
@@ -247,7 +224,7 @@ const parseContentItemEntityDPFS = (dpfs?: string[] | null): ContentItemNamedEnt
       count: parseInt(count, 10),
       label: getNameFromId(id),
     }),
-    dpfs ?? undefined
+    dpfs == null ? undefined : [dpfs.join(' ')]
   )
 }
 
@@ -259,31 +236,6 @@ const parseContentItemTopicDPFS = (dpfs?: string[]): Pick<ContentItemTopic, 'id'
     }),
     dpfs
   )
-}
-
-const parseContentItemMentionDPFS = (
-  dpfs?: string[] | null
-): Pick<ContentItemMention, 'surfaceForm' | 'mentionConfidence'>[] => {
-  return parseDPFS(
-    ([id, count]) => ({
-      surfaceForm: id,
-      mentionConfidence: parseFloat(count),
-    }),
-    dpfs ?? undefined
-  )
-}
-
-const mentionWithOffset = (offsets?: number[][]) => {
-  return (
-    item: Partial<ContentItemMention>,
-    index: number
-  ): Partial<ContentItemMention> & Pick<ContentItemMention, 'startOffset' | 'endOffset'> => {
-    return {
-      ...item,
-      startOffset: offsets?.[index]?.[0],
-      endOffset: offsets?.[index]?.[1],
-    }
-  }
 }
 
 const toAudioSegmentLocator = (tc: AudioRecordTimecode, utterancesEndOffsets: number[]): ContentItemAudioLocator => {
@@ -355,20 +307,15 @@ export const toContentItem = (
   embeddingsConfig?: EmbeddingsConfig
 ): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
-  const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
 
   const namedEntities = asObjectOrUndefined({
-    persons: parseContentItemEntityDPFS(doc.pers_entities_dpfs),
-    locations: parseContentItemEntityDPFS(doc.loc_entities_dpfs),
-    newsagencies: parseContentItemEntityDPFS(doc.nag_entities_dpfs),
-    organisations: parseContentItemEntityDPFS(doc.org_entities_dpfs),
+    persons: parseContentItemEntityDPFS(doc.pers_entity_ids_dpfs),
+    locations: parseContentItemEntityDPFS(doc.loc_entity_ids_dpfs),
+    newsagencies: parseContentItemEntityDPFS(doc.pressagency_entity_ids_dpfs),
+    organisations: parseContentItemEntityDPFS(doc.org_entity_ids_dpfs),
+    radiostations: parseContentItemEntityDPFS(doc.radiostation_entity_ids_dpfs),
   })
-  const mentions = asObjectOrUndefined({
-    persons: parseContentItemMentionDPFS(doc.pers_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.pers)),
-    locations: parseContentItemMentionDPFS(doc.loc_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.loc)),
-    organisations: parseContentItemMentionDPFS(doc.org_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.org)),
-    newsagencies: parseContentItemMentionDPFS(doc.nag_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.nag)),
-  })
+  const mentions = asObjectOrUndefined(getContentItemMentions(doc))
 
   const embeddingsField = embeddingsConfig?.textEmbeddings?.solrField ?? DefaultTextEmbeddingsConfig.solrField
   const embeddingsTag = embeddingsConfig?.textEmbeddings?.tag ?? DefaultTextEmbeddingsConfig.tag

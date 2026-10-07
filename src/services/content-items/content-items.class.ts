@@ -45,7 +45,7 @@ import { mapRecordValues } from '@/util/fn.js'
 import { NotFound } from '@feathersjs/errors'
 import { Collection } from '@/models/generated/app/entities.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
-import { AudioFields, PaperFields, SemanticEnrichmentsFields } from '@/models/consolidated/solr/index.js'
+import { AudioFields, PaperFields } from '@/models/consolidated/solr/index.js'
 import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
@@ -63,19 +63,16 @@ const DefaultLimit = 10
 type ExpansionFields =
   | keyof Pick<PaperFields, 'pp_plain' | 'lb_plain' | 'pb_plain' | 'rb_plain'>
   | keyof Pick<AudioFields, 'rreb_plain'>
-  | keyof Pick<SemanticEnrichmentsFields, 'nem_offset_plain' | 'nag_offset_plain'>
 const JSONExpansionFields = [
   'pp_plain',
   'lb_plain',
   'pb_plain',
   'rb_plain',
   'rreb_plain',
-  'nag_offset_plain',
-  'nem_offset_plain',
 ] satisfies ExpansionFields[]
 
 const isExpansionField = (field: IFullContentItemFieldsNames): field is ExpansionFields => {
-  return JSONExpansionFields.includes(field as any as ExpansionFields)
+  return JSONExpansionFields.some(expansionField => expansionField === field)
 }
 
 const withJsonExpansion = (field: IFullContentItemFieldsNames) => {

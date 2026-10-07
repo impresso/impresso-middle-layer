@@ -867,8 +867,11 @@ cases:
                 {
                   "bool": {
                     "should": [
-                      "pers_mentions:ab",
-                      "loc_mentions:ab"
+                      "pers_mention_ner_conf_dpfs:ab",
+                      "loc_mention_ner_conf_dpfs:ab",
+                      "org_mention_ner_conf_dpfs:ab",
+                      "pressagency_mention_ner_conf_dpfs:ab",
+                      "radiostation_mention_ner_conf_dpfs:ab"
                     ],
                     "minimum_should_match": 1
                   }
@@ -876,8 +879,11 @@ cases:
                 {
                   "bool": {
                     "should": [
-                      "pers_mentions:cd",
-                      "loc_mentions:cd"
+                      "pers_mention_ner_conf_dpfs:cd",
+                      "loc_mention_ner_conf_dpfs:cd",
+                      "org_mention_ner_conf_dpfs:cd",
+                      "pressagency_mention_ner_conf_dpfs:cd",
+                      "radiostation_mention_ner_conf_dpfs:cd"
                     ],
                     "minimum_should_match": 1
                   }
@@ -914,8 +920,11 @@ cases:
                 {
                   "bool": {
                     "should": [
-                      "pers_entities_dpfs:e-a",
-                      "loc_entities_dpfs:e-a"
+                      "pers_entity_ids_dpfs:e-a",
+                      "loc_entity_ids_dpfs:e-a",
+                      "org_entity_ids_dpfs:e-a",
+                      "pressagency_entity_ids_dpfs:e-a",
+                      "radiostation_entity_ids_dpfs:e-a"
                     ],
                     "minimum_should_match": 1
                   }
@@ -923,8 +932,11 @@ cases:
                 {
                   "bool": {
                     "should": [
-                      "pers_entities_dpfs:e-b",
-                      "loc_entities_dpfs:e-b"
+                      "pers_entity_ids_dpfs:e-b",
+                      "loc_entity_ids_dpfs:e-b",
+                      "org_entity_ids_dpfs:e-b",
+                      "pressagency_entity_ids_dpfs:e-b",
+                      "radiostation_entity_ids_dpfs:e-b"
                     ],
                     "minimum_should_match": 1
                   }
@@ -953,8 +965,11 @@ cases:
           {
             "bool": {
               "should": [
-                "pers_mentions:*",
-                "loc_mentions:*"
+                "pers_mention_ner_conf_dpfs:*",
+                "loc_mention_ner_conf_dpfs:*",
+                "org_mention_ner_conf_dpfs:*",
+                "pressagency_mention_ner_conf_dpfs:*",
+                "radiostation_mention_ner_conf_dpfs:*"
               ],
               "minimum_should_match": 1
             }
@@ -1095,7 +1110,7 @@ cases:
       {
         "query": "*:*",
         "filter": [
-          "pers_entities_dpfs:aida-0001-50-Poseidon_$28$film$29$"
+          "pers_entity_ids_dpfs:aida-0001-50-Poseidon_$28$film$29$"
         ],
         "params": {}
       }

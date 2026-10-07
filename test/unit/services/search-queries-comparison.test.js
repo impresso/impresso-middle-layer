@@ -19,10 +19,10 @@ describe('createSolrQuery', () => {
         hl: false,
       },
       query: '*:*',
-      filter: ['pers_entities_dpfs:person-a-id'],
+      filter: ['pers_entity_ids_dpfs:person-a-id'],
       facet: {
         person: {
-          field: 'pers_entities_dpfs',
+          field: 'pers_entity_ids_dpfs',
           limit: 3,
           offset: 5,
           type: 'terms',
@@ -59,15 +59,15 @@ describe('createSolrQuery', () => {
         hl: false,
       },
       query: '*:*',
-      filter: ['pers_entities_dpfs:person-a-id'],
+      filter: ['pers_entity_ids_dpfs:person-a-id'],
       facet: {
         constrained__person__0: {
           type: 'query',
-          q: 'pers_entities_dpfs:person-b-id',
+          q: 'pers_entity_ids_dpfs:person-b-id',
         },
         constrained__person__1: {
           type: 'query',
-          q: 'pers_entities_dpfs:person-c-id',
+          q: 'pers_entity_ids_dpfs:person-c-id',
         },
       },
     }
@@ -117,7 +117,7 @@ describe('createSolrQuery', () => {
 
     const request = createSolrQuery(filters, facetRequests, facetConstraints, [], {})
     assert.deepEqual(Object.keys(request.facet), ['constrained__person__0', 'language'])
-    assert.equal(request.facet.constrained__person__0.q, 'pers_entities_dpfs:person-b-id')
+    assert.equal(request.facet.constrained__person__0.q, 'pers_entity_ids_dpfs:person-b-id')
     assert.equal(request.facet.language.type, 'terms')
   })
 
