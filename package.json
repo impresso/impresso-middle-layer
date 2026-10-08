@@ -70,6 +70,7 @@
     "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "csv-parse": "^7.0.3",
     "csv-stringify": "^6.8.3",
     "decypher": "^0.13.0",
     "dotenv": "^17.4.2",

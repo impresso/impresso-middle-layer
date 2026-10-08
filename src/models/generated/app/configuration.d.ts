@@ -30,6 +30,7 @@ export interface SocksProxyConfiguration {
  * Impresso config file.
  */
 export interface Config {
+  provenance?: ProvenanceConfig;
   $schema?: string;
   /**
    * If `true`, the app serves a public API. It is `falsee` by default.
@@ -119,6 +120,17 @@ export interface Config {
   multer?: MulterConfig;
   embeddings?: EmbeddingsConfig;
   auditLogging?: AuditLoggingConfig;
+}
+export interface ProvenanceConfig {
+  enabled: boolean;
+  issuer: string;
+  audience: string;
+  privateKey?: string;
+  activeKid: string;
+  publicKeys: {
+    [k: string]: string;
+  };
+  findServices?: string[];
 }
 /**
  * Redis configuration
@@ -627,7 +639,7 @@ export interface AuditLogStorageConfig {
    */
   secretAccessKey: string;
   /**
-   * Root prefix of the audit log objects, must match the `key_prefix` of the Vector S3 sink (default: audit-logs)
+   * Root prefix of the audit log objects, must match the `key_prefix` of the Vector S3 sink including any environment tag segment, e.g. `audit-logs/prod` (default: audit-logs)
    */
   keyPrefix?: string;
 }

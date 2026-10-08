@@ -1,5 +1,6 @@
 // Application hooks that run for every service
 import { getLogger } from '@/logger.js'
+import { provenance } from '@/hooks/provenance.js'
 import { ImpressoApplication } from '@/types.js'
 import { hooks } from '@feathersjs/authentication'
 import { BadGateway, BadRequest, Conflict, FeathersError, GeneralError, Unprocessable } from '@feathersjs/errors'
@@ -128,6 +129,7 @@ export default (
       : []
 
     app.hooks({
+      after: { find: [provenance] },
       before: {
         all: beforeAll,
         find: [basicParams()],

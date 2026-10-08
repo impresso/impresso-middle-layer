@@ -33,6 +33,7 @@ import { init as imageProxy } from '@/middleware/imageProxy.js'
 import schemas from '@/services/schemas.js'
 import { withContext } from '@/logger.js'
 import { customJsonMiddleware } from '@/util/express.js'
+import { Limits as provenanceLimits } from '@/services/provenance/provenance.class.js'
 import queue from '@/internalServices/queue.js'
 import queueWorkerManager, { start as startQueueWorkerManager } from '@/internalServices/workerManager.js'
 
@@ -75,7 +76,7 @@ app.configure(auditLogStorage)
 app.use(helmet())
 app.use(compress())
 app.use(cookieParser())
-app.use(customJsonMiddleware()) // JSON body parser / serializer
+app.use(customJsonMiddleware({ bodyLimits: { '/tools/provenance': provenanceLimits.bodyBytes } }))
 
 // configure local multer service.
 app.configure(multer)

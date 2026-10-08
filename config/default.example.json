@@ -1,4 +1,15 @@
 {
+  "provenance": {
+    "enabled": false,
+    "issuer": "impresso-middle-layer",
+    "audience": "provenance",
+    "activeKid": "2026-01",
+    "privateKey": "${PROVENANCE_PRIVATE_KEY}",
+    "publicKeys": {
+      "2026-01": "${PROVENANCE_PUBLIC_KEY_2026_01}"
+    },
+    "findServices": ["content-items", "search"]
+  },
   "$schema": "../src/schema/common/config.json",
   "callbackUrls": {
     "passwordReset": "http://localhost:8080/password-reset"

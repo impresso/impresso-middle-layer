@@ -1,4 +1,5 @@
 import { ImpressoApplication } from '@/types.js'
+import provenance from './provenance/provenance.service.js'
 import { logger } from '@/logger.js'
 import type { Application as ExpressApplication } from '@feathersjs/express'
 
@@ -78,6 +79,7 @@ import userEmailVerificationResend from './user-email-verification-resend/user-e
  * in the service files. Look for the `optionsDisabledInPublicApi` method.
  */
 const publicApiServices = [
+  { name: 'tools/provenance', init: provenance },
   { name: 'search', init: search },
   { name: 'content-items', init: contentItems },
   { name: 'users', init: users },
