@@ -4,6 +4,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "provenance": { "$ref": "#/definitions/ProvenanceConfig" },
     "$schema": {
       "type": "string"
     },
@@ -157,6 +158,44 @@
   },
   "required": ["solrConfiguration", "sequelize", "authentication", "images", "magicLink", "emailVerification"],
   "definitions": {
+    "ProvenanceConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "issuer": {
+          "type": "string",
+          "default": "impresso-middle-layer"
+        },
+        "audience": {
+          "type": "string",
+          "default": "provenance"
+        },
+        "privateKey": {
+          "type": "string"
+        },
+        "activeKid": {
+          "type": "string"
+        },
+        "publicKeys": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "findServices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["content-items", "search"]
+        }
+      },
+      "required": ["enabled", "issuer", "audience", "activeKid", "publicKeys"]
+    },
     "TextEmbeddingsConfig": {
       "type": "object",
       "description": "Configuration of the text embeddings model used in content items.",

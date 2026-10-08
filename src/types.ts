@@ -1,4 +1,5 @@
 import type { Configuration } from '@/configuration.js'
+import type { ProvenanceService } from '@/services/provenance/provenance.class.js'
 import { QueueService } from '@/internalServices/queue.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import type { IRedisClientContainer } from '@/redis.js'
@@ -15,6 +16,7 @@ import { AuthenticationService } from '@feathersjs/authentication'
 import type { Application } from '@feathersjs/feathers'
 
 export interface AppServices {
+  ['tools/provenance']: ProvenanceService
   redisClient?: IRedisClientContainer
   rateLimiter?: IRateLimiter
   logs: LogsService

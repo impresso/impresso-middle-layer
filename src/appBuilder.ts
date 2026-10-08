@@ -2,6 +2,7 @@ import { default as express, Application } from '@feathersjs/express'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import configuration, { Configuration } from '@/configuration.js'
 import { initLogger } from '@/logger.js'
+import { initializeProvenance } from '@/util/provenance.js'
 import { feathers } from '@feathersjs/feathers'
 
 /**
@@ -14,6 +15,7 @@ export const createApp = (): ImpressoApplication & Application<AppServices, Conf
   // Load app configuration
   app.configure(configuration)
   app.configure(initLogger)
+  initializeProvenance(app)
 
   return app
 }

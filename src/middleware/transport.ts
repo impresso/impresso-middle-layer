@@ -20,6 +20,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
     app.use(
       cors({
         origin: app.get('allowedCorsOrigins') ?? [],
+        exposedHeaders: ['X-Impresso-Provenance'],
       })
     )
     app.configure(rest())
