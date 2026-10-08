@@ -201,12 +201,6 @@ export interface FindTextReuseClustersResponse {
      */
     total: number;
   };
-  meta?: {
-    provenance?: {
-      token: string;
-      kid: string;
-    };
-  };
 }
 /**
  * Text reuse cluster with details and a sample
