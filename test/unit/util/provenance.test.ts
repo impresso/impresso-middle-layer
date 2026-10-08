@@ -16,17 +16,19 @@ import {
   csvIdsHashStream,
   finalizeCsvWithToken,
   initializeProvenance,
+  provenanceKeyId,
 } from '@/util/provenance.js'
 
-import { config, receipt, keys } from '../../helpers/provenance.js'
+import { authSecret, config, receipt, keys, signingConfig } from '../../helpers/provenance.js'
 
 describe('provenance receipts', () => {
-  it('roundtrips minimal archival claims and retains historical keys', () => {
+  it('roundtrips archival claims and verifies retained authentication secrets after rotation', () => {
     const token = receipt()
+    const rotated = { provenance: config, authSecret: 'rotated-authentication-secret' }
+    assert.equal(verifyReceipt(token, rotated).valid, false)
     const verified = verifyReceipt(token, {
-      ...config,
-      activeKid: 'two',
-      publicKeys: { one: keys.publicKey, two: keys.publicKey },
+      ...rotated,
+      provenance: { ...config, previousAuthSecrets: [authSecret] },
     })
     assert.ok(verified.valid)
     assert.equal(verified.claims.userRef, 'user')
@@ -34,18 +36,22 @@ describe('provenance receipts', () => {
     assert.ok(!('exp' in verified.claims))
     const decoded = jwt.decode(token, { complete: true })
     assert.ok(decoded)
-    assert.equal(decoded.header.kid, 'one')
+    assert.equal(decoded.header.alg, 'HS256')
+    assert.equal(decoded.header.kid, keys.kid)
   })
   it('rejects forged, tampered, and unknown-key tokens without claims', () => {
     const token = receipt()
+    const claims = jwt.decode(token)
+    assert.ok(claims && typeof claims === 'object')
     const variants = [
-      jwt.sign({ userRef: 'user' }, 'secret', { algorithm: 'HS256', keyid: 'one' }),
+      jwt.sign(claims, authSecret, { algorithm: 'HS256', keyid: keys.kid }),
+      jwt.sign(claims, keys.secret, { algorithm: 'HS384', keyid: keys.kid }),
       token.slice(0, -20) + 'tampered',
       token.replace(token.split('.')[1], Buffer.from('{}').toString('base64url')),
-      jwt.sign({}, keys.privateKey, { algorithm: 'RS256', keyid: 'unknown' }),
+      jwt.sign(claims, keys.secret, { algorithm: 'HS256', keyid: 'unknown' }),
     ]
     for (const variant of variants) {
-      const result = verifyReceipt(variant, config)
+      const result = verifyReceipt(variant, signingConfig)
       assert.equal(result.valid, false)
       assert.ok(!('claims' in result))
     }
@@ -56,12 +62,12 @@ describe('provenance receipts', () => {
     for (const key of ['iat', 'jti', 'userRef', 'idsHash', 'idsCount', 'kind', 'exportId']) {
       const claims: Record<string, unknown> = { ...base }
       delete claims[key]
-      const token = jwt.sign(claims, keys.privateKey, {
-        algorithm: 'RS256',
-        keyid: 'one',
+      const token = jwt.sign(claims, keys.secret, {
+        algorithm: 'HS256',
+        keyid: keys.kid,
         ...(key === 'iat' ? { noTimestamp: true } : {}),
       })
-      assert.equal(verifyReceipt(token, config).valid, false, key)
+      assert.equal(verifyReceipt(token, signingConfig).valid, false, key)
     }
     for (const patch of [
       { jti: '' },
@@ -77,7 +83,7 @@ describe('provenance receipts', () => {
     ]) {
       const claims: Record<string, unknown> = { ...base, ...patch }
       assert.equal(
-        verifyReceipt(jwt.sign(claims, keys.privateKey, { algorithm: 'RS256', keyid: 'one' }), config).valid,
+        verifyReceipt(jwt.sign(claims, keys.secret, { algorithm: 'HS256', keyid: keys.kid }), signingConfig).valid,
         false
       )
     }
@@ -110,7 +116,10 @@ describe('streaming CSV provenance', () => {
       assert.equal(rows[1].text, 'quote "inside"')
       assert.equal(rows[1]['impresso:provenance'], '')
       assert.equal(rows[0]['impresso:provenance'], token)
-      assert.deepEqual(rows.map(row => row.id), ['a', 'b'])
+      assert.deepEqual(
+        rows.map(row => row.id),
+        ['a', 'b']
+      )
       await finalizeCsvWithToken(path, token)
       assert.equal(await readFile(path, 'utf8'), first)
     } finally {
@@ -147,7 +156,7 @@ describe('streaming CSV provenance', () => {
 })
 
 describe('provenance startup configuration', () => {
-  it('requires an explicit distinct authentication audience and valid registered signing key', () => {
+  it('requires an explicit distinct authentication audience and a nonempty authentication secret', () => {
     const app = feathers<AppServices, Configuration>()
     app.set('provenance', { ...config })
     assert.throws(() => initializeProvenance(app), /audience/)
@@ -155,31 +164,26 @@ describe('provenance startup configuration', () => {
     assert.throws(() => initializeProvenance(app), /audience/)
     app.set('authentication', { secret: 'api-secret', jwtOptions: { audience: 'api' } })
     assert.doesNotThrow(() => initializeProvenance(app))
-    app.set('provenance', { ...config, privateKey: '' })
-    assert.throws(() => initializeProvenance(app), /signing key/)
-    app.set('provenance', { ...config, publicKeys: { one: 'invalid public key' } })
-    assert.throws(() => initializeProvenance(app), /does not match/)
+    app.set('authentication', { secret: '', jwtOptions: { audience: 'api' } })
+    assert.throws(() => initializeProvenance(app), /authentication.secret/)
+    app.set('provenance', { ...config, enabled: false })
+    assert.doesNotThrow(() => initializeProvenance(app))
   })
-  it('generates warning-backed ephemeral keys only in development when both key stores are empty', () => {
-    const previous = process.env.NODE_ENV
-    try {
+  it('derives the same signing key across fresh application instances', () => {
+    const token = receipt()
+    for (let restart = 0; restart < 2; restart++) {
       const app = feathers<AppServices, Configuration>()
-      app.set('authentication', { secret: 'api-secret', jwtOptions: { audience: 'api' } })
-      for (const environment of [undefined, 'development', 'api-development']) {
-        if (environment === undefined) delete process.env.NODE_ENV
-        else process.env.NODE_ENV = environment
-        app.set('provenance', { ...config, privateKey: '', publicKeys: {} })
-        initializeProvenance(app)
-        assert.equal(app.get('provenance')?.activeKid, 'ephemeral')
-        const token = createReceipt({ kind: 'api', path: 'search', userRef: 'user', ...hashIds([]) }, app)
-        assert.equal(verifyReceipt(token, app).valid, true)
-      }
-      process.env.NODE_ENV = 'production'
-      app.set('provenance', { ...config, privateKey: '', publicKeys: {} })
-      assert.throws(() => initializeProvenance(app), /signing key/)
-    } finally {
-      if (previous === undefined) delete process.env.NODE_ENV
-      else process.env.NODE_ENV = previous
+      app.set('authentication', { secret: authSecret, jwtOptions: { audience: 'api' } })
+      app.set('provenance', { ...config })
+      initializeProvenance(app)
+      // Freeze the derivation recipe so existing receipts survive future refactors.
+      assert.equal(
+        provenanceKeyId(app),
+        'hkdf-sha256-v1-4633a8d9c4e87d75610cff523b84b3ec4b1301758efc806e2092c5db305097a3'
+      )
+      assert.equal(verifyReceipt(token, app).valid, true)
+      const issued = createReceipt({ kind: 'api', path: 'search', userRef: 'user', ...hashIds([]) }, app)
+      assert.equal(verifyReceipt(issued, signingConfig).valid, true)
     }
   })
 })

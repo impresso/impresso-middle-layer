@@ -3,7 +3,7 @@ import type { ImpressoApplication } from '@/types.js'
 import type { PublicFindResponse } from '@/models/common.js'
 import type { ContentItem } from '@/models/generated/app/entities/contentItem.js'
 import type { FindParams } from '@/services/content-items/content-items.class.js'
-import { createReceipt, hashIds } from '@/util/provenance.js'
+import { createReceipt, hashIds, provenanceKeyId } from '@/util/provenance.js'
 import { isPublicApi } from './appMode.js'
 
 type DeliveredItem = Pick<ContentItem, 'id'>
@@ -42,12 +42,7 @@ export function provenance(context: ProvenanceContext): void {
 
   const result = context.dispatch ?? context.result
 
-  if (
-    typeof result !== 'object' ||
-    result === null ||
-    !Array.isArray(result.data) ||
-    !('pagination' in result)
-  ) {
+  if (typeof result !== 'object' || result === null || !Array.isArray(result.data) || !('pagination' in result)) {
     return
   }
 
@@ -59,14 +54,14 @@ export function provenance(context: ProvenanceContext): void {
       userRef: user.uid,
       ...digest,
     },
-    config
+    context.app
   )
 
   const previousMeta = typeof result.meta === 'object' && result.meta !== null ? result.meta : {}
 
   result.meta = {
     ...previousMeta,
-    provenance: { token, kid: config.activeKid },
+    provenance: { token, kid: provenanceKeyId(context.app) },
   }
 
   context.http ??= {}

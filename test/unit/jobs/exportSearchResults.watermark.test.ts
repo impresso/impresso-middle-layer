@@ -10,7 +10,7 @@ import {
   finalizeCsvWithToken,
   checkExportReceipt,
 } from '@/util/provenance.js'
-import { config } from '../../helpers/provenance.js'
+import { signingConfig } from '../../helpers/provenance.js'
 
 describe('export provenance pre-publish gate', () => {
   it('writes a rectangular CSV across batches and rejects every invalid receipt binding', async () => {
@@ -23,7 +23,7 @@ describe('export provenance pre-publish gate', () => {
       const records: string[][] = parse(original)
       assert.deepEqual(records[0], ['id', 'text', 'impresso:provenance'])
       assert.ok(records.every(row => row.length === 3))
-      await assert.rejects(checkExportReceipt(path, 'export', 'user', config))
+      await assert.rejects(checkExportReceipt(path, 'export', 'user', signingConfig))
       const digest = await csvIdsHashStream(path)
       const input = { kind: 'export', exportId: 'export', userRef: 'user', ...digest } as const
       for (const patch of [
@@ -31,14 +31,14 @@ describe('export provenance pre-publish gate', () => {
         { userRef: 'foreign' },
         { idsCount: 3 },
       ]) {
-        await finalizeCsvWithToken(path, createReceipt({ ...input, ...patch }, config))
-        await assert.rejects(checkExportReceipt(path, 'export', 'user', config))
+        await finalizeCsvWithToken(path, createReceipt({ ...input, ...patch }, signingConfig))
+        await assert.rejects(checkExportReceipt(path, 'export', 'user', signingConfig))
       }
-      await finalizeCsvWithToken(path, createReceipt(input, config))
-      assert.ok(await checkExportReceipt(path, 'export', 'user', config))
+      await finalizeCsvWithToken(path, createReceipt(input, signingConfig))
+      assert.ok(await checkExportReceipt(path, 'export', 'user', signingConfig))
       const finalized = await readFile(path, 'utf8')
       await writeFile(path, finalized.replace('"b"', '"c"'))
-      await assert.rejects(checkExportReceipt(path, 'export', 'user', config))
+      await assert.rejects(checkExportReceipt(path, 'export', 'user', signingConfig))
     } finally {
       await rm(folder, { recursive: true, force: true })
     }

@@ -85,16 +85,13 @@ HTTP JSON returns 413. Hash locally for larger exports.
 
 ## Keys and operations
 
-Use a dedicated RSA keypair, separate from authentication keys. Generate it once
-and store it securely; do not commit private keys:
+Receipts use HS256 with a dedicated 32-byte signing key derived from
+`authentication.secret` using HKDF-SHA256. The derivation uses salt
+`impresso-middle-layer` and info `provenance-watermark:v1`. The auth secret is
+never used directly to sign receipts. There are no separate RSA keys or
+ephemeral development keys to configure or retain.
 
-```sh
-openssl genrsa -out provenance-private.pem 3072
-openssl rsa -in provenance-private.pem -pubout -out provenance-public.pem
-```
-
-Supply PEM values (actual multiline strings) as `PROVENANCE_PRIVATE_KEY` and
-`PROVENANCE_PUBLIC_KEY_2026_01` in the process environment, then configure:
+Configure provenance alongside your existing authentication configuration:
 
 ```json
 {
@@ -102,28 +99,38 @@ Supply PEM values (actual multiline strings) as `PROVENANCE_PRIVATE_KEY` and
     "enabled": true,
     "issuer": "impresso-middle-layer",
     "audience": "provenance",
-    "activeKid": "2026-01",
-    "privateKey": "${PROVENANCE_PRIVATE_KEY}",
-    "publicKeys": { "2026-01": "${PROVENANCE_PUBLIC_KEY_2026_01}" },
     "findServices": ["content-items", "search"]
   }
 }
 ```
 
-Environment references use the existing configuration loader. Only reference
-variables that are defined, even when provenance is disabled. The default is
-disabled when the block is absent. The authentication audience must be explicit
-and distinct from provenance (including the web-app authentication audience).
-Enabled configurations fail startup if the active signing key is missing or
-does not match its registered public key. In development (`NODE_ENV` unset, `development`, or `api-development`) with neither
-private nor public keys, startup generates ephemeral keys and logs a warning;
-these receipts cannot be verified after restart.
+The default is disabled when the block is absent. Enabled configurations require
+a nonempty `authentication.secret` and an explicit authentication audience
+distinct from provenance (including the web-app authentication audience).
+The derived key and its ID are identical across restarts with the same auth
+secret, in both development and production. The ID is `hkdf-sha256-v1-` followed
+by the SHA-256 hex fingerprint of the derived key. Instances issuing and
+verifying the same receipts must use the same auth secret, or retain the issuing
+instance's secret for verification.
 
-Rotate manually by replacing `privateKey`/`activeKid` and adding the new public
-key to `publicKeys`. Keep every historical public key for archival verification.
-Persisted export job `extra.provenance` contains `kid`, `idsHash` and `idsCount`.
-Keep verification available and retain public keys even if delivery receipts
-are disabled.
+When rotating `authentication.secret`, retain the previous value in
+`provenance.previousAuthSecrets` to verify archival receipts:
+
+```json
+"previousAuthSecrets": ["${PREVIOUS_AUTH_SECRET}"]
+```
+
+Historical secrets are used only for receipt verification, never for signing
+new receipts or authenticating API calls. Store them securely with the other
+auth secrets; environment references use the existing configuration loader.
+Losing an old auth secret makes its receipts unverifiable. Authentication-secret
+compromise also compromises provenance. Keep verification and historical secrets
+available even if delivery receipts are disabled. Persisted export job
+`extra.provenance` contains `kid`, `idsHash` and `idsCount`.
+
+This format replaces the earlier RS256 design. Remove `privateKey`, `publicKeys`,
+and `activeKid` from provenance configuration. Earlier RSA receipts are not
+accepted by the HS256 verifier.
 
 Resolve `claims.userRef` against the immutable `users.uid`; export `jobs.creatorId`
 corroborates the account association. Receipts can outlive export rows. Retain

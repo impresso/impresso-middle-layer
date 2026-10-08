@@ -9,11 +9,12 @@ import type { AppServices, ImpressoApplication } from '@/types.js'
 import type { Configuration } from '@/configuration.js'
 import { provenance } from '@/hooks/provenance.js'
 import { verifyReceipt, hashIds } from '@/util/provenance.js'
-import { config } from '../../helpers/provenance.js'
+import { authSecret, config, signingConfig } from '../../helpers/provenance.js'
 
 const makeContext = (): HookContext<ImpressoApplication> => {
   const app = feathers<AppServices, Configuration>()
   app.set('provenance', { ...config })
+  app.set('authentication', { secret: authSecret, jwtOptions: { audience: 'api' } })
   app.set('isPublicApi', true)
   return {
     arguments: [],
@@ -33,14 +34,13 @@ const makeContext = (): HookContext<ImpressoApplication> => {
 describe('find provenance hook', () => {
   it('returns the search receipt in HTTP headers when authentication occurs during delegation', async () => {
     const app = makeContext().app
-    assert.ok(config.privateKey)
     app.set('authentication', {
-      secret: config.privateKey,
+      secret: authSecret,
       entity: 'user',
       service: 'users',
       authStrategies: ['jwt'],
       local: { usernameField: 'email', passwordField: 'password' },
-      jwtOptions: { algorithm: 'RS256', audience: 'api', issuer: config.issuer },
+      jwtOptions: { algorithm: 'HS256', audience: 'api', issuer: config.issuer },
       useDbUserInRequestContext: false,
     })
     app.configure(authentication)
@@ -63,7 +63,7 @@ describe('find provenance hook', () => {
     const token = response.headers['X-Impresso-Provenance']
     assert.ok(typeof token === 'string')
     assert.equal(token, response.body.meta.provenance.token)
-    const verified = verifyReceipt(token, config)
+    const verified = verifyReceipt(token, signingConfig)
     assert.ok(verified.valid)
     assert.equal(verified.claims.path, 'search')
     assert.equal(verified.claims.userRef, 'user')
@@ -78,7 +78,7 @@ describe('find provenance hook', () => {
       provenance(context)
 
       const token = context.result.meta.provenance.token
-      const verified = verifyReceipt(token, config)
+      const verified = verifyReceipt(token, signingConfig)
       assert.ok(verified.valid)
       assert.equal(verified.claims.idsHash, hashIds(['b', 'a']).idsHash)
       assert.equal(context.http?.headers?.['X-Impresso-Provenance'], token)
@@ -101,10 +101,10 @@ describe('find provenance hook', () => {
   })
   it('fails covered responses when signing or ID hashing fails', () => {
     const context = makeContext()
-    context.app.set('provenance', { ...config, privateKey: '' })
+    context.app.set('authentication', { secret: '' })
     assert.throws(() => provenance(context))
     assert.ok(!context.result.meta)
-    context.app.set('provenance', config)
+    context.app.set('authentication', { secret: authSecret })
     context.result.data[0].id = ''
     assert.throws(() => provenance(context))
   })

@@ -125,11 +125,10 @@ export interface ProvenanceConfig {
   enabled: boolean;
   issuer: string;
   audience: string;
-  privateKey?: string;
-  activeKid: string;
-  publicKeys: {
-    [k: string]: string;
-  };
+  /**
+   * Previous authentication secrets retained only for archival provenance verification.
+   */
+  previousAuthSecrets?: string[];
   findServices?: string[];
 }
 /**
