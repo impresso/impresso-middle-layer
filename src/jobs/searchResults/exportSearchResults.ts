@@ -23,6 +23,7 @@ import {
   createReceipt,
   finalizeCsvWithToken,
   checkExportReceipt,
+  provenanceKeyId,
 } from '@/util/provenance.js'
 
 type FlatFields = FlatKeys<ContentItemPublic, 3>
@@ -411,11 +412,11 @@ export const createJobHandler = (app: ImpressoApplication) => {
       if (provenanceConfig?.enabled) {
         const digest = await csvIdsHashStream(exportFilePath)
         if (digest.idsCount > 0) {
-          const token = createReceipt({ kind: 'export', exportId, userRef: userUid, ...digest }, provenanceConfig)
+          const token = createReceipt({ kind: 'export', exportId, userRef: userUid, ...digest }, app)
           await finalizeCsvWithToken(exportFilePath, token)
-          await checkExportReceipt(exportFilePath, exportId, userUid, provenanceConfig)
+          await checkExportReceipt(exportFilePath, exportId, userUid, app)
           await jobRecord.update({
-            extra: { ...jobRecord.extra, provenance: { kid: provenanceConfig.activeKid, ...digest } },
+            extra: { ...jobRecord.extra, provenance: { kid: provenanceKeyId(app), ...digest } },
           })
         }
       }

@@ -4,11 +4,12 @@ import type { AppServices } from '@/types.js'
 import type { Configuration } from '@/configuration.js'
 import { ProvenanceService } from '@/services/provenance/provenance.class.js'
 import { hashIds } from '@/util/provenance.js'
-import { config, receipt } from '../../../helpers/provenance.js'
+import { authSecret, config, receipt } from '../../../helpers/provenance.js'
 
 describe('provenance verification service', () => {
   const app = feathers<AppServices, Configuration>()
   app.set('provenance', config)
+  app.set('authentication', { secret: authSecret })
   const service = new ProvenanceService(app)
   it('verifies receipts with optional ID material and examines both hash and count', async () => {
     const token = receipt()

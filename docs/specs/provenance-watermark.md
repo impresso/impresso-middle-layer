@@ -33,13 +33,16 @@ only that the item set (membership + order) is unchanged.
 
 ## Design
 
-### Receipt = RS256 JWT, minimal claims
+### Receipt = HS256 JWT, minimal claims
 
 Signed with the existing `jsonwebtoken` dependency (no new dependency) using a
-**dedicated provenance keypair**, separate from authentication keys.
+**dedicated derived signing key** from `authentication.secret`. Use HKDF-SHA256
+with salt `impresso-middle-layer`, info `provenance-watermark:v1`, and output
+length 32 bytes. The raw auth secret must never sign provenance receipts.
 
-JWT header: `{ alg: "RS256", kid: "<key-id>" }` (`kid` lives in the header, not
-the payload).
+JWT header: `{ alg: "HS256", kid: "hkdf-sha256-v1-<sha256-derived-key-hex>" }`
+(`kid` lives in the header, not the payload). The key and its fingerprint are
+deterministic across restarts with the same authentication secret.
 
 Payload — kept deliberately small:
 
@@ -59,7 +62,7 @@ Payload — kept deliberately small:
 ```
 
 - **No `exp`** — receipts are archival and must stay verifiable for years;
-  historical public keys are retained instead.
+  previous authentication secrets are retained for verification after rotation.
 - `idsHash` is computed at mint time: for API receipts from the response's
   ordered IDs (the token never lives inside `data`, so this is not circular);
   for export receipts in a **finalization pass** once the completed CSV's ID
@@ -94,8 +97,9 @@ transcripts, enrichments).
 
 ### Strict verification rules
 
-- Algorithm pinned to `RS256` (reject `alg` confusion attacks).
-- `kid` must exist in the configured public-key registry.
+- Algorithm pinned to `HS256` (reject `alg` confusion attacks).
+- `kid` must match the key derived from the current authentication secret or
+  one of `provenance.previousAuthSecrets`.
 - `iss`/`aud` must match the provenance issuer/audience.
 - Required claims: `iat` must be numeric; `jti` and `userRef` must be nonempty
   strings; `idsHash` must be a lowercase 64-char hex string and `idsCount` a
@@ -108,7 +112,7 @@ transcripts, enrichments).
 
 ### Authentication isolation (explicit requirement)
 
-Dedicated provenance keys and a distinct audience (`provenance` ≠
+Domain-separated derived provenance keys and a distinct audience (`provenance` ≠
 `authentication.jwtOptions.audience`) are necessary but **not sufficient by
 themselves**: isolation only holds if *both* verifiers enforce it. This plan
 therefore treats it as a tested requirement, not an implication:
@@ -117,12 +121,23 @@ therefore treats it as a tested requirement, not an implication:
 - **the API authentication must reject provenance receipts** (audience check on
   the authentication side) — covered by a dedicated test.
 
-### Key registry (small, manual)
+### Authentication-secret derivation and rotation
 
-Config holds **one active private key** and a **map of current + historical
-public keys** (`kid → PEM`). No automated rotation system, no KMS initially.
-On rotation: add the new key as active, keep old public keys listed so archival
-receipts remain verifiable.
+The active key is always derived from `authentication.secret`, without storing
+separate key material. Development and production use the same derivation;
+there is no ephemeral-key fallback. When enabled, missing or empty auth secrets
+fail startup. Instances that share receipts must share the issuing auth secret
+or retain it for verification.
+
+On auth-secret rotation, retain previous values in the optional
+`provenance.previousAuthSecrets` array. These secrets are used only to verify
+archival receipts, not to sign new ones or authenticate API requests. Losing
+a historical auth secret makes its receipts unverifiable. A compromised auth
+secret compromises the corresponding provenance receipts too.
+
+This replaces the dedicated RSA-key requirement. The old `privateKey`,
+`activeKid`, and `publicKeys` configuration fields and RS256 receipts are no
+longer supported.
 
 ### Account reference resolution
 
@@ -232,18 +247,17 @@ New service `src/services/provenance/` (authenticated, JWT):
 ### 1. Config
 
 - Add `provenance` block to `src/schema/app/configuration/config.json`:
-  `{ enabled: bool, issuer: string, audience: string, privateKey: string (PEM, env-ref),
-     activeKid: string, publicKeys: { [kid]: string (PEM, env-ref) },
+  `{ enabled: bool, issuer: string, audience: string, previousAuthSecrets?: string[],
      findServices?: string[] }` (default `["content-items", "search"]`).
 - Update `src/configuration.ts` (`Configuration` interface) and regenerate
   generated types (`npm run generate-types` → `src/models/generated/app/configuration.d.ts`).
-- Keys come from env (`PROVENANCE_PRIVATE_KEY`, `PROVENANCE_PUBLIC_KEY_<KID>`);
-  document RSA keypair generation (one-off `openssl genrsa` / `node -e`).
-- In dev, if `enabled` but no keys: generate an ephemeral keypair and log a warning.
+- Derive the current signing key from the existing `authentication.secret`.
+  Optional previous auth secrets use the existing environment-reference loader.
+  No separate keys, configured key IDs, or development fallback are required.
 
 ### 2. Core util — `src/util/provenance.ts` (new)
 
-- `createReceipt(claims, app)` → compact JWT (RS256, `kid` header).
+- `createReceipt(claims, app)` → compact JWT (HS256, derived `kid` header).
 - `verifyReceipt(token, app)` → `{ valid, claims?, reason? }` with the strict
   rules above.
 - `idsHash(ids: string[])` → recipe implementation (public, documented);
@@ -256,7 +270,7 @@ New service `src/services/provenance/` (authenticated, JWT):
   stream-parse → re-serialize records with `csv-stringify` (same options)
   into a temporary file with the token in row 1's provenance cell → `rename`
   over the original; original untouched on failure; safe to re-run.
-- Unit-testable without an app: pass keys directly.
+- Unit-testable without an app: pass `{ provenance: config, authSecret }`.
 
 ### 3. Response schema — `meta` block
 
@@ -315,7 +329,7 @@ New service `src/services/provenance/` (authenticated, JWT):
 ### 7. Tests (`test/unit/…`, Mocha + `assert` strict, minimal mocks)
 
 - `util/provenance.test.ts` — sign/verify roundtrip; rejects: wrong algorithm
-  (`HS256` forgery attempt), unknown `kid`, wrong `iss`/`aud`, missing/invalid
+  (`HS384` forgery attempt), raw-auth-secret signatures, unknown `kid`, wrong `iss`/`aud`, missing/invalid
   `iat`/`jti`/`userRef`/`idsHash`/`idsCount`, kind/identifier mismatches
   (export with `path`, api with `exportId`), tampered payload; invalid tokens
   never return `claims`. Hash recipe: stable, order-sensitive, duplicates
@@ -350,7 +364,7 @@ New service `src/services/provenance/` (authenticated, JWT):
 
 - Publish the hash recipe (idsHash definition, per-endpoint ID field) in the
   API docs.
-- Document env vars + key generation in README/env example.
+- Document auth-secret derivation and historical secret retention in the config example.
 - State the delivery-receipt limitation (quote at top) in user-facing docs and
   the ToS note; `idsMatch` covers item set only, not item content.
 

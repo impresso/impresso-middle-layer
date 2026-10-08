@@ -1,4 +1,4 @@
-import { createHash, generateKeyPairSync, randomUUID } from 'node:crypto'
+import { createHash, hkdfSync, randomUUID } from 'node:crypto'
 import { createReadStream, createWriteStream } from 'node:fs'
 import { rename, unlink } from 'node:fs/promises'
 import { Readable } from 'node:stream'
@@ -8,7 +8,6 @@ import { stringify } from 'csv-stringify'
 import jwt from 'jsonwebtoken'
 import type { ProvenanceConfig } from '@/models/generated/app/configuration.js'
 import type { ImpressoApplication } from '@/types.js'
-import { logger } from '@/logger.js'
 
 export const ProvenanceColumn = 'impresso:provenance'
 export type ReceiptInput = {
@@ -20,12 +19,37 @@ export type ReceiptClaims = ReceiptInput & { iss: string; aud: string; iat: numb
 export type VerificationResult =
   { valid: true; claims: ReceiptClaims; idsMatch?: boolean } | { valid: false; reason: string }
 export type IdDigest = { idsHash: string; idsCount: number }
-type KeySource = ProvenanceConfig | Pick<ImpressoApplication, 'get'>
+export interface ProvenanceSigningConfig {
+  provenance: ProvenanceConfig
+  authSecret: string
+}
 
-function configuration(source: KeySource): ProvenanceConfig {
-  const config = 'get' in source ? source.get('provenance') : source
-  if (!config) throw new Error('Provenance is not configured')
-  return config
+type KeySource = ProvenanceSigningConfig | Pick<ImpressoApplication, 'get'>
+
+function configuration(source: KeySource): ProvenanceSigningConfig {
+  if (!('get' in source)) return source
+
+  const provenance = source.get('provenance')
+  const authSecret = source.get('authentication')?.secret
+
+  if (!provenance) throw new Error('Provenance is not configured')
+  if (!nonempty(authSecret)) throw new Error('Provenance requires authentication.secret')
+
+  return { provenance, authSecret }
+}
+
+/** Derive a separate signing key without storing additional key material. */
+export function deriveProvenanceKey(authSecret: string): { secret: Buffer; kid: string } {
+  if (!nonempty(authSecret)) throw new Error('Provenance requires authentication.secret')
+
+  const secret = Buffer.from(hkdfSync('sha256', authSecret, 'impresso-middle-layer', 'provenance-watermark:v1', 32))
+  const fingerprint = createHash('sha256').update(secret).digest('hex')
+
+  return { secret, kid: `hkdf-sha256-v1-${fingerprint}` }
+}
+
+export function provenanceKeyId(source: KeySource): string {
+  return deriveProvenanceKey(configuration(source).authSecret).kid
 }
 
 export function initializeProvenance(app: ImpressoApplication): void {
@@ -38,23 +62,11 @@ export function initializeProvenance(app: ImpressoApplication): void {
   ) {
     throw new Error('Provenance requires a distinct audience and an explicit authentication audience')
   }
-  // node-config defaults to development when NODE_ENV is unset; the public API
-  // also has a dedicated api-development configuration.
-  const isDevelopment = ['development', 'api-development'].includes(process.env.NODE_ENV ?? 'development')
-  if (!config.privateKey && Object.keys(config.publicKeys).length === 0 && isDevelopment) {
-    const keys = generateKeyPairSync('rsa', {
-      modulusLength: 2048,
-      publicKeyEncoding: { type: 'spki', format: 'pem' },
-      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-    })
-    config.privateKey = keys.privateKey
-    config.activeKid = 'ephemeral'
-    config.publicKeys = { ephemeral: keys.publicKey }
-    logger.warn('Provenance uses ephemeral development keys; receipts will not survive a restart')
+
+  const { authSecret } = configuration(app)
+  for (const secret of [authSecret, ...(config.previousAuthSecrets ?? [])]) {
+    deriveProvenanceKey(secret)
   }
-  const token = createReceipt({ kind: 'api', path: 'startup', userRef: 'startup', ...hashIds([]) }, config)
-  if (!verifyReceipt(token, config).valid)
-    throw new Error('Provenance signing key does not match its active public key')
 }
 
 function nonempty(value: unknown): value is string {
@@ -89,8 +101,8 @@ function validClaims(value: unknown): value is ReceiptClaims {
 }
 
 export function createReceipt(input: ReceiptInput, source: KeySource): string {
-  const config = configuration(source)
-  if (!config.privateKey || !nonempty(config.activeKid)) throw new Error('Provenance signing key is missing')
+  const { provenance: config, authSecret } = configuration(source)
+  const key = deriveProvenanceKey(authSecret)
   const claims = {
     ...input,
     iss: config.issuer,
@@ -99,23 +111,24 @@ export function createReceipt(input: ReceiptInput, source: KeySource): string {
     jti: randomUUID(),
   }
   if (!validClaims(claims)) throw new Error('Invalid provenance claims')
-  return jwt.sign(claims, config.privateKey, { algorithm: 'RS256', keyid: config.activeKid })
+  return jwt.sign(claims, key.secret, { algorithm: 'HS256', keyid: key.kid })
 }
 
 export function verifyReceipt(token: string, source: KeySource): VerificationResult {
   try {
-    const config = configuration(source)
+    const { provenance: config, authSecret } = configuration(source)
     const decoded = jwt.decode(token, { complete: true })
-    if (
-      !decoded ||
-      decoded.header.alg !== 'RS256' ||
-      !nonempty(decoded.header.kid) ||
-      !Object.prototype.hasOwnProperty.call(config.publicKeys, decoded.header.kid)
-    ) {
+    if (!decoded || decoded.header.alg !== 'HS256' || !nonempty(decoded.header.kid)) {
       return { valid: false, reason: 'Unsupported algorithm or unknown key ID' }
     }
-    const claims: unknown = jwt.verify(token, config.publicKeys[decoded.header.kid], {
-      algorithms: ['RS256'],
+    const key = [authSecret, ...(config.previousAuthSecrets ?? [])]
+      .map(deriveProvenanceKey)
+      .find(candidate => candidate.kid === decoded.header.kid)
+
+    if (!key) return { valid: false, reason: 'Unsupported algorithm or unknown key ID' }
+
+    const claims = jwt.verify(token, key.secret, {
+      algorithms: ['HS256'],
       issuer: config.issuer,
       audience: config.audience,
     })
