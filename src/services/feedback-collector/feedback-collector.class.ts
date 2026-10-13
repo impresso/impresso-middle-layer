@@ -8,6 +8,7 @@ interface FeedbackCollectorPayload {
   id: string
   issue: string
   content: string
+  email?: string
   route: string
   errorMessages: {
     id: string
