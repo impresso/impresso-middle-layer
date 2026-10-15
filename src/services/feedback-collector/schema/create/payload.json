@@ -49,6 +49,11 @@
       "maxLength": 1000,
       "pattern": "^(?!.*<\\/?[\\p{L}\\p{M}]+).*"
     },
+    "email": {
+      "type": "string",
+      "description": "optional email address provided by the user so that the impresso team can reply to the feedback",
+      "format": "email"
+    },
     "route": {
       "type": "object",
       "description": "route params related to the feedback",

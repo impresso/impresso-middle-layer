@@ -6,7 +6,7 @@ import {
   SearchFacet as ISearchFacet,
 } from '@/models/generated/deprecated/models.js'
 
-type FacetType = 'newspaper' | 'language' | 'topic' | 'person' | 'location' | 'collection' | 'year'
+type FacetType = 'newspaper' | 'mediaSource' | 'language' | 'topic' | 'person' | 'location' | 'collection' | 'year'
 
 interface SearchFacetBucketOptions {
   val: string

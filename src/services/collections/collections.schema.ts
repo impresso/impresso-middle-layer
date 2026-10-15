@@ -48,16 +48,29 @@ const parameterOrderBy: QueryParameter = {
   description: 'Sort order',
 }
 
+const parameterIncludePublic: QueryParameter = {
+  in: 'query',
+  name: 'includePublic',
+  required: false,
+  schema: {
+    type: 'boolean',
+    default: false,
+  },
+  description: 'Include public and shared collections created by the authenticated user',
+}
+
 const findParameters: MethodParameter[] = [
   parameterIds,
   parameterQ,
   parameterOrderBy,
+  parameterIncludePublic,
   ...getStandardParameters({ method: 'find' }),
 ]
 
 const findParametersPublicApi: MethodParameter[] = [
   parameterTerm,
   parameterOrderBy,
+  parameterIncludePublic,
   ...getStandardParameters({ method: 'find' }),
 ]
 

@@ -173,5 +173,167 @@ describe('CollectionsService', () => {
       assert.strictEqual(resultDesc.data[0].id, mockCollectionForUser1b.id)
       assert.strictEqual(resultDesc.data[1].id, mockCollectionForUser1.id)
     })
+
+    it('includes public and shared collections when includePublic is true', async () => {
+      await userModel.create(mockUser1 as any)
+      await userCollectionModel.bulkCreate([
+        { ...mockCollectionForUser1, status: 'PRI' },
+        { ...mockCollectionForUser1b, status: 'PUB' },
+      ] as any)
+      const slimUser = { id: mockUser1.id, uid: mockUser1.uid } as any
+
+      testApp.mockSolr.select = async () => ({
+        response: { docs: [], numFound: 0 },
+        facets: { collections: { buckets: [] } },
+      })
+
+      const result = await service.find({ query: { includePublic: true }, user: slimUser })
+      assert.strictEqual(result.pagination.total, 2)
+      assert.deepStrictEqual(
+        result.data.map(collection => collection.id).sort(),
+        [mockCollectionForUser1.id, mockCollectionForUser1b.id].sort()
+      )
+      const publicCollection = result.data.find(collection => collection.id === mockCollectionForUser1b.id)
+      assert.strictEqual(publicCollection?.accessLevel, 'public')
+
+      // default behaviour: only private collections
+      const resultDefault = await service.find({ query: {}, user: slimUser })
+      assert.strictEqual(resultDefault.pagination.total, 1)
+      assert.strictEqual(resultDefault.data[0].id, mockCollectionForUser1.id)
+    })
+  })
+
+  describe('patch', () => {
+    beforeEach(async () => {
+      // queue calls are captured for the whole suite; reset them between patch tests
+      testApp.queueServiceCalls.length = 0
+      testApp.mockSolr.select = async () => ({
+        response: { docs: [], numFound: 0 },
+        facets: { collections: { buckets: [] } },
+      })
+    })
+
+    it('queues a visibility update job when accessLevel changes from private to public', async () => {
+      await userModel.create(mockUser1 as any)
+      await userCollectionModel.create(mockCollectionForUser1 as any)
+      const slimUser = { id: mockUser1.id, uid: mockUser1.uid } as any
+
+      const result = await service.patch(mockCollectionForUser1.id, { accessLevel: 'public' }, { user: slimUser })
+      assert.strictEqual(result.accessLevel, 'public')
+
+      const visibilityCalls = testApp.queueServiceCalls.filter(
+        call => call.method === 'updateCollectionItemsVisibility'
+      )
+      assert.strictEqual(visibilityCalls.length, 1)
+      assert.deepStrictEqual(visibilityCalls[0].data, {
+        userId: String(mockUser1.id),
+        collectionId: mockCollectionForUser1.id,
+        visibility: 'pub',
+      })
+    })
+
+    it('queues a visibility update job when accessLevel changes from public to private', async () => {
+      await userModel.create(mockUser1 as any)
+      await userCollectionModel.create({ ...mockCollectionForUser1, status: 'PUB' } as any)
+      const slimUser = { id: mockUser1.id, uid: mockUser1.uid } as any
+
+      const result = await service.patch(mockCollectionForUser1.id, { accessLevel: 'private' }, { user: slimUser })
+      assert.strictEqual(result.accessLevel, 'private')
+
+      const visibilityCalls = testApp.queueServiceCalls.filter(
+        call => call.method === 'updateCollectionItemsVisibility'
+      )
+      assert.strictEqual(visibilityCalls.length, 1)
+      assert.deepStrictEqual(visibilityCalls[0].data, {
+        userId: String(mockUser1.id),
+        collectionId: mockCollectionForUser1.id,
+        visibility: 'pri',
+      })
+    })
+
+    it('does not queue a visibility update job when accessLevel is unchanged', async () => {
+      await userModel.create(mockUser1 as any)
+      await userCollectionModel.create(mockCollectionForUser1 as any)
+      const slimUser = { id: mockUser1.id, uid: mockUser1.uid } as any
+
+      const result = await service.patch(mockCollectionForUser1.id, { accessLevel: 'private' }, { user: slimUser })
+      assert.strictEqual(result.accessLevel, 'private')
+
+      const visibilityCalls = testApp.queueServiceCalls.filter(
+        call => call.method === 'updateCollectionItemsVisibility'
+      )
+      assert.strictEqual(visibilityCalls.length, 0)
+    })
+
+    it('does not queue a visibility update job when only title is patched', async () => {
+      await userModel.create(mockUser1 as any)
+      await userCollectionModel.create(mockCollectionForUser1 as any)
+      const slimUser = { id: mockUser1.id, uid: mockUser1.uid } as any
+
+      const result = await service.patch(
+        mockCollectionForUser1.id,
+        { title: 'Renamed collection' },
+        { user: slimUser }
+      )
+      assert.strictEqual(result.title, 'Renamed collection')
+
+      const visibilityCalls = testApp.queueServiceCalls.filter(
+        call => call.method === 'updateCollectionItemsVisibility'
+      )
+      assert.strictEqual(visibilityCalls.length, 0)
+    })
+
+    it('queues a visibility update job for shared collections flipped to public or private', async () => {
+      await userModel.create(mockUser1 as any)
+      await userCollectionModel.create({ ...mockCollectionForUser1, status: 'SHA' } as any)
+      const slimUser = { id: mockUser1.id, uid: mockUser1.uid } as any
+
+      const publicResult = await service.patch(mockCollectionForUser1.id, { accessLevel: 'public' }, { user: slimUser })
+      assert.strictEqual(publicResult.accessLevel, 'public')
+
+      const backToPrivateResult = await service.patch(
+        mockCollectionForUser1.id,
+        { accessLevel: 'private' },
+        { user: slimUser }
+      )
+      assert.strictEqual(backToPrivateResult.accessLevel, 'private')
+
+      const visibilityCalls = testApp.queueServiceCalls.filter(
+        call => call.method === 'updateCollectionItemsVisibility'
+      )
+      assert.strictEqual(visibilityCalls.length, 2)
+      assert.deepStrictEqual(visibilityCalls[0].data, {
+        userId: String(mockUser1.id),
+        collectionId: mockCollectionForUser1.id,
+        visibility: 'pub',
+      })
+      assert.deepStrictEqual(visibilityCalls[1].data, {
+        userId: String(mockUser1.id),
+        collectionId: mockCollectionForUser1.id,
+        visibility: 'pri',
+      })
+    })
+
+    it('persists the new status before queueing the visibility job', async () => {
+      await userModel.create(mockUser1 as any)
+      await userCollectionModel.create(mockCollectionForUser1 as any)
+      const slimUser = { id: mockUser1.id, uid: mockUser1.uid } as any
+
+      const statusesAtEnqueue: (string | undefined)[] = []
+      const originalEnqueue = testApp.queueService.updateCollectionItemsVisibility.bind(testApp.queueService)
+      testApp.queueService.updateCollectionItemsVisibility = async (data: any) => {
+        const row = await userCollectionModel.findOne({ where: { id: data.collectionId } })
+        statusesAtEnqueue.push(row?.status)
+        return originalEnqueue(data)
+      }
+
+      try {
+        await service.patch(mockCollectionForUser1.id, { accessLevel: 'public' }, { user: slimUser })
+      } finally {
+        testApp.queueService.updateCollectionItemsVisibility = originalEnqueue
+      }
+
+      assert.deepStrictEqual(statusesAtEnqueue, ['PUB'])
+    })
   })
 })

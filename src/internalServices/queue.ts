@@ -15,6 +15,10 @@ import {
   JobNameRemoveItemsFromCollection,
   RemoveItemsFromCollectionJobData,
 } from '@/jobs/collections/removeItemsFromCollection.js'
+import {
+  JobNameUpdateCollectionItemsVisibility,
+  UpdateCollectionItemsVisibilityJobData,
+} from '@/jobs/collections/updateCollectionItemsVisibility.js'
 import { ExportSearchResultsJobData, JobNameExportSearchResults } from '@/jobs/searchResults/exportSearchResults.js'
 import { JobNameRebuildWellKnownCache, RebuildWellKnownCacheJobData } from '@/jobs/rebuildWellKnownCache.js'
 import {
@@ -38,6 +42,7 @@ export class QueueService {
   private queueAddItemsToCollection: Queue
   private queueRemoveItemsFromCollection: Queue
   private queueRemoveAllCollectionItems: Queue
+  private queueUpdateCollectionItemsVisibility: Queue
   private queueAddQueryResultItemsToCollection: Queue
   private queueExportSearchResults: Queue
   private queueMigrateOldCollections: Queue
@@ -96,6 +101,10 @@ export class QueueService {
       connection,
       defaultJobOptions,
     })
+    this.queueUpdateCollectionItemsVisibility = new Queue(JobNameUpdateCollectionItemsVisibility, {
+      connection,
+      defaultJobOptions,
+    })
     this.queueAddQueryResultItemsToCollection = new Queue(JobNameAddQueryResultItemsToCollection, {
       connection,
       defaultJobOptions,
@@ -151,6 +160,18 @@ export class QueueService {
   }
 
   /**
+   * Update the visibility of all items in a collection (after access level change)
+   */
+  async updateCollectionItemsVisibility(
+    data: UpdateCollectionItemsVisibilityJobData
+  ): Promise<BullJob<UpdateCollectionItemsVisibilityJobData>> {
+    logger.info(
+      `Queueing job to update visibility of all items in collection ${data.collectionId} for user ${data.userId} to '${data.visibility}'`
+    )
+    return this.queueUpdateCollectionItemsVisibility.add(JobNameUpdateCollectionItemsVisibility, data)
+  }
+
+  /**
    * Add query result items to collection
    */
   async addQueryResultItemsToCollection(
@@ -199,6 +220,7 @@ export class QueueService {
       this.queueAddItemsToCollection,
       this.queueRemoveItemsFromCollection,
       this.queueRemoveAllCollectionItems,
+      this.queueUpdateCollectionItemsVisibility,
       this.queueAddQueryResultItemsToCollection,
       this.queueExportSearchResults,
       this.queueMigrateOldCollections,
@@ -232,6 +254,7 @@ export class QueueService {
     await this.queueAddItemsToCollection.close()
     await this.queueRemoveItemsFromCollection.close()
     await this.queueRemoveAllCollectionItems.close()
+    await this.queueUpdateCollectionItemsVisibility.close()
     await this.queueAddQueryResultItemsToCollection.close()
     await this.queueExportSearchResults.close()
     await this.queueMigrateOldCollections.close()

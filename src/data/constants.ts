@@ -384,6 +384,7 @@ const trClustersSolrMappings = {
 export type TextReusePassageFacet = Extract<
   FilterType,
   | 'newspaper'
+  | 'mediaSource'
   | 'type'
   | 'daterange'
   | 'year'
@@ -410,7 +411,17 @@ const trPassagesSolrMappings = {
       type: 'terms',
       field: '__placeholder_for_a_virtual_field__',
     },
+    /**
+     * @deprecated removed in Impresso 2.0. New type: mediaSource
+     */
     newspaper: {
+      type: 'terms',
+      field: 'meta_journal_s',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    mediaSource: {
       type: 'terms',
       field: 'meta_journal_s',
       mincount: 1,

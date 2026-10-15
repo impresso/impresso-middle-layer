@@ -1,4 +1,10 @@
 {
+  "provenance": {
+    "enabled": false,
+    "issuer": "impresso-middle-layer",
+    "audience": "provenance",
+    "findServices": ["content-items", "search"]
+  },
   "$schema": "../src/schema/common/config.json",
   "callbackUrls": {
     "passwordReset": "http://localhost:8080/password-reset"

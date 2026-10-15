@@ -17,6 +17,14 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import ZipStream from 'zip-stream'
 import { FlatKeys } from '@/util/types.js'
+import {
+  ProvenanceColumn,
+  csvIdsHashStream,
+  createReceipt,
+  finalizeCsvWithToken,
+  checkExportReceipt,
+  provenanceKeyId,
+} from '@/util/provenance.js'
 
 type FlatFields = FlatKeys<ContentItemPublic, 3>
 
@@ -192,7 +200,7 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
   filePath: string,
   headerNames: readonly FlatKeys<T, 3>[],
   items: T[],
-  options?: { headers?: boolean }
+  options?: { headers?: boolean; provenance?: boolean }
 ): Promise<void> => {
   if (items.length === 0) {
     return
@@ -208,8 +216,11 @@ export const appendItemsToCSV = async <T extends Record<string, any>>(
 
   const { headers: includeHeaders = !fileExists } = options ?? {}
 
-  const columns = Array.from(headerNames) as string[]
-  const flatItems = items.map(item => Object.fromEntries(columns.map(col => [col, get(item, col)])))
+  const columns: string[] = Array.from(headerNames)
+  if (options?.provenance) columns.push(ProvenanceColumn)
+  const flatItems = items.map(item =>
+    Object.fromEntries(columns.map(col => [col, col === ProvenanceColumn ? '' : get(item, col)]))
+  )
 
   const csvContent = stringify(flatItems, {
     header: includeHeaders,
@@ -371,7 +382,8 @@ export const createJobHandler = (app: ImpressoApplication) => {
 
     const exportFilePath = getExportFilePath(exportFolder!, exportId, 'csv')
 
-    await appendItemsToCSV(exportFilePath, [...ExportedFields], data)
+    const provenanceConfig = app.get('provenance')
+    await appendItemsToCSV(exportFilePath, [...ExportedFields], data, { provenance: provenanceConfig?.enabled })
 
     const progressInPercent = Math.min(100, Math.round(((offset + data.length) / total) * 100))
     logger.info(`📊 Job ${job.id} ${job.name} is ${progressInPercent}% complete`)
@@ -397,6 +409,17 @@ export const createJobHandler = (app: ImpressoApplication) => {
       })
       await publishProgressUpdate(app.service('logs'), userUid, exportId, progressInPercent, jobRecord)
     } else {
+      if (provenanceConfig?.enabled) {
+        const digest = await csvIdsHashStream(exportFilePath)
+        if (digest.idsCount > 0) {
+          const token = createReceipt({ kind: 'export', exportId, userRef: userUid, ...digest }, app)
+          await finalizeCsvWithToken(exportFilePath, token)
+          await checkExportReceipt(exportFilePath, exportId, userUid, app)
+          await jobRecord.update({
+            extra: { ...jobRecord.extra, provenance: { kid: provenanceKeyId(app), ...digest } },
+          })
+        }
+      }
       const zipFileName = `${exportId}.zip`
       await createZipArchive(exportFilePath, zipFileName)
 

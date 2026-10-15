@@ -1,5 +1,6 @@
 // Application hooks that run for every service
 import { getLogger } from '@/logger.js'
+import { provenance } from '@/hooks/provenance.js'
 import { ImpressoApplication } from '@/types.js'
 import { hooks } from '@feathersjs/authentication'
 import { BadGateway, BadRequest, Conflict, FeathersError, GeneralError, Unprocessable } from '@feathersjs/errors'
@@ -48,7 +49,7 @@ const requireAuthentication =
     return context
   }
 
-const LoggingExcludedStatusCodesInternalApi = [401, 403, 404, 418, 429]
+const LoggingExcludedStatusCodesInternalApi = [400, 401, 403, 404, 418, 429]
 const LoggingExcludedStatusCodesPublicApi = [400, 401, 403, 404, 422, 418, 429]
 
 const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
@@ -81,7 +82,7 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
 
     // Log the full error (including stack) BEFORE the stack is stripped below
     // for the HTTP response. userId/requestId are attached via withContext.
-    if (!excludedStatusCodes.includes(error.code) || !error.code) {
+    if (!(error instanceof InvalidArgumentError) && (!excludedStatusCodes.includes(error.code) || !error.code)) {
       logger.error(
         `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method} - message:"${error.message}"`,
         {
@@ -128,6 +129,7 @@ export default (
       : []
 
     app.hooks({
+      after: { find: [provenance] },
       before: {
         all: beforeAll,
         find: [basicParams()],

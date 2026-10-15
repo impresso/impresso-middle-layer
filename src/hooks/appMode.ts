@@ -32,11 +32,18 @@ const hooksApplicator = <S = Service>(condition: ContextCondtition<S>) => {
 }
 
 /**
+ * Whether a hook runs in the public API application.
+ */
+export const isPublicApi = (context: Pick<ImpressoAppHookContext, 'app'>): boolean => {
+  return context.app.get('isPublicApi') === true
+}
+
+/**
  * Hooks to apply only in the public API.
  * @param functions Array of hook functions to apply only in the public API.
  */
 export const inPublicApi = <S = Service>(functions: ImpressoAppHookFunction<S>[]) => {
-  return hooksApplicator<S>(asContextCondition(app => app.get('isPublicApi') == true))(functions)
+  return hooksApplicator<S>(isPublicApi)(functions)
 }
 
 /**

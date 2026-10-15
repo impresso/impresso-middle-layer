@@ -1,4 +1,4 @@
-import type { ErrorObject } from 'ajv'
+import type { ErrorObject, Options } from 'ajv'
 import formatsPlugin from 'ajv-formats'
 import { Ajv2019 as Ajv } from 'ajv/dist/2019.js'
 import { readFileSync } from 'fs'
@@ -17,8 +17,8 @@ const loadSchema = (relativePath: string) => {
   return JSON.parse(readFileSync(fullPath, 'utf-8'))
 }
 
-export const newAjvInstance = (schemas: SchemaIdPair[]) => {
-  const ajv = new Ajv({ allErrors: true, strict: true })
+export const newAjvInstance = (schemas: SchemaIdPair[], options: Options = {}) => {
+  const ajv = new Ajv({ allErrors: true, strict: true, ...options })
   formatsPlugin.default(ajv)
   for (const [schema, id] of schemas) {
     ajv.addSchema(loadSchema(schema), id)
@@ -28,21 +28,23 @@ export const newAjvInstance = (schemas: SchemaIdPair[]) => {
 
 const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src'
 
-function validated(obj: any, schemaUri: string, ajvInstance: Ajv) {
+function validated<T = unknown>(obj: unknown, schemaUri: string, ajvInstance: Ajv): T {
   // const uri = schemaUri?.startsWith('http') ? schemaUri : `${BaseSchemaURI}/${schemaUri}`
   const uri = schemaUri
-  const validate = ajvInstance.getSchema(uri)
+  const validate = ajvInstance.getSchema<T>(uri)
 
   if (validate === undefined) {
     throw new Error(`No such schema found: ${uri}`)
   }
 
-  const isValid = validate(obj)
-  if (!isValid) {
-    const error = new Error(`JSON validation errors: ${ajvInstance.errorsText(validate.errors)}`) as Error & {
-      errors?: ErrorObject[]
-    }
-    error.errors = validate.errors ?? undefined
+  if ('$async' in validate) {
+    throw new Error(`Synchronous validation requires a synchronous schema: ${uri}`)
+  }
+
+  if (!validate(obj)) {
+    const error = Object.assign(new Error(`JSON validation errors: ${ajvInstance.errorsText(validate.errors)}`), {
+      errors: validate.errors ?? undefined,
+    })
     throw error
   }
   return obj

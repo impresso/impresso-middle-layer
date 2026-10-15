@@ -16,9 +16,24 @@ export interface AddItemsToCollectionJobData {
 
 type AddItemsToCollectionJob = Job<AddItemsToCollectionJobData, undefined, typeof JobNameAddItemsToCollection>
 
+/**
+ * Resolve the Solr item visibility from the collection access status,
+ * mirroring the DB-to-API mapping: anything not `PRI` is treated as public.
+ */
+export const resolveCollectionVisibility = async (
+  app: ImpressoApplication,
+  collectionId: string
+): Promise<'pub' | 'pri'> => {
+  const collectionsService = app.service('collections')
+  const collection = await collectionsService.getInternal(collectionId)
+  // missing (e.g. deleted) collections fail safe to private
+  return collection != null && collection.status !== 'PRI' ? 'pub' : 'pri'
+}
+
 const requestToPayload = (
   data: AddItemsToCollectionJobData,
-  collectionsIndexVersion: CollectionIndexVersion
+  collectionsIndexVersion: CollectionIndexVersion,
+  visibility: 'pub' | 'pri'
 ): BulkAddRequest<CollectionItem> => {
   const { userId, collectionId, itemIds } = data
   const col_id_s = `${userId}_${collectionId}`
@@ -28,7 +43,7 @@ const requestToPayload = (
       id: collectionsIndexVersion === 'new' ? `${ci_id_s}!${col_id_s}` : `${col_id_s}|${ci_id_s}`,
       ci_id_s,
       col_id_s,
-      vis_s: 'pri',
+      vis_s: visibility,
     }
   })
 
@@ -51,9 +66,10 @@ export const createJobHandler = (app: ImpressoApplication) => {
 export const addItemsToCollection = async (app: ImpressoApplication, jobData: AddItemsToCollectionJobData) => {
   const solrClient = app.service('simpleSolrClient')
   const collectionsIndexVersion = app.get('features')?.collectionsIndexVersion ?? 'legacy'
+  const visibility = await resolveCollectionVisibility(app, jobData.collectionId)
   await solrClient.sendBulkUpdateRequest(
     SolrNamespaces.CollectionItems,
-    requestToPayload(jobData, collectionsIndexVersion),
+    requestToPayload(jobData, collectionsIndexVersion, visibility),
     true
   )
 }

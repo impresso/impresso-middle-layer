@@ -57,7 +57,15 @@
   "auditLogging": {
     "enabled": false,
     "host": "localhost",
-    "port": 18080
+    "port": 18080,
+    "storage": {
+      "endpoint": "http://localhost:9000",
+      "bucket": "audit-logs",
+      "region": "us-east-1",
+      "accessKeyId": "minioadmin",
+      "secretAccessKey": "minioadmin",
+      "keyPrefix": "audit-logs"
+    }
   },
   "cache": {
     "enabled": true

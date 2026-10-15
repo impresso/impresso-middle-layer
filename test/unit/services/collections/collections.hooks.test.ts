@@ -66,5 +66,46 @@ describe('CollectionsService - Hooks', () => {
         return true
       })
     })
+
+    it('keeps includePublic through the full before.find hook chain', async () => {
+      const chain = (collectionsHooks as any).before.find
+      const context = {
+        params: { query: { includePublic: 'true' } },
+      } as any
+
+      for (const hook of chain) {
+        await hook(context)
+      }
+
+      // queryWithCommonParams() rebuilds params.query from sanitized params,
+      // so includePublic must be whitelisted by validate() to survive
+      assert.strictEqual(context.params.query.includePublic, true)
+    })
+
+    it('normalizes includePublic=false to a boolean false', async () => {
+      const chain = (collectionsHooks as any).before.find
+      const context = {
+        params: { query: { includePublic: 'false' } },
+      } as any
+
+      for (const hook of chain) {
+        await hook(context)
+      }
+
+      assert.strictEqual(context.params.query.includePublic, false)
+    })
+
+    it('leaves includePublic undefined when not requested', async () => {
+      const chain = (collectionsHooks as any).before.find
+      const context = {
+        params: { query: {} },
+      } as any
+
+      for (const hook of chain) {
+        await hook(context)
+      }
+
+      assert.strictEqual(context.params.query.includePublic, undefined)
+    })
   })
 })
