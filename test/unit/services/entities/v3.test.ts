@@ -67,6 +67,30 @@ describe('v3 entities', () => {
     assert.equal('ner_type_loc_count_l' in entity, false)
   })
 
+  it('maps generic wikidata items of type item to wikidataDetails', () => {
+    const details = transformEntityDetails({
+      id: 'Q275068',
+      name: 'broth',
+      type: 'person',
+      countItems: 12,
+      countMentions: 34,
+      wikidataId: 'Q275068',
+      wikidata: {
+        id: 'Q275068',
+        type: 'item',
+        labels: { en: 'broth', fr: 'bouillon' },
+        descriptions: { en: 'clear liquid (soup) preparation' },
+        images: [],
+      },
+    })
+    assert.deepEqual(details.wikidataDetails, {
+      id: 'Q275068',
+      type: 'item',
+      labels: { en: 'broth', fr: 'bouillon' },
+      descriptions: { en: 'clear liquid (soup) preparation' },
+    })
+  })
+
   it('maps agencies and radio stations, and handles absent optional totals', () => {
     const entity = Entity.solrFactory()({ ...document, ner_entity_type_s: 'pressagency', mention_count_l: undefined })
     assert.equal(entity.type, 'newsagency')

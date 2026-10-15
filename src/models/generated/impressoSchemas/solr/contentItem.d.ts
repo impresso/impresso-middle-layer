@@ -256,6 +256,10 @@ export type ContentItemTextContentFields = {
    * String composed of title + year, e.g. 'Fronde-1872' .
    */
   title_year?: string;
+  /**
+   * Identifier of the section this content item belongs to, if any. The id is a string composed of the issue id and of the legacy (METS/ALTO inherited) ID of the section.
+   */
+  section_id_s?: string;
   [k: string]: unknown;
 } & {
   [k: string]: unknown;
@@ -417,76 +421,151 @@ export type AggregateMentionIds = string[];
 export type ConfidencePayload = string[];
 
 /**
- * Entity QIDs with counts of linked person occurrences in this content item; NIL occurrences contribute no entry.
+ * Entity QIDs with counts of linked person occurrences in this content item's body; NIL occurrences contribute no entry.
  */
 export type EntityPayload = string[];
 
 /**
- * Aggregate mention IDs for location surface/type groups present in this content item, including groups containing NIL occurrences.
+ * Aggregate mention IDs for person surface/type groups present in this content item's title.
  */
 export type AggregateMentionIds1 = string[];
 
 /**
- * Existing payload serialization of location mention surfaces and NER confidence values on the 0-1 scale.
+ * Existing payload serialization of person title-mention surfaces and NER confidence values on the 0-1 scale.
  */
 export type ConfidencePayload1 = string[];
 
 /**
- * Entity QIDs with counts of linked location occurrences in this content item; NIL occurrences contribute no entry.
+ * Entity QIDs with counts of linked person occurrences in this content item's title; NIL occurrences contribute no entry.
  */
 export type EntityPayload1 = string[];
 
 /**
- * Aggregate mention IDs for organisation surface/type groups present in this content item, including groups containing NIL occurrences.
+ * Aggregate mention IDs for location surface/type groups present in this content item, including groups containing NIL occurrences.
  */
 export type AggregateMentionIds2 = string[];
 
 /**
- * Existing payload serialization of organisation mention surfaces and NER confidence values on the 0-1 scale.
+ * Existing payload serialization of location mention surfaces and NER confidence values on the 0-1 scale.
  */
 export type ConfidencePayload2 = string[];
 
 /**
- * Entity QIDs with counts of linked organisation occurrences in this content item; NIL occurrences contribute no entry.
+ * Entity QIDs with counts of linked location occurrences in this content item's body; NIL occurrences contribute no entry.
  */
 export type EntityPayload2 = string[];
 
 /**
- * Aggregate mention IDs for press-agency surface/type groups present in this content item, including groups containing NIL occurrences.
+ * Aggregate mention IDs for location surface/type groups present in this content item's title.
  */
 export type AggregateMentionIds3 = string[];
 
 /**
- * Existing payload serialization of press-agency mention surfaces and NER confidence values on the 0-1 scale.
+ * Existing payload serialization of location title-mention surfaces and NER confidence values on the 0-1 scale.
  */
 export type ConfidencePayload3 = string[];
 
 /**
- * Entity QIDs with counts of linked press-agency occurrences in this content item; NIL occurrences contribute no entry.
+ * Entity QIDs with counts of linked location occurrences in this content item's title; NIL occurrences contribute no entry.
  */
 export type EntityPayload3 = string[];
 
 /**
- * Aggregate mention IDs for radio-station surface/type groups present in this content item, including groups containing NIL occurrences.
+ * Aggregate mention IDs for organisation surface/type groups present in this content item, including groups containing NIL occurrences.
  */
 export type AggregateMentionIds4 = string[];
 
 /**
- * Existing payload serialization of radio-station mention surfaces and NER confidence values on the 0-1 scale.
+ * Existing payload serialization of organisation mention surfaces and NER confidence values on the 0-1 scale.
  */
 export type ConfidencePayload4 = string[];
 
 /**
- * Entity QIDs with counts of linked radio-station occurrences in this content item; NIL occurrences contribute no entry.
+ * Entity QIDs with counts of linked organisation occurrences in this content item's body; NIL occurrences contribute no entry.
  */
 export type EntityPayload4 = string[];
+
+/**
+ * Aggregate mention IDs for organisation surface/type groups present in this content item's title.
+ */
+export type AggregateMentionIds5 = string[];
+
+/**
+ * Existing payload serialization of organisation title-mention surfaces and NER confidence values on the 0-1 scale.
+ */
+export type ConfidencePayload5 = string[];
+
+/**
+ * Entity QIDs with counts of linked organisation occurrences in this content item's title; NIL occurrences contribute no entry.
+ */
+export type EntityPayload5 = string[];
+
+/**
+ * Aggregate mention IDs for press-agency surface/type groups present in this content item, including groups containing NIL occurrences.
+ */
+export type AggregateMentionIds6 = string[];
+
+/**
+ * Existing payload serialization of press-agency mention surfaces and NER confidence values on the 0-1 scale.
+ */
+export type ConfidencePayload6 = string[];
+
+/**
+ * Entity QIDs with counts of linked press-agency occurrences in this content item's body; NIL occurrences contribute no entry.
+ */
+export type EntityPayload6 = string[];
+
+/**
+ * Aggregate mention IDs for press-agency surface/type groups present in this content item's title.
+ */
+export type AggregateMentionIds7 = string[];
+
+/**
+ * Existing payload serialization of press-agency title-mention surfaces and NER confidence values on the 0-1 scale.
+ */
+export type ConfidencePayload7 = string[];
+
+/**
+ * Entity QIDs with counts of linked press-agency occurrences in this content item's title; NIL occurrences contribute no entry.
+ */
+export type EntityPayload7 = string[];
+
+/**
+ * Aggregate mention IDs for radio-station surface/type groups present in this content item, including groups containing NIL occurrences.
+ */
+export type AggregateMentionIds8 = string[];
+
+/**
+ * Existing payload serialization of radio-station mention surfaces and NER confidence values on the 0-1 scale.
+ */
+export type ConfidencePayload8 = string[];
+
+/**
+ * Entity QIDs with counts of linked radio-station occurrences in this content item's body; NIL occurrences contribute no entry.
+ */
+export type EntityPayload8 = string[];
+
+/**
+ * Aggregate mention IDs for radio-station surface/type groups present in this content item's title.
+ */
+export type AggregateMentionIds9 = string[];
+
+/**
+ * Existing payload serialization of radio-station title-mention surfaces and NER confidence values on the 0-1 scale.
+ */
+export type ConfidencePayload9 = string[];
+
+/**
+ * Entity QIDs with counts of linked radio-station occurrences in this content item's title; NIL occurrences contribute no entry.
+ */
+export type EntityPayload9 = string[];
 
 export type OCRQAScore = number;
 
 export type Unavailable = null;
 
 /**
- * Entity and aggregate-mention fields embedded in main content-item documents. Occurrence lists describe accepted mentions in the article body; title mentions are not included in this contract.
+ * Entity and aggregate-mention fields embedded in content-item documents. Body occurrence offsets target the indexed content item ft; title occurrence offsets target its indexed title, never the body. Supplied spans are preserved by default. Known source-text spacing mismatches require diagnostics and upstream recomputation or a separately qualified removable mapping; schema validation alone does not establish highlighting accuracy.
  */
 export interface EntityAndMentionEnrichmentFields {
   /**
@@ -505,6 +584,21 @@ export interface EntityAndMentionEnrichmentFields {
   pers_mention_ner_conf_dpfs?: ConfidencePayload;
   pers_entity_ids_dpfs?: EntityPayload;
   /**
+   * JSON-encoded ordered array of [start, length] pairs for accepted pers mentions, with intended coordinates relative to the indexed content-item title. Coordinate units must agree with the producer and consumer; known source-text mismatches are diagnosed separately.
+   */
+  pers_title_mention_offsets_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of exact person title-mention surfaces corresponding positionally to the offsets.
+   */
+  pers_title_mention_surfaces_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of linked entity QIDs or null for each corresponding person title mention.
+   */
+  pers_title_mention_qids_json_plain?: string;
+  pers_title_aggregate_mention_ids_ss?: AggregateMentionIds1;
+  pers_title_mention_ner_conf_dpfs?: ConfidencePayload1;
+  pers_title_entity_ids_dpfs?: EntityPayload1;
+  /**
    * JSON-encoded ordered array of [start, length] pairs for accepted location mentions in the article body.
    */
   loc_mention_offsets_json_plain?: string;
@@ -516,9 +610,24 @@ export interface EntityAndMentionEnrichmentFields {
    * JSON-encoded ordered array of linked entity QIDs or null for each corresponding location mention.
    */
   loc_mention_qids_json_plain?: string;
-  loc_aggregate_mention_ids_ss?: AggregateMentionIds1;
-  loc_mention_ner_conf_dpfs?: ConfidencePayload1;
-  loc_entity_ids_dpfs?: EntityPayload1;
+  loc_aggregate_mention_ids_ss?: AggregateMentionIds2;
+  loc_mention_ner_conf_dpfs?: ConfidencePayload2;
+  loc_entity_ids_dpfs?: EntityPayload2;
+  /**
+   * JSON-encoded ordered array of [start, length] pairs for accepted loc mentions, with intended coordinates relative to the indexed content-item title. Coordinate units must agree with the producer and consumer; known source-text mismatches are diagnosed separately.
+   */
+  loc_title_mention_offsets_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of exact location title-mention surfaces corresponding positionally to the offsets.
+   */
+  loc_title_mention_surfaces_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of linked entity QIDs or null for each corresponding location title mention.
+   */
+  loc_title_mention_qids_json_plain?: string;
+  loc_title_aggregate_mention_ids_ss?: AggregateMentionIds3;
+  loc_title_mention_ner_conf_dpfs?: ConfidencePayload3;
+  loc_title_entity_ids_dpfs?: EntityPayload3;
   /**
    * JSON-encoded ordered array of [start, length] pairs for accepted organisation mentions in the article body.
    */
@@ -531,9 +640,24 @@ export interface EntityAndMentionEnrichmentFields {
    * JSON-encoded ordered array of linked entity QIDs or null for each corresponding organisation mention.
    */
   org_mention_qids_json_plain?: string;
-  org_aggregate_mention_ids_ss?: AggregateMentionIds2;
-  org_mention_ner_conf_dpfs?: ConfidencePayload2;
-  org_entity_ids_dpfs?: EntityPayload2;
+  org_aggregate_mention_ids_ss?: AggregateMentionIds4;
+  org_mention_ner_conf_dpfs?: ConfidencePayload4;
+  org_entity_ids_dpfs?: EntityPayload4;
+  /**
+   * JSON-encoded ordered array of [start, length] pairs for accepted org mentions, with intended coordinates relative to the indexed content-item title. Coordinate units must agree with the producer and consumer; known source-text mismatches are diagnosed separately.
+   */
+  org_title_mention_offsets_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of exact organisation title-mention surfaces corresponding positionally to the offsets.
+   */
+  org_title_mention_surfaces_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of linked entity QIDs or null for each corresponding organisation title mention.
+   */
+  org_title_mention_qids_json_plain?: string;
+  org_title_aggregate_mention_ids_ss?: AggregateMentionIds5;
+  org_title_mention_ner_conf_dpfs?: ConfidencePayload5;
+  org_title_entity_ids_dpfs?: EntityPayload5;
   /**
    * JSON-encoded ordered array of [start, length] pairs for accepted press-agency mentions in the article body.
    */
@@ -546,9 +670,24 @@ export interface EntityAndMentionEnrichmentFields {
    * JSON-encoded ordered array of linked entity QIDs or null for each corresponding press-agency mention.
    */
   pressagency_mention_qids_json_plain?: string;
-  pressagency_aggregate_mention_ids_ss?: AggregateMentionIds3;
-  pressagency_mention_ner_conf_dpfs?: ConfidencePayload3;
-  pressagency_entity_ids_dpfs?: EntityPayload3;
+  pressagency_aggregate_mention_ids_ss?: AggregateMentionIds6;
+  pressagency_mention_ner_conf_dpfs?: ConfidencePayload6;
+  pressagency_entity_ids_dpfs?: EntityPayload6;
+  /**
+   * JSON-encoded ordered array of [start, length] pairs for accepted pressagency mentions, with intended coordinates relative to the indexed content-item title. Coordinate units must agree with the producer and consumer; known source-text mismatches are diagnosed separately.
+   */
+  pressagency_title_mention_offsets_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of exact press-agency title-mention surfaces corresponding positionally to the offsets.
+   */
+  pressagency_title_mention_surfaces_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of linked entity QIDs or null for each corresponding press-agency title mention.
+   */
+  pressagency_title_mention_qids_json_plain?: string;
+  pressagency_title_aggregate_mention_ids_ss?: AggregateMentionIds7;
+  pressagency_title_mention_ner_conf_dpfs?: ConfidencePayload7;
+  pressagency_title_entity_ids_dpfs?: EntityPayload7;
   /**
    * JSON-encoded ordered array of [start, length] pairs for accepted radio-station mentions in the article body.
    */
@@ -561,9 +700,24 @@ export interface EntityAndMentionEnrichmentFields {
    * JSON-encoded ordered array of linked entity QIDs or null for each corresponding radio-station mention.
    */
   radiostation_mention_qids_json_plain?: string;
-  radiostation_aggregate_mention_ids_ss?: AggregateMentionIds4;
-  radiostation_mention_ner_conf_dpfs?: ConfidencePayload4;
-  radiostation_entity_ids_dpfs?: EntityPayload4;
+  radiostation_aggregate_mention_ids_ss?: AggregateMentionIds8;
+  radiostation_mention_ner_conf_dpfs?: ConfidencePayload8;
+  radiostation_entity_ids_dpfs?: EntityPayload8;
+  /**
+   * JSON-encoded ordered array of [start, length] pairs for accepted radiostation mentions, with intended coordinates relative to the indexed content-item title. Coordinate units must agree with the producer and consumer; known source-text mismatches are diagnosed separately.
+   */
+  radiostation_title_mention_offsets_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of exact radio-station title-mention surfaces corresponding positionally to the offsets.
+   */
+  radiostation_title_mention_surfaces_json_plain?: string;
+  /**
+   * JSON-encoded ordered array of linked entity QIDs or null for each corresponding radio-station title mention.
+   */
+  radiostation_title_mention_qids_json_plain?: string;
+  radiostation_title_aggregate_mention_ids_ss?: AggregateMentionIds9;
+  radiostation_title_mention_ner_conf_dpfs?: ConfidencePayload9;
+  radiostation_title_entity_ids_dpfs?: EntityPayload9;
   [k: string]: unknown;
 }
 
@@ -840,78 +994,178 @@ export type Undetermined2 = null;
  * Classification value from Level 3 of the Image1 Typology V2 taxonomy. Classifies the form, structure, and representational characteristics of the visual content.
  */
 export type ImageTypologyV2Level3ClassVisualContentType = (
-  | "caricature_humoristic_drawing"
-  | "comic_strip"
-  | "illustrated_story"
-  | "game"
-  | "graph"
-  | "technical_drawing"
-  | "human_rep_fashion_visual"
-  | "human_rep_portrait"
-  | "human_rep_scene"
-  | "scenery_landscape"
-  | "map_geological"
-  | "map_geopolitical"
-  | "map_physical_or_roadmap"
-  | "map_plan"
-  | "map_weather"
-  | "weather_infographic"
-  | "non_figurative_visual_content"
-  | "object"
-  | "ornament_illustrated_title"
-  | "other"
+  | CaricatureOrEditorialCartoonOrHumoristicDrawing
+  | ComicStrip
+  | Game
+  | Graph
+  | HumanRepresentationsFashionVisual
+  | HumanRepresentationsPortrait
+  | HumanRepresentationsScene
+  | IllustratedStory
+  | MapGeologicalMap
+  | MapGeopoliticalMap
+  | MapPhysicalMapOrRoadmap
+  | MapPlan
+  | MapWeatherMap
+  | NonFigurativeVisualContent
+  | Object
+  | OrnamentOrIllustratedTitle
+  | Other
+  | SceneryOrLandscape
+  | TechnicalDrawing
+  | WeatherInfographic
   | Undetermined3
 ) &
   (
     | ((
-        | "caricature_humoristic_drawing"
-        | "comic_strip"
-        | "illustrated_story"
-        | "game"
-        | "graph"
-        | "technical_drawing"
-        | "human_rep_fashion_visual"
-        | "human_rep_portrait"
-        | "human_rep_scene"
-        | "scenery_landscape"
-        | "map_geological"
-        | "map_geopolitical"
-        | "map_physical_or_roadmap"
-        | "map_plan"
-        | "map_weather"
-        | "weather_infographic"
-        | "non_figurative_visual_content"
-        | "object"
-        | "ornament_illustrated_title"
-        | "other"
+        | CaricatureOrEditorialCartoonOrHumoristicDrawing
+        | ComicStrip
+        | Game
+        | Graph
+        | HumanRepresentationsFashionVisual
+        | HumanRepresentationsPortrait
+        | HumanRepresentationsScene
+        | IllustratedStory
+        | MapGeologicalMap
+        | MapGeopoliticalMap
+        | MapPhysicalMapOrRoadmap
+        | MapPlan
+        | MapWeatherMap
+        | NonFigurativeVisualContent
+        | Object
+        | OrnamentOrIllustratedTitle
+        | Other
+        | SceneryOrLandscape
+        | TechnicalDrawing
+        | WeatherInfographic
         | Undetermined3
       ) &
         string)
     | (null &
         (
-          | "caricature_humoristic_drawing"
-          | "comic_strip"
-          | "illustrated_story"
-          | "game"
-          | "graph"
-          | "technical_drawing"
-          | "human_rep_fashion_visual"
-          | "human_rep_portrait"
-          | "human_rep_scene"
-          | "scenery_landscape"
-          | "map_geological"
-          | "map_geopolitical"
-          | "map_physical_or_roadmap"
-          | "map_plan"
-          | "map_weather"
-          | "weather_infographic"
-          | "non_figurative_visual_content"
-          | "object"
-          | "ornament_illustrated_title"
-          | "other"
+          | CaricatureOrEditorialCartoonOrHumoristicDrawing
+          | ComicStrip
+          | Game
+          | Graph
+          | HumanRepresentationsFashionVisual
+          | HumanRepresentationsPortrait
+          | HumanRepresentationsScene
+          | IllustratedStory
+          | MapGeologicalMap
+          | MapGeopoliticalMap
+          | MapPhysicalMapOrRoadmap
+          | MapPlan
+          | MapWeatherMap
+          | NonFigurativeVisualContent
+          | Object
+          | OrnamentOrIllustratedTitle
+          | Other
+          | SceneryOrLandscape
+          | TechnicalDrawing
+          | WeatherInfographic
           | Undetermined3
         ))
   );
+
+/**
+ * A single humorous, satirical, or exaggerated drawing, including editorial cartoons and caricatures.
+ */
+export type CaricatureOrEditorialCartoonOrHumoristicDrawing = "caricature_humoristic_drawing";
+
+/**
+ * A sequence of two or more illustrated panels, typically with dialogue inside speech bubbles.
+ */
+export type ComicStrip = "comic_strip";
+
+/**
+ * A printed puzzle, riddle, crossword, board-game layout, or other recreational game-related illustration.
+ */
+export type Game = "game";
+
+/**
+ * A visual representation of data, such as a bar chart, line graph, pie chart, or statistical plot.
+ */
+export type Graph = "graph";
+
+/**
+ * A depiction focused on clothing, accessories, or fashion trends, including fashion sketches and photographs of models.
+ */
+export type HumanRepresentationsFashionVisual = "human_rep_fashion_visual";
+
+/**
+ * A close-up depiction centred on an individual person, including formal portraits, profiles, and artistic renderings.
+ */
+export type HumanRepresentationsPortrait = "human_rep_portrait";
+
+/**
+ * A depiction of people interacting, undertaking activities, or forming part of a larger scene or crowd.
+ */
+export type HumanRepresentationsScene = "human_rep_scene";
+
+/**
+ * A narrative illustration accompanying a serialized story, usually with prose narration rather than dialogue bubbles.
+ */
+export type IllustratedStory = "illustrated_story";
+
+/**
+ * A map showing rock formations or geological features, such as faults, folds, and geological units.
+ */
+export type MapGeologicalMap = "map_geological";
+
+/**
+ * A map emphasizing territorial boundaries, political divisions, and place names.
+ */
+export type MapGeopoliticalMap = "map_geopolitical";
+
+/**
+ * A physical map showing natural features or a roadmap showing transport routes and networks.
+ */
+export type MapPhysicalMapOrRoadmap = "map_physical_or_roadmap";
+
+/**
+ * A detailed, scaled plan of a specific place, building, district, or infrastructure layout.
+ */
+export type MapPlan = "map_plan";
+
+/**
+ * A map depicting meteorological conditions, such as temperature, precipitation, cloud cover, wind, or atmospheric pressure.
+ */
+export type MapWeatherMap = "map_weather";
+
+/**
+ * A visual content composed primarily of stylised text, often used in advertisements.
+ */
+export type NonFigurativeVisualContent = "non_figurative_visual_content";
+
+/**
+ * A depiction centred on a discrete object rather than a person, scene, map, or other defined visual type.
+ */
+export type Object = "object";
+
+/**
+ * An ornamental or illustrated section title, potentially combining decorative lettering, figurative elements, or abstract embellishment.
+ */
+export type OrnamentOrIllustratedTitle = "ornament_illustrated_title";
+
+/**
+ * A visual content that cannot be assigned to any other available class.
+ */
+export type Other = "other";
+
+/**
+ * A depiction of a natural landscape, cityscape, or environmental scene in which people are not the main subject.
+ */
+export type SceneryOrLandscape = "scenery_landscape";
+
+/**
+ * A precise technical diagram, such as an architectural blueprint, engineering schematic, or mechanical drawing.
+ */
+export type TechnicalDrawing = "technical_drawing";
+
+/**
+ * A non-geographical infographic representing weather conditions through charts, symbols, or meteorological indicators.
+ */
+export type WeatherInfographic = "weather_infographic";
 
 /**
  * The classification could not be determined, or does not apply at this level.
@@ -2729,6 +2983,783 @@ export type OpenCLIPImageEmbedding768D = [
 ];
 
 /**
+ * Dense vector representation of the image computed using the SigLIP model. The vector has a fixed dimensionality of 768.
+ *
+ * @minItems 768
+ * @maxItems 768
+ */
+export type SigLIPImageEmbedding768D = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number
+];
+
+/**
  * Solr fields describing an image content item and its placement in a newspaper issue. This fragment is composed with core, access-rights, and image semantic-enrichment fields in the complete image Solr document.
  */
 export interface ImageDocumentFieldsFragment {
@@ -2768,6 +3799,7 @@ export interface ImageSemanticEnrichmentFieldsFragment {
   type_l3_tp: ImageTypologyV2Level3ClassVisualContentType;
   dinov2_emb_v1024?: DINOv2ImageEmbedding1024D;
   openclip_emb_v768?: OpenCLIPImageEmbedding768D;
+  siglip_emb_v768?: SigLIPImageEmbedding768D;
   [k: string]: unknown;
 }
 
@@ -2853,6 +3885,10 @@ export type ContentItemTextContentFields1 = {
    * String composed of title + year, e.g. 'Fronde-1872' .
    */
   title_year?: string;
+  /**
+   * Identifier of the section this content item belongs to, if any. The id is a string composed of the issue id and of the legacy (METS/ALTO inherited) ID of the section.
+   */
+  section_id_s?: string;
   [k: string]: unknown;
 };
 
@@ -2920,5 +3956,9 @@ export type ContentItemTextContentFields2 = {
    * String composed of title + year, e.g. 'Fronde-1872' .
    */
   title_year?: string;
+  /**
+   * Identifier of the section this content item belongs to, if any. The id is a string composed of the issue id and of the legacy (METS/ALTO inherited) ID of the section.
+   */
+  section_id_s?: string;
   [k: string]: unknown;
 };

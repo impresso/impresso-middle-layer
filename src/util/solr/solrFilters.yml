@@ -293,7 +293,7 @@ indexes:
   entities:
     filters:
       string:
-        field: entitySuggest
+        field: default_label_s
         rule: openEndedString
         scoring: true
       type:

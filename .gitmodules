@@ -1,4 +1,4 @@
 [submodule "impresso-schemas"]
 	path = impresso-schemas
 	url = https://github.com/impresso/impresso-schemas.git
-	branch = feature/solr-entity-mention-updated-representation
+	branch = feature/solr-entity-mention-updated-representation-with-provenance
