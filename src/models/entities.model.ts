@@ -1,5 +1,6 @@
 import type { EntitySolrDocumentV3 } from '@/models/generated/impressoSchemas/solr/semanticEnrichment.js'
 import type { EntityDetails } from '@/models/generated/deprecated/models.js'
+import type { SuggestEntry } from '@/internalServices/simpleSolr.js'
 import { TypeShorthandToType } from '@/utils/entity.utils.js'
 
 export default class Entity implements EntityDetails {
@@ -31,6 +32,27 @@ export default class Entity implements EntityDetails {
         countItems: doc.content_item_count_l,
         countMentions: doc.mention_count_l ?? 0,
       })
+  }
+
+  /**
+   * Builds an entity from an `e_suggester_infix` suggestion. The suggester supplies
+   * the highlighted label as the term, `<id>|<type shorthand>` as the payload and
+   * the entity weight. Returns `undefined` when the payload cannot be parsed.
+   */
+  static solrSuggestFactory() {
+    return (suggestion: SuggestEntry): Entity | undefined => {
+      const [id, typeShorthand] = suggestion.payload.split('|')
+      const type = TypeShorthandToType[typeShorthand]
+      if (!id || type == null) return undefined
+      return new Entity({
+        id,
+        name: suggestion.term.replace(/<[^>]*>/g, ''),
+        type,
+        wikidataId: id,
+        countItems: suggestion.weight,
+        countMentions: 0,
+      })
+    }
   }
 }
 

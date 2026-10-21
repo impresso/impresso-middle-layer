@@ -4,9 +4,6 @@ import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.j
 import type { SolrNamespace } from '@/solr.js'
 import { SolrNamespaces } from '@/solr.js'
 import { EntityTypeAliases } from '@/utils/entity.utils.js'
-import { buildSearchEntitiesSolrQuery } from '@/services/entities/logic.js'
-import type { EntitySolrDocumentV3 } from '@/models/generated/impressoSchemas/solr/semanticEnrichment.js'
-import { getEntitySuggestionCountField } from './util.js'
 
 import { parse as chronoParse } from 'chrono-node'
 import moment from 'moment'
@@ -14,7 +11,6 @@ import moment from 'moment'
 import { toPlainText } from '@/helpers.js'
 import { NotFound } from '@feathersjs/errors'
 import type { Params } from '@feathersjs/feathers'
-import type { Filter } from 'impresso-jscommons'
 
 import type { SlimUser } from '@/authentication.js'
 import type { SuggestEntry } from '@/internalServices/simpleSolr.js'
@@ -35,6 +31,10 @@ import type { ImpressoApplication } from '@/types.js'
 const logger = getLogger(['impresso', 'services', 'suggestions'])
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
+
+const EntitySuggesterDictionary = 'e_suggester_infix'
+const EntitySuggestionsLimit = 5
+const EntitySuggestionsOverFetchFactor = 4
 
 interface SuggestionQuery {
   q: string
@@ -201,35 +201,43 @@ export class Service {
     return (result.suggestions ?? []).map(builder)
   }
 
-  async suggestEntities({ q, type }: { q: string; type?: string }): Promise<ISuggestion<Entity>[]> {
+  async suggestEntities({
+    q,
+    type,
+    limit = EntitySuggestionsLimit,
+  }: {
+    q: string
+    type?: string
+    limit?: number
+  }): Promise<ISuggestion<Entity>[]> {
     if (!q.trim()) return []
     const solrType = type == null || type === 'entity' ? undefined : (EntityTypeAliases[type] ?? type)
-    const countField = getEntitySuggestionCountField(solrType)
-    const filters: Filter[] = [{ type: 'string', q }]
-    if (solrType != null) filters.push({ type: 'type', q: solrType })
-    const query = buildSearchEntitiesSolrQuery(
-      {
-        filters,
-        limit: 3,
-        offset: 0,
-        orderBy: `def(${countField},0) DESC,def(mention_count_l,0) DESC,id ASC`,
-      },
-      this.app.get('solrConfiguration').namespaces ?? [],
-      this.app.get('features') ?? {}
-    )
-    query.params = { ...query.params, fl: `${query.params?.fl},${countField}` }
-    const result = await this.solr.select<EntitySolrDocumentV3>(SolrNamespaces.Entities, { body: query })
-    return (result.response?.docs ?? []).map(doc => {
-      const item = Entity.solrFactory()(doc)
-      const type = item.type
-      return new Suggestion({
-        q: item.id,
-        h: result.highlighting?.[item.id]?.entitySuggest?.[0] ?? item.name,
-        type,
-        item,
-        weight: doc[countField] ?? 0,
-      })
+    // The suggester returns one entry per indexed label, so the same entity
+    // can appear several times: over-fetch and keep the first entry per id.
+    const result = await this.solr.suggest(SolrNamespaces.Entities, {
+      q,
+      count: limit * EntitySuggestionsOverFetchFactor,
+      dictionary: EntitySuggesterDictionary,
+      cfq: solrType,
     })
+    const toEntity = Entity.solrSuggestFactory()
+    const suggestions = new Map<string, ISuggestion<Entity>>()
+    for (const entry of result.suggestions ?? []) {
+      if (suggestions.size >= limit) break
+      const item = toEntity(entry)
+      if (item == null || suggestions.has(item.id)) continue
+      suggestions.set(
+        item.id,
+        new Suggestion({
+          q: item.id,
+          h: entry.term,
+          type: item.type,
+          item,
+          weight: entry.weight,
+        })
+      )
+    }
+    return [...suggestions.values()]
   }
 
   async suggestMentions({ q }: { q: string }) {
@@ -307,6 +315,23 @@ export class Service {
       }),
       this.suggestEntities({
         q: qPlainText,
+        type: 'person',
+      }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'location',
+      }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'organization',
+      }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'newsagency',
+      }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'radiostation',
       }),
     ])
 

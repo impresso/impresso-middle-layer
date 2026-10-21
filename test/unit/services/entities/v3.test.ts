@@ -7,7 +7,6 @@ import type { EntitySolrDocumentV3 } from '@/models/generated/impressoSchemas/so
 import Entity from '@/models/entities.model.js'
 import { transformEntityDetails } from '@/transformers/entity.js'
 import { Service as EntitiesService } from '@/services/entities/entities.class.js'
-import { Service as SuggestionsService } from '@/services/suggestions/suggestions.class.js'
 import { createEntityResolver, findEntitiesByIds } from '@/services/entities/lookup.js'
 import { entityExtractor } from '@/services/filters-items/extractors.js'
 import { SolrNamespaces } from '@/solr.js'
@@ -127,34 +126,6 @@ describe('v3 entities', () => {
       },
     })
     assert.ok(JSON.stringify(query.filter?.[1]).includes('must_not'))
-  })
-
-  it('uses select for typed autocomplete, filtering the primary type and ordering by its count', async () => {
-    const { app, select, suggest } = setup()
-    const service = new SuggestionsService({ app, name: 'suggestions' })
-    const results = await service.get('location', { query: { q: 'Berl' } })
-    const body = select.firstCall.args[1].body
-    assert.equal(body.query, 'entitySuggest:Berl*')
-    assert.deepEqual(body.filter, ['ner_entity_type_s:loc'])
-    assert.equal(body.sort, 'def(ner_type_loc_count_l,0) DESC,def(mention_count_l,0) DESC,id ASC')
-    assert.equal(body.limit, 3)
-    assert.equal(results[0].q, 'Q64')
-    assert.equal(results[0].h, '<b>Berlin</b>')
-    assert.equal(results[0].weight, 400)
-    assert.equal(suggest.called, false)
-  })
-
-  it('reenables entities in combined suggestions and falls back to default labels', async () => {
-    const { app, select } = setup()
-    select.resolves({ response: { docs: [document], numFound: 1, start: 0 } })
-    const service = new SuggestionsService({ app, name: 'suggestions' })
-    sinon.stub(service, 'suggestNewspapers').resolves([])
-    sinon.stub(service, 'suggestTopics').resolves([])
-    sinon.stub(service, 'suggestMentions').resolves([])
-    const result = await service.find({ query: { q: 'Berl' } })
-    assert.equal(result.data[0].q, 'Q64')
-    assert.equal(result.data[0].h, document.default_label_s)
-    assert.equal(result.data[0].weight, document.content_item_count_l)
   })
 
   it('batches concurrent and duplicate QID lookups', async () => {
