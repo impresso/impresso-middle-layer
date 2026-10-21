@@ -39,7 +39,7 @@ describe("'Topic' model", () => {
     assert.equal(topic.description, 'Sport et compétitions')
     assert.equal(topic.metadata, 'sample metadata')
     assert.equal(topic.category, 'sports')
-    assert.equal(topic.shortLabel, 'Sport')
+    assert.equal(topic.label, 'Sport')
     assert.equal(topic.longLabel, 'Sports results and competitions')
     assert.equal(topic.confidence, 'high')
     assert.deepEqual(topic.representativeTerms, ['sport', 'course', 'concours'])
@@ -48,16 +48,16 @@ describe("'Topic' model", () => {
 
   it('leaves label fields undefined for pre-v3 documents and omits them from JSON', () => {
     const topic = Topic.solrFactory()(mock)
-    assert.equal(topic.shortLabel, undefined)
+    assert.equal(topic.label, undefined)
     assert.equal(topic.representativeTerms, undefined)
     const json = JSON.parse(JSON.stringify(topic))
-    assert.equal('shortLabel' in json, false)
+    assert.equal('label' in json, false)
     assert.equal('confidence' in json, false)
   })
 
   it('solr facet factory maps the same label fields', () => {
     const topic = Topic.solrFacetFactory()(mockV3)
-    assert.equal(topic.shortLabel, 'Sport')
+    assert.equal(topic.label, 'Sport')
     assert.deepEqual(topic.words, [])
   })
 
