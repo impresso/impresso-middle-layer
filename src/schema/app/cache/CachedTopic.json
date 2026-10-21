@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "title": "CachedTopic",
+  "description": "A topic as stored in the well-known topics cache, with graph metrics and related topics",
+  "additionalProperties": false,
+  "required": ["id", "language"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "The unique identifier of the topic"
+    },
+    "language": {
+      "type": "string",
+      "description": "The language code of the topic"
+    },
+    "model": {
+      "type": "string",
+      "description": "ID of the model used to generate the topic"
+    },
+    "words": {
+      "type": "array",
+      "items": { "$ref": "../entities/TopicWord.json" },
+      "description": "Top N words associated with the topic"
+    },
+    "topicNumber": {
+      "type": "integer",
+      "description": "Topic number within its model"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional topic description"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "Optional topic metadata"
+    },
+    "category": {
+      "type": "string",
+      "description": "Topic category assigned by the label-generation model"
+    },
+    "shortLabel": {
+      "type": "string",
+      "description": "Short human-readable topic label"
+    },
+    "longLabel": {
+      "type": "string",
+      "description": "Long-form English topic label"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "Confidence level of the generated label"
+    },
+    "representativeTerms": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Representative terms backing the generated topic label"
+    },
+    "generatedBy": {
+      "type": "string",
+      "description": "Attribution for the topic-label generation process"
+    },
+    "contentItemsCount": {
+      "type": "number",
+      "description": "Number of content items with this topic"
+    },
+    "relatedTopics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique identifier of the related topic"
+          },
+          "w": {
+            "type": "number",
+            "description": "Related topic weight (total articles in common)"
+          },
+          "avg": {
+            "type": "number",
+            "description": "Related topic average combined topic weight"
+          }
+        },
+        "required": ["id", "w"]
+      }
+    },
+    "relatedTopicsStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "MinArticlesIncommon": {
+          "type": "number"
+        },
+        "MaxRelatedTopicsToKeep": {
+          "type": "number"
+        },
+        "RelatedThreshold": {
+          "type": "number"
+        },
+        "Threshold": {
+          "type": "number"
+        }
+      }
+    },
+    "degree": {
+      "type": "number",
+      "description": "Degree score (total related topics)"
+    },
+    "pagerank": {
+      "type": "number",
+      "description": "Topic score using PageRank algorithm"
+    },
+    "community": {
+      "type": "number",
+      "description": "Topic community score using Louvain algorithm"
+    },
+    "hub": {
+      "type": "number",
+      "description": "Hub score using HITS algorithm"
+    },
+    "authority": {
+      "type": "number",
+      "description": "Authority score using HITS algorithm"
+    },
+    "x": {
+      "type": "number",
+      "description": "Graph x position"
+    },
+    "y": {
+      "type": "number",
+      "description": "Graph y position"
+    }
+  }
+}

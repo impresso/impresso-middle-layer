@@ -18,6 +18,7 @@ const schemaBits = [
   'app/requests',
   'app/responses',
   'app/configuration',
+  'app/cache',
   'deprecated/internalApi',
   'deprecated/models',
 ]

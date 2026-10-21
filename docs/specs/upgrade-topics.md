@@ -13,6 +13,59 @@ the `topics` service.
 
 The pre-v3 fields (`tp_desc_s`, `tp_meta_s`, `tp_nb_i`) are included too.
 
+## Implementation status
+
+Implemented (internal pipeline only):
+
+- `src/schema/app/cache/CachedTopic.json` added, `app/cache` registered in
+  `src/scripts/generate-types.js`, generated to `src/models/generated/app/cache.d.ts`.
+  The generated file repeats `TopicWord` locally, as expected for the cross-directory `$ref`.
+- `src/schema/deprecated/models/InternalTopic.json` deleted, and
+  `generated/deprecated/models.d.ts` regenerated without it.
+- `topics.model.ts`: `SOLR_FL` covers all fields except `topic_suggest`. Added
+  `topicLabelFieldsFromSolr()` (single Solr-to-label mapping, shared by the model
+  and `prepareTopics`). The constructor keeps the label fields.
+- `prepareTopics.ts`: input typed as a `Pick` of `SolrTopic`. The stub carries the
+  label fields, and `topicIndexDocToTopicStub` is exported for tests.
+- `cachedResolvers.ts`: keeps the whole cached entry (previously it copied five fields).
+- `topics.class.ts`: `InternalTopic` replaced by `TopicResult` (public `Topic` plus
+  label fields, `relatedTopics` and `matches`).
+- `transformers/topic.ts`: input typed as the public `Topic`. Its mapping is
+  unchanged, so the public response does not show the new fields yet.
+
+Deviations from the plan:
+
+- **Step 5.2 (`get` label fields from the cache):** not needed. `get` reads the label
+  fields from Solr via `SOLR_FL`.
+- **Public transformer and submodule:** not changed. They wait for decision D1 in
+  `topics-public-schema.md`.
+- **Cache freshness (decision 5):** not changed. Existing caches keep the old shape
+  until a rebuild.
+
+Behaviour changes to review:
+
+- The cache now stores the full entry, so `relatedTopics` is populated. Before this
+  change the resolver dropped it, the model defaulted it to `[]`, and `get` returned
+  an empty `relatedTopics`. `get` and `find` now return the real related topics in
+  internal API mode. `topics-graph` was already reading them from the cache.
+
+Pre-existing issue found, not changed:
+
+- `topics.class.ts` `get()` checks `cached.contentItemsCount`, but the model stores
+  this value as `countItems`. That branch never runs, so the cached
+  `contentItemsCount` is never used by `get`.
+
+Verification:
+
+- `npm run generate-internal-types` produces no diff outside `app/cache` and
+  `deprecated/models`.
+- `npm run typecheck` shows only the five existing `csv-parse` errors (missing
+  package in `node_modules`, unrelated to this change).
+- `npm run lint` is clean.
+- Unit tests for models, use cases, the topics service, internal services and Solr
+  pass (32). Full `npm test` cannot load because of the same missing `csv-parse`
+  package, which affects the provenance test files.
+
 ## Decisions
 
 | # | Topic | Decision |
