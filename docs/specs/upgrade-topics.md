@@ -150,6 +150,42 @@ Only 4 of the 13 fields reach the application today.
 
 ## Type migration (decision 6)
 
+### Rationale
+
+Why move off `InternalTopic`:
+
+- **It is in the phase-out folder.** `src/schema/README.md` defines
+  `deprecated/` as "all old schemas that are being phased out". `InternalTopic`
+  lives in `src/schema/deprecated/models/`, and its generated type in
+  `src/models/generated/deprecated/models.d.ts`.
+- **New code has to avoid legacy types.** AGENTS.md says legacy code must not be
+  used as a design reference, and new code uses the current Feathers, Sequelize
+  and BullMQ patterns. Extending `InternalTopic` for the v3 fields would add more
+  surface to a type we want to remove.
+- **Its shape mixes concerns.** `InternalTopic` holds the public topic fields
+  (`id`, `language`, `words`, `model`), the cache counters, and the graph
+  metrics computed in `prepareTopics`. Separate types make each role explicit:
+  `Topic` for the public contract, `CachedTopic` for the stored data.
+- **The public type already exists.** `Topic` in `app/entities` is generated from
+  the public schema, so the service and transformer can use it directly. Keeping
+  `InternalTopic` as a second copy of the same fields invites drift.
+
+Alternatives considered:
+
+- **Extend `InternalTopic`.** Rejected: it keeps the legacy type alive and adds
+  the v3 fields to it.
+- **Use `TopicSolrDocument` as the cache type.** Rejected: see the note below.
+- **Create `CachedTopic` (chosen).** A new schema with the names the cache and
+  service need. It is generated, and it can be removed or renamed independently
+  of the public contract.
+
+Will `InternalTopic` be deprecated? It already is, in the sense that the
+`deprecated/` folder is where it is meant to end up. `InternalTopic` is only used
+by the four topics files listed above (checked with grep, excluding generated
+code), so once those are migrated nothing references it, and its schema can be
+deleted in the same change. The folder itself stays: 22 other files import other
+types from `generated/deprecated`, and those are outside this spec.
+
 `InternalTopic` (`src/schema/deprecated/models/InternalTopic.json`, generated
 into `src/models/generated/deprecated/models.d.ts`) is used in:
 
@@ -163,7 +199,13 @@ Target types:
 | Purpose | Type | Source |
 | --- | --- | --- |
 | Public topic (API response) | `Topic`, `TopicWord` | `app/entities` (generated from the `impresso-schemas` submodule) |
-| Cache entry (graph and internal data) | `CachedTopic` (new) | new JSON schema, `src/schema/app/...`, generated |
+| Cache entry (graph and internal data) | `CachedTopic` (new) | `src/schema/app/cache/CachedTopic.json`, generated to `src/models/generated/app/cache.d.ts` |
+
+`TopicSolrDocument` is **not** a target for the cache or the API. It describes the
+Solr document: Solr field names (`lg_s`, `tp_model_s`), `word_probs_dpf` as one
+DPFS string, and no fields for counts, related topics or graph metrics. Those are
+computed by `prepareTopics`. Use `TopicSolrDocument` only as the **input** type of
+`prepareTopics` (`Pick<TopicSolrDocument, ...>`), and map it into `CachedTopic`.
 
 `CachedTopic` extends the public fields with the graph metrics and related
 topics (`relatedTopics`, `relatedTopicsStats`, `degree`, `pagerank`,
@@ -173,8 +215,11 @@ shapes are the same.
 
 Plan:
 
-1. Add `CachedTopic` as a JSON schema and register its directory in
-   `src/scripts/generate-types.js` (`schemaBits`). Run `npm run generate-types`.
+1. Add `src/schema/app/cache/CachedTopic.json`. Register `app/cache` in
+   `schemaBits` in `src/scripts/generate-types.js`. The generator only compiles
+   directories listed there, and writes one file per directory
+   (`app/cache` gives `generated/app/cache.d.ts`). Run `npm run generate-types`.
+   The schema is local to this repo, so no submodule change is needed.
 2. Migrate each reference listed above to `Topic` or `CachedTopic`.
 3. Once no references remain, delete `InternalTopic.json` and regenerate. The
    removal confirms the migration is complete (the compiler will fail if any
@@ -191,8 +236,8 @@ alone. Confirm this shape in Step 5.
 
 1. Add the new public properties to the `impresso-schemas` public-api
    `entities/Topic.json` (optional, with descriptions). Commit in the submodule.
-2. Add the `CachedTopic` JSON schema and register its directory for generation
-   (see Type migration).
+2. Add `src/schema/app/cache/CachedTopic.json` and register `app/cache` in
+   `schemaBits` (see Type migration).
 3. Run `npm run generate-types`. Confirm the diffs contain only the new types
    and fields.
 4. Check `TopicSolrDocument` is the current generated version
