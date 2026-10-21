@@ -33,7 +33,7 @@ const logger = getLogger(['impresso', 'services', 'suggestions'])
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 
 const EntitySuggesterDictionary = 'e_suggester_infix'
-const EntitySuggestionsLimit = 5
+const EntitySuggestionsLimit = 3
 const EntitySuggestionsOverFetchFactor = 4
 
 interface SuggestionQuery {
