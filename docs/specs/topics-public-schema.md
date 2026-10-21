@@ -57,7 +57,7 @@ Add these optional properties to `Topic.json` (all absent on pre-v3 topics):
 | `description` | string | `tp_desc_s` | Optional topic description |
 | `metadata` | string | `tp_meta_s` | Optional topic metadata |
 | `category` | string | `topic_type_s` | Topic category assigned by the label-generation model |
-| `shortLabel` / `short_label` | string | `label_short_s` | Short human-readable topic label |
+| `label` / `short_label` | string | `label_short_s` | Short human-readable topic label |
 | `longLabel` / `long_label` | string | `label_long_txt_en` | Long-form English topic label |
 | `confidence` | string, enum `high`, `medium`, `low` | `confidence_s` | Confidence level of the generated label |
 | `representativeTerms` / `representative_terms` | array of string | `representative_terms_ss` | Representative terms backing the generated label |
@@ -85,7 +85,7 @@ deciding.
 - **A. snake_case** (`short_label`, `topic_number`). Matches the written
   convention. The public `Topic` would then mix `contentItemsCount` with
   `short_label` unless that property is renamed too (breaking for clients).
-- **B. camelCase** (`shortLabel`). Matches the existing public `Topic` and the
+- **B. camelCase** (`longLabel`). Matches the existing public `Topic` and the
   names approved in the internal spec. Goes against the written convention, so
   a reviewer in the submodule may ask for a change.
 - **C. Keep the existing public style and document the exception** in
