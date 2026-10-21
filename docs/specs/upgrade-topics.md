@@ -124,7 +124,7 @@ qualifier.
 | `tp_desc_s` | Optional topic description | `description` | `description` | yes |
 | `tp_meta_s` | Optional topic metadata | `metadata` | `metadata` | yes |
 | `topic_type_s` | Topic category | `category` | `category` | yes |
-| `label_short_s` | Short human-readable topic label | `shortLabel` | `shortLabel` | yes |
+| `label_short_s` | Short human-readable topic label | `label` | `label` | yes |
 | `label_long_txt_en` | Long-form English topic label | `longLabel` | `longLabel` | yes |
 | `confidence_s` | Confidence level of the label | `confidence` | `confidence` | yes |
 | `representative_terms_ss` | Representative terms of the label | `representativeTerms` | `representativeTerms` | yes |

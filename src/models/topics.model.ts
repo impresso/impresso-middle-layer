@@ -9,7 +9,7 @@ export type TopicLabelFields = Pick<
   | 'description'
   | 'metadata'
   | 'category'
-  | 'shortLabel'
+  | 'label'
   | 'longLabel'
   | 'confidence'
   | 'representativeTerms'
@@ -34,7 +34,7 @@ export const topicLabelFieldsFromSolr = (doc: TopicLabelSolrFields): TopicLabelF
   description: doc.tp_desc_s,
   metadata: doc.tp_meta_s,
   category: doc.topic_type_s,
-  shortLabel: doc.label_short_s,
+  label: doc.label_short_s,
   longLabel: doc.label_long_txt_en,
   confidence: doc.confidence_s,
   representativeTerms: doc.representative_terms_ss,
@@ -102,7 +102,7 @@ class Topic implements ITopic {
   description?: string | undefined
   metadata?: string | undefined
   category?: string | undefined
-  shortLabel?: string | undefined
+  label?: string | undefined
   longLabel?: string | undefined
   confidence?: 'high' | 'medium' | 'low' | undefined
   representativeTerms?: string[] | undefined
@@ -126,7 +126,7 @@ class Topic implements ITopic {
       description = undefined,
       metadata = undefined,
       category = undefined,
-      shortLabel = undefined,
+      label = undefined,
       longLabel = undefined,
       confidence = undefined,
       representativeTerms = undefined,
@@ -176,7 +176,7 @@ class Topic implements ITopic {
     this.description = description
     this.metadata = metadata
     this.category = category
-    this.shortLabel = shortLabel
+    this.label = label
     this.longLabel = longLabel
     this.confidence = confidence
     this.representativeTerms = representativeTerms
