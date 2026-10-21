@@ -39,7 +39,7 @@
       "type": "string",
       "description": "Topic category assigned by the label-generation model"
     },
-    "shortLabel": {
+    "label": {
       "type": "string",
       "description": "Short human-readable topic label"
     },
