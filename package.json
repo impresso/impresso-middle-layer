@@ -37,6 +37,7 @@
     "bun-test": "bun test",
     "cli": "node src/admin/cli.js",
     "read-cache": "tsx --env-file=./.env src/scripts/readWellKnownCache.ts",
+    "write-cache": "tsx --env-file=./.env src/scripts/writeWellKnownCache.ts",
     "generate-internal-types": "node src/scripts/generate-types.js",
     "generate-types-from-schemas-repo": "node src/scripts/generate-types-from-schemas-repo.js",
     "generate-types": "npm run generate-internal-types && npm run generate-types-from-schemas-repo"
