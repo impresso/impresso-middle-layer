@@ -47,12 +47,15 @@ describe('useCases/prepareTopics topicIndexDocToTopicStub', () => {
     assert.equal(stub.generatedBy, 'OpenAI')
   })
 
-  it('does not store topic_suggest or _version_ and omits absent label fields', () => {
+  it('does not store topic_suggest or _version_ and substitute absent label fields with words', () => {
     const stub = topicIndexDocToTopicStub(baseDoc)
     const json = JSON.parse(JSON.stringify(stub))
+    // baseDoc does not have any short_label. Label is computed from words. Usezd for v2 topics
+    const words = stub.words?.map(w => w.w).join(' ')
+    assert.equal(stub.label, words)
     assert.equal('topic_suggest' in json, false)
     assert.equal('_version_' in json, false)
-    assert.equal('label' in json, false)
+    assert.equal('label' in json, true)
     assert.equal('description' in json, false)
   })
 })
