@@ -6,9 +6,9 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/src/index.ts",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx",
+      "runtimeVersion": "26",
       "runtimeArgs": [
-        "--import", "tsx",
         "--env-file=.env",
         "--watch"
       ],
@@ -22,9 +22,9 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/src/index.ts",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx",
+      "runtimeVersion": "26",
       "runtimeArgs": [
-        "--import", "tsx",
         "--env-file=.env",
         "--watch"
       ],
