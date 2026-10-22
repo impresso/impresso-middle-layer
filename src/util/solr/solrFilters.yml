@@ -293,7 +293,7 @@ indexes:
   entities:
     filters:
       string:
-        field: default_label_s
+        field: _text_
         rule: openEndedString
         scoring: true
       type:
