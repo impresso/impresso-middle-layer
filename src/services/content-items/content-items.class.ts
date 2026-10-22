@@ -54,6 +54,7 @@ import { AccessMethod, ContentItemAccessLogEntry, getVectorLogService } from '@/
 import { Filter } from 'impresso-jscommons'
 import { isTrue } from '@/util/queryParameters.js'
 import { EmbeddingsConfig } from '@/models/generated/app/configuration.js'
+import { CachedTopic } from '@/models/generated/app/cache.js'
 
 const DefaultLimit = 10
 
@@ -253,10 +254,11 @@ const withTopics =
       topics.map(async topic => {
         if (topic.label != null && topic.languageCode != null) return topic
 
-        const topicDetails = await topicResolver(topic.id)
+        const topicDetails = (await topicResolver(topic.id)) as CachedTopic
         if (topicDetails == null) return topic
 
         const topicLabel =
+          topicDetails.label ??
           topic.label ??
           take(topicDetails.words, 5)
             .map(word => word.w)

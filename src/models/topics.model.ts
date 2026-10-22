@@ -1,6 +1,45 @@
 import { findIndex, take } from 'lodash-es'
 import { Topic as ITopic, TopicWord as ITopicWord } from '@/models/generated/app/entities.js'
+import type { CachedTopic } from '@/models/generated/app/cache.js'
 import type { Topic as ISolrTopic } from '@/models/consolidated/solr/index.js'
+
+export type TopicLabelFields = Pick<
+  CachedTopic,
+  | 'topicNumber'
+  | 'description'
+  | 'metadata'
+  | 'category'
+  | 'label'
+  | 'longLabel'
+  | 'confidence'
+  | 'representativeTerms'
+  | 'generatedBy'
+>
+
+type TopicLabelSolrFields = Pick<
+  ISolrTopic,
+  | 'tp_nb_i'
+  | 'tp_desc_s'
+  | 'tp_meta_s'
+  | 'topic_type_s'
+  | 'label_short_s'
+  | 'label_long_txt_en'
+  | 'confidence_s'
+  | 'representative_terms_ss'
+  | 'generated_by_s'
+>
+
+export const topicLabelFieldsFromSolr = (doc: TopicLabelSolrFields): TopicLabelFields => ({
+  topicNumber: doc.tp_nb_i,
+  description: doc.tp_desc_s,
+  metadata: doc.tp_meta_s,
+  category: doc.topic_type_s,
+  label: doc.label_short_s,
+  longLabel: doc.label_long_txt_en,
+  confidence: doc.confidence_s,
+  representativeTerms: doc.representative_terms_ss,
+  generatedBy: doc.generated_by_s,
+})
 
 class TopicWord implements ITopicWord {
   w: string
@@ -25,7 +64,21 @@ class TopicWord implements ITopicWord {
 }
 
 class Topic implements ITopic {
-  static readonly SOLR_FL: string[] = ['id', 'lg_s', 'word_probs_dpf', 'tp_model_s'] satisfies (keyof ISolrTopic)[]
+  static readonly SOLR_FL: string[] = [
+    'id',
+    'lg_s',
+    'word_probs_dpf',
+    'tp_model_s',
+    'tp_nb_i',
+    'tp_desc_s',
+    'tp_meta_s',
+    'topic_type_s',
+    'label_short_s',
+    'label_long_txt_en',
+    'confidence_s',
+    'representative_terms_ss',
+    'generated_by_s',
+  ] satisfies (keyof ISolrTopic)[]
 
   id: string
   language: string
@@ -45,6 +98,15 @@ class Topic implements ITopic {
   words?: ITopicWord[] | undefined
   model?: string | undefined
   matches?: string[] | undefined
+  topicNumber?: number | undefined
+  description?: string | undefined
+  metadata?: string | undefined
+  category?: string | undefined
+  label?: string | undefined
+  longLabel?: string | undefined
+  confidence?: 'high' | 'medium' | 'low' | undefined
+  representativeTerms?: string[] | undefined
+  generatedBy?: string | undefined
 
   constructor(
     {
@@ -60,6 +122,15 @@ class Topic implements ITopic {
       degree = 0,
       pagerank = 0,
       community = undefined,
+      topicNumber = undefined,
+      description = undefined,
+      metadata = undefined,
+      category = undefined,
+      label = undefined,
+      longLabel = undefined,
+      confidence = undefined,
+      representativeTerms = undefined,
+      generatedBy = undefined,
     }: {
       id?: string
       language?: string
@@ -72,7 +143,7 @@ class Topic implements ITopic {
       degree?: number | string
       pagerank?: number | string
       community?: number
-    },
+    } & Partial<TopicLabelFields>,
     {
       // options
       wordsInExcerpt = 5,
@@ -101,6 +172,15 @@ class Topic implements ITopic {
     this.degree = typeof degree === 'number' ? degree : parseInt(degree, 10)
     this.pagerank = typeof pagerank === 'number' ? pagerank : parseFloat(pagerank)
     this.community = community
+    this.topicNumber = topicNumber
+    this.description = description
+    this.metadata = metadata
+    this.category = category
+    this.label = label
+    this.longLabel = longLabel
+    this.confidence = confidence
+    this.representativeTerms = representativeTerms
+    this.generatedBy = generatedBy
   }
 
   getExcerpt() {
@@ -114,6 +194,7 @@ class Topic implements ITopic {
         language: topic.lg_s,
         words: topic.word_probs_dpf.split(' ').map(d => TopicWord.create(d)),
         model: topic.tp_model_s,
+        ...topicLabelFieldsFromSolr(topic),
       })
   }
 
@@ -124,6 +205,7 @@ class Topic implements ITopic {
         language: doc.lg_s,
         words: doc.word_probs_dpf.split(' ').map(d => TopicWord.create(d)),
         model: doc.tp_model_s,
+        ...topicLabelFieldsFromSolr(doc),
       })
       // once created get rid of it
       topic.words = []

@@ -13,12 +13,57 @@ const mock = {
     'suisse course point concours sport prix club premier dimanche genève lausanne résultat championnat épreuve sportif ski tir international kilomètre minute grand page battre mètre équipe sec champion catégorie zurich temps meilleur série lieu concurrent centimètre tour voici samedi parcours classement plus départ suivre mlle journée tireur dernier section record heure beau piste chevaux coureur neige saut romand coupe bat amateur match cavalier national france sports nombreux gymnastique année excellent lutte cheval manifestation tennis compétition victoire individuel dame olympique suivant challenge succès junior cap cible prendre skieur hiver berne matin mme montreux place stade jeune entraînement disputer athlétisme part société villars ',
 } satisfies SolrTopic
 
+const mockV3 = {
+  ...mock,
+  tp_desc_s: 'Sport et compétitions',
+  tp_meta_s: 'sample metadata',
+  topic_type_s: 'sports',
+  label_short_s: 'Sport',
+  label_long_txt_en: 'Sports results and competitions',
+  confidence_s: 'high',
+  representative_terms_ss: ['sport', 'course', 'concours'],
+  generated_by_s: 'OpenAI',
+} satisfies SolrTopic
+
 describe("'Topic' model", () => {
   it('check that a mock solr data correctly from select', () => {
     const topic = Topic.solrFactory()(mock)
     assert.equal(topic.language, 'fr')
     assert.equal(topic.words?.length, 101)
     assert.equal(topic instanceof Topic, true)
+  })
+
+  it('maps topic labels v3 fields from solr', () => {
+    const topic = Topic.solrFactory()(mockV3)
+    assert.equal(topic.topicNumber, 0)
+    assert.equal(topic.description, 'Sport et compétitions')
+    assert.equal(topic.metadata, 'sample metadata')
+    assert.equal(topic.category, 'sports')
+    assert.equal(topic.label, 'Sport')
+    assert.equal(topic.longLabel, 'Sports results and competitions')
+    assert.equal(topic.confidence, 'high')
+    assert.deepEqual(topic.representativeTerms, ['sport', 'course', 'concours'])
+    assert.equal(topic.generatedBy, 'OpenAI')
+  })
+
+  it('leaves label fields undefined for pre-v3 documents and omits them from JSON', () => {
+    const topic = Topic.solrFactory()(mock)
+    assert.equal(topic.label, undefined)
+    assert.equal(topic.representativeTerms, undefined)
+    const json = JSON.parse(JSON.stringify(topic))
+    assert.equal('label' in json, false)
+    assert.equal('confidence' in json, false)
+  })
+
+  it('solr facet factory maps the same label fields', () => {
+    const topic = Topic.solrFacetFactory()(mockV3)
+    assert.equal(topic.label, 'Sport')
+    assert.deepEqual(topic.words, [])
+  })
+
+  it('SOLR_FL requests every topic field except topic_suggest', () => {
+    const expected = Object.keys(mockV3).filter(key => key !== 'topic_suggest')
+    assert.deepEqual([...Topic.SOLR_FL].sort(), expected.sort())
   })
 
   it('check model still works from suggestions mock solr ', () => {

@@ -11,7 +11,7 @@ import {
   Partner as IPartner,
   MediaSource as IMediaSource,
 } from '@/models/generated/app/entities.js'
-import { InternalTopic } from '@/models/generated/deprecated/models.js'
+import type { CachedTopic } from '@/models/generated/app/cache.js'
 import { FacetWithLabel } from '@/models/generated/app/entities.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
@@ -122,28 +122,22 @@ const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection>
 }
 
 const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
-  const loadTopicsData = async (): Promise<Record<string, ITopic>> => {
+  const loadTopicsData = async (): Promise<Record<string, CachedTopic>> => {
     const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
-    const deserialisedTopics: InternalTopic[] = JSON.parse(result ?? '[]')
+    const deserialisedTopics: CachedTopic[] = JSON.parse(result ?? '[]')
     const byId = deserialisedTopics.reduce(
       (acc, topic) => {
         if (acc[topic.id] == null) {
-          acc[topic.id] = {
-            id: topic.id,
-            language: topic.language,
-            words: topic.words,
-            contentItemsCount: topic.contentItemsCount,
-            model: topic.model,
-          }
+          acc[topic.id] = topic
         }
         return acc
       },
-      {} as Record<string, ITopic>
+      {} as Record<string, CachedTopic>
     )
     return byId
   }
 
-  const getTopicsData = async (): Promise<Record<string, ITopic>> => {
+  const getTopicsData = async (): Promise<Record<string, CachedTopic>> => {
     return await loadTopicsData()
   }
 
@@ -151,7 +145,7 @@ const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
     const topics = await getTopicsData()
     const topic = topics[id]
     if (!topic) return undefined
-    return new Topic(topic as unknown as any) as any as ITopic
+    return new Topic(topic)
   }
 }
 
