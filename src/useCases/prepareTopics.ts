@@ -67,13 +67,24 @@ const dpfToWords = (dpf: string): TopicWord[] => {
     .map(([word, prob]) => ({ w: word, p: parseFloat(prob) }))
 }
 
-export const topicIndexDocToTopicStub = (doc: TopicIndexDocument): TopicStub => ({
-  id: doc.id,
-  language: doc.lg_s,
-  model: doc.tp_model_s,
-  words: dpfToWords(doc.word_probs_dpf).slice(0, TopNTopics),
-  ...topicLabelFieldsFromSolr(doc),
-})
+export const topicIndexDocToTopicStub = (doc: TopicIndexDocument): TopicStub => {
+  const words = dpfToWords(doc.word_probs_dpf).slice(0, TopNTopics)
+  const label =
+    doc.label_short_s ??
+    words
+      .slice(0, 5)
+      .map(w => w.w)
+      .join(' ')
+  return {
+    id: doc.id,
+    language: doc.lg_s,
+    model: doc.tp_model_s,
+
+    words,
+    ...topicLabelFieldsFromSolr(doc),
+    label,
+  }
+}
 
 const toTopicStubWithCountItems = (stub: TopicStub, counts: Record<string, number>): TopicStubWithCountItems => ({
   ...stub,

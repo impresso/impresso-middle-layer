@@ -98,8 +98,15 @@ const readTopics = async (cache: Cache, id: string | undefined, json: boolean) =
     log(`No topics found in "${WellKnownKeys.Topics}". Is the cache populated?`)
     return
   }
-  if (json) return printJson(id != null ? topics.filter(topic => topic.id === id) : topics)
-
+  if (json) {
+    if (id == null) return printJson(topics)
+    const topic = topics.find(item => item.id === id)
+    if (topic == null) {
+      process.exitCode = 1
+      return printJson(null)
+    }
+    return printJson(topic)
+  }
   if (id == null) {
     log(`${topics.length} topics in "${WellKnownKeys.Topics}"`)
     topics.forEach(topic => log(topicSummary(topic)))
