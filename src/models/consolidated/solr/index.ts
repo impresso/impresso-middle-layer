@@ -5,7 +5,8 @@ import {
   ContentItemCoreFieldsPartOfComposedSchema,
   ContentItemPaperSupportSchemaFragment,
   ContentItemTextContentFields,
-  Image2,
+  ImageDocumentFieldsFragment,
+  ImageSemanticEnrichmentFieldsFragment,
   SemanticEnrichmentsFieldsPartOfComposedSchema,
 } from '@/models/generated/impressoSchemas/solr/contentItem.js'
 import {
@@ -36,7 +37,8 @@ export type DynamicPayloadFieldsAsArrays<T> = {
  * Solr Image document is a combination of the core content item fields and the image-specific fields.
  */
 export type Image = Sealed<
-  Image2 &
+  ImageDocumentFieldsFragment &
+    ImageSemanticEnrichmentFieldsFragment &
     ContentItemCoreFieldsPartOfComposedSchema &
     AccessRightFields & {
       caption_txt?: string[] // a workaround for the wrong type of the field. To be removed once fixed in schema.
@@ -52,7 +54,6 @@ export type SemanticEnrichmentsFields = DynamicPayloadFieldsAsArrays<
   // TODO: remove DynamicPayloadFieldsAsArrays when _dpfs fields are fixed
   Sealed<SemanticEnrichmentsFieldsPartOfComposedSchema> & {
     gte_multi_v256: number[] // TODO: remove when it is in the schema.
-    nem_offset_plain?: string[] | null // TODO: remove when type is fixed.
   }
 >
 export type AccessRightFields = Sealed<AccessRightFieldsBase>

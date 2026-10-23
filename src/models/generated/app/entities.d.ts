@@ -178,7 +178,7 @@ export interface EntityDetails {
    * Entity label
    */
   label?: string;
-  type?: "person" | "location" | "organisation" | "newsagency";
+  type?: "person" | "location" | "organisation" | "newsagency" | "radiostation";
   /**
    * Wikidata identifier of the entity.
    */
@@ -191,7 +191,7 @@ export interface EntityDetails {
    * Total number of content items the entity is mentioned in.
    */
   totalContentItems?: number;
-  wikidataDetails?: WikidataPerson | WikidataLocation2;
+  wikidataDetails?: WikidataPerson | WikidataLocation2 | WikidataItem;
 }
 /**
  * Wikidata person schema. Based on https://schema.org/Person
@@ -355,6 +355,37 @@ export interface WikidataLocation2 {
      * The longitude of the location
      */
     longitude?: number;
+  };
+}
+/**
+ * Generic Wikidata item schema, for entities that are not a person or a location. Based on https://www.wikidata.org/wiki/Wikidata:Glossary
+ */
+export interface WikidataItem {
+  /**
+   * The Q Wikidata ID of the item (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "item";
+  /**
+   * Labels of the item in different languages
+   */
+  labels?: {
+    /**
+     * Label of the item in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the item in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the item in a specific language
+     */
+    [k: string]: string;
   };
 }
 
@@ -1124,6 +1155,39 @@ export interface TopicWord {
    * If word is highlighted
    */
   h?: boolean;
+}
+
+
+/**
+ * Generic Wikidata item schema, for entities that are not a person or a location. Based on https://www.wikidata.org/wiki/Wikidata:Glossary
+ */
+export interface WikidataItem {
+  /**
+   * The Q Wikidata ID of the item (https://www.wikidata.org/wiki/Wikidata:Identifiers)
+   */
+  id: string;
+  /**
+   * The type of the entity
+   */
+  type: "item";
+  /**
+   * Labels of the item in different languages
+   */
+  labels?: {
+    /**
+     * Label of the item in a specific language
+     */
+    [k: string]: string;
+  };
+  /**
+   * Descriptions of the item in different languages
+   */
+  descriptions?: {
+    /**
+     * Description of the item in a specific language
+     */
+    [k: string]: string;
+  };
 }
 
 

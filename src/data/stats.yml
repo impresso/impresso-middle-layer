@@ -34,13 +34,16 @@ indexes:
           field: lg_s
           limit: 10
         person:
-          field: pers_entities_dpfs
+          field: pers_entity_ids_dpfs
           limit: 10
         location:
-          field: loc_entities_dpfs
+          field: loc_entity_ids_dpfs
           limit: 10
         nag:
-          field: nag_entities_dpfs
+          field: pressagency_entity_ids_dpfs
+          limit: 10
+        organisation:
+          field: org_entity_ids_dpfs
           limit: 10
         partner:
           field: meta_partnerid_s

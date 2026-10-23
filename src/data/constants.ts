@@ -213,7 +213,7 @@ const searchSolrMappings = {
     },
     person: {
       type: 'terms',
-      field: 'pers_entities_dpfs',
+      field: 'pers_entity_ids_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,
@@ -221,7 +221,7 @@ const searchSolrMappings = {
     },
     location: {
       type: 'terms',
-      field: 'loc_entities_dpfs',
+      field: 'loc_entity_ids_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,
@@ -229,7 +229,7 @@ const searchSolrMappings = {
     },
     nag: {
       type: 'terms',
-      field: 'nag_entities_dpfs',
+      field: 'pressagency_entity_ids_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,
@@ -237,7 +237,7 @@ const searchSolrMappings = {
     },
     organisation: {
       type: 'terms',
-      field: 'org_entities_dpfs',
+      field: 'org_entity_ids_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,

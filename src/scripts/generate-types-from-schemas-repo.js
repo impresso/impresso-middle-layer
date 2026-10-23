@@ -21,7 +21,7 @@ import { compileFromFile } from 'json-schema-to-typescript'
  */
 const SCHEMAS_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../../..',
+  '../..',
   'impresso-schemas'
 )
 
@@ -277,11 +277,13 @@ async function generateAll() {
       'json/impresso-2/solr-indexing/content-item/content-item.part.access-rights.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.text.paper.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.text.transcript.v1.schema.json',
-      'json/impresso-2/solr-indexing/content-item/content-item.part.text.semantic-enrichments.v1.schema.json',
+      'json/impresso-2/solr-indexing/content-item/content-item.part.text.semantic-enrichments.v2.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.text.audio.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.contextual-metadata.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.part.core.v1.schema.json',
       'json/impresso-2/solr-indexing/content-item/content-item.root.image.v1.schema.json',
+      'json/impresso-2/solr-indexing/content-item/content-item.root.audio.v2.schema.json',
+      'json/impresso-2/solr-indexing/content-item/content-item.root.paper.v2.schema.json',
     ],
     './src/models/generated/impressoSchemas/solr/contentItem.d.ts'
   )
@@ -290,6 +292,9 @@ async function generateAll() {
     SCHEMAS_ROOT,
     [
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.topics.v1.schema.json',
+      'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.entities.v3.schema.json',
+      'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.mentions.v3.schema.json',
+      'json/impresso-2/solr-indexing/semantic-enrichments/sem.root.mentions-mediasources.v1.schema.json',
       'json/impresso-2/solr-indexing/semantic-enrichments/sem.part.tr-passages.v1.schema.json',
     ],
     './src/models/generated/impressoSchemas/solr/semanticEnrichment.d.ts'

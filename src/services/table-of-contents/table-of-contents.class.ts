@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { SearchFacet } from '@/models/search-facets.model.js'
-import { getNameFromId } from '@/utils/entity.utils.js'
+import { findEntitiesByIds } from '@/services/entities/lookup.js'
 import Newspaper from '@/models/newspapers.model.js'
 import { BaseArticle, IFragmentsAndHighlights } from '@/models/articles.model.js'
 import { asFindAll, FindAllParams } from '@/util/solr/adapters.js'
@@ -17,8 +17,8 @@ const BaseArticleTocFields = [
   'title_txt_fr',
   'title_txt_de',
   'title_txt_en',
-  'pers_entities_dpfs',
-  'loc_entities_dpfs',
+  'pers_entity_ids_dpfs',
+  'loc_entity_ids_dpfs',
   // 'ucoll_ss',
   'snippet_plain',
 ]
@@ -61,7 +61,7 @@ export class Service {
       facets: {
         person: {
           type: 'terms',
-          field: 'pers_entities_dpfs',
+          field: 'pers_entity_ids_dpfs',
           mincount: 1,
           limit: 5,
           offset: 0,
@@ -69,7 +69,7 @@ export class Service {
         },
         location: {
           type: 'terms',
-          field: 'loc_entities_dpfs',
+          field: 'loc_entity_ids_dpfs',
           mincount: 1,
           limit: 5,
           offset: 0,
@@ -110,12 +110,17 @@ export class Service {
       })
     )
 
+    const entityIds = (result.response?.docs ?? []).flatMap(doc => [
+      ...(doc.persons ?? []).map(person => person.id),
+      ...(doc.locations ?? []).map(location => location.id),
+    ])
+    const entities = new Map((await findEntitiesByIds(this.app, entityIds)).map(entity => [entity.id, entity]))
     result.response?.docs.forEach(doc => {
       doc.persons = doc.persons?.map(person => {
         return {
           ...person,
           type: 'person',
-          name: getNameFromId(person.id),
+          name: entities.get(person.id)?.name ?? person.id,
         }
       })
 
@@ -123,7 +128,7 @@ export class Service {
         return {
           ...location,
           type: 'location',
-          name: getNameFromId(location.id),
+          name: entities.get(location.id)?.name ?? location.id,
         }
       })
     })
