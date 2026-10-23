@@ -14,7 +14,7 @@ describe('filtersToSolr', () => {
     } satisfies Filter
     const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
     const expectedQuery =
-      '(entitySuggest:H. AND entitySuggest:Allen AND entitySuggest:Smith AND entitySuggest:represen*)'
+      '(_text_:H. AND _text_:Allen AND _text_:Smith AND _text_:represen*)'
     assert.strictEqual(query, expectedQuery)
   })
 
@@ -515,7 +515,7 @@ describe('filtersToSolr', () => {
         type: 'string',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, '(entitySuggest:Jacques AND entitySuggest:Chira*)')
+      assert.equal(query, '(_text_:Jacques AND _text_:Chira*)')
     })
     it('with unigram', () => {
       const filter = {
@@ -523,7 +523,7 @@ describe('filtersToSolr', () => {
         type: 'string',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, 'entitySuggest:Jacques*')
+      assert.equal(query, '_text_:Jacques*')
     })
     it('with array', () => {
       const filter = {
@@ -533,7 +533,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
       assert.equal(
         query,
-        '((entitySuggest:Jacques AND entitySuggest:Chirac*) OR (entitySuggest:Foo AND entitySuggest:Bar*))'
+        '((_text_:Jacques AND _text_:Chirac*) OR (_text_:Foo AND _text_:Bar*))'
       )
     })
   })

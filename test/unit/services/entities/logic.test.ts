@@ -38,7 +38,7 @@ describe('entities/logic', () => {
         {}
       )
 
-      assert.equal(result.query, 'entitySuggest:Einstein*')
+      assert.equal(result.query, '_text_:Einstein*')
       assert.deepEqual(result.filter, ['ner_entity_type_s:pers'])
       assert.ok((result.query as string).length > 0)
       assert.deepStrictEqual(result.params, {

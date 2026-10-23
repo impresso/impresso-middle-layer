@@ -10,7 +10,13 @@ import Entity from '@/models/entities.model.js'
 
 function setup(result: TermSuggestResponse) {
   const app: ImpressoApplication = feathers<ImpressoApplication['services'], Configuration>()
-  const suggest = sinon.stub().resolves(result)
+  const suggest = sinon.stub().callsFake((_namespace: unknown, request: { cfq?: string }) => {
+    const suggestions =
+      request.cfq == null
+        ? result.suggestions
+        : result.suggestions.filter(entry => entry.payload.endsWith(`|${request.cfq}`))
+    return Promise.resolve({ ...result, numFound: suggestions.length, suggestions })
+  })
   const client = {
     namespaces: SolrNamespaces,
     suggest,
@@ -68,7 +74,7 @@ describe('v3 entity suggestions', () => {
     ])
     sinon.assert.calledOnceWithExactly(suggest, SolrNamespaces.Entities, {
       q: 'Dev',
-      count: 20,
+      count: 12,
       dictionary: 'e_suggester_infix',
       cfq: undefined,
     })
@@ -90,7 +96,7 @@ describe('v3 entity suggestions', () => {
     })
   }
 
-  it('returns at most five unique entities', async () => {
+  it('returns at most three unique entities by default', async () => {
     const { service } = setup({
       numFound: 7,
       suggestions: Array.from({ length: 7 }, (_, i) => ({ term: `E${i}`, weight: 7 - i, payload: `Q${i}|pers` })),
@@ -98,7 +104,7 @@ describe('v3 entity suggestions', () => {
     const results = await service.suggestEntities({ q: 'E' })
     assert.deepEqual(
       results.map(r => r.q),
-      ['Q0', 'Q1', 'Q2', 'Q3', 'Q4']
+      ['Q0', 'Q1', 'Q2']
     )
   })
 

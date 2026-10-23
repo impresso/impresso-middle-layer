@@ -53,10 +53,10 @@ cases:
         "query": {
           "bool": {
             "must": [
-              "entitySuggest:H.",
-              "entitySuggest:Allen",
-              "entitySuggest:Smith",
-              "entitySuggest:represen*"
+              "_text_:H.",
+              "_text_:Allen",
+              "_text_:Smith",
+              "_text_:represen*"
             ]
           }
         },
@@ -79,8 +79,8 @@ cases:
         "query": {
           "bool": {
             "must": [
-              "entitySuggest:Jacques",
-              "entitySuggest:Chira*"
+              "_text_:Jacques",
+              "_text_:Chira*"
             ]
           }
         },
@@ -100,7 +100,7 @@ cases:
       ]
     expected:
       {
-        "query": "entitySuggest:Jacques*",
+        "query": "_text_:Jacques*",
         "filter": [],
         "params": {}
       }
@@ -126,16 +126,16 @@ cases:
               {
                 "bool": {
                   "must": [
-                    "entitySuggest:Jacques",
-                    "entitySuggest:Chirac*"
+                    "_text_:Jacques",
+                    "_text_:Chirac*"
                   ]
                 }
               },
               {
                 "bool": {
                   "must": [
-                    "entitySuggest:Foo",
-                    "entitySuggest:Bar*"
+                    "_text_:Foo",
+                    "_text_:Bar*"
                   ]
                 }
               }
