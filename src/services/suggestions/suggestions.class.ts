@@ -35,6 +35,8 @@ const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 const EntitySuggesterDictionary = 'e_suggester_infix'
 const EntitySuggestionsLimit = 3
 const EntitySuggestionsOverFetchFactor = 4
+const TopicSuggesterDictionary = 't_suggester_infix'
+const TopicSuggestionsLimit = 3
 
 interface SuggestionQuery {
   q: string
@@ -194,10 +196,10 @@ export class Service {
   async suggestItem<T>(
     q: string,
     type: SolrNamespace,
-    builder: (doc: SuggestEntry) => Suggestion<T>
+    builder: (doc: SuggestEntry) => Suggestion<T>,
+    { dictionary, count = 3 }: { dictionary?: string; count?: number } = {}
   ): Promise<Suggestion<T>[]> {
-    const request = { q, count: 3 }
-    const result = await this.solr.suggest(type, request)
+    const result = await this.solr.suggest(type, { q, count, dictionary })
     return (result.suggestions ?? []).map(builder)
   }
 
@@ -251,7 +253,11 @@ export class Service {
   }
 
   async suggestTopics({ q }: { q: string }) {
-    return await this.suggestItem(q, SolrNamespaces.Topics, asTopicSuggestion)
+    const r = await this.suggestItem(q, SolrNamespaces.Topics, asTopicSuggestion, {
+      dictionary: TopicSuggesterDictionary,
+      count: TopicSuggestionsLimit,
+    })
+    return r
   }
 
   async get(type: string, params: SuggestionsParams) {
