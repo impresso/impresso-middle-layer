@@ -102,6 +102,11 @@ export class Images implements ImageService {
         limit,
         offset,
         ...(sort != null ? { sort } : {}),
+        params: {
+          // NOTE: required to prevent solr from failing with a 500.
+          // No explanation.
+          hl: false,
+        },
       },
     })
 
