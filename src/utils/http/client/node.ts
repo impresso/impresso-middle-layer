@@ -65,7 +65,10 @@ function incomingHttpHeadersToHeaders(headers: IncomingHttpHeaders): Headers {
 
 export class XResponse extends Response {
   data: Dispatcher.ResponseData
-  _text?: string
+  // The body stream can be read only once. Memoise the read itself (not its result)
+  // so concurrent callers (e.g. onUnsuccessfulResponse logging and checkResponseStatus)
+  // share it instead of each getting a part of the stream.
+  _text?: Promise<string>
 
   constructor(data: Dispatcher.ResponseData) {
     super(null, {
@@ -84,14 +87,16 @@ export class XResponse extends Response {
   }
 
   async text() {
-    if (this._text != null) return this._text
+    this._text ??= this._readText()
+    return this._text
+  }
 
+  private async _readText(): Promise<string> {
     const chunks = []
     for await (const chunk of this.data.body) {
       chunks.push(chunk)
     }
-    this._text = Buffer.concat(chunks).toString('utf8')
-    return this._text
+    return Buffer.concat(chunks).toString('utf8')
   }
 
   async json() {

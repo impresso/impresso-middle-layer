@@ -20,5 +20,22 @@ describe('node fetch client', () => {
       assert.strictEqual(response.headers.get('content-type'), 'image/jpeg')
       assert.strictEqual(response.headers.get('cache-control'), 'public, max-age=3600')
     })
+
+    it('returns the full body to concurrent text() callers', async () => {
+      async function* chunkedBody() {
+        yield Buffer.from('{"error":')
+        yield Buffer.from('"boom"}')
+      }
+      const response = new XResponse({
+        statusCode: 500,
+        headers: {},
+        body: chunkedBody(),
+      } as any)
+
+      const [first, second] = await Promise.all([response.text(), response.text()])
+
+      assert.strictEqual(first, '{"error":"boom"}')
+      assert.strictEqual(second, '{"error":"boom"}')
+    })
   })
 })

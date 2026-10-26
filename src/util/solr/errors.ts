@@ -33,9 +33,15 @@ interface FormatSolrErrorOptions {
   responseDocsLimit?: number
 }
 
-const DefaultRequestLongStringLimit = 2_000
+const DefaultRequestLongStringLimit = 20_000
 const DefaultResponseLongStringLimit = 500
 const DefaultResponseDocsLimit = 1
+
+const SolrErrorMessageLimit = 1_000
+
+const truncateEnd = (value: string, limit: number): string => {
+  return value.length <= limit ? value : `${value.slice(0, limit)}... [truncated ${value.length - limit} chars]`
+}
 
 const truncateMiddle = (value: string, limit: number): string => {
   if (value.length <= limit) {
@@ -80,9 +86,9 @@ const sanitizeSolrValueForLogging = (
 
   if (Array.isArray(value)) {
     if (bodyKind === 'response' && path.at(-2) === 'response' && path.at(-1) === 'docs') {
-      return value.slice(0, options.responseDocsLimit).map(item =>
-        sanitizeSolrValueForLogging(item, options, path, bodyKind)
-      )
+      return value
+        .slice(0, options.responseDocsLimit)
+        .map(item => sanitizeSolrValueForLogging(item, options, path, bodyKind))
     }
 
     return value.map((item, index) => sanitizeSolrValueForLogging(item, options, [...path, String(index)], bodyKind))
@@ -119,12 +125,15 @@ const formatBodyForLogging = (
   options: Required<FormatSolrErrorOptions>
 ): string => {
   const parsedBody = parseJsonForLogging(body)
-  if (parsedBody == null) {
+  if (parsedBody == null || parsedBody === '') {
     return '<empty>'
   }
 
   const sanitizedBody = sanitizeSolrValueForLogging(parsedBody, options, [], bodyKind)
-  return typeof sanitizedBody === 'string' ? sanitizedBody : JSON.stringify(sanitizedBody, null, 2)
+  // Non-JSON bodies (e.g. HTML error pages) are collapsed to a single line.
+  return typeof sanitizedBody === 'string'
+    ? sanitizedBody.replace(/\s+/g, ' ').trim()
+    : JSON.stringify(sanitizedBody, (_key, value) => (value === null ? undefined : value))
 }
 
 export const formatSolrErrorForLogging = (error: SolrError, options?: FormatSolrErrorOptions): string => {
@@ -136,12 +145,10 @@ export const formatSolrErrorForLogging = (error: SolrError, options?: FormatSolr
 
   return [
     `SOLR error: ${error.message}`,
-    'POST body:',
-    formatBodyForLogging(error.httpError?.requestBody, 'request', resolvedOptions),
+    `POST body: ${formatBodyForLogging(error.httpError?.requestBody, 'request', resolvedOptions)}`,
     `Response status: ${error.httpError?.responseStatus ?? '<unknown>'}`,
-    'Response body:',
-    formatBodyForLogging(error.httpError?.responseBody, 'response', resolvedOptions),
-  ].join('\n')
+    `Response body: ${formatBodyForLogging(error.httpError?.responseBody, 'response', resolvedOptions)}`,
+  ].join(' | ')
 }
 
 interface StandardSolrResponse {
@@ -178,8 +185,8 @@ export const getSolrErrorDetails = (responseBody: Record<string, any>): ParsedSo
     return undefined
   }
 
-  // Get the error message
-  const message = response.error?.msg || 'Unknown error'
+  // Get the error message. Solr sometimes appends a huge stack trace to it.
+  const message = truncateEnd(response.error?.msg || 'Unknown error', SolrErrorMessageLimit)
 
   // If status is not 0, we have an error
   // Determine the error code - prefer error.code if available, otherwise use status
