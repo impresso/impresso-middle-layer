@@ -1,5 +1,5 @@
 // Application hooks that run for every service
-import { getLogger } from '@/logger.js'
+import { escapeLogMessage, getLogger } from '@/logger.js'
 import { provenance } from '@/hooks/provenance.js'
 import { ImpressoApplication } from '@/types.js'
 import { hooks } from '@feathersjs/authentication'
@@ -10,6 +10,8 @@ import { ValidationError } from 'ajv/dist/2019.js'
 const { authenticate } = hooks
 
 const logger = getLogger(['impresso', 'app.hooks'])
+
+const SolrErrorClientMessage = 'Solr returned an error'
 // import { validateRouteId } from './hooks/params'
 import { SlimUser } from '@/authentication.js'
 import { InvalidArgumentError } from '@/util/error.js'
@@ -52,7 +54,7 @@ const requireAuthentication =
 const LoggingExcludedStatusCodesInternalApi = [400, 401, 403, 404, 418, 429]
 const LoggingExcludedStatusCodesPublicApi = [400, 401, 403, 404, 422, 418, 429]
 
-const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
+export const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
   const excludedStatusCodes = ctx.app.get('isPublicApi')
     ? LoggingExcludedStatusCodesPublicApi
     : LoggingExcludedStatusCodesInternalApi
@@ -65,10 +67,12 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
       // convert Solr error to a 418 error
       // to avoid sending it as a 5xx error which
       // may be intercepted by a firewall and modified.
-      const data = { ...error.details, userId: user?.uid }
-      ctx.error = new FeathersError(error.message, 'SolrError', 418, 'solr-error', data)
+      // Solr's message and the query params are never forwarded to the client
+      // (they may contain stack traces and internal details); only the code is.
+      const data = { code: error.details.code, userId: user?.uid }
+      ctx.error = new FeathersError(SolrErrorClientMessage, 'SolrError', 418, 'solr-error', data)
       // userId is provided automatically via withContext (see src/app.ts).
-      logger.error(formatSolrErrorForLogging(error), {
+      logger.error(escapeLogMessage(formatSolrErrorForLogging(error)), {
         solrError: {
           code: error.details.code,
           message: error.details.message,
@@ -84,7 +88,9 @@ const errorHandler = (ctx: HookContext<ImpressoApplication>) => {
     // for the HTTP response. userId/requestId are attached via withContext.
     if (!(error instanceof InvalidArgumentError) && (!excludedStatusCodes.includes(error.code) || !error.code)) {
       logger.error(
-        `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method} - message:"${error.message}"`,
+        escapeLogMessage(
+          `ERROR ${error.code || error.type || 'N/A'} ${error.name} at ${ctx.path}:${ctx.method} - message:"${error.message}"`
+        ),
         {
           ...error,
           stack: error.stack,
