@@ -123,7 +123,7 @@
     "swagger-ui-dist": "5.32.15",
     "truncatise": "0.0.8",
     "tsx": "^4.23.13",
-    "undici": "8.10.2",
+    "undici": "8.12.3",
     "uuid": "14.0.2",
     "wikibase-sdk": "^11.6.4",
     "xml2js": "^0.6.2",
