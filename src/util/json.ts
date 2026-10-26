@@ -17,20 +17,32 @@ const loadSchema = (relativePath: string) => {
   return JSON.parse(readFileSync(fullPath, 'utf-8'))
 }
 
+// Schemas are registered under their path relative to `src/`, so that relative `$ref`s
+// inside them resolve against the file system layout. The caller-provided ids are
+// kept as aliases to allow looking schemas up by a short name.
+const schemaIdAliases = new WeakMap<Ajv, Map<string, string>>()
+
 export const newAjvInstance = (schemas: SchemaIdPair[], options: Options = {}) => {
   const ajv = new Ajv({ allErrors: true, strict: true, ...options })
   formatsPlugin.default(ajv)
+  const aliases = new Map<string, string>()
   for (const [schema, id] of schemas) {
-    ajv.addSchema(loadSchema(schema), id)
+    if (!aliases.has(schema)) {
+      ajv.addSchema(loadSchema(schema), schema)
+      aliases.set(schema, schema)
+    }
+    aliases.set(id, schema)
   }
+  schemaIdAliases.set(ajv, aliases)
   return ajv
 }
 
-const BaseSchemaURI = 'https://github.com/impresso/impresso-middle-layer/tree/master/src'
+function resolveSchemaId(ajvInstance: Ajv, schemaUri: string): string {
+  return schemaIdAliases.get(ajvInstance)?.get(schemaUri) ?? schemaUri
+}
 
 function validated<T = unknown>(obj: unknown, schemaUri: string, ajvInstance: Ajv): T {
-  // const uri = schemaUri?.startsWith('http') ? schemaUri : `${BaseSchemaURI}/${schemaUri}`
-  const uri = schemaUri
+  const uri = resolveSchemaId(ajvInstance, schemaUri)
   const validate = ajvInstance.getSchema<T>(uri)
 
   if (validate === undefined) {
