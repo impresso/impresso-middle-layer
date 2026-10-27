@@ -40,6 +40,7 @@ import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impress
 import { EmbeddingsConfig } from './generated/app/configuration.js'
 import { DefaultTextEmbeddingsConfig } from '@/util/configuration.js'
 import { EntityMentionFields, getContentItemMentions } from '@/util/solr/entityMentions.js'
+import { isEmpty } from 'lodash-es'
 
 const ContentItemCoreFields = [
   'id',
@@ -128,13 +129,7 @@ export type AllDocumentFields = Pick<ContentItemCore, (typeof ContentItemCoreFie
   Pick<AudioFields, (typeof AudioContentFields)[0]>
 
 export type FullContentOnlyFieldsType =
-  | 'lb_plain'
-  | 'pb_plain'
-  | 'rb_plain'
-  | 'pp_plain'
-  | 'content_txt_*'
-  | 'rreb_plain'
-  | 'ub_plain'
+  'lb_plain' | 'pb_plain' | 'rb_plain' | 'pp_plain' | 'content_txt_*' | 'rreb_plain' | 'ub_plain'
 
 export type EmbeddingsFieldType = 'gte_multi_v768' | 'gte_multi_v256'
 
@@ -296,6 +291,17 @@ const isFullDocument = (
 }
 
 /**
+ * Tiny utility to get the first non-empty value of a field that may be a single value or an array.
+ * Empty means undefined, null or an empty string.
+ * @template T The type of the value(s).
+ * @param value The value to get the first element of.
+ * @returns The first non-empty element, or undefined if there is none.
+ */
+export const extractFirstAvailableValue = <T>(value: T | T[] | undefined | null): T | undefined => {
+  const first = Array.isArray(value) ? value.find(v => !isEmpty(v)) : value
+  return isEmpty(first) ? undefined : (first as T)
+}
+/**
  * Converts a Solr document to a ContentItem.
  * @param doc The Solr document to convert.
  * @param opts An optional parameter with optional `maxScore` that should be used as score denominator.
@@ -350,11 +356,11 @@ export const toContentItem = (
       title:
         doc[`title_txt_${doc.lg_s as LanguageCode}`] ??
         doc[`title_txt_${doc.lg_orig_s as LanguageCode}`] ??
-        doc['title_txt']?.[0],
+        extractFirstAvailableValue(doc['title_txt']),
       content:
         doc[`content_txt_${doc.lg_s as LanguageCode}`] ??
         doc[`content_txt_${doc.lg_orig_s as LanguageCode}`] ??
-        doc['content_txt']?.[0],
+        extractFirstAvailableValue(doc['content_txt']),
       contentLength: doc.content_length_i ?? 0,
       documentType: doc.doc_type_s,
       itemType: doc.item_type_s,
