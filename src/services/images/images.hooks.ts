@@ -27,10 +27,7 @@ export default {
   },
   after: {
     find: [
-      ...inPublicApi([
-        redactResponseDataItem(imageRedactionPolicyPublicApi),
-        redactResponseDataItem(imageRedactionPolicy, unlessHasPermission('getTranscript')),
-      ]),
+      ...inPublicApi([redactResponseDataItem(imageRedactionPolicyPublicApi, unlessHasPermission('getTranscript'))]),
       ...inWebAppApi([redactResponseDataItem(imageRedactionPolicy, unlessHasPermission('explore'))]),
     ],
     get: [
