@@ -28,12 +28,12 @@ describe('well-known snapshots', () => {
     const decode = sinon.spy((raw: string | undefined): number[] => JSON.parse(raw ?? '[]'))
     const load = createSnapshotLoader(cache, 'data', 'version', decode)
     const results = await Promise.all(Array.from({ length: 100 }, () => load()))
-    assert.equal(get.callCount, 2)
+    assert.equal(get.callCount, 3)
     assert.equal(decode.callCount, 1)
     assert.ok(results.every(value => value === results[0]))
     clock.tick(30_000)
     await Promise.all([load(), load()])
-    assert.equal(get.callCount, 3)
+    assert.equal(get.callCount, 6)
     assert.equal(decode.callCount, 1)
     await cache.set('version', 'v2')
     await cache.set('data', '[2]')
@@ -59,7 +59,7 @@ describe('well-known snapshots', () => {
     assert.equal(load(), first)
     release?.()
     await first
-    assert.equal(get.callCount, 2)
+    assert.equal(get.callCount, 3)
   })
 
   it('reloads unchanged versions periodically and missing metadata every interval', async () => {
@@ -125,7 +125,7 @@ describe('well-known snapshots', () => {
     page.data[0].name = 'also changed'
     assert.deepEqual(await otherService.get('GDL'), GDL)
     assert.equal(await service.getMediaSource('unknown'), undefined)
-    assert.equal(get.callCount, 2)
+    assert.equal(get.callCount, 3)
     const sorted = await service.findMediaSources({ order_by: '-name', limit: 20, offset: 0 })
     assert.deepEqual(
       sorted.data.map(source => source.id),
@@ -178,7 +178,7 @@ describe('well-known snapshots', () => {
     assert.equal((await b.year('1900'))?.id, 1900)
     assert.equal(await b.year('unknown'), undefined)
     assert.equal((await getWellKnownSnapshots(cache).years()).get('1900')?.id, undefined)
-    assert.equal(get.callCount, 4)
+    assert.equal(get.callCount, 6)
     assert.notEqual(getWellKnownSnapshots(cache), getWellKnownSnapshots(makeCache()))
     await cache.set(WellKnownMetadataKeys.TopicsComputedAt, 'v2')
     await cache.set(WellKnownKeys.Topics, '[]')

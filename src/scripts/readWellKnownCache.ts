@@ -24,6 +24,7 @@ import { feathers } from '@feathersjs/feathers'
 import configuration from '@/configuration.js'
 import configureCache, { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
 import type { Cache } from '@/cache.js'
+import { readWellKnownEntry, readWellKnownComputedAt } from '@/internalServices/wellKnownCache.js'
 import type { CachedTopic } from '@/models/generated/app/cache.js'
 import type { MediaSource } from '@/models/generated/app/entities.js'
 import type { IYear } from '@/models/years.model.js'
@@ -45,7 +46,7 @@ Options:
   --help                            show this help`
 
 const readJson = async <T>(cache: Cache, key: string): Promise<T | undefined> => {
-  const raw = await cache.get<unknown>(key)
+  const { data: raw } = await readWellKnownEntry(cache, key)
   if (raw == null) return undefined
   // Values are stored as `JSON.stringify(...)` strings, but be defensive and accept objects too.
   return typeof raw === 'string' ? (JSON.parse(raw) as T) : (raw as T)
@@ -175,7 +176,7 @@ const readYears = async (cache: Cache, id: string | undefined, json: boolean) =>
 const readMeta = async (cache: Cache) => {
   const entries = await Promise.all(
     Object.entries(WellKnownMetadataKeys).map(async ([name, key]) => {
-      const computedAt = await cache.get<string>(key)
+      const computedAt = await readWellKnownComputedAt(cache, key)
       return { name, key, computedAt: computedAt ?? '(not set)' }
     })
   )

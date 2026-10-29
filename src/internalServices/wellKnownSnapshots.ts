@@ -2,6 +2,7 @@ import type { Cache } from '@/cache.js'
 import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
 import type { MediaSource, Year } from '@/models/generated/app/entities.js'
 import type { CachedTopic } from '@/models/generated/app/cache.js'
+import { getLocalRevision, readWellKnownEntry } from './wellKnownCache.js'
 
 const RefreshIntervalMs = 30_000
 const MaxSnapshotAgeMs = 300_000
@@ -16,9 +17,10 @@ export const createSnapshotLoader = <T>(
   let pending: Promise<T> | undefined
   let snapshot: { value: T; version: string | undefined; loadedAt: number } | undefined
   let nextCheckAt = 0
+  let revision = getLocalRevision(cache, key)
 
-  const refresh = async (): Promise<T> => {
-    const version = await cache.get<string>(metadataKey)
+  const refresh = async (loadRevision: number): Promise<T> => {
+    const { version, data: raw } = await readWellKnownEntry(cache, key, metadataKey)
     if (
       snapshot &&
       version != null &&
@@ -27,19 +29,23 @@ export const createSnapshotLoader = <T>(
     ) {
       return snapshot.value
     }
-    const raw = await cache.get<string>(key)
     const value = decode(raw)
     // Missing data is checked again at the next interval, even if metadata remains unchanged.
-    snapshot = raw == null ? undefined : { value, version, loadedAt: Date.now() }
+    if (loadRevision === getLocalRevision(cache, key)) {
+      snapshot = raw == null ? undefined : { value, version, loadedAt: Date.now() }
+    }
     return value
   }
 
   return () => {
-    if (pending && Date.now() < nextCheckAt) return pending
+    const currentRevision = getLocalRevision(cache, key)
+    if (pending && revision === currentRevision && Date.now() < nextCheckAt) return pending
+    revision = currentRevision
     // Infinity prevents a second load even if a slow Redis read spans an interval.
     nextCheckAt = Infinity
-    pending = refresh().finally(() => {
-      nextCheckAt = Date.now() + RefreshIntervalMs
+    const loadRevision = revision
+    pending = refresh(loadRevision).finally(() => {
+      if (revision === loadRevision) nextCheckAt = Date.now() + RefreshIntervalMs
     })
     return pending
   }

@@ -7,6 +7,7 @@ import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/e
 import { SlimUser } from '@/authentication.js'
 import UserSpecialMembershipRequestModel from '@/models/user-special-membership-requests.model.js'
 import { Cache, WellKnownKeys } from '@/cache.js'
+import { readWellKnownEntry } from '@/internalServices/wellKnownCache.js'
 
 export interface FindQuery {
   limit?: number
@@ -95,7 +96,10 @@ export class SpecialMembershipPlansService implements ISpecialMembershipPlansSer
 
   async getLookup(): Promise<Record<string, SpecialMembershipAccess>> {
     try {
-      const result = await this.cacheManager.get<string>(WellKnownKeys.SpecialMembershipAccessByBitmapPosition)
+      const { data: result } = await readWellKnownEntry(
+        this.cacheManager,
+        WellKnownKeys.SpecialMembershipAccessByBitmapPosition
+      )
       return JSON.parse(result ?? '{}') as Record<string, SpecialMembershipAccess>
     } catch {
       return {}

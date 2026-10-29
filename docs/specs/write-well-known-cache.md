@@ -1,6 +1,6 @@
 # `writeWellKnownCache` script
 
-Status: implemented (2026-10-22).
+Status: implemented; atomic snapshot publication added 2026-10-29.
 
 ## Goal
 
@@ -35,19 +35,33 @@ Variables already present in the environment always win.
 
 ## Entries
 
-The argument selects the job. The jobs are the ones already imported by
-`src/jobs/rebuildWellKnownCache.ts`, called in the same order.
+The argument selects the job. Each entry has a preparation function and an update job. The BullMQ rebuild
+prepares all entries before publishing; the CLI processes selected entries in sequence.
 
 | arg | job | cache key | metadata key |
 | --- | --- | --- | --- |
-| `topics` | `updateTopicsCache` (`src/jobs/updateTopicsCache.ts`) | `cache:topics` | `cache:meta:topics:computedAt` |
 | `media-sources` | `updateMediaSourcesCache` (`src/jobs/updateMediaSourcesCache.ts`) | `cache:mediaSources` | `cache:meta:mediaSources:computedAt` |
 | `years` | `updateYears` (`src/jobs/updateYears.ts`) | `cache:years` | `cache:meta:years:computedAt` |
+| `topics` | `updateTopicsCache` (`src/jobs/updateTopicsCache.ts`) | `cache:topics` | `cache:meta:topics:computedAt` |
 | `special-membership-access` | `updateSpecialMembershipAccessCache` (`src/jobs/updateSpecialMembershipAccessCache.ts`) | `cache:specialMembershipAccess:byBitmapPosition` | `cache:meta:specialMembershipAccess:computedAt` |
 | `all` | the four above | | |
 
 Keys come from `WellKnownKeys` / `WellKnownMetadataKeys` in `src/cache.ts`;
-they are not hardcoded in the script.
+they are not hardcoded in the script. These are the legacy keys. New publications
+store `{ key, data, version, computedAt }` together at `<cache key>:snapshot`,
+where `data` is the serialized dataset and `version` is a UUID. A single Redis
+SET replaces the entire record, with a 100-day TTL in milliseconds.
+
+Readers prefer the snapshot record and fall back to legacy data/timestamp keys
+until the first successful rebuild. Both CLI tools, the admin timestamps and
+all well-known-data services understand this format. Legacy keys are kept but
+are no longer updated: older application versions and direct Redis consumers
+will continue seeing their old data. Upgrade all readers/writers before relying
+on rebuilds; rolling back to older code requires repopulating its legacy keys.
+
+Local memoized readers invalidate immediately after publication through their
+cache manager. Other instances discover the replacement at their next
+30-second check. Data and version are always read from the same record.
 
 ## Behaviour
 
@@ -55,15 +69,14 @@ they are not hardcoded in the script.
 2. Bootstrap the minimum app needed by the selected jobs (see below).
 3. For the selected entry: if the cache key already exists, the script reports
    "already cached" and exits 0 without changing anything, unless `--force` is
-   passed. With `--force`, the key (and its metadata key) is deleted first,
-   exactly like `clearWellKnownCache` does in `rebuildWellKnownCache.ts`.
-4. Run the job, then check that the key was written (`updateYears` swallows its
-   own errors, so a missing key after the job is an error, exit code 1) and
-   print the new `computedAt` timestamp and the entry size.
+   passed. With `--force`, the job computes a replacement while the live entry
+   remains readable, then atomically publishes the replacement.
+4. Run the job, then read the published record and print its `computedAt`
+   timestamp and entry size. Preparation and publication errors propagate and
+   cause exit code 1; the previous record remains intact.
 5. Disconnect cache and DB in a `finally` block.
 
-The jobs are plain `async (app) => void` functions; the script calls them
-directly. No BullMQ queue, no worker, no job payload.
+The jobs accept `(app, { force?: boolean })`; the script calls them directly. No BullMQ queue, no worker, no job payload.
 
 ## App bootstrap
 
@@ -110,8 +123,20 @@ otherwise the script exits with an error, like `readWellKnownCache.ts` does.
 - Unknown options (e.g. `--forse`) and extra positional arguments are
   rejected with the usage text and exit code 1.
 - After the job, the script reads the key back. A missing key is an error
-  (exit code 1): `updateYears` catches its own errors and does not rethrow, so
-  the read-back is the only way to detect the failure.
+  (exit code 1). The jobs also propagate computation and publication errors.
+
+## Publication failure behavior
+
+The BullMQ rebuild computes every dataset before publishing any replacement.
+A preparation failure leaves all datasets untouched. Publication is atomic per
+dataset, rather than a transaction across all four datasets: if a later write
+fails, earlier successful publications remain live and the failed entry keeps
+its previous record. A retry rebuilds and republishes all entries.
+
+Publication checks the configured Keyv store's boolean write result directly
+because cache-manager does not propagate a false result. Redis adapter errors
+are reported to Keyv; ordinary cache writes retain their existing best-effort
+behavior. Publication requires the single-store configuration used by this app.
 
 ## Out of scope
 
@@ -119,13 +144,12 @@ otherwise the script exits with an error, like `readWellKnownCache.ts` does.
   does that (`rebuild-well-known-cache`).
 - `updateFacetRanges` (`src/jobs/updateFacetRanges.ts`): it writes a JSON file,
   not a well-known Redis entry.
-- The TTL bug in `updateTopicsCache.ts` (`60 * 60 * 24 * 100 * 1000`).
 
 ## Decisions
 
 | # | Topic | Decision |
 | --- | --- | --- |
-| 1 | Existing key | The script refuses to overwrite and exits 0 with "already cached" unless `--force` is passed. `--force` deletes the key and its metadata key first. |
+| 1 | Existing key | The script refuses to overwrite and exits 0 with "already cached" unless `--force` is passed. `--force` computes and publishes a replacement without deleting live data. |
 | 2 | `all` | Calls the four `update*` jobs directly, in the order used by `rebuildWellKnownCache.ts`. The BullMQ handler is not reused. |
 | 3 | Entries | Only the four well-known Redis entries. `updateFacetRanges` is excluded. |
 

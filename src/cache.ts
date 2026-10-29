@@ -25,6 +25,7 @@ export default (app: ImpressoApplication) => {
     ? new Keyv({
         store: new KeyvRedis(buildRedisUri(config), {
           useUnlink: true,
+          throwOnErrors: true,
         }),
         useKeyPrefix: false,
         namespace: undefined,
