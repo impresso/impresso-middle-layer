@@ -24,6 +24,7 @@ const document: EntitySolrDocumentV3 = {
   content_item_count_l: 123,
   mention_count_l: 456,
   ner_type_loc_count_l: 400,
+  suggest_payload_s: 'Berlin',
 }
 
 function setup(docs: EntitySolrDocumentV3[] = [document]) {

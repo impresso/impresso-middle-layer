@@ -1,11 +1,7 @@
 import type { SuggestEntry } from '@/internalServices/simpleSolr.js'
-import type {
-  AggregateEntityMentionSolrDocumentV3ClassicEntityTypes,
-  MediaSourceAggregateMentionSolrDocumentV1,
-} from '@/models/generated/impressoSchemas/solr/semanticEnrichment.js'
+import type { AggregateEntityMentionSolrDocumentV3 } from '@/models/generated/impressoSchemas/solr/semanticEnrichment.js'
 
-type MentionSolrDocument =
-  AggregateEntityMentionSolrDocumentV3ClassicEntityTypes | MediaSourceAggregateMentionSolrDocumentV1
+type MentionSolrDocument = AggregateEntityMentionSolrDocumentV3
 type MentionType = 'person' | 'location' | 'organisation' | 'newsagency' | 'radiostation' | 'mention'
 
 const MentionTypes: Readonly<Record<string, MentionType>> = {
