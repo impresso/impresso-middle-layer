@@ -70,7 +70,6 @@ const getAndFindHooks = (index: IndexId) => [
   validateEach('filters', eachFilterValidator),
 
   filtersToSolrQuery({
-    overrideOrderBy: false,
     solrIndexProvider: (_: HookContext) => index.replace('-', '_'),
   } as unknown as any),
 

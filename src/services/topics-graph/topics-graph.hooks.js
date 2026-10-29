@@ -25,16 +25,12 @@ export default {
         },
       }),
       validateEach('filters', findEachFilterValidator),
-      filtersToSolrQuery({
-        overrideOrderBy: false,
-      }),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     get: [
       validateEach('filters', eachFilterValidator),
-      filtersToSolrQuery({
-        overrideOrderBy: false,
-      }),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
     create: [],
