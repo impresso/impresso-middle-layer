@@ -1,4 +1,5 @@
 import { WellKnownMetadataKeys } from '@/cache.js'
+import { readWellKnownComputedAt } from '@/internalServices/wellKnownCache.js'
 import { getQueueService } from '@/internalServices/queue.js'
 import type { AdminPatchRequest } from '@/models/generated/app/requests.js'
 import type { AdminGETResponse } from '@/models/generated/app/responses.js'
@@ -100,9 +101,9 @@ export class Service implements IService {
   private async getWellKnownComputedAt(): Promise<WellKnownComputedAt> {
     const cache = this.app.get('cacheManager')
     const [mediaSources, topics, years] = await Promise.all([
-      cache.get<string>(WellKnownMetadataKeys.MediaSourcesComputedAt),
-      cache.get<string>(WellKnownMetadataKeys.TopicsComputedAt),
-      cache.get<string>(WellKnownMetadataKeys.YearsComputedAt),
+      readWellKnownComputedAt(cache, WellKnownMetadataKeys.MediaSourcesComputedAt),
+      readWellKnownComputedAt(cache, WellKnownMetadataKeys.TopicsComputedAt),
+      readWellKnownComputedAt(cache, WellKnownMetadataKeys.YearsComputedAt),
     ])
     return {
       mediaSources: mediaSources ?? null,

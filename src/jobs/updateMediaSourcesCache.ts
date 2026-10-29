@@ -1,25 +1,24 @@
 import { consolidateMediaSources } from '@/useCases/consolidateMediaSources.js'
-import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
-import { ImpressoApplication } from '@/types.js'
 import { SolrNamespaces } from '@/solr.js'
+import { WellKnownKeys } from '@/cache.js'
+import type { ImpressoApplication } from '@/types.js'
+import { updateWellKnownEntry } from '@/internalServices/wellKnownCache.js'
+import type { PreparedWellKnownEntry, UpdateWellKnownCacheOptions } from '@/internalServices/wellKnownCache.js'
 
-/** 100 days */
-const DefaultTtlSeconds = 60 * 60 * 24 * 100 * 1000
-
-/**
- * Consolidate media sources and store them in cache.
- */
-const run = async (app: ImpressoApplication) => {
+export const prepareMediaSourcesCache = async (app: ImpressoApplication): Promise<PreparedWellKnownEntry> => {
   const dbClient = app.get('sequelizeClient')!
-  const cache = app.get('cacheManager')
   const solrClient = app.service('simpleSolrClient')
-
-  const cached = await cache.get(WellKnownKeys.MediaSources)
-  if (cached != null) return
-
   const sources = await consolidateMediaSources(dbClient, solrClient, SolrNamespaces.Search)
-  await cache.set(WellKnownKeys.MediaSources, JSON.stringify(sources), DefaultTtlSeconds)
-  await cache.set(WellKnownMetadataKeys.MediaSourcesComputedAt, new Date().toISOString(), DefaultTtlSeconds)
+  return { key: WellKnownKeys.MediaSources, data: JSON.stringify(sources) }
+}
+
+const run = async (app: ImpressoApplication, options?: UpdateWellKnownCacheOptions): Promise<void> => {
+  await updateWellKnownEntry(
+    app.get('cacheManager'),
+    WellKnownKeys.MediaSources,
+    () => prepareMediaSourcesCache(app),
+    options
+  )
 }
 
 export default run

@@ -1,35 +1,38 @@
-import type { Sequelize } from 'sequelize'
-import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
+import { WellKnownKeys } from '@/cache.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
-import type { ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
 import type { ImpressoApplication } from '@/types.js'
 
-/** 100 days */
-const DefaultTtl = 60 * 60 * 24 * 100 * 1000
+import { updateWellKnownEntry } from '@/internalServices/wellKnownCache.js'
+import type { PreparedWellKnownEntry, UpdateWellKnownCacheOptions } from '@/internalServices/wellKnownCache.js'
 
 /**
  * Prepare a bitmapPosition-indexed special-membership-access lookup and store it in cache.
  */
-const run = async (app: ImpressoApplication) => {
-  const cache = app.get('cacheManager')
-  const cached = await cache.get(WellKnownKeys.SpecialMembershipAccessByBitmapPosition)
-  if (cached != null) return
-
-  const sequelizeClient = app.get('sequelizeClient') as Sequelize
+export const prepareSpecialMembershipAccessCache = async (
+  app: ImpressoApplication
+): Promise<PreparedWellKnownEntry> => {
+  const sequelizeClient = app.get('sequelizeClient')
+  if (sequelizeClient == null) throw new Error('Database is required to prepare the special membership access cache')
   const accessModel = SpecialMembershipAccess.initialize(sequelizeClient)
   const rows = await accessModel.findAll()
 
-  const byBitmapPosition = rows.reduce(
-    (acc, row) => {
-      const item = row.toJSON() as ISpecialMembershipAccessAttributes
-      acc[String(item.bitmapPosition)] = item
-      return acc
-    },
-    {} as Record<string, ISpecialMembershipAccessAttributes>
+  const byBitmapPosition = Object.fromEntries(
+    rows.map(row => {
+      const item = row.toJSON()
+      return [String(item.bitmapPosition), item]
+    })
   )
 
-  await cache.set(WellKnownKeys.SpecialMembershipAccessByBitmapPosition, JSON.stringify(byBitmapPosition), DefaultTtl)
-  await cache.set(WellKnownMetadataKeys.SpecialMembershipAccessComputedAt, new Date().toISOString(), DefaultTtl)
+  return { key: WellKnownKeys.SpecialMembershipAccessByBitmapPosition, data: JSON.stringify(byBitmapPosition) }
+}
+
+const run = async (app: ImpressoApplication, options?: UpdateWellKnownCacheOptions): Promise<void> => {
+  await updateWellKnownEntry(
+    app.get('cacheManager'),
+    WellKnownKeys.SpecialMembershipAccessByBitmapPosition,
+    () => prepareSpecialMembershipAccessCache(app),
+    options
+  )
 }
 
 export default run

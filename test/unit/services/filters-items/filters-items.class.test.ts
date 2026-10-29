@@ -13,9 +13,7 @@ describe('FiltersItems', () => {
   before(() => {
     testApp = setupTestApp(withDatabase(), ctx => {
       ctx.serviceHandlers['media-sources'] = () => ({
-        getLookup: async () => {
-          return [Fronde, JDG].reduce((lookup, mediaSource) => ({ ...lookup, [mediaSource.id]: mediaSource }), {})
-        },
+        getMediaSource: async (id: string) => [Fronde, JDG].find(source => source.id === id),
       })
 
       ctx.serviceHandlers['collections'] = () => ({

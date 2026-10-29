@@ -8,9 +8,8 @@
  * command line, without the admin service and without BullMQ.
  *
  * Every `update*` job returns early when its cache key already exists, so the
- * existing entry is kept unless `--force` is passed. With `--force`, the key
- * and its `computedAt` metadata are deleted first (as `clearWellKnownCache`
- * does in `src/jobs/rebuildWellKnownCache.ts`).
+ * existing entry is kept unless `--force` is passed. With `--force`, a replacement
+ * is computed and atomically published while the previous entry stays readable.
  *
  * Usage:
  *   npm run write-cache -- topics                     # rebuild the topics cache
@@ -21,7 +20,7 @@
  *   npm run write-cache -- --help                     # show this help
  *
  * Options:
- *   --force   delete the existing entry (and its metadata) before rebuilding
+ *   --force   recompute and atomically replace the existing entry
  *   --help    show this help
  *
  * Environment:
@@ -33,6 +32,8 @@
 import { createApp } from '@/appBuilder.js'
 import configureCache, { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
 import type { Cache } from '@/cache.js'
+import { readWellKnownEntry } from '@/internalServices/wellKnownCache.js'
+import type { UpdateWellKnownCacheOptions } from '@/internalServices/wellKnownCache.js'
 import { init as initSimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import updateMediaSourcesCache from '@/jobs/updateMediaSourcesCache.js'
 import updateSpecialMembershipAccessCache from '@/jobs/updateSpecialMembershipAccessCache.js'
@@ -54,7 +55,7 @@ dotenv.config({ path: fileURLToPath(new URL('../../.env', import.meta.url)), qui
 
 const log = (message = '') => process.stdout.write(`${message}\n`)
 
-type CacheJob = (app: ImpressoApplication) => Promise<void>
+type CacheJob = (app: ImpressoApplication, options?: UpdateWellKnownCacheOptions) => Promise<void>
 
 interface WellKnownEntry {
   /** name used on the command line */
@@ -124,7 +125,7 @@ Entries:
   all                         every entry listed above
 
 Options:
-  --force                     delete the existing entry before rebuilding it
+  --force                     recompute and atomically replace the existing entry
   --help                      show this help`
 
 /**
@@ -146,28 +147,22 @@ const bootstrap = async (needsSolr: boolean, needsDatabase: boolean) => {
 }
 
 const writeEntry = async (app: ImpressoApplication, cache: Cache, entry: WellKnownEntry, force: boolean) => {
-  const existing = await cache.get(entry.key)
-  if (existing != null) {
-    if (!force) {
-      log(`⏭️  "${entry.label}" is already cached ("${entry.key}"), nothing to do. Use --force to rebuild it.`)
-      return
-    }
-    log(`🧹 Deleting "${entry.key}" and "${entry.metadataKey}"`)
-    await cache.del(entry.key)
-    await cache.del(entry.metadataKey)
+  const { data: existing } = await readWellKnownEntry(cache, entry.key, entry.metadataKey)
+  if (existing != null && !force) {
+    log(`⏭️  "${entry.label}" is already cached ("${entry.key}"), nothing to do. Use --force to rebuild it.`)
+    return
   }
 
   log(`➡️ Rebuilding "${entry.label}" ("${entry.key}")`)
-  await entry.job(app)
+  await entry.job(app, { force })
 
-  const raw = await cache.get<string>(entry.key)
+  const { data: raw, computedAt } = await readWellKnownEntry(cache, entry.key, entry.metadataKey)
   if (raw == null) {
     log(`❌ "${entry.label}" was not written to the cache.`)
     process.exitCode = 1
     return
   }
 
-  const computedAt = await cache.get<string>(entry.metadataKey)
   log(`✅ "${entry.label}" rebuilt: ${raw.length} bytes${computedAt != null ? `, computedAt ${computedAt}` : ''}`)
 }
 

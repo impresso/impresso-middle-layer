@@ -5,6 +5,7 @@ import express, { type Response } from 'express'
 import { FeathersError } from '@feathersjs/errors'
 import { customJsonMiddleware } from '@/util/express.js'
 import { Limits } from '@/services/provenance/provenance.class.js'
+import sinon from 'sinon'
 
 async function parseBody(path: string, chunks: Buffer[]) {
   const request: PassThrough & { path: string; body: unknown; is: () => string } = Object.assign(new PassThrough(), {
@@ -66,5 +67,41 @@ describe('custom JSON middleware body limits', () => {
     assert.deepEqual(parsed.calls, [undefined])
     assert.ok(typeof parsed.body === 'object' && parsed.body !== null)
     assert.deepEqual({ ...parsed.body }, body)
+  })
+})
+
+describe('custom JSON middleware integer compatibility', () => {
+  afterEach(() => sinon.restore())
+
+  it('parses incoming integer tokens without rounding', async () => {
+    const parsed = await parseBody('/other', [Buffer.from('{"bitmap":9223372036854775809,"count":20}')])
+    assert.deepEqual(parsed.calls, [undefined])
+    assert.ok(parsed.body !== null && typeof parsed.body === 'object')
+    assert.deepEqual({ ...parsed.body }, { bitmap: 9223372036854775809n, count: 20 })
+  })
+
+  it('passes invalid JSON and forbidden properties to the error handler', async () => {
+    for (const input of ['{"bitmap":}', '{"constructor":{"admin":true}}']) {
+      const parsed = await parseBody('/other', [Buffer.from(input)])
+      assert.equal(parsed.calls.length, 1)
+      assert.ok(parsed.calls[0] instanceof SyntaxError)
+      assert.equal(parsed.body, undefined)
+    }
+  })
+
+  it('sends bigint as numeric JSON tokens in HTTP responses', () => {
+    const request = Object.assign(new PassThrough(), { path: '/other', body: undefined, is: () => false })
+    const response: Response = Object.create(express.response)
+    const send = sinon.stub(response, 'send').returns(response)
+    const header = sinon.stub(response, 'header').returns(response)
+    const next = sinon.spy()
+    customJsonMiddleware()(request, response, next)
+    response.json({ bitmap: 9223372036854775809n, count: 20 })
+    assert.equal(next.callCount, 1)
+    assert.equal(next.firstCall.args.length, 0)
+    assert.equal(header.calledWith('Content-Type', 'application/json'), true)
+    const body = send.firstCall.args[0]
+    assert.ok(Buffer.isBuffer(body))
+    assert.equal(body.toString(), '{"bitmap":9223372036854775809,"count":20}')
   })
 })

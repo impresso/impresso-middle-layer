@@ -1,5 +1,5 @@
 import { JSONPath } from 'jsonpath-plus'
-import { safeParseJson, safeStringifyJson } from '@/util/jsonCodec.js'
+import { cloneForRedaction } from './cloneForRedaction.js'
 import { sanitizeIiifImageUrl } from '@/util/iiif.js'
 import type { ImageUrlRewriteRule } from '@/models/generated/app/configuration.js'
 /**
@@ -33,24 +33,26 @@ export const DefaultConverters: Record<DefaultConvertersNames, ValueConverter> =
 /**
  * Redacts sensitive information from the provided object based on the specified redaction policy.
  */
-export const redactObject = <T extends Redactable>(
-  object: T,
-  policy: RedactionPolicy,
-  rules?: ImageUrlRewriteRule[]
-): T => {
+export function redactObject<T extends Redactable>(object: T, policy: RedactionPolicy, rules?: ImageUrlRewriteRule[]): T
+export function redactObject(object: Redactable, policy: RedactionPolicy, rules?: ImageUrlRewriteRule[]): unknown {
   if (typeof object !== 'object' || object === null || Array.isArray(object)) {
     throw new Error('The provided object is not Redactable')
   }
 
-  const objectCopy = safeParseJson(safeStringifyJson(object))
+  const objectCopy = cloneForRedaction(object)
+  if (objectCopy === undefined) throw new TypeError('The provided object has no JSON representation')
+  // A custom toJSON may return a bigint; it has no object properties to redact.
+  if (typeof objectCopy === 'bigint') return objectCopy
 
   policy.items.forEach(item => {
+    const valueConverter = DefaultConverters[item.valueConverterName]
+    // JSONPath already caches parsed expressions; preserve policy order and its
+    // callback traversal semantics rather than maintaining a second path cache.
     JSONPath({
       path: item.jsonPath,
       json: objectCopy,
       resultType: 'value',
       callback: (value, type, payload) => {
-        const valueConverter = DefaultConverters[item.valueConverterName]
         payload.parent[payload.parentProperty] = valueConverter(value, rules)
       },
     })
