@@ -19,7 +19,7 @@
     "test": "test/"
   },
   "engines": {
-    "node": ">= 20.0.0",
+    "node": ">= 24.0.0",
     "npm": ">= 3.0.0"
   },
   "scripts": {
