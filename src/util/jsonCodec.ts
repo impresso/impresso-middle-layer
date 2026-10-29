@@ -1,12 +1,5 @@
 import { Encoder, Decoder } from 'socket.io-parser'
 
-// Node 24 supports rawJSON, but the project's TypeScript libs do not declare it yet.
-declare global {
-  interface JSON {
-    rawJSON(text: string): { readonly rawJSON: string }
-  }
-}
-
 /**
  * A replacer that encodes bigint as strings.
  */
@@ -32,7 +25,7 @@ export class CustomDecoder extends Decoder {
 const ForbiddenProperty = /__proto__|constructor/
 const IntegerToken = /^-?\d+$/
 
-const checkProperty = (key: string): void => {
+export const assertSafeJsonProperty = (key: string): void => {
   // Match the old codec's protection, including literal Unicode escapes in keys.
   const decodedKey = key.includes('\\u')
     ? key.replace(/\\u([\da-f]{4})/gi, (_match, digits: string) => String.fromCharCode(parseInt(digits, 16)))
@@ -44,7 +37,7 @@ const isJsonObject = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value)
 
 const losslessReviver = (key: string, value: unknown, context?: { source?: string }): unknown => {
-  checkProperty(key)
+  assertSafeJsonProperty(key)
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) throw new SyntaxError('Bad number')
     if (!Number.isSafeInteger(value)) {
@@ -78,7 +71,7 @@ export const safeParseJson = (json: string) => {
     } else if (isJsonObject(value)) {
       Object.setPrototypeOf(value, null)
       for (const key of Object.keys(value)) {
-        checkProperty(key)
+        assertSafeJsonProperty(key)
         pending.push(value[key])
       }
     }
