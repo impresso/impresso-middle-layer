@@ -18,9 +18,7 @@ const createMockAppWithMediaSources = (mediaSources: MediaSource[]): ImpressoApp
     service: (name: string) => {
       if (name === 'media-sources') {
         return {
-          getLookup: async () => {
-            return mediaSources.reduce((lookup, mediaSource) => ({ ...lookup, [mediaSource.id]: mediaSource }), {})
-          },
+          getMediaSource: async (id: string) => mediaSources.find(source => source.id === id),
         }
       }
 

@@ -1,5 +1,6 @@
 import type { ClientService, Id, Params, ServiceMethods } from '@feathersjs/feathers'
-import { Cache, WellKnownKeys } from '@/cache.js'
+import type { Cache } from '@/cache.js'
+import { getWellKnownSnapshots } from '@/internalServices/wellKnownSnapshots.js'
 import type { MediaSource } from '@/models/generated/app/entities.js'
 import { NotFound } from '@feathersjs/errors'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
@@ -89,15 +90,14 @@ export class MediaSources
   async findMediaSources(query?: FindQuery): Promise<FindResponse<MediaSource>> {
     const { limit = DefaultPageSize, offset = 0, term, type, order_by } = query ?? {}
 
-    const result = await this.cache.get<string>(WellKnownKeys.MediaSources)
-    const deserialisedResult: MediaSource[] = JSON.parse(result ?? '[]')
+    const { sources } = await getWellKnownSnapshots(this.cache).mediaSources()
 
     const termFilter = newTermFilter(term)
     const typeFilter = newTypeFilter(type)
     const combinedFilter = (source: MediaSource) => termFilter(source) && typeFilter(source)
     const sorter = sorters[order_by ?? 'name']
 
-    const filteredResult = deserialisedResult.filter(combinedFilter).sort(sorter)
+    const filteredResult = sources.filter(combinedFilter).sort(sorter)
     const page = filteredResult?.slice(offset, offset + limit) ?? []
 
     return {
@@ -106,30 +106,18 @@ export class MediaSources
         offset,
         total: filteredResult?.length ?? 0,
       },
-      data: page,
+      data: structuredClone(page),
     }
   }
 
   async getMediaSource(id: Id): Promise<MediaSource | undefined> {
-    const result = await this.cache.get<string>(WellKnownKeys.MediaSources)
-    const deserialisedResult: MediaSource[] = JSON.parse(result ?? '[]')
-
-    const item = deserialisedResult?.find(mediaSource => mediaSource.id === id)
-    return item
+    const { byId } = await getWellKnownSnapshots(this.cache).mediaSources()
+    const item = byId.get(String(id))
+    return item == null ? undefined : structuredClone(item)
   }
 
   async getLookup(): Promise<Record<string, MediaSource>> {
-    const results = await this.findMediaSources({
-      limit: Number.MAX_SAFE_INTEGER,
-      offset: 0,
-    })
-
-    return results.data.reduce(
-      (acc, mediaSource) => {
-        acc[mediaSource.id] = mediaSource
-        return acc
-      },
-      {} as Record<string, MediaSource>
-    )
+    const { byId } = await getWellKnownSnapshots(this.cache).mediaSources()
+    return structuredClone(Object.fromEntries(byId))
   }
 }

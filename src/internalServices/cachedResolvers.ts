@@ -1,7 +1,7 @@
 import { createEntityResolver } from '@/services/entities/lookup.js'
 import Topic from '@/models/topics.model.js'
 import { ImpressoApplication } from '@/types.js'
-import { WellKnownKeys } from '@/cache.js'
+import { getWellKnownSnapshots } from '@/internalServices/wellKnownSnapshots.js'
 import { getPartnerResolver } from '@/internalServices/facetResolvers/partnerResolver.js'
 import {
   Topic as ITopic,
@@ -11,7 +11,6 @@ import {
   Partner as IPartner,
   MediaSource as IMediaSource,
 } from '@/models/generated/app/entities.js'
-import type { CachedTopic } from '@/models/generated/app/cache.js'
 import { FacetWithLabel } from '@/models/generated/app/entities.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
@@ -122,50 +121,25 @@ const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection>
 }
 
 const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
-  const loadTopicsData = async (): Promise<Record<string, CachedTopic>> => {
-    const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
-    const deserialisedTopics: CachedTopic[] = JSON.parse(result ?? '[]')
-    const byId = deserialisedTopics.reduce(
-      (acc, topic) => {
-        if (acc[topic.id] == null) {
-          acc[topic.id] = topic
-        }
-        return acc
-      },
-      {} as Record<string, CachedTopic>
-    )
-    return byId
-  }
-
-  const getTopicsData = async (): Promise<Record<string, CachedTopic>> => {
-    return await loadTopicsData()
-  }
-
   return async (id: string) => {
-    const topics = await getTopicsData()
-    const topic = topics[id]
-    if (!topic) return undefined
-    return new Topic(topic)
+    const topics = await getWellKnownSnapshots(app.get('cacheManager')).topics()
+    const topic = topics.get(id)
+    return topic == null ? undefined : new Topic(structuredClone(topic))
   }
 }
 
 const getYearResolver = (app: ImpressoApplication): IResolver<IYear> => {
   return async (id: string) => {
-    const result = await app.get('cacheManager').get<string>(WellKnownKeys.Years)
-    const deserialisedYears: Record<number, IYear> = JSON.parse(result ?? '{}')
-
-    const year = deserialisedYears[Number(id)]
-    year.id = Number(id)
-    return year
+    const years = await getWellKnownSnapshots(app.get('cacheManager')).years()
+    const year = years.get(String(Number(id)))
+    return year == null ? undefined : { ...structuredClone(year), id: Number(id) }
   }
 }
 
 const getMediaSourceResolver = (app: ImpressoApplication): IResolver<IMediaSource> => {
   const mediaSources = app.service('media-sources')
   return async (id: string) => {
-    const lookup = await mediaSources.getLookup()
-    const item = lookup[id]
-    return item
+    return mediaSources.getMediaSource(id)
   }
 }
 
