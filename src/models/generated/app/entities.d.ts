@@ -167,7 +167,7 @@ export interface Entity {
 
 
 /**
- * An entity: location or person.
+ * An entity: location or person or item.
  */
 export interface EntityDetails {
   /**
@@ -358,7 +358,7 @@ export interface WikidataLocation2 {
   };
 }
 /**
- * Generic Wikidata item schema, for entities that are not a person or a location. Based on https://www.wikidata.org/wiki/Wikidata:Glossary
+ * Wikidata item schema. Based on https://schema.org/Place
  */
 export interface WikidataItem {
   /**
@@ -1159,7 +1159,7 @@ export interface TopicWord {
 
 
 /**
- * Generic Wikidata item schema, for entities that are not a person or a location. Based on https://www.wikidata.org/wiki/Wikidata:Glossary
+ * Wikidata item schema. Based on https://schema.org/Place
  */
 export interface WikidataItem {
   /**

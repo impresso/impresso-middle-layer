@@ -429,39 +429,39 @@ export interface ImpressoNamedEntityRecognitionEntity {
 }
 
 
+export type ProvenanceVerificationClaims = ProvenanceVerificationApiClaims | ProvenanceVerificationExportClaims;
+
 /**
  * Signed delivery receipts identify receiving accounts and ordered item IDs only. They do not attest item content or identify a publisher.
  */
-export type ProvenanceVerificationResponse =
-  | {
-      valid: true;
-      claims: (
-        | {
-            kind?: "api";
-            [k: string]: unknown;
-          }
-        | {
-            kind?: "export";
-            [k: string]: unknown;
-          }
-      ) & {
-        iss: string;
-        aud: string;
-        iat: number;
-        jti: string;
-        userRef: string;
-        kind: "api" | "export";
-        path?: string;
-        exportId?: string;
-        idsHash: string;
-        idsCount: number;
-      };
-      idsMatch?: boolean;
-    }
-  | {
-      valid: false;
-      reason: string;
-    };
+export interface ProvenanceVerificationResponse {
+  valid: boolean;
+  claims?: ProvenanceVerificationClaims;
+  idsMatch?: boolean;
+  reason?: string;
+}
+export interface ProvenanceVerificationApiClaims {
+  iss: string;
+  aud: string;
+  iat: number;
+  jti: string;
+  userRef: string;
+  kind: "api";
+  path: string;
+  idsHash: string;
+  idsCount: number;
+}
+export interface ProvenanceVerificationExportClaims {
+  iss: string;
+  aud: string;
+  iat: number;
+  jti: string;
+  userRef: string;
+  kind: "export";
+  exportId: string;
+  idsHash: string;
+  idsCount: number;
+}
 
 
 /**

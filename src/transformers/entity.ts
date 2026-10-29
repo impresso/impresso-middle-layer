@@ -66,7 +66,7 @@ const transformWikidataItem = (input?: EntityDetails['wikidata']): WikidataItem 
 }
 
 const transformWikidataDetails = (
-  input?: EntityDetails['wikidata'],
+  input?: EntityDetails['wikidata']
 ): WikidataPerson | WikidataLocation | WikidataItem | undefined => {
   if (input?.type === 'human') return transformWikidataHuman(input)
   if (input?.type === 'location') return transformWikidataLocation(input)
