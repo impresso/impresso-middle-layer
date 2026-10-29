@@ -35,9 +35,7 @@ export default {
         }),
       }),
       validateEach('filters', eachFilterValidator),
-      filtersToSolrQuery({
-        overrideOrderBy: false,
-      }),
+      filtersToSolrQuery(),
       queryWithCommonParams(),
     ],
   },
