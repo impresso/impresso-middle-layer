@@ -49,15 +49,18 @@ interface UnigramTrendsSolrResponse {
 // https://lucene.apache.org/solr/guide/6_6/faceting.html#Faceting-Thefacet.limitParameter
 const DefaultFacetLimit = -1
 
+/** Escape a value for use inside a single-quoted string argument of a SOLR function query. */
+const escapeFunctionStringArg = (value: string) => value.replace(/[\\']/g, '\\$&')
+
 const getFacetPivotString = (languageCode: string, timeIntervalField: string) =>
   `{!stats=tf_stats_${languageCode} key=${languageCode}}${timeIntervalField}`
 const getStatsFieldString = (languageCode: string, unigram: string) =>
-  `{!tag=tf_stats_${languageCode} key=tf_stats_${languageCode} sum=true func}termfreq(content_txt_${languageCode},'${unigram}')`
+  `{!tag=tf_stats_${languageCode} key=tf_stats_${languageCode} sum=true func}termfreq(content_txt_${languageCode},'${escapeFunctionStringArg(unigram)}')`
 
 const getFacetPivotStringOtherLanguages = (timeIntervalField: string) =>
   `{!stats=tf_stats_other key=other}${timeIntervalField}`
 const getStatsFieldStringOtherLanguages = (unigram: string) =>
-  `{!tag=tf_stats_other key=tf_stats_other sum=true func}termfreq(content_txt,'${unigram}')`
+  `{!tag=tf_stats_other key=tf_stats_other sum=true func}termfreq(content_txt,'${escapeFunctionStringArg(unigram)}')`
 
 /**
  * Construct a SOLR query to get unigram trends.

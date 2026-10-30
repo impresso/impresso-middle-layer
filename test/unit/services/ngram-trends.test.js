@@ -6,6 +6,7 @@ import {
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
 } from '@/services/ngram-trends/logic/solrQuery'
+import hooks from '@/services/ngram-trends/ngram-trends.hooks'
 import { SupportedLanguageCodes } from '@/models/solr'
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
@@ -40,6 +41,27 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
     }
 
     assert.deepEqual(payload, expectedPayload)
+  })
+
+  it('escapes single quotes and backslashes in the unigram', () => {
+    const payload = unigramTrendsRequestToSolrQuery("l'homme\\", null)
+    const statsFields = payload.params['stats.field']
+
+    assert.equal(statsFields.length, SupportedLanguageCodes.length + 1)
+    statsFields.forEach(field => assert.ok(field.endsWith(`,'l\\'homme\\\\')`), field))
+  })
+})
+
+describe('"ngram-trends" hooks -> request validation', () => {
+  const validateRequest = hooks.before.create[1]
+  const ngrams = count => Array.from({ length: count }, (_, index) => `term${index}`)
+
+  it('accepts 10 ngrams', () => {
+    assert.doesNotThrow(() => validateRequest({ data: { ngrams: ngrams(10), filters: [] } }))
+  })
+
+  it('rejects more than 10 ngrams', () => {
+    assert.throws(() => validateRequest({ data: { ngrams: ngrams(11), filters: [] } }), { name: 'BadRequest' })
   })
 })
 
