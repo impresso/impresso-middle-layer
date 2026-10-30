@@ -221,7 +221,7 @@ function guessTimeIntervalFromFilters(filters: Filter[] = []): TimeInterval {
   const timedeltas = daterangeFilters
     .map(getTimedeltaInDaterangeFilter)
     .filter((v): v is number => v !== undefined)
-    .sort()
+    .sort((a, b) => a - b)
   const shortestTimedelta = timedeltas[0]
 
   if (!isFinite(shortestTimedelta)) return 'year'

@@ -199,6 +199,23 @@ describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
 
     assert.equal(timeInterval, 'year')
   })
+  it('guesses from the numerically shortest time filter range', async () => {
+    const filters = [
+      {
+        type: 'daterange',
+        q: ['1900-01-01T00:00:00Z TO 1910-06-01T00:00:00Z'],
+        op: 'OR',
+      },
+      {
+        type: 'daterange',
+        q: ['1900-01-01T00:00:00Z TO 1903-06-01T00:00:00Z'],
+        op: 'OR',
+      },
+    ]
+    const timeInterval = guessTimeIntervalFromFilters(filters)
+
+    assert.equal(timeInterval, 'month')
+  })
   it('guesses "year" from a filters without a daterange filter', async () => {
     const filters = []
     const timeInterval = guessTimeIntervalFromFilters(filters)
