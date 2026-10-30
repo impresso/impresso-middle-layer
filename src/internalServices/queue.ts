@@ -15,6 +15,10 @@ import {
   JobNameRemoveItemsFromCollection,
   RemoveItemsFromCollectionJobData,
 } from '@/jobs/collections/removeItemsFromCollection.js'
+import {
+  JobNameUpdateCollectionItemsVisibility,
+  UpdateCollectionItemsVisibilityJobData,
+} from '@/jobs/collections/updateCollectionItemsVisibility.js'
 import { ExportSearchResultsJobData, JobNameExportSearchResults } from '@/jobs/searchResults/exportSearchResults.js'
 import { JobNameRebuildWellKnownCache, RebuildWellKnownCacheJobData } from '@/jobs/rebuildWellKnownCache.js'
 import {
@@ -38,6 +42,7 @@ export class QueueService {
   private queueAddItemsToCollection: Queue
   private queueRemoveItemsFromCollection: Queue
   private queueRemoveAllCollectionItems: Queue
+  private queueUpdateCollectionItemsVisibility: Queue
   private queueAddQueryResultItemsToCollection: Queue
   private queueExportSearchResults: Queue
   private queueMigrateOldCollections: Queue
@@ -53,6 +58,10 @@ export class QueueService {
     const connectionOptions: any = {
       host: this.redisConfig.host || 'localhost',
       port: this.redisConfig.port || 6379,
+      // Pin RESP2: BullMQ 6.x reads XREAD replies in RESP2 shape and crashes
+      // (QueueEvents "Cannot read properties of undefined (reading 'length')")
+      // under ioredis 6's RESP3-by-default protocol.
+      protocol: 2,
     }
     logger.info('Starting queue service with redis:', this.redisConfig)
 
@@ -89,6 +98,10 @@ export class QueueService {
       defaultJobOptions,
     })
     this.queueRemoveAllCollectionItems = new Queue(JobNameRemoveAllCollectionItems, {
+      connection,
+      defaultJobOptions,
+    })
+    this.queueUpdateCollectionItemsVisibility = new Queue(JobNameUpdateCollectionItemsVisibility, {
       connection,
       defaultJobOptions,
     })
@@ -147,6 +160,18 @@ export class QueueService {
   }
 
   /**
+   * Update the visibility of all items in a collection (after access level change)
+   */
+  async updateCollectionItemsVisibility(
+    data: UpdateCollectionItemsVisibilityJobData
+  ): Promise<BullJob<UpdateCollectionItemsVisibilityJobData>> {
+    logger.info(
+      `Queueing job to update visibility of all items in collection ${data.collectionId} for user ${data.userId} to '${data.visibility}'`
+    )
+    return this.queueUpdateCollectionItemsVisibility.add(JobNameUpdateCollectionItemsVisibility, data)
+  }
+
+  /**
    * Add query result items to collection
    */
   async addQueryResultItemsToCollection(
@@ -175,13 +200,16 @@ export class QueueService {
     data: DownstreamServiceHealthCheckJobData
   ): Promise<BullJob<DownstreamServiceHealthCheckJobData>> {
     logger.info('Scheduling periodic downstream service health check (every 5 minutes)')
-    return this.queueDownstreamServiceHealthCheck.add(JobNameDownstreamServiceHealthCheck, data, {
-      jobId: DownstreamServiceHealthCheckJobId,
-      repeat: {
+    return this.queueDownstreamServiceHealthCheck.upsertJobScheduler(
+      DownstreamServiceHealthCheckJobId,
+      {
         every: DownstreamServiceHealthCheckIntervalMs,
-        immediately: true,
       },
-    })
+      {
+        name: JobNameDownstreamServiceHealthCheck,
+        data,
+      }
+    )
   }
 
   /**
@@ -192,6 +220,7 @@ export class QueueService {
       this.queueAddItemsToCollection,
       this.queueRemoveItemsFromCollection,
       this.queueRemoveAllCollectionItems,
+      this.queueUpdateCollectionItemsVisibility,
       this.queueAddQueryResultItemsToCollection,
       this.queueExportSearchResults,
       this.queueMigrateOldCollections,
@@ -225,6 +254,7 @@ export class QueueService {
     await this.queueAddItemsToCollection.close()
     await this.queueRemoveItemsFromCollection.close()
     await this.queueRemoveAllCollectionItems.close()
+    await this.queueUpdateCollectionItemsVisibility.close()
     await this.queueAddQueryResultItemsToCollection.close()
     await this.queueExportSearchResults.close()
     await this.queueMigrateOldCollections.close()

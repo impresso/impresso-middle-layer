@@ -49,7 +49,13 @@ export interface ContentItem {
   issue?: NewspaperIssue;
   matches?: ContentItemMatch[];
   regions?: ContentItemRegion[];
+  /**
+   * Items: TODO
+   */
   regionBreaks?: number[];
+  /**
+   * Items: TODO
+   */
   contentLineBreaks?: number[];
   /**
    * TODO
@@ -541,7 +547,7 @@ export interface EntityDetails {
    * Entity name
    */
   name: string;
-  type: "person" | "location" | "organisation" | "newsagency";
+  type: "person" | "location" | "organisation" | "newsagency" | "radiostation";
   /**
    * TODO
    */
@@ -616,7 +622,7 @@ export interface WikidataLocation {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };
@@ -657,7 +663,7 @@ export interface WikidataLocation1 {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };
@@ -680,604 +686,6 @@ export interface WikidataLocation1 {
      */
     longitude?: number;
   };
-}
-
-
-/**
- * An entity mention in a content item
- */
-export interface EntityMention {
-  /**
-   * Unique identifier of the entity
-   */
-  entityId: string;
-  /**
-   * Content item ID
-   */
-  ciId: string;
-  /**
-   * Type of the entity
-   */
-  type: string;
-  /**
-   * Name of the entity
-   */
-  name?: string;
-  /**
-   * Surface text
-   */
-  t: string;
-  /**
-   * Left offset (start)
-   */
-  l: number;
-  /**
-   * Right offset (end)
-   */
-  r: number;
-  /**
-   * Confidence score for Named Entity Linking
-   */
-  confidenceNel?: number | null;
-  /**
-   * Confidence score for Named Entity Recognition
-   */
-  confidenceNer?: number | null;
-  contentItem?: ContentItem;
-  /**
-   * Context of the mention in text, if available
-   */
-  context?: string;
-}
-/**
- * Unified schema for media content items in the Impresso project, with modular field groups.
- */
-export interface ContentItem {
-  /**
-   * Unique identifier for the content item
-   */
-  id: string;
-  /**
-   * Unique issue identifier
-   */
-  issueId?: string;
-  /**
-   * Relevance score for this content item relative to the search query
-   */
-  relevanceScore?: number;
-  meta?: ContentItemMeta;
-  text?: ContentItemText;
-  semanticEnrichments?: ContentItemSemanticEnrichments;
-  facsimile?: ContentItemFacsimile;
-  audio?: ContentItemAudio;
-  access?: ContentItemAccessRights;
-}
-/**
- * Content Item metadata
- */
-export interface ContentItemMeta {
-  /**
-   * Type of the media source.
-   */
-  sourceType: "newspaper" | "radio_broadcast" | "radio_magazine" | "radio_schedule" | "monograph" | "encyclopedia";
-  /**
-   * Medium of the source (audio for audio radio broadcasts, print for newspapers, typescript for digitised radio bulletin typescripts).
-   */
-  sourceMedium: "audio" | "print" | "typescript";
-  /**
-   * Media title alias. Usually a 3 letter code of the media title (newspaper, radio station, etc.).
-   */
-  mediaId?: string;
-  /**
-   * Human-readable title of the media source identified by mediaId.
-   */
-  mediaTitle?: string;
-  /**
-   * Full date and time in ISO 8601 format
-   */
-  date: string;
-  /**
-   * Identifier of the partner providing the content item.
-   */
-  partnerId?: string;
-  /**
-   * Human-readable title of the partner identified by partnerId.
-   */
-  partnerTitle?: string;
-  /**
-   * Country code of the content item.
-   */
-  countryCode?: string;
-  /**
-   * Province code of the content item.
-   */
-  provinceCode?: string;
-}
-/**
- * Textual content details
- */
-export interface ContentItemText {
-  /**
-   * Type of document, e.g., page (p) or content item (ci).
-   */
-  documentType?: "p" | "ci";
-  /**
-   * Type of content item, e.g., article, section.
-   */
-  itemType?:
-    | "ar"
-    | "article"
-    | "ad"
-    | "advertisement"
-    | "page"
-    | "tb"
-    | "ob"
-    | "w"
-    | "ch"
-    | "chapter"
-    | "death_notice"
-    | "chronicle"
-    | "unsegmented"
-    | "radio_broadcast_episode"
-    | "radio_bulletin"
-    | "rbe"
-    | "rb"
-    | "dsc"
-    | "discussion"
-    | "ent"
-    | "entertainment"
-    | "no-type";
-  /**
-   * Human-readable label for the itemType code.
-   */
-  itemTypeLabel?: string;
-  /**
-   * Original language of the content item.
-   */
-  originalLangCode?: string;
-  /**
-   * Computed language of the content item.
-   */
-  langCode?: string;
-  /**
-   * Token count of the content item (space split).
-   */
-  contentLength?: number;
-  /**
-   * Snippet of the content item (first 150 characters).
-   */
-  snippet?: string;
-  /**
-   * Title of the content item
-   */
-  title?: string;
-  /**
-   * Full text content
-   */
-  content?: string;
-  matches?: ContentItemTextMatch[];
-}
-/**
- * TODO
- */
-export interface ContentItemTextMatch {
-  /**
-   * TODO
-   */
-  fragment: string;
-  /**
-   * TODO
-   */
-  coords?: number[];
-  /**
-   * TODO
-   */
-  pageId?: string;
-  /**
-   * TODO
-   */
-  iiif?: string;
-}
-/**
- * Semantic enrichments information
- */
-export interface ContentItemSemanticEnrichments {
-  /**
-   * OCR quality assessment score between 0,00 and 1,00.
-   */
-  ocrQuality?: number;
-  /**
-   * Lists of named entities in the content item by type.
-   */
-  namedEntities?: {
-    persons?: ContentItemNamedEntity[];
-    locations?: ContentItemNamedEntity[];
-    organisations?: ContentItemNamedEntity[];
-    newsagencies?: ContentItemNamedEntity[];
-  };
-  /**
-   * List of mentions in the content item per type.
-   */
-  mentions?: {
-    persons?: ContentItemMention[];
-    locations?: ContentItemMention[];
-    organisations?: ContentItemMention[];
-    newsagencies?: ContentItemMention[];
-  };
-  /**
-   * List of topics assigned to the content item.
-   */
-  topics?: ContentItemTopic[];
-  /**
-   * List of user collections the content item belongs to.
-   */
-  collections?: Collection[];
-  /**
-   * Precomputed embeddings for the content item in the format: <model_type>:<base64_embedding_vector>.
-   */
-  embeddings?: string[];
-}
-/**
- * Content item named entity
- */
-export interface ContentItemNamedEntity {
-  /**
-   * Unique identifier of the named entity
-   */
-  id?: string;
-  /**
-   * Number of times this entity is mentioned in the content item
-   */
-  count?: number;
-  /**
-   * The label of the named entity, e.g., a person's name or an organization
-   */
-  label?: string;
-}
-/**
- * Content item mention
- */
-export interface ContentItemMention {
-  /**
-   * The surface form (label) of the entity mention
-   */
-  surfaceForm?: string;
-  /**
-   * Confidence score of the entity mention
-   */
-  mentionConfidence?: number;
-  /**
-   * Start offset of the entity mention in the content item
-   */
-  startOffset?: number;
-  /**
-   * End offset of the entity mention in the content item
-   */
-  endOffset?: number;
-}
-/**
- * Topic associated with a content item.
- */
-export interface ContentItemTopic {
-  /**
-   * Relevance score of the topic in the content item, typically between 0 and 1, where 1 indicates high relevance.
-   */
-  relevance: number;
-  /**
-   * Unique identifier of the topic.
-   */
-  id: string;
-  /**
-   * Human-readable label of the topic.
-   */
-  label?: string;
-  /**
-   * Language code of the topic, following ISO 639-1 standards.
-   */
-  languageCode?: string;
-}
-/**
- * Collection details.
- */
-export interface Collection {
-  /**
-   * Unique identifier of the collection.
-   */
-  id: string;
-  /**
-   * Title of the collection.
-   */
-  title?: string;
-  /**
-   * Description of the collection.
-   */
-  description?: string;
-  /**
-   * Access level of the collection.
-   */
-  accessLevel?: "public" | "private";
-  /**
-   * Creation date of the collection.
-   */
-  createdAt?: string;
-  /**
-   * Last update date of the collection.
-   */
-  updatedAt?: string;
-  /**
-   * Total number of items in the collection.
-   */
-  totalItems?: number;
-  /**
-   * Identifier of the user who created the collection.
-   */
-  creatorId?: string;
-}
-/**
- * Facsimile-related information for digitized content
- */
-export interface ContentItemFacsimile {
-  /**
-   * Total number of pages in the content item.
-   */
-  pagesCount?: number;
-  /**
-   * Indicates if the content item is on the front page.
-   */
-  isFrontPage?: boolean;
-  /**
-   * Indicates whether coordinates were converted.
-   */
-  isCoordinatesConverted?: boolean;
-  /**
-   * List of pages this content item is on.
-   */
-  pages?: ContentItemPage[];
-  /**
-   * List of line breaks offsets in the content item (relative to textual content).
-   */
-  lineBreaks?: number[];
-  /**
-   * List of paragraph breaks offsets in the content item (relative to textual content).
-   */
-  paragraphBreaks?: number[];
-  /**
-   * List of region breaks offsets in the content item (relative to textual content).
-   */
-  regionBreaks?: number[];
-  [k: string]: unknown;
-}
-/**
- * Content item page
- */
-export interface ContentItemPage {
-  /**
-   * Unique identifier of the page.
-   */
-  id?: string;
-  /**
-   * The number of the page.
-   */
-  number?: number;
-  /**
-   * List of region coordinates.
-   */
-  regionCoordinates?: [number, number, number, number][];
-  iiif?: IIIFContentItemPageDetails;
-}
-/**
- * IIIF details for a content item page
- */
-export interface IIIFContentItemPageDetails {
-  /**
-   * The URL of the IIIF manifest for the page.
-   */
-  manifestUrl: string;
-  /**
-   * The URL of the thumbnail image for the page.
-   */
-  thumbnailUrl: string;
-}
-/**
- * Audio-related information for broadcast content
- */
-export interface ContentItemAudio {
-  /**
-   * Start time of media in HH:MM:SS format (relative to the day of broadcast).
-   */
-  startTime?: string;
-  /**
-   * Duration of the radio broadcast in HH:MM:SS format (relative to the start of the broadcast on the given broadcast day).
-   */
-  duration?: string;
-  /**
-   * Array of records
-   */
-  records?: ContentItemAudioRecord[];
-  /**
-   * Total number of records/segments in the radio broadcast
-   */
-  recordsCount?: number;
-  [k: string]: unknown;
-}
-/**
- * Content item audio record
- */
-export interface ContentItemAudioRecord {
-  /**
-   * Unique identifier of the audio record.
-   */
-  id?: string;
-  /**
-   * The number of the audio record.
-   */
-  number?: number;
-  /**
-   * A list of audio segments locators.
-   */
-  audioSegmentsLocators?: ContentItemAudioLocator[];
-  /**
-   * The URL of the audio file.
-   */
-  audioFileUrl?: string;
-}
-/**
- * Content item audio locator. Links location of a segement in text with location in audio.
- */
-export interface ContentItemAudioLocator {
-  /**
-   * Represents the start offset and the length of the audio segment in seconds.
-   */
-  timeCode?: number[];
-  /**
-   * Represents the character offset and length of the audio segment in the content item text.
-   */
-  textLocation?: number[];
-  /**
-   * Represents the index of the utterance in the audio file this audio segment belongs to. May not be provided if no utterance information is available.
-   */
-  utteranceIndex?: number;
-}
-/**
- * Access rights information
- */
-export interface ContentItemAccessRights {
-  /**
-   * Rights data domain. (e.g., 'pbl' for public, 'prt' for private)
-   */
-  dataDomain: "pbl" | "prt";
-  /**
-   * Human-readable label for the dataDomain code.
-   */
-  dataDomainLabel?: string;
-  /**
-   * Copyright status.
-   */
-  copyright: "pbl" | "und" | "nkn" | "euo" | "unk" | "in_cpy";
-  /**
-   * Human-readable label for the copyright code.
-   */
-  copyrightLabel?: string;
-  accessBitmaps?: ContentItemAccessBitmaps;
-  [k: string]: unknown;
-}
-/**
- * Access bitmaps for different functionalities.
- */
-export interface ContentItemAccessBitmaps {
-  /**
-   * Bitmap for explore access. As bytes.
-   */
-  explore?: string;
-  /**
-   * Bitmap for get transcript access. As bytes.
-   */
-  getTranscript?: string;
-  /**
-   * Bitmap for get images access. As bytes.
-   */
-  getImages?: string;
-  /**
-   * Bitmap for get audio access. As bytes.
-   */
-  getAudio?: string;
-}
-
-
-/**
- * A topic with bells and whistles for rendering in a graph
- */
-export interface InternalTopic {
-  /**
-   * The unique identifier of the topic
-   */
-  id: string;
-  /**
-   * The language code of the topic
-   */
-  language: string;
-  /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    id: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
-   * Number of content items with this topic
-   */
-  contentItemsCount?: number;
-  excerpt?: TopicWord[];
-  /**
-   * Top N words associated with the topic
-   */
-  words?: TopicWord[];
-  /**
-   * ID of the model used to generate the topic
-   */
-  model?: string;
-  /**
-   * List of matched topic suggestions (if any)
-   */
-  matches?: string[];
-}
-/**
- * A word included in a topic
- */
-export interface TopicWord {
-  /**
-   * Word surface form
-   */
-  w: string;
-  /**
-   * Probability of the word in topic
-   */
-  p: number;
-  /**
-   * If word is highlighted
-   */
-  h?: boolean;
 }
 
 
@@ -1588,7 +996,7 @@ export interface MediaSource {
    */
   publishedPeriodYears?: [number, number];
   /**
-   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the contet items.  Is not defined if there are no content items for this source.
+   * The range of dates this media source has content items for. This represents the earliest and the latest dates of the content items.  Is not defined if there are no content items for this source.
    *
    * @minItems 2
    * @maxItems 2
@@ -1608,20 +1016,21 @@ export interface MediaSource {
      */
     pages?: number;
   };
-  properties?: {
-    /**
-     * The unique identifier of the property.
-     */
-    id: string;
-    /**
-     * The name of the property.
-     */
-    label: string;
-    /**
-     * The value of the property.
-     */
-    value: string;
-  }[];
+  properties?: MediaSourceProperty[];
+}
+export interface MediaSourceProperty {
+  /**
+   * The unique identifier of the property.
+   */
+  id: string;
+  /**
+   * The name of the property.
+   */
+  label: string;
+  /**
+   * The value of the property.
+   */
+  value: string;
 }
 /**
  * Collection details.
@@ -1919,6 +1328,9 @@ export interface TextReuseClusterDetails {
      * Number of buckets
      */
     numBuckets?: number;
+    /**
+     * Items: TODO: define bucket fields
+     */
     buckets?: {
       [k: string]: unknown;
     }[];
@@ -1943,6 +1355,9 @@ export interface TextReuseClusterDetails {
      * Number of buckets
      */
     numBuckets?: number;
+    /**
+     * Items: TODO: define bucket fields
+     */
     buckets?: {
       [k: string]: unknown;
     }[];
@@ -1996,6 +1411,9 @@ export interface TextReusePassage {
    * Title of the content item (article) where this passage was found
    */
   title: string;
+  /**
+   * Items: Details of the connected clusters
+   */
   connectedClusters?: {
     /**
      * ID of the connected cluster
@@ -2124,7 +1542,7 @@ export interface WikidataLocation {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };
@@ -2165,7 +1583,7 @@ export interface WikidataLocation1 {
    */
   labels?: {
     /**
-     * Description of the location in a specific language
+     * Label of the location in a specific language
      */
     [k: string]: string;
   };

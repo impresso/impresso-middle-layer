@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize'
 import Newspaper from '@/models/newspapers.model.js'
 import { NewspaperIssue } from '@/models/generated/deprecated/models.js'
-import { ArticleFields, ContentItemCore } from '@/models/generated/external/solr/ContentItem.js'
+import { PaperFields as ArticleFields, CoreFields as ContentItemCore } from '@/models/consolidated/solr/index.js'
 
 const ACCESS_RIGHTS_ND = 'NotDefined'
 const ACCESS_RIGHTS_CLOSED = 'Closed'

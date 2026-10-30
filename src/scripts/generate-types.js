@@ -13,15 +13,12 @@ const banner = `
 const basePath = './src/schema'
 const outputPath = './src/models/generated'
 const schemaBits = [
-  'canonical',
-  'canonical/contentItem',
+  'app/entities',
+  'app/entities/contentItem',
   'app/requests',
   'app/responses',
   'app/configuration',
-  'app/models',
-  'external/solr',
-  'external/solr/ContentItem',
-  // deprecated:
+  'app/cache',
   'deprecated/internalApi',
   'deprecated/models',
 ]

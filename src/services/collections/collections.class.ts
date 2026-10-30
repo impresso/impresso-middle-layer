@@ -1,13 +1,14 @@
 import { NotAuthenticated, NotFound } from '@feathersjs/errors'
 import type { ClientService, Id, Params } from '@feathersjs/feathers'
-import { InferAttributes, Op, Sequelize, WhereOptions } from 'sequelize'
+import { InferAttributes, Op, OrderItem, Sequelize, WhereOptions } from 'sequelize'
 import { SlimUser } from '@/authentication.js'
 import { QueueService } from '@/internalServices/queue.js'
 import { PublicFindResponse as FindResponse } from '@/models/common.js'
-import type { Collection } from '@/models/generated/canonical.js'
+import type { Collection } from '@/models/generated/app/entities.js'
 import { NewCollectionRequest } from '@/models/generated/app/requests.js'
 import UserCollection, { IUserCollection } from '@/models/user-collection.js'
 import type { ImpressoApplication } from '@/types.js'
+import { logger } from '@/logger.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { SolrNamespaces } from '@/solr.js'
 import {
@@ -28,6 +29,7 @@ export interface CollectionsQuery {
   limit?: number
   offset?: number
   includePublic?: boolean
+  order_by?: '-date' | 'date' | '-creationDate' | 'creationDate'
 }
 
 export interface CollectionsParams<Q = CollectionsQuery> extends Params<Q> {
@@ -67,6 +69,19 @@ interface CollectionIdPairWithCount extends CollectionIdPair {
   count: number
 }
 
+const orderByToSequelizeOrder = (orderBy: CollectionsQuery['order_by']): OrderItem[] => {
+  switch (orderBy) {
+    case 'date':
+      return [['lastModifiedDate', 'ASC']]
+    case 'creationDate':
+      return [['creationDate', 'ASC']]
+    case '-creationDate':
+      return [['creationDate', 'DESC']]
+    default:
+      return [['lastModifiedDate', 'DESC']]
+  }
+}
+
 export class CollectionsService implements ICollectionsService {
   protected readonly userCollectionDbModel: typeof UserCollection
   protected readonly queueService: QueueService
@@ -94,7 +109,7 @@ export class CollectionsService implements ICollectionsService {
   }
 
   async find(params: CollectionsParams): Promise<CollectionsFindResult> {
-    const { limit = 10, offset = 0, term = '', includePublic = false } = params?.query ?? {}
+    const { limit = 10, offset = 0, term = '', includePublic = false, order_by } = params?.query ?? {}
     const userId = params?.user?.id
 
     if (userId == null) {
@@ -129,7 +144,7 @@ export class CollectionsService implements ICollectionsService {
       where,
       limit,
       offset,
-      order: [['lastModifiedDate', 'DESC']],
+      order: orderByToSequelizeOrder(order_by),
     })
 
     // Get collection counts from Solr
@@ -245,6 +260,8 @@ export class CollectionsService implements ICollectionsService {
       throw new NotFound('Collection not found')
     }
 
+    const previousStatus = dbModel.status
+
     const updateData: Partial<IUserCollection> = {
       lastModifiedDate: new Date(),
     }
@@ -261,9 +278,28 @@ export class CollectionsService implements ICollectionsService {
       updateData.status = data.accessLevel === 'public' ? 'PUB' : 'PRI'
     }
 
-    // TODO: publish a job to update all items in the collection if accessLevel changed
-
+    // Persist the new status before propagating it to Solr items, so a failed
+    // DB write cannot leave public Solr items behind a private collection.
     await dbModel.update(updateData)
+
+    const newStatus = updateData.status
+    if (newStatus !== undefined && newStatus !== previousStatus) {
+      try {
+        await this.queueService.updateCollectionItemsVisibility({
+          userId: String(userId),
+          collectionId: String(id),
+          visibility: newStatus === 'PUB' ? 'pub' : 'pri',
+        })
+      } catch (error) {
+        // Best-effort: the new status is persisted, so a queue outage must not
+        // 500 the request. Log loudly: Solr items visibility is now stale until
+        // the access level is changed again.
+        logger.error(
+          `Failed to queue visibility update job for collection ${id} (user ${userId}, status ${previousStatus} → ${newStatus}); Solr items visibility is stale`,
+          { error }
+        )
+      }
+    }
 
     const collection = dbToCollection(dbModel)
 

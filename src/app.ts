@@ -14,6 +14,7 @@ import celery, { init as initCelery } from '@/celery.js'
 import channels from '@/channels.js'
 import { init as simpleSolrClient } from '@/internalServices/simpleSolr.js'
 import { init as vectorLogService } from '@/internalServices/vectorLog.js'
+import { init as auditLogStorage } from '@/internalServices/auditLogStorage.js'
 import { init as initPartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import { startupJobs } from '@/jobs/index.js'
 import middleware from '@/middleware/index.js'
@@ -32,6 +33,7 @@ import { init as imageProxy } from '@/middleware/imageProxy.js'
 import schemas from '@/services/schemas.js'
 import { withContext } from '@/logger.js'
 import { customJsonMiddleware } from '@/util/express.js'
+import { Limits as provenanceLimits } from '@/services/provenance/provenance.class.js'
 import queue from '@/internalServices/queue.js'
 import queueWorkerManager, { start as startQueueWorkerManager } from '@/internalServices/workerManager.js'
 
@@ -64,6 +66,7 @@ app.configure(quotaChecker)
 app.configure(cache)
 app.configure(simpleSolrClient)
 app.configure(vectorLogService)
+app.configure(auditLogStorage)
 
 // Enable security, compression, favicon and body parsing
 // Request context tracking: must be the very first middleware so that every
@@ -73,7 +76,7 @@ app.configure(vectorLogService)
 app.use(helmet())
 app.use(compress())
 app.use(cookieParser())
-app.use(customJsonMiddleware()) // JSON body parser / serializer
+app.use(customJsonMiddleware({ bodyLimits: { '/tools/provenance': provenanceLimits.bodyBytes } }))
 
 // configure local multer service.
 app.configure(multer)

@@ -87,6 +87,12 @@ export interface BaseFindResponse {
      */
     offset: number;
   };
+  meta?: {
+    provenance?: {
+      token: string;
+      kid: string;
+    };
+  };
 }
 
 
@@ -182,7 +188,18 @@ export type PassageID = string;
 export interface FindTextReuseClustersResponse {
   clusters: TextReuseClusterCompound[];
   info: {
-    [k: string]: unknown;
+    /**
+     * The number of items returned in this response
+     */
+    limit: number;
+    /**
+     * Starting index of the items subset returned in this response
+     */
+    offset: number;
+    /**
+     * The total number of items matching the query
+     */
+    total: number;
   };
 }
 /**
@@ -239,6 +256,9 @@ export interface TextReuseClusterDetails {
      * Number of buckets
      */
     numBuckets?: number;
+    /**
+     * Items: TODO: define bucket fields
+     */
     buckets?: {
       [k: string]: unknown;
     }[];
@@ -406,6 +426,41 @@ export interface ImpressoNamedEntityRecognitionEntity {
    * Name of the entity
    */
   name?: string;
+}
+
+
+export type ProvenanceVerificationClaims = ProvenanceVerificationApiClaims | ProvenanceVerificationExportClaims;
+
+/**
+ * Signed delivery receipts identify receiving accounts and ordered item IDs only. They do not attest item content or identify a publisher.
+ */
+export interface ProvenanceVerificationResponse {
+  valid: boolean;
+  claims?: ProvenanceVerificationClaims;
+  idsMatch?: boolean;
+  reason?: string;
+}
+export interface ProvenanceVerificationApiClaims {
+  iss: string;
+  aud: string;
+  iat: number;
+  jti: string;
+  userRef: string;
+  kind: "api";
+  path: string;
+  idsHash: string;
+  idsCount: number;
+}
+export interface ProvenanceVerificationExportClaims {
+  iss: string;
+  aud: string;
+  iat: number;
+  jti: string;
+  userRef: string;
+  kind: "export";
+  exportId: string;
+  idsHash: string;
+  idsCount: number;
 }
 
 

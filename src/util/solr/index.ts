@@ -34,8 +34,8 @@ const NON_FILTERED_FIELDS = ['id', 'string', 'entity-string', 'topic-string', 'e
  */
 const SOLR_FILTER_DPF: Record<string, string> = {
   topic: 'topics_dpfs',
-  person: 'pers_entities_dpfs',
-  location: 'loc_entities_dpfs',
+  person: 'pers_entity_ids_dpfs',
+  location: 'loc_entity_ids_dpfs',
 }
 
 const reduceFiltersToVars = (filters: Filter[]) =>
@@ -71,7 +71,7 @@ const wrapAsFilter = (q: string) => {
  * Return Solr query string and referenced variables for a set of filters.
  * @deprecated Use `buildSolrQuery` instead.
  *
- * @param {Array<object>} filters a list of filters of type `src/schema/canonical/Filter.json`.
+ * @param {Array<object>} filters a list of filters of type `src/schema/app/entities/Filter.json`.
  * @param {string} solrNamespace index to use (see `src/solr.js` - `SolrNamespaces`)
  */
 export function filtersToQueryAndVariables(

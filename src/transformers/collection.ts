@@ -1,4 +1,4 @@
-import { Collection } from '@/models/generated/canonical.js'
+import { Collection } from '@/models/generated/app/entities.js'
 
 type PublicCollection = Omit<Collection, 'creatorId'>
 

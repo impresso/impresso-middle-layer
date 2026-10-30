@@ -3,7 +3,10 @@ import { SolrMappings } from '@/data/constants.js'
 import type { MethodParameter } from '@/util/openapi.js'
 import { filtersQueryParameter, getStandardParameters, getStandardResponses } from '@/util/openapi.js'
 import { paramsValidator } from '@/services/search/search.validators.js'
-import { includeEmbeddingsParameter } from '@/services/content-items/content-items.schema.js'
+import {
+  includeEmbeddingsParameter,
+  includeTranscriptParameter,
+} from '@/services/content-items/content-items.schema.js'
 
 const parameterQ: MethodParameter = {
   in: 'query',
@@ -74,6 +77,7 @@ const findParametersPublicApi: MethodParameter[] = [
   parameterOrderBy,
   filtersQueryParameter,
   includeEmbeddingsParameter,
+  includeTranscriptParameter,
   ...getStandardParameters({ method: 'find' }),
 ]
 
@@ -92,6 +96,12 @@ export const getDocs = (isPublicApi: boolean): ServiceSwaggerOptions => ({
         method: 'find',
         schema: 'ContentItem',
         isPublic: isPublicApi,
+        additionalSuccessHeaders: {
+          'X-Impresso-Provenance': {
+            schema: { type: 'string' },
+            description: 'Signed delivery receipt, matching meta.provenance.token, when provenance is enabled.',
+          },
+        },
       }),
     },
   },

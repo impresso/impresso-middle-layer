@@ -1,6 +1,6 @@
 import { ClientService } from '@feathersjs/feathers'
 import { FindResponse } from '@/models/common.js'
-import { ContentItem } from '@/models/generated/canonical/contentItem.js'
+import { ContentItem } from '@/models/generated/app/entities/contentItem.js'
 import { ImpressoApplication } from '@/types.js'
 import { FindParams } from '@/services/content-items/content-items.class.js'
 

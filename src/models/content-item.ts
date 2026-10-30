@@ -2,24 +2,33 @@
  * Solr Content Item Model
  */
 
+// import type {
+//   AccessRightFields,
+//   ContentItemCore,
+//   ContextualMetadataFields,
+//   ImageFields,
+//   SemanticEnrichmentsFields,
+//   AudioFields,
+// } from './generated/external/solr/ContentItem.js'
+
 import type {
   AccessRightFields,
-  ContentItemCore,
+  CoreFields as ContentItemCore,
   ContextualMetadataFields,
-  ImageFields,
+  PaperFields as ImageFields,
   SemanticEnrichmentsFields,
   AudioFields,
-} from './generated/external/solr/ContentItem.js'
-import type { LanguageCode, TextContentFields } from './solr.js'
+} from './consolidated/solr/index.js'
+
+import type { LanguageCode, TextContentFieldsWithLanguageSpecificFields as TextContentFields } from './solr.js'
 
 import type {
   ContentItem,
   ContentItemAudioRecord,
   ContentItemAudioLocator,
-  ContentItemMention,
   ContentItemNamedEntity,
   ContentItemTopic,
-} from './generated/canonical/contentItem.js'
+} from './generated/app/entities/contentItem.js'
 import { bigIntToBase64Bytes, OpenPermissions } from '@/util/bigint.js'
 import { asList, asNumberArray, parseDPFS, toPairs } from '@/util/solr/transformers.js'
 import { setDifference } from '@/util/fn.js'
@@ -30,6 +39,8 @@ import { parsePlainsField, WithScore } from '@/util/solr/index.js'
 import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
 import { EmbeddingsConfig } from './generated/app/configuration.js'
 import { DefaultTextEmbeddingsConfig } from '@/util/configuration.js'
+import { EntityMentionFields, getContentItemMentions } from '@/util/solr/entityMentions.js'
+import { isEmpty } from 'lodash-es'
 
 const ContentItemCoreFields = [
   'id',
@@ -92,17 +103,8 @@ const ContentItemImageFields = [
 
 const ContentSemanticEnrichmentsFields = [
   'ocrqa_f',
-  'pers_entities_dpfs',
-  'loc_entities_dpfs',
-  'nag_entities_dpfs',
-  'org_entities_dpfs',
+  ...EntityMentionFields,
   'topics_dpfs',
-  'pers_mention_conf_dpfs',
-  'loc_mention_conf_dpfs',
-  'org_mention_conf_dpfs',
-  'nag_mention_conf_dpfs',
-  'nem_offset_plain',
-  'nag_offset_plain',
   'gte_multi_v768',
   'gte_multi_v256',
 ] satisfies (keyof SemanticEnrichmentsFields)[]
@@ -127,13 +129,7 @@ export type AllDocumentFields = Pick<ContentItemCore, (typeof ContentItemCoreFie
   Pick<AudioFields, (typeof AudioContentFields)[0]>
 
 export type FullContentOnlyFieldsType =
-  | 'lb_plain'
-  | 'pb_plain'
-  | 'rb_plain'
-  | 'pp_plain'
-  | 'content_txt_*'
-  | 'rreb_plain'
-  | 'ub_plain'
+  'lb_plain' | 'pb_plain' | 'rb_plain' | 'pp_plain' | 'content_txt_*' | 'rreb_plain' | 'ub_plain'
 
 export type EmbeddingsFieldType = 'gte_multi_v768' | 'gte_multi_v256'
 
@@ -182,12 +178,6 @@ interface PageRegionCoordintates {
   c: XYWH[] // coordinates of the regions on the page:
 }
 
-type MentionTag = 'pers' | 'loc' | 'org' | 'nag'
-
-type MentionsOffsets = {
-  [key in MentionTag]?: number[][]
-}
-
 interface AudioRecordTimecode {
   s: number // start character offset
   l: number // length of the record section in characters
@@ -222,22 +212,14 @@ const parseAudioRecordTimecodes = (field?: string | AudioRecordTimecodes[]): Aud
   return field as AudioRecordTimecodes[]
 }
 
-const parseMentionsOffsets = (field?: MentionsOffsets[] | string[]): MentionsOffsets => {
-  if (!field) return {}
-  const offsets: MentionsOffsets[] = typeof field === 'string' ? JSON.parse(field) : field
-  return offsets.reduce((acc, item) => {
-    return { ...acc, item }
-  }, {} as MentionsOffsets)
-}
-
-const parseContentItemEntityDPFS = (dpfs?: string[]): ContentItemNamedEntity[] => {
+const parseContentItemEntityDPFS = (dpfs?: string[] | null): ContentItemNamedEntity[] => {
   return parseDPFS(
     ([id, count]) => ({
       id,
       count: parseInt(count, 10),
       label: getNameFromId(id),
     }),
-    dpfs
+    dpfs == null ? undefined : [dpfs.join(' ')]
   )
 }
 
@@ -249,31 +231,6 @@ const parseContentItemTopicDPFS = (dpfs?: string[]): Pick<ContentItemTopic, 'id'
     }),
     dpfs
   )
-}
-
-const parseContentItemMentionDPFS = (
-  dpfs?: string[]
-): Pick<ContentItemMention, 'surfaceForm' | 'mentionConfidence'>[] => {
-  return parseDPFS(
-    ([id, count]) => ({
-      surfaceForm: id,
-      mentionConfidence: parseFloat(count),
-    }),
-    dpfs
-  )
-}
-
-const mentionWithOffset = (offsets?: number[][]) => {
-  return (
-    item: Partial<ContentItemMention>,
-    index: number
-  ): Partial<ContentItemMention> & Pick<ContentItemMention, 'startOffset' | 'endOffset'> => {
-    return {
-      ...item,
-      startOffset: offsets?.[index]?.[0],
-      endOffset: offsets?.[index]?.[1],
-    }
-  }
 }
 
 const toAudioSegmentLocator = (tc: AudioRecordTimecode, utterancesEndOffsets: number[]): ContentItemAudioLocator => {
@@ -334,6 +291,17 @@ const isFullDocument = (
 }
 
 /**
+ * Tiny utility to get the first non-empty value of a field that may be a single value or an array.
+ * Empty means undefined, null or an empty string.
+ * @template T The type of the value(s).
+ * @param value The value to get the first element of.
+ * @returns The first non-empty element, or undefined if there is none.
+ */
+export const extractFirstAvailableValue = <T>(value: T | T[] | undefined | null): T | undefined => {
+  const first = Array.isArray(value) ? value.find(v => !isEmpty(v)) : value
+  return isEmpty(first) ? undefined : (first as T)
+}
+/**
  * Converts a Solr document to a ContentItem.
  * @param doc The Solr document to convert.
  * @param opts An optional parameter with optional `maxScore` that should be used as score denominator.
@@ -345,20 +313,15 @@ export const toContentItem = (
   embeddingsConfig?: EmbeddingsConfig
 ): ContentItem => {
   const regionCoordinates = asList<PageRegionCoordintates>(parsePlainsField(doc, 'rc_plains'))
-  const mentionsOffsets = parseMentionsOffsets(doc.nem_offset_plain)
 
   const namedEntities = asObjectOrUndefined({
-    persons: parseContentItemEntityDPFS(doc.pers_entities_dpfs),
-    locations: parseContentItemEntityDPFS(doc.loc_entities_dpfs),
-    newsagencies: parseContentItemEntityDPFS(doc.nag_entities_dpfs),
-    organisations: parseContentItemEntityDPFS(doc.org_entities_dpfs),
+    persons: parseContentItemEntityDPFS(doc.pers_entity_ids_dpfs),
+    locations: parseContentItemEntityDPFS(doc.loc_entity_ids_dpfs),
+    newsagencies: parseContentItemEntityDPFS(doc.pressagency_entity_ids_dpfs),
+    organisations: parseContentItemEntityDPFS(doc.org_entity_ids_dpfs),
+    radiostations: parseContentItemEntityDPFS(doc.radiostation_entity_ids_dpfs),
   })
-  const mentions = asObjectOrUndefined({
-    persons: parseContentItemMentionDPFS(doc.pers_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.pers)),
-    locations: parseContentItemMentionDPFS(doc.loc_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.loc)),
-    organisations: parseContentItemMentionDPFS(doc.org_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.org)),
-    newsagencies: parseContentItemMentionDPFS(doc.nag_mention_conf_dpfs).map(mentionWithOffset(mentionsOffsets.nag)),
-  })
+  const mentions = asObjectOrUndefined(getContentItemMentions(doc))
 
   const embeddingsField = embeddingsConfig?.textEmbeddings?.solrField ?? DefaultTextEmbeddingsConfig.solrField
   const embeddingsTag = embeddingsConfig?.textEmbeddings?.tag ?? DefaultTextEmbeddingsConfig.tag
@@ -393,11 +356,11 @@ export const toContentItem = (
       title:
         doc[`title_txt_${doc.lg_s as LanguageCode}`] ??
         doc[`title_txt_${doc.lg_orig_s as LanguageCode}`] ??
-        doc['title_txt']?.[0],
+        extractFirstAvailableValue(doc['title_txt']),
       content:
         doc[`content_txt_${doc.lg_s as LanguageCode}`] ??
         doc[`content_txt_${doc.lg_orig_s as LanguageCode}`] ??
-        doc['content_txt']?.[0],
+        extractFirstAvailableValue(doc['content_txt']),
       contentLength: doc.content_length_i ?? 0,
       documentType: doc.doc_type_s,
       itemType: doc.item_type_s,
@@ -421,7 +384,7 @@ export const toContentItem = (
       }),
     },
     semanticEnrichments: {
-      ocrQuality: doc.ocrqa_f,
+      ocrQuality: doc.ocrqa_f == null ? undefined : doc.ocrqa_f,
       ...(namedEntities != null ? { namedEntities } : {}),
       ...(mentions != null ? { mentions } : {}),
       topics: parseContentItemTopicDPFS(doc.topics_dpfs),

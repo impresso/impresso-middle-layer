@@ -1,9 +1,8 @@
-import Entity from '@/models/entities.model.js'
+import { createEntityResolver } from '@/services/entities/lookup.js'
 import Topic from '@/models/topics.model.js'
 import { ImpressoApplication } from '@/types.js'
-import { WellKnownKeys } from '@/cache.js'
+import { getWellKnownSnapshots } from '@/internalServices/wellKnownSnapshots.js'
 import { getPartnerResolver } from '@/internalServices/facetResolvers/partnerResolver.js'
-import { getNameFromId } from '@/utils/entity.utils.js'
 import {
   Topic as ITopic,
   Year as IYear,
@@ -11,9 +10,8 @@ import {
   Collection as ICollection,
   Partner as IPartner,
   MediaSource as IMediaSource,
-} from '@/models/generated/canonical.js'
-import { InternalTopic } from '@/models/generated/deprecated/models.js'
-import { FacetWithLabel } from '@/models/generated/canonical.js'
+} from '@/models/generated/app/entities.js'
+import { FacetWithLabel } from '@/models/generated/app/entities.js'
 import { ImageTypeValueLookup } from '@/services/images/images.class.js'
 import SpecialMembershipAccess from '@/models/special-membership-access.model.js'
 export type CachedFacetType =
@@ -122,64 +120,26 @@ const getCollectionResolver = (app: ImpressoApplication): IResolver<ICollection>
   }
 }
 
-const entityResolver = async (id: string, type: CachedFacetType) =>
-  new Entity({
-    id,
-    type,
-    name: getNameFromId(id),
-  }) as any as IEntity
-
 const getTopicResolver = (app: ImpressoApplication): IResolver<ITopic> => {
-  const loadTopicsData = async (): Promise<Record<string, ITopic>> => {
-    const result = await app.get('cacheManager').get<string>(WellKnownKeys.Topics)
-    const deserialisedTopics: InternalTopic[] = JSON.parse(result ?? '[]')
-    const byId = deserialisedTopics.reduce(
-      (acc, topic) => {
-        if (acc[topic.id] == null) {
-          acc[topic.id] = {
-            id: topic.id,
-            language: topic.language,
-            words: topic.words,
-            contentItemsCount: topic.contentItemsCount,
-            model: topic.model,
-          }
-        }
-        return acc
-      },
-      {} as Record<string, ITopic>
-    )
-    return byId
-  }
-
-  const getTopicsData = async (): Promise<Record<string, ITopic>> => {
-    return await loadTopicsData()
-  }
-
   return async (id: string) => {
-    const topics = await getTopicsData()
-    const topic = topics[id]
-    if (!topic) return undefined
-    return new Topic(topic as unknown as any) as any as ITopic
+    const topics = await getWellKnownSnapshots(app.get('cacheManager')).topics()
+    const topic = topics.get(id)
+    return topic == null ? undefined : new Topic(structuredClone(topic))
   }
 }
 
 const getYearResolver = (app: ImpressoApplication): IResolver<IYear> => {
   return async (id: string) => {
-    const result = await app.get('cacheManager').get<string>(WellKnownKeys.Years)
-    const deserialisedYears: Record<number, IYear> = JSON.parse(result ?? '{}')
-
-    const year = deserialisedYears[Number(id)]
-    year.id = Number(id)
-    return year
+    const years = await getWellKnownSnapshots(app.get('cacheManager')).years()
+    const year = years.get(String(Number(id)))
+    return year == null ? undefined : { ...structuredClone(year), id: Number(id) }
   }
 }
 
 const getMediaSourceResolver = (app: ImpressoApplication): IResolver<IMediaSource> => {
   const mediaSources = app.service('media-sources')
   return async (id: string) => {
-    const lookup = await mediaSources.getLookup()
-    const item = lookup[id]
-    return item
+    return mediaSources.getMediaSource(id)
   }
 }
 
@@ -210,16 +170,21 @@ const imageTypeResolver = async (id: string, field: keyof typeof ImageTypeValueL
 }
 
 export const buildResolvers = (app: ImpressoApplication): ICachedResolvers => {
+  const resolveEntity = createEntityResolver(app)
+  const entityResolver: IResolver<IEntity> = async id => {
+    const entity = await resolveEntity(id)
+    return entity == null ? undefined : { ...entity, relevance: 0 }
+  }
   return {
     collection: getCollectionResolver(app),
-    location: (id: string) => entityResolver(id, 'location'),
-    person: (id: string) => entityResolver(id, 'person'),
+    location: entityResolver,
+    person: entityResolver,
     topic: getTopicResolver(app),
     year: getYearResolver(app),
     mediaSource: getMediaSourceResolver(app),
     partner: getPartnerResolver(app),
-    nag: (id: string) => entityResolver(id, 'nag'),
-    organisation: (id: string) => entityResolver(id, 'organisation'),
+    nag: entityResolver,
+    organisation: entityResolver,
     imageVisualContent: (id: string) => imageTypeResolver(id, 'type_l0_tp'),
     imageTechnique: (id: string) => imageTypeResolver(id, 'type_l1_tp'),
     imageCommunicationGoal: (id: string) => imageTypeResolver(id, 'type_l2_tp'),

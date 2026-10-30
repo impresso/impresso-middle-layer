@@ -1,7 +1,10 @@
 import { strict as assert } from 'assert'
 import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/errors'
 import { SpecialMembershipPlansService } from '@/services/special-membership-plans/special-membership-plans.class.js'
-import { validateBitmapPositionsQuery } from '@/services/special-membership-plans/special-membership-plans.service.js'
+import {
+  validateBitmapPositionsQuery,
+  validatePatchMetadata,
+} from '@/services/special-membership-plans/special-membership-plans.service.js'
 import type {
   ISpecialMembershipAccessAttributes,
   SpecialMembershipAccessMetadata,
@@ -91,6 +94,143 @@ describe('SpecialMembershipPlansService', () => {
           return true
         }
       )
+    })
+  })
+
+  describe('validatePatchMetadata', () => {
+    const hook = validatePatchMetadata()
+
+    it('should throw BadRequest when data is empty', async () => {
+      await assert.rejects(
+        () => hook({ data: {} } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, 'metadata is required')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when payload contains fields other than metadata', async () => {
+      await assert.rejects(
+        () => hook({ data: { metadata: initialMetadata, title: 'nope' } } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, 'Only metadata can be updated')
+          return true
+        }
+      )
+    })
+
+    it('should pass through when metadata is null', async () => {
+      const context = { data: { metadata: null } } as any
+      const result = await hook(context)
+
+      assert.strictEqual(result, context)
+    })
+
+    it('should throw BadRequest when metadata is not an object', async () => {
+      await assert.rejects(
+        () => hook({ data: { metadata: 'invalid' } } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, '`metadata` must be an object')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when metadata contains unknown fields', async () => {
+      await assert.rejects(
+        () => hook({ data: { metadata: { ...initialMetadata, unknownField: 'x' } } } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, 'Invalid metadata field(s): unknownField')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when modality is invalid', async () => {
+      await assert.rejects(
+        () => hook({ data: { metadata: { ...initialMetadata, modality: 'invalid' } } } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, '`metadata.modality` must be one of "cc_reviewer", "notify_reviewer"')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when enableTemporaryAutomaticApproval is not a boolean', async () => {
+      await assert.rejects(
+        () =>
+          hook({
+            data: { metadata: { ...initialMetadata, enableTemporaryAutomaticApproval: 'yes' } },
+          } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, '`metadata.enableTemporaryAutomaticApproval` must be a boolean')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when revokeAfterDays is not an integer', async () => {
+      await assert.rejects(
+        () => hook({ data: { metadata: { ...initialMetadata, revokeAfterDays: 1.5 } } } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, '`metadata.revokeAfterDays` must be an integer or null')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when revokeTemporaryAutomaticApprovalAfterDays is not an integer', async () => {
+      await assert.rejects(
+        () =>
+          hook({
+            data: { metadata: { ...initialMetadata, revokeTemporaryAutomaticApprovalAfterDays: 'soon' } },
+          } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(
+            error.message,
+            '`metadata.revokeTemporaryAutomaticApprovalAfterDays` must be an integer or null'
+          )
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when emailExtraMessageHtml is not a string', async () => {
+      await assert.rejects(
+        () => hook({ data: { metadata: { ...initialMetadata, emailExtraMessageHtml: 123 } } } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, '`metadata.emailExtraMessageHtml` must be a string or null')
+          return true
+        }
+      )
+    })
+
+    it('should throw BadRequest when emailExtraMessageText is not a string', async () => {
+      await assert.rejects(
+        () => hook({ data: { metadata: { ...initialMetadata, emailExtraMessageText: 123 } } } as any),
+        (error: any) => {
+          assert.ok(error instanceof BadRequest)
+          assert.strictEqual(error.message, '`metadata.emailExtraMessageText` must be a string or null')
+          return true
+        }
+      )
+    })
+
+    it('should return the context unchanged when metadata is valid', async () => {
+      const context = { data: { metadata: updatedMetadata } } as any
+      const result = await hook(context)
+
+      assert.strictEqual(result, context)
     })
   })
 

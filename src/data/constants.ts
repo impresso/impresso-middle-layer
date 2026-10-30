@@ -1,11 +1,9 @@
 import assert from 'assert'
 import { FilterType } from 'impresso-jscommons'
-import jscommons from 'impresso-jscommons'
+import { constants } from 'impresso-jscommons'
 
 import { SolrFacetQueryParams, SolrRangeFacetQueryParams } from '@/data/types.js'
 import { DataIndex } from '@/data/index.js'
-
-const { constants } = jscommons
 
 const facetRanges = new DataIndex({ name: 'facetRanges' })
 
@@ -215,7 +213,7 @@ const searchSolrMappings = {
     },
     person: {
       type: 'terms',
-      field: 'pers_entities_dpfs',
+      field: 'pers_entity_ids_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,
@@ -223,7 +221,7 @@ const searchSolrMappings = {
     },
     location: {
       type: 'terms',
-      field: 'loc_entities_dpfs',
+      field: 'loc_entity_ids_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,
@@ -231,7 +229,7 @@ const searchSolrMappings = {
     },
     nag: {
       type: 'terms',
-      field: 'nag_entities_dpfs',
+      field: 'pressagency_entity_ids_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,
@@ -239,7 +237,7 @@ const searchSolrMappings = {
     },
     organisation: {
       type: 'terms',
-      field: 'org_entities_dpfs',
+      field: 'org_entity_ids_dpfs',
       mincount: 1,
       limit: 10,
       offset: 0,
@@ -386,6 +384,7 @@ const trClustersSolrMappings = {
 export type TextReusePassageFacet = Extract<
   FilterType,
   | 'newspaper'
+  | 'mediaSource'
   | 'type'
   | 'daterange'
   | 'year'
@@ -412,7 +411,17 @@ const trPassagesSolrMappings = {
       type: 'terms',
       field: '__placeholder_for_a_virtual_field__',
     },
+    /**
+     * @deprecated removed in Impresso 2.0. New type: mediaSource
+     */
     newspaper: {
+      type: 'terms',
+      field: 'meta_journal_s',
+      mincount: 1,
+      limit: 20,
+      numBuckets: true,
+    },
+    mediaSource: {
       type: 'terms',
       field: 'meta_journal_s',
       mincount: 1,

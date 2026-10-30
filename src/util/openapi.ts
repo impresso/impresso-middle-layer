@@ -63,6 +63,7 @@ interface GetStandardResponsesParams {
   isRateLimited?: boolean
   standardPagination?: boolean
   isPublic?: boolean
+  additionalSuccessHeaders?: Record<string, object>
 }
 
 const getBaseFindResponse = (itemRef: string, isPublic: boolean): JSONSchema => {
@@ -90,6 +91,7 @@ export const getStandardResponses = ({
   isRateLimited = true,
   standardPagination = true,
   isPublic = false,
+  additionalSuccessHeaders = {},
 }: GetStandardResponsesParams) => {
   const defaultResponses: Record<number, StatusResponse> = {
     422: {
@@ -117,20 +119,20 @@ export const getStandardResponses = ({
     defaultResponses[201] = {
       description: 'Created',
       content: asApplicationJson(getResponseRef(schema)),
-      headers: { ...defaultHeaders },
+      headers: { ...defaultHeaders, ...additionalSuccessHeaders },
     }
   } else {
     if (method === 'find' && standardPagination) {
       defaultResponses[200] = {
         description: 'Success',
         content: asApplicationJson(getBaseFindResponse(`#/components/schemas/${schema}`, isPublic)),
-        headers: { ...defaultHeaders },
+        headers: { ...defaultHeaders, ...additionalSuccessHeaders },
       }
     } else {
       defaultResponses[200] = {
         description: 'Success',
         content: asApplicationJson(getResponseRef(schema)),
-        headers: { ...defaultHeaders },
+        headers: { ...defaultHeaders, ...additionalSuccessHeaders },
       }
     }
     defaultResponses[404] = {

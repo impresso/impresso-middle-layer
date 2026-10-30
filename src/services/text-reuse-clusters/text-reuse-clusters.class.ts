@@ -16,7 +16,7 @@ import { Filter } from '@/models/index.js'
 
 import { mapValues, groupBy, clone, get } from 'lodash-es'
 import { NotFound } from '@feathersjs/errors'
-import jscommons from 'impresso-jscommons'
+import { protobuf } from 'impresso-jscommons'
 import {
   getTextReusePassagesClusterIdsSearchRequestForText,
   getClusterIdsTextAndPermissionsFromPassagesSolrResponse,
@@ -33,8 +33,6 @@ import {
 } from '@/logic/textReuse/solr.js'
 import { parseOrderBy } from '@/util/queryParameters.js'
 import { SolrNamespaces } from '@/solr.js'
-
-const { protobuf } = jscommons
 
 interface ClusterIdAndTextAndPermission {
   id: any
@@ -76,7 +74,7 @@ async function facetsWithItems(facets: Facet[], mediaSourcesService: MediaSource
 
   return Promise.all(
     facets.map(async facet => {
-      if (facet.type === 'newspaper') {
+      if (facet.type === 'mediaSource' || facet.type === 'newspaper') {
         return {
           ...facet,
           buckets: await Promise.all(
@@ -97,10 +95,10 @@ async function facetsWithItems(facets: Facet[], mediaSourcesService: MediaSource
  * from newspaper bucket items and recreate buckets for a virtual "country" facet.
  */
 function facetsWithCountry(facets: Facet[]) {
-  const newspaperFacet = facets.find(({ type }) => type === 'newspaper')
-  if (newspaperFacet == null) return facets
+  const mediaSourceFacet = facets.find(({ type }) => type === 'mediaSource' || type === 'newspaper')
+  if (mediaSourceFacet == null) return facets
 
-  const countsByCountry: Record<string, number> | undefined = newspaperFacet.buckets?.reduce(
+  const countsByCountry: Record<string, number> | undefined = mediaSourceFacet.buckets?.reduce(
     (counts: Record<string, number>, bucket: any) => {
       const countryCodeProperty = get(bucket, 'item.properties', []).find(
         ({ name }: { name: string }) => name === 'countryCode'
@@ -150,7 +148,10 @@ export class TextReuseClusters {
       this.app.get('solrConfiguration').namespaces ?? [],
       this.app.get('features') ?? {}
     )
-    const [orderByField, orderByDescending] = parseOrderBy(orderBy as string, OrderByKeyToField)
+    const [orderByField, orderByDescending] = parseOrderBy(orderBy as string, OrderByKeyToField) as [
+      string | undefined,
+      boolean | undefined,
+    ]
     const query = getTextReusePassagesClusterIdsSearchRequestForText(
       text as string,
       offset,
@@ -175,10 +176,13 @@ export class TextReuseClusters {
           },
         },
       })
-      .then(response => [
-        getClusterIdsTextAndPermissionsFromPassagesSolrResponse(response),
-        getPaginationInfoFromPassagesSolrResponse(response),
-      ])
+      .then(
+        response =>
+          [
+            getClusterIdsTextAndPermissionsFromPassagesSolrResponse(response),
+            getPaginationInfoFromPassagesSolrResponse(response),
+          ] as const
+      )
 
     const clusters = await this.getClusters(clusterIdsAndTextAndPermissions.map(({ id }: { id: string }) => id))
 

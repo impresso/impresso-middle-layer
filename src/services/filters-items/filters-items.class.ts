@@ -11,6 +11,7 @@ import {
   simpleValueExtractor,
   getImageTypeExtractor,
   mediaSourceExtractor,
+  partnerExtractor,
   specialMembershipAccessExtractor,
 } from './extractors.js'
 import { ImpressoApplication } from '@/types.js'
@@ -22,6 +23,7 @@ const ItemsExtractors: Partial<Record<FilterType, Extractor>> = {
   newspaper: newspaperExtractor,
   mediaSource: mediaSourceExtractor,
   topic: topicExtractor,
+  partner: partnerExtractor,
   person: entityExtractor,
   location: entityExtractor,
   nag: entityExtractor,

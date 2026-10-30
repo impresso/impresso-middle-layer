@@ -33,7 +33,7 @@ describe("'users' service", function () {
   before(async () => {
     await service.remove(user.username, {
       user: {
-        is_staff: true,
+        isStaff: true,
       },
     })
   })
@@ -58,7 +58,7 @@ describe("'users' service", function () {
   it('create the user', async () => {
     const created = await service.create(user, {
       user: {
-        is_staff: true,
+        isStaff: true,
       },
     })
     assert.ok(created instanceof User)
@@ -78,7 +78,7 @@ describe("'users' service", function () {
   //     password: 'Apitchapong!84',
   //   }, {
   //     user: {
-  //       is_staff: true,
+  //       isStaff: true,
   //     },
   //   });
   //   assert.ok(result);

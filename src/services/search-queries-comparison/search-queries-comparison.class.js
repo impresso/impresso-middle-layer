@@ -11,9 +11,7 @@ import { SolrMappings } from '@/data/constants.js'
 import { getFacetsFromSolrResponse } from '@/services/search/search.extractors.js'
 import { buildSolrQuery, queryNodeToString } from '@/util/solr/queryBuilder.js'
 import { SolrNamespaces } from '@/solr.js'
-import jscommons from 'impresso-jscommons'
-
-const { logic } = jscommons
+import { logic } from 'impresso-jscommons'
 
 const {
   filter: { mergeFilters },

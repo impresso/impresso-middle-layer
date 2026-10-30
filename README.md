@@ -154,6 +154,83 @@ Adding an indexed Solr field generally requires coordinated changes in:
 3. `src/util/solr/solrFilters.yml`, which maps filters to Solr filter-statement builders.
 4. Optionally, `src/util/solr/stats.yml` for statistics data points used by charts and graphs.
 
+There are several configuration options that should be set differently in Public API:
+
+ * `isPublicApi` - set to `true` to enable the public API. This configures openapi schema, validation, REST transport.
+ * `rateLimiter` - `enabled` must be set to `true` to enable rate limiting. 
+   capacity and refill rate should be adjusted too.
+ * `authentication.jwtOptions`:
+   * `audience` - should be set to the public API URL. This must be different
+      from the internal API URL to make sure tokens from one could not be used
+      in another.
+   * `expiresIn` - should be set to a reasonable value for the public API (e.g. `8h` for 8 hours)
+ * `authentication.cookie.enabled` set to `false` - cookies are not used in the public API
+
+Additionally, to enable the public API to verify web app IML token, the following configuration block should be added:
+
+```json
+"imlAuthConfiguration": {
+  "secret": "IML jwt secret",
+  "jwtOptions": {
+    "audience": "Web app base URL"
+  }
+}
+```
+
+Where:
+  * `secret` - secret used to sign the IML tokens
+  * `audience` - base URL of the web app issuing the token.
+
+To let the authentication service know that a new auth strategy is installed, add the following to the "authentication" block:
+
+```json
+  "authStrategies": ["local", "jwt-app", "jwt"]
+```
+
+#### Rate limiter
+
+Rate limiter has two configuration options:
+
+* `capacity` - the maximum number of requests allocated to a resource/user. This indicates how many request can be executed against the resource before limiting kicks in.
+* `refillRate` - how many requests are added to the allocation every second if the allocation is lower than `capacity`.
+
+Sample settings:
+
+* 1 request per second (3600 / hour): `capacity: 3600, refillRate: 1`
+* 10 request per second (36000 / hour): `capacity: 36000, refillRate: 10`
+* 1 request per second (60 / minute): `capacity: 60, refillRate: 1`
+* 1 request per second (600 / 10 minutes): `capacity: 600, refillRate: 1`
+* 3 request per second (600 / 10 minutes): `capacity: 600, refillRate: 3`
+
+## Running with a proxy
+If database, Solr and/or IIIF server are only accessible via a proxy, you can configure the proxy in the `.env` file:
+
+```shell
+IMPRESSO_SOCKS_PROXY_CONFIG='{ "host": "localhost", "port": 1080, "domains": ["db.domain.to.proxy", "solr.domain.to.proxy", "iiif.domain.to.proxy"] }'
+
+```
+
+## Downloading audit logs as a parnter institution
+
+To get the zip archive with *parquet* files run:
+
+```bash
+curl -X 'GET' -O -J \
+  'http://localhost:3030/partner-audit-logs/BNL?year=2026&month=08' \
+  -H 'accept: application/zip' \
+  -H 'Authorization: Bearer <token>'
+```
+
+## Help
+
+For more information on all the things you can do with Feathers visit [docs.feathersjs.com](http://docs.feathersjs.com).
+
+## Changelog
+
+**1.0.0**
+
+- Public release
+
 ## Project
 
 The Impresso - Media Monitoring of the Past project is funded by the Swiss National Science Foundation (SNSF) under grant number [CRSII5_173719](http://p3.snf.ch/project-173719) (Sinergia program). The project develops tools to process and explore large-scale collections of historical newspapers and studies their impact on historical research. More information is available at <https://impresso-project.ch/>.

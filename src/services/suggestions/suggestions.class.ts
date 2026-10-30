@@ -3,7 +3,7 @@ import { getLogger } from '@/logger.js'
 import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import type { SolrNamespace } from '@/solr.js'
 import { SolrNamespaces } from '@/solr.js'
-import { getNameFromId } from '@/utils/entity.utils.js'
+import { EntityTypeAliases } from '@/utils/entity.utils.js'
 
 import { parse as chronoParse } from 'chrono-node'
 import moment from 'moment'
@@ -14,7 +14,7 @@ import type { Params } from '@feathersjs/feathers'
 
 import type { SlimUser } from '@/authentication.js'
 import type { SuggestEntry } from '@/internalServices/simpleSolr.js'
-import { Collection } from '@/models/generated/canonical.js'
+import { Collection } from '@/models/generated/app/entities.js'
 import { Newspaper as INewspaper } from '@/models/generated/deprecated/models.js'
 import Mention from '@/models/mentions.model.js'
 import {
@@ -24,7 +24,6 @@ import {
   isSuggestion,
   ISuggestion,
   Suggestion,
-  SuggestionType,
 } from '@/models/suggestions.model.js'
 import Topic from '@/models/topics.model.js'
 import type { ImpressoApplication } from '@/types.js'
@@ -33,37 +32,20 @@ const logger = getLogger(['impresso', 'services', 'suggestions'])
 
 const MULTI_YEAR_RANGE = /^\s*(\d{4})(\s*(to|-)\s*(\d{4})\s*)?$/
 
+const EntitySuggesterDictionary = 'e_suggester_infix'
+const EntitySuggestionsLimit = 3
+const EntitySuggestionsOverFetchFactor = 4
+const TopicSuggesterDictionary = 't_suggester_infix'
+const TopicSuggestionsLimit = 3
+
 interface SuggestionQuery {
   q: string
 }
 
 type SuggestionsParams = Params<SuggestionQuery> & { user?: SlimUser }
 
-const asEntitySuggestion = (doc: SuggestEntry): ISuggestion<Entity> => {
-  // payload should be a string formatted as 'id|type',
-  // like 'aida-0001-Testament_(comics)|Person'
-  const [id, type] = doc.payload.split('|')
-  const item = new Entity({
-    id,
-    name: getNameFromId(id),
-    type,
-  })
-  return new Suggestion({
-    q: item.id,
-    h: getNameFromId(doc.term),
-    type: item.type as SuggestionType,
-    item,
-    weight: doc.weight,
-  })
-}
-
 const asMentionSuggestion = (doc: SuggestEntry): ISuggestion<Mention> => {
-  // payload for mention contains type only
-  const item = new Mention({
-    name: doc.term.replace(/<[^>]*>/g, ''),
-    frequence: doc.weight,
-    type: doc.payload,
-  })
+  const item = Mention.solrFactory()(doc)
   return new Suggestion({
     q: item.name,
     h: doc.term,
@@ -214,23 +196,68 @@ export class Service {
   async suggestItem<T>(
     q: string,
     type: SolrNamespace,
-    builder: (doc: SuggestEntry) => Suggestion<T>
+    builder: (doc: SuggestEntry) => Suggestion<T>,
+    { dictionary, count = 3 }: { dictionary?: string; count?: number } = {}
   ): Promise<Suggestion<T>[]> {
-    const request = { q, count: 3 }
-    const result = await this.solr.suggest(type, request)
+    const result = await this.solr.suggest(type, { q, count, dictionary })
     return (result.suggestions ?? []).map(builder)
   }
 
-  async suggestEntities({ q }: { q: string }) {
-    return await this.suggestItem(q, SolrNamespaces.Entities, asEntitySuggestion)
+  async suggestEntities({
+    q,
+    type,
+    limit = EntitySuggestionsLimit,
+  }: {
+    q: string
+    type?: string
+    limit?: number
+  }): Promise<ISuggestion<Entity>[]> {
+    if (!q.trim()) return []
+    const solrType = type == null || type === 'entity' ? undefined : (EntityTypeAliases[type] ?? type)
+    // The suggester returns one entry per indexed label, so the same entity
+    // can appear several times: over-fetch and keep the first entry per id.
+    const result = await this.solr.suggest(SolrNamespaces.Entities, {
+      q,
+      count: limit * EntitySuggestionsOverFetchFactor,
+      dictionary: EntitySuggesterDictionary,
+      cfq: solrType,
+    })
+    const toEntity = Entity.solrSuggestFactory()
+    const suggestions = new Map<string, ISuggestion<Entity>>()
+    for (const entry of result.suggestions ?? []) {
+      if (suggestions.size >= limit) break
+      const item = toEntity(entry)
+      if (item == null || suggestions.has(item.id)) continue
+      suggestions.set(
+        item.id,
+        new Suggestion({
+          q: item.id,
+          h: entry.term,
+          type: item.type,
+          item,
+          weight: entry.weight,
+        })
+      )
+    }
+    return [...suggestions.values()]
   }
 
   async suggestMentions({ q }: { q: string }) {
-    return await this.suggestItem(q, SolrNamespaces.Mentions, asMentionSuggestion)
+    if (!q.trim()) return []
+    const result = await this.solr.suggest(SolrNamespaces.Mentions, {
+      q,
+      count: 3,
+      dictionary: 'm_suggester_infix',
+    })
+    return (result.suggestions ?? []).map(asMentionSuggestion)
   }
 
   async suggestTopics({ q }: { q: string }) {
-    return await this.suggestItem(q, SolrNamespaces.Topics, asTopicSuggestion)
+    const r = await this.suggestItem(q, SolrNamespaces.Topics, asTopicSuggestion, {
+      dictionary: TopicSuggesterDictionary,
+      count: TopicSuggestionsLimit,
+    })
+    return r
   }
 
   async get(type: string, params: SuggestionsParams) {
@@ -253,8 +280,12 @@ export class Service {
       case 'entity':
       case 'organization':
       case 'nag':
+      case 'organisation':
+      case 'newsagency':
+      case 'radiostation':
         return this.suggestEntities({
           q: toPlainText(params.query!.q),
+          type,
         })
       case 'mention':
         return this.suggestMentions({
@@ -288,10 +319,26 @@ export class Service {
       this.suggestMentions({
         q: qPlainText,
       }),
-      // reenable when solr is fixed
-      // this.suggestEntities({
-      //   q: qPlainText,
-      // }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'person',
+      }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'location',
+      }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'organization',
+      }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'newsagency',
+      }),
+      this.suggestEntities({
+        q: qPlainText,
+        type: 'radiostation',
+      }),
     ])
 
     return {

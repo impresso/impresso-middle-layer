@@ -310,6 +310,7 @@ Set `isPublicApi: true` in configuration to:
 
 ## Important Notes
 
+- **Type safety**: Casting with `as` — especially `as any` — to bypass type checks is absolutely not accepted. Fix the underlying types instead.
 - The application uses a **path alias** `@/*` mapped to `./src/*` for cleaner imports (use `@` instead of relative import unless the import is from the same folder).
 - **Node.js requirement**: >= 20.0.0
 - **Runtime**: Uses tsx for TypeScript execution (or bun as an alternative)

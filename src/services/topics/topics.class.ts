@@ -4,14 +4,16 @@ import type { Id, Params } from '@feathersjs/feathers'
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import type { Filter } from '@/models/index.js'
 import { FindResponse } from '@/models/common.js'
-import { InternalTopic } from '@/models/generated/deprecated/models.js'
-import type { Topic as SolrTopic } from '@/models/generated/external/solr.js'
-import TopicModel, { SOLR_FL } from '@/models/topics.model.js'
+import type { Topic as ITopic } from '@/models/generated/app/entities.js'
+import type { CachedTopic } from '@/models/generated/app/cache.js'
+import type { Topic as SolrTopic } from '@/models/consolidated/solr/index.js'
+import TopicModel, { SOLR_FL, type TopicLabelFields } from '@/models/topics.model.js'
 import { SolrNamespaces } from '@/solr.js'
 import type { ImpressoApplication } from '@/types.js'
 import { measureTime } from '@/util/instruments.js'
 import { asFindAll, asGet } from '@/util/solr/adapters.js'
 import { escapeValue } from '@/util/solr/filterBuilders/value.js'
+import { queryNodeToString, SolrQueryNode } from '@/util/solr/queryBuilder.js'
 
 const logger = getLogger(['impresso', 'services', 'topics'])
 
@@ -25,9 +27,15 @@ export interface FindQuery {
 export interface SanitizedParams {
   q?: string
   filters: Filter[]
-  sq?: string
+  sq?: SolrQueryNode
   sv?: string
 }
+
+export type TopicResult = ITopic &
+  Partial<TopicLabelFields> &
+  Partial<Pick<CachedTopic, 'relatedTopics'>> & {
+    matches?: string[]
+  }
 
 export class Service {
   name: string
@@ -44,7 +52,7 @@ export class Service {
 
   async find(
     params: Params<FindQuery> & { sanitized: SanitizedParams; query: { limit: number; offset: number } }
-  ): Promise<FindResponse<InternalTopic>> {
+  ): Promise<FindResponse<TopicResult>> {
     // if there's a q, get all suggested topics matching q in their words (they are 300 max)
     const topics: Record<string, { order: number; matches?: string[] }> = {}
     // fill topics dict with results
@@ -87,7 +95,7 @@ export class Service {
             const t = await resolvers.topic(doc.id)
             if (!t) return undefined
 
-            const topicResult = { ...t, uid: t?.id ?? '' } as InternalTopic
+            const topicResult = { ...t, uid: t?.id ?? '' } as TopicResult
             if (t?.id && solrSuggestResponse.highlighting?.[t.id]?.topic_suggest) {
               topicResult.matches = solrSuggestResponse.highlighting[t.id].topic_suggest
             }
@@ -122,8 +130,8 @@ export class Service {
     if (uids.length) {
       solrQueryParts.push(['(', uids.map(d => `topics_dpfs:${d}`).join(' OR '), ')'].join(''))
     }
-    if (params.sanitized.filters.length) {
-      solrQueryParts.push(`(${params.sanitized.sq})`)
+    if (params.sanitized.sq) {
+      solrQueryParts.push(`(${queryNodeToString(params.sanitized.sq)})`)
     }
     if (!solrQueryParts.length) {
       solrQueryParts.push('*:*')
@@ -196,12 +204,12 @@ export class Service {
         if (topic == null) return
 
         const { id: topicId, ...topicOther } = topic
-        const internalTopic: InternalTopic = { id: topicId, ...topicOther } satisfies InternalTopic
+        const topicResult: TopicResult = { id: topicId, ...topicOther } satisfies TopicResult
         if (uids.length && topics[String(bucket.val)]) {
-          internalTopic.matches = topics[String(bucket.val)].matches
+          topicResult.matches = topics[String(bucket.val)].matches
         }
-        internalTopic.contentItemsCount = typeof bucket.count === 'number' ? bucket.count : 0
-        return internalTopic
+        topicResult.contentItemsCount = typeof bucket.count === 'number' ? bucket.count : 0
+        return topicResult
       })
     )
 
@@ -217,7 +225,7 @@ export class Service {
     }
   }
 
-  async get(id: Id, params?: Params): Promise<InternalTopic> {
+  async get(id: Id, params?: Params): Promise<TopicResult> {
     const resolvers = buildResolvers(this.app)
 
     return measureTime(
@@ -236,17 +244,17 @@ export class Service {
                   id: topicId,
                   ...topicBody,
                   contentItemsCount: cached.contentItemsCount,
-                } satisfies InternalTopic
+                } satisfies TopicResult
               }
               if ((cached as any).relatedTopics !== undefined) {
                 return {
                   id: topicId,
                   ...topicBody,
                   relatedTopics: (cached as any).relatedTopics,
-                } satisfies InternalTopic
+                } satisfies TopicResult
               }
             }
-            return { id: topicId, ...topicBody } satisfies InternalTopic
+            return { id: topicId, ...topicBody } satisfies TopicResult
           }
         ),
       'topics.get.solr.topics'

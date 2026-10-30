@@ -6,8 +6,8 @@ import { Filter } from '@/models/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { PublicFindResponse } from '@/models/common.js'
 import { ImageUrlRewriteRule } from '@/models/generated/app/configuration.js'
-import { Image, MediaSource } from '@/models/generated/canonical.js'
-import type { Image as ImageDocument } from '@/models/generated/external/solr.js'
+import { Image, MediaSource } from '@/models/generated/app/entities.js'
+import type { Image as ImageDocument } from '@/models/consolidated/solr/index.js'
 import { SolrNamespaces } from '@/solr.js'
 import { ImpressoApplication } from '@/types.js'
 import { getV3CompatibleIIIFUrl, sanitizeIiifImageUrl } from '@/util/iiif.js'
@@ -15,6 +15,7 @@ import { isTrue } from '@/util/queryParameters.js'
 import { buildSolrQuery, SolrQueryNode } from '@/util/solr/queryBuilder.js'
 import { vectorToCanonicalEmbedding } from '@/services/impresso-embedder/impresso-embedder.class.js'
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
+import { bigIntToBase64Bytes, OpenPermissions } from '@/util/bigint.js'
 
 const DefaultLimit = 10
 export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024' satisfies keyof ImageDocument
@@ -101,6 +102,11 @@ export class Images implements ImageService {
         limit,
         offset,
         ...(sort != null ? { sort } : {}),
+        params: {
+          // NOTE: required to prevent solr from failing with a 500.
+          // No explanation.
+          hl: false,
+        },
       },
     })
 
@@ -205,6 +211,14 @@ const toTypes = (doc: ImageDocument): Image['imageTypes'] => {
   return Object.keys(types).length > 0 ? types : undefined
 }
 
+const toDataDomain = (value: string | undefined): NonNullable<Image['access']>['dataDomain'] =>
+  value === 'pbl' || value === 'prt' ? value : 'prt'
+
+const toCopyright = (value: string | undefined): NonNullable<Image['access']>['copyright'] =>
+  value === 'pbl' || value === 'und' || value === 'nkn' || value === 'euo' || value === 'unk' || value === 'in_cpy'
+    ? value
+    : 'und'
+
 const toImage = (
   doc: ImageDocument,
   mediaSources: Record<string, MediaSource>,
@@ -225,9 +239,9 @@ const toImage = (
     id: doc.id!,
     ...(doc.linked_ci_s != null ? { contentItemId: doc.linked_ci_s } : {}),
     issueId: doc.meta_issue_id_s!,
-    previewUrl: getV3CompatibleIIIFUrl(sanitizeIiifImageUrl(doc.iiif_link_s! ?? doc.iiif_url_s!, rewriteRules))!,
+    previewUrl: getV3CompatibleIIIFUrl(sanitizeIiifImageUrl(doc.iiif_url_s, rewriteRules))!,
     date: doc.meta_date_dt!,
-    ...(doc.caption_txt != null ? { caption: doc.caption_txt.join('\n') } : {}),
+    ...(doc.caption_txt != null ? { caption: doc.caption_txt?.join('\n') } : {}),
     ...(doc.page_nb_is != null ? { pageNumbers: doc.page_nb_is } : {}),
     mediaSourceRef: {
       id: doc.meta_journal_s!,
@@ -242,5 +256,14 @@ const toImage = (
       getImages: BigInt(doc.rights_bm_get_img_l ?? 0),
       getTranscript: BigInt(doc.rights_bm_get_tr_l ?? 0),
     } satisfies AuthorizationBitmapsDTO,
+    access: {
+      copyright: toCopyright(doc.rights_copyright_s),
+      dataDomain: toDataDomain(doc.rights_data_domain_s),
+      accessBitmaps: {
+        explore: bigIntToBase64Bytes(BigInt(doc.rights_bm_explore_l ?? OpenPermissions)),
+        getTranscript: bigIntToBase64Bytes(BigInt(doc.rights_bm_get_tr_l ?? OpenPermissions)),
+        getImages: bigIntToBase64Bytes(BigInt(doc.rights_bm_get_img_l ?? OpenPermissions)),
+      },
+    },
   } satisfies Image
 }

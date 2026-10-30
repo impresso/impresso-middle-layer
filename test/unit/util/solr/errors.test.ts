@@ -176,6 +176,17 @@ describe('getSolrErrorDetails', () => {
     assert.strictEqual(result?.code, 400)
     assert.strictEqual(result?.message, 'Cannot parse query')
   })
+
+  it('truncates long error messages to 1000 characters', () => {
+    const msg = `Query failed\n${'\tat org.apache.solr.SomeClass.method(SomeClass.java:42)\n'.repeat(100)}`
+    const response = {
+      responseHeader: { status: 500 },
+      error: { msg, code: 500 },
+    }
+    const result = getSolrErrorDetails(response)
+    assert.strictEqual(result?.message.startsWith(msg.slice(0, 1000)), true)
+    assert.strictEqual(result?.message.endsWith(`... [truncated ${msg.length - 1000} chars]`), true)
+  })
 })
 
 describe('formatSolrErrorForLogging', () => {
@@ -192,6 +203,7 @@ describe('formatSolrErrorForLogging', () => {
           query: longQuery,
           filter: ['meta_country_code_s:FR'],
           fields: 'id,title_txt,content_txt',
+          sort: null,
         }),
         responseStatus: 500,
         responseBody: JSON.stringify({
@@ -230,17 +242,19 @@ describe('formatSolrErrorForLogging', () => {
     assert.match(formatted, /^SOLR error: SolrError 500: Bad Solr day/)
     assert.match(formatted, /POST body:/)
     assert.doesNotMatch(formatted, /Request URL:/)
-    assert.match(formatted, /"query": "\{!knn f=gte_multi_v768 topK=30\}/)
+    assert.match(formatted, /"query":"\{!knn f=gte_multi_v768 topK=30\}/)
     assert.match(formatted, /\[truncated \d+ chars\]/)
-    assert.match(formatted, /"filter": \[/)
-    assert.match(formatted, /Response status: 500/)
-    assert.match(formatted, /"responseHeader": \{/)
-    assert.match(formatted, /"error": \{/)
+    assert.match(formatted, /"filter":\[/)
+    assert.doesNotMatch(formatted, /"sort"/)
+    assert.doesNotMatch(formatted, /\n/)
+    assert.match(formatted, /POST body: \{.*\} \| Response status: 500 \| Response body: \{/)
+    assert.match(formatted, /"responseHeader":\{/)
+    assert.match(formatted, /"error":\{/)
     assert.match(formatted, /undefined field text_reuse/)
-    assert.match(formatted, /"id": "first"/)
-    assert.match(formatted, /"docs_truncated": \{/)
-    assert.match(formatted, /"total": 2/)
-    assert.doesNotMatch(formatted, /"id": "second"/)
+    assert.match(formatted, /"id":"first"/)
+    assert.match(formatted, /"docs_truncated":\{/)
+    assert.match(formatted, /"total":2/)
+    assert.doesNotMatch(formatted, /"id":"second"/)
     assert.doesNotMatch(formatted, /this document should not be logged/)
     assert.equal(formatted.includes(longQuery), false)
   })

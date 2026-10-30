@@ -21,14 +21,6 @@ services:
       - "everysec" # Recommended AOF flush policy
     ports:
       - 6379:6379
-  socks-proxy:
-    image: kroniak/ssh-client
-    restart: always
-    volumes:
-      - ./docker/config/ssh:/root/.ssh
-    ports:
-      - 1080:1080
-    command: ssh -N socks-proxy
   iml:
     image: impresso_middle_layer
     restart: always

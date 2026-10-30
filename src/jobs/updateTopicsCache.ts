@@ -1,23 +1,16 @@
 import { prepareTopics } from '@/useCases/prepareTopics.js'
-import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
-import { ImpressoApplication } from '@/types.js'
+import { WellKnownKeys } from '@/cache.js'
+import type { ImpressoApplication } from '@/types.js'
+import { updateWellKnownEntry } from '@/internalServices/wellKnownCache.js'
+import type { PreparedWellKnownEntry, UpdateWellKnownCacheOptions } from '@/internalServices/wellKnownCache.js'
 
-/** 100 days */
-const DefaultTtlSeconds = 60 * 60 * 24 * 100 * 1000
+export const prepareTopicsCache = async (app: ImpressoApplication): Promise<PreparedWellKnownEntry> => {
+  const topics = await prepareTopics(app.service('simpleSolrClient'))
+  return { key: WellKnownKeys.Topics, data: JSON.stringify(topics) }
+}
 
-/**
- * Prepare topics and store them in cache.
- */
-const run = async (app: ImpressoApplication) => {
-  const cache = app.get('cacheManager')
-  const solrClient = app.service('simpleSolrClient')
-
-  const cached = await cache.get(WellKnownKeys.Topics)
-  if (cached != null) return
-
-  const topics = await prepareTopics(solrClient)
-  await cache.set(WellKnownKeys.Topics, JSON.stringify(topics), DefaultTtlSeconds)
-  await cache.set(WellKnownMetadataKeys.TopicsComputedAt, new Date().toISOString(), DefaultTtlSeconds)
+const run = async (app: ImpressoApplication, options?: UpdateWellKnownCacheOptions): Promise<void> => {
+  await updateWellKnownEntry(app.get('cacheManager'), WellKnownKeys.Topics, () => prepareTopicsCache(app), options)
 }
 
 export default run

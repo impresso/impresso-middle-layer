@@ -62,7 +62,7 @@ export class Service {
 
     const response = User.getMe({
       user: {
-        ...user.get(),
+        ...(user.get() as any),
         bitmap: (user as any).userBitmap?.bitmap,
         groups: (user as any).groups?.map((d: Group) => d.toJSON()),
       },
@@ -97,7 +97,9 @@ export class Service {
         }
       )
       if (displayName || institutionalUrl || affiliation || pattern) {
-        logger.debug(`[patch] (user:${params.user.uid}) updating profile with displayName: ${displayName}, institutionalUrl: ${institutionalUrl}, affiliation: ${affiliation}, pattern: ${pattern}`)
+        logger.debug(
+          `[patch] (user:${params.user.uid}) updating profile with displayName: ${displayName}, institutionalUrl: ${institutionalUrl}, affiliation: ${affiliation}, pattern: ${pattern}`
+        )
         await profileModel.update(
           {
             displayName,
@@ -130,10 +132,10 @@ export class Service {
     }
     const response = User.getMe({
       user: {
-        ...updatedUser.get(),
+        ...(updatedUser.get() as any),
         bitmap: (updatedUser as any).userBitmap?.bitmap,
         groups: (updatedUser as any).groups?.map((d: Group) => d.toJSON()),
-      },
+      } as User,
       profile: (updatedUser as any).profile,
     })
     logger.debug(`[patch] (user:${params.user.uid}) updated user: ${response}`)

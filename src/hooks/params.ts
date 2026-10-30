@@ -157,10 +157,12 @@ const _validateOne = <T>(key: string, item: string | string[] | undefined, rule:
   // it is required
   if (typeof item === 'undefined' || item === null) {
     if (rule.required === true) {
-      _errors[key] = {
-        code: 'NotFound',
-        message: `${key} required`,
-      }
+      throw new errors.BadRequest({
+        [key]: {
+          code: 'NotFound',
+          message: `${key} required`,
+        },
+      })
     } else {
       return
     }

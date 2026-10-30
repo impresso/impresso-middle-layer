@@ -2,7 +2,7 @@ import { groupBy } from 'lodash-es'
 import { getLogger } from '@/logger.js'
 
 import { buildSolrQuery } from '@/util/solr/queryBuilder.js'
-import { SolrNamespaces } from '@/solr.js'
+import { SolrNamespaces, type SolrNamespace } from '@/solr.js'
 import { HookContext } from '@feathersjs/feathers'
 import { ImpressoApplication } from '@/types.js'
 
@@ -44,9 +44,8 @@ export const termToSolrFilter =
 // prettier-ignore
 export const filtersToSolrQuery =
   ({
-    overrideOrderBy = true,
     prop = 'params',
-    solrIndexProvider = (_ctx: any) => SolrNamespaces.Search // eslint-disable-line no-unused-vars
+    solrIndexProvider = (_ctx: HookContext<ImpressoApplication>): SolrNamespace => SolrNamespaces.Search // eslint-disable-line no-unused-vars
   } = {}) => async (context: HookContext<ImpressoApplication>) => {
     const prefix = `[filtersToSolrQuery (${context.path}.${context.method})]`
     if (context.type !== 'before') {
@@ -73,23 +72,6 @@ export const filtersToSolrQuery =
       context.app.get('features') ?? {}
     )
 
-    // prepend order by if it is not relevance
-    if (overrideOrderBy && Object.keys(vars).length) {
-      // relevance direction
-      let direction = 'desc'
-      if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score asc') > -1) {
-        direction = 'asc'
-      }
-      const varsOrderBy = Object.keys(vars ?? {}).map(v => `\${${v}} ${direction}`)
-      // if order by is by relevance:
-      if (context[prop].sanitized.order_by && context[prop].sanitized.order_by.indexOf('score') === 0) {
-        context[prop].sanitized.order_by = varsOrderBy.concat(context[prop].sanitized.order_by.split(',')).join(',')
-      } else if (context[prop].sanitized.order_by) {
-        context[prop].sanitized.order_by = context[prop].sanitized.order_by.split(',').concat(varsOrderBy).join(',')
-      } else {
-        context[prop].sanitized.order_by = varsOrderBy.join(',')
-      }
-    }
     logger.debug(`${prefix} query order_by: ${context[prop].sanitized.order_by}`)
     logger.debug(`${prefix} vars = ${vars} ${context[prop].sanitized}`)
 

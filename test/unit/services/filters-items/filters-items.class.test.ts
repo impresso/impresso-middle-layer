@@ -1,10 +1,27 @@
 import { strict as assert } from 'assert'
 import type { Filter } from 'impresso-jscommons'
-import { setupTestApp, withDatabase } from '../../../helpers/app.js'
+import type { PartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
+import { setupTestApp, withCachedResolverServices, withConfig, withDatabase } from '../../../helpers/app.js'
 import { Fronde, JDG } from '../../../mockData/mediaSources.js'
 import { FiltersItems } from '@/services/filters-items/filters-items.class.js'
 import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
 import { type ISpecialMembershipAccessAttributes } from '@/models/special-membership-access.model.js'
+
+const partnerDirectory = [
+  {
+    partner_institution_id: 'partner-english',
+    partner_institution_names: [
+      { lang: 'fr', name: 'Partenaire français' },
+      { lang: 'en', name: 'English Partner' },
+    ],
+    partner_bitmap_index: 1,
+  },
+  {
+    partner_institution_id: 'partner-first-name',
+    partner_institution_names: [{ lang: 'de', name: 'Erster Partner' }],
+    partner_bitmap_index: 2,
+  },
+] satisfies PartnerInstitutionsDirectory
 
 describe('FiltersItems', () => {
   let testApp: ReturnType<typeof setupTestApp>
@@ -13,9 +30,7 @@ describe('FiltersItems', () => {
   before(() => {
     testApp = setupTestApp(withDatabase(), ctx => {
       ctx.serviceHandlers['media-sources'] = () => ({
-        getLookup: async () => {
-          return [Fronde, JDG].reduce((lookup, mediaSource) => ({ ...lookup, [mediaSource.id]: mediaSource }), {})
-        },
+        getMediaSource: async (id: string) => [Fronde, JDG].find(source => source.id === id),
       })
 
       ctx.serviceHandlers['collections'] = () => ({
@@ -99,5 +114,33 @@ describe('FiltersItems', () => {
     assert.strictEqual(result.filtersWithItems[0].items.length, 2)
     assert.strictEqual(result.filtersWithItems[0].items[0].id, 1)
     assert.strictEqual(result.filtersWithItems[0].items[1].id, 2)
+  })
+
+  it('returns resolved partner items for a partner filter', async () => {
+    const partnerTestApp = setupTestApp(
+      withCachedResolverServices(),
+      withConfig('partnerInstitutionsDirectory', partnerDirectory)
+    )
+    const partnerService = new FiltersItems(partnerTestApp.app)
+    const filters: Filter[] = [
+      {
+        type: 'partner',
+        context: 'include',
+        q: 'partner-english',
+      } as Filter,
+    ]
+
+    try {
+      const result = await partnerService.find({ filters })
+
+      assert.deepStrictEqual(result.filtersWithItems, [
+        {
+          filter: filters[0],
+          items: [{ id: 'partner-english', title: 'English Partner' }],
+        },
+      ])
+    } finally {
+      await partnerTestApp.teardown()
+    }
   })
 })

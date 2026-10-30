@@ -249,7 +249,7 @@ const toSpecSchemaRefPath = (absolutePath: string): string | undefined => {
 const resolveComponentSchemaRef = (schemaName: string): string | undefined => {
   const cwd = process.cwd()
   const candidateRoots = [path.join(cwd, 'src/schema'), path.join(cwd, 'schema')]
-  const candidateDirs = ['canonical', 'canonical/contentItem', 'app', 'app/requests', 'app/responses', 'parameters']
+  const candidateDirs = ['entities', 'entities/contentItem', 'app', 'app/requests', 'app/responses', 'parameters']
 
   for (const rootDir of candidateRoots) {
     for (const subDir of candidateDirs) {

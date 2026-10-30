@@ -2,6 +2,8 @@ import { Sequelize } from 'sequelize'
 import { ImpressoApplication } from '@/types.js'
 import { CeleryClient } from '@/celery.js'
 import { RedisClient } from '@/redis.js'
+import { initLogger } from '@/logger.js'
+import type { QueueService } from '@/internalServices/queue.js'
 import type { CeleryCall, RedisSetExCall } from './database.js'
 
 /**
@@ -159,12 +161,91 @@ export function withRedisCelery(): TestAppFeature<{
     ctx.getHandlers['celeryClient'] = () => celeryClient
     ctx.getHandlers['redisClient'] = () => redisClient
     ctx.getHandlers['magicLink'] = () => ({ secret: 'test-magic-link-secret', expiration: 300 })
+    ctx.getHandlers['emailVerification'] = () => ({ expiration: 300 })
     ctx.getHandlers['authentication'] = () => ({ secret: 'test-secret-key' })
-    ctx.getHandlers['callbackUrls'] = () => ({ magicLink: 'http://test-callback-url.com/magic-link' })
+    ctx.getHandlers['callbackUrls'] = () => ({
+      magicLink: 'http://test-callback-url.com/magic-link',
+      emailVerification: 'http://test-callback-url.com/email-verification',
+    })
 
     ctx.serviceHandlers['redisClient'] = () => redisClient
 
     return { celeryRunCalls, redisSetExCalls }
+  }
+}
+
+type QueueServiceMethod =
+  | 'addItemsToCollection'
+  | 'removeItemsFromCollection'
+  | 'removeAllCollectionItems'
+  | 'updateCollectionItemsVisibility'
+  | 'addQueryResultItemsToCollection'
+  | 'exportSearchResults'
+  | 'migrateOldCollections'
+  | 'rebuildWellKnownCache'
+  | 'scheduleDownstreamServiceHealthCheck'
+
+export type QueueServiceCall = {
+  method: QueueServiceMethod
+  data: unknown
+}
+
+/**
+ * Feature: mocked BullMQ queue service, registered as `queueService`.
+ * Submitted jobs are captured in call order through `queueServiceCalls`.
+ */
+export function withQueueService(): TestAppFeature<{
+  queueService: Pick<QueueService, QueueServiceMethod>
+  queueServiceCalls: QueueServiceCall[]
+}> {
+  return ctx => {
+    const queueServiceCalls: QueueServiceCall[] = []
+    const queueService = {} as Pick<QueueService, QueueServiceMethod>
+
+    for (const method of [
+      'addItemsToCollection',
+      'removeItemsFromCollection',
+      'removeAllCollectionItems',
+      'updateCollectionItemsVisibility',
+      'addQueryResultItemsToCollection',
+      'exportSearchResults',
+      'migrateOldCollections',
+      'rebuildWellKnownCache',
+      'scheduleDownstreamServiceHealthCheck',
+    ] as const) {
+      queueService[method] = async (data: never) => {
+        queueServiceCalls.push({ method, data })
+        return { id: String(queueServiceCalls.length), data } as any
+      }
+    }
+
+    ctx.serviceHandlers['queueService'] = () => queueService
+
+    return { queueService, queueServiceCalls }
+  }
+}
+
+/**
+ * Feature: enables debug-level, pretty-printed LogTape console output for the
+ * duration of the test run, so `logger.debug(...)` calls inside the code under
+ * test (silent by default at the 'info' level) become visible.
+ *
+ * Note: LogTape configuration is process-global (a singleton), so this affects
+ * every logger in the process for the remainder of the test run, not just the
+ * service under test. Prefer running the affected test file in isolation
+ * (e.g. `npx mocha path/to/file.test.ts`) to avoid noisy output bleeding into
+ * unrelated suites, and avoid combining it with other files that also call
+ * this feature in the same run (last one configured wins).
+ */
+export function withDebugLogging(options?: { format?: 'pretty' | 'json' }): TestAppFeature {
+  return ctx => {
+    const loggingConfig = { lowestLevel: 'debug' as const, format: options?.format ?? 'pretty' }
+    ctx.getHandlers['logging'] = () => loggingConfig
+
+    // initLogger is declared async only for API-consistency with app.configure();
+    // its body is fully synchronous (a single configureSync(...) call), so calling
+    // it here without awaiting still takes effect before the feature returns.
+    void initLogger({ get: () => loggingConfig } as unknown as ImpressoApplication)
   }
 }
 
@@ -234,5 +315,30 @@ export function withSolr(): TestAppFeature<{
     ctx.getHandlers['features'] = () => ({})
 
     return { mockSolr, solrSelectCalls }
+  }
+}
+
+/**
+ * Feature: service handles that are eagerly requested by `buildResolvers`.
+ * Individual resolver tests can use this without provisioning the unrelated
+ * backing systems those services normally require.
+ */
+export function withCachedResolverServices(): TestAppFeature {
+  return ctx => {
+    ctx.serviceHandlers['collections'] = () => ({})
+    ctx.serviceHandlers['media-sources'] = () => ({})
+    ctx.serviceHandlers['special-membership-plans'] = () => ({})
+  }
+}
+
+/**
+ * Feature: mocked configuration, registered under `config`.
+ * Provides a simple key-value store for configuration values.
+ * @param config
+ * @returns
+ */
+export function withConfig<T extends Record<string, any>>(configName: string, config: T): TestAppFeature {
+  return ctx => {
+    ctx.getHandlers[configName] = () => config
   }
 }

@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/mocharc.json",
   "import": "tsx",
   "diff": true,
   "package": "./package.json",

@@ -1,6 +1,4 @@
-import jscommons, { type Filter } from 'impresso-jscommons'
-
-const { protobuf } = jscommons
+import { protobuf, type Filter } from 'impresso-jscommons'
 
 export interface FilterSerializationRequest {
   filters: Filter[]

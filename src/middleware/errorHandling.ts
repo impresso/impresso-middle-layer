@@ -98,7 +98,7 @@ export default (app: ImpressoApplication & ExpressApplication) => {
           if (isProduction) {
             delete err.stack
           } else {
-            logger.error('Error [400]', err.data || err)
+            logger.warn('Bad request [400]', err.data || err)
           }
           res.json({
             type: `${problemUriBase}/bad-request`,

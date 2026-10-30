@@ -43,6 +43,7 @@ export interface Me {
   creationDate: Date
   lastLogin: Date | null
   emailAccepted: boolean
+  emailVerified: boolean
   bitmap?: string
   groups: Group[]
   affiliation: string
@@ -115,6 +116,18 @@ export default class User {
     this.bitmap = bitmap ?? BufferUserPlanGuest
   }
 
+  /**
+   * Produces a JSON-safe representation of this user. `bitmap` is a `bigint`,
+   * which `JSON.stringify` cannot serialize natively, so it is encoded as a
+   * base64 string here (same encoding used by `getMe`).
+   */
+  toJSON(): Omit<User, 'bitmap' | 'toJSON'> & { bitmap?: BigInt } {
+    return {
+      ...this,
+      bitmap: this.bitmap != null ? this.bitmap : undefined,
+    }
+  }
+
   static getMe({ user, profile }: { user: User; profile: Profile }): Me {
     return {
       firstname: user.firstname,
@@ -128,6 +141,7 @@ export default class User {
       creationDate: user.creationDate as Date,
       lastLogin: user.lastLogin as Date,
       emailAccepted: profile.emailAccepted,
+      emailVerified: profile.emailVerified,
       bitmap: user.bitmap != null ? bigIntToBase64Bytes(user.bitmap) : undefined,
       groups: user.groups,
       affiliation: profile.affiliation || '',

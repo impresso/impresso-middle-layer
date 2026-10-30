@@ -1,17 +1,15 @@
 import { request, Dispatcher, Agent, RetryAgent, RetryHandler } from 'undici'
 
 import { socksDispatcher, SocksProxies } from 'fetch-socks'
-import { createPool, Factory, Pool } from 'generic-pool'
 import type { IncomingHttpHeaders } from 'undici/types/header.d.ts'
 import { SolrServerProxy } from '../../../configuration.js'
 import type { FetchOptions, IFetchClient, IFetchClientOptions } from './base.ts'
 
-interface InitHttpPoolOptions extends IFetchClientOptions {
-  maxParallelConnections?: number
-  acquireTimeoutSec?: number
-}
-
 const DefaultRequestTimeoutMs = 300 * 1000
+const DefaultConnectTimeoutMs = 10 * 1000
+const DefaultAutoSelectFamilyAttemptTimeoutMs = 2 * 1000
+const DefaultKeepAliveTimeoutMs = 10 * 1000
+const DefaultMaxConnectionsPerOrigin = 200
 const DefaultRetryMaxRetries = 4
 const DefaultRetryTimeoutFactor = 2
 const UndiciDefaultRetryErrorCodes = [
@@ -25,7 +23,8 @@ const UndiciDefaultRetryErrorCodes = [
   'EPIPE',
   'UND_ERR_SOCKET',
 ]
-const HeadersTimeoutRetryErrorCode = 'UND_ERR_HEADERS_TIMEOUT'
+// Connect timeouts are safe to retry for any method: nothing has been sent yet.
+const AdditionalRetryErrorCodes = ['UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_CONNECT_TIMEOUT']
 
 function buildDefaultMinTimeout(maxTimeoutMs: number, maxRetries: number, timeoutFactor: number): number {
   if (maxTimeoutMs <= 0) return 1
@@ -65,7 +64,10 @@ function incomingHttpHeadersToHeaders(headers: IncomingHttpHeaders): Headers {
 
 export class XResponse extends Response {
   data: Dispatcher.ResponseData
-  _text?: string
+  // The body stream can be read only once. Memoise the read itself (not its result)
+  // so concurrent callers (e.g. onUnsuccessfulResponse logging and checkResponseStatus)
+  // share it instead of each getting a part of the stream.
+  _text?: Promise<string>
 
   constructor(data: Dispatcher.ResponseData) {
     super(null, {
@@ -84,14 +86,16 @@ export class XResponse extends Response {
   }
 
   async text() {
-    if (this._text != null) return this._text
+    this._text ??= this._readText()
+    return this._text
+  }
 
+  private async _readText(): Promise<string> {
     const chunks = []
     for await (const chunk of this.data.body) {
       chunks.push(chunk)
     }
-    this._text = Buffer.concat(chunks).toString('utf8')
-    return this._text
+    return Buffer.concat(chunks).toString('utf8')
   }
 
   async json() {
@@ -100,64 +104,81 @@ export class XResponse extends Response {
   }
 }
 
+function createBaseAgent(socksProxy?: SolrServerProxy): Agent {
+  const commonOptions = {
+    connections: DefaultMaxConnectionsPerOrigin,
+    keepAliveTimeout: DefaultKeepAliveTimeoutMs,
+    connectTimeout: DefaultConnectTimeoutMs,
+  }
+
+  if (socksProxy != null) {
+    const proxyConfig: SocksProxies = [
+      {
+        type: 5,
+        host: socksProxy.host,
+        port: socksProxy.port,
+      },
+    ]
+    return socksDispatcher(proxyConfig, {
+      ...commonOptions,
+      connect: {
+        // set some TLS options
+        rejectUnauthorized: false,
+      },
+    })
+  }
+
+  return new Agent({
+    ...commonOptions,
+    // Node's "happy eyeballs" gives every resolved address only a short window
+    // (250-500ms by default) before moving on to the next one. When one address
+    // family is unreachable, a slightly slow connect on the other one fails
+    // the whole connection with ETIMEDOUT, which undici reports as a
+    // "Connect Timeout Error" regardless of `connectTimeout`.
+    autoSelectFamily: true,
+    autoSelectFamilyAttemptTimeout: DefaultAutoSelectFamilyAttemptTimeoutMs,
+  })
+}
+
+function buildRetryOptions(retryOptions: RetryHandler.RetryOptions, requestTimeoutMs: number): RetryHandler.RetryOptions {
+  const mergedErrorCodes = Array.from(
+    new Set([...(retryOptions.errorCodes ?? UndiciDefaultRetryErrorCodes), ...AdditionalRetryErrorCodes])
+  )
+  const maxRetries = retryOptions.maxRetries ?? DefaultRetryMaxRetries
+  const timeoutFactor = retryOptions.timeoutFactor ?? DefaultRetryTimeoutFactor
+  const maxTimeout = retryOptions.maxTimeout ?? requestTimeoutMs
+  const minTimeout = retryOptions.minTimeout ?? buildDefaultMinTimeout(maxTimeout, maxRetries, timeoutFactor)
+
+  return {
+    ...retryOptions,
+    maxRetries,
+    timeoutFactor,
+    maxTimeout,
+    minTimeout,
+    errorCodes: mergedErrorCodes,
+    // Status-code retries are handled by the application-level loop in fetch().
+    // Passing statusCodes here would cause RetryAgent to also retry on them,
+    // resulting in maxRetries² attempts.
+    statusCodes: [],
+  }
+}
+
 /**
- * Using a class to return by pool instead of a function
- * because functions are sometimes not recognised by the pool.
+ * undici based IFetchClient.
+ *
+ * A single agent is shared by all requests made through this client so that
+ * connections (and TLS sessions) are kept alive and reused instead of being
+ * re-established for every request.
  */
-class ConnectionWrapper implements IFetchClient {
-  socksProxyOptions?: SolrServerProxy
+export class FetchClient implements IFetchClient {
+  private readonly agent: Agent
 
-  constructor(opts: IFetchClientOptions) {
-    this.socksProxyOptions = opts.socksProxy
+  constructor(options: IFetchClientOptions) {
+    this.agent = createBaseAgent(options.socksProxy)
   }
 
-  _createBaseAgent(requestTimeoutMs: number): Agent {
-    if (this.socksProxyOptions != null) {
-      const proxyConfig: SocksProxies = [
-        {
-          type: 5,
-          host: this.socksProxyOptions.host,
-          port: this.socksProxyOptions.port,
-        },
-      ]
-      const socksAgent = socksDispatcher(proxyConfig, {
-        connect: {
-          // set some TLS options
-          rejectUnauthorized: false,
-        },
-      })
-
-      return socksAgent
-    } else {
-      return new Agent({
-        headersTimeout: requestTimeoutMs,
-        connectTimeout: requestTimeoutMs,
-        bodyTimeout: requestTimeoutMs,
-      })
-    }
-  }
-
-  _buildRetryOptions(retryOptions: RetryHandler.RetryOptions, requestTimeoutMs: number): RetryHandler.RetryOptions {
-    const mergedErrorCodes = Array.from(
-      new Set([...(retryOptions.errorCodes ?? UndiciDefaultRetryErrorCodes), HeadersTimeoutRetryErrorCode])
-    )
-    const maxRetries = retryOptions.maxRetries ?? DefaultRetryMaxRetries
-    const timeoutFactor = retryOptions.timeoutFactor ?? DefaultRetryTimeoutFactor
-    const maxTimeout = retryOptions.maxTimeout ?? requestTimeoutMs
-    const minTimeout = retryOptions.minTimeout ?? buildDefaultMinTimeout(maxTimeout, maxRetries, timeoutFactor)
-
-    return {
-      ...retryOptions,
-      maxRetries,
-      timeoutFactor,
-      maxTimeout,
-      minTimeout,
-      errorCodes: mergedErrorCodes,
-      // Status-code retries are handled by the application-level loop in fetch().
-      // Passing statusCodes here would cause RetryAgent to also retry on them,
-      // resulting in maxRetries² attempts.
-      statusCodes: [],
-    }
+  async close(): Promise<void> {
+    await this.agent.close()
   }
 
   async fetch(url: string | URL | globalThis.Request, init?: RequestInit, options?: FetchOptions): Promise<Response> {
@@ -167,13 +188,12 @@ class ConnectionWrapper implements IFetchClient {
 
     const requestTimeoutMs = options?.requestTimeoutMs ?? DefaultRequestTimeoutMs
 
-    const agent =
+    // RetryAgent only wraps the shared agent and does not own any connections,
+    // so it is cheap to create one per request with request specific options.
+    const dispatcher: Dispatcher =
       options?.retryOptions != null
-        ? new RetryAgent(
-            this._createBaseAgent(requestTimeoutMs),
-            this._buildRetryOptions(options.retryOptions, requestTimeoutMs)
-          )
-        : this._createBaseAgent(requestTimeoutMs)
+        ? new RetryAgent(this.agent, buildRetryOptions(options.retryOptions, requestTimeoutMs))
+        : this.agent
 
     const theUrl: string = url instanceof Request ? url.url : url.toString()
     const retryStatusCodes = options?.retryOptions?.statusCodes ?? []
@@ -196,7 +216,7 @@ class ConnectionWrapper implements IFetchClient {
         headers: init?.headers as IncomingHttpHeaders,
         body: body as any,
         signal: init?.signal,
-        dispatcher: agent,
+        dispatcher,
         headersTimeout: requestTimeoutMs,
         bodyTimeout: requestTimeoutMs,
       })
@@ -211,6 +231,8 @@ class ConnectionWrapper implements IFetchClient {
       )
         break
 
+      // Drain the discarded response so its connection can be reused.
+      await result.body.dump()
       attempt++
       const delay = Math.min(minTimeout * timeoutFactor ** (attempt - 1), maxTimeout)
       await new Promise(r => setTimeout(r, delay))
@@ -228,54 +250,5 @@ class ConnectionWrapper implements IFetchClient {
     }
 
     return response
-  }
-}
-
-class ConnectionFactory implements Factory<ConnectionWrapper> {
-  socksProxyOptions?: SolrServerProxy
-
-  constructor(socksProxyOptions?: SolrServerProxy) {
-    this.socksProxyOptions = socksProxyOptions
-  }
-
-  async create(): Promise<ConnectionWrapper> {
-    return new ConnectionWrapper({ socksProxy: this.socksProxyOptions })
-  }
-
-  async destroy(client: ConnectionWrapper): Promise<void> {
-    /* nothing to destroy */
-  }
-}
-
-export function initHttpPool({
-  maxParallelConnections = 200,
-  acquireTimeoutSec = 25,
-  socksProxy,
-}: InitHttpPoolOptions = {}): Pool<ConnectionWrapper> {
-  const poolOptions = {
-    min: maxParallelConnections ?? 200,
-    max: maxParallelConnections ?? 200,
-    acquireTimeoutMillis: acquireTimeoutSec * 1000,
-  }
-
-  return createPool(new ConnectionFactory(socksProxy), poolOptions)
-}
-
-export type ConnectionPool = Pool<ConnectionWrapper>
-
-export class FetchClient implements IFetchClient {
-  private pool: ConnectionPool
-
-  constructor(options: IFetchClientOptions) {
-    this.pool = initHttpPool(options)
-  }
-
-  async fetch(input: string | URL | globalThis.Request, init?: RequestInit, options?: FetchOptions): Promise<Response> {
-    const client = await this.pool.acquire()
-    try {
-      return await client.fetch(input, init, options)
-    } finally {
-      await this.pool.release(client)
-    }
   }
 }

@@ -5,6 +5,9 @@ export interface SubscriptionDatasetAttributes {
   reviewerId?: number | null
   name: string
   bitmapPosition: number
+  fullname?: string | null
+  countryCode?: string | null
+  dataProviderAlias?: string | null
   metadata?: object
 }
 
@@ -51,6 +54,21 @@ export default class SubscriptionDataset {
             type: DataTypes.INTEGER,
             allowNull: false,
             field: 'bitmap_position',
+          },
+          fullname: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            field: 'fullname',
+          },
+          countryCode: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            field: 'country_code',
+          },
+          dataProviderAlias: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            field: 'data_provider_alias',
           },
           metadata: {
             type: DataTypes.JSON,

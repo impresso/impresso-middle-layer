@@ -72,8 +72,8 @@ describe('logic', () => {
       })
     })
     ;[
-      [RelevanceContextItemTypes.Locations, 'loc_entities_dpfs'],
-      [RelevanceContextItemTypes.Persons, 'pers_entities_dpfs'],
+      [RelevanceContextItemTypes.Locations, 'loc_entity_ids_dpfs'],
+      [RelevanceContextItemTypes.Persons, 'pers_entity_ids_dpfs'],
       [RelevanceContextItemTypes.Topics, 'topics_dpfs'],
     ].forEach(([_type, solrField]) => {
       const type = /** @type {Type} */ (_type)

@@ -1,11 +1,11 @@
 import { Job } from 'bullmq'
 import { logger } from '@/logger.js'
 import { ImpressoApplication } from '@/types.js'
-import { WellKnownKeys, WellKnownMetadataKeys } from '@/cache.js'
-import updateMediaSourcesCache from '@/jobs/updateMediaSourcesCache.js'
-import updateSpecialMembershipAccessCache from '@/jobs/updateSpecialMembershipAccessCache.js'
-import updateTopicsCache from '@/jobs/updateTopicsCache.js'
-import updateYearsCache from '@/jobs/updateYears.js'
+import { rebuildWellKnownEntries } from '@/internalServices/wellKnownCache.js'
+import { prepareMediaSourcesCache } from '@/jobs/updateMediaSourcesCache.js'
+import { prepareSpecialMembershipAccessCache } from '@/jobs/updateSpecialMembershipAccessCache.js'
+import { prepareTopicsCache } from '@/jobs/updateTopicsCache.js'
+import { prepareYearsCache } from '@/jobs/updateYears.js'
 
 export const JobNameRebuildWellKnownCache = 'rebuildWellKnownCache'
 
@@ -15,20 +15,14 @@ export interface RebuildWellKnownCacheJobData {
 
 type RebuildWellKnownCacheJob = Job<RebuildWellKnownCacheJobData, undefined, typeof JobNameRebuildWellKnownCache>
 
-const wellKnownKeys = [
-  WellKnownKeys.MediaSources,
-  WellKnownKeys.Topics,
-  WellKnownKeys.Years,
-  WellKnownKeys.SpecialMembershipAccessByBitmapPosition,
-  WellKnownMetadataKeys.MediaSourcesComputedAt,
-  WellKnownMetadataKeys.TopicsComputedAt,
-  WellKnownMetadataKeys.YearsComputedAt,
-  WellKnownMetadataKeys.SpecialMembershipAccessComputedAt,
-]
-
-const clearWellKnownCache = async (app: ImpressoApplication) => {
-  const cache = app.get('cacheManager')
-  await Promise.all(wellKnownKeys.map(key => cache.del(key)))
+/** Prepare every dataset before publishing any replacement. Each dataset commits with one SET. */
+export const rebuildWellKnownCache = async (app: ImpressoApplication): Promise<void> => {
+  await rebuildWellKnownEntries(app.get('cacheManager'), [
+    () => prepareMediaSourcesCache(app),
+    () => prepareYearsCache(app),
+    () => prepareTopicsCache(app),
+    () => prepareSpecialMembershipAccessCache(app),
+  ])
 }
 
 export const createJobHandler = (app: ImpressoApplication) => {
@@ -36,11 +30,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
     logger.info(
       `➡️ 🧹 Processing job ${job.id} ${job.name} to rebuild well-known caches (requestedBy: ${job.data.requestedBy ?? 'unknown'})`
     )
-    await clearWellKnownCache(app)
-    await updateMediaSourcesCache(app)
-    await updateYearsCache(app)
-    await updateTopicsCache(app)
-    await updateSpecialMembershipAccessCache(app)
+    await rebuildWellKnownCache(app)
     logger.info(`➡️ 🧹 Finished job ${job.id} ${job.name} to rebuild well-known caches`)
     return undefined
   }

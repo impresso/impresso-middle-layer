@@ -1,4 +1,5 @@
 import type { Configuration } from '@/configuration.js'
+import type { ProvenanceService } from '@/services/provenance/provenance.class.js'
 import { QueueService } from '@/internalServices/queue.js'
 import { SimpleSolrClient } from '@/internalServices/simpleSolr.js'
 import type { IRedisClientContainer } from '@/redis.js'
@@ -9,10 +10,13 @@ import type { IRateLimiter } from '@/services/internal/rateLimiter/redis.js'
 import { Service as LogsService } from '@/services/logs/logs.class.js'
 import { MediaSources } from '@/services/media-sources/media-sources.class.js'
 import { NewspapersService } from '@/services/newspapers/newspapers.class.js'
+import { PartnerAuditLogsService } from '@/services/partner-audit-logs/partner-audit-logs.class.js'
+import type { AuditLogStorage } from '@/internalServices/auditLogStorage.js'
 import { AuthenticationService } from '@feathersjs/authentication'
 import type { Application } from '@feathersjs/feathers'
 
 export interface AppServices {
+  ['tools/provenance']: ProvenanceService
   redisClient?: IRedisClientContainer
   rateLimiter?: IRateLimiter
   logs: LogsService
@@ -26,6 +30,10 @@ export interface AppServices {
   ['content-items']: ContentItemService
   collections: ICollectionsService
   ['collectable-items']: ICollectableItemsService
+  ['partner-audit-logs']: PartnerAuditLogsService
+
+  // Internal (non-REST) services
+  auditLogStorage?: AuditLogStorage
 }
 
 export type ImpressoApplication = Application<AppServices & Record<string, any>, Configuration>

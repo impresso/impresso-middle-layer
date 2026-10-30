@@ -8,7 +8,10 @@ import { circular } from 'graphology-layout'
 import { default as forceAtlas2 } from 'graphology-layout-forceatlas2'
 import { default as louvain } from 'graphology-communities-louvain'
 import { hits, pagerank } from 'graphology-metrics/centrality/index.js'
-import { InternalTopic, TopicWord } from '@/models/generated/deprecated/models.js'
+import type { CachedTopic } from '@/models/generated/app/cache.js'
+import type { TopicWord } from '@/models/generated/app/entities.js'
+import type { Topic as SolrTopic } from '@/models/consolidated/solr/index.js'
+import { topicLabelFieldsFromSolr, TopicLabelFields } from '@/models/topics.model.js'
 
 const TopicsLimit = 10 ** 6
 const TopNTopics = 10
@@ -18,33 +21,31 @@ const MaxRelatedTopicsToKeep = 15
 const RelatedThreshold = 0.1
 const Threshold = 0.5
 
-interface TopicIndexDocument {
-  /** Topic model ID */
-  id: string
-
-  /** Language code */
-  lg_s: string
-
-  /** Topic model version */
-  tp_model_s: string
-
-  /** Topic number */
-  tp_nb_i: number
-
-  /** Word probabilities as pipe-separated string with probabilities */
-  word_probs_dpf: string
-
-  /** Topic suggestions as space-separated words */
-  topic_suggest: string
-
+type TopicIndexDocument = Pick<
+  SolrTopic,
+  | 'id'
+  | 'lg_s'
+  | 'tp_model_s'
+  | 'tp_nb_i'
+  | 'word_probs_dpf'
+  | 'topic_suggest'
+  | 'tp_desc_s'
+  | 'tp_meta_s'
+  | 'topic_type_s'
+  | 'label_short_s'
+  | 'label_long_txt_en'
+  | 'confidence_s'
+  | 'representative_terms_ss'
+  | 'generated_by_s'
+> & {
   /** Solr document version */
   _version_: number
 }
 
-type TopicStub = Pick<InternalTopic, 'id' | 'language' | 'model' | 'words'>
-type TopicStubWithCountItems = TopicStub & Pick<InternalTopic, 'contentItemsCount'>
+type TopicStub = Pick<CachedTopic, 'id' | 'language' | 'model' | 'words'> & TopicLabelFields
+type TopicStubWithCountItems = TopicStub & Pick<CachedTopic, 'contentItemsCount'>
 type TopicStubWithRelatedTopics = TopicStubWithCountItems &
-  Pick<InternalTopic, 'relatedTopics' | 'degree' | 'relatedTopicsStats'>
+  Pick<CachedTopic, 'relatedTopics' | 'degree' | 'relatedTopicsStats'>
 
 type RelatedTopicBucket = Bucket & {
   relatedTopics: {
@@ -66,12 +67,24 @@ const dpfToWords = (dpf: string): TopicWord[] => {
     .map(([word, prob]) => ({ w: word, p: parseFloat(prob) }))
 }
 
-const topicIndexDocToTopicStub = (doc: TopicIndexDocument): TopicStub => ({
-  id: doc.id,
-  language: doc.lg_s,
-  model: doc.tp_model_s,
-  words: dpfToWords(doc.word_probs_dpf).slice(0, TopNTopics),
-})
+export const topicIndexDocToTopicStub = (doc: TopicIndexDocument): TopicStub => {
+  const words = dpfToWords(doc.word_probs_dpf).slice(0, TopNTopics)
+  const label =
+    doc.label_short_s ??
+    words
+      .slice(0, 5)
+      .map(w => w.w)
+      .join(' ')
+  return {
+    id: doc.id,
+    language: doc.lg_s,
+    model: doc.tp_model_s,
+
+    words,
+    ...topicLabelFieldsFromSolr(doc),
+    label,
+  }
+}
 
 const toTopicStubWithCountItems = (stub: TopicStub, counts: Record<string, number>): TopicStubWithCountItems => ({
   ...stub,
@@ -167,7 +180,7 @@ const buildRequestFindRelatedTopicsAverageWeight = (
   }, {}),
 })
 
-export const prepareTopics = async (solrClient: SimpleSolrClient): Promise<InternalTopic[]> => {
+export const prepareTopics = async (solrClient: SimpleSolrClient): Promise<CachedTopic[]> => {
   const pageSize = 50
   let offset = 0
   let hasMorePages = true
@@ -194,14 +207,14 @@ const prepareTopicsPage = async (
   solrClient: SimpleSolrClient,
   offset: number,
   pageSize: number
-): Promise<InternalTopic[]> => {
+): Promise<CachedTopic[]> => {
   const topicsStubs = await getTopicsPage(solrClient, offset, pageSize)
   logger.info(`Found ${topicsStubs.length} topics`)
 
   const topicsStubsWithRelatedTopics = await withRelatedTopics(solrClient, topicsStubs)
   logger.info('Found weights and averages for related topics')
 
-  return topicsStubsWithRelatedTopics as InternalTopic[]
+  return topicsStubsWithRelatedTopics
 }
 
 const getTopicsPage = async (
@@ -261,7 +274,7 @@ const withRelatedTopics = async (
             w: 0, // this will be assigned in the next step
             avg: 0, // this will be assigned in the next step
           })) ?? [],
-    } satisfies TopicStubWithCountItems & Pick<InternalTopic, 'relatedTopics'>
+    } satisfies TopicStubWithCountItems & Pick<CachedTopic, 'relatedTopics'>
   })
 
   logger.info(
@@ -321,7 +334,7 @@ const withRelatedTopics = async (
   )
 }
 
-const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise<InternalTopic[]> => {
+const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise<CachedTopic[]> => {
   const graph = new Graph()
 
   const nodes = uniqBy(
@@ -396,6 +409,6 @@ const withGraphPositions = async (topics: TopicStubWithRelatedTopics[]): Promise
         community: communities[topic.id],
         hub: hubs?.[topic.id],
         authority: authorities?.[topic.id],
-      }) satisfies InternalTopic
+      }) satisfies CachedTopic
   )
 }

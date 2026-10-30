@@ -43,21 +43,34 @@ const parameterOrderBy: QueryParameter = {
   schema: {
     type: 'string',
     default: '-date',
-    enum: ['-date', 'date', '-size', 'size'],
+    enum: ['-date', 'date', '-creationDate', 'creationDate'],
   },
   description: 'Sort order',
+}
+
+const parameterIncludePublic: QueryParameter = {
+  in: 'query',
+  name: 'includePublic',
+  required: false,
+  schema: {
+    type: 'boolean',
+    default: false,
+  },
+  description: 'Include public and shared collections created by the authenticated user',
 }
 
 const findParameters: MethodParameter[] = [
   parameterIds,
   parameterQ,
   parameterOrderBy,
+  parameterIncludePublic,
   ...getStandardParameters({ method: 'find' }),
 ]
 
 const findParametersPublicApi: MethodParameter[] = [
   parameterTerm,
   parameterOrderBy,
+  parameterIncludePublic,
   ...getStandardParameters({ method: 'find' }),
 ]
 

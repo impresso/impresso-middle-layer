@@ -2,6 +2,8 @@ import { keyBy, take } from 'lodash-es'
 import { Op } from 'sequelize'
 
 import { logger } from '@/logger.js'
+import { findEntitiesByIds } from '@/services/entities/lookup.js'
+import type Entity from '@/models/entities.model.js'
 import initSequelizeService, { Service as SequelizeService } from '@/services/sequelize.service.js'
 import Article, { IFragmentsAndHighlights } from '@/models/articles.model.js'
 import Issue from '@/models/issues.model.js'
@@ -36,14 +38,14 @@ import {
   ContentItem,
   ContentItemPage,
   Collection as ContentItemCollection,
-} from '@/models/generated/canonical/contentItem.js'
+} from '@/models/generated/app/entities/contentItem.js'
 import { ContentItemDbModel } from '@/models/content-item.model.js'
 import DBContentItemPage, { getIIIFManifestUrl, getIIIFThumbnailUrl } from '@/models/content-item-page.model.js'
 import { mapRecordValues } from '@/util/fn.js'
 import { NotFound } from '@feathersjs/errors'
-import { Collection } from '@/models/generated/canonical.js'
+import { Collection } from '@/models/generated/app/entities.js'
 import { getContentItemMatches } from '@/services/search/search.extractors.js'
-import { AudioFields, ImageFields, SemanticEnrichmentsFields } from '@/models/generated/external/solr/ContentItem.js'
+import { AudioFields, PaperFields } from '@/models/consolidated/solr/index.js'
 import { allContentFields, ensureIdSort, getSortParams, plainFieldAsJson, ScoreField } from '@/util/solr/index.js'
 import { AuthorizationBitmapsDTO, AuthorizationBitmapsKey } from '@/models/authorization.js'
 import { base64BytesToBigInt } from '@/util/bigint.js'
@@ -51,6 +53,8 @@ import { QueueService } from '@/internalServices/queue.js'
 import { AccessMethod, ContentItemAccessLogEntry, getVectorLogService } from '@/internalServices/vectorLog.js'
 import { Filter } from 'impresso-jscommons'
 import { isTrue } from '@/util/queryParameters.js'
+import { EmbeddingsConfig } from '@/models/generated/app/configuration.js'
+import { CachedTopic } from '@/models/generated/app/cache.js'
 
 const DefaultLimit = 10
 
@@ -58,21 +62,18 @@ const DefaultLimit = 10
  * The fields below must be expanded to object from JSON.
  */
 type ExpansionFields =
-  | keyof Pick<ImageFields, 'pp_plain' | 'lb_plain' | 'pb_plain' | 'rb_plain'>
+  | keyof Pick<PaperFields, 'pp_plain' | 'lb_plain' | 'pb_plain' | 'rb_plain'>
   | keyof Pick<AudioFields, 'rreb_plain'>
-  | keyof Pick<SemanticEnrichmentsFields, 'nem_offset_plain' | 'nag_offset_plain'>
 const JSONExpansionFields = [
   'pp_plain',
   'lb_plain',
   'pb_plain',
   'rb_plain',
   'rreb_plain',
-  'nag_offset_plain',
-  'nem_offset_plain',
 ] satisfies ExpansionFields[]
 
 const isExpansionField = (field: IFullContentItemFieldsNames): field is ExpansionFields => {
-  return JSONExpansionFields.includes(field as any as ExpansionFields)
+  return JSONExpansionFields.some(expansionField => expansionField === field)
 }
 
 const withJsonExpansion = (field: IFullContentItemFieldsNames) => {
@@ -253,10 +254,11 @@ const withTopics =
       topics.map(async topic => {
         if (topic.label != null && topic.languageCode != null) return topic
 
-        const topicDetails = await topicResolver(topic.id)
+        const topicDetails = (await topicResolver(topic.id)) as CachedTopic
         if (topicDetails == null) return topic
 
         const topicLabel =
+          topicDetails.label ??
           topic.label ??
           take(topicDetails.words, 5)
             .map(word => word.w)
@@ -288,6 +290,34 @@ const withTopics =
       },
     }
   }
+
+export const withEntityLabels =
+  (lookup: Map<string, Entity>): ContentItemEnricher =>
+  item => {
+    const entities = item.semanticEnrichments?.namedEntities
+    if (entities == null) return item
+    return {
+      ...item,
+      semanticEnrichments: {
+        ...item.semanticEnrichments,
+        namedEntities: Object.fromEntries(
+          Object.entries(entities).map(([type, values]) => [
+            type,
+            values?.map(entity => ({ ...entity, label: lookup.get(entity.id ?? '')?.name ?? entity.label })),
+          ])
+        ),
+      },
+    }
+  }
+
+const getEntityLabels = async (app: ImpressoApplication, items: ContentItem[]): Promise<Map<string, Entity>> => {
+  const ids = items.flatMap(item =>
+    Object.values(item.semanticEnrichments?.namedEntities ?? {}).flatMap(
+      entities => entities?.flatMap(entity => (entity.id == null ? [] : [entity.id])) ?? []
+    )
+  )
+  return new Map((await findEntitiesByIds(app, ids)).map(entity => [entity.id, entity]))
+}
 
 const withCollections =
   (collectionsLookup: Dictionary<Collection[]>): ContentItemEnricher =>
@@ -382,9 +412,13 @@ const withTextLabels =
     }
   }
 
-export const toContentItemWithMatches = (fragmentsAndHighlights: IFragmentsAndHighlights, maxScore?: number) => {
+export const toContentItemWithMatches = (
+  fragmentsAndHighlights: IFragmentsAndHighlights,
+  maxScore?: number,
+  embedingsConfig?: EmbeddingsConfig
+) => {
   return (doc: AllDocumentFields): ContentItem => {
-    const contentItem = toContentItem(doc, { maxScore })
+    const contentItem = toContentItem(doc, { maxScore }, embedingsConfig)
     const matches = getContentItemMatches(contentItem, doc.pp_plain, fragmentsAndHighlights)
 
     return {
@@ -559,15 +593,17 @@ export class ContentItemService implements IContentItemService {
     // get data enrichment items
     const contentItemIds = contentItems.map(d => d.id)
 
-    const [dbPages, collectionsLookup] = await Promise.all([
+    const [dbPages, collectionsLookup, entityLabels] = await Promise.all([
       this._findPages(contentItemIds),
       this.getCollections(contentItemIds, params.user),
+      getEntityLabels(this.app, contentItems),
     ])
     const resolvers = this.getCachedResolvers()
     const metadataResolvers = this.getContentItemMetadataResolvers()
 
     const enrichedContentItems = await enrichContentItems(contentItems, [
       withIIIF(dbPages, this.app),
+      withEntityLabels(entityLabels),
       withTopics(resolvers.topic),
       withCollections(collectionsLookup),
       withMetaLabels(metadataResolvers),
@@ -678,7 +714,9 @@ export class ContentItemService implements IContentItemService {
       fl: isTrue(params.query?.include_embeddings) ? GetMethodFieldsWithEmbeddings : GetMethodFields,
     })
 
-    const solrRequest = this.solr.select<SlimDocumentFields>(this.solr.namespaces.Search, {
+    // `get` requests the full field list (`GetMethodFields`), so the documents come
+    // back with the full content only fields that `SlimDocumentFields` omits.
+    const solrRequest = this.solr.select<AllDocumentFields>(this.solr.namespaces.Search, {
       body: request,
     })
     const dbPagesRequest = this._findPages([id])
@@ -691,7 +729,11 @@ export class ContentItemService implements IContentItemService {
     ])
 
     const contentItem = (result.response?.docs?.map(
-      toContentItemWithMatches(result.response as IFragmentsAndHighlights, result?.response?.maxScore)
+      toContentItemWithMatches(
+        result.response as IFragmentsAndHighlights,
+        result?.response?.maxScore,
+        this.app.get('embeddings')
+      )
     ) ?? [])?.[0]
 
     if (!contentItem) throw new NotFound(`Content item with id ${id} not found`)
@@ -699,11 +741,13 @@ export class ContentItemService implements IContentItemService {
     const resolvers = this.getCachedResolvers()
     const metadataResolvers = this.getContentItemMetadataResolvers()
 
+    const entityLabels = await getEntityLabels(this.app, [contentItem])
     const enrichedContentItem = (
       await enrichContentItems(
         [contentItem],
         [
           withIIIF(dbPagesLookup, this.app),
+          withEntityLabels(entityLabels),
           withTopics(resolvers.topic),
           withCollections(collectionsLookup),
           withMetaLabels(metadataResolvers),

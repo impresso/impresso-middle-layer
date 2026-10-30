@@ -14,7 +14,7 @@ describe('filtersToSolr', () => {
     } satisfies Filter
     const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
     const expectedQuery =
-      '(entitySuggest:H. AND entitySuggest:Allen AND entitySuggest:Smith AND entitySuggest:represen*)'
+      '(_text_:H. AND _text_:Allen AND _text_:Smith AND _text_:represen*)'
     assert.strictEqual(query, expectedQuery)
   })
 
@@ -343,7 +343,7 @@ describe('filtersToSolr', () => {
         type: 'mention',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, [], {})
-      assert.equal(query, '((pers_mentions:ab OR loc_mentions:ab) OR (pers_mentions:cd OR loc_mentions:cd))')
+      assert.equal(query, '((pers_mention_ner_conf_dpfs:ab OR loc_mention_ner_conf_dpfs:ab OR org_mention_ner_conf_dpfs:ab OR pressagency_mention_ner_conf_dpfs:ab OR radiostation_mention_ner_conf_dpfs:ab) OR (pers_mention_ner_conf_dpfs:cd OR loc_mention_ner_conf_dpfs:cd OR org_mention_ner_conf_dpfs:cd OR pressagency_mention_ner_conf_dpfs:cd OR radiostation_mention_ner_conf_dpfs:cd))')
     })
 
     it('with and/or fields', () => {
@@ -355,7 +355,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, [], {})
       assert.equal(
         query,
-        '((pers_entities_dpfs:e-a OR loc_entities_dpfs:e-a) AND (pers_entities_dpfs:e-b OR loc_entities_dpfs:e-b))'
+        '((pers_entity_ids_dpfs:e-a OR loc_entity_ids_dpfs:e-a OR org_entity_ids_dpfs:e-a OR pressagency_entity_ids_dpfs:e-a OR radiostation_entity_ids_dpfs:e-a) AND (pers_entity_ids_dpfs:e-b OR loc_entity_ids_dpfs:e-b OR org_entity_ids_dpfs:e-b OR pressagency_entity_ids_dpfs:e-b OR radiostation_entity_ids_dpfs:e-b))'
       )
     })
 
@@ -365,7 +365,7 @@ describe('filtersToSolr', () => {
         type: 'mention',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Search, [], {})
-      assert.equal(query, '(pers_mentions:* OR loc_mentions:*)')
+      assert.equal(query, '(pers_mention_ner_conf_dpfs:* OR loc_mention_ner_conf_dpfs:* OR org_mention_ner_conf_dpfs:* OR pressagency_mention_ner_conf_dpfs:* OR radiostation_mention_ner_conf_dpfs:*)')
     })
 
     it('with empty string', () => {
@@ -478,7 +478,7 @@ describe('filtersToSolr', () => {
         type: 'type',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, 't_s:person')
+      assert.equal(query, 'ner_entity_type_s:person')
     })
 
     it('with array', () => {
@@ -487,7 +487,7 @@ describe('filtersToSolr', () => {
         type: 'type',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, '(t_s:person OR t_s:location)')
+      assert.equal(query, '(ner_entity_type_s:person OR ner_entity_type_s:location)')
     })
 
     it('with no value', () => {
@@ -495,7 +495,7 @@ describe('filtersToSolr', () => {
         type: 'type',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, 't_s:*')
+      assert.equal(query, 'ner_entity_type_s:*')
     })
 
     it('with empty array', () => {
@@ -504,7 +504,7 @@ describe('filtersToSolr', () => {
         type: 'type',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, 't_s:*')
+      assert.equal(query, 'ner_entity_type_s:*')
     })
   })
 
@@ -515,7 +515,7 @@ describe('filtersToSolr', () => {
         type: 'string',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, '(entitySuggest:Jacques AND entitySuggest:Chira*)')
+      assert.equal(query, '(_text_:Jacques AND _text_:Chira*)')
     })
     it('with unigram', () => {
       const filter = {
@@ -523,7 +523,7 @@ describe('filtersToSolr', () => {
         type: 'string',
       }
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
-      assert.equal(query, 'entitySuggest:Jacques*')
+      assert.equal(query, '_text_:Jacques*')
     })
     it('with array', () => {
       const filter = {
@@ -533,7 +533,7 @@ describe('filtersToSolr', () => {
       const { query } = filtersToSolr([filter], SolrNamespaces.Entities, [], {})
       assert.equal(
         query,
-        '((entitySuggest:Jacques AND entitySuggest:Chirac*) OR (entitySuggest:Foo AND entitySuggest:Bar*))'
+        '((_text_:Jacques AND _text_:Chirac*) OR (_text_:Foo AND _text_:Bar*))'
       )
     })
   })
@@ -544,7 +544,7 @@ describe('filtersToSolr', () => {
       q: 'aida-0001-50-Poseidon_(film)',
     }
     const { query } = filtersToSolr([filter], SolrNamespaces.Search, [], {})
-    const expectedQuery = 'pers_entities_dpfs:aida-0001-50-Poseidon_$28$film$29$'
+    const expectedQuery = 'pers_entity_ids_dpfs:aida-0001-50-Poseidon_$28$film$29$'
     assert.strictEqual(query, expectedQuery)
   })
 

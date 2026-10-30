@@ -1,4 +1,5 @@
 import { ImpressoApplication } from '@/types.js'
+import provenance from './provenance/provenance.service.js'
 import { logger } from '@/logger.js'
 import type { Application as ExpressApplication } from '@feathersjs/express'
 
@@ -34,7 +35,6 @@ import articlesTimelines from './articles-timelines/articles-timelines.service.j
 import jobs from './jobs/jobs.service.js'
 import articlesSuggestions from './articles-suggestions/articles-suggestions.service.js'
 import uploadedImages from './uploaded-images/uploaded-images.service.js'
-import mentions from './mentions/mentions.service.js'
 import filepond from './filepond/filepond.service.js'
 import embeddings from './embeddings/embeddings.service.js'
 import tableOfContents from './table-of-contents/table-of-contents.service.js'
@@ -51,7 +51,6 @@ import stats from './stats/stats.service.js'
 import articlesRecommendations from './articles-recommendations/articles-recommendations.service.js'
 // import articlesSearch from './articles-search/articles-search.service.js'
 // import entitiesSuggestions from './entities-suggestions/entities-suggestions.service.js'
-import entityMentionsTimeline from './entity-mentions-timeline/entity-mentions-timeline.service.js'
 import subscriptions from './subscriptions/subscriptions.service.js'
 import textReuseConnectedClusters from './text-reuse-connected-clusters/text-reuse-connected-clusters.service.js'
 import passwordReset from './password-reset/password-reset.service.js'
@@ -69,12 +68,16 @@ import baristaProxy from './barista-proxy/barista-proxy.service.js'
 import baristaConversations from './barista-conversations/barista-conversations.service.js'
 import magicLink from './magic-link/magic-link.service.js'
 import filterSerialization from './filter-serialization/filter-serialization.service.js'
+import partnerAuditLogs from './partner-audit-logs/partner-audit-logs.service.js'
+import userEmailVerification from './user-email-verification/user-email-verification.service.js'
+import userEmailVerificationResend from './user-email-verification-resend/user-email-verification-resend.service.js'
 /**
  * Some public services are declared here but are only required internally by
  * other services. Whether a service is available publicly or not is determined
  * in the service files. Look for the `optionsDisabledInPublicApi` method.
  */
 const publicApiServices = [
+  { name: 'tools/provenance', init: provenance },
   { name: 'search', init: search },
   { name: 'content-items', init: contentItems },
   { name: 'users', init: users },
@@ -95,6 +98,7 @@ const publicApiServices = [
   { name: 'experiments', init: experiments },
   { name: 'logs', init: logs },
   { name: 'filter-serialization', init: filterSerialization },
+  { name: 'partner-audit-logs', init: partnerAuditLogs },
   { name: 'special-membership-plans', init: specialMembershipPlans },
 ]
 
@@ -112,7 +116,6 @@ const internalApiServices = [
   { name: 'jobs', init: jobs },
   { name: 'articles-suggestions', init: articlesSuggestions },
   { name: 'uploaded-images', init: uploadedImages },
-  { name: 'mentions', init: mentions },
   { name: 'filepond', init: filepond },
   { name: 'embeddings', init: embeddings },
   { name: 'table-of-contents', init: tableOfContents },
@@ -129,7 +132,6 @@ const internalApiServices = [
   { name: 'articles-recommendations', init: articlesRecommendations },
   // { name: 'articles-search', init: articlesSearch },
   // { name: 'entities-suggestions', init: entitiesSuggestions },
-  { name: 'entity-mentions-timeline', init: entityMentionsTimeline },
   { name: 'subscriptions', init: subscriptions },
   { name: 'text-reuse-connected-clusters', init: textReuseConnectedClusters },
   { name: 'password-reset', init: passwordReset },
@@ -143,6 +145,8 @@ const internalApiServices = [
   { name: 'user-special-membership-requests', init: userSpecialMembershipRequests },
   { name: 'user-special-membership-requests-reviews', init: userSpecialMembershipRequestsReviews },
   { name: 'magic-link', init: magicLink },
+  { name: 'user-email-verification', init: userEmailVerification },
+  { name: 'user-email-verification-resend', init: userEmailVerificationResend },
 ]
 
 const baristaServices = [

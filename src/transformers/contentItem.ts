@@ -7,7 +7,7 @@
 //   ContentItemText,
 //   ContentItemTopic,
 // } from '@/models/generated/schemas/contentItem.js'
-// import { ContentItem as ContentItemPublic, EntityMention, NamedEntity, TopicMention } from '@/models/generated/canonical/contentItem.js'
+// import { ContentItem as ContentItemPublic, EntityMention, NamedEntity, TopicMention } from '@/models/generated/app/entities/contentItem.js'
 // import { base64BytesToBigInt, OpenPermissions } from '@/util/bigint.js'
 
 // const toType = (input: ContentItemText['itemType']): ContentItemPublic['type'] => {

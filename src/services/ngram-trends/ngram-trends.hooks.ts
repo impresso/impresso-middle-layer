@@ -7,7 +7,7 @@ import { HookContext } from '@feathersjs/feathers'
 import { Filter } from 'impresso-jscommons'
 
 const validationInstance = newAjvInstance([
-  ['schema/canonical/Filter.json', 'schema/canonical/Filter.json'],
+  ['schema/app/entities/Filter.json', 'schema/app/entities/Filter.json'],
   ['services/ngram-trends/schema/post/payload.json', 'request'],
   ['services/ngram-trends/schema/post/response.json', 'response'],
 ])

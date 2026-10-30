@@ -1,5 +1,10 @@
 import { EntityDetails } from '@/models/generated/deprecated/models.js'
-import { EntityDetails as EntityDetailsPublic, WikidataPerson, WikidataLocation } from '@/models/generated/canonical.js'
+import {
+  EntityDetails as EntityDetailsPublic,
+  WikidataPerson,
+  WikidataLocation,
+  WikidataItem,
+} from '@/models/generated/app/entities.js'
 
 const transformDateTimeISO = (input?: any): string | undefined => {
   if (input === undefined) {
@@ -49,9 +54,23 @@ const transformWikidataHuman = (input?: EntityDetails['wikidata']): WikidataPers
   }
 }
 
-const transformWikidataDetails = (input?: EntityDetails['wikidata']): WikidataPerson | WikidataLocation | undefined => {
+const transformWikidataItem = (input?: EntityDetails['wikidata']): WikidataItem | undefined => {
+  if (input?.type === 'item') {
+    return {
+      id: input.id,
+      type: 'item',
+      labels: input.labels,
+      descriptions: input.descriptions,
+    } satisfies WikidataItem
+  }
+}
+
+const transformWikidataDetails = (
+  input?: EntityDetails['wikidata']
+): WikidataPerson | WikidataLocation | WikidataItem | undefined => {
   if (input?.type === 'human') return transformWikidataHuman(input)
   if (input?.type === 'location') return transformWikidataLocation(input)
+  if (input?.type === 'item') return transformWikidataItem(input)
   return undefined
 }
 
