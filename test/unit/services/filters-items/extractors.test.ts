@@ -1,16 +1,35 @@
 import { strict as assert } from 'assert'
 import type { MediaSource } from '@/models/generated/app/entities.js'
 import type { ImpressoApplication } from '@/types.js'
+import type { PartnerInstitutionsDirectory } from '@/internalServices/partnerInstitutionsDirectory.js'
 import {
   daterangeExtractor,
   floatRangeExtractor,
   integerRangeExtractor,
   newspaperExtractor,
   mediaSourceExtractor,
+  partnerExtractor,
   simpleValueExtractor,
 } from '@/services/filters-items/extractors.js'
+import { setupTestApp, withCachedResolverServices, withConfig } from '../../../helpers/app.js'
 import { Fronde, GDL, JDG } from '../../../mockData/mediaSources.js'
 import { mediaSourceToNewspaper } from '@/services/newspapers/newspapers.class.js'
+
+const partnerDirectory = [
+  {
+    partner_institution_id: 'partner-english',
+    partner_institution_names: [
+      { lang: 'fr', name: 'Partenaire français' },
+      { lang: 'en', name: 'English Partner' },
+    ],
+    partner_bitmap_index: 1,
+  },
+  {
+    partner_institution_id: 'partner-first-name',
+    partner_institution_names: [{ lang: 'de', name: 'Erster Partner' }],
+    partner_bitmap_index: 2,
+  },
+] satisfies PartnerInstitutionsDirectory
 
 const createMockAppWithMediaSources = (mediaSources: MediaSource[]): ImpressoApplication =>
   ({
@@ -46,6 +65,15 @@ const createMockAppWithMediaSources = (mediaSources: MediaSource[]): ImpressoApp
   }) as unknown as ImpressoApplication
 
 describe('filters-items extractors', () => {
+  const partnerTestApp = setupTestApp(
+    withCachedResolverServices(),
+    withConfig('partnerInstitutionsDirectory', partnerDirectory)
+  )
+
+  after(async () => {
+    await partnerTestApp.teardown()
+  })
+
   describe('daterangeExtractor', () => {
     it('returns a range from a "start TO end" string', () => {
       const result = daterangeExtractor({ q: '1900-01-01 TO 1950-12-31' })
@@ -167,6 +195,29 @@ describe('filters-items extractors', () => {
 
       assert.strictEqual(result.length, 1)
       assert.deepStrictEqual(result[0], { ...Fronde })
+    })
+  })
+
+  describe('partnerExtractor', () => {
+    it('resolves a partner using its English name when available', async () => {
+      const result = await partnerExtractor({ q: 'partner-english' }, partnerTestApp.app)
+
+      assert.deepStrictEqual(result, [{ id: 'partner-english', title: 'English Partner' }])
+    })
+
+    it('trims IDs, preserves their order, and falls back to the first name', async () => {
+      const result = await partnerExtractor({ q: [' partner-first-name ', ' partner-english '] }, partnerTestApp.app)
+
+      assert.deepStrictEqual(result, [
+        { id: 'partner-first-name', title: 'Erster Partner' },
+        { id: 'partner-english', title: 'English Partner' },
+      ])
+    })
+
+    it('omits unknown partner IDs', async () => {
+      const result = await partnerExtractor({ q: ['partner-english', 'unknown-partner'] }, partnerTestApp.app)
+
+      assert.deepStrictEqual(result, [{ id: 'partner-english', title: 'English Partner' }])
     })
   })
 })
