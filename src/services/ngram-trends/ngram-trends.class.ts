@@ -61,13 +61,11 @@ export class NgramTrends {
     this.app = app
   }
 
-  async create({ ngrams, filters, facets = [] }: { ngrams: string[]; filters: Filter[]; facets?: string[] }) {
+  async create({ ngrams, filters }: { ngrams: string[]; filters: Filter[] }) {
     const timeInterval = guessTimeIntervalFromFilters(filters)
     const features = (this.app.get('features') ?? {}) as FeaturesConfig
 
-    const requestPayloads = ngrams.map(ngram =>
-      unigramTrendsRequestToSolrQuery(ngram, filters, facets, timeInterval, features)
-    )
+    const requestPayloads = ngrams.map(ngram => unigramTrendsRequestToSolrQuery(ngram, filters, timeInterval, features))
     const totalsRequestPayload = unigramTrendsRequestToTotalTokensSolrQuery(filters, features, timeInterval)
 
     const requests = requestPayloads.map(payload => this.solr.select(SolrNamespaces.Search, { body: payload }))
