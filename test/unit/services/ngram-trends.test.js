@@ -56,12 +56,12 @@ describe('"ngram-trends" hooks -> request validation', () => {
   const validateRequest = hooks.before.create[1]
   const ngrams = count => Array.from({ length: count }, (_, index) => `term${index}`)
 
-  it('accepts 20 ngrams', () => {
-    assert.doesNotThrow(() => validateRequest({ data: { ngrams: ngrams(20), filters: [] } }))
+  it('accepts 10 ngrams', () => {
+    assert.doesNotThrow(() => validateRequest({ data: { ngrams: ngrams(10), filters: [] } }))
   })
 
-  it('rejects more than 20 ngrams', () => {
-    assert.throws(() => validateRequest({ data: { ngrams: ngrams(21), filters: [] } }), { name: 'BadRequest' })
+  it('rejects more than 10 ngrams', () => {
+    assert.throws(() => validateRequest({ data: { ngrams: ngrams(11), filters: [] } }), { name: 'BadRequest' })
   })
 })
 
