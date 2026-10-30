@@ -10,7 +10,7 @@ import { SupportedLanguageCodes } from '@/models/solr'
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
   it('builds expected payload', () => {
-    const payload = unigramTrendsRequestToSolrQuery('Einstein', null, ['country'])
+    const payload = unigramTrendsRequestToSolrQuery('Einstein', null)
     const expectedPayload = {
       query: '*:*',
       filter: [],
@@ -26,15 +26,6 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
             `{!tag=tf_stats_${langCode} key=tf_stats_${langCode} sum=true func}termfreq(content_txt_${langCode},'Einstein')`
         ).concat([`{!tag=tf_stats_other key=tf_stats_other sum=true func}termfreq(content_txt,'Einstein')`]),
         stats: true,
-        'json.facet': JSON.stringify({
-          country: {
-            type: 'terms',
-            field: 'meta_country_code_s',
-            mincount: 1,
-            limit: 10,
-            numBuckets: true,
-          },
-        }),
         hl: false,
       },
     }
