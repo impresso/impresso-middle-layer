@@ -83,6 +83,9 @@ export const specialMembershipAccessExtractor = async ({ q = '' }: WithQ, app: I
 export const topicExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) =>
   resolveItems(q, app, (resolvers, item) => resolvers.topic(item))
 
+export const partnerExtractor = async ({ q = '' }: WithQ, app: ImpressoApplication) =>
+  resolveItems(q, app, (resolvers, item) => resolvers.partner(item))
+
 /**
  * Extract generic entity items (person or location) based on their ID, which encodes the type as a prefix. For example, "person-123" or "location-456".
  */

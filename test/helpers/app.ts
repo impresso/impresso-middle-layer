@@ -319,6 +319,19 @@ export function withSolr(): TestAppFeature<{
 }
 
 /**
+ * Feature: service handles that are eagerly requested by `buildResolvers`.
+ * Individual resolver tests can use this without provisioning the unrelated
+ * backing systems those services normally require.
+ */
+export function withCachedResolverServices(): TestAppFeature {
+  return ctx => {
+    ctx.serviceHandlers['collections'] = () => ({})
+    ctx.serviceHandlers['media-sources'] = () => ({})
+    ctx.serviceHandlers['special-membership-plans'] = () => ({})
+  }
+}
+
+/**
  * Feature: mocked configuration, registered under `config`.
  * Provides a simple key-value store for configuration values.
  * @param config
