@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "type": "object",
   "title": "CachedTopic",
-  "description": "A topic as stored in the well-known topics cache, with graph metrics and related topics",
+  "description": "A topic as stored in the well-known topics cache",
   "additionalProperties": false,
   "required": ["id", "language"],
   "properties": {
@@ -64,74 +64,6 @@
     "contentItemsCount": {
       "type": "number",
       "description": "Number of content items with this topic"
-    },
-    "relatedTopics": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "The unique identifier of the related topic"
-          },
-          "w": {
-            "type": "number",
-            "description": "Related topic weight (total articles in common)"
-          },
-          "avg": {
-            "type": "number",
-            "description": "Related topic average combined topic weight"
-          }
-        },
-        "required": ["id", "w"]
-      }
-    },
-    "relatedTopicsStats": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "MinArticlesIncommon": {
-          "type": "number"
-        },
-        "MaxRelatedTopicsToKeep": {
-          "type": "number"
-        },
-        "RelatedThreshold": {
-          "type": "number"
-        },
-        "Threshold": {
-          "type": "number"
-        }
-      }
-    },
-    "degree": {
-      "type": "number",
-      "description": "Degree score (total related topics)"
-    },
-    "pagerank": {
-      "type": "number",
-      "description": "Topic score using PageRank algorithm"
-    },
-    "community": {
-      "type": "number",
-      "description": "Topic community score using Louvain algorithm"
-    },
-    "hub": {
-      "type": "number",
-      "description": "Hub score using HITS algorithm"
-    },
-    "authority": {
-      "type": "number",
-      "description": "Authority score using HITS algorithm"
-    },
-    "x": {
-      "type": "number",
-      "description": "Graph x position"
-    },
-    "y": {
-      "type": "number",
-      "description": "Graph y position"
     }
   }
 }

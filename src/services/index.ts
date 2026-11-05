@@ -124,6 +124,8 @@ const internalApiServices = [
   { name: 'search-queries', init: searchQueries },
   { name: 'errors-collector', init: errorsCollector },
   { name: 'ngram-trends', init: ngramTrends },
+  // DEPRECATED — scheduled for removal. Do not build on /topics-graph:
+  // the topics cache no longer provides related topics or graph metrics.
   { name: 'topics-graph', init: topicsGraph },
   { name: 'articles-text-reuse-passages', init: articlesTextReusePassages },
   { name: 'text-reuse-cluster-passages', init: textReuseClusterPassages },
