@@ -197,6 +197,25 @@ cases:
       }
 
   - group: "numericRange"
+    name: "with decimal string"
+    namespace: "search"
+    filters:
+      [
+        {
+          "type": "ocrQuality",
+          "q": "0.1 TO 0.5"
+        }
+      ]
+    expected:
+      {
+        "query": "*:*",
+        "filter": [
+          "ocrqa_f:[0.1 TO 0.5]"
+        ],
+        "params": {}
+      }
+
+  - group: "numericRange"
     name: "with array"
     namespace: "search"
     filters:

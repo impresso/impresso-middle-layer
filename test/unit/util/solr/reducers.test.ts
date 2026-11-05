@@ -47,6 +47,26 @@ describe('filtersToSolr', () => {
       assert.equal(query, 'ocrqa_f:[1 TO 10]')
     })
 
+    it('with decimal string', () => {
+      const filter = {
+        q: '0.1 TO 0.5',
+        type: 'ocrQuality',
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [], {})
+      assert.equal(query, 'ocrqa_f:[0.1 TO 0.5]')
+    })
+
+    it('throws an error with malformed decimal string', () => {
+      const filter = {
+        q: '0.1.2 TO 0.5',
+        type: 'ocrQuality',
+      }
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search, [], {}),
+        new InvalidArgumentError(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`)
+      )
+    })
+
     it('with array', () => {
       const filter = {
         q: ['2', '20'],

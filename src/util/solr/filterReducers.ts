@@ -11,13 +11,7 @@ import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { InvalidArgumentError } from '@/util/error.js'
 import { invertRecord } from '@/util/fn.js'
 import capitalisedValueFilterBuilder from '@/util/solr/filterBuilders/capitalisedValue.js'
-import {
-  escapeIdValue,
-  escapeValue,
-  idValueBuilder,
-  unescapeIdValue,
-  valueBuilder,
-} from '@/util/solr/filterBuilders/value.js'
+import { escapeValue, idValueBuilder, valueBuilder } from '@/util/solr/filterBuilders/value.js'
 import { readFileSync } from 'fs'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -28,7 +22,7 @@ const __dirname = dirname(__filename)
 
 const filtersConfig: SolrFiltersConfiguration = YAML.parse(readFileSync(`${__dirname}/solrFilters.yml`).toString())
 
-const RangeValueRegex = /^\s*\d+\s+TO\s+\d+\s*$/
+const RangeValueRegex = /^\s*-?(?:\d+(?:\.\d+)?|\.\d+)\s+TO\s+-?(?:\d+(?:\.\d+)?|\.\d+)\s*$/
 
 const reduceNumericRangeFilters = (filters: Filter[], field: string) => {
   const items = filters.reduce((sq, filter) => {
