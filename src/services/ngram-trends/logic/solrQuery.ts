@@ -4,12 +4,9 @@ import { buildSolrQuery } from '../../../util/solr/queryBuilder.js'
 import { SolrNamespaces } from '../../../solr.js'
 import { SupportedLanguageCodes } from '../../../models/solr.js'
 
-import { SolrMappings } from '../../../data/constants.js'
 import { FeaturesConfig } from '@/models/generated/app/configuration.js'
 import { Filter } from '@/models/index.js'
 import { SelectResponse } from '@/internalServices/simpleSolr.js'
-
-const Facets = SolrMappings.search.facets as Record<string, unknown>
 
 const TimeIntervalsFilelds = {
   year: 'meta_year_i',
@@ -65,14 +62,12 @@ const getStatsFieldStringOtherLanguages = (unigram: string) =>
  *
  * @param {string} unigram unigram to get trends for.
  * @param {object[]} filters a list of filters of type `src/schema/app/entities/Filter.json`.
- * @param {string[]} facets a list of facets to extract alongside trend.
  *
  * @return {object} a POST JSON payload for SOLR search endpoint.
  */
 function unigramTrendsRequestToSolrQuery(
   unigram: string,
   filters: Filter[],
-  facets: string[] = [],
   timeInterval: TimeInterval = 'year',
   featuresConfig: FeaturesConfig
 ) {
@@ -97,12 +92,6 @@ function unigramTrendsRequestToSolrQuery(
       'facet.pivot': facetPivots,
       'stats.field': statsFields,
       stats: true,
-      'json.facet': JSON.stringify(
-        facets.reduce((acc: Record<string, unknown>, facet) => {
-          acc[facet] = Facets[facet]
-          return acc
-        }, {})
-      ),
       hl: false, // disable duplicate field "highlighting"
     },
   }

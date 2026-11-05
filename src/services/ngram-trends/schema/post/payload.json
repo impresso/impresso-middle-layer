@@ -19,13 +19,6 @@
         "$ref": "../../../../schema/app/entities/Filter.json"
       },
       "description": "A list of standard filters excluding filter types: string, regex"
-    },
-    "facets": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Faceted fields"
     }
   },
   "required": ["ngrams", "filters"]
