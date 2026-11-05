@@ -3,6 +3,7 @@ import { PublicFindResponse } from '@/models/common.js'
 import { Job } from 'bullmq'
 import { createHash } from 'crypto'
 import { stringify } from 'csv-stringify/sync'
+import { Sequelize } from 'sequelize'
 import { accessSync, createReadStream, createWriteStream, constants as fsConstants } from 'fs'
 import { access, appendFile, unlink, writeFile } from 'fs/promises'
 import { Filter } from 'impresso-jscommons'
@@ -13,6 +14,9 @@ import { v7 as uuidv7 } from 'uuid'
 import { logger } from '@/logger.js'
 import { ContentItem as ContentItemPublic } from '@/models/generated/app/entities/contentItem.js'
 import DBJob from '@/models/jobs.model.js'
+import User from '@/models/users.model.js'
+import { BufferUserPlanGuest } from '@/models/user-bitmap.model.js'
+import type { SlimUser } from '@/authentication.js'
 import { SolrNamespace, SolrNamespaces } from '@/solr.js'
 import { AppServices, ImpressoApplication } from '@/types.js'
 import ZipStream from 'zip-stream'
@@ -165,6 +169,40 @@ const getOrCreateJobRecord = async (
       query_hash: query,
     },
   })
+}
+
+/**
+ * Loads the user who requested the export, including their access bitmap,
+ * in the same shape as the authenticated user placed in `params.user`
+ * by the JWT strategy. This is needed so that the content items fetched
+ * for the export are redacted according to the user's permissions
+ * (and counted against their quota) rather than those of a guest.
+ *
+ * @param sequelize - The Sequelize client
+ * @param userId - The database ID of the user
+ * @returns The user with their permissions bitmap
+ * @throws Error if the user does not exist or is not active
+ */
+export const loadExportingUser = async (sequelize: Sequelize, userId: string): Promise<SlimUser> => {
+  const id = Number(userId)
+  if (!Number.isInteger(id)) {
+    throw new Error(`Invalid user ID for export: ${userId}`)
+  }
+  const user = await User.sequelize(sequelize).findOne({
+    where: { id, isActive: true },
+    include: ['groups', 'profile', 'userBitmap'],
+  })
+  if (!user) {
+    throw new Error(`Active user ${userId} not found for export`)
+  }
+  const { uid, isStaff, profile, userBitmap, groups } = user.get()
+  return {
+    id,
+    uid: profile?.uid ?? uid,
+    isStaff,
+    bitmap: userBitmap?.bitmap ?? BufferUserPlanGuest,
+    groups: (groups ?? []).map(group => group.name),
+  }
 }
 
 /**
@@ -330,6 +368,10 @@ export const createJobHandler = (app: ImpressoApplication) => {
       throw new Error(`Export from Solr namespace ${solrNamespace} is not supported yet.`)
     }
 
+    // Load the user's permissions so that redaction of the exported content items
+    // matches what the user sees when fetching the same items via the API.
+    const user = await loadExportingUser(sequelize, userId)
+
     const JobDbModel = DBJob.initialize(sequelize)
 
     const offset = exportContext?.offset ?? 0
@@ -358,7 +400,10 @@ export const createJobHandler = (app: ImpressoApplication) => {
     // fetch the documents from the content-items service
     // Note that we use the "asPublicApi" flag to ensure that the content-items service
     // applies the correct access controls for the user and transforms
-    // the data to match the public API schema
+    // the data to match the public API schema.
+    // The user is passed explicitly because this is an internal call: there is
+    // no authentication token to derive the user from, and without it redaction
+    // falls back to guest permissions.
     const contentItemsService = app.service('content-items')
     const query = {
       filters,
@@ -370,6 +415,7 @@ export const createJobHandler = (app: ImpressoApplication) => {
     }
     const result = await contentItemsService.find({
       query,
+      user,
       asPublicApi: true,
     })
     const { data, nextCursorMark, pagination } = result as unknown as PublicFindResponse<ContentItemPublic> & {
