@@ -1,4 +1,4 @@
-import { HookOptions } from '@feathersjs/feathers'
+import { HookFunction, HookOptions } from '@feathersjs/feathers'
 import { SolrMappings } from '@/data/constants.js'
 import {
   ContextCondtition,
@@ -6,6 +6,7 @@ import {
   inPublicApi,
   inPublicApiOrWhen,
   inWebAppApi,
+  inWebAppApiUnless,
 } from '@/hooks/appMode.js'
 import { authenticateAround as authenticate } from '@/hooks/authenticate.js'
 import { displayQueryParams, queryWithCommonParams, utils, validate, validateEach } from '@/hooks/params.js'
@@ -95,6 +96,33 @@ const whenCalledInternallyAsPublicApi: ContextCondtition<ContentItemService> = (
   return context.params.asPublicApi === true
 }
 
+/**
+ * After hooks of the `find` method.
+ * Exported separately so that the redaction behaviour can be tested in isolation.
+ */
+export const contentItemsAfterFindHooks: HookFunction<ImpressoApplication, ContentItemService>[] = [
+  displayQueryParams(['filters']),
+  transformResponse(transformBaseFind),
+
+  ...inPublicApiOrWhen(
+    [
+      redactResponseDataItem(contentItemBlanketRedactionPolicyPublicApi),
+      // NOTE: Do not check quota in find - transcript is not included
+      redactResponseDataItem(
+        contentItemUnauthorisedRedactionPolicyPublicApi,
+        unlessHasPermissionAndWithinQuota('getTranscript')
+      ),
+    ],
+    whenCalledInternallyAsPublicApi
+  ),
+  // Internal callers asking for the public API behaviour (e.g. the CSV export job)
+  // must be governed by the public API permissions only.
+  ...inWebAppApiUnless(
+    [redactResponseDataItem(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))],
+    whenCalledInternallyAsPublicApi
+  ),
+]
+
 export default {
   around: {
     all: [authenticate({ allowUnauthenticated: true }), rateLimit()],
@@ -153,23 +181,7 @@ export default {
   },
 
   after: {
-    find: [
-      displayQueryParams(['filters']),
-      transformResponse(transformBaseFind),
-
-      ...inPublicApiOrWhen(
-        [
-          redactResponseDataItem(contentItemBlanketRedactionPolicyPublicApi),
-          // NOTE: Do not check quota in find - transcript is not included
-          redactResponseDataItem(
-            contentItemUnauthorisedRedactionPolicyPublicApi,
-            unlessHasPermissionAndWithinQuota('getTranscript')
-          ),
-        ],
-        whenCalledInternallyAsPublicApi
-      ),
-      ...inWebAppApi([redactResponseDataItem(contentItemRedactionPolicyWebApp, unlessHasPermission('explore'))]),
-    ],
+    find: contentItemsAfterFindHooks,
     get: [
       ...inPublicApi([
         redactResponse(contentItemBlanketRedactionPolicyPublicApi),
