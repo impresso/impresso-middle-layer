@@ -1,4 +1,19 @@
 /* eslint-disable no-unused-vars */
+/**
+ * ===========================================================================
+ *
+ *  ██  DEPRECATED — DO NOT USE — SCHEDULED FOR REMOVAL  ██
+ *
+ * The `/topics-graph` service (this class) is DEPRECATED.
+ *
+ * The topics well-known cache no longer stores related topics or precomputed
+ * graph metrics (x/y positions, pagerank, community, hub, authority), so the
+ * unfiltered `find()` overview returns degenerate nodes (position {x:0, y:0})
+ * with no links. Do NOT use this service for new code, do NOT extend it, and
+ * do NOT build new features on top of it.
+ *
+ * ===========================================================================
+ */
 import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import { getLogger } from '@/logger.js'
 import { asFindAll } from '@/util/solr/adapters.js'
@@ -27,6 +42,10 @@ const toNode = topic => ({
   model: topic.model,
 })
 
+/**
+ * @deprecated DEPRECATED — scheduled for removal. The topics cache no longer
+ * provides related topics or graph metrics; see the file banner for details.
+ */
 export class TopicsGraph {
   constructor({ name }, app) {
     this.name = name
@@ -41,6 +60,7 @@ export class TopicsGraph {
     return this.app.service('simpleSolrClient')
   }
 
+  /** @deprecated DEPRECATED — scheduled for removal. */
   async get(id, params) {
     logger.debug(`[get] query: ${params.sanitized}`)
     const resolvers = buildResolvers(this.app)
@@ -97,6 +117,7 @@ export class TopicsGraph {
     return topic
   }
 
+  /** @deprecated DEPRECATED — scheduled for removal. The unfiltered path returns degenerate nodes with no links. */
   async find(params) {
     logger.debug(`[find] params: ${params.sanitized}`)
     // consider only topic ids given as filters

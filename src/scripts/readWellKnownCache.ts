@@ -63,7 +63,6 @@ const topicSummary = (topic: CachedTopic): string =>
     `[${topic.language}]`,
     truncate(topic.label ?? topic.longLabel ?? '(no label)', 50),
     `items=${topic.contentItemsCount ?? 0}`,
-    `related=${topic.relatedTopics?.length ?? 0}`,
     topic.words != null
       ? `words=${topic.words
           .slice(0, 5)

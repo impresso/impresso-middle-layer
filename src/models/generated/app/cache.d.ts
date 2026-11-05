@@ -8,7 +8,7 @@
 
 
 /**
- * A topic as stored in the well-known topics cache, with graph metrics and related topics
+ * A topic as stored in the well-known topics cache
  */
 export interface CachedTopic {
   /**
@@ -67,54 +67,6 @@ export interface CachedTopic {
    * Number of content items with this topic
    */
   contentItemsCount?: number;
-  relatedTopics?: {
-    /**
-     * The unique identifier of the related topic
-     */
-    id: string;
-    /**
-     * Related topic weight (total articles in common)
-     */
-    w: number;
-    /**
-     * Related topic average combined topic weight
-     */
-    avg?: number;
-  }[];
-  relatedTopicsStats?: {
-    MinArticlesIncommon?: number;
-    MaxRelatedTopicsToKeep?: number;
-    RelatedThreshold?: number;
-    Threshold?: number;
-  };
-  /**
-   * Degree score (total related topics)
-   */
-  degree?: number;
-  /**
-   * Topic score using PageRank algorithm
-   */
-  pagerank?: number;
-  /**
-   * Topic community score using Louvain algorithm
-   */
-  community?: number;
-  /**
-   * Hub score using HITS algorithm
-   */
-  hub?: number;
-  /**
-   * Authority score using HITS algorithm
-   */
-  authority?: number;
-  /**
-   * Graph x position
-   */
-  x?: number;
-  /**
-   * Graph y position
-   */
-  y?: number;
 }
 /**
  * A word included in a topic
