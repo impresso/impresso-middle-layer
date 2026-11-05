@@ -4,6 +4,7 @@ import { CeleryClient } from '@/celery.js'
 import { RedisClient } from '@/redis.js'
 import { initLogger } from '@/logger.js'
 import type { QueueService } from '@/internalServices/queue.js'
+import type { AuditLogStorage } from '@/internalServices/auditLogStorage.js'
 import type { CeleryCall, RedisSetExCall } from './database.js'
 
 /**
@@ -281,6 +282,22 @@ export function withCacheManager(): TestAppFeature<{
     ctx.getHandlers['cacheManager'] = () => cacheManager
 
     return { cacheManager }
+  }
+}
+
+/** Feature: registers a supplied audit log storage service. */
+export function withAuditLogStorage(storage: AuditLogStorage): TestAppFeature<{
+  setAuditLogStorage: (storage: AuditLogStorage) => void
+}> {
+  return ctx => {
+    let currentStorage = storage
+    ctx.serviceHandlers['auditLogStorage'] = () => currentStorage
+
+    return {
+      setAuditLogStorage: nextStorage => {
+        currentStorage = nextStorage
+      },
+    }
   }
 }
 

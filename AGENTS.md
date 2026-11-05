@@ -260,11 +260,12 @@ Test helpers available:
 When creating or editing tests in this repository, use these conventions:
 - Prefer `import { strict as assert } from 'assert'` for new tests.
 - Keep unit tests narrow and local to the code path under test; avoid booting a full app when a partial mock is enough.
-- For service-backed helper functions, mock the smallest `ImpressoApplication` surface required by the dependency path. Example: extractor tests that resolve newspapers only need `app.service('media-sources').getLookup()`.
-- Use `test/helpers/database.ts` only when the behavior under test depends on Sequelize models, Redis, Celery, or richer Feathers app wiring.
-- Prefer `setupTestDatabase()` for Sequelize-only slices and `setupTestDatabaseRedisCelery()` when the service under test expects Redis/Celery-flavored app wiring or you want a reusable mocked Feathers app to extend in the test.
+- For service tests, compose the smallest `ImpressoApplication` with `setupTestApp(...)` and `with*` features from `test/helpers/app.ts`; do not hand-roll an app in a test file.
+- Add `withDatabase()` only when the service needs Sequelize. Initialize models before `sequelize.sync({ force: true })`, and call `testApp.teardown()` in `after`.
+- Add only the features the service uses, such as `withRedisCelery()`, `withSolr()`, `withQueueService()`, `withCacheManager()`, or `withConfig()`. Add a focused `withX()` feature to `test/helpers/app.ts` when an application dependency has no existing feature.
+- For service-backed helper functions that do not need the test app, mock the smallest `ImpressoApplication` surface required by the dependency path. Example: extractor tests that resolve newspapers only need `app.service('media-sources').getLookup()`.
 - Keep mock data inline in the test file unless it is shared across multiple suites.
-- Prefer direct assertions on returned objects and observable side effects over snapshot-style assertions.
+- Prefer direct assertions on returned objects, exact thrown errors for authorization checks, and observable side effects over snapshot-style assertions.
 - Follow existing Mocha structure with `describe`, `it`, and `before`/`beforeEach` only when setup is reused.
 
 For extractor-style tests specifically:
