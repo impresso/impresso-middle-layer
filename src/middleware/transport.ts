@@ -8,6 +8,7 @@ import { ImpressoApplication } from '@/types.js'
 import socketio from '@feathersjs/socketio'
 import { logger } from '@/logger.js'
 import { CustomEncoder } from '@/util/jsonCodec.js'
+import { userIdHeader } from '@/middleware/userIdHeader.js'
 
 export default (app: ImpressoApplication & ExpressApplication) => {
   const isPublicApi = app.get('isPublicApi')
@@ -23,6 +24,9 @@ export default (app: ImpressoApplication & ExpressApplication) => {
         exposedHeaders: ['X-Impresso-Provenance'],
       })
     )
+    // Return the authenticated user's uid in `X-User-Id` so that nginx can log it.
+    // nginx must strip it with `proxy_hide_header X-User-Id;`.
+    app.use(userIdHeader())
     app.configure(rest())
   } else {
     logger.info('Internal API - enabling socketio transport')
