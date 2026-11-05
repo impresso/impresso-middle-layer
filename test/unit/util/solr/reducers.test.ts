@@ -755,6 +755,19 @@ describe('filtersToSolr', () => {
       )
     })
 
+    it('with SigLIP2 embedding vector for images index', () => {
+      const testVector = createTestVector([0.5, 0.6, 0.7, 0.8])
+      const filter = {
+        type: 'embedding',
+        q: `siglip2-768:${testVector}`,
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Images, mockSolrNamespaces, {})
+      assert.equal(
+        query,
+        `{!knn f=siglip_emb_v768 topK=10}[0.5,0.6000000238418579,0.699999988079071,0.800000011920929]`
+      )
+    })
+
     it('with multiple embedding vectors from different models', () => {
       const testVector1 = createTestVector([0.1, 0.2])
       const testVector2 = createTestVector([0.9, 0.8])
@@ -834,7 +847,7 @@ describe('filtersToSolr', () => {
       assert.throws(
         () => filtersToSolr([filter], SolrNamespaces.Images, mockSolrNamespaces, {}),
         new InvalidArgumentError(
-          '"embeddingKnnSimilarity" filter rule: unknown model "gte-768". Supported models: openclip-768, dinov2-1024'
+          '"embeddingKnnSimilarity" filter rule: unknown model "gte-768". Supported models: openclip-768, dinov2-1024, siglip2-768'
         )
       )
     })

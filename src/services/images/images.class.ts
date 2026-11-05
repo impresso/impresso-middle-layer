@@ -141,11 +141,12 @@ export class Images implements ImageService {
   }
 }
 
-type EmbeddingField = keyof Pick<ImageDocument, 'openclip_emb_v768' | 'dinov2_emb_v1024'>
+type EmbeddingField = keyof Pick<ImageDocument, 'openclip_emb_v768' | 'dinov2_emb_v1024' | 'siglip_emb_v768'>
 
 const EmbeddingsFieldsWithModelTag: [EmbeddingField, string][] = [
   ['openclip_emb_v768', 'openclip-768'],
   ['dinov2_emb_v1024', 'dinov2-1024'],
+  ['siglip_emb_v768', 'siglip2-768'],
 ]
 
 /**

@@ -1795,6 +1795,31 @@ cases:
       }
 
   - group: "embeddingKnnSimilarity"
+    name: "with SigLIP2 embedding vector for images index"
+    namespace: "images"
+    filters:
+      [
+        {
+          "type": "embedding",
+          "q": "siglip2-768:AAAAP5qZGT8zMzM/zcxMPw=="
+        }
+      ]
+    expected:
+      {
+        "query": {
+          "knn": {
+            "f": "siglip_emb_v768",
+            "topK": 10,
+            "query": "[0.5,0.6000000238418579,0.699999988079071,0.800000011920929]"
+          }
+        },
+        "filter": [],
+        "params": {
+          "hl": false
+        }
+      }
+
+  - group: "embeddingKnnSimilarity"
     name: "with embedding vector in array format"
     namespace: "search"
     filters:
@@ -1958,7 +1983,7 @@ cases:
           "q": "gte-768:zczMPc3MTD4="
         }
       ]
-    expectedError: "\"embeddingKnnSimilarity\" filter rule: unknown model \"gte-768\". Supported models: openclip-768, dinov2-1024"
+    expectedError: "\"embeddingKnnSimilarity\" filter rule: unknown model \"gte-768\". Supported models: openclip-768, dinov2-1024, siglip2-768"
 
   - group: "imageTypeValueOrLabel"
     name: "with label value (not mapped to Solr value)"
