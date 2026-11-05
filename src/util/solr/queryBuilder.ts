@@ -77,8 +77,8 @@ const FULL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 /** Separator between the two bounds of a date/number range, e.g. "1900 TO 1910". */
 const RANGE_SEPARATOR_PATTERN = /\s+TO\s+/
 
-/** A complete numeric range string, e.g. " 10 TO 20 ". */
-const NUMERIC_RANGE_PATTERN = /^\s*\d+\s+TO\s+\d+\s*$/
+/** A complete numeric range string with integer or decimal bounds, e.g. " 10 TO 20 " or "0.1 TO 0.5". */
+const NUMERIC_RANGE_PATTERN = /^\s*-?(?:\d+(?:\.\d+)?|\.\d+)\s+TO\s+-?(?:\d+(?:\.\d+)?|\.\d+)\s*$/
 
 /** A value already wrapped in double quotes, optionally with a fuzzy suffix, e.g. `"foo bar"~2`. */
 const QUOTED_PHRASE_PATTERN = /^"(.*)"(~[12345])?$/
