@@ -7,6 +7,7 @@ import {
   getNumbersFromTotalTokensResponse,
 } from '@/services/ngram-trends/logic/solrQuery'
 import { SupportedLanguageCodes } from '@/models/solr'
+import { normalizeUnigrams } from '@/services/ngram-trends/ngram-trends.hooks'
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
   it('builds expected payload', () => {
@@ -284,4 +285,22 @@ describe('getNumbersFromTotalTokensResponse', () => {
     const numbers = getNumbersFromTotalTokensResponse(response, 'year')
     assert.deepEqual(numbers, expectedNumbers)
   })
+})
+
+describe('"ngram-trends" hooks -> normalizeUnigrams', () => {
+  const run = ngrams => normalizeUnigrams('data.ngrams')({ data: { ngrams } }).data.ngrams
+
+  it('trims surrounding whitespace', () => {
+    assert.deepEqual(run([' foo', 'bar ', '\tbaz\n', '\u00A0qux\u00A0', 'plain']), ['foo', 'bar', 'baz', 'qux', 'plain'])
+  })
+  for (const term of ['foo bar', 'foo\tbar', 'foo\nbar', 'foo\u00A0bar', ' foo bar ']) {
+    it(`rejects ${JSON.stringify(term)} as a multigram`, () => {
+      assert.throws(() => run([term]), /Only unigrams are supported/)
+    })
+  }
+  for (const term of ['', '   ', '\u00A0']) {
+    it(`rejects ${JSON.stringify(term)} as empty`, () => {
+      assert.throws(() => run([term]), /must not be empty/)
+    })
+  }
 })
