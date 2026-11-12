@@ -12,9 +12,16 @@ describe('content-item entity mention fields', () => {
       loc_mention_qids_json_plain: '["Q956",null,"Q956"]',
     })
     assert.deepEqual(result.locations, [
-      { surfaceForm: 'Pékin', mentionConfidence: 93.61, startOffset: 0, endOffset: 5 },
-      { surfaceForm: 'Pékin', mentionConfidence: 97.6, startOffset: 10, endOffset: 15 },
-      { surfaceForm: 'Pékin', mentionConfidence: 97.98, startOffset: 30, endOffset: 35 },
+      { surfaceForm: 'Pékin', mentionConfidence: 93.61, startOffset: 0, endOffset: 5, entityId: 'Q956', id: undefined },
+      {
+        surfaceForm: 'Pékin',
+        mentionConfidence: 97.6,
+        startOffset: 10,
+        endOffset: 15,
+        entityId: undefined,
+        id: undefined,
+      },
+      { surfaceForm: 'Pékin', mentionConfidence: 97.98, startOffset: 30, endOffset: 35, entityId: 'Q956', id: undefined },
     ])
   })
 
@@ -58,6 +65,8 @@ describe('content-item entity mention fields', () => {
       radiostation_mention_surfaces_json_plain: '["Radio"]',
       radiostation_mention_offsets_json_plain: '[[5,5]]',
       radiostation_mention_ner_conf_dpfs: ['Radio|0.99'],
+      radiostation_mention_qids_json_plain: '["Q406"]',
+      radiostation_aggregate_mention_ids_ss: ['rad-mention-1'],
       item_type_s: 'chapter',
       page_nb_is: [1],
       page_id_ss: ['test-p1'],
@@ -95,7 +104,14 @@ describe('content-item entity mention fields', () => {
     )
     assert.equal(result.semanticEnrichments?.namedEntities?.radiostations?.[0].id, 'Q406')
     assert.deepEqual(result.semanticEnrichments?.mentions?.radiostations, [
-      { surfaceForm: 'Radio', mentionConfidence: 0.99, startOffset: 5, endOffset: 10 },
+      {
+        surfaceForm: 'Radio',
+        mentionConfidence: 0.99,
+        startOffset: 5,
+        endOffset: 10,
+        entityId: 'Q406',
+        id: 'rad-mention-1',
+      },
     ])
     assert.equal(result.text?.itemType, 'chapter')
   })
