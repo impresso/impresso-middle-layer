@@ -3,6 +3,7 @@ import { BadRequest, Forbidden, NotAuthenticated, NotFound } from '@feathersjs/e
 import { SpecialMembershipPlansService } from '@/services/special-membership-plans/special-membership-plans.class.js'
 import {
   validateBitmapPositionsQuery,
+  validateAsReviewerQuery,
   validatePatchMetadata,
 } from '@/services/special-membership-plans/special-membership-plans.service.js'
 import type {
@@ -94,6 +95,60 @@ describe('SpecialMembershipPlansService', () => {
           return true
         }
       )
+    })
+  })
+
+  describe('validateAsReviewerQuery', () => {
+    const hook = validateAsReviewerQuery()
+
+    it('should normalize accepted string values to booleans', async () => {
+      const cases = [
+        ['true', true],
+        ['1', true],
+        ['false', false],
+        ['0', false],
+      ] as const
+
+      for (const [input, expected] of cases) {
+        const context = { params: { query: { asReviewer: input } } } as any
+        const result = await hook(context)
+
+        assert.strictEqual(result, context)
+        assert.strictEqual(context.params.sanitized.asReviewer, expected)
+      }
+    })
+
+    it('should normalize actual booleans', async () => {
+      for (const [input, expected] of [
+        [true, true],
+        [false, false],
+      ] as const) {
+        const context = { params: { query: { asReviewer: input } } } as any
+        await hook(context)
+
+        assert.strictEqual(context.params.sanitized.asReviewer, expected)
+      }
+    })
+
+    it('should throw BadRequest for invalid values', async () => {
+      for (const input of ['banana', '', '2']) {
+        await assert.rejects(
+          () => hook({ params: { query: { asReviewer: input } } } as any),
+          (error: any) => {
+            assert.ok(error instanceof BadRequest)
+            assert.strictEqual(error.message, '`asReviewer` must be a boolean ("true" or "false")')
+            return true
+          }
+        )
+      }
+    })
+
+    it('should pass through when the parameter is absent', async () => {
+      const context = { params: { query: {} } } as any
+      const result = await hook(context)
+
+      assert.strictEqual(result, context)
+      assert.strictEqual(context.params.sanitized, undefined)
     })
   })
 
@@ -304,6 +359,84 @@ describe('SpecialMembershipPlansService', () => {
       assert.ok(Array.isArray(firstRecord!.requests))
       assert.strictEqual(firstRecord!.requests!.length, 1)
       assert.strictEqual(firstRecord!.requests![0].userId, 1)
+    })
+
+    describe('asReviewer', () => {
+      const reviewerUser = { uid: '1', bitmap: BigInt(0), groups: [], id: 1, isStaff: false }
+
+      beforeEach(async () => {
+        await SpecialMembershipAccess.bulkCreate([
+          { id: 101, title: 'Reviewed by user 1 (a)', bitmapPosition: 101, reviewerId: 1 },
+          { id: 102, title: 'Reviewed by user 1 (b)', bitmapPosition: 102, reviewerId: 1 },
+          { id: 103, title: 'Reviewed by user 2', bitmapPosition: 103, reviewerId: 2 },
+          { id: 104, title: 'No reviewer', bitmapPosition: 104, reviewerId: null },
+        ])
+      })
+
+      it('should return only plans where the authenticated user is the reviewer', async () => {
+        const result = await service.find({ query: { asReviewer: true }, user: reviewerUser })
+
+        assert.strictEqual(result.pagination.total, 2)
+        assert.deepStrictEqual(
+          result.data.map(record => record.id).sort((a, b) => a - b),
+          [101, 102]
+        )
+        result.data.forEach(record => {
+          assert.strictEqual(record.reviewerId, 1)
+          // the caller's own requests are attached, here an empty array
+          assert.ok(Array.isArray(record.requests))
+        })
+      })
+
+      it('should compose with bitmapPositions', async () => {
+        const result = await service.find({
+          query: { asReviewer: true, bitmapPositions: [102] },
+          user: reviewerUser,
+        })
+
+        assert.strictEqual(result.pagination.total, 1)
+        assert.deepStrictEqual(result.data.map(record => record.bitmapPosition), [102])
+      })
+
+      it('should apply pagination to the filtered set', async () => {
+        const result = await service.find({
+          query: { asReviewer: true, limit: 1, offset: 1 },
+          user: reviewerUser,
+        })
+
+        assert.strictEqual(result.data.length, 1)
+        assert.strictEqual(result.pagination.total, 2)
+        assert.strictEqual(result.pagination.limit, 1)
+        assert.strictEqual(result.pagination.offset, 1)
+      })
+
+      it('should throw NotAuthenticated when called without a user', async () => {
+        await assert.rejects(
+          () => service.find({ query: { asReviewer: true } }),
+          (error: any) => {
+            assert.ok(error instanceof NotAuthenticated)
+            assert.strictEqual(error.message, 'Authentication required')
+            return true
+          }
+        )
+      })
+
+      it('should throw NotAuthenticated when the user id is not a valid number', async () => {
+        await assert.rejects(
+          () => service.find({ query: { asReviewer: true }, user: { ...reviewerUser, id: NaN } }),
+          (error: any) => {
+            assert.ok(error instanceof NotAuthenticated)
+            assert.strictEqual(error.message, 'Authentication required')
+            return true
+          }
+        )
+      })
+
+      it('should keep the default behavior when asReviewer is false', async () => {
+        const result = await service.find({ query: { asReviewer: false }, user: reviewerUser })
+
+        assert.strictEqual(result.pagination.total, 4)
+      })
     })
   })
 
