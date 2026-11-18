@@ -47,6 +47,26 @@ describe('filtersToSolr', () => {
       assert.equal(query, 'ocrqa_f:[1 TO 10]')
     })
 
+    it('with decimal string', () => {
+      const filter = {
+        q: '0.1 TO 0.5',
+        type: 'ocrQuality',
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Search, [], {})
+      assert.equal(query, 'ocrqa_f:[0.1 TO 0.5]')
+    })
+
+    it('throws an error with malformed decimal string', () => {
+      const filter = {
+        q: '0.1.2 TO 0.5',
+        type: 'ocrQuality',
+      }
+      assert.throws(
+        () => filtersToSolr([filter], SolrNamespaces.Search, [], {}),
+        new InvalidArgumentError(`"numericRange" filter rule: unknown value encountered in "q": ${filter.q}`)
+      )
+    })
+
     it('with array', () => {
       const filter = {
         q: ['2', '20'],
@@ -755,6 +775,19 @@ describe('filtersToSolr', () => {
       )
     })
 
+    it('with SigLIP2 embedding vector for images index', () => {
+      const testVector = createTestVector([0.5, 0.6, 0.7, 0.8])
+      const filter = {
+        type: 'embedding',
+        q: `siglip2-768:${testVector}`,
+      } satisfies Filter
+      const { query } = filtersToSolr([filter], SolrNamespaces.Images, mockSolrNamespaces, {})
+      assert.equal(
+        query,
+        `{!knn f=siglip_emb_v768 topK=10}[0.5,0.6000000238418579,0.699999988079071,0.800000011920929]`
+      )
+    })
+
     it('with multiple embedding vectors from different models', () => {
       const testVector1 = createTestVector([0.1, 0.2])
       const testVector2 = createTestVector([0.9, 0.8])
@@ -834,7 +867,7 @@ describe('filtersToSolr', () => {
       assert.throws(
         () => filtersToSolr([filter], SolrNamespaces.Images, mockSolrNamespaces, {}),
         new InvalidArgumentError(
-          '"embeddingKnnSimilarity" filter rule: unknown model "gte-768". Supported models: openclip-768, dinov2-1024'
+          '"embeddingKnnSimilarity" filter rule: unknown model "gte-768". Supported models: openclip-768, dinov2-1024, siglip2-768'
         )
       )
     })

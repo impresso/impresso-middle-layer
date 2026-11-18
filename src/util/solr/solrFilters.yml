@@ -339,6 +339,7 @@ indexes:
         field:
           - 'openclip-768:openclip_emb_v768'
           - 'dinov2-1024:dinov2_emb_v1024'
+          - 'siglip2-768:siglip_emb_v768'
         rule: embeddingKnnSimilarity
         scoring: true
         destination: query

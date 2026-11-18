@@ -5,7 +5,6 @@ import { buildResolvers } from '@/internalServices/cachedResolvers.js'
 import type { Filter } from '@/models/index.js'
 import { FindResponse } from '@/models/common.js'
 import type { Topic as ITopic } from '@/models/generated/app/entities.js'
-import type { CachedTopic } from '@/models/generated/app/cache.js'
 import type { Topic as SolrTopic } from '@/models/consolidated/solr/index.js'
 import TopicModel, { SOLR_FL, type TopicLabelFields } from '@/models/topics.model.js'
 import { SolrNamespaces } from '@/solr.js'
@@ -32,8 +31,8 @@ export interface SanitizedParams {
 }
 
 export type TopicResult = ITopic &
-  Partial<TopicLabelFields> &
-  Partial<Pick<CachedTopic, 'relatedTopics'>> & {
+  Partial<TopicLabelFields> & {
+    relatedTopics?: { id: string; w: number; avg?: number }[]
     matches?: string[]
   }
 

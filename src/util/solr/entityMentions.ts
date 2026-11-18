@@ -1,6 +1,6 @@
 import type { SemanticEnrichmentsFields } from '@/models/consolidated/solr/index.js'
 import type { ContentItemMention } from '@/models/generated/app/entities/contentItem.js'
-import { parseDPFS } from './transformers.js'
+import { asList, parseDPFS } from './transformers.js'
 
 const MentionTypes = ['pers', 'loc', 'org', 'pressagency', 'radiostation'] as const
 type MentionType = (typeof MentionTypes)[number]
@@ -12,6 +12,8 @@ export const EntityMentionFields = MentionTypes.flatMap(
       `${type}_mention_surfaces_json_plain`,
       `${type}_mention_offsets_json_plain`,
       `${type}_mention_ner_conf_dpfs`,
+      `${type}_mention_qids_json_plain`,
+      `${type}_aggregate_mention_ids_ss`,
     ] satisfies (keyof SemanticEnrichmentsFields)[]
 )
 
@@ -49,6 +51,12 @@ const getMentions = (doc: Partial<SemanticEnrichmentsFields>, type: MentionType)
     ([surface, confidence]) => ({ surface, confidence: Number(confidence) }),
     [(doc[`${type}_mention_ner_conf_dpfs`] ?? []).join(' ')]
   )
+  const entityIds = asList<string | null>(doc[`${type}_mention_qids_json_plain`])
+  const mentionIds = doc[`${type}_aggregate_mention_ids_ss`]
+  const mentionIdBySurface = new Map<string, string | null>(
+    [...new Set(surfaces)].map((surface, i): [string, string | null] => [surface, mentionIds?.[i] ?? null])
+  )
+
   return surfaces.map((surfaceForm, index) => {
     const offset = offsets[index]
     return {
@@ -56,6 +64,8 @@ const getMentions = (doc: Partial<SemanticEnrichmentsFields>, type: MentionType)
       mentionConfidence: confidences[index]?.confidence,
       startOffset: offset?.[0],
       endOffset: offset == null ? undefined : offset[0] + offset[1],
+      entityId: entityIds?.[index] ?? undefined,
+      id: mentionIdBySurface.get(surfaceForm) ?? undefined,
     }
   })
 }

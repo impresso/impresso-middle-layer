@@ -8,7 +8,7 @@ import {
 } from '@feathersjs/authentication'
 import { getLogger } from '@/logger.js'
 import { LocalStrategy } from '@feathersjs/authentication-local'
-import { NotAuthenticated, BadRequest } from '@feathersjs/errors'
+import { NotAuthenticated, BadRequest, Forbidden } from '@feathersjs/errors'
 import { ServiceOptions } from '@feathersjs/feathers'
 import swagger from 'feathers-swagger'
 import User from '@/models/users.model.js'
@@ -16,7 +16,7 @@ import { docs } from '@/services/authentication/authentication.schema.js'
 import { ImpressoApplication } from '@/types.js'
 import { BufferUserPlanGuest } from '@/models/user-bitmap.model.js'
 import { bigIntToBuffer, bufferToBigInt } from '@/util/bigint.js'
-import type { Sequelize } from 'sequelize'
+import { Op, type Sequelize } from 'sequelize'
 import jwt from 'jsonwebtoken'
 import { RedisClient } from './redis.js'
 import Group from './models/groups.model.js'
@@ -25,6 +25,26 @@ const { createSwaggerServiceOptions } = swagger
 
 const logger = getLogger(['impresso', 'authentication'])
 logger.debug('initialising authentication')
+
+/**
+ * Error code returned when valid credentials are presented for an account
+ * that has not been activated yet (see impresso-middle-layer#799).
+ * The state is only revealed after the credentials have been verified.
+ */
+export const ACCOUNT_PENDING_ACTIVATION = 'ACCOUNT_PENDING_ACTIVATION'
+
+/**
+ * Thrown after valid credentials were provided, but the account is
+ * not active yet (e.g. registration email not confirmed).
+ */
+export class AccountPendingActivationError extends Forbidden {
+  constructor() {
+    super('Account pending activation', {
+      code: ACCOUNT_PENDING_ACTIVATION,
+    })
+  }
+}
+
 /**
  * Using base64 for the bitmap to keep the size
  * of the JWT token as small as possible.
@@ -53,11 +73,35 @@ class CustomisedAuthenticationService extends AuthenticationService {
   }
 }
 
-class HashedPasswordVerifier extends LocalStrategy {
+export class HashedPasswordVerifier extends LocalStrategy {
   app: ImpressoApplication
   constructor(app: ImpressoApplication) {
     super()
     this.app = app
+  }
+  /**
+   * Load the user WITHOUT the `isActive` scope so that the account state can
+   * be checked explicitly in `comparePassword`, after the password has been
+   * verified. This way inactive users receive a dedicated
+   * ACCOUNT_PENDING_ACTIVATION error instead of a generic auth error,
+   * without revealing the account state to callers without valid credentials.
+   */
+  async findEntity(username: string, _params: AuthenticationParams) {
+    if (!username) {
+      throw new NotAuthenticated('Login incorrect')
+    }
+    const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
+    const userModel = User.sequelize(sequelizeClient)
+    const records = await userModel.findAll({
+      where: {
+        [Op.or]: [{ email: username }, { username }, { '$profile.uid$': username }],
+      },
+    })
+    if (!records.length) {
+      throw new NotAuthenticated('Login incorrect')
+    }
+    const record = records[0]
+    return new User(record.toJSON())
   }
   async comparePassword(user: User, password: string) {
     if (!(user instanceof User)) {
@@ -70,6 +114,10 @@ class HashedPasswordVerifier extends LocalStrategy {
     })
     if (!isValid) {
       throw new NotAuthenticated('Login incorrect')
+    }
+    if (!user.isActive) {
+      logger.debug(`_comparePassword: user ${user.id} is not active yet`)
+      throw new AccountPendingActivationError()
     }
     logger.debug(`_comparePassword: password is valid. user:  ${user.id}`)
     // update user lastLogin
@@ -193,7 +241,7 @@ class ImlAppJWTStrategy extends JWTStrategy {
  * Validates the token against the cache, retrieves the user,
  * and deletes the token to prevent reuse (one-time token).
  */
-class MagicLinkJWTStrategy extends JWTStrategy {
+export class MagicLinkJWTStrategy extends JWTStrategy {
   app: ImpressoApplication
   constructor(app: ImpressoApplication) {
     super()
@@ -233,10 +281,13 @@ class MagicLinkJWTStrategy extends JWTStrategy {
       } catch (deleteErr) {
         logger.error('[MagicLinkJWTStrategy] Failed to delete magic link token from cache', { error: deleteErr })
       }
-      // Get user from database
+      // Get user from database. The `isActive` scope is NOT used here so that
+      // the account state can be checked explicitly below: a valid magic link
+      // token is a credential, so revealing the pending-activation state is
+      // safe (see impresso-middle-layer#799).
       const sequelizeClient = this.app.get('sequelizeClient') as Sequelize
       const userModel = User.sequelize(sequelizeClient)
-      const user = await userModel.scope('isActive').findOne({
+      const user = await userModel.findOne({
         where: {
           id: Number(tokenData),
         },
@@ -248,6 +299,13 @@ class MagicLinkJWTStrategy extends JWTStrategy {
         throw new NotAuthenticated('User not found')
       }
 
+      if (!user.get('isActive')) {
+        logger.debug(
+          `[MagicLinkJWTStrategy] User ${user.get('id')} is not active yet, refusing magic link login`
+        )
+        throw new AccountPendingActivationError()
+      }
+
       logger.debug(`[MagicLinkJWTStrategy] User found: ${user.get('email')} id: ${user.get('id')}`)
 
       const { entity } = this.configuration
@@ -257,7 +315,11 @@ class MagicLinkJWTStrategy extends JWTStrategy {
         [entity]: await this.getEntity(String(user.get('id')), params),
       } as any
     } catch (error) {
-      if (error instanceof NotAuthenticated || error instanceof BadRequest) {
+      if (
+        error instanceof NotAuthenticated ||
+        error instanceof BadRequest ||
+        error instanceof AccountPendingActivationError
+      ) {
         throw error
       }
       logger.error('[MagicLinkJWTStrategy] Token verification failed', { error })

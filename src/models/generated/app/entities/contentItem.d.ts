@@ -270,6 +270,14 @@ export interface ContentItemNamedEntity {
  */
 export interface ContentItemMention {
   /**
+   * The unique identifier of the entity mention
+   */
+  id?: string;
+  /**
+   * The unique identifier of the entity
+   */
+  entityId?: string;
+  /**
    * The surface form (label) of the entity mention
    */
   surfaceForm?: string;
@@ -817,6 +825,14 @@ export interface IIIFContentItemPageDetails {
  */
 export interface ContentItemMention {
   /**
+   * The unique identifier of the entity mention
+   */
+  id?: string;
+  /**
+   * The unique identifier of the entity
+   */
+  entityId?: string;
+  /**
    * The surface form (label) of the entity mention
    */
   surfaceForm?: string;
@@ -1007,6 +1023,14 @@ export interface ContentItemNamedEntity {
  * Content item mention
  */
 export interface ContentItemMention {
+  /**
+   * The unique identifier of the entity mention
+   */
+  id?: string;
+  /**
+   * The unique identifier of the entity
+   */
+  entityId?: string;
   /**
    * The surface form (label) of the entity mention
    */
