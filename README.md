@@ -6,7 +6,7 @@ The server is built with Feathers 5, TypeScript, and ESM. It integrates with MyS
 
 ## Requirements
 
-- Node.js 20 or later
+- Node.js 24 or later
 - npm
 - Redis
 - Reachable MySQL and Solr instances with the required Impresso data and credentials
@@ -28,17 +28,18 @@ Configure the database, Solr, authentication, IIIF, and any enabled external ser
 The committed development configuration requires at least these variables:
 
 ```text
-AUTH_SECRET
+AUTH_SECRET_IML
+DB_HOSTNAME
+DB_DATABASE
 DB_USERNAME
 DB_PASSWORD
+SOLR_BASE_URL
 SOLR_READER_USERNAME
 SOLR_READER_PASSWORD
 SOLR_WRITER_USERNAME
 SOLR_WRITER_PASSWORD
-IIIF_LORS_USERNAME
-IIIF_LORS_PASSWORD
-IIIF_CANTALOUPE_USERNAME
-IIIF_CANTALOUPE_PASSWORD
+IIIF_SERVER_USERNAME
+IIIF_SERVER_PASSWORD
 ```
 
 ## Run locally
@@ -65,7 +66,7 @@ The API mode is selected by the `isPublicApi` configuration value.
 
 - When `isPublicApi` is `false` or unset, the internal API is loaded and Socket.IO is enabled.
 - When `isPublicApi` is `true`, the public API service surface is loaded, REST and CORS are enabled, and requests and responses are validated against the OpenAPI specification.
-- The supplied `config/development.json` currently enables public API mode.
+- The committed configurations do not set `isPublicApi`, so they load the internal API.
 
 Swagger UI and the OpenAPI document are available only in public API mode at `/docs` and `/swagger.json`, respectively. The public configuration should use a distinct JWT audience, suitable expiry, disabled cookie authentication, and rate-limit settings appropriate to its clients. Configure `imlAuthConfiguration` when the public API must validate tokens issued by the Impresso web application.
 
@@ -88,10 +89,9 @@ The container exposes port `3030`. Supply required environment variables and pro
 `docker-compose.yml` provides:
 
 - Redis on `localhost:6379`, with persistent data under `docker/redis`.
-- An optional SOCKS proxy on `localhost:1080`, configured with files under `docker/config/ssh`.
 - An optional application service enabled with `docker-compose --profile iml up`.
 
-Compose does not provision MySQL or Solr; configure reachable external instances. To use the SOCKS proxy, provide an SSH configuration under `docker/config/ssh` with a `socks-proxy` host entry.
+Compose does not provision MySQL or Solr; configure reachable external instances.
 
 ## Development commands
 
@@ -123,8 +123,24 @@ npm run generate-types
 # Validate the public OpenAPI document from a running local server
 npm run lint-api-spec
 
-# Run administrative CLI commands
-npm run cli
+# Inspect well-known cache entries, e.g. `npm run read-cache -- topics`
+npm run read-cache
+
+# Rebuild a well-known cache entry, e.g. `npm run write-cache -- years`
+# (add --force to replace an existing entry)
+npm run write-cache
+
+# Find the user who started a search export, from the export file name
+npm run find-export-user
+
+# Benchmark the redaction pipeline
+npm run benchmark:redaction
+
+# Run the app with the Bun runtime (requires bun)
+npm run bun-run
+
+# Run the test suite with the Bun runtime (requires bun)
+npm run bun-test
 ```
 
 Integration tests may require configured external dependencies. Generated schema declarations are written under `src/models/generated/`.
@@ -152,7 +168,7 @@ Adding an indexed Solr field generally requires coordinated changes in:
 1. The filter definition in `impresso-jscommons`, including a unique filter ID.
 2. `SolrMappings` in `src/data/constants.ts`.
 3. `src/util/solr/solrFilters.yml`, which maps filters to Solr filter-statement builders.
-4. Optionally, `src/util/solr/stats.yml` for statistics data points used by charts and graphs.
+4. Optionally, `src/data/stats.yml` for statistics data points used by charts and graphs.
 
 There are several configuration options that should be set differently in Public API:
 
@@ -210,7 +226,7 @@ IMPRESSO_SOCKS_PROXY_CONFIG='{ "host": "localhost", "port": 1080, "domains": ["d
 
 ```
 
-## Downloading audit logs as a parnter institution
+## Downloading audit logs as a partner institution
 
 To get the zip archive with *parquet* files run:
 
@@ -230,6 +246,10 @@ For more information on all the things you can do with Feathers visit [docs.feat
 **1.0.0**
 
 - Public release
+
+**3.4.0**
+
+- Current version, see `package.json`. Releases are tagged in the git history.
 
 ## Project
 
