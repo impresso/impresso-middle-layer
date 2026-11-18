@@ -6,7 +6,9 @@ import {
   unigramTrendsRequestToTotalTokensSolrQuery,
   getNumbersFromTotalTokensResponse,
 } from '@/services/ngram-trends/logic/solrQuery'
+import hooks from '@/services/ngram-trends/ngram-trends.hooks'
 import { SupportedLanguageCodes } from '@/models/solr'
+import { normalizeUnigrams } from '@/services/ngram-trends/ngram-trends.hooks'
 
 describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
   it('builds expected payload', () => {
@@ -31,6 +33,27 @@ describe('"ngram-trengs" logic -> unigramTrendsRequestToSolrQuery', () => {
     }
 
     assert.deepEqual(payload, expectedPayload)
+  })
+
+  it('escapes single quotes and backslashes in the unigram', () => {
+    const payload = unigramTrendsRequestToSolrQuery("l'homme\\", null)
+    const statsFields = payload.params['stats.field']
+
+    assert.equal(statsFields.length, SupportedLanguageCodes.length + 1)
+    statsFields.forEach(field => assert.ok(field.endsWith(`,'l\\'homme\\\\')`), field))
+  })
+})
+
+describe('"ngram-trends" hooks -> request validation', () => {
+  const validateRequest = hooks.before.create[1]
+  const ngrams = count => Array.from({ length: count }, (_, index) => `term${index}`)
+
+  it('accepts 10 ngrams', () => {
+    assert.doesNotThrow(() => validateRequest({ data: { ngrams: ngrams(10), filters: [] } }))
+  })
+
+  it('rejects more than 10 ngrams', () => {
+    assert.throws(() => validateRequest({ data: { ngrams: ngrams(11), filters: [] } }), { name: 'BadRequest' })
   })
 })
 
@@ -190,6 +213,23 @@ describe('"ngram-trends" logic -> guessTimeIntervalFromFilters', () => {
 
     assert.equal(timeInterval, 'year')
   })
+  it('guesses from the numerically shortest time filter range', async () => {
+    const filters = [
+      {
+        type: 'daterange',
+        q: ['1900-01-01T00:00:00Z TO 1910-06-01T00:00:00Z'],
+        op: 'OR',
+      },
+      {
+        type: 'daterange',
+        q: ['1900-01-01T00:00:00Z TO 1903-06-01T00:00:00Z'],
+        op: 'OR',
+      },
+    ]
+    const timeInterval = guessTimeIntervalFromFilters(filters)
+
+    assert.equal(timeInterval, 'month')
+  })
   it('guesses "year" from a filters without a daterange filter', async () => {
     const filters = []
     const timeInterval = guessTimeIntervalFromFilters(filters)
@@ -275,4 +315,22 @@ describe('getNumbersFromTotalTokensResponse', () => {
     const numbers = getNumbersFromTotalTokensResponse(response, 'year')
     assert.deepEqual(numbers, expectedNumbers)
   })
+})
+
+describe('"ngram-trends" hooks -> normalizeUnigrams', () => {
+  const run = ngrams => normalizeUnigrams('data.ngrams')({ data: { ngrams } }).data.ngrams
+
+  it('trims surrounding whitespace', () => {
+    assert.deepEqual(run([' foo', 'bar ', '\tbaz\n', '\u00A0qux\u00A0', 'plain']), ['foo', 'bar', 'baz', 'qux', 'plain'])
+  })
+  for (const term of ['foo bar', 'foo\tbar', 'foo\nbar', 'foo\u00A0bar', ' foo bar ']) {
+    it(`rejects ${JSON.stringify(term)} as a multigram`, () => {
+      assert.throws(() => run([term]), /Only unigrams are supported/)
+    })
+  }
+  for (const term of ['', '   ', '\u00A0']) {
+    it(`rejects ${JSON.stringify(term)} as empty`, () => {
+      assert.throws(() => run([term]), /must not be empty/)
+    })
+  }
 })

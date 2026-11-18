@@ -66,3 +66,19 @@ export const inPublicApiOrWhen = <S = Service>(
 export const inWebAppApi = <S = Service>(functions: ImpressoAppHookFunction<S>[]) => {
   return hooksApplicator<S>(asContextCondition(app => app.get('isPublicApi') != true))(functions)
 }
+
+/**
+ * Hooks to apply only in the webapp API, unless the exclusion condition is met.
+ * Counterpart of `inPublicApiOrWhen`: use the same condition in both to make
+ * a call behave exactly as it would in the public API.
+ * @param functions Array of hook functions to apply only in the webapp API.
+ * @param exclusionCondition When met, the hooks are skipped even in the webapp API.
+ */
+export const inWebAppApiUnless = <S = Service>(
+  functions: ImpressoAppHookFunction<S>[],
+  exclusionCondition: ContextCondtition<S>
+) => {
+  return hooksApplicator<S>(context => context.app.get('isPublicApi') != true && !exclusionCondition(context))(
+    functions
+  )
+}

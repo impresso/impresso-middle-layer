@@ -1,3 +1,4 @@
+import { BadRequest } from '@feathersjs/errors'
 import { ImpressoImageEmbeddingRequest, ImpressoTextEmbeddingRequest } from '@/models/generated/app/requests.js'
 import { ImpressoEmbeddingResponse } from '@/models/generated/app/responses.js'
 import { IFetchClient } from '@/utils/http/client/base.js'
@@ -50,25 +51,76 @@ const downstreamResponseToEmbeddingResponseBuilder =
     embedding: vectorToCanonicalEmbedding(data.embedding, model),
   })
 
+type ImageSearchTarget = ImpressoImageEmbeddingRequest['searchTarget']
+type ImageModel = NonNullable<ImpressoImageEmbeddingRequest['model']>
+type TextModel = NonNullable<ImpressoTextEmbeddingRequest['model']>
+type MultimodalModel = Extract<ImageModel, TextModel>
+
+/**
+ * Downstream (annotation service) endpoint paths for image embedding models.
+ */
+const ImageModelEndpoints = {
+  'dinov2-1024': '/dinov2/',
+  'openclip-768': '/openclip-image/',
+  'siglip2-768': '/siglip2-image/',
+} satisfies Record<ImageModel, string>
+
+/**
+ * Downstream (annotation service) endpoint paths for multimodal text embedding models.
+ */
+const MultimodalTextModelEndpoints = {
+  'openclip-768': '/openclip-text/',
+  'siglip2-768': '/siglip2-text/',
+} satisfies Record<MultimodalModel, string>
+
+/**
+ * Models available for each image search target. The first model is the default.
+ */
+const ImageSearchTargetModels = {
+  image: ['dinov2-1024'],
+  multimodal: ['openclip-768', 'siglip2-768'],
+} satisfies Record<ImageSearchTarget, [ImageModel, ...ImageModel[]]>
+
+/**
+ * Multimodal models available for text embeddings. The first model is the default.
+ */
+const MultimodalTextModels = ['openclip-768', 'siglip2-768'] satisfies [MultimodalModel, ...MultimodalModel[]]
+
+/**
+ * Resolves the model to use: the requested one if it is supported, or the default (first) one.
+ * Throws `BadRequest` if the requested model is not supported for the search target.
+ */
+const resolveModel = <M extends string>(
+  searchTarget: string,
+  supportedModels: readonly [M, ...M[]],
+  requestedModel?: string
+): M => {
+  if (requestedModel == null) return supportedModels[0]
+  const model = supportedModels.find(m => m === requestedModel)
+  if (model == null) {
+    throw new BadRequest(
+      `Model "${requestedModel}" is not supported for search target "${searchTarget}". Supported models: ${supportedModels.join(', ')}`
+    )
+  }
+  return model
+}
+
 export class ImpressoImageEmbeddingService {
   private readonly client: IFetchClient
 
-  constructor(public options: { baseUrl: string }) {
-    this.client = createFetchClient({})
+  constructor(public options: { baseUrl: string; client?: IFetchClient }) {
+    this.client = options.client ?? createFetchClient({})
   }
 
   async create(data: ImpressoImageEmbeddingRequest): Promise<ImpressoEmbeddingResponse> {
-    if (data.searchTarget === 'image') {
-      const url = `${this.options.baseUrl}/dinov2/`
-      const body = imageToDownstreamImageRequest(data)
-      return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder('dinov2-1024'))
-    } else if (data.searchTarget === 'multimodal') {
-      const url = `${this.options.baseUrl}/openclip-image/`
-      const body = imageToDownstreamImageRequest(data)
-      return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder('openclip-768'))
-    } else {
-      throw new Error(`Unknown search target: ${data.searchTarget}`)
-    }
+    const supportedModels: readonly [ImageModel, ...ImageModel[]] | undefined =
+      ImageSearchTargetModels[data.searchTarget]
+    if (supportedModels == null) throw new BadRequest(`Unknown search target: ${data.searchTarget}`)
+
+    const model = resolveModel(data.searchTarget, supportedModels, data.model)
+    const url = `${this.options.baseUrl}${ImageModelEndpoints[model]}`
+    const body = imageToDownstreamImageRequest(data)
+    return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder(model))
   }
 }
 
@@ -76,23 +128,27 @@ export class ImpressoTextEmbeddingService {
   private readonly client: IFetchClient
   private readonly embeddingsConfig?: EmbeddingsConfig
 
-  constructor(public options: { baseUrl: string; embeddingsConfig?: EmbeddingsConfig }) {
-    this.client = createFetchClient({})
+  constructor(public options: { baseUrl: string; embeddingsConfig?: EmbeddingsConfig; client?: IFetchClient }) {
+    this.client = options.client ?? createFetchClient({})
     this.embeddingsConfig = options.embeddingsConfig
   }
 
   async create(data: ImpressoTextEmbeddingRequest): Promise<ImpressoEmbeddingResponse> {
-    if (data.searchTarget === 'multimodal') {
-      const url = `${this.options.baseUrl}/openclip-text/`
+    const { searchTarget } = data
+    if (searchTarget === 'multimodal') {
+      const model = resolveModel(searchTarget, MultimodalTextModels, data.model)
+      const url = `${this.options.baseUrl}${MultimodalTextModelEndpoints[model]}`
       const body = textToDownstreamTextRequest(data)
-      return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder('openclip-768'))
-    } else if (data.searchTarget === 'text') {
+      return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder(model))
+    } else if (searchTarget === 'text') {
+      const configuredTag = this.embeddingsConfig?.textEmbeddings?.tag ?? DefaultTextEmbeddingsConfig.tag
+      // Only the configured text model is supported: its vectors are the ones indexed in Solr.
+      const modelTag = resolveModel(searchTarget, [configuredTag], data.model)
       const url = `${this.options.baseUrl}/text-embedder/`
-      const modelTag = this.embeddingsConfig?.textEmbeddings?.tag ?? DefaultTextEmbeddingsConfig.tag
       const body = textToDownstreamTextRequest(data, modelTag)
       return sendDownstreamRequest(this.client, url, body, downstreamResponseToEmbeddingResponseBuilder(modelTag))
     } else {
-      throw new Error(`Unknown search target: ${data.searchTarget}`)
+      throw new BadRequest(`Unknown search target: ${searchTarget}`)
     }
   }
 }
