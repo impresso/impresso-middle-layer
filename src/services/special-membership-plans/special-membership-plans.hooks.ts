@@ -41,6 +41,34 @@ export const validateBitmapPositionsQuery = () => async (context: HookContext) =
   return context
 }
 
+// Normalizes the `asReviewer` query parameter into a boolean. Must run before
+// `queryWithCommonParams`, which rebuilds `params.query` from `params.sanitized`.
+export const validateAsReviewerQuery = () => async (context: HookContext) => {
+  const asReviewer = context.params?.query?.asReviewer
+
+  if (asReviewer == null) {
+    return context
+  }
+
+  const raw = String(asReviewer)
+  let normalized: boolean
+  if (raw === 'true' || raw === '1') {
+    normalized = true
+  } else if (raw === 'false' || raw === '0') {
+    normalized = false
+  } else {
+    throw new BadRequest('`asReviewer` must be a boolean ("true" or "false")')
+  }
+
+  if (!context.params.sanitized) {
+    context.params.sanitized = {}
+  }
+
+  context.params.sanitized.asReviewer = normalized
+
+  return context
+}
+
 // Validates patch payload against the `SpecialMembershipAccessMetadata` shape defined in the model.
 export const validatePatchMetadata = () => async (context: HookContext) => {
   const data = (context.data ?? {}) as { metadata?: SpecialMembershipAccessMetadata }
@@ -102,7 +130,7 @@ export default {
     all: [authenticate({ allowUnauthenticated: true })],
   },
   before: {
-    find: [validateBitmapPositionsQuery(), queryWithCommonParams()],
+    find: [validateBitmapPositionsQuery(), validateAsReviewerQuery(), queryWithCommonParams()],
     patch: [validatePatchMetadata()],
   },
 }

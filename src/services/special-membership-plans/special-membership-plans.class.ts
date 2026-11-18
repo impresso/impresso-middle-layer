@@ -13,6 +13,11 @@ export interface FindQuery {
   limit?: number
   offset?: number
   bitmapPositions?: number[]
+  /**
+   * When true, only plans where the authenticated user is the reviewer
+   * (`reviewerId`) are returned. Requires authentication.
+   */
+  asReviewer?: boolean
 }
 export type FindResult = FindResponse<SpecialMembershipAccess>
 type SpecialMembershipAccessPatchData = {
@@ -42,9 +47,9 @@ export class SpecialMembershipPlansService implements ISpecialMembershipPlansSer
   }
 
   async find(params?: { query?: FindQuery; user?: SlimUser }): Promise<FindResult> {
-    const { limit = 10, offset = 0, bitmapPositions } = params?.query ?? {}
+    const { limit = 10, offset = 0, bitmapPositions, asReviewer } = params?.query ?? {}
     const userId = params?.user?.id
-    const where =
+    const bitmapPositionsFilter =
       Array.isArray(bitmapPositions) && bitmapPositions.length > 0
         ? {
             bitmapPosition: {
@@ -54,10 +59,13 @@ export class SpecialMembershipPlansService implements ISpecialMembershipPlansSer
         : undefined
 
     if (!userId || isNaN(userId)) {
+      if (asReviewer === true) {
+        throw new NotAuthenticated('Authentication required')
+      }
       const { rows, count: total } = await this.accessModel.findAndCountAll({
         limit,
         offset,
-        where,
+        where: bitmapPositionsFilter,
         // include: ['requests'],
       })
       return {
@@ -65,6 +73,14 @@ export class SpecialMembershipPlansService implements ISpecialMembershipPlansSer
         data: rows.map(row => row.toJSON() as SpecialMembershipAccess),
       }
     }
+
+    const where =
+      bitmapPositionsFilter != null || asReviewer === true
+        ? {
+            ...bitmapPositionsFilter,
+            ...(asReviewer === true ? { reviewerId: userId } : {}),
+          }
+        : undefined
 
     const { rows, count: total } = await this.accessModel.findAndCountAll({
       limit,

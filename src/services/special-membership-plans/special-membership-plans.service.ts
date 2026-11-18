@@ -5,6 +5,7 @@ import hooks from '@/services/special-membership-plans/special-membership-plans.
 
 export {
   validateBitmapPositionsQuery,
+  validateAsReviewerQuery,
   validatePatchMetadata,
 } from '@/services/special-membership-plans/special-membership-plans.hooks.js'
 
