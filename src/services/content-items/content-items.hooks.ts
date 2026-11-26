@@ -62,6 +62,7 @@ type OrderBy =
   | 'hasTextContents'
   | 'ocrQuality'
   | 'topicRelevance'
+  | 'readingOrder'
 type ReverseOrderBy = `-${OrderBy}`
 type FullOrderBy = OrderBy | ReverseOrderBy
 
@@ -75,6 +76,7 @@ const OrderByChoices: OrderBy[] = [
   'hasTextContents',
   'ocrQuality',
   'topicRelevance',
+  'readingOrder',
 ]
 const FullOrderByChoices: FullOrderBy[] = [...OrderByChoices, ...OrderByChoices.map(o => `-${o}`)] as FullOrderBy[]
 

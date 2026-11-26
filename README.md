@@ -60,6 +60,14 @@ NODE_ENV=production npm start
 
 `make run-dev` is an optional wrapper around `npm run dev` that also exposes Git revision metadata to the process.
 
+### Debug with VS Code
+
+Launch configurations are committed in `.vscode/launch.json`:
+
+- **Start internal API** runs `tsx --env-file=.env --watch src/index.ts` — the same command as `npm run dev` — with the debugger attached. `runtimeVersion: "26"` makes VS Code start Node 26 through a Node version manager (`nvm`, `nvs`, or `fnm`); install that version locally, or remove the setting to use the default `node`.
+- **🍞 Bun run: Internal API** and **🍞 Bun run: API** run the same entrypoint with the Bun runtime and require the Bun debug extension.
+- **Start public API** is currently equivalent to the internal API launch: its `HOST` environment variable is not read by the application, and `isPublicApi` is never set (see [API modes](#api-modes)).
+
 ## API modes
 
 The API mode is selected by the `isPublicApi` configuration value.

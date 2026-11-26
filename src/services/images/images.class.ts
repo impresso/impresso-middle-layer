@@ -23,6 +23,8 @@ export const ImageSimilarityVectorField: keyof ImageDocument = 'dinov2_emb_v1024
 const OrderByParamToSolrFieldMap = {
   date: 'meta_date_dt asc',
   '-date': 'meta_date_dt desc',
+  readingOrder: 'reading_order_i asc',
+  '-readingOrder': 'reading_order_i desc',
 }
 type OrderByParam = keyof typeof OrderByParamToSolrFieldMap
 export const OrderByChoices: OrderByParam[] = Object.keys(OrderByParamToSolrFieldMap) as OrderByParam[]
