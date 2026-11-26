@@ -320,6 +320,7 @@ const searchSolrMappings = {
     id: 'id',
     ocrQuality: 'ocrqa_f',
     topicRelevance: '$topicRelevanceScore',
+    readingOrder: 'reading_order_i',
   },
   groupBy: {
     issues: 'meta_issue_id_s',

@@ -93,7 +93,7 @@ const paramsValidator = {
       }
       return d
     },
-    choices: ['-date', 'date', '-relevance', 'relevance', 'id', '-id'],
+    choices: ['-date', 'date', '-relevance', 'relevance', 'id', '-id', 'readingOrder', '-readingOrder'],
     transform: (d: string) => utils.toOrderBy(d, SolrMappings.search.orderBy, true),
     after: (d: string | string[]) => {
       if (Array.isArray(d)) {

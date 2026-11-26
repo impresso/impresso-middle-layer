@@ -39,7 +39,7 @@ const findParameters: MethodParameter[] = [
     required: false,
     schema: {
       type: 'string',
-      enum: ['-date', 'date', '-relevance', 'relevance'],
+      enum: ['-date', 'date', '-relevance', 'relevance', 'readingOrder', '-readingOrder'],
     },
     description: 'Order by term',
   },
